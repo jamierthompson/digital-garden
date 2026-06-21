@@ -33,7 +33,6 @@ Guardrails are cheap when empty and rot if deferred `[D17]`._
 
 - [ ] Create the Next.js 16.2 app (App Router, Turbopack default), React 19; deploy to Vercel with full SSR/RSC (§7)
 - [ ] **Enable `cacheComponents` app-wide** — commit to the prerendered-shell + streaming model now; it's an app-wide rendering change, not a per-surface sprinkle (§7) `[D11]`
-- [ ] Add `proxy.ts` (replaces `middleware.ts`, Node runtime only); treat Request APIs as async (§7)
 - [√] Lock styling baseline: CSS custom properties only — no Tailwind, no JSON tokens, no Style Dictionary (§7)
 - [ ] Author the **invariant tier** at `:root`: spacing ramp, motion curves, breakpoints (build constants, not `@media` vars `[D22]`), z-index scale, type-scale ratios, focus-ring **geometry**, reset, semantic-color **slots** (§3.1) `[D1, D8]`
 - [ ] Emit the bare `@layer foundation, brand, project;` order statement in a global sheet loaded first (§3.1) `[D12]`
@@ -128,6 +127,7 @@ showcase can't, which is why oklch-engine moves to Phase 4._
 - [ ] **`generateMetadata` per route** (SEO/OG) `[D19]`
 - [ ] Theme the shell island through `ProjectScope` with `slug="garden"`; build home, about, `/now` — _separate commits each_ (§2, §3.1, §6) `[D17]`
 - [ ] Add an RSS route handler — _own commit_; enable Sanity draft mode / visual editing — _own commit_ (§7) `[D17]`
+- [ ] Add `proxy.ts` (replaces `middleware.ts`, Node runtime only; treat Request APIs as async) — deferred from Phase 0 until there is real request logic to host, which draft mode is (§7)
 - [ ] Note rendering: notes stay lightweight (shell + shared), pulling a demo bundle only when a note explicitly embeds one (§6)
 - [ ] **Co-located test:** one integration/E2E of the primary flow
 
