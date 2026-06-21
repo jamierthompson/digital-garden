@@ -40,7 +40,7 @@ Guardrails are cheap when empty and rot if deferred `[D17]`._
 - [ ] **Boundary lints** (stood up empty): no project→project, no shared→project; plus the `src/lib/oklch/` isomorphism boundary forbidding `next/*`/`react`/DOM/Node (§3.2, §7) `[D14]`
 - [ ] **`@layer`-declaration lint**: every CSS Module declares its layer or stays strictly var-consuming (§3.1) `[D12]`
 - [ ] **Key-drift CI check** (stubbed now, live in Phase 2): keys.ts ↔ resolvers (§4.2) `[D10]`
-- [ ] Bootstrap Sanity; wire the TypeGen + `defineQuery` pipeline, with a CI `git diff --exit-code` on generated types (§6, §7)
+- [ ] Bootstrap Sanity as a **standalone Studio** in `studio/` (a pnpm workspace package, not embedded) `[D23]`; wire the TypeGen + `defineQuery` pipeline (configured in `studio/sanity.cli.ts`, emits `sanity.types.ts`), with a CI `git diff --exit-code` on generated types (§6, §7)
 - [ ] Build a bare shell layout: root layout + nav skeleton (unthemed placeholder); declare the 1–2 shell fonts `preload: true` here (§2, §5) `[D11]`
 
 **Exit:** app deploys on Vercel; `cacheComponents` on; CI + boundary + `@layer` + key-drift

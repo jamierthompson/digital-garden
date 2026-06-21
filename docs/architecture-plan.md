@@ -442,8 +442,10 @@ Practical notes:
   reference-by-key pair is split: a tiny `keys.ts` of string constants (imported by the schema
   to build its dropdown) and a separate resolver in the app — `projects/registry.ts`,
   `fonts/roster.ts`, `embeds/registry.ts` — which the Studio never imports. This keeps
-  `next/font` and lazy project bundles out of the Studio bundle. See §4.2 for the typed-
-  resolver + fallback discipline that makes the soft foreign key safe.
+  `next/font` and lazy project bundles out of the Studio bundle. With the **standalone Studio**
+  `[D23]` this separation is structural (different workspace package), but `keys.ts` must then
+  live in a **shared workspace package** both consume — not duplicated (Phase 2). See §4.2 for
+  the typed-resolver + fallback discipline that makes the soft foreign key safe.
 - **Embeds: generic `liveEmbed` by default; a typed block only for editorial content**
   `[D15]`. A `liveEmbed` block stores an `embedKey` + a caption — use it whenever the only
   authored inputs are key + caption (the demo and the majority of in-essay embeds; adding one
@@ -502,11 +504,14 @@ Practical notes:
   `unstable_catchError` around `ProjectScope`. A caught error would also render _unthemed_,
   which is the wrong response to a data-quality problem — hence "validate + fall back," not
   "let it throw and catch."
-- **One Next.js app**, no workspace and no packages. Project code lives under
-  `src/projects/*`; shared bits live in shared `src/` modules. Boundaries are **lint-import
-  rules enforced from Phase 0** (a project can't import another project; shared can't import a
-  project), plus the `src/lib/oklch/` isomorphism boundary (§3.2) and the every-CSS-module-
-  declares-its-`@layer` rule (§3.1).
+- **One Next.js app for the site; the Sanity Studio is a separate workspace package** `[D23]`.
+  The repo is a two-member pnpm workspace: the Next app at the root and a **standalone Sanity
+  Studio in `studio/`** (Vite-based, auto-updating, TypeGen watch mode). The _site_ is still a
+  single app with no project sub-packages — project code lives under `src/projects/*`; shared
+  bits live in shared `src/` modules. Boundaries are **lint-import rules enforced from Phase 0**
+  (a project can't import another project; shared can't import a project), plus the
+  `src/lib/oklch/` isomorphism boundary (§3.2) and the every-CSS-module-declares-its-`@layer`
+  rule (§3.1).
 - The site runs on **Vercel** with full SSR / RSC. The old log-explorer used `output: "export"`
   only to host free on Render — _not_ carried forward. This unlocks server-rendered flash-free
   per-scope OKLCH `<style>` blocks, Sanity draft mode / visual editing, an RSS route handler, a
