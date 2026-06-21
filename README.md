@@ -1,59 +1,94 @@
 # Digital Garden
 
-A personal portfolio and digital garden — a place to grow notes, ideas, and
-work over time. Built with the Next.js App Router and styled with CSS Modules
-and CSS custom properties.
+A personal portfolio and digital garden — a place to grow notes, ideas, and work
+over time. Each project is a self-contained, independently themed module: its own
+brand color (a perceptual OKLCH palette) and font, composed on a shared invariant
+foundation. Content and brand seeds live in Sanity; the site renders on Next.js.
+
+> Status: **Phase 0 complete** — scaffolding, styling foundation, content backend,
+> and the enforced guardrails are in place. See [`docs/`](./docs) for the
+> architecture plan, build phases, and decision log.
 
 ## Tech stack
 
-- **Framework:** [Next.js 16](https://nextjs.org/) (App Router) + React 19
+- **Framework:** [Next.js 16](https://nextjs.org/) (App Router, Turbopack, Cache
+  Components) + React 19
 - **Language:** TypeScript
-- **Styling:** CSS Modules + CSS custom properties
+- **Styling:** CSS custom properties + CSS Modules, organized with `@layer`
+- **Content:** [Sanity](https://www.sanity.io/) — a standalone Studio in
+  [`studio/`](./studio), with typed GROQ via Sanity TypeGen
 - **Testing:** [Vitest](https://vitest.dev/) + React Testing Library
-- **Linting/formatting:** ESLint (`eslint-config-next`) + Prettier
-- **Package manager:** [pnpm](https://pnpm.io/)
+- **Linting/formatting:** ESLint (`eslint-config-next` + `eslint-plugin-boundaries`)
+  - Prettier
+- **Hosting:** [Vercel](https://vercel.com/)
+- **Package manager:** [pnpm](https://pnpm.io/) (workspace: the Next app + the Studio)
 
 ## Getting started
 
 ```bash
-pnpm install      # install dependencies
-pnpm dev          # start the dev server at http://localhost:3000
+pnpm install                 # install both workspace packages (app + studio)
+cp .env.example .env.local   # then fill in the Sanity values
+pnpm dev                     # Next app at http://localhost:3000
+pnpm --filter studio dev     # Sanity Studio at http://localhost:3333
 ```
 
-### Other scripts
+`.env.local` needs the (public) Sanity project values:
 
 ```bash
-pnpm build         # production build
-pnpm start         # serve the production build
-pnpm lint          # run ESLint
-pnpm format        # format all files with Prettier
-pnpm format:check  # check formatting without writing
-pnpm test          # run the test suite once
-pnpm test:watch    # run tests in watch mode
+NEXT_PUBLIC_SANITY_PROJECT_ID=your-project-id
+NEXT_PUBLIC_SANITY_DATASET=production
+NEXT_PUBLIC_SANITY_API_VERSION=2026-06-21
 ```
+
+### Scripts
+
+```bash
+pnpm build                   # production build
+pnpm lint                    # ESLint (incl. architectural import boundaries)
+pnpm lint:css                # assert every CSS Module declares its @layer
+pnpm lint:keys               # key-drift guard (stub until Phase 2)
+pnpm typecheck               # tsc --noEmit
+pnpm test                    # run the test suite once
+pnpm format / format:check   # Prettier write / check
+pnpm --filter studio typegen # regenerate sanity.types.ts from the schema
+```
+
+CI runs all of the above (plus a TypeGen drift check) on every PR.
 
 ## Styling approach
 
-Styling is split into two layers:
+Three tiers, so only what actually varies per project is scoped:
 
-- **`src/app/globals.css`** — global reset plus CSS custom properties
-  (e.g. `--background`, `--foreground`) that act as shared design tokens.
-- **`*.module.css`** — component-scoped CSS Modules that consume those
-  variables, keeping class names local and styles colocated with components.
+- **Invariant foundation** (`src/app/foundation.css`, global `:root`) — spacing,
+  type scale, motion, z-index, focus-ring geometry, the reset. Loaded first, and it
+  declares the `@layer foundation, brand, project;` order.
+- **Brand + font** (per-project scope, engine-driven) — the OKLCH color ramp and the
+  resolved font face. _Arrives in Phase 1._
+- **Feel/geometry** (per-project scope override) — radius, border weight, etc.
+
+Every CSS Module wraps its rules in an `@layer` (lint-enforced), because Next does
+not auto-layer modules and an unlayered one would silently outrank layered styles.
 
 ## Project structure
 
 ```
 src/
-  app/                # App Router: routes, layouts, global styles
-    layout.tsx        # root layout (fonts, metadata)
-    page.tsx          # home page
-    page.module.css   # home page styles (CSS Module)
-    globals.css       # global reset + CSS custom properties
-tests/
-  setup.ts            # Testing Library matcher registration
-  unit/               # unit/component tests
+  app/                  # App Router: routes, layouts, global styles
+    layout.tsx          # root layout (shell nav skeleton, shell fonts)
+    page.tsx            # home (placeholder)
+    foundation.css      # invariant :root tier + @layer order + reset
+    globals.css         # placeholder shell styles
+  lib/
+    breakpoints.ts      # build-time breakpoint constants (not :root vars)
+  sanity/
+    lib/                # Sanity client + env (data fetching)
+studio/                 # standalone Sanity Studio (pnpm workspace package)
+scripts/                # CI guardrail scripts (@layer lint, key-drift)
+sanity.types.ts         # generated by Sanity TypeGen
+tests/                  # Vitest + Testing Library
+docs/                   # architecture plan, build phases, decisions, audit
 ```
 
-Shared folders (`components/`, `lib/`, `services/`, `hooks/`, `types/`) will be
-added under `src/` as the app grows.
+Project modules (`src/projects/*`), shared primitives, the OKLCH engine
+(`src/lib/oklch/`), and resolvers land in later phases — import boundaries already
+guard them.

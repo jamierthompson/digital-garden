@@ -1,0 +1,101 @@
+/* Invariant foundation tier (global, house-style, non-themeable) — [D1].
+   Loaded before every other sheet so the cascade-layer order is established first. */
+
+/* Cascade order: foundation < brand < project. Declaring it up front means later
+   sheets slot into named layers instead of fighting source order / specificity [D12].
+   Every CSS Module must opt into one of these layers (or stay var-consuming). */
+@layer foundation, brand, project;
+
+:root {
+  /* Spacing ramp (rem-based, 0.25rem step) */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+
+  /* Type scale (modular, 1.25 major third on a 1rem base) */
+  --type-ratio: 1.25;
+  --text-sm: 0.8rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+  --text-2xl: 1.9531rem;
+  --text-3xl: 2.4414rem;
+  --text-4xl: 3.0518rem;
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-loose: 1.75;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+
+  /* Z-index scale */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-popover: 500;
+  --z-toast: 600;
+
+  /* Focus-ring geometry only — color is an engine token, scoped per island [D7] */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-style: solid;
+
+  /* Semantic-color slots reserved for success/error/warning/info — fixed signal
+     colors, seeded independently (NOT brand-derived), built when the first
+     status-bearing UI lands [D8]. */
+}
+
+@layer foundation {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    min-height: 100%;
+    line-height: var(--leading-normal);
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: var(--focus-ring-width) var(--focus-ring-style)
+      var(--focus-ring-color, currentColor);
+    outline-offset: var(--focus-ring-offset);
+  }
+}

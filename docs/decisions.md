@@ -268,6 +268,25 @@ bundler static analysis.
 CSS variables are invalid inside `@media` conditions. Use container queries /
 build-time constants for breakpoints; custom props can still feed JS.
 
+### D23 — Sanity Studio is standalone (a workspace package), not embedded
+
+**Decided** (2026-06-21; verified against the official Sanity agent-toolkit, not
+model memory). Amends §6, §7, Phase 0.
+The Studio is a **standalone Vite app in `studio/`** — a pnpm workspace package —
+not embedded in the Next app at a `/studio` route. Rationale (official guidance):
+Vite dev/build is 10–30× faster than compiling the Studio through Next; standalone
+Studios **auto-update** without a dependency bump or redeploy; TypeGen runs in
+**watch mode** under `sanity dev`. The Next app keeps `next-sanity` for
+fetching / Live Content / Visual Editing only. TypeGen is configured in
+`studio/sanity.cli.ts` to emit `sanity.types.ts` into the app; CI regenerates it
+and `git diff --exit-code`s the result.
+**Supersedes** the "one app, no workspace" framing in §7 — the repo is now a
+two-package pnpm workspace (the Next app at root + `studio/`).
+**Implication for D10 / §4.2 (resolve in Phase 2):** the "Studio imports
+`keys.ts`" contract now crosses a package boundary — the standalone Studio cannot
+import the app's `src/*`. Put `keys.ts` in a shared workspace package both consume,
+rather than duplicating it.
+
 ---
 
 ## Open items summary

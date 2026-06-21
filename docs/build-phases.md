@@ -31,18 +31,17 @@ phase (Vitest + RTL are already set up).
 _Stand up the app, global plumbing, content backend, AND every enforce-from-start guardrail.
 Guardrails are cheap when empty and rot if deferred `[D17]`._
 
-- [ ] Create the Next.js 16.2 app (App Router, Turbopack default), React 19; deploy to Vercel with full SSR/RSC (§7)
-- [ ] **Enable `cacheComponents` app-wide** — commit to the prerendered-shell + streaming model now; it's an app-wide rendering change, not a per-surface sprinkle (§7) `[D11]`
-- [ ] Add `proxy.ts` (replaces `middleware.ts`, Node runtime only); treat Request APIs as async (§7)
+- [√] Create the Next.js 16.2 app (App Router, Turbopack default), React 19; deploy to Vercel with full SSR/RSC (§7)
+- [√] **Enable `cacheComponents` app-wide** — commit to the prerendered-shell + streaming model now; it's an app-wide rendering change, not a per-surface sprinkle (§7) `[D11]`
 - [√] Lock styling baseline: CSS custom properties only — no Tailwind, no JSON tokens, no Style Dictionary (§7)
-- [ ] Author the **invariant tier** at `:root`: spacing ramp, motion curves, breakpoints (build constants, not `@media` vars `[D22]`), z-index scale, type-scale ratios, focus-ring **geometry**, reset, semantic-color **slots** (§3.1) `[D1, D8]`
-- [ ] Emit the bare `@layer foundation, brand, project;` order statement in a global sheet loaded first (§3.1) `[D12]`
-- [ ] **CI gate** from commit #1: lint / format / typecheck / test / build on PRs (never commit to main) `[D17, D19]`
-- [ ] **Boundary lints** (stood up empty): no project→project, no shared→project; plus the `src/lib/oklch/` isomorphism boundary forbidding `next/*`/`react`/DOM/Node (§3.2, §7) `[D14]`
-- [ ] **`@layer`-declaration lint**: every CSS Module declares its layer or stays strictly var-consuming (§3.1) `[D12]`
-- [ ] **Key-drift CI check** (stubbed now, live in Phase 2): keys.ts ↔ resolvers (§4.2) `[D10]`
-- [ ] Bootstrap Sanity; wire the TypeGen + `defineQuery` pipeline, with a CI `git diff --exit-code` on generated types (§6, §7)
-- [ ] Build a bare shell layout: root layout + nav skeleton (unthemed placeholder); declare the 1–2 shell fonts `preload: true` here (§2, §5) `[D11]`
+- [√] Author the **invariant tier** at `:root`: spacing ramp, motion curves, breakpoints (build constants, not `@media` vars `[D22]`), z-index scale, type-scale ratios, focus-ring **geometry**, reset, semantic-color **slots** (§3.1) `[D1, D8]`
+- [√] Emit the bare `@layer foundation, brand, project;` order statement in a global sheet loaded first (§3.1) `[D12]`
+- [√] **CI gate** from commit #1: lint / format / typecheck / test / build on PRs (never commit to main) `[D17, D19]`
+- [√] **Boundary lints** (stood up empty): no project→project, no shared→project; plus the `src/lib/oklch/` isomorphism boundary forbidding `next/*`/`react`/DOM/Node (§3.2, §7) `[D14]`
+- [√] **`@layer`-declaration lint**: every CSS Module declares its layer or stays strictly var-consuming (§3.1) `[D12]`
+- [√] **Key-drift CI check** (stubbed now, live in Phase 2): keys.ts ↔ resolvers (§4.2) `[D10]`
+- [√] Bootstrap Sanity as a **standalone Studio** in `studio/` (a pnpm workspace package, not embedded) `[D23]`; wire the TypeGen + `defineQuery` pipeline (configured in `studio/sanity.cli.ts`, emits `sanity.types.ts`), with a CI `git diff --exit-code` on generated types (§6, §7)
+- [√] Build a bare shell layout: root layout + nav skeleton (unthemed placeholder); declare the 1–2 shell fonts `preload: true` here (§2, §5) `[D11]`
 
 **Exit:** app deploys on Vercel; `cacheComponents` on; CI + boundary + `@layer` + key-drift
 lints green (even while guarding little); invariant `:root` tier and `@layer` order in place;
@@ -128,6 +127,7 @@ showcase can't, which is why oklch-engine moves to Phase 4._
 - [ ] **`generateMetadata` per route** (SEO/OG) `[D19]`
 - [ ] Theme the shell island through `ProjectScope` with `slug="garden"`; build home, about, `/now` — _separate commits each_ (§2, §3.1, §6) `[D17]`
 - [ ] Add an RSS route handler — _own commit_; enable Sanity draft mode / visual editing — _own commit_ (§7) `[D17]`
+- [ ] Add `proxy.ts` (replaces `middleware.ts`, Node runtime only; treat Request APIs as async) — deferred from Phase 0 until there is real request logic to host, which draft mode is (§7)
 - [ ] Note rendering: notes stay lightweight (shell + shared), pulling a demo bundle only when a note explicitly embeds one (§6)
 - [ ] **Co-located test:** one integration/E2E of the primary flow
 

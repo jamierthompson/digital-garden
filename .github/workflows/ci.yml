@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    # Sanity project ID and dataset are public (shipped to the browser), not secrets.
+    env:
+      NEXT_PUBLIC_SANITY_PROJECT_ID: 7id6sf36
+      NEXT_PUBLIC_SANITY_DATASET: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+      - run: pnpm lint:css
+      - run: pnpm lint:keys
+      - run: pnpm format:check
+      - run: pnpm typecheck
+      - run: pnpm test
+
+      # Regenerate Sanity types from the studio schema and fail if they drift.
+      - run: pnpm --filter studio typegen
+      - run: git diff --exit-code sanity.types.ts
+
+      - run: pnpm build

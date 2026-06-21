@@ -2,18 +2,24 @@
   "name": "digital-garden",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.21.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "lint:css": "node scripts/check-css-layers.mjs",
+    "lint:keys": "node scripts/check-key-drift.mjs",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@sanity/client": "^7.23.0",
     "next": "16.2.9",
+    "next-sanity": "^13.1.1",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
@@ -27,7 +33,9 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-boundaries": "^6.0.2",
     "jsdom": "^29.1.1",
+    "postcss": "^8.5.15",
     "prettier": "^3.8.4",
     "typescript": "^5",
     "vitest": "^4.1.9"
