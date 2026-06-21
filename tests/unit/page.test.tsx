@@ -4,11 +4,11 @@ import { describe, expect, it } from "vitest";
 import Home from "@/app/page";
 
 describe("Home page", () => {
-  it("renders the getting-started heading", () => {
+  it("renders the site heading", () => {
     render(<Home />);
 
     expect(
-      screen.getByRole("heading", { name: /to get started/i }),
+      screen.getByRole("heading", { name: /portfolio/i }),
     ).toBeInTheDocument();
   });
 });
