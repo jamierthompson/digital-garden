@@ -1,0 +1,29 @@
+@layer project {
+  .header {
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--foreground) 12%, transparent);
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-5);
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-6);
+  }
+
+  .brand {
+    font-weight: 600;
+    color: var(--foreground);
+    text-decoration: none;
+  }
+
+  .links {
+    display: flex;
+    gap: var(--space-5);
+    list-style: none;
+    color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  }
+}
