@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "lint:css": "node scripts/check-css-layers.mjs",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -31,6 +32,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-boundaries": "^6.0.2",
     "jsdom": "^29.1.1",
+    "postcss": "^8.5.15",
     "prettier": "^3.8.4",
     "typescript": "^5",
     "vitest": "^4.1.9"
