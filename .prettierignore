@@ -1,0 +1,19 @@
+# Build output
+.next/
+out/
+build/
+
+# Dependencies
+node_modules/
+
+# Lockfile (managed by pnpm)
+pnpm-lock.yaml
+
+# Generated files
+next-env.d.ts
+
+# Managed by create-next-app (contains the regenerated nextjs-agent-rules block)
+AGENTS.md
+
+# Misc
+*.tsbuildinfo
