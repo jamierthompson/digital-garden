@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Digital Garden
 
-## Getting Started
+A personal portfolio and digital garden — a place to grow notes, ideas, and
+work over time. Built with the Next.js App Router and styled with CSS Modules
+and CSS custom properties.
 
-First, run the development server:
+## Tech stack
+
+- **Framework:** [Next.js 16](https://nextjs.org/) (App Router) + React 19
+- **Language:** TypeScript
+- **Styling:** CSS Modules + CSS custom properties
+- **Testing:** [Vitest](https://vitest.dev/) + React Testing Library
+- **Linting/formatting:** ESLint (`eslint-config-next`) + Prettier
+- **Package manager:** [pnpm](https://pnpm.io/)
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install      # install dependencies
+pnpm dev          # start the dev server at http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Other scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm build         # production build
+pnpm start         # serve the production build
+pnpm lint          # run ESLint
+pnpm format        # format all files with Prettier
+pnpm format:check  # check formatting without writing
+pnpm test          # run the test suite once
+pnpm test:watch    # run tests in watch mode
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Styling approach
 
-## Learn More
+Styling is split into two layers:
 
-To learn more about Next.js, take a look at the following resources:
+- **`src/app/globals.css`** — global reset plus CSS custom properties
+  (e.g. `--background`, `--foreground`) that act as shared design tokens.
+- **`*.module.css`** — component-scoped CSS Modules that consume those
+  variables, keeping class names local and styles colocated with components.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/                # App Router: routes, layouts, global styles
+    layout.tsx        # root layout (fonts, metadata)
+    page.tsx          # home page
+    page.module.css   # home page styles (CSS Module)
+    globals.css       # global reset + CSS custom properties
+tests/
+  setup.ts            # Testing Library matcher registration
+  unit/               # unit/component tests
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Shared folders (`components/`, `lib/`, `services/`, `hooks/`, `types/`) will be
+added under `src/` as the app grows.
