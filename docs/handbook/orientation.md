@@ -91,7 +91,7 @@ These are the things that silently break this specific stack, or that the owner 
 **Conventions the owner standardized** (these don't get re-litigated per task):
 
 - **pnpm only** — never npm/yarn; `pnpm dlx`, not `npx`. Commit `pnpm-lock.yaml` on dep changes (CI is `--frozen-lockfile`).
-- **Never commit to `main`.** Always a descriptive `feat/…`, `fix/…`, `chore/…` branch. One task ≈ one commit. PR into main; CI green; delete the branch after merge. (Details: [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md).)
+- **Never commit to `main`.** Always a descriptive `feat/…`, `fix/…`, `chore/…` branch. Each agent ships a **complete, gate-green slice** it owns; the lead curates history (rebase/squash/reorder) and **squash-merges** — the story is told once in the PR body. Gate green at every slice handoff and on the curated tip; delete the branch after merge. (Details: [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md).)
 - **Conventional Commits** (`feat`/`fix`/`docs`/`style`/`refactor`/`test`/`chore`) — the branch prefix is the **same token** as the commit type (`feat/…` → `feat:`), nothing asymmetric to remember.
 - **TypeScript discipline:** `@/*` alias not deep relative chains; `interface` for extensible object shapes, `type` for unions/intersections; **no `any`** (use `unknown`, then narrow); type params + returns.
 - **Never hardcode secrets** — env vars only; keep `.env.example` current; `.env*` is gitignored. The Sanity **project ID / dataset are public** by design (plain env in `ci.yml`); a Sanity **token is secret**, server-side only, never `NEXT_PUBLIC_*`.
@@ -112,7 +112,7 @@ These are the things that silently break this specific stack, or that the owner 
    | proxy / middleware                | `01-app/03-api-reference/03-file-conventions/proxy.md`                               |
 
 4. **Branch.** `git checkout -b <type>/<kebab-description>` off `main` (`feat/…` for a `feat:` commit — prefix = commit type). Never work on `main`.
-5. **Build the smallest slice = one commit.** Co-locate the test with its subject [D18]. Match existing patterns in `src/`.
+5. **Build the smallest slice = one commit, completed and gate-green.** Co-locate the test with its subject [D18]. Match existing patterns in `src/`. On a team branch you own your slice's quality; the lead curates history (squash/reorder) but doesn't fix your slice for you.
 6. **Run the full gate locally before pushing** (this is the CI chain, in order — see `.github/workflows/ci.yml`):
    ```bash
    pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm format:check && pnpm typecheck && pnpm test \
@@ -120,7 +120,7 @@ These are the things that silently break this specific stack, or that the owner 
    ```
    Fix formatting with `pnpm format` — never by hand.
 7. **If you touched the Studio schema**, the `typegen` step above will have rewritten `sanity.types.ts` — **commit it**. This is the easiest gate to trip [D23]: CI regenerates and `git diff --exit-code`s the types unconditionally before `build`, so a stale `sanity.types.ts` fails CI even on app-only changes.
-8. **Open a PR into `main`.** One purpose per PR; description says what/why/testing. All tasks done before opening — no checklists with unfinished items. CI must be green to merge; delete the branch after.
+8. **Curate, then open a PR into `main`.** The lead rebases onto `main` and squashes/reorders the branch into a gate-green tip, then opens the PR — one purpose; the description says what/why/testing and **is** the squash-commit story. All tasks done before opening — no checklists with unfinished items. CI green → **squash-merge**; delete the branch after.
 
 ---
 

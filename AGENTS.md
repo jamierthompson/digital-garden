@@ -40,7 +40,9 @@ your training data is wrong here often enough to be dangerous.
 These silently break *this* stack. Most are lint/CI-enforced; know them so you don't fight the tools.
 
 - **Never commit to `main`.** Branch first (`feat/…`, `fix/…`, `chore/…`); merge = production
-  deploy on Vercel. One task ≈ one commit; PR into `main`; CI green; delete the branch.
+  deploy on Vercel. Each agent ships a **complete, gate-green slice** it owns; the team lead
+  curates history (rebase/squash/reorder) and **squash-merges** — the story is told once in the
+  PR body. Gate green at every slice handoff and on the curated tip; delete the branch.
 - **Every CSS Module declares its `@layer`** (`foundation|brand|project`) or stays strictly
   var-consuming. An unlayered module outranks **every** `@layer` style — the "@layer trap" `[D12]`.
   Enforced by `pnpm lint:css`.

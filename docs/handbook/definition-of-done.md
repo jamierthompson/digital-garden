@@ -1,8 +1,14 @@
 # Definition of Done
 
 > One checklist. Run it before you call **any** task done — before opening a PR, before
-> claiming a slice is finished, before handing off. If a box can't be ticked, the work
-> isn't done.
+> claiming a slice is finished, before handing off. If a box can't be ticked, the work isn't done.
+>
+> **On an agent-team branch:** this gate binds at **every slice handoff** — each agent owns its
+> slice and a task is "done" only when this chain is green (it can be hook-enforced via
+> `TaskCompleted`) — **and** on the **curated tip before the PR merges**. The lead curating history
+> (squash/reorder) before merge is about tidying _history_, not a license to hand off broken work;
+> the lead re-running the gate on the final tip is a backstop, not a substitute for each agent
+> gating its own slice.
 
 This is the gate. It mirrors the CI gate in `.github/workflows/ci.yml` (job `verify`) so
 that **if this list is green locally, CI is green** — you never push to find out. CI is the

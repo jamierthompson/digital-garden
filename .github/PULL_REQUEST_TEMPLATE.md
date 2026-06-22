@@ -2,14 +2,20 @@
 PR title must be Conventional-Commit-shaped: `feat: oklch contrast engine`, `fix(oklch): …`,
 `docs: …`. The branch prefix is the same token as the commit type — a `feat/…` branch carries
 `feat:` commits (no asymmetry).
+This PR SQUASH-MERGES: the title becomes the squash-commit subject and the body below becomes
+the squash-commit body on `main`, so this description IS the durable story. Tell it well.
+(Lead: curate the branch first — rebase onto main, squash/reorder to a gate-green tip — see
+docs/handbook/git-and-pr-workflow.md §6.)
 This template doubles as the Definition of Done. The boxes mirror
 docs/handbook/definition-of-done.md; if they ever disagree, that doc wins.
 -->
 
 ## What & why
 
-<!-- What changed, and the motivation/context. Write it like a teammate will review it.
-     One PR = one purpose — don't mix a refactor, a fix, and a feature. -->
+<!-- What changed, and the motivation/context. Write it like a teammate will review it — and
+     like the future agent who'll read `git log` and find only this squash commit.
+     One PR = one purpose — don't mix a refactor, a fix, and a feature.
+     A short ordered "what landed" list earns its place here. -->
 
 ## How tested
 
