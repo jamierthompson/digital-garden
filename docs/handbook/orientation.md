@@ -31,7 +31,7 @@ The stack, verified — do not contradict it:
 docs/
   architecture-plan.md     the system model (§N anchors referenced everywhere)
   build-phases.md          the risk-retirement build sequence (Phases 0–4)
-  decisions.md             ADRs D1–D23 — BINDING. Cite as [D#].
+  decisions.md             ADRs D1–D25 — BINDING. Cite as [D#].
   audit/                   five-lens → debate → synthesis trail (how the decisions were reached)
   handbook/                THIS handbook — how we work (see "Which doc for which task")
 AGENTS.md                  lean pointer for agents; @-imports into CLAUDE.md
@@ -91,8 +91,8 @@ These are the things that silently break this specific stack, or that the owner 
 **Conventions the owner standardized** (these don't get re-litigated per task):
 
 - **pnpm only** — never npm/yarn; `pnpm dlx`, not `npx`. Commit `pnpm-lock.yaml` on dep changes (CI is `--frozen-lockfile`).
-- **Never commit to `main`.** Always a descriptive `feature/…`, `fix/…`, `chore/…` branch. One task ≈ one commit. PR into main; CI green; delete the branch after merge. (Details: [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md).)
-- **Conventional Commits** (`feat`/`fix`/`docs`/`style`/`refactor`/`test`/`chore`). Note the asymmetry: branch `feature/…` pairs with commit `feat:`.
+- **Never commit to `main`.** Always a descriptive `feat/…`, `fix/…`, `chore/…` branch. One task ≈ one commit. PR into main; CI green; delete the branch after merge. (Details: [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md).)
+- **Conventional Commits** (`feat`/`fix`/`docs`/`style`/`refactor`/`test`/`chore`) — the branch prefix is the **same token** as the commit type (`feat/…` → `feat:`), nothing asymmetric to remember.
 - **TypeScript discipline:** `@/*` alias not deep relative chains; `interface` for extensible object shapes, `type` for unions/intersections; **no `any`** (use `unknown`, then narrow); type params + returns.
 - **Never hardcode secrets** — env vars only; keep `.env.example` current; `.env*` is gitignored. The Sanity **project ID / dataset are public** by design (plain env in `ci.yml`); a Sanity **token is secret**, server-side only, never `NEXT_PUBLIC_*`.
 - **Before committing:** code runs, lint passes, `pnpm format` clean, diff reviewed (no debug logs, no commented-out code, no unrelated changes). The full Definition of Done is [`./definition-of-done.md`](./definition-of-done.md).
@@ -111,7 +111,7 @@ These are the things that silently break this specific stack, or that the owner 
    | request APIs                      | `…/04-functions/cookies.md` · `headers.md` · `draft-mode.md`                         |
    | proxy / middleware                | `01-app/03-api-reference/03-file-conventions/proxy.md`                               |
 
-4. **Branch.** `git checkout -b <type>/<kebab-description>` off `main` (`feature/…` for a `feat:` commit). Never work on `main`.
+4. **Branch.** `git checkout -b <type>/<kebab-description>` off `main` (`feat/…` for a `feat:` commit — prefix = commit type). Never work on `main`.
 5. **Build the smallest slice = one commit.** Co-locate the test with its subject [D18]. Match existing patterns in `src/`.
 6. **Run the full gate locally before pushing** (this is the CI chain, in order — see `.github/workflows/ci.yml`):
    ```bash

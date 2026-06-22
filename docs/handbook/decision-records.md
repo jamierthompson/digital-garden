@@ -57,7 +57,7 @@ _enumerated alternatives_, not the head-count. Rules:
   bundled docs (`node_modules/next/dist/docs/`) or an external standard — never
   model memory. This mirrors [`../../AGENTS.md`](../../AGENTS.md). Precedents:
   [D11], [D12], [D23] each name the doc path they checked.
-- **The worked example is [`../audit/`](../audit/).** The 23 decisions in
+- **The worked example is [`../audit/`](../audit/).** The original 23 decisions (`D1`–`D23`) in
   `decisions.md` came from the five-lens audit
   ([`README`](../audit/README.md) → [`round-1-independent-findings`](../audit/round-1-independent-findings.md)
   → [`round-2-debate`](../audit/round-2-debate.md) → [`synthesis`](../audit/synthesis.md)) —
@@ -139,7 +139,7 @@ likely to trip), see [`./definition-of-done.md`](./definition-of-done.md).
 ## Copy-paste template
 
 ```markdown
-### D24 — <imperative decision title>
+### D<n> — <imperative decision title>
 
 **Decided** (user call, YYYY-MM-DD). Amends §N.
 <The forces at play. For a contested call: the considered options with honest
@@ -149,20 +149,22 @@ For a version-dependent fact, append "(verified against
 node_modules/next/dist/docs/<path>)".>
 ```
 
+(`D<n>` is the next free number — find it per the table above; it's `D26` today.)
+
 **Superseding** — append the new entry, then add the pointer to the old one's
 status line (don't touch its body):
 
 ```markdown
-### D25 — <new decision that replaces an old one>
+### D<new> — <new decision that replaces an old one>
 
-**Decided** (user call, YYYY-MM-DD). Amends §N. Supersedes D7.
+**Decided** (user call, YYYY-MM-DD). Amends §N. Supersedes D<old>.
 <Why the earlier call no longer holds and what replaces it. [D#] refs.>
 ```
 
 ```markdown
-### D7 — Focus-ring color is an engine token; geometry stays global
+### D<old> — <the superseded decision's original title — body unchanged>
 
-**Decided.** Superseded by D25. Amends §3.1.
+**Decided.** Superseded by D<new>. Amends §N.
 <...original body unchanged...>
 ```
 
