@@ -287,6 +287,63 @@ two-package pnpm workspace (the Next app at root + `studio/`).
 import the app's `src/*`. Put `keys.ts` in a shared workspace package both consume,
 rather than duplicating it.
 
+### D24 — Establish the pattern early, instantiate it late (the deferral discipline)
+
+**Decided** (user call, 2026-06-22). Amends §1, §4. Generalizes [D20].
+The repo's standing structural rule, lifted from a per-case habit to a first-class standard:
+**name where each kind of code _will_ live, but don't stand up the structure until a concrete
+trigger earns it.** [D20] applied this to `core/` and shared primitives; this generalizes it so
+every "should I factor this out yet?" call is answered the same way instead of re-argued each
+time. It rests directly on §1's guiding principles — "no premature abstraction" and
+"right-sized, not maximal".
+
+The pattern is named up front; instantiation waits for its trigger:
+
+| Concern                    | Default                      | Trigger to instantiate                                                                                                   |
+| -------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Shared primitive / `core/` | lives in the owning module   | **genuine second use**, or an experience's logic outgrows its render — never by template ([D20])                         |
+| Shared type                | in the module's own file     | the **second** module that imports it → promote to `src/types/*`                                                         |
+| Client state store         | local `useState` at the leaf | you start **prop-drilling** one value through 2+ uninterested components → lift to lowest common owner / Context / store |
+| Embed tier                 | one shared registry          | a **second project** reuses a widget → add the project-local tier ([D15], §4.1)                                          |
+
+**Why / consequences.** Merge = production deploy, so premature scaffolding is unshipped
+surface area that rots before it is used; deferring keeps `main` lean. Naming the destination
+first is what stops deferral becoming disorder — a reader always knows where a concern _will_
+go, so waiting costs nothing in legibility. **What gets harder:** spotting the trigger takes
+judgment, and "I'll need this later" is explicitly _not_ a trigger — the discipline is to wait
+for the _actual_ second use / the _actual_ prop-drill. Codified as a working standard in
+[`handbook/engineering-standards.md`](./handbook/engineering-standards.md) §6 (the rule + its
+trigger, per concern).
+
+### D25 — Rendered surfaces get an agent-driven browser check (Chrome DevTools MCP) before done
+
+**Decided** (user call, 2026-06-22). Amends `build-phases.md` (Phase 0.5+). Complements [D17],
+[D18], [D19].
+`pnpm test` runs in **jsdom** — it doesn't paint, can't render async RSCs, and measures nothing
+about focus visibility, tap-target size, layout shift, or paint timing. So build-green +
+unit-green is **not** evidence a surface is accessible or unbroken in a browser. Standing
+requirement: when a task ships or changes a **rendered, user-facing surface** (a route, visual
+output, theming / `ProjectScope`, focus/interaction), verify it in a real browser via the
+`chrome-devtools` MCP before calling it done — focus & tap-size (the always-on WCAG-AA floor),
+no CLS/paint regression, flash-free theme ([D11]), clean console.
+
+**Boundaries — so this doesn't collide with the phasing:**
+
+- It is **not** the Phase-4 CWV **budget** pass ([D17]). That formal LCP/INP/CLS-budget +
+  perf-hardening gate stays Phase 4; this is the lighter per-task "did I obviously regress the
+  surface I just touched."
+- It is **not** a committed test and **not** a CI gate — CI can't drive a browser. Committed
+  automated coverage stays Vitest now / Playwright at Phase 3 ([D18], [D19]); this is an
+  agent-in-the-loop manual step, the same status as the empirical `<head>` font-preload check
+  ([D11]).
+- It fills the **browser-verification gap** for UI built in Phases 0.5–2, before Playwright
+  lands.
+
+Operationalized in
+[`handbook/accessibility-and-performance.md`](./handbook/accessibility-and-performance.md) §5
+(what to check) and gated per task in
+[`handbook/definition-of-done.md`](./handbook/definition-of-done.md) §6 / §7.
+
 ---
 
 ## Open items summary
