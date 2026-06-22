@@ -199,9 +199,32 @@ live in §5. This section is what to do _between_ handoffs:
   stuffing for long, multi-session efforts
   ([Anthropic — Multi-Agent Research](https://www.anthropic.com/engineering/multi-agent-research-system)).
   A prompt that says "continue what we were doing" fails; a pointer to a written summary doesn't.
-- **One task ≈ one commit ≈ one clean handoff.** Aligns with the Git workflow
-  ([`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)): small, focused, and
-  reviewable so the next agent (or the owner) can pick up cleanly.
+- **One task ≈ one commit ≈ one clean handoff.** Small, focused commits are the unit of work —
+  and each is a **completed, gate-green slice** an agent stands behind, reviewable, a natural
+  seam for the next agent (or the owner) to pick up. The lead curates the branch and squash-merges
+  it, so the story is told once in the PR (see §6.1 and
+  [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §6) — but that's about _history_, not
+  about lowering the bar on a handoff.
+
+### 6.1 Agent teams: each agent owns a slice; the lead curates history
+
+Per Anthropic's [Agent Teams guidance](https://code.claude.com/docs/en/agent-teams): teammates
+"each own a separate piece without stepping on each other," you "break the work so each teammate
+owns a different set of files," and a task is a "self-contained unit that produces a clear
+deliverable." Split the responsibility cleanly:
+
+- **Each agent owns a slice and is accountable for it.** Take a task, ideally over a **distinct
+  set of files** (the docs' explicit "avoid file conflicts" rule), complete it **fully and
+  gate-green**, and own its quality. A task is "done" only when it passes the gate — quality can
+  be hook-enforced (`TaskCompleted` / `TeammateIdle` exit code 2 keeps a teammate working). Broken
+  WIP is **not** something you hand off; local checkpoints are your own business.
+- **The team lead curates history, not your slice.** The lead's git magic is about _history_:
+  rebase onto latest `main`, squash an agent's fix-ups, reorder slices, drop a false start, then
+  **squash-merge** and write the PR body (the durable story). The lead does **not** inherit
+  responsibility for an unfinished slice — that bounces back to the owning agent.
+- **Shared-branch hygiene:** push curated history with `--force-with-lease` (never plain
+  `--force`) so a teammate's concurrent push isn't clobbered. Full mechanics:
+  [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §6.
 
 ## 7. Keeping agents from drifting the architecture — quick gate
 

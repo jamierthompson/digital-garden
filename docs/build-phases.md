@@ -21,8 +21,9 @@ proven ground (Ph4).
 **Parallelism:** Phase 2 (Sanity schema + `keys.ts`) runs alongside Phase 1; resolvers and
 `cardSwatches` are gated on their real dependencies and marked as such.
 
-**Working style:** one task ≈ one commit; tests are co-located with their subject in every
-phase (Vitest + RTL are already set up).
+**Working style:** one task ≈ one commit, each a completed, gate-green slice its agent owns; the
+lead curates history (squash/reorder) before a squash-merge, so the story is told once in the PR.
+Tests are co-located with their subject in every phase (Vitest + RTL are already set up).
 
 ---
 

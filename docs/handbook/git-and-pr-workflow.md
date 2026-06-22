@@ -18,12 +18,18 @@ done checklist), [./engineering-standards.md](./engineering-standards.md) (code 
 ## The loop at a glance
 
 ```
-branch off main  →  small focused commits  →  green local gate  →  push  →  PR into main
-                                                                              →  CI green
-                                                                              →  merge  →  delete branch
+branch off main  →  each agent ships a complete, gate-green slice  →  push
+                 →  lead curates history: rebase / squash / fixup / reorder  →  green gate on the tip
+                 →  PR into main  →  CI green  →  squash-merge  →  delete branch
 ```
 
-One task ≈ one commit. One coherent slice (or phase) ≈ one PR. Never commit to `main`.
+Small, focused commits are the unit of work, and each is a **finished, gate-green slice** — an
+agent takes a task, completes it fully, and owns its quality. These branches are often worked by
+an **agent team**, where each agent owns a distinct slice (see
+[`./working-with-agents.md`](./working-with-agents.md) §6.1). Before merge the **team lead**
+curates the branch — rebase, squash, fixup, reorder, drop — into one coherent, gate-green tip,
+then **squash-merges**, so the story is told **once** in the squash-commit / PR body. One
+coherent slice (or phase) ≈ one PR. **Never commit to `main`.**
 
 ---
 
@@ -71,10 +77,12 @@ Examples: `feat/add-project-scope`, `fix/font-preload-head-link`, `chore/setup-c
 ## 2. Commits — Conventional Commits 1.0.0
 
 Spec: [conventionalcommits.org/en/v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
-Keep commits **small and focused** — one logical change each, so the history reads as the
-story of how the build happened ([D17] sequences the build into commit-sized steps). On
-this repo that story lives on `main` — we merge with merge commits, not squash, precisely
-to preserve it (see §6).
+Keep commits **small and focused** — one logical change each, and each a **completed, gate-green
+slice** you stand behind ([D17] sequences the build into commit-sized steps). The lead curates
+the branch and the PR **squash-merges**, so the durable story is the **squash-commit / PR body**,
+written once at the end (see §6). The squash subject must be Conventional-Commits-shaped (it lands
+on `main`); branch-commit subjects should be too, but since the lead may squash or reword them,
+don't agonize over the wording of commits you know will be combined.
 
 ```
 <type>[optional scope]: <description>
@@ -122,9 +130,15 @@ fix(oklch): clamp out-of-gamut brandColor instead of throwing
 
 ## 3. Pre-commit checklist (run the gate locally)
 
-Before you commit, and definitely before you push, **make CI's job redundant**. The single
-command that mirrors the gate in order (CI runs the TypeGen drift step unconditionally — so
-do you, even on an app-only change; see §3.1):
+**When the gate must be green:** at **two** moments. (1) **Every slice handoff** — when an agent
+calls its task done, pushes for review, or hands the branch on, that slice must pass the full
+gate; this is the per-task accountability the team model rests on, and it can be hook-enforced
+(`TaskCompleted`). A purely local checkpoint commit you'll keep building on doesn't need it, but
+anything you present as _finished_ does. (2) **The curated tip before the PR merges** — the final
+tip that squash-merges to `main` must be green. The lead re-running the gate is a backstop,
+**not** a substitute for each agent gating its own slice. The single command that mirrors the
+gate in order (CI runs the TypeGen drift step unconditionally — so do you, even on an app-only
+change; see §3.1):
 
 ```bash
 pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm format:check && pnpm typecheck && pnpm test \
@@ -170,18 +184,19 @@ schema change means your committed types are stale — regenerate and commit.
 
 ## 4. Opening a PR
 
-When the branch is complete (**all** its tasks done — not a work-in-progress), push and open a
-PR into `main`.
+When the branch is complete (**all** its tasks done — not a work-in-progress) and the lead has
+curated it (§6), push and open a PR into `main`.
 
 ```bash
-# multi-commit phase PR: set the title explicitly (don't let --fill guess it)
-git push -u origin feat/oklch-contrast-engine
+# the lead sets title + body explicitly — they ARE the squash-commit subject/body that lands on main
+git push -u origin feat/oklch-contrast-engine          # add --force-with-lease after a curating rebase
 gh pr create --base main --title "feat: oklch contrast engine" --body "what / why / how-tested"
 ```
 
-`--fill` derives the title/body from the branch's commits, which is fine for a
-**single-commit** branch but produces a misleading subject for a multi-commit phase PR. Set
-`--title`/`--body` explicitly for anything more than one commit.
+Don't use `--fill` (it derives the subject from the branch's individual commits). Because the PR
+**squash-merges**, its **title becomes the squash-commit subject and its body becomes the
+squash-commit body** on `main` — so this is where the build story gets told, once. Write it
+deliberately.
 
 **PR hygiene:**
 
@@ -189,9 +204,12 @@ gh pr create --base main --title "feat: oklch contrast engine" --body "what / wh
   coherent slice or a build phase (e.g. PR #2 was "Phase 0 — Scaffolding + guardrails").
   Keep the diff scoped to that one purpose; a sprawling diff is a sign the branch is doing
   too much, not a line-count to hit.
-- **Title** is Conventional-Commit-shaped: `feat: oklch contrast engine`.
-- **Description** carries: _what_ changed, _why_ (motivation/context), _how it was tested_, and
-  any deploy notes. Write it like a teammate will review it.
+- **Title** is Conventional-Commit-shaped: `feat: oklch contrast engine` — it lands verbatim as
+  the squash subject on `main`.
+- **Description = the durable story.** The squash collapses the branch to one commit, so the body
+  carries the narrative: _what_ changed, _why_ (motivation/context), _how it was tested_, and any
+  deploy notes. Write it like a teammate will review it — and like the future agent who'll read
+  `git log` and find only this. A short, ordered "what landed" list earns its place here.
 - **No checklists with unfinished items.** All tasks are done before the PR opens — the PR is a
   finished unit of work, not a progress tracker.
 
@@ -236,32 +254,60 @@ assume merges are mechanically blocked. If enabled, the sensible configuration i
 
 - Require status check **`verify`** to pass before merging.
 - Require branches to be **up to date** with `main` before merging.
+- **Restrict the merge method to _squash_** (and optionally _rebase_) — disable the merge-commit
+  button so branch history can't leak onto `main`.
 
-> **Linear history is intentionally _not_ recommended here** — it would force squash/rebase
-> and discard the commit-sized [D17] story we keep on `main` (see §6).
+> **Linear history is the intent here:** branch commits are curated raw material, so
+> squash-merging (or a lead-curated rebase) keeps `main` to one coherent commit per PR. Enabling
+> GitHub's "Require linear history" is consistent with this.
 
 ---
 
-## 6. Merge & cleanup
+## 6. Curate, merge & cleanup
 
-Merge only when **CI is green** and the branch is up to date with `main`. Sync `main` into
-your branch first so the merge resolves locally, not as a surprise in the PR:
+This is the team lead's step. Two parts: **curate the branch** (the "git magic"), then
+**squash-merge** it. Do it only when the work is complete and **CI is green on the curated tip**.
+
+### 6a. Curate the branch (the lead's git magic)
+
+Agents deliver **complete, gate-green slices** (each agent owns its slice's quality — §3); the
+lead's job here is not to fix those slices but to **curate history**: rebase onto latest `main`
+and squash an agent's fix-ups, reorder slices, or drop a false start into a coherent tip. The
+squash collapses the branch to one commit anyway (§6b), so optimize for a clean final diff and a
+tip that passes §3, not for a tidy intermediate log. If a slice arrives _not_ green, that's the
+**owning agent's** task to finish, not history to paper over.
 
 ```bash
 git switch feat/oklch-contrast-engine
-git fetch origin && git merge origin/main   # or rebase; resolve conflicts here, re-run §3
-gh pr merge --merge --delete-branch          # merge commit — preserves the commit-sized story
+git fetch origin
+git rebase origin/main          # replay onto latest main; resolve conflicts here, not in the PR
+git rebase -i origin/main       # optional: squash/fixup/reorder/drop to tidy the branch
+# …re-run the full §3 gate on the result…
+git push --force-with-lease     # history was rewritten — force-with-lease, never plain --force
+```
+
+- **`--force-with-lease`, never `--force`.** It refuses to clobber commits another agent pushed
+  while you were rebasing — essential on a shared team branch.
+- **Squashing here is optional polish, not required.** Since the PR squash-merges (§6b), even a
+  noisy branch collapses to one commit on `main`. Interactive-rebase tidying mainly helps
+  reviewers read the branch and makes conflict resolution sane — do as much or as little as the
+  branch needs.
+- **Sync onto latest `main` before merge** so conflicts resolve locally, not as a surprise in
+  the PR. `main` may have moved (another PR shipped); on Vercel that's already in production.
+
+### 6b. Squash-merge
+
+```bash
+gh pr merge --squash --delete-branch   # ONE commit on main; its subject/body = the PR title/body (§4)
 git switch main && git pull
 ```
 
-**Merge with a merge commit, not `--squash`.** Both existing PRs (#1, #2) landed as merge
-commits, and that's deliberate: a merge commit keeps each `feat:`/`chore:` step from the
-branch on `main`, which is exactly the commit-sized build story [D17] and §2 value. Squashing
-collapses a whole phase PR into one commit and throws that story away.
+**Squash-merge — the branch becomes one commit on `main`.** The squash subject/body is the PR
+title/description (§4), so the durable story is told there, once. (A lead who genuinely wants
+more than one commit on `main` may instead curate a clean, each-commit-green linear history and
+`gh pr merge --rebase`. Keep the merge-commit button **off**: it would leak branch history onto
+`main`.)
 
-- Reach for `--squash` **only** for the opposite case: a messy WIP branch whose intermediate
-  commits ("wip", "fix typo", "actually fix it") are _not_ a clean story worth keeping. There,
-  one tidy squashed commit beats noise. The default is `--merge`.
 - **Delete the branch** (local + remote) after merging — keep the repo tidy.
 - Merging to `main` **deploys to production on Vercel**. Confirm the deploy is healthy; if not,
   Vercel **Instant Rollback** re-aliases the previous production deploy (no rebuild). See
@@ -276,20 +322,24 @@ collapses a whole phase PR into one commit and throws that story away.
 git switch main && git pull
 git switch -c feat/<slug>
 
-# before commit — same chain, same order as CI (incl. the unconditional TypeGen drift step)
-pnpm format
-pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm format:check && pnpm typecheck && pnpm test \
-  && pnpm --filter studio typegen && git diff --exit-code sanity.types.ts && pnpm build
+# work — each agent ships a complete, gate-green slice; commit small & focused
 git add -A && git commit -m "feat: <imperative description>"   # use git add -p to review hunks at a keyboard
 
 # schema changed? stage the regenerated types (file lands at the repo ROOT, not in studio/)
 pnpm --filter studio typegen && git add ./sanity.types.ts
 
-# ship
-git fetch origin && git merge origin/main      # sync, re-run the gate, resolve conflicts locally
-git push -u origin feat/<slug>
+# lead curates before merge — rebase onto main, optionally squash/reorder
+git fetch origin && git rebase origin/main     # resolve conflicts locally; `git rebase -i` to tidy
+
+# gate the CURATED TIP — same chain, same order as CI (incl. the unconditional TypeGen drift step)
+pnpm format
+pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm format:check && pnpm typecheck && pnpm test \
+  && pnpm --filter studio typegen && git diff --exit-code sanity.types.ts && pnpm build
+
+# ship — PR title/body become the squash-commit subject/body on main (tell the story here)
+git push -u origin feat/<slug>                  # add --force-with-lease after a curating rebase
 gh pr create --base main --title "feat: <subject>" --body "what / why / how-tested"
 # …CI green…
-gh pr merge --merge --delete-branch            # merge commit keeps the [D17] commit story
+gh pr merge --squash --delete-branch           # one commit on main; subject/body = the PR title/body
 git switch main && git pull
 ```
