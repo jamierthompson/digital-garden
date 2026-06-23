@@ -56,11 +56,13 @@ _A stub `ProjectScope` (hardcoded palette, NO engine) + one hardcoded module she
 thin `/work/<slug>` route. Does the integration-isolation job more cheaply than a throwaway
 project, and proves the genuinely version-dependent unknowns before any subsystem is built._
 
-- [ ] Stub `ProjectScope`: hardcoded palette + font class, scoped `<style>`, no engine
-- [ ] One hardcoded module shell rendering through a thin `/work/<slug>` route on Vercel
-- [ ] **Prove the two version-dependent unknowns** (not flash-free-color, which is already verified): (a) React 19 `<style precedence>` + Suspense **flush-before-paint**; (b) `@layer`-vs-unlayered-CSS-Module cascade (unlayered silently wins) (§3.1, §3.2) `[D12, D13]`
-- [ ] **Prove the no-throw path:** stub `ProjectScope` returns a safe fallback on missing/invalid seed and **never throws**; wrap it in `unstable_catchError` (§6, §7) `[D9]`
-- [ ] **Empirical `<head>` check:** `pnpm build` → inspect `/work/<slug>` for `<link rel="preload" as="font">` and confirm the `preload:false` policy holds (§5) `[D11]`
+- [√] Stub `ProjectScope`: hardcoded palette + font class, scoped `<style>`, no engine
+- [√] One hardcoded module shell rendering through a thin `/work/<slug>` route on Vercel
+- [√] **Prove the two version-dependent unknowns** (not flash-free-color, which is already verified): (a) React 19 `<style precedence>` + Suspense **flush-before-paint**; (b) `@layer`-vs-unlayered-CSS-Module cascade (unlayered silently wins) (§3.1, §3.2) `[D12, D13]`
+- [√] **Prove the no-throw path:** stub `ProjectScope` returns a safe fallback on missing/invalid seed and **never throws**; wrap it in `unstable_catchError` (§6, §7) `[D9]`
+- [√] **Empirical `<head>` check:** `pnpm build` → inspect `/work/<slug>` for `<link rel="preload" as="font">` and confirm the `preload:false` policy holds (§5) `[D11]`
+
+_Done 2026-06-23 (PR #9, `a36c5fd`) — verdicts in [`runs/2026-06-23-phase-0.5-walking-skeleton.md`](./runs/2026-06-23-phase-0.5-walking-skeleton.md)._
 
 **Exit:** a hardcoded project renders flash-free through the stub scope on Vercel; verified
 precedence/flush + correct layered cascade on the real Next 16 / React 19 build; `ProjectScope`
@@ -75,15 +77,17 @@ _Build the engine — the load-bearing, genuinely hard piece — and the real `P
 Decide the hard color-system questions up front; the exit criterion is observable output, not
 determinism `[D17]`._
 
-- [ ] Build the OKLCH engine in `src/lib/oklch/`: pure, isomorphic, no React/DOM/Node (§3.2) `[D14]`
-- [ ] **Decide up front, because they shape the signature:** scheme-aware `(brandColor, scheme) → tokenSet` with `light-dark()` output (dark mode is in scope from v1) `[D5]`; contrast **solved** via APCA/WCAG binary-search on L `[D4]`; **gamut-map** before contrast math `[D6]`; semantic-color seeding is independent, not brand-derived `[D8]`; focus-ring **color** is an engine token `[D7]`
-- [ ] Engine **bakes literal `oklch()` values** server-side and is **defensive** — returns a fallback palette, never throws (§3.2) `[D3, D9]`
-- [ ] Shape engine exports: low-level surface (ramp, chroma/lightness steps, contrast values) **and** a high-level `(brandColor, scheme) → tokenSet` wrapper (§3.2)
-- [ ] Build the real `ProjectScope` (server component): swap the stub palette → engine output; map brand tokens into the namespace; apply the resolved font's `.variable` class; render in the prerendered shell via `use cache`; keep the `unstable_catchError` backstop (§3.1, §3.2, §6, §7) `[D9, D11]`
-- [ ] Build the font roster `src/fonts/roster.ts`: `preload: false` on all faces; variable fonts; `font-display: swap`; subset (§5) `[D11]`
-- [ ] Author `keys.ts` string-constant contracts for `componentKey`/`fontKey`/`embedKey` (§6) `[D10]`
-- [ ] **Co-located tests:** engine unit + **dual-env isomorphism** (node + jsdom) + **contrast assertions in both schemes** `[D14, D4, D5]`
-- [ ] **Visual harness** — render ramps for 3–4 representative brand colors spanning the hue wheel (include a yellow and a cyan, the contrast-stressers), light and dark, asserting APCA Lc / WCAG ratios on every text-on-surface and on-brand pair _after_ gamut-mapping `[D4, D17]`
+- [√] Build the OKLCH engine in `src/lib/oklch/`: pure, isomorphic, no React/DOM/Node (§3.2) `[D14]`
+- [√] **Decide up front, because they shape the signature:** scheme-aware `(brandColor, scheme) → tokenSet` with `light-dark()` output (dark mode is in scope from v1) `[D5]`; contrast **solved** via APCA/WCAG binary-search on L `[D4]`; **gamut-map** before contrast math `[D6]`; semantic-color seeding is independent, not brand-derived `[D8]`; focus-ring **color** is an engine token `[D7]`
+- [√] Engine **bakes literal `oklch()` values** server-side and is **defensive** — returns a fallback palette, never throws (§3.2) `[D3, D9]`
+- [√] Shape engine exports: low-level surface (ramp, chroma/lightness steps, contrast values) **and** a high-level `(brandColor, scheme) → tokenSet` wrapper (§3.2)
+- [ ] Build the real `ProjectScope` (server component): swap the stub palette → engine output; map brand tokens into the namespace; apply the resolved font's `.variable` class; render in the prerendered shell via `use cache`; keep the `unstable_catchError` backstop (§3.1, §3.2, §6, §7) `[D9, D11]` — **fast-follow; not in the 2026-06-23 run**
+- [√] Build the font roster `src/fonts/roster.ts`: `preload: false` on all faces; variable fonts; `font-display: swap`; subset (§5) `[D11]`
+- [√] Author `keys.ts` string-constant contracts for `componentKey`/`fontKey`/`embedKey` (§6) `[D10]`
+- [√] **Co-located tests:** engine unit + **dual-env isomorphism** (node + jsdom) + **contrast assertions in both schemes** `[D14, D4, D5]`
+- [√] **Visual harness** — render ramps for 3–4 representative brand colors spanning the hue wheel (include a yellow and a cyan, the contrast-stressers), light and dark, asserting APCA Lc / WCAG ratios on every text-on-surface and on-brand pair _after_ gamut-mapping `[D4, D17]`
+
+_Engine + roster + `keys.ts` + tests + harness done 2026-06-23 (PRs #8 `c681a44`, #10 `49f1071`). The real `ProjectScope` is the remaining Phase 1 work._
 
 **Exit:** the engine returns a contrast-valid token set (both schemes) from a brand color and
 runs identically server/client; the visual harness **proves palette quality**, not just
@@ -97,15 +101,17 @@ safely** on bad input; tests green.
 _Model content in Sanity and wire the key→code resolvers, keeping implementations out of the
 Studio bundle. Mark the true dependency gates `[D17]`._
 
-- [ ] **(concurrent with Ph1)** Sanity `project` doc: essay (portable text), typed embed blocks (`liveEmbed` = `embedKey` + caption by default; a dedicated typed block only for genuine editorial content `[D15]`), `brandColor` (typed + **validated via the engine's own color pipeline** `[D9]`), `fontKey`, `componentKey`, `blurb`, notes, tags; optional `brandColorDark` override `[D5]` (§6)
-- [ ] **(concurrent)** Sanity `siteSettings` (shell brand, same validation) + notes doc with backlinks via **real `reference` fields** `[D16]` (§6)
-- [ ] **(concurrent)** Disable stega on `brandColor`/`fontKey`; plan `liveEmbed` click-to-edit as caption-only (§6) `[D16]`
-- [ ] **(gated on `keys.ts`)** App-side resolvers, never imported by the Studio: typed `satisfies Record<Key, …>` (missing entry = compile error), returning a typed `NotFound` (§4.2, §6) `[D10]`
-- [ ] **(gated on Ph1 engine)** `cardSwatches(brandColor)` helper: runs the engine (Consumer C), returns a few stops as inline `--c-*`, same parse/validate path, no island / no `<style>` (§3.2, §6) `[D9]`
-- [ ] `/work` index query: pull `blurb`, `brandColor`, `fontKey` — **not** the essay (§6)
-- [ ] Key-drift CI check goes **live** (§4.2) `[D10]`
-- [ ] **log-explorer fit-spike:** map its _real_ surface (odd state shapes, embed-prop needs, page shapes) onto the module structure + content model **now, while cheap** — pulls the migration risk forward without doing the full migration (§1, §4) `[D17]`
-- [ ] **Co-located tests:** resolver (incl. the NotFound path) / `cardSwatches` / index-query
+- [√] **(concurrent with Ph1)** Sanity `project` doc: essay (portable text), typed embed blocks (`liveEmbed` = `embedKey` + caption by default; a dedicated typed block only for genuine editorial content `[D15]`), `brandColor` (typed + **validated via the engine's own color pipeline** `[D9]` — _engine validation deferred; format-check now, see Phase-2 follow-up below_), `fontKey`, `componentKey`, `blurb`, notes, tags; optional `brandColorDark` override `[D5]` (§6)
+- [√] **(concurrent)** Sanity `siteSettings` (shell brand, same validation) + notes doc with backlinks via **real `reference` fields** `[D16]` (§6)
+- [√] **(concurrent)** Disable stega on `brandColor`/`fontKey`; plan `liveEmbed` click-to-edit as caption-only (§6) `[D16]`
+- [√] **(gated on `keys.ts`)** App-side resolvers, never imported by the Studio: typed `satisfies Record<Key, …>` (missing entry = compile error), returning a typed `NotFound` (§4.2, §6) `[D10]`
+- [ ] **(gated on Ph1 engine)** `cardSwatches(brandColor)` helper: runs the engine (Consumer C), returns a few stops as inline `--c-*`, same parse/validate path, no island / no `<style>` (§3.2, §6) `[D9]` — **fast-follow; not in the 2026-06-23 run**
+- [√] `/work` index query: pull `blurb`, `brandColor`, `fontKey` — **not** the essay (§6)
+- [ ] Key-drift CI check goes **live** (§4.2) `[D10]` — **fast-follow; not in the 2026-06-23 run**
+- [√] **log-explorer fit-spike:** map its _real_ surface (odd state shapes, embed-prop needs, page shapes) onto the module structure + content model **now, while cheap** — pulls the migration risk forward without doing the full migration (§1, §4) `[D17]`
+- [~] **Co-located tests:** resolver (incl. the NotFound path) ✅ / `cardSwatches` ⛔ (with the gated helper) / index-query ✅
+
+_Schema, stega, resolvers, `/work` query, and fit-spike done 2026-06-23 (PRs #10 `49f1071`, #11 `0ff5461`). Remaining: `cardSwatches`, live key-drift, and engine-backed `brandColor` validation — see "Review-surfaced follow-ups" below._
 
 **Exit:** editing a project doc drives brand/font/embeds by key; the `/work` query is
 essay-free; `cardSwatches` produces card colors with no scope; the Studio bundle excludes
