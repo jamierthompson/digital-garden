@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OKLCH engine — contrast harness swatches</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #1c1c1c; color: #eee; }
+  h1 { font-size: 20px; }
+  .note { color: #aaa; max-width: 60ch; line-height: 1.5; }
+  .row { margin: 28px 0; }
+  .row > h2 { font-size: 16px; }
+  .row code { color: #9cf; }
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .panel { border-radius: 12px; padding: 16px; }
+  .scheme-label { text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; opacity: 0.6; margin-bottom: 8px; }
+  .card { border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .card h3 { margin: 0; font-size: 15px; }
+  .card p { margin: 0; font-size: 14px; }
+  .badge { display: inline-block; font-size: 10px; font-family: ui-monospace, monospace; opacity: 0.75; padding: 1px 5px; border: 1px solid currentColor; border-radius: 4px; margin-left: 4px; }
+  .ring { font-size: 12px; padding: 4px 8px; width: fit-content; border-radius: 4px; }
+  .ramp { display: flex; height: 28px; border-radius: 6px; overflow: hidden; }
+  .stop { flex: 1; }
+</style>
+</head>
+<body>
+<h1>OKLCH engine — contrast harness</h1>
+<p class="note">
+  Each brand color, light &amp; dark, baked to literal <code>oklch()</code> by the engine
+  (gamut-mapped before contrast math, contrast solved per scheme). Badges show MEASURED
+  APCA Lc and WCAG ratio for each pair. Open in a browser to eyeball palette quality;
+  the numbers are asserted by <code>harness.test.ts</code>.
+</p>
+
+  <section class="row">
+    <h2>Crimson <code>#e11d48</code></h2>
+    <div class="panels">
+  <div class="panel" style="color-scheme:light; background:oklch(0.9849 0.0073 17.59); color:oklch(0.4403 0.012 17.58)">
+    <div class="scheme-label">light</div>
+    <div class="card" style="background:oklch(0.965 0.008 17.58); border:1px solid oklch(0.6294 0.05 17.58)">
+      <h3 style="color:oklch(0.4403 0.012 17.58)">Heading on surface <span class="badge">text/sfc2: Lc 75.0 · 6.52:1</span></h3>
+      <p style="color:oklch(0.4403 0.012 17.58)">Body text — the readable default. <span class="badge">text/bg: Lc 83.9 · 7.45:1</span></p>
+      <p style="color:oklch(0.5267 0.012 17.58)">Muted secondary text. <span class="badge">muted/sfc2: Lc 64.7 · 4.50:1</span></p>
+      <p><a style="color:oklch(0.5534 0.2216 17.62)">An accent link</a> <span class="badge">link/sfc2: Lc 61.9 · 4.50:1</span></p>
+      <button style="background:oklch(0.56 0.222 17.58); color:oklch(0.99 0 17.58); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 76.6 · 5.09:1</span></button>
+      <div class="ring" style="outline:2px solid oklch(0.6513 0.222 17.58); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 49.8 · 3.00:1</span></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.9849 0.0073 17.59)" title="bg"></div><div class="stop" style="background:oklch(0.965 0.008 17.58)" title="surface"></div><div class="stop" style="background:oklch(0.94 0.0112 17.58)" title="surface-2"></div><div class="stop" style="background:oklch(0.6294 0.05 17.58)" title="border"></div><div class="stop" style="background:oklch(0.56 0.222 17.58)" title="accent"></div><div class="stop" style="background:oklch(0.5534 0.2216 17.62)" title="accent-text"></div><div class="stop" style="background:oklch(0.4403 0.012 17.58)" title="text"></div></div>
+    </div>
+  </div>
+  <div class="panel" style="color-scheme:dark; background:oklch(0.17 0.014 17.58); color:oklch(0.8572 0.014 17.58)">
+    <div class="scheme-label">dark</div>
+    <div class="card" style="background:oklch(0.215 0.014 17.58); border:1px solid oklch(0.5902 0.05 17.58)">
+      <h3 style="color:oklch(0.8572 0.014 17.58)">Heading on surface <span class="badge">text/sfc2: Lc 75.0 · 10.08:1</span></h3>
+      <p style="color:oklch(0.8572 0.014 17.58)">Body text — the readable default. <span class="badge">text/bg: Lc 77.3 · 12.35:1</span></p>
+      <p style="color:oklch(0.7766 0.014 17.58)">Muted secondary text. <span class="badge">muted/sfc2: Lc 60.0 · 7.68:1</span></p>
+      <p><a style="color:oklch(0.7883 0.1234 16.9)">An accent link</a> <span class="badge">link/sfc2: Lc 60.0 · 7.64:1</span></p>
+      <button style="background:oklch(0.7699 0.1365 17.58); color:oklch(0.1 0 17.58); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 61.0 · 9.36:1</span></button>
+      <div class="ring" style="outline:2px solid oklch(0.7032 0.1821 17.58); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 45.0 · 5.45:1</span></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.17 0.014 17.58)" title="bg"></div><div class="stop" style="background:oklch(0.215 0.014 17.58)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.0196 17.58)" title="surface-2"></div><div class="stop" style="background:oklch(0.5902 0.05 17.58)" title="border"></div><div class="stop" style="background:oklch(0.7699 0.1365 17.58)" title="accent"></div><div class="stop" style="background:oklch(0.7883 0.1234 16.9)" title="accent-text"></div><div class="stop" style="background:oklch(0.8572 0.014 17.58)" title="text"></div></div>
+    </div>
+  </div></div>
+  </section>
+
+  <section class="row">
+    <h2>Amber (yellow stresser) <code>#eab308</code></h2>
+    <div class="panels">
+  <div class="panel" style="color-scheme:light; background:oklch(0.985 0.008 86.05); color:oklch(0.4412 0.012 86.05)">
+    <div class="scheme-label">light</div>
+    <div class="card" style="background:oklch(0.965 0.008 86.05); border:1px solid oklch(0.6248 0.05 86.05)">
+      <h3 style="color:oklch(0.4412 0.012 86.05)">Heading on surface <span class="badge">text/sfc2: Lc 75.0 · 6.48:1</span></h3>
+      <p style="color:oklch(0.4412 0.012 86.05)">Body text — the readable default. <span class="badge">text/bg: Lc 83.8 · 7.40:1</span></p>
+      <p style="color:oklch(0.5262 0.012 86.05)">Muted secondary text. <span class="badge">muted/sfc2: Lc 64.9 · 4.50:1</span></p>
+      <p><a style="color:oklch(0.529 0.1088 82.74)">An accent link</a> <span class="badge">link/sfc2: Lc 64.6 · 4.50:1</span></p>
+      <button style="background:oklch(0.5607 0.115 84.5); color:oklch(0.99 0 86.05); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 75.5 · 4.56:1</span></button>
+      <div class="ring" style="outline:2px solid oklch(0.6276 0.129 83.26); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 51.2 · 3.00:1</span></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.985 0.008 86.05)" title="bg"></div><div class="stop" style="background:oklch(0.965 0.008 86.05)" title="surface"></div><div class="stop" style="background:oklch(0.94 0.0112 86.05)" title="surface-2"></div><div class="stop" style="background:oklch(0.6248 0.05 86.05)" title="border"></div><div class="stop" style="background:oklch(0.5607 0.115 84.5)" title="accent"></div><div class="stop" style="background:oklch(0.529 0.1088 82.74)" title="accent-text"></div><div class="stop" style="background:oklch(0.4412 0.012 86.05)" title="text"></div></div>
+    </div>
+  </div>
+  <div class="panel" style="color-scheme:dark; background:oklch(0.17 0.014 86.05); color:oklch(0.8559 0.014 86.05)">
+    <div class="scheme-label">dark</div>
+    <div class="card" style="background:oklch(0.215 0.014 86.05); border:1px solid oklch(0.5854 0.05 86.05)">
+      <h3 style="color:oklch(0.8559 0.014 86.05)">Heading on surface <span class="badge">text/sfc2: Lc 75.0 · 10.02:1</span></h3>
+      <p style="color:oklch(0.8559 0.014 86.05)">Body text — the readable default. <span class="badge">text/bg: Lc 77.3 · 12.33:1</span></p>
+      <p style="color:oklch(0.7753 0.014 86.05)">Muted secondary text. <span class="badge">muted/sfc2: Lc 60.0 · 7.64:1</span></p>
+      <p><a style="color:oklch(0.7763 0.1326 86.05)">An accent link</a> <span class="badge">link/sfc2: Lc 60.0 · 7.61:1</span></p>
+      <button style="background:oklch(0.8 0.1326 86.05); color:oklch(0.1 0 86.05); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 68.4 · 10.95:1</span></button>
+      <div class="ring" style="outline:2px solid oklch(0.6872 0.1326 86.05); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 45.0 · 5.50:1</span></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.17 0.014 86.05)" title="bg"></div><div class="stop" style="background:oklch(0.215 0.014 86.05)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.0196 86.05)" title="surface-2"></div><div class="stop" style="background:oklch(0.5854 0.05 86.05)" title="border"></div><div class="stop" style="background:oklch(0.8 0.1326 86.05)" title="accent"></div><div class="stop" style="background:oklch(0.7763 0.1326 86.05)" title="accent-text"></div><div class="stop" style="background:oklch(0.8559 0.014 86.05)" title="text"></div></div>
+    </div>
+  </div></div>
+  </section>
+
+  <section class="row">
+    <h2>Emerald <code>#16a34a</code></h2>
+    <div class="panels">
+  <div class="panel" style="color-scheme:light; background:oklch(0.985 0.008 149.21); color:oklch(0.4421 0.012 149.21)">
+    <div class="scheme-label">light</div>
+    <div class="card" style="background:oklch(0.965 0.008 149.21); border:1px solid oklch(0.6198 0.05 149.21)">
+      <h3 style="color:oklch(0.4421 0.012 149.21)">Heading on surface <span class="badge">text/sfc2: Lc 75.0 · 6.44:1</span></h3>
+      <p style="color:oklch(0.4421 0.012 149.21)">Body text — the readable default. <span class="badge">text/bg: Lc 83.8 · 7.35:1</span></p>
+      <p style="color:oklch(0.5257 0.012 149.21)">Muted secondary text. <span class="badge">muted/sfc2: Lc 65.0 · 4.50:1</span></p>
+      <p><a style="color:oklch(0.5117 0.1463 148.47)">An accent link</a> <span class="badge">link/sfc2: Lc 64.3 · 4.50:1</span></p>
+      <button style="background:oklch(0.5422 0.156 148.24); color:oklch(0.99 0 149.21); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 75.1 · 4.55:1</span></button>
+      <div class="ring" style="outline:2px solid oklch(0.6073 0.1699 149.21); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 50.9 · 3.00:1</span></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.985 0.008 149.21)" title="bg"></div><div class="stop" style="background:oklch(0.965 0.008 149.21)" title="surface"></div><div class="stop" style="background:oklch(0.94 0.0112 149.21)" title="surface-2"></div><div class="stop" style="background:oklch(0.6198 0.05 149.21)" title="border"></div><div class="stop" style="background:oklch(0.5422 0.156 148.24)" title="accent"></div><div class="stop" style="background:oklch(0.5117 0.1463 148.47)" title="accent-text"></div><div class="stop" style="background:oklch(0.4421 0.012 149.21)" title="text"></div></div>
+    </div>
+  </div>
+  <div class="panel" style="color-scheme:dark; background:oklch(0.17 0.014 149.21); color:oklch(0.8548 0.014 149.21)">
+    <div class="scheme-label">dark</div>
+    <div class="card" style="background:oklch(0.215 0.014 149.21); border:1px solid oklch(0.5801 0.05 149.21)">
+      <h3 style="color:oklch(0.8548 0.014 149.21)">Heading on surface <span class="badge">text/sfc2: Lc 75.0 · 9.97:1</span></h3>
+      <p style="color:oklch(0.8548 0.014 149.21)">Body text — the readable default. <span class="badge">text/bg: Lc 77.4 · 12.32:1</span></p>
+      <p style="color:oklch(0.7743 0.014 149.21)">Muted secondary text. <span class="badge">muted/sfc2: Lc 60.0 · 7.60:1</span></p>
+      <p><a style="color:oklch(0.7593 0.1393 149.21)">An accent link</a> <span class="badge">link/sfc2: Lc 60.0 · 7.57:1</span></p>
+      <button style="background:oklch(0.8 0.1393 149.21); color:oklch(0.1 0 149.21); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 71.4 · 11.61:1</span></button>
+      <div class="ring" style="outline:2px solid oklch(0.67 0.1393 149.21); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 45.0 · 5.46:1</span></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.17 0.014 149.21)" title="bg"></div><div class="stop" style="background:oklch(0.215 0.014 149.21)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.0196 149.21)" title="surface-2"></div><div class="stop" style="background:oklch(0.5801 0.05 149.21)" title="border"></div><div class="stop" style="background:oklch(0.8 0.1393 149.21)" title="accent"></div><div class="stop" style="background:oklch(0.7593 0.1393 149.21)" title="accent-text"></div><div class="stop" style="background:oklch(0.8548 0.014 149.21)" title="text"></div></div>
+    </div>
+  </div></div>
+  </section>
+
+  <section class="row">
+    <h2>Cyan (cyan stresser) <code>#06b6d4</code></h2>
+    <div class="panels">
+  <div class="panel" style="color-scheme:light; background:oklch(0.985 0.008 215.22); color:oklch(0.4419 0.012 215.22)">
+    <div class="scheme-label">light</div>
+    <div class="card" style="background:oklch(0.965 0.008 215.22); border:1px solid oklch(0.6207 0.05 215.22)">
+      <h3 style="color:oklch(0.4419 0.012 215.22)">Heading on surface <span class="badge">text/sfc2: Lc 75.0 · 6.45:1</span></h3>
+      <p style="color:oklch(0.4419 0.012 215.22)">Body text — the readable default. <span class="badge">text/bg: Lc 83.8 · 7.36:1</span></p>
+      <p style="color:oklch(0.5258 0.012 215.22)">Muted secondary text. <span class="badge">muted/sfc2: Lc 65.0 · 4.50:1</span></p>
+      <p><a style="color:oklch(0.519 0.0921 215.79)">An accent link</a> <span class="badge">link/sfc2: Lc 64.4 · 4.50:1</span></p>
+      <button style="background:oklch(0.5464 0.0982 218.07); color:oklch(0.99 0 215.22); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 75.7 · 4.63:1</span></button>
+      <div class="ring" style="outline:2px solid oklch(0.6158 0.109 215.43); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 51.0 · 3.00:1</span></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.985 0.008 215.22)" title="bg"></div><div class="stop" style="background:oklch(0.965 0.008 215.22)" title="surface"></div><div class="stop" style="background:oklch(0.94 0.0112 215.22)" title="surface-2"></div><div class="stop" style="background:oklch(0.6207 0.05 215.22)" title="border"></div><div class="stop" style="background:oklch(0.5464 0.0982 218.07)" title="accent"></div><div class="stop" style="background:oklch(0.519 0.0921 215.79)" title="accent-text"></div><div class="stop" style="background:oklch(0.4419 0.012 215.22)" title="text"></div></div>
+    </div>
+  </div>
+  <div class="panel" style="color-scheme:dark; background:oklch(0.17 0.014 215.22); color:oklch(0.855 0.014 215.22)">
+    <div class="scheme-label">dark</div>
+    <div class="card" style="background:oklch(0.215 0.014 215.22); border:1px solid oklch(0.5808 0.05 215.22)">
+      <h3 style="color:oklch(0.855 0.014 215.22)">Heading on surface <span class="badge">text/sfc2: Lc 75.0 · 9.98:1</span></h3>
+      <p style="color:oklch(0.855 0.014 215.22)">Body text — the readable default. <span class="badge">text/bg: Lc 77.4 · 12.32:1</span></p>
+      <p style="color:oklch(0.7745 0.014 215.22)">Muted secondary text. <span class="badge">muted/sfc2: Lc 60.0 · 7.61:1</span></p>
+      <p><a style="color:oklch(0.7651 0.1031 215.22)">An accent link</a> <span class="badge">link/sfc2: Lc 60.0 · 7.57:1</span></p>
+      <button style="background:oklch(0.8 0.1031 215.22); color:oklch(0.1 0 215.22); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 70.4 · 11.37:1</span></button>
+      <div class="ring" style="outline:2px solid oklch(0.6755 0.1031 215.22); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 45.0 · 5.46:1</span></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.17 0.014 215.22)" title="bg"></div><div class="stop" style="background:oklch(0.215 0.014 215.22)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.0196 215.22)" title="surface-2"></div><div class="stop" style="background:oklch(0.5808 0.05 215.22)" title="border"></div><div class="stop" style="background:oklch(0.8 0.1031 215.22)" title="accent"></div><div class="stop" style="background:oklch(0.7651 0.1031 215.22)" title="accent-text"></div><div class="stop" style="background:oklch(0.855 0.014 215.22)" title="text"></div></div>
+    </div>
+  </div></div>
+  </section>
+
+  <section class="row">
+    <h2>Violet <code>#7c3aed</code></h2>
+    <div class="panels">
+  <div class="panel" style="color-scheme:light; background:oklch(0.985 0.0077 293.04); color:oklch(0.4407 0.012 293.01)">
+    <div class="scheme-label">light</div>
+    <div class="card" style="background:oklch(0.965 0.008 293.01); border:1px solid oklch(0.6274 0.05 293.01)">
+      <h3 style="color:oklch(0.4407 0.012 293.01)">Heading on surface <span class="badge">text/sfc2: Lc 75.0 · 6.50:1</span></h3>
+      <p style="color:oklch(0.4407 0.012 293.01)">Body text — the readable default. <span class="badge">text/bg: Lc 83.9 · 7.43:1</span></p>
+      <p style="color:oklch(0.5265 0.012 293.01)">Muted secondary text. <span class="badge">muted/sfc2: Lc 64.8 · 4.50:1</span></p>
+      <p><a style="color:oklch(0.5546 0.2466 293.01)">An accent link</a> <span class="badge">link/sfc2: Lc 63.8 · 4.50:1</span></p>
+      <button style="background:oklch(0.45 0.2466 293.01); color:oklch(0.99 0 293.01); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 89.7 · 8.33:1</span></button>
+      <div class="ring" style="outline:2px solid oklch(0.6452 0.211 293.6); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 51.0 · 3.00:1</span></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.985 0.0077 293.04)" title="bg"></div><div class="stop" style="background:oklch(0.965 0.008 293.01)" title="surface"></div><div class="stop" style="background:oklch(0.94 0.0112 293.01)" title="surface-2"></div><div class="stop" style="background:oklch(0.6274 0.05 293.01)" title="border"></div><div class="stop" style="background:oklch(0.45 0.2466 293.01)" title="accent"></div><div class="stop" style="background:oklch(0.5546 0.2466 293.01)" title="accent-text"></div><div class="stop" style="background:oklch(0.4407 0.012 293.01)" title="text"></div></div>
+    </div>
+  </div>
+  <div class="panel" style="color-scheme:dark; background:oklch(0.17 0.014 293.01); color:oklch(0.8565 0.014 293.01)">
+    <div class="scheme-label">dark</div>
+    <div class="card" style="background:oklch(0.215 0.014 293.01); border:1px solid oklch(0.5883 0.05 293.01)">
+      <h3 style="color:oklch(0.8565 0.014 293.01)">Heading on surface <span class="badge">text/sfc2: Lc 75.0 · 10.05:1</span></h3>
+      <p style="color:oklch(0.8565 0.014 293.01)">Body text — the readable default. <span class="badge">text/bg: Lc 77.3 · 12.34:1</span></p>
+      <p style="color:oklch(0.776 0.014 293.01)">Muted secondary text. <span class="badge">muted/sfc2: Lc 60.0 · 7.66:1</span></p>
+      <p><a style="color:oklch(0.7842 0.1212 293.6)">An accent link</a> <span class="badge">link/sfc2: Lc 60.0 · 7.65:1</span></p>
+      <button style="background:oklch(0.7639 0.1352 294.89); color:oklch(0.1 0 293.01); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 60.6 · 9.34:1</span></button>
+      <div class="ring" style="outline:2px solid oklch(0.7003 0.1739 293.35); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 45.0 · 5.51:1</span></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.17 0.014 293.01)" title="bg"></div><div class="stop" style="background:oklch(0.215 0.014 293.01)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.0196 293.01)" title="surface-2"></div><div class="stop" style="background:oklch(0.5883 0.05 293.01)" title="border"></div><div class="stop" style="background:oklch(0.7639 0.1352 294.89)" title="accent"></div><div class="stop" style="background:oklch(0.7842 0.1212 293.6)" title="accent-text"></div><div class="stop" style="background:oklch(0.8565 0.014 293.01)" title="text"></div></div>
+    </div>
+  </div></div>
+  </section>
+</body>
+</html>
