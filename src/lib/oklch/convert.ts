@@ -150,7 +150,7 @@ export function parseColor(input: unknown): OkLCH | null {
   if (raw === "") return null;
 
   const hex3 = raw.match(HEX3);
-  if (hex3 && !raw.includes(",")) {
+  if (hex3) {
     const r = parseInt(hex3[1] + hex3[1], 16) / 255;
     const g = parseInt(hex3[2] + hex3[2], 16) / 255;
     const b = parseInt(hex3[3] + hex3[3], 16) / 255;

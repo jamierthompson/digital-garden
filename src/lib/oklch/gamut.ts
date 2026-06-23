@@ -14,11 +14,9 @@
 
 import {
   linearSrgbToOklab,
-  linearToSrgb,
   oklabToOklch,
   oklchToLinearRgb,
   oklchToOklab,
-  srgbToLinear,
 } from "./convert";
 import type { Gamut, OkLab, OkLCH, RGB } from "./types";
 
@@ -60,12 +58,10 @@ function deltaEOK(a: OkLab, b: OkLab): number {
  * for the sub-JND boundary acceptance, where the residual error is imperceptible.
  */
 function clippedOklab(linear: RGB): OkLab {
-  const lin = {
-    r: srgbToLinear(linearToSrgb(linear.r)),
-    g: srgbToLinear(linearToSrgb(linear.g)),
-    b: srgbToLinear(linearToSrgb(linear.b)),
-  };
-  return linearSrgbToOklab(lin);
+  // Measured through the sRGB OKLab basis. For P3 this treats the P3 linear channels as
+  // sRGB linear — an intentional close approximation, used only for the sub-JND boundary
+  // check where the residual error is imperceptible.
+  return linearSrgbToOklab(clipLinear(linear));
 }
 
 /**

@@ -85,7 +85,8 @@ const CHECKS: PairCheck[] = [
     fg: (t) => t.border,
     bg: (t) => t["surface-2"],
     wcag: 3,
-    apca: 0,
+    // The engine's own TARGET.border is Lc 30 (palette.ts) — assert it delivers that.
+    apca: 30,
   },
   {
     label: "focus-ring / surface-2",

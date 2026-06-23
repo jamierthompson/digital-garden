@@ -32,7 +32,7 @@ function badge(label: string, lc: number, ratio: number): string {
   return `<span class="badge">${label}: Lc ${lc.toFixed(1)} · ${ratio.toFixed(2)}:1</span>`;
 }
 
-function ramp(hue: number, tokens: SchemeTokens): string {
+function ramp(tokens: SchemeTokens): string {
   // Eyeball strip: surfaces + key tokens laid out as bars.
   const stops: Array<[string, OkLCH]> = [
     ["bg", tokens.bg],
@@ -43,7 +43,6 @@ function ramp(hue: number, tokens: SchemeTokens): string {
     ["accent-text", tokens["accent-text"]],
     ["text", tokens.text],
   ];
-  void hue;
   return stops
     .map(
       ([n, c]) =>
@@ -67,7 +66,7 @@ function panel(scheme: Scheme, sample: BrandSample): string {
       <p><a style="color:${css(tokens["accent-text"])}">An accent link</a> ${badge("link/sfc2", apcaLc(tokens["accent-text"], surfaceBg), contrastWCAG(tokens["accent-text"], surfaceBg))}</p>
       <button style="background:${css(tokens.accent)}; color:${css(tokens["on-accent"])}; border:none; padding:6px 12px; border-radius:6px">Accent button ${badge("on-accent", apcaLc(tokens["on-accent"], tokens.accent), contrastWCAG(tokens["on-accent"], tokens.accent))}</button>
       <div class="ring" style="outline:2px solid ${css(tokens["focus-ring"])}; outline-offset:2px">focus ring ${badge("ring/sfc2", apcaLc(tokens["focus-ring"], surfaceBg), contrastWCAG(tokens["focus-ring"], surfaceBg))}</div>
-      <div class="ramp">${ramp(0, tokens)}</div>
+      <div class="ramp">${ramp(tokens)}</div>
     </div>
   </div>`;
 }
