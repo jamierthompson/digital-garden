@@ -12,6 +12,9 @@ pnpm-lock.yaml
 # Generated files
 next-env.d.ts
 
+# OKLCH visual-harness output (regenerated deterministically by harness/swatches.ts)
+src/lib/oklch/harness/swatches.html
+
 # Sanity TypeGen output (formatted by sanity typegen itself)
 sanity.types.ts
 
