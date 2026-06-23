@@ -13,7 +13,7 @@ vi.mock("next/font/google", () => ({
 import { FONT_KEYS } from "@/lib/keys";
 
 import { resolveFontKey } from "./fonts";
-import { isNotFound } from "./notFound";
+import { isNotFound } from "./resolution";
 
 describe("resolveFontKey", () => {
   it("resolves every roster key to its face", () => {

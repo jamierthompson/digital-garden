@@ -36,5 +36,7 @@ describe("font roster", () => {
     expect(FONT_FACES["jetbrains-mono"].cssVariable).toBe(
       "--font-jetbrains-mono",
     );
+    expect(FONT_FACES.newsreader.cssVariable).toBe("--font-newsreader");
+    expect(FONT_FACES.fraunces.cssVariable).toBe("--font-fraunces");
   });
 });

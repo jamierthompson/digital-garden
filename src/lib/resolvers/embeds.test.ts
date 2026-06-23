@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { resolveEmbedKey } from "./embeds";
-import { isNotFound } from "./notFound";
+import { isNotFound } from "./resolution";
 
 describe("resolveEmbedKey", () => {
   it("returns a typed NotFound for any key while the registry is empty", () => {

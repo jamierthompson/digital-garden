@@ -5,7 +5,7 @@
 import { FONT_FACES, type FontFace } from "@/fonts/roster";
 import { isFontKey } from "@/lib/keys";
 
-import { found, notFound, type Resolution } from "./notFound";
+import { found, notFound, type Resolution } from "./resolution";
 
 /**
  * Resolve a `fontKey` (an arbitrary string from Sanity) to its roster face.

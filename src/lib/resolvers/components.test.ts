@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { resolveComponentKey } from "./components";
-import { isNotFound } from "./notFound";
+import { isNotFound } from "./resolution";
 
 describe("resolveComponentKey", () => {
   it("returns a typed NotFound for any key while the registry is empty (Phase 3)", () => {

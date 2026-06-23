@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { found, isNotFound, notFound } from "./notFound";
+import { found, isNotFound, notFound } from "./resolution";
 
 describe("resolution result", () => {
   it("found() wraps a value on the success branch", () => {

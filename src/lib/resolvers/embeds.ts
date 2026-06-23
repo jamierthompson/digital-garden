@@ -16,7 +16,7 @@
 
 import { type EmbedKey } from "@/lib/keys";
 
-import { found, notFound, type Resolution } from "./notFound";
+import { found, notFound, type Resolution } from "./resolution";
 
 /** Loads an embeddable component. Concrete shape finalized when embeds exist. */
 export type EmbedLoader = () => Promise<unknown>;
@@ -25,6 +25,14 @@ export type EmbedLoader = () => Promise<unknown>;
 // error the moment a key is added to `EMBED_KEYS` [D10]. Empty today.
 const EMBED_LOADERS = {} satisfies Record<EmbedKey, EmbedLoader>;
 
+// Two variables, two jobs — this split is PERMANENT, not a while-empty
+// workaround. `EMBED_LOADERS` keeps its literal type so `satisfies` enforces
+// completeness against `EmbedKey`. `loaders` is the widened, string-keyed view
+// the resolver indexes: `resolveEmbedKey` takes a raw `string` (a key from a
+// Portable Text block, with no compile-time guarantee it's an `EmbedKey`), so
+// indexing the typed `Record<EmbedKey, …>` directly would always be a type
+// error. The widened view is required for that lookup forever — even once the
+// registry is full.
 const loaders: Readonly<Record<string, EmbedLoader>> = EMBED_LOADERS;
 
 /**

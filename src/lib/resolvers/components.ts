@@ -21,7 +21,7 @@
 
 import { type ComponentKey } from "@/lib/keys";
 
-import { found, notFound, type Resolution } from "./notFound";
+import { found, notFound, type Resolution } from "./resolution";
 
 /**
  * Loads a project module. The concrete module shape (its registry entry export)
@@ -34,9 +34,14 @@ export type ProjectLoader = () => Promise<unknown>;
 // compile error the moment a key is added to `COMPONENT_KEYS` [D10]. Empty today.
 const PROJECT_LOADERS = {} satisfies Record<ComponentKey, ProjectLoader>;
 
-// String-keyed view for the runtime lookup. Keeping the literal-typed
-// `PROJECT_LOADERS` for the compile-time completeness check and a widened view
-// for the lookup avoids `never`-key index gymnastics while the registry is empty.
+// Two variables, two jobs — this split is PERMANENT, not a while-empty
+// workaround. `PROJECT_LOADERS` keeps its literal type so `satisfies` enforces
+// completeness against `ComponentKey`. `loaders` is the widened, string-keyed
+// view the resolver indexes: `resolveComponentKey` takes a raw `string` (a key
+// from Sanity, with no compile-time guarantee it's a `ComponentKey`), so
+// indexing the typed `Record<ComponentKey, …>` directly would always be a type
+// error. The widened view is required for that lookup forever — even once the
+// registry is full.
 const loaders: Readonly<Record<string, ProjectLoader>> = PROJECT_LOADERS;
 
 /**
