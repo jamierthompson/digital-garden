@@ -41,6 +41,7 @@ eslint.config.mjs          the real import-boundary + isomorphism rules
 scripts/
   check-css-layers.mjs     the @layer-declaration lint (pnpm lint:css)
   check-key-drift.mjs      the key-drift guard (pnpm lint:keys; stub until Phase 2)
+  check-doc-gate-sync.mjs  the gate-doc sync guard (pnpm lint:docs; keeps the AGENTS.md gate ≡ DoD §1)
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
     layout.tsx             root layout (shell nav skeleton, shell fonts preload:true)
