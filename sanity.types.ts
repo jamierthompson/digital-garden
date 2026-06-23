@@ -15,6 +15,137 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: schema.json
+export type SanityImageAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+};
+
+export type Figure = {
+  _type: "figure";
+  asset?: SanityImageAssetReference;
+  media?: unknown;
+  hotspot?: SanityImageHotspot;
+  crop?: SanityImageCrop;
+  alt?: string;
+  caption?: string;
+};
+
+export type LiveEmbed = {
+  _type: "liveEmbed";
+  embedKey?: string;
+  caption?: string;
+};
+
+export type PortableText = Array<
+  | {
+      children?: Array<{
+        marks?: Array<string>;
+        text?: string;
+        _type: "span";
+        _key: string;
+      }>;
+      style?: "normal" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "blockquote";
+      listItem?: "bullet" | "number";
+      markDefs?: Array<{
+        href?: string;
+        _type: "link";
+        _key: string;
+      }>;
+      level?: number;
+      _type: "block";
+      _key: string;
+    }
+  | ({
+      _key: string;
+    } & LiveEmbed)
+  | ({
+      _key: string;
+    } & Figure)
+>;
+
+export type NoteReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "note";
+};
+
+export type Note = {
+  _id: string;
+  _type: "note";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  slug?: Slug;
+  body?: PortableText;
+  related?: Array<
+    {
+      _key: string;
+    } & NoteReference
+  >;
+  tags?: Array<string>;
+};
+
+export type Slug = {
+  _type: "slug";
+  current?: string;
+  source?: string;
+};
+
+export type SiteSettings = {
+  _id: string;
+  _type: "siteSettings";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  description?: string;
+  brandColor?: string;
+  brandColorDark?: string;
+  fontKey?: string;
+};
+
+export type Project = {
+  _id: string;
+  _type: "project";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  slug?: Slug;
+  blurb?: string;
+  brandColor?: string;
+  brandColorDark?: string;
+  fontKey?: string;
+  componentKey?: string;
+  essay?: PortableText;
+  notes?: Array<
+    {
+      _key: string;
+    } & NoteReference
+  >;
+  tags?: Array<string>;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x?: number;
+  y?: number;
+  height?: number;
+  width?: number;
+};
+
 export type SanityImagePaletteSwatch = {
   _type: "sanity.imagePaletteSwatch";
   background?: string;
@@ -51,22 +182,6 @@ export type SanityImageMetadata = {
   thumbHash?: string;
   hasAlpha?: boolean;
   isOpaque?: boolean;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x?: number;
-  y?: number;
-  height?: number;
-  width?: number;
-};
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top?: number;
-  bottom?: number;
-  left?: number;
-  right?: number;
 };
 
 export type SanityFileAsset = {
@@ -128,21 +243,43 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type Slug = {
-  _type: "slug";
-  current?: string;
-  source?: string;
-};
-
 export type AllSanitySchemaTypes =
+  | SanityImageAssetReference
+  | Figure
+  | LiveEmbed
+  | PortableText
+  | NoteReference
+  | Note
+  | Slug
+  | SiteSettings
+  | Project
+  | SanityImageCrop
+  | SanityImageHotspot
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
   | SanityImageMetadata
-  | SanityImageHotspot
-  | SanityImageCrop
   | SanityFileAsset
   | SanityAssetSourceData
   | SanityImageAsset
-  | Geopoint
-  | Slug;
+  | Geopoint;
+
+// Source: ../src/sanity/lib/queries.ts
+// Variable: WORK_INDEX_QUERY
+// Query: *[_type == "project" && defined(slug.current)] | order(_createdAt desc) {    _id,    title,    "slug": slug.current,    blurb,    brandColor,    fontKey  }
+export type WORK_INDEX_QUERY_RESULT = Array<{
+  _id: string;
+  title: string | null;
+  slug: string | null;
+  blurb: string | null;
+  brandColor: string | null;
+  fontKey: string | null;
+}>;
+
+// Query TypeMap
+import "@sanity/client";
+declare module "@sanity/client" {
+  interface SanityQueries {
+    '\n  *[_type == "project" && defined(slug.current)] | order(_createdAt desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': WORK_INDEX_QUERY_RESULT;
+  }
+}
