@@ -158,6 +158,38 @@ local embed tier introduced without a real second consumer.
 
 ---
 
+## Review-surfaced follow-ups (2026-06-23 run — PRs #8–#11)
+
+> Items the `claude-review` pass surfaced on the Phase 0.5 / parallel build, filed under the phase
+> that should pick each up. None blocked their PR. Run record:
+> [`runs/2026-06-23-phase-0.5-walking-skeleton.md`](./runs/2026-06-23-phase-0.5-walking-skeleton.md).
+
+**Phase 1 — real `ProjectScope` (swaps the stub palette → engine output):**
+
+- [ ] Keep the streamed `<style precedence="brand">` string and its `@layer brand { … }` wrapper **synchronized** — if they diverge the style hoists with the wrong precedence order (PR #9) `[D13]`
+- [ ] Map the engine's generic `--brand-*` output into the scope namespace **and** into `--focus-ring-color` (foundation's `:focus-visible` reads it) — e.g. `--focus-ring-color: var(--brand-focus-ring)` (PR #8) `[D7]`
+
+**Phase 2 — engine-backed `brandColor` validation (a package-boundary task, not a quick fix):**
+
+- [ ] True engine-backed `brandColor` validation requires moving the **engine into a shared workspace package** the Studio can import — the same move `keys.ts` needs `[D23]`; the standalone Studio cannot import `src/lib/oklch`. Until then `isBrandColorString` stays a format check (layer 1 of `[D9]`) and the engine's defensive parse is the app-side layer. Once the shared package exists, swapping `isBrandColorString`'s body for the engine parse is a near-drop-in (PR #11) `[D9, D23]`
+
+**Phase 3 — content / route housekeeping:**
+
+- [ ] `project.blurb` — consider a hard `rule.max(300).error()` alongside the soft 280-char warning if the card layout can't absorb overflow (PR #11)
+- [ ] `siteSettings` — enforce the singleton via Studio Structure and use an explicit `*[_type == "siteSettings"][0]` guard in its query (nothing forces uniqueness today) (PR #11) `[D24]`
+- [ ] Draft-mode / Presentation client needs `useCdn: false` + `perspective: "previewDrafts"`, distinct from the publishes-only public client (PR #11) `[D16]`
+
+**Phase 4 — engine playground (Consumer B) performance:**
+
+- [ ] `solveAccent` scans L in 0.01 steps (≈51 × gamut-map + contrast per call) — fine server-side/baked, but for the interactive hue→palette playground memoize or cache the per-hue gamut boundary so it runs at interactive speed (PR #8)
+
+**Minor cleanups (opportunistic, any phase):**
+
+- [ ] `palette.ts` — annotate `TOKEN_NAMES` as `readonly BrandTokenName[]` so the token-set builder's exhaustiveness is type-enforced rather than cast (PR #8)
+- [ ] The OKLCH visual harness writes `swatches.html` under both the jsdom and node Vitest projects (identical writes, no race) — optionally scope it to one project (PR #8)
+
+---
+
 ## Deferred by design — don't build until forced
 
 - **Project-local embed tier** — stay single-tier shared until a second project reuses a widget (§4.1)
