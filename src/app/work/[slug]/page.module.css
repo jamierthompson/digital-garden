@@ -1,0 +1,13 @@
+/* Minimal styling owned by the route itself — just the Suspense fallback shown while
+   `StreamedSection` streams in. Kept separate from `ModuleShell.module.css` so the route
+   doesn't reach into a presentational component's stylesheet for one class. Like every CSS
+   Module here it MUST declare its `@layer` or it silently outranks every layer (the
+   "@layer trap", `[D12]`, enforced by `pnpm lint:css`); it stays var-consuming so it never
+   reaches up for a look. */
+@layer project {
+  .skeleton {
+    margin-top: var(--space-6);
+    color: color-mix(in oklab, var(--brand-on-surface) 50%, transparent);
+    font-size: var(--text-sm);
+  }
+}

@@ -4,7 +4,7 @@ import ProjectScope from "@/components/project-scope/ProjectScope";
 import ProjectScopeBoundary from "@/components/project-scope/ProjectScopeBoundary";
 
 import ModuleShell from "./ModuleShell";
-import styles from "./ModuleShell.module.css";
+import styles from "./page.module.css";
 import StreamedSection from "./StreamedSection";
 
 // Thin route (`app/` is routing only — it mounts components from `src/`). The composition:

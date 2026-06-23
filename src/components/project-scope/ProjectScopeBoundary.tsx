@@ -1,6 +1,7 @@
 "use client";
 
 import { unstable_catchError } from "next/error";
+import type { ReactNode } from "react";
 
 // The last-resort backstop around `ProjectScope` `[D9]`. `unstable_catchError`
 // (`next/error`, introduced v16.2.0) builds a component-level error boundary — the
@@ -20,7 +21,7 @@ import { unstable_catchError } from "next/error";
 // the wrapper's `{ children }` does not collapse `children` to `never`.
 type ScopeFallbackProps = Record<never, never>;
 
-function ScopeErrorFallback(): React.ReactNode {
+function ScopeErrorFallback(): ReactNode {
   return (
     <div data-project="fallback" role="alert">
       <p>Theme unavailable — showing the default appearance.</p>
