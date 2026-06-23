@@ -1,0 +1,64 @@
+// Reference-by-key contracts — the single source of truth for which keys exist
+// [D10, §4.2, §6]. Sanity stores keys (`componentKey`, `fontKey`, `embedKey`)
+// on a project document; code resolves them. This module owns the *allowed key
+// values* and their types; resolvers (src/lib/resolvers/**) and the font roster
+// (src/fonts/roster.ts) key off these, and the Phase-2 Sanity schema builds its
+// dropdowns from them. Resolvers are typed `satisfies Record<Key, …>` so a
+// missing entry is a compile error, and return a typed `NotFound` for an unknown
+// key (a saved Sanity key whose code was renamed/deleted) rather than crashing.
+//
+// IMPORTANT — keep this module dependency-free and side-effect-free. It is the
+// contract both the app and (Phase 2) the standalone Studio consume; under [D23]
+// it moves to a shared workspace package both import, so it must not pull in
+// `next/font`, project bundles, or any app-only code. Today it lives at
+// `src/lib/keys.ts` (Phase 1); the workspace-package relocation is a Phase-2 task.
+
+/**
+ * Font keys — each resolves to a curated `next/font` face in the roster
+ * (`src/fonts/roster.ts`). Adding a face is a code change; choosing among
+ * existing faces is content (an editor picks from this set) [D11, §5].
+ */
+export const FONT_KEYS = [
+  "inter",
+  "newsreader",
+  "fraunces",
+  "space-grotesk",
+  "jetbrains-mono",
+] as const;
+export type FontKey = (typeof FONT_KEYS)[number];
+
+/**
+ * Component keys — one per project module, resolved to a literal dynamic import
+ * in `src/lib/resolvers/components.ts` [D21, §4.2]. **Empty until Phase 3**: no
+ * project modules exist yet. Each project registers its key here when it lands.
+ */
+export const COMPONENT_KEYS = [] as const satisfies readonly string[];
+export type ComponentKey = (typeof COMPONENT_KEYS)[number];
+
+/**
+ * Embed keys — shared in-essay live components / widgets, resolved in
+ * `src/lib/resolvers/embeds.ts` [D15, §4.1]. **Empty until a widget exists**:
+ * the registry starts single-tier and a project-local tier is added only on a
+ * genuine second use [D24].
+ */
+export const EMBED_KEYS = [] as const satisfies readonly string[];
+export type EmbedKey = (typeof EMBED_KEYS)[number];
+
+const FONT_KEY_SET: ReadonlySet<string> = new Set(FONT_KEYS);
+const COMPONENT_KEY_SET: ReadonlySet<string> = new Set(COMPONENT_KEYS);
+const EMBED_KEY_SET: ReadonlySet<string> = new Set(EMBED_KEYS);
+
+/** Narrow an arbitrary string (e.g. a Sanity value) to a known `FontKey`. */
+export function isFontKey(value: string): value is FontKey {
+  return FONT_KEY_SET.has(value);
+}
+
+/** Narrow an arbitrary string to a known `ComponentKey`. */
+export function isComponentKey(value: string): value is ComponentKey {
+  return COMPONENT_KEY_SET.has(value);
+}
+
+/** Narrow an arbitrary string to a known `EmbedKey`. */
+export function isEmbedKey(value: string): value is EmbedKey {
+  return EMBED_KEY_SET.has(value);
+}
