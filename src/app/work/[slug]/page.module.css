@@ -20,7 +20,7 @@
   .title {
     font-size: var(--text-3xl);
     line-height: var(--leading-tight);
-    color: var(--brand-accent);
+    color: var(--brand-accent-text);
   }
 
   .blurb {
@@ -37,7 +37,7 @@
 
   .article :is(h2, h3) {
     margin-top: var(--space-6);
-    color: var(--brand-accent);
+    color: var(--brand-accent-text);
   }
 
   .article p {
