@@ -90,11 +90,12 @@ Never alias a preview deployment to the production domain. Set env vars **per en
 1. **Roll back first.** Use Vercel's **Instant Rollback** from the dashboard to return prod to a known-good deployment — no rebuild. Then fix-forward on a branch.
 2. For the exact promote/rollback steps and their current semantics, follow [Vercel's deployment docs](https://vercel.com/docs/deployments) rather than memorized mechanics — Vercel changes CLI/dashboard behavior without warning. If a doc here disagrees with the dashboard, the dashboard wins.
 
-### Draft mode (Phase 2, when Visual Editing lands [D16])
+### Draft mode (implemented Phase 3 [D16])
 
-- Implement the enable + exit handlers as **Route Handlers** (e.g. `app/api/draft-mode/enable/route.ts`), using `next-sanity`'s `defineEnableDraftMode` — it validates a secret, then calls `await draftMode().enable()`. These run server-side; don't try to drive draft mode from `proxy.ts` (it's Node-only and that's not its job — see `…/03-file-conventions/proxy.md`, which confirms a `runtime` config in proxy throws).
+- The enable + exit handlers are **Route Handlers** (`app/api/draft-mode/{enable,disable}/route.ts`), using `next-sanity`'s `defineEnableDraftMode` — it validates a secret, then calls `await draftMode().enable()`. These run server-side; don't drive draft mode from `proxy.ts` (it's Node-only and that's not its job — see `…/03-file-conventions/proxy.md`, which confirms a `runtime` config in proxy throws). `proxy.ts` is deliberately not added for this reason.
 - **`draftMode()` is async in Next 16** — `await` it (verify in `node_modules/next/dist/docs/`).
-- Provide an **exit route** that calls `await draftMode().disable()`.
+- The **exit route** calls `await draftMode().disable()`.
+- _Draft-content **rendering** on the `/work` routes is a tracked follow-up (see [`../build-phases.md`](../build-phases.md)): content fetches currently use `use cache` + the published client, so Preview shows published content until a shared `sanityFetch()` adopts `getClient(draftMode)`._
 - Vercel preview deployments are already `noindex` at the platform level, so draft content behind a bypass cookie isn't a normal indexing risk. If you ever surface draft content on an indexable URL, set `X-Robots-Tag: noindex` (general SEO practice, not a Next requirement).
 
 ---
