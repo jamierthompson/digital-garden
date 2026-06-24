@@ -269,7 +269,12 @@ export function resolveTheme(
   return { tokens, seed, gamut, isFallback };
 }
 
-const TOKEN_NAMES: readonly BrandTokenName[] = [
+// The canonical token order. `satisfies readonly BrandTokenName[]` rejects an
+// unknown/misspelled name (the code→type direction); the `_TokenNamesExhaustive`
+// guard below rejects a MISSING name (the type→code direction). Together they
+// replace the old `{} as Record<BrandTokenName, SchemePair>` accumulator, where
+// BOTH a missing token and a stray one slipped through silently.
+const TOKEN_NAMES = [
   "bg",
   "surface",
   "surface-2",
@@ -280,7 +285,34 @@ const TOKEN_NAMES: readonly BrandTokenName[] = [
   "accent-text",
   "on-accent",
   "focus-ring",
-];
+] as const satisfies readonly BrandTokenName[];
+
+// Compile-time exhaustiveness guard: if any `BrandTokenName` is absent from
+// `TOKEN_NAMES`, `Exclude<…>` is a non-`never` union, this type resolves to `never`,
+// and the `= true` assignment fails to typecheck. Pure type-level — emits nothing.
+type _TokenNamesExhaustive =
+  Exclude<BrandTokenName, (typeof TOKEN_NAMES)[number]> extends never
+    ? true
+    : never;
+const _TOKEN_NAMES_EXHAUSTIVE: _TokenNamesExhaustive = true;
+void _TOKEN_NAMES_EXHAUSTIVE; // referenced so it isn't flagged as unused
+
+/**
+ * Build a `Record<BrandTokenName, T>` by calling `value` for every token in
+ * `TOKEN_NAMES`. The completeness guarantee comes from the guards on `TOKEN_NAMES`
+ * above (exhaustive + no extras), not from this helper: those make "visit every
+ * token, exactly once" a compile-time fact, so the lone `as` here (unavoidable —
+ * `Object.fromEntries` is typed to a loose index signature) is sound rather than a
+ * blind assertion. This is the cast-free-at-the-call-site replacement for the old
+ * `{} as Record<…>` accumulator.
+ */
+function mapTokens<T>(
+  value: (name: BrandTokenName) => T,
+): Record<BrandTokenName, T> {
+  return Object.fromEntries(
+    TOKEN_NAMES.map((name) => [name, value(name)] as const),
+  ) as Record<BrandTokenName, T>;
+}
 
 /**
  * Build the dual-scheme token set for `ProjectScope` (Consumer A): resolves both
@@ -294,10 +326,13 @@ export function buildTokenSet(
   const light = resolveTheme(brandColor, "light", opts);
   const dark = resolveTheme(brandColor, "dark", opts);
 
-  const tokens = {} as Record<BrandTokenName, SchemePair>;
-  for (const name of TOKEN_NAMES) {
-    tokens[name] = { light: light.tokens[name], dark: dark.tokens[name] };
-  }
+  // Zip each token's two schemes into a `{ light, dark }` pair. `mapTokens` forces
+  // one entry per `BrandTokenName`, so coverage is type-enforced (no `as` cast at
+  // the call site). Output is identical to the previous `for`-loop accumulator.
+  const tokens = mapTokens<SchemePair>((name) => ({
+    light: light.tokens[name],
+    dark: dark.tokens[name],
+  }));
 
   return {
     tokens,
