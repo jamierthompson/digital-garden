@@ -209,7 +209,7 @@ The engine's tests assert the _contract_, hue-by-hue — not a frozen CSS string
 - **Contrast in both schemes:** APCA Lc for text (WCAG 2.x ratio as the compliance
   fallback), asserted in **light and dark** ([D4]/[D5]). OKLCH `L` is **not** contrast — a
   fixed ΔL is not a fixed ratio across hues, so assert the **measured** ratio per hue ([D4]).
-- **Gamut-map first:** contrast is solved on the gamut-mapped colour ([D6]).
+- **Gamut-map first:** contrast is solved on the gamut-mapped color ([D6]).
 - **Never throws:** bad `brandColor` → safe fallback palette, asserted explicitly ([D9]).
 
 See [`./accessibility-and-performance.md`](./accessibility-and-performance.md) for the
@@ -220,7 +220,7 @@ APCA Lc targets these assertions check against.
 ## Phase-1 visual contrast harness ([D17])
 
 The engine's **exit criterion is observable palette quality, not determinism alone** ([D17]).
-A visual harness renders ramps for **3–4 brand colours spanning the hue wheel — and it MUST
+A visual harness renders ramps for **3–4 brand colors spanning the hue wheel — and it MUST
 include a yellow and a cyan** (the contrast-stressers where ΔL≠contrast bites hardest),
 **light and dark**, asserting APCA Lc / WCAG ratios on every text-on-surface and on-brand
 pair _after_ gamut-mapping. Phase 1 is not done until this harness is green. This is where

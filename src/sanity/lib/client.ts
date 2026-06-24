@@ -7,7 +7,7 @@ import { apiVersion, dataset, projectId } from "./env";
  * they must never carry stega's invisible zero-width chars. [D16]
  *
  * - `brandColor` / `brandColorDark` are parsed by the OKLCH engine; stega
- *   chars break the colour parse.
+ *   chars break the color parse.
  * - `fontKey` / `componentKey` / `embedKey` are resolved against code by key;
  *   stega chars break the lookup (and reintroduce key-drift).
  *

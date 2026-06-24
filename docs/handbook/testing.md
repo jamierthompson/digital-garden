@@ -103,7 +103,7 @@ describe("Foo", () => {
   `tests/setup.ts`.
 
 This priority list governs **component tests**. The Phase-1 engine harness asserts numeric
-contrast/colour values, not roles — see [Visual contrast harness](#phase-1-visual-contrast-harness-d17).
+contrast/color values, not roles — see [Visual contrast harness](#phase-1-visual-contrast-harness-d17).
 
 ---
 
@@ -229,7 +229,7 @@ The engine's tests assert the _contract_, hue-by-hue — not a frozen CSS string
 - **Contrast in both schemes:** APCA Lc for text (WCAG 2.x ratio as the compliance
   fallback), asserted in **light and dark** ([D4]/[D5]). OKLCH `L` is **not** contrast — a
   fixed ΔL is not a fixed ratio across hues, so assert the **measured** ratio per hue ([D4]).
-- **Gamut-map first:** contrast is solved on the gamut-mapped colour ([D6]).
+- **Gamut-map first:** contrast is solved on the gamut-mapped color ([D6]).
 - **Never throws:** bad `brandColor` → safe fallback palette, asserted explicitly ([D9]).
   This covers **D9 layer 1** (the defensive engine). The Sanity author-time validation and
   `unstable_catchError` backstop layers are tested where they live (Phase 2 / Phase 3).
@@ -242,15 +242,15 @@ APCA Lc targets these assertions check against.
 ## Phase-1 visual contrast harness ([D17])
 
 The engine's **exit criterion is observable palette quality, not determinism alone** ([D17]).
-[D17] mandates a visual harness over **3–4 brand colours spanning the hue wheel**; we
+[D17] mandates a visual harness over **3–4 brand colors spanning the hue wheel**; we
 _additionally_ pin a **yellow and a cyan** because [D4] (equal ΔL ≠ equal contrast across
 hues) — those are the stressers where the gap bites hardest. The harness renders ramps for
-those colours, **light and dark**, asserting APCA Lc / WCAG ratios on every
+those colors, **light and dark**, asserting APCA Lc / WCAG ratios on every
 text-on-surface and on-brand pair _after_ gamut-mapping. Phase 1 is not done until this
 harness is green. This is where accessibility/contrast assertions live — they fold into the
 engine harness, not a separate a11y suite ([D19]).
 
-The harness asserts **computed colour/contrast values** (read from the engine output or the
+The harness asserts **computed color/contrast values** (read from the engine output or the
 rendered styles directly) — **not** via RTL semantic queries. The
 [RTL priority list](#rtl-usage-rules) governs component tests, not this harness; don't try
 to force `getByRole` onto a swatch grid.

@@ -18,7 +18,7 @@ export default function ModuleShell({ slug, children }: ModuleShellProps) {
       <h1 className={styles.title}>Walking Skeleton</h1>
       <p className={styles.lede}>
         Hardcoded module <code>{slug}</code>, themed through the stub{" "}
-        <code>ProjectScope</code>. Brand colour and font come entirely from the
+        <code>ProjectScope</code>. Brand color and font come entirely from the
         scoped <code>@layer brand</code> block in <code>&lt;head&gt;</code>.
       </p>
       <span className={styles.badge}>brand accent on contrast</span>

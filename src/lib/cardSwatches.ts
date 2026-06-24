@@ -1,7 +1,7 @@
 /**
  * `cardSwatches(brandColor)` — engine Consumer C (§3.2, §6).
  *
- * The `/work` index cards want "a few colours per card" derived from a project's
+ * The `/work` index cards want "a few colors per card" derived from a project's
  * `brandColor`, but WITHOUT a project scope: no island, no `<style>` tag, no class —
  * just a small bag of inline CSS custom properties (`--c-*`) to spread onto a card
  * element's `style={…}`. This is a CONSUMER of the OKLCH engine, not part of it, so it
@@ -25,7 +25,7 @@
  *   • `--c-border`  — its edge / divider against the page (contrast-solved hairline).
  *   • `--c-text`    — body/label text that clears AA on that surface.
  *   • `--c-accent`  — the brand pop (chip, rule, hover) — the card's identity at a glance.
- * These map 1:1 onto engine tokens, so the colours are exactly the contrast-solved ones
+ * These map 1:1 onto engine tokens, so the colors are exactly the contrast-solved ones
  * the full project scope would use — just a curated subset, inline, with no scope.
  */
 

@@ -197,7 +197,7 @@ consumers.**
 
 - Runs **per scope** — once per project (seeded by that project's `brandColor`) and once for
   the shell. Multiple themed islands can coexist on one page. **Previews are not islands**: a
-  `/work` card or note preview needs a few colours, not a namespace, so it derives them from
+  `/work` card or note preview needs a few colors, not a namespace, so it derives them from
   the same engine (Consumer C) and skips the scoped `<style>` block.
 
 - Emitted as a **server-rendered scoped `<style>` block** (`[data-project="x"] { … }`),
@@ -456,7 +456,7 @@ Practical notes:
   writes/curates it → typed block; developer decides it → registry; neither → it's not an
   input._
 - **The index query refuses to over-fetch.** The `/work` query pulls `blurb`, `brandColor`,
-  `fontKey` — **not** the essay. That enforces "a few colours per card" at the data layer
+  `fontKey` — **not** the essay. That enforces "a few colors per card" at the data layer
   (cards feed `cardSwatches`, §3.2 Consumer C) and keeps the index payload small for CWV.
 - **`ProjectScope` is the resolution keystone.** One server component takes a scope's
   `brandColor` + `fontKey` and emits the flash-free scoped `<style>` (engine palette, both

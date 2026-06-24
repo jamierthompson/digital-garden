@@ -43,7 +43,7 @@ export const project = defineType({
     // --- Theming seeds (reference-by-key; consumed by code, stega-excluded [D16]) ---
     defineField({
       name: 'brandColor',
-      title: 'Brand colour',
+      title: 'Brand color',
       type: 'string',
       description:
         'Per-project island seed for the OKLCH engine — hex or oklch(). One value generates BOTH light & dark ramps. [D5]',
@@ -51,7 +51,7 @@ export const project = defineType({
     }),
     defineField({
       name: 'brandColorDark',
-      title: 'Brand colour (dark override)',
+      title: 'Brand color (dark override)',
       type: 'string',
       description:
         'OPTIONAL hand-tuned dark-scheme seed. Leave empty to let the engine derive dark from brandColor — never a required parallel field. [D5]',

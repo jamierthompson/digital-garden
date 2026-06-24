@@ -29,7 +29,7 @@ export const siteSettings = defineType({
     }),
     defineField({
       name: 'brandColor',
-      title: 'Shell brand colour',
+      title: 'Shell brand color',
       type: 'string',
       description:
         'Brand seed for the shell island — hex or oklch(). Same engine treatment as a project; one value drives both schemes. [D5, D9]',
@@ -37,7 +37,7 @@ export const siteSettings = defineType({
     }),
     defineField({
       name: 'brandColorDark',
-      title: 'Shell brand colour (dark override)',
+      title: 'Shell brand color (dark override)',
       type: 'string',
       description:
         'Optional hand-tuned dark-scheme shell brand. The engine derives dark from brandColor when empty. [D5]',
