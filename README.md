@@ -5,9 +5,12 @@ over time. Each project is a self-contained, independently themed module: its ow
 brand color (a perceptual OKLCH palette) and font, composed on a shared invariant
 foundation. Content and brand seeds live in Sanity; the site renders on Next.js.
 
-> Status: **Phase 0 complete** — scaffolding, styling foundation, content backend,
-> and the enforced guardrails are in place. See [`docs/`](./docs) for the
-> architecture plan, build phases, and decision log.
+> Status: **Phases 0–2 complete** — scaffolding + guardrails (Ph0), the walking
+> skeleton (Ph0.5), the OKLCH theming engine + real `ProjectScope` (Ph1), and the
+> Sanity content model with reference-by-key wiring and engine-backed `brandColor`
+> validation (Ph2) are all in place. **Next: Phase 3** — the first vertical slice (a
+> dead-simple project end-to-end). See [`docs/`](./docs) for the architecture plan,
+> build phases, decision log, and per-run records ([`docs/runs/`](./docs/runs)).
 
 ## Tech stack
 
@@ -46,7 +49,7 @@ NEXT_PUBLIC_SANITY_API_VERSION=2026-06-21
 pnpm build                   # production build
 pnpm lint                    # ESLint (incl. architectural import boundaries)
 pnpm lint:css                # assert every CSS Module declares its @layer
-pnpm lint:keys               # key-drift guard (stub until Phase 2)
+pnpm lint:keys               # key-drift guard (live since Phase 2)
 pnpm typecheck               # tsc --noEmit
 pnpm test                    # run the test suite once
 pnpm format / format:check   # Prettier write / check
@@ -63,7 +66,7 @@ Three tiers, so only what actually varies per project is scoped:
   type scale, motion, z-index, focus-ring geometry, the reset. Loaded first, and it
   declares the `@layer foundation, brand, project;` order.
 - **Brand + font** (per-project scope, engine-driven) — the OKLCH color ramp and the
-  resolved font face. _Arrives in Phase 1._
+  resolved font face, baked flash-free by `ProjectScope` from the `@garden/oklch` engine.
 - **Feel/geometry** (per-project scope override) — radius, border weight, etc.
 
 Every CSS Module wraps its rules in an `@layer` (lint-enforced), because Next does

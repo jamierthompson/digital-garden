@@ -134,6 +134,9 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       handbook page. An architecturally significant decision gets a new `D#` in
       [`../decisions.md`](../decisions.md) (never edit an accepted one — supersede it; see
       [decision-records.md](./decision-records.md)).
+- [ ] **End of a run?** Two writes are mandatory before the squash-merge — refresh the
+      [`README.md`](../../README.md) (esp. the **Status** line) and write the run record in
+      [`../runs/`](../runs). See [working-with-agents.md](./working-with-agents.md) §6.2.
 
 ---
 

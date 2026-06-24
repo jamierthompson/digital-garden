@@ -81,7 +81,11 @@ satisfied by the `test:` commit. **Nothing deferred from this run.**
 ## Outcome
 
 - **Shipped (PR #18):** `@garden/oklch` workspace package; engine-backed `brandColor` validation in
-  the Studio; repo-wide `colour→color`; the validation-oracle contract test; doc-rot fixes.
+  the Studio; repo-wide `colour→color`; the validation-oracle contract test; doc-rot fixes; the
+  README brought current (Status: Phases 0–2 complete); and a new **standing end-of-run
+  requirement** — every run refreshes the README + writes a run record — codified in
+  [`../handbook/working-with-agents.md`](../handbook/working-with-agents.md) §6.2 and the DoD
+  (owner request, mid-run).
 - **Gate green** on the curated tip: `lint · lint:css · lint:keys · format:check · typecheck ·
 test (447) · studio typegen + no-drift · build` — plus `cd studio && pnpm build` and
   `pnpm install --frozen-lockfile`.
