@@ -117,9 +117,17 @@ describe("visual contrast harness [D17]", () => {
     }
   }
 
-  it("regenerates the eyeball swatch artifact (open swatches.html in a browser)", () => {
+  it("regenerates the eyeball swatch artifact (open swatches.html in a browser)", (ctx) => {
     const html = renderSwatchDocument();
     expect(html).toContain("<!doctype html>");
+    // This suite runs under BOTH the `node` and `jsdom` Vitest projects (the
+    // isomorphism guard — see vitest.config.ts). The assertions belong in both;
+    // the file WRITE does not — two projects would write identical bytes twice.
+    // Scope the write to the `node` project only: it's where the engine's pure
+    // output lives most naturally, and node's `fs` avoids jsdom's URL-global quirk
+    // (see fileURLToPath note below). `task.file.projectName` is Vitest's public
+    // per-project name; under jsdom this returns early and only asserts.
+    if (ctx.task.file.projectName !== "node") return;
     // Deterministic engine → identical bytes on every run, so this never dirties git
     // unless the engine's output actually changed (which is meaningful signal).
     // fileURLToPath(string) avoids the URL global, whose jsdom variant Node's fs rejects.
