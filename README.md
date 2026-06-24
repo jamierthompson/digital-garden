@@ -14,7 +14,8 @@ foundation. Content and brand seeds live in Sanity; the site renders on Next.js.
 > themed garden shell (home / about / now / notes), an RSS feed, and the Sanity
 > draft-mode + Visual Editing plumbing. **Next: Phase 4** — the OKLCH-engine showcase and
 > the `log-explorer` migration. See [`docs/`](./docs) for the architecture plan, build
-> phases, decision log, and per-run records ([`docs/runs/`](./docs/runs)).
+> phases, decision log, per-run records ([`docs/runs/`](./docs/runs)), and the
+> [production deploy checklist](./docs/production-checklist.md).
 
 ## Tech stack
 

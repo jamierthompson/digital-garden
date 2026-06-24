@@ -72,6 +72,8 @@ When that token lands:
 
 Vercel is wired to the repo: **a merge to `main` deploys to production.** That's why `main` must always be green and shippable (see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)). The CI gate in [`../../.github/workflows/ci.yml`](../../.github/workflows/ci.yml) is the guard [D17][D19] — and because that gate regenerates and diff-checks `sanity.types.ts`, a drifted type file fails the build before it can reach prod [D23].
 
+For the **first production deploy** (and whenever the environment changes), work through the actionable [`../production-checklist.md`](../production-checklist.md) — env vars, Sanity CORS, schema/Studio deploy, and the required seed content the build doesn't verify.
+
 ### Preview vs. production
 
 |            | Preview                           | Production                 |
