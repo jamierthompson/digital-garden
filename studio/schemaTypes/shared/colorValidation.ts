@@ -1,23 +1,25 @@
 /**
- * Basic author-time *format* validation for brand-colour seed strings.
+ * Author-time `brandColor` validation — layer 2 of D9's three-layer defence,
+ * now backed by the engine's *own* color pipeline rather than a regex.
  *
- * Accepts a CSS hex colour (#rgb / #rgba / #rrggbb / #rrggbbaa) or an
- * `oklch(...)` function. This is intentionally a syntax check only — it does
- * not (yet) confirm the colour can actually hit a contrast target.
+ * This runs `@garden/oklch`'s `buildTokenSet` (parse → gamut-map → contrast-solve)
+ * and accepts the value iff the engine did NOT fall back. So the author-time check
+ * is exactly the render-time contract: if Studio accepts a `brandColor`, the engine
+ * will theme with it — it won't silently collapse to the fallback palette at render
+ * [D9]. A regex couldn't promise that (it passed shapes the engine can't parse and
+ * rejected ones it can).
  *
- * TODO [D9]: validate via the engine's own colour pipeline (parse -> gamut-map
- * -> confirm in-spec contrast) once the OKLCH engine lands in Phase 1, so
- * editors get real author-time feedback. Until then this is layer 2 of D9's
- * three-layer defence in *format* form only; the engine itself never throws
- * and ProjectScope falls back to a safe palette, so a bad value degrades
- * rather than breaks. [D9]
+ * The engine is shared via a workspace package precisely so the standalone Studio can
+ * import it [D23] — the same parse path the app's `ProjectScope` and `cardSwatches`
+ * run, so all three agree on what "valid" means. The engine never throws [D9], so this
+ * never throws; layers 1 (engine fallback) and 3 (`unstable_catchError`) still backstop
+ * any value that slips through (e.g. edited via the API, not the Studio UI).
  */
-const HEX = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
-const OKLCH = /^oklch\(\s*[^)]+\)$/i
+import {buildTokenSet} from '@garden/oklch'
 
 export function isBrandColorString(value: string | undefined): true | string {
   // Empty is allowed here — pair with `.required()` where the field is mandatory.
   if (!value) return true
-  if (HEX.test(value.trim()) || OKLCH.test(value.trim())) return true
-  return 'Use a hex colour (e.g. #4f46e5) or an oklch() value (e.g. oklch(0.62 0.19 256))'
+  if (!buildTokenSet(value).meta.isFallback) return true
+  return 'The theming engine can’t parse this color. Use a hex color (e.g. #4f46e5), an oklch() value (e.g. oklch(0.62 0.19 256)), or rgb().'
 }
