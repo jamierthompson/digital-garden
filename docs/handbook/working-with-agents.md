@@ -126,7 +126,7 @@ is read by a range of agent tools.
   padding them (e.g. LLM-generated boilerplate) _reduced_ task success and raised cost
   ([arXiv 2511.12884](https://arxiv.org/html/2511.12884v1)). **Do not restate what
   CI/configs already enforce.** State a rule once, point to the gate, and trust the tool.
-  The bar is `pnpm lint · lint:css · lint:keys · format:check · typecheck · test · build`
+  The bar is `pnpm lint · lint:css · lint:keys · lint:docs · format:check · typecheck · test · build`
   (see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) and
   [`./definition-of-done.md`](./definition-of-done.md)) — not a re-explanation in prose.
 
@@ -290,7 +290,7 @@ Before you finish a task, self-check:
 - [ ] Is every non-obvious claim in my output anchored to a `[D#]`, a `§N`, or a URL —
       pointing at the source that _actually contains_ it?
 - [ ] Did I keep docs minimal — no restating what CI already enforces?
-- [ ] Green gate: `pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm format:check && pnpm typecheck && pnpm test && pnpm build` — and, once `studio/` lands, after a Studio schema change run `pnpm --filter studio typegen` + commit the regenerated `sanity.types.ts` [D23].
+- [ ] Green gate: `pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm lint:docs && pnpm format:check && pnpm typecheck && pnpm test && pnpm build` — and, after a Studio schema change, run `pnpm --filter studio typegen` + commit the regenerated `sanity.types.ts` [D23].
 
 See also: [`./orientation.md`](./orientation.md) ·
 [`./engineering-standards.md`](./engineering-standards.md) ·

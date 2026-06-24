@@ -41,6 +41,7 @@ eslint.config.mjs          the real import-boundary + isomorphism rules
 scripts/
   check-css-layers.mjs     the @layer-declaration lint (pnpm lint:css)
   check-key-drift.mjs      the key-drift guard (pnpm lint:keys; live since Phase 2)
+  check-doc-gate-sync.mjs  the gate-doc sync guard (pnpm lint:docs; keeps the gate chain ≡ across AGENTS.md, DoD §1, ci.yml)
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
     layout.tsx             root layout (shell nav skeleton, shell fonts preload:true)
@@ -118,7 +119,7 @@ These are the things that silently break this specific stack, or that the owner 
 5. **Build the smallest slice = one commit, completed and gate-green.** Co-locate the test with its subject [D18]. Match existing patterns in `src/`. On a team branch you own your slice's quality; the lead curates history (squash/reorder) but doesn't fix your slice for you.
 6. **Run the full gate locally before pushing** (this is the CI chain, in order — see `.github/workflows/ci.yml`):
    ```bash
-   pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm format:check && pnpm typecheck && pnpm test \
+   pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm lint:docs && pnpm format:check && pnpm typecheck && pnpm test \
      && pnpm --filter studio typegen && git diff --exit-code sanity.types.ts && pnpm build
    ```
    Fix formatting with `pnpm format` — never by hand.
