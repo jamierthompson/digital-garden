@@ -191,7 +191,6 @@ PR. Run record:
 - [ ] `project.blurb` — consider a hard `rule.max(300).error()` alongside the soft 280-char warning if the card layout can't absorb overflow (PR #11)
 - [ ] `siteSettings` — enforce the singleton via Studio Structure and use an explicit `*[_type == "siteSettings"][0]` guard in its query (nothing forces uniqueness today) (PR #11) `[D24]`
 - [ ] Draft-mode / Presentation client needs `useCdn: false` + `perspective: "previewDrafts"`, distinct from the publishes-only public client (PR #11) `[D16]`
-- [ ] `/work/[slug]` Suspense fallback reaches into `ModuleShell.module.css` for its `.skeleton` class — give the fallback its own style (or inline it) so the route file isn't soft-coupled to a presentational component's stylesheet (PR #9)
 
 **Phase 4 — engine playground (Consumer B) performance:**
 
