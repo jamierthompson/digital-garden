@@ -226,6 +226,45 @@ deliverable." Split the responsibility cleanly:
   `--force`) so a teammate's concurrent push isn't clobbered. Full mechanics:
   [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §6.
 
+### 6.2 The team lead runs the loop: permissions · QA · merge-readiness
+
+§6.1 splits _ownership_; this is what the lead actively **runs** during a team session. The
+lead is the run's single point of contact with the owner — **the owner directs the run, not
+each tool call.**
+
+- **Own the permission surface — don't make the owner babysit.** Set the run's permission
+  posture once at spawn (the `agent-team` skill's preflight covers the spawn-time mechanic),
+  then resolve teammates' permission requests on the run's behalf: batch them and
+  decide. Escalate to the owner only for genuinely out-of-policy actions — something
+  destructive or outward-facing, anything a `[D#]` forbids, anything that spends real money or
+  touches production — with a one-line _what + why_. The default is **the lead clears the
+  path**, not _the owner approves each call_.
+
+- **Independent QA before the PR — run a dev↔QA loop.** A gate-green slice is
+  _developer-done_, not _review-done_ — the §3 self-check and the green gate are necessary, not
+  sufficient. Before a slice enters the PR, the lead spawns a **fresh** code-review subagent
+  (`pr-review-toolkit:code-reviewer` / `feature-dev:code-reviewer`, or the `/code-review`
+  skill) to **independently review and test it** — _fresh_ meaning **not** the agent that wrote
+  it; an isolated context is the whole point (brief it per §5). The loop mirrors dev↔QA:
+  - **The reviewer reviews; the author fixes — don't collapse the two.** Findings go back to
+    the **owning agent**, which makes the changes; then QA reviews **again**. Repeat until clean.
+  - **Fix in-scope now; defer only genuinely-later work.** Anything in the current slice's or
+    phase's scope gets **fixed before the PR**. A finding is deferred only when it truly belongs
+    to a later phase — it needs a package boundary that doesn't exist yet, a future consumer, or
+    later-phase work. The lead then logs it in [`../build-phases.md`](../build-phases.md) under
+    the phase that should pick it up (the "Review-surfaced follow-ups" section), with the PR#
+    and a one-line reason. Deferring is for cross-phase work, **not** a shortcut around the slice.
+
+- **Own merge-readiness — CI green, review clean.** "Ready to merge" is the **lead's** call, and
+  it means **both**: the CI `verify` gate green on the curated tip
+  ([`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §5) **and** the independent QA review
+  (above) clean — every finding either fixed in-branch by the owning agent or filed as a
+  cross-phase follow-up in [`../build-phases.md`](../build-phases.md) with its PR# and reason. The
+  independent review happens **pre-PR** via the QA subagent — there is **no automatic review bot**
+  in CI. The repo keeps one on-demand Claude workflow (`@claude` in a PR comment); the lead may
+  invoke it for a second opinion and treats anything it surfaces like QA's findings, but it's a
+  tool, not a gate. Only then does the lead curate history (§6.1) and squash-merge.
+
 ## 7. Keeping agents from drifting the architecture — quick gate
 
 Before you finish a task, self-check:
