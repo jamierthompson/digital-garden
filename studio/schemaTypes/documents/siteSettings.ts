@@ -6,8 +6,8 @@ import {isBrandColorString} from '../shared/colorValidation'
  * Shell / digital-garden settings. [§6]
  *
  * Holds the shell island's brand seed (ProjectScope slug="garden") and shell
- * identity. Intended as a singleton — enforce one document via Studio
- * Structure in a later slice (studio-structure work). Same brand treatment as
+ * identity. Enforced as a singleton via Studio Structure (structureTool config in
+ * sanity.config.ts). Same brand treatment as
  * a project: stega-excluded seed, engine-validated, defensively rendered. [D9]
  */
 export const siteSettings = defineType({
