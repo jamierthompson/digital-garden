@@ -37,7 +37,12 @@ export const project = defineType({
       rows: 3,
       description:
         'Short summary for the /work index card. NOT the essay — the index query pulls this, never the essay.',
-      validation: (rule) => rule.max(280).warning('Keep the blurb card-sized.'),
+      validation: (rule) =>
+        rule
+          .max(280)
+          .warning('Keep the blurb card-sized.')
+          .max(300)
+          .error('Blurb exceeds the 300-character hard cap — the card layout cannot absorb the overflow.'),
     }),
 
     // --- Theming seeds (reference-by-key; consumed by code, stega-excluded [D16]) ---

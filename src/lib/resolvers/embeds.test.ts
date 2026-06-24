@@ -4,7 +4,14 @@ import { resolveEmbedKey } from "./embeds";
 import { isNotFound } from "./resolution";
 
 describe("resolveEmbedKey", () => {
-  it("returns a typed NotFound for any key while the registry is empty", () => {
+  it("resolves a registered key to a loader (sunrise-meter, Phase 3)", () => {
+    const result = resolveEmbedKey("sunrise-meter");
+    expect(isNotFound(result)).toBe(false);
+    if (isNotFound(result)) throw new Error("expected a resolved loader");
+    expect(typeof result.value).toBe("function");
+  });
+
+  it("returns a typed NotFound for an unregistered key", () => {
     const result = resolveEmbedKey("hue-slider");
     expect(isNotFound(result)).toBe(true);
     if (!isNotFound(result)) throw new Error("expected NotFound");

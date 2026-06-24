@@ -1,0 +1,29 @@
+/* The sunrise-meter embed's styling. Every rule lives inside `@layer project` — a CSS
+   Module MUST declare its layer or it silently outranks every @layer style (the "@layer
+   trap", [D12], enforced by `pnpm lint:css`). All themeable values are consumed as generic
+   tokens (`--brand-*`, `--space-*`) set by `ProjectScope` on the `[data-project]` ancestor —
+   a shared embed themes off the generic layer, never a project-prefixed alias [D2]. */
+@layer project {
+  .meter {
+    margin: var(--space-5) 0;
+  }
+
+  .track {
+    block-size: var(--space-4);
+    inline-size: 100%;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--brand-accent) 18%, transparent);
+    overflow: hidden;
+  }
+
+  .fill {
+    block-size: 100%;
+    background: var(--brand-accent);
+  }
+
+  .caption {
+    margin-top: var(--space-2);
+    color: color-mix(in oklab, var(--brand-text) 70%, transparent);
+    font-size: var(--text-sm);
+  }
+}

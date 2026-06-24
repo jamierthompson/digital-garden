@@ -22,8 +22,11 @@ import { found, notFound, type Resolution } from "./resolution";
 export type EmbedLoader = () => Promise<unknown>;
 
 // `satisfies Record<EmbedKey, EmbedLoader>` makes a missing loader a compile
-// error the moment a key is added to `EMBED_KEYS` [D10]. Empty today.
-const EMBED_LOADERS = {} satisfies Record<EmbedKey, EmbedLoader>;
+// error the moment a key is added to `EMBED_KEYS` [D10]. Each value is a LITERAL
+// lazy import per key [D21] — never templated.
+const EMBED_LOADERS = {
+  "sunrise-meter": () => import("@/embeds/SunriseMeter"),
+} satisfies Record<EmbedKey, EmbedLoader>;
 
 // Two variables, two jobs — this split is PERMANENT, not a while-empty
 // workaround. `EMBED_LOADERS` keeps its literal type so `satisfies` enforces

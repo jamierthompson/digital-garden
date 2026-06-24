@@ -23,3 +23,53 @@ export const WORK_INDEX_QUERY = defineQuery(`
     fontKey
   }
 `);
+
+/**
+ * `/work/<slug>` project-detail query. [§6, D17]
+ *
+ * The full project document for one slug — UNLIKE the index query, it DOES pull the
+ * `essay` (the detail route renders it through the Portable Text serializer) plus the
+ * theming seeds (`brandColor`, `brandColorDark`, `fontKey`, `componentKey`) that drive
+ * `ProjectScope` and module resolution, and the surrounding `title` / `blurb` / `notes` /
+ * `tags`. `[0]` collapses the filtered set to a single document (or `null` when the slug
+ * is unpublished/unknown) so the route can `notFound()` on a miss [D10, D19].
+ *
+ * `$slug` is a GROQ parameter — the caller passes `{ slug }` to `.fetch`, never string
+ * interpolation, so a hostile slug can't inject into the query. Typed by TypeGen as
+ * `PROJECT_DETAIL_QUERYResult` in the root `sanity.types.ts`.
+ */
+export const PROJECT_DETAIL_QUERY = defineQuery(`
+  *[_type == "project" && slug.current == $slug][0] {
+    _id,
+    title,
+    "slug": slug.current,
+    blurb,
+    brandColor,
+    brandColorDark,
+    fontKey,
+    componentKey,
+    essay,
+    notes[]->{ _id, title, "slug": slug.current },
+    tags
+  }
+`);
+
+/**
+ * `siteSettings` singleton query. [§6]
+ *
+ * `siteSettings` is intended as a singleton (one document, enforced via Studio Structure
+ * in a separate slice). `[0]` guards that intent at the query layer: it returns the single
+ * settings document (or `null` if none is published) so the shell can fall back defensively
+ * rather than assume an array. Pulls the shell's brand seed + identity for `ProjectScope`
+ * (slug="garden") and default metadata. Typed as `SITE_SETTINGS_QUERYResult`.
+ */
+export const SITE_SETTINGS_QUERY = defineQuery(`
+  *[_type == "siteSettings"][0] {
+    _id,
+    title,
+    description,
+    brandColor,
+    brandColorDark,
+    fontKey
+  }
+`);

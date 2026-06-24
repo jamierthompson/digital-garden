@@ -1,0 +1,28 @@
+/* The essay figure placeholder styling. `@layer project` (the @layer trap, [D12]).
+   Var-consuming only — themed by the surrounding project scope (§8). */
+@layer project {
+  .figure {
+    margin: var(--space-6) 0;
+  }
+
+  .placeholder {
+    display: grid;
+    place-items: center;
+    min-block-size: 8rem;
+    border: 1px dashed color-mix(in oklab, var(--brand-text) 30%, transparent);
+    border-radius: 0.5rem;
+    background: color-mix(in oklab, var(--brand-accent) 5%, transparent);
+  }
+
+  .placeholderText {
+    font-size: var(--text-sm);
+    color: color-mix(in oklab, var(--brand-text) 65%, transparent);
+  }
+
+  .caption {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: color-mix(in oklab, var(--brand-text) 65%, transparent);
+    text-align: center;
+  }
+}

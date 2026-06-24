@@ -1,0 +1,42 @@
+/* Shared styling for the `/work/<slug>` state boundaries (not-found / error / loading).
+   `@layer project` — a CSS Module MUST declare its layer or it silently outranks every
+   @layer style (the @layer trap, [D12]). These render OUTSIDE a project scope (a not-found
+   or error replaces the themed subtree), so they consume only the invariant foundation
+   tokens (`--space-*`, `--text-*`), never `--brand-*` — there is no scope to read it from. */
+@layer project {
+  .state {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-6);
+    text-align: center;
+  }
+
+  .heading {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-tight);
+  }
+
+  .body {
+    margin-top: var(--space-4);
+    color: color-mix(in oklab, currentColor 70%, transparent);
+  }
+
+  .link {
+    display: inline-block;
+    margin-top: var(--space-5);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid currentColor;
+    border-radius: 0.5rem;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .link:focus-visible {
+    outline: var(--focus-ring-width) var(--focus-ring-style)
+      var(--focus-ring-color, currentColor);
+    outline-offset: var(--focus-ring-offset);
+  }
+}

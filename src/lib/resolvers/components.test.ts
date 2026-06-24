@@ -4,7 +4,14 @@ import { resolveComponentKey } from "./components";
 import { isNotFound } from "./resolution";
 
 describe("resolveComponentKey", () => {
-  it("returns a typed NotFound for any key while the registry is empty (Phase 3)", () => {
+  it("resolves a registered key to a loader (first-light, Phase 3)", () => {
+    const result = resolveComponentKey("first-light");
+    expect(isNotFound(result)).toBe(false);
+    if (isNotFound(result)) throw new Error("expected a resolved loader");
+    expect(typeof result.value).toBe("function");
+  });
+
+  it("returns a typed NotFound for an unregistered key", () => {
     const result = resolveComponentKey("log-explorer");
     expect(isNotFound(result)).toBe(true);
     if (!isNotFound(result)) throw new Error("expected NotFound");

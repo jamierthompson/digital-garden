@@ -31,8 +31,16 @@ import { found, notFound, type Resolution } from "./resolution";
 export type ProjectLoader = () => Promise<unknown>;
 
 // `satisfies Record<ComponentKey, ProjectLoader>` makes a missing loader a
-// compile error the moment a key is added to `COMPONENT_KEYS` [D10]. Empty today.
-const PROJECT_LOADERS = {} satisfies Record<ComponentKey, ProjectLoader>;
+// compile error the moment a key is added to `COMPONENT_KEYS` [D10]. Each value is
+// a LITERAL dynamic import per key [D21] — never a templated `import(`…/${slug}`)`,
+// which defeats the bundler's static analysis and per-project code-splitting.
+// This file is the resolver registry — the ONE sanctioned shared→project importer
+// [D21, §4.2]. The `boundaries/dependencies` rule recognizes it as its own `registry`
+// element (see eslint.config.mjs), so these literal project imports are allowed while
+// the shared→project ban still holds everywhere else — no per-line disable needed.
+const PROJECT_LOADERS = {
+  "first-light": () => import("@/projects/first-light"),
+} satisfies Record<ComponentKey, ProjectLoader>;
 
 // Two variables, two jobs — this split is PERMANENT, not a while-empty
 // workaround. `PROJECT_LOADERS` keeps its literal type so `satisfies` enforces

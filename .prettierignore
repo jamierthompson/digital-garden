@@ -21,6 +21,9 @@ sanity.types.ts
 # The standalone Studio has its own formatting config
 studio/
 
+# Agent-team worktrees — full repo checkouts under this gitignored runtime dir
+.claude/worktrees/
+
 # Managed by create-next-app (contains the regenerated nextjs-agent-rules block)
 AGENTS.md
 

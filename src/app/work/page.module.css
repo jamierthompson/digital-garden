@@ -1,0 +1,61 @@
+/* The `/work` index styling. `@layer project` — a CSS Module MUST declare its layer or it
+   silently outranks every @layer style (the @layer trap, [D12]). Cards read the inline
+   `--c-*` swatches `cardSwatches` spreads onto each card's `style={…}` (engine Consumer C,
+   no scope) plus the invariant foundation tokens (`--space-*`, `--text-*`). The page frame
+   itself is shell-neutral; only the cards carry per-project color. */
+@layer project {
+  .page {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: var(--space-7) var(--space-6);
+  }
+
+  .title {
+    font-size: var(--text-3xl);
+    line-height: var(--leading-tight);
+  }
+
+  .empty {
+    margin-top: var(--space-6);
+    color: color-mix(in oklab, currentColor 60%, transparent);
+  }
+
+  .grid {
+    list-style: none;
+    margin: var(--space-7) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--space-5);
+  }
+
+  .card {
+    border: 1px solid var(--c-border);
+    border-radius: 0.75rem;
+    background: var(--c-surface);
+    color: var(--c-text);
+  }
+
+  .cardLink {
+    display: block;
+    padding: var(--space-5);
+    color: inherit;
+    text-decoration: none;
+    border-radius: inherit;
+  }
+
+  .cardLink:focus-visible {
+    outline: var(--focus-ring-width) var(--focus-ring-style) var(--c-accent);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .cardTitle {
+    font-size: var(--text-lg);
+    color: var(--c-accent);
+  }
+
+  .cardBlurb {
+    margin-top: var(--space-3);
+    font-size: var(--text-sm);
+  }
+}

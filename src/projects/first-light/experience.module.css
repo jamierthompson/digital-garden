@@ -1,0 +1,29 @@
+/* The `first-light` experience styling — `@layer project` (the @layer trap, [D12]). Pure
+   var-consuming: only generic scoped tokens (`--brand-*`, `--font-face`, `--space-*`,
+   `--text-*`) the project scope sets on the `[data-project]` ancestor (§8, [D2]). */
+@layer project {
+  .experience {
+    margin-top: var(--space-7);
+    padding: var(--space-6);
+    border-radius: 0.75rem;
+    background: color-mix(
+      in oklab,
+      var(--brand-accent) 8%,
+      var(--brand-surface)
+    );
+    font-family: var(--font-face);
+    color: var(--brand-text);
+  }
+
+  .heading {
+    font-size: var(--text-xl);
+    line-height: var(--leading-tight);
+    color: var(--brand-accent);
+  }
+
+  .body {
+    margin-top: var(--space-3);
+    max-width: 52ch;
+    font-size: var(--text-base);
+  }
+}

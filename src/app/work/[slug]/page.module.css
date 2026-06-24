@@ -1,13 +1,47 @@
-/* Minimal styling owned by the route itself — just the Suspense fallback shown while
-   `StreamedSection` streams in. Kept separate from `ModuleShell.module.css` so the route
-   doesn't reach into a presentational component's stylesheet for one class. Like every CSS
-   Module here it MUST declare its `@layer` or it silently outranks every layer (the
-   "@layer trap", `[D12]`, enforced by `pnpm lint:css`); it stays var-consuming so it never
-   reaches up for a look. */
+/* The `/work/<slug>` project page styling. `@layer project` — a CSS Module MUST declare its
+   layer or it silently outranks every @layer style (the @layer trap, [D12]). All themeable
+   values are consumed as generic tokens (`--brand-*`, `--font-face`, `--space-*`,
+   `--text-*`) that `ProjectScope` sets on the `[data-project]` ancestor — the page never
+   reaches up for a look (§8, [D2]). */
 @layer project {
-  .skeleton {
+  .module {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: var(--space-7) var(--space-6);
+    font-family: var(--font-face);
+    color: var(--brand-text);
+    background: var(--brand-surface);
+  }
+
+  .header {
+    margin-bottom: var(--space-6);
+  }
+
+  .title {
+    font-size: var(--text-3xl);
+    line-height: var(--leading-tight);
+    color: var(--brand-accent-text);
+  }
+
+  .blurb {
+    margin-top: var(--space-3);
+    font-size: var(--text-lg);
+    max-width: 52ch;
+    color: color-mix(in oklab, var(--brand-text) 80%, transparent);
+  }
+
+  .article {
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed, 1.7);
+  }
+
+  .article :is(h2, h3) {
     margin-top: var(--space-6);
-    color: color-mix(in oklab, var(--brand-on-surface) 50%, transparent);
-    font-size: var(--text-sm);
+    color: var(--brand-accent-text);
+  }
+
+  .article p {
+    margin-top: var(--space-4);
+    max-width: 64ch;
   }
 }
