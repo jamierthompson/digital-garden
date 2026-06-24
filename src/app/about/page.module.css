@@ -1,0 +1,32 @@
+/* About page — consumes the shell island's brand/font tokens. [D12, §3.1] */
+@layer project {
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-6);
+  }
+
+  .title {
+    font-family: var(--font-face);
+    font-size: var(--text-3xl);
+    line-height: var(--leading-tight);
+    color: var(--brand-text, var(--foreground));
+  }
+
+  .prose {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    font-size: var(--text-lg);
+    line-height: var(--leading-loose);
+    color: var(--brand-text-muted, var(--foreground));
+  }
+
+  .emphasis {
+    color: var(--brand-text, var(--foreground));
+    font-weight: 600;
+  }
+}
