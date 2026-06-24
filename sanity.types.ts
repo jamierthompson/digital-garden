@@ -276,10 +276,45 @@ export type WORK_INDEX_QUERY_RESULT = Array<{
   fontKey: string | null;
 }>;
 
+// Source: ../src/sanity/lib/queries.ts
+// Variable: PROJECT_DETAIL_QUERY
+// Query: *[_type == "project" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    blurb,    brandColor,    brandColorDark,    fontKey,    componentKey,    essay,    notes[]->{ _id, title, "slug": slug.current },    tags  }
+export type PROJECT_DETAIL_QUERY_RESULT = {
+  _id: string;
+  title: string | null;
+  slug: string | null;
+  blurb: string | null;
+  brandColor: string | null;
+  brandColorDark: string | null;
+  fontKey: string | null;
+  componentKey: string | null;
+  essay: PortableText | null;
+  notes: Array<{
+    _id: string;
+    title: string | null;
+    slug: string | null;
+  }> | null;
+  tags: Array<string> | null;
+} | null;
+
+// Source: ../src/sanity/lib/queries.ts
+// Variable: SITE_SETTINGS_QUERY
+// Query: *[_type == "siteSettings"][0] {    _id,    title,    description,    brandColor,    brandColorDark,    fontKey  }
+export type SITE_SETTINGS_QUERY_RESULT = {
+  _id: string;
+  title: string | null;
+  description: string | null;
+  brandColor: string | null;
+  brandColorDark: string | null;
+  fontKey: string | null;
+} | null;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
     '\n  *[_type == "project" && defined(slug.current)] | order(_createdAt desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': WORK_INDEX_QUERY_RESULT;
+    '\n  *[_type == "project" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    blurb,\n    brandColor,\n    brandColorDark,\n    fontKey,\n    componentKey,\n    essay,\n    notes[]->{ _id, title, "slug": slug.current },\n    tags\n  }\n': PROJECT_DETAIL_QUERY_RESULT;
+    '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description,\n    brandColor,\n    brandColorDark,\n    fontKey\n  }\n': SITE_SETTINGS_QUERY_RESULT;
   }
 }

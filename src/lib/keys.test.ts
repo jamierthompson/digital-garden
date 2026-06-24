@@ -16,9 +16,13 @@ describe("key contracts", () => {
     for (const key of FONT_KEYS) expect(typeof key).toBe("string");
   });
 
-  it("COMPONENT_KEYS and EMBED_KEYS are empty until Phase 3 / a real widget", () => {
-    expect(COMPONENT_KEYS).toHaveLength(0);
-    expect(EMBED_KEYS).toHaveLength(0);
+  it("registers the Phase 3 first-slice keys (first-light / sunrise-meter)", () => {
+    // Phase 3 lands the dead-simple first project [D17], so the registries are no
+    // longer empty. Each holds exactly its one slice key, unique within the array.
+    expect(COMPONENT_KEYS).toContain("first-light");
+    expect(EMBED_KEYS).toContain("sunrise-meter");
+    expect(new Set(COMPONENT_KEYS).size).toBe(COMPONENT_KEYS.length);
+    expect(new Set(EMBED_KEYS).size).toBe(EMBED_KEYS.length);
   });
 
   it("isFontKey narrows known keys and rejects unknown ones", () => {
@@ -27,7 +31,9 @@ describe("key contracts", () => {
     expect(isFontKey("")).toBe(false);
   });
 
-  it("isComponentKey / isEmbedKey reject everything while the registries are empty", () => {
+  it("isComponentKey / isEmbedKey accept registered keys and reject unknowns", () => {
+    expect(isComponentKey("first-light")).toBe(true);
+    expect(isEmbedKey("sunrise-meter")).toBe(true);
     expect(isComponentKey("log-explorer")).toBe(false);
     expect(isEmbedKey("hue-slider")).toBe(false);
   });

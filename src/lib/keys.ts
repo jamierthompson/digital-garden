@@ -29,19 +29,25 @@ export type FontKey = (typeof FONT_KEYS)[number];
 
 /**
  * Component keys — one per project module, resolved to a literal dynamic import
- * in `src/lib/resolvers/components.ts` [D21, §4.2]. **Empty until Phase 3**: no
- * project modules exist yet. Each project registers its key here when it lands.
+ * in `src/lib/resolvers/components.ts` [D21, §4.2]. Each project registers its key
+ * here when it lands; the `satisfies Record<ComponentKey, …>` on `PROJECT_LOADERS`
+ * then forces a matching loader entry (compile error if missing).
+ *   • `first-light` — the dead-simple first project module (Phase 3, [D17]).
  */
-export const COMPONENT_KEYS = [] as const satisfies readonly string[];
+export const COMPONENT_KEYS = [
+  "first-light",
+] as const satisfies readonly string[];
 export type ComponentKey = (typeof COMPONENT_KEYS)[number];
 
 /**
  * Embed keys — shared in-essay live components / widgets, resolved in
- * `src/lib/resolvers/embeds.ts` [D15, §4.1]. **Empty until a widget exists**:
- * the registry starts single-tier and a project-local tier is added only on a
- * genuine second use [D24].
+ * `src/lib/resolvers/embeds.ts` [D15, §4.1]. The registry starts single-tier; a
+ * project-local tier is added only on a genuine second use [D24].
+ *   • `sunrise-meter` — the one tiny embed in the `first-light` essay (Phase 3).
  */
-export const EMBED_KEYS = [] as const satisfies readonly string[];
+export const EMBED_KEYS = [
+  "sunrise-meter",
+] as const satisfies readonly string[];
 export type EmbedKey = (typeof EMBED_KEYS)[number];
 
 const FONT_KEY_SET: ReadonlySet<string> = new Set(FONT_KEYS);
