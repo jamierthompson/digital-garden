@@ -17,7 +17,7 @@ import {
   buildTokenSet,
   tokenSetToDeclarations,
   type TokenSet,
-} from "@/lib/oklch";
+} from "@garden/oklch";
 import { resolveFontKey } from "@/lib/resolvers/fonts";
 import type { FontFace } from "@/fonts/roster";
 

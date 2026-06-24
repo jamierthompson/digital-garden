@@ -19,7 +19,7 @@ or carry `server-only`/`client-only` [D14].
 ## Public API (`index.ts`)
 
 ```ts
-import { resolveTheme, buildTokenSet, tokenSetToCss } from "@/lib/oklch";
+import { resolveTheme, buildTokenSet, tokenSetToCss } from "@garden/oklch";
 
 // One scheme → flat token map (Consumer B playground, Consumer C cardSwatches):
 const { tokens, seed, isFallback } = resolveTheme("#3b82f6", "light");
@@ -55,15 +55,15 @@ regenerates **`harness/swatches.html`** — a committed, deterministic eyeball a
 
 ```bash
 # Assert the numbers (runs in both node + jsdom):
-pnpm exec vitest run src/lib/oklch/harness
+pnpm exec vitest run packages/oklch/src/harness
 
 # Then open the regenerated swatches in a browser to eyeball palette quality:
-open src/lib/oklch/harness/swatches.html
+open packages/oklch/src/harness/swatches.html
 ```
 
 ## Tests
 
 ```bash
-pnpm exec vitest run src/lib/oklch                 # whole engine, both envs
-pnpm exec vitest run --project node src/lib/oklch  # isomorphism (node only)
+pnpm exec vitest run packages/oklch                 # whole engine, both envs
+pnpm exec vitest run --project node packages/oklch  # isomorphism (node only)
 ```

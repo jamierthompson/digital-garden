@@ -17,6 +17,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@garden/oklch": "workspace:*",
     "@sanity/client": "^7.23.0",
     "next": "16.2.9",
     "next-sanity": "^13.1.1",

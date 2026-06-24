@@ -5,7 +5,8 @@
  * `brandColor`, but WITHOUT a project scope: no island, no `<style>` tag, no class —
  * just a small bag of inline CSS custom properties (`--c-*`) to spread onto a card
  * element's `style={…}`. This is a CONSUMER of the OKLCH engine, not part of it, so it
- * lives in `src/lib/` rather than `src/lib/oklch/` (§3.2).
+ * lives in `src/lib/` (an app consumer) rather than inside the `@garden/oklch` engine
+ * package itself (§3.2) [D23].
  *
  * It runs on the SAME defensive parse/validate path as everything else: it delegates to
  * the high-level `buildTokenSet`, which parses defensively, gamut-maps, contrast-solves,
@@ -13,7 +14,8 @@
  * `meta.isFallback = true`. So `cardSwatches` is TOTAL: it NEVER throws and always
  * returns a valid swatch object [D9].
  *
- * Values are BAKED literals, composed the same way `oklch/css.ts` composes them: each
+ * Values are BAKED literals, composed the same way the engine's `css.ts` composes them:
+ * each
  * stop is `light-dark(<light oklch() literal>, <dark oklch() literal>)` so a card reads
  * correctly in both schemes with zero runtime color math in the browser [D3, D5].
  *
@@ -27,9 +29,13 @@
  * the full project scope would use — just a curated subset, inline, with no scope.
  */
 
-import { buildTokenSet } from "./oklch/palette";
-import { formatOklch } from "./oklch/convert";
-import type { BrandTokenName, EngineOptions, SchemePair } from "./oklch";
+import {
+  buildTokenSet,
+  formatOklch,
+  type BrandTokenName,
+  type EngineOptions,
+  type SchemePair,
+} from "@garden/oklch";
 
 /** The card swatch custom-property names — the `--c-*` inline contract. */
 export type CardSwatchVar =
