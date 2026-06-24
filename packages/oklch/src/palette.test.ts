@@ -117,3 +117,40 @@ describe("buildTokenSet", () => {
     expect(buildTokenSet("not-a-color").meta.isFallback).toBe(true);
   });
 });
+
+// The Studio's author-time `brandColor` validation (studio/schemaTypes/shared/
+// colorValidation.ts) is a thin wrapper over THIS call: it accepts a value iff
+// `buildTokenSet(value).meta.isFallback === false` [D9, D23]. The Studio has no test
+// runner of its own and shouldn't grow one for ~3 lines of glue; the contract that
+// actually matters — "what does the engine consider usable?" — is engine behavior, so
+// it's pinned here, where the runner already exists. This is the validation oracle:
+// `isFallback === false` ⇔ Studio accepts. It also locks the deliberate boundary shift
+// away from the old regex (rgb() now accepted; 4-digit #rgba now rejected, since the
+// engine can't parse it). If this boundary ever moves, author-time validation moves
+// with it — which is the point.
+describe("brandColor validation contract (the Studio's isFallback oracle) [D9, D23]", () => {
+  // Inputs an editor would type that the engine CAN theme with → Studio accepts.
+  it.each([
+    "#4f46e5", // 6-digit hex (the documented example)
+    "#f00", // 3-digit shorthand hex
+    "#00ff0080", // 8-digit hex (alpha ignored)
+    "oklch(0.62 0.19 256)", // oklch() literal (the documented example)
+    "oklch(62% 0.19 256)", // oklch() with percentage L
+    "rgb(79, 70, 229)", // rgb() — accepted by the engine, was NOT by the old regex
+    "  #4f46e5  ", // surrounding whitespace is tolerated
+  ])("accepts %j (engine parses it → not a fallback)", (input) => {
+    expect(buildTokenSet(input).meta.isFallback).toBe(false);
+  });
+
+  // Inputs the engine CANNOT parse → fallback → Studio rejects.
+  it.each([
+    "not-a-color",
+    "#xyz", // non-hex digits
+    "#abcd", // 4-digit hex — the engine has no #rgba form, so this is a fallback now
+    "rgb()", // malformed function
+    "", // empty (the wrapper also short-circuits this to "allowed", paired with .required())
+    "   ", // whitespace only
+  ])("rejects %j (engine falls back)", (input) => {
+    expect(buildTokenSet(input).meta.isFallback).toBe(true);
+  });
+});

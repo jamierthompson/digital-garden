@@ -39,7 +39,7 @@ describe("cardSwatches — valid brandColor", () => {
     }
   });
 
-  it("derives distinct colours per stop (not a single flat value)", () => {
+  it("derives distinct colors per stop (not a single flat value)", () => {
     const values = new Set(KEYS.map((k) => swatches[k]));
     expect(values.size).toBeGreaterThan(1);
   });

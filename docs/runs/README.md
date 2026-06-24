@@ -23,6 +23,8 @@ window.
 
 ## Index
 
-| Date       | Run                                                                                           | Outcome                               |
-| ---------- | --------------------------------------------------------------------------------------------- | ------------------------------------- |
-| 2026-06-23 | [Phase 0.5 walking skeleton + parallel Phase 1/2](./2026-06-23-phase-0.5-walking-skeleton.md) | 4 feature PRs (#8–#11) + review fixes |
+| Date       | Run                                                                                                        | Outcome                                       |
+| ---------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| 2026-06-23 | [Phase 0.5 walking skeleton + parallel Phase 1/2](./2026-06-23-phase-0.5-walking-skeleton.md)              | 4 feature PRs (#8–#11) + review fixes         |
+| 2026-06-24 | [Phase 1 keystone (real ProjectScope) + fast-follows](./2026-06-24-phase-1-projectscope.md)                | 3 PRs (#14–#16); Phase 1 complete             |
+| 2026-06-24 | [Phase 2 close-out: engine-backed brandColor validation](./2026-06-24-phase-2-engine-backed-validation.md) | PR #18; `@garden/oklch` pkg; Phase 2 complete |

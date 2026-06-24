@@ -5,7 +5,7 @@ import { defineQuery } from "next-sanity";
  *
  * Pulls only what a card needs — `blurb`, `brandColor`, `fontKey` (plus id /
  * title / slug for the link) — and deliberately NOT the `essay`. This enforces
- * "a few colours per card" at the data layer: `brandColor` feeds `cardSwatches`
+ * "a few colors per card" at the data layer: `brandColor` feeds `cardSwatches`
  * (engine Consumer C), and omitting the essay keeps the index payload small for
  * CWV. The over-fetch guard is asserted in queries.test.ts.
  *

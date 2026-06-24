@@ -151,8 +151,9 @@ a small color _system_. It is **both a feature and a project — same logic, two
 consumers.**
 
 - A **pure function**: takes a brand color **and a scheme**, emits a color-token set. Knows
-  nothing about projects. Lives in a shared module (e.g. `src/lib/oklch/`) — no React, no DOM,
-  no Node built-ins — as the single source of truth for the algorithm. Its isomorphism is
+  nothing about projects. Lives in its own workspace package (`packages/oklch`, imported as
+  `@garden/oklch` [D23]) — no React, no DOM, no Node built-ins — as the single source of truth
+  for the algorithm. Its isomorphism is
   **enforced**, not hoped: a lint import-boundary on the folder forbids `next/*`, `react`,
   `react-dom`, and DOM/Node globals, and a dual-environment test runs the suite under both
   `node` and `jsdom`. (Do **not** use `server-only`/`client-only` — those pin it to one side
@@ -197,7 +198,7 @@ consumers.**
 
 - Runs **per scope** — once per project (seeded by that project's `brandColor`) and once for
   the shell. Multiple themed islands can coexist on one page. **Previews are not islands**: a
-  `/work` card or note preview needs a few colours, not a namespace, so it derives them from
+  `/work` card or note preview needs a few colors, not a namespace, so it derives them from
   the same engine (Consumer C) and skips the scoped `<style>` block.
 
 - Emitted as a **server-rendered scoped `<style>` block** (`[data-project="x"] { … }`),
@@ -456,7 +457,7 @@ Practical notes:
   writes/curates it → typed block; developer decides it → registry; neither → it's not an
   input._
 - **The index query refuses to over-fetch.** The `/work` query pulls `blurb`, `brandColor`,
-  `fontKey` — **not** the essay. That enforces "a few colours per card" at the data layer
+  `fontKey` — **not** the essay. That enforces "a few colors per card" at the data layer
   (cards feed `cardSwatches`, §3.2 Consumer C) and keeps the index payload small for CWV.
 - **`ProjectScope` is the resolution keystone.** One server component takes a scope's
   `brandColor` + `fontKey` and emits the flash-free scoped `<style>` (engine palette, both
@@ -510,7 +511,7 @@ Practical notes:
   single app with no project sub-packages — project code lives under `src/projects/*`; shared
   bits live in shared `src/` modules. Boundaries are **lint-import rules enforced from Phase 0**
   (a project can't import another project; shared can't import a project), plus the
-  `src/lib/oklch/` isomorphism boundary (§3.2) and the every-CSS-module-declares-its-`@layer`
+  `packages/oklch/**` isomorphism boundary (§3.2) and the every-CSS-module-declares-its-`@layer`
   rule (§3.1).
 - The site runs on **Vercel** with full SSR / RSC. The old log-explorer used `output: "export"`
   only to host free on Render — _not_ carried forward. This unlocks server-rendered flash-free

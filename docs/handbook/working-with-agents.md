@@ -265,6 +265,18 @@ each tool call.**
   invoke it for a second opinion and treats anything it surfaces like QA's findings, but it's a
   tool, not a gate. Only then does the lead curate history (§6.1) and squash-merge.
 
+- **Close the run — every run ends with two writes (non-negotiable).** Before the squash-merge,
+  the run produces both, or it isn't done:
+  1. **Update the project [`README.md`](../../README.md)** so it still describes the repo as it now
+     is — at minimum the **Status** line (phase progress) and any changed scripts, structure, or
+     conventions. The README is human-facing and rots silently; a stale "Phase 0 complete" is the
+     smell this rule exists to kill. (The per-task echo of this is the DoD §6 "docs updated" box;
+     this makes it a hard **run-level** requirement, not a maybe.)
+  2. **Write the run record** in [`../runs/`](../runs) (`YYYY-MM-DD-<slug>.md`) — why / shape /
+     outcome / review + fixes / lessons, per [`../runs/README.md`](../runs/README.md) — and add its
+     row to that index. This is the repo's external memory; a run that did real product work and
+     left no record is invisible to the next session. Applies to **solo runs too**, not just teams.
+
 ## 7. Keeping agents from drifting the architecture — quick gate
 
 Before you finish a task, self-check:

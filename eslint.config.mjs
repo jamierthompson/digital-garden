@@ -49,7 +49,6 @@ const eslintConfig = defineConfig([
       // directory, which makes a fixed-folder glob like the oklch one miss).
       "boundaries/elements": [
         { type: "app", mode: "file", pattern: "src/app/**/*" },
-        { type: "oklch", mode: "file", pattern: "src/lib/oklch/**/*" },
         {
           type: "project",
           mode: "file",
@@ -83,31 +82,27 @@ const eslintConfig = defineConfig([
               message:
                 "Shared modules cannot import project code — dependencies point from projects to shared, never back.",
             },
-            {
-              from: { type: "oklch" },
-              disallow: { to: { type: ["app", "project", "shared"] } },
-              message:
-                "The OKLCH engine must stay self-contained and isomorphic [D14].",
-            },
-            {
-              from: { type: "oklch" },
-              disallow: {
-                to: { origin: ["external", "core"] },
-                dependency: { module: ["next", "react", "react-dom"] },
-              },
-              message:
-                "The OKLCH engine must stay isomorphic — no next/react/react-dom [D14].",
-            },
           ],
         },
       ],
     },
   },
-  // The OKLCH engine may not touch DOM or Node runtime globals.
+  // The OKLCH engine lives in its own workspace package (@garden/oklch) so the
+  // standalone Studio can import it too [D23]. The isomorphism guard [D14] moves
+  // with it: no framework imports, no DOM/Node runtime globals. (It is no longer a
+  // `boundaries` element — that plugin is scoped to `src/**` — so the framework-import
+  // ban that the dropped `from: oklch` rules enforced is restated here.)
   {
-    files: ["src/lib/oklch/**/*.{js,jsx,ts,tsx,mts,cts}"],
+    files: ["packages/oklch/**/*.{js,jsx,ts,tsx,mts,cts}"],
     rules: {
       "no-restricted-globals": ["error", ...NON_ISOMORPHIC_GLOBALS],
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: ["react", "react-dom", "server-only", "client-only"],
+          patterns: ["next", "next/*", "react-dom/*"],
+        },
+      ],
     },
   },
   // Must come last: turns off any ESLint rules that would conflict with Prettier.

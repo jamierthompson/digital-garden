@@ -144,13 +144,13 @@ Cross-checked against [D17]/[D18]/[D19]:
   assertions folded into Phase 1's engine harness"). ✅
 
 **No contradiction** — concede the phasing is correct. One precision nit: D17's harness says
-"3–4 hue-spanning colors"; the draft says "3–4 brand colours spanning the hue wheel — and it
+"3–4 hue-spanning colors"; the draft says "3–4 brand colors spanning the hue wheel — and it
 MUST include a yellow and a cyan." The yellow/cyan mandate is the draft's _own_ addition (a
 reasonable engineering inference from D4's "equal ΔL ≠ equal contrast across hues"), **not**
 verbatim in D17. That's good editorializing, but the draft presents it with the same `[D17]`
 citation weight as the count. **Fix:** make clear the yellow/cyan requirement is an
 engineering derivation _from_ D4's ΔL-≠-contrast principle, not a literal D17 clause — e.g.
-"D17 mandates 3–4 hue-spanning colours; we additionally pin yellow and cyan because D4."
+"D17 mandates 3–4 hue-spanning colors; we additionally pin yellow and cyan because D4."
 
 ### C2 — The "Phase 0.5 / walking skeleton" is invisible here, and `page.test.tsx` migration advice may collide with it (lines 117–119)
 
@@ -226,7 +226,7 @@ of their output" rule (line 70) and gives the agent a concrete move instead of a
 The RTL query priority is sound for components. But the Phase-1 visual harness asserts
 _numeric contrast values_, not roles/text. An agent might try to force `getByRole` onto a
 swatch grid. **Fix:** One line in the harness section clarifying that the harness asserts
-computed colour/contrast values (read from the rendered styles or the engine output
+computed color/contrast values (read from the rendered styles or the engine output
 directly), _not_ via RTL semantic queries — the RTL priority list governs component tests,
 not the engine harness.
 

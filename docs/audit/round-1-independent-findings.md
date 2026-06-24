@@ -497,7 +497,7 @@ layer that a real foreign key would give you for free.
 
 - The reference-by-key _pattern_ applied uniformly across
   `componentKey`/`fontKey`/`brandColor`/`embedKey`.
-- Essay-free `/work` query enforcing "a few colours per card" _at the data layer_.
+- Essay-free `/work` query enforcing "a few colors per card" _at the data layer_.
 - The `keys.ts`/resolver split's core rationale is real (just needs the CI safety
   net).
 - `ProjectScope` as a single resolution keystone.

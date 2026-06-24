@@ -103,7 +103,7 @@ describe("Foo", () => {
   `tests/setup.ts`.
 
 This priority list governs **component tests**. The Phase-1 engine harness asserts numeric
-contrast/colour values, not roles — see [Visual contrast harness](#phase-1-visual-contrast-harness-d17).
+contrast/color values, not roles — see [Visual contrast harness](#phase-1-visual-contrast-harness-d17).
 
 ---
 
@@ -148,11 +148,12 @@ from [What to test](#what-to-test-vs-skip).
 
 ## Dual-env: the OKLCH engine ([D14])
 
-`src/lib/oklch/**` is **isomorphic** — it must run identically server- and client-side. Two
-guards enforce this, and both are mandatory:
+`packages/oklch/**` (the `@garden/oklch` package [D23]) is **isomorphic** — it must run
+identically server- and client-side. Two guards enforce this, and both are mandatory:
 
-1. **Import-boundary lint** (`pnpm lint`, `eslint-plugin-boundaries`): the engine may not
-   import `next/*`, `react`, `react-dom`, or touch DOM/Node globals. **Never** add
+1. **Isomorphism lint** (`pnpm lint`): a dedicated `eslint.config.mjs` block on
+   `packages/oklch/**` (`no-restricted-imports` + `no-restricted-globals`) forbids the engine
+   from importing `next`/`next/*`, `react`, `react-dom`, or touching DOM/Node globals. **Never** add
    `server-only` / `client-only` to engine files — they pin the module to one side and
    break isomorphism ([D14]).
 2. **Dual-environment test run:** the engine suite executes under **both** `environment:
@@ -174,7 +175,7 @@ export default defineConfig({
   // PLUGIN, not a `resolve.tsconfigPaths` flag. The live single-env config uses
   // `resolve: { tsconfigPaths: true }` — that key is non-standard/unverified against
   // Vite/Vitest docs. Prefer the plugin form here, and CONFIRM that an aliased import
-  // (e.g. `@/lib/oklch`) actually resolves in BOTH projects before relying on it.
+  // (e.g. `@/lib/cardSwatches`) actually resolves in BOTH projects before relying on it.
   plugins: [tsconfigPaths(), react()],
   test: {
     projects: [
@@ -199,7 +200,7 @@ export default defineConfig({
           globals: true,
           // node project is scoped to the engine glob ONLY. No jsdom matcher setup
           // (no setupFiles) — it needs none.
-          include: ["src/lib/oklch/**/*.test.ts"],
+          include: ["packages/oklch/**/*.test.ts"],
         },
       },
     ],
@@ -229,7 +230,7 @@ The engine's tests assert the _contract_, hue-by-hue — not a frozen CSS string
 - **Contrast in both schemes:** APCA Lc for text (WCAG 2.x ratio as the compliance
   fallback), asserted in **light and dark** ([D4]/[D5]). OKLCH `L` is **not** contrast — a
   fixed ΔL is not a fixed ratio across hues, so assert the **measured** ratio per hue ([D4]).
-- **Gamut-map first:** contrast is solved on the gamut-mapped colour ([D6]).
+- **Gamut-map first:** contrast is solved on the gamut-mapped color ([D6]).
 - **Never throws:** bad `brandColor` → safe fallback palette, asserted explicitly ([D9]).
   This covers **D9 layer 1** (the defensive engine). The Sanity author-time validation and
   `unstable_catchError` backstop layers are tested where they live (Phase 2 / Phase 3).
@@ -242,15 +243,15 @@ APCA Lc targets these assertions check against.
 ## Phase-1 visual contrast harness ([D17])
 
 The engine's **exit criterion is observable palette quality, not determinism alone** ([D17]).
-[D17] mandates a visual harness over **3–4 brand colours spanning the hue wheel**; we
+[D17] mandates a visual harness over **3–4 brand colors spanning the hue wheel**; we
 _additionally_ pin a **yellow and a cyan** because [D4] (equal ΔL ≠ equal contrast across
 hues) — those are the stressers where the gap bites hardest. The harness renders ramps for
-those colours, **light and dark**, asserting APCA Lc / WCAG ratios on every
+those colors, **light and dark**, asserting APCA Lc / WCAG ratios on every
 text-on-surface and on-brand pair _after_ gamut-mapping. Phase 1 is not done until this
 harness is green. This is where accessibility/contrast assertions live — they fold into the
 engine harness, not a separate a11y suite ([D19]).
 
-The harness asserts **computed colour/contrast values** (read from the engine output or the
+The harness asserts **computed color/contrast values** (read from the engine output or the
 rendered styles directly) — **not** via RTL semantic queries. The
 [RTL priority list](#rtl-usage-rules) governs component tests, not this harness; don't try
 to force `getByRole` onto a swatch grid.
