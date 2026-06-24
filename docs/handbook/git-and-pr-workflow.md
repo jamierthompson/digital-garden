@@ -212,6 +212,9 @@ deliberately.
   `git log` and find only this. A short, ordered "what landed" list earns its place here.
 - **No checklists with unfinished items.** All tasks are done before the PR opens — the PR is a
   finished unit of work, not a progress tracker.
+- **Passed independent QA.** On a team branch, every slice clears a **fresh** code-review subagent
+  (dev↔QA loop) before it enters the PR — gate-green is _developer-done_, not _review-done_. The
+  lead owns this; mechanics in [./working-with-agents.md](./working-with-agents.md) §6.2.
 
 See [./definition-of-done.md](./definition-of-done.md) for what "done" means before you open.
 
@@ -266,7 +269,12 @@ assume merges are mechanically blocked. If enabled, the sensible configuration i
 ## 6. Curate, merge & cleanup
 
 This is the team lead's step. Two parts: **curate the branch** (the "git magic"), then
-**squash-merge** it. Do it only when the work is complete and **CI is green on the curated tip**.
+**squash-merge** it. Do it only when the work is complete and the PR is **ready to merge** —
+which, on a team branch, is the lead's explicit call and means **both**: the CI `verify` gate
+green on the curated tip (§5) **and** the `claude-review` bot review resolved. The lead
+coordinates the bot's findings — in-scope items get fixed on the branch by the owning agent (then
+re-review), genuinely-later items get filed as follow-ups in [../build-phases.md](../build-phases.md)
+with the PR# and a reason (see [./working-with-agents.md](./working-with-agents.md) §6.2).
 
 ### 6a. Curate the branch (the lead's git magic)
 

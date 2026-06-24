@@ -164,11 +164,19 @@ local embed tier introduced without a real second consumer.
 
 ---
 
-## Review-surfaced follow-ups (2026-06-23 run — PRs #8–#11)
+## Review-surfaced follow-ups
 
-> Items the `claude-review` pass surfaced on the Phase 0.5 / parallel build, filed under the phase
-> that should pick each up. None blocked their PR. Run record:
-> [`runs/2026-06-23-phase-0.5-walking-skeleton.md`](./runs/2026-06-23-phase-0.5-walking-skeleton.md).
+> **The standing home for deferred review findings.** When pre-PR QA (the dev↔QA loop) or the
+> post-PR `claude-review` bot surfaces something real that's genuinely **cross-phase** — it needs a
+> package boundary that doesn't exist yet, a future consumer, or later-phase work — the team lead
+> files it here under the phase that should pick it up, with its **PR#** and a one-line reason.
+> In-scope findings are fixed in-branch before the PR, not deferred (see
+> [`handbook/working-with-agents.md`](./handbook/working-with-agents.md) §6.2). Group new entries
+> by run.
+
+**2026-06-23 run — PRs #8–#11** — surfaced on the Phase 0.5 / parallel build; none blocked their
+PR. Run record:
+[`runs/2026-06-23-phase-0.5-walking-skeleton.md`](./runs/2026-06-23-phase-0.5-walking-skeleton.md).
 
 **Phase 1 — real `ProjectScope` (swaps the stub palette → engine output):**
 
