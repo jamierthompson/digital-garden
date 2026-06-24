@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { cacheLife } from "next/cache";
 
-import { client } from "@/sanity/lib/client";
+import { sanityFetch } from "@/sanity/lib/sanityFetch";
 
 import styles from "./page.module.css";
 import { NOTES_INDEX_QUERY } from "./queries";
@@ -18,24 +17,11 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * Notes index. Lightweight by construction: shell + shared only, no project demo
- * bundles (those load only when an individual note explicitly embeds one). [§6]
- *
- * Cached with `use cache` because Cache Components is ON — uncached data outside
- * `<Suspense>` is a build-time hard error [D11]. Reads through the public `client`
- * (published, CDN, no token); cacheLife('hours') since notes change more often than
- * the shell brand but still prerender into the static shell.
- * (node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache.md)
- */
-async function getNotes() {
-  "use cache";
-  cacheLife("hours");
-  return client.fetch(NOTES_INDEX_QUERY);
-}
-
 export default async function NotesPage() {
-  const notes = await getNotes();
+  // Notes are lightweight by construction (shell + shared only, no project demo bundles);
+  // `cacheLife("hours")` because notes change more often than the shell brand but still
+  // prerender into the static shell. `sanityFetch` serves fresh drafts under Draft Mode. [§6, D11]
+  const notes = await sanityFetch(NOTES_INDEX_QUERY, undefined, "hours");
 
   return (
     <main className={styles.main}>

@@ -9,6 +9,7 @@ import { isNotFound } from "@/lib/resolvers/resolution";
 import type { ProjectModule } from "@/projects/types";
 import { client } from "@/sanity/lib/client";
 import { PROJECT_DETAIL_QUERY, WORK_INDEX_QUERY } from "@/sanity/lib/queries";
+import { sanityFetch } from "@/sanity/lib/sanityFetch";
 
 import styles from "./page.module.css";
 
@@ -27,23 +28,12 @@ interface WorkPageProps {
 }
 
 /**
- * Fetch one project by slug inside a `use cache` boundary so the themed shell lands in the
- * prerendered static HTML (Cache Components / PPR, [D11]). `params` is read by the caller
- * and the slug passed in as an argument — request-time values must NOT be read inside a
- * `use cache` function (`node_modules/.../01-directives/use-cache.md`). `cacheLife("max")`:
- * project content changes rarely, revalidated by tag/deploy.
- */
-async function getProject(slug: string) {
-  "use cache";
-  const { cacheLife } = await import("next/cache");
-  cacheLife("max");
-  return client.fetch(PROJECT_DETAIL_QUERY, { slug });
-}
-
-/**
  * Enumerate which slugs to prerender at build (Cache Components extracts each one's static
  * shell). Returning the published set does NOT preclude on-demand rendering of others —
  * under PPR an un-enumerated slug still renders at request time (`generate-static-params.md`).
+ *
+ * Reads the PUBLISHED `client` directly (not `sanityFetch`): build-time enumeration must
+ * prerender the published set, and Draft Mode has no meaning during the build.
  */
 export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   "use cache";
@@ -60,7 +50,7 @@ export async function generateMetadata({
   params,
 }: WorkPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const project = await getProject(slug);
+  const project = await sanityFetch(PROJECT_DETAIL_QUERY, { slug });
   if (!project) {
     return { title: "Not found" };
   }
@@ -77,7 +67,7 @@ export default async function WorkPage({ params }: WorkPageProps) {
   // Request API is async under Next 16 — `params` is a Promise, awaited here (outside the
   // cached fetch, then passed in).
   const { slug } = await params;
-  const project = await getProject(slug);
+  const project = await sanityFetch(PROJECT_DETAIL_QUERY, { slug });
 
   // Unpublished / unknown slug → the not-found boundary [D10, D19].
   if (!project) {
