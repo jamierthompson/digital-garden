@@ -81,13 +81,13 @@ determinism `[D17]`._
 - [√] **Decide up front, because they shape the signature:** scheme-aware `(brandColor, scheme) → tokenSet` with `light-dark()` output (dark mode is in scope from v1) `[D5]`; contrast **solved** via APCA/WCAG binary-search on L `[D4]`; **gamut-map** before contrast math `[D6]`; semantic-color seeding is independent, not brand-derived `[D8]`; focus-ring **color** is an engine token `[D7]`
 - [√] Engine **bakes literal `oklch()` values** server-side and is **defensive** — returns a fallback palette, never throws (§3.2) `[D3, D9]`
 - [√] Shape engine exports: low-level surface (ramp, chroma/lightness steps, contrast values) **and** a high-level `(brandColor, scheme) → tokenSet` wrapper (§3.2)
-- [ ] Build the real `ProjectScope` (server component): swap the stub palette → engine output; map brand tokens into the namespace; apply the resolved font's `.variable` class; render in the prerendered shell via `use cache`; keep the `unstable_catchError` backstop (§3.1, §3.2, §6, §7) `[D9, D11]` — **fast-follow; not in the 2026-06-23 run**
+- [√] Build the real `ProjectScope` (server component): swap the stub palette → engine output; map brand tokens into the namespace; apply the resolved font's `.variable` class; render flash-free in the prerendered shell as a **synchronous** server component (a sync component's output is auto-included in the static HTML shell — no `use cache` needed, confirmed against the bundled caching docs; `use cache` would force it async and break jsdom testability); keep the `unstable_catchError` backstop (§3.1, §3.2, §6, §7) `[D9, D11]` — _done 2026-06-24 (PR #14)_
 - [√] Build the font roster `src/fonts/roster.ts`: `preload: false` on all faces; variable fonts; `font-display: swap`; subset (§5) `[D11]`
 - [√] Author `keys.ts` string-constant contracts for `componentKey`/`fontKey`/`embedKey` (§6) `[D10]`
 - [√] **Co-located tests:** engine unit + **dual-env isomorphism** (node + jsdom) + **contrast assertions in both schemes** `[D14, D4, D5]`
 - [√] **Visual harness** — render ramps for 3–4 representative brand colors spanning the hue wheel (include a yellow and a cyan, the contrast-stressers), light and dark, asserting APCA Lc / WCAG ratios on every text-on-surface and on-brand pair _after_ gamut-mapping `[D4, D17]`
 
-_Engine + roster + `keys.ts` + tests + harness done 2026-06-23 (PRs #8 `c681a44`, #10 `49f1071`). The real `ProjectScope` is the remaining Phase 1 work._
+_Engine + roster + `keys.ts` + tests + harness done 2026-06-23 (PRs #8 `c681a44`, #10 `49f1071`). The real `ProjectScope` done 2026-06-24 (PR #14) — **Phase 1 complete**._
 
 **Exit:** the engine returns a contrast-valid token set (both schemes) from a brand color and
 runs identically server/client; the visual harness **proves palette quality**, not just
@@ -105,13 +105,13 @@ Studio bundle. Mark the true dependency gates `[D17]`._
 - [√] **(concurrent)** Sanity `siteSettings` (shell brand, same validation) + notes doc with backlinks via **real `reference` fields** `[D16]` (§6)
 - [√] **(concurrent)** Disable stega on `brandColor`/`fontKey`; plan `liveEmbed` click-to-edit as caption-only (§6) `[D16]`
 - [√] **(gated on `keys.ts`)** App-side resolvers, never imported by the Studio: typed `satisfies Record<Key, …>` (missing entry = compile error), returning a typed `NotFound` (§4.2, §6) `[D10]`
-- [ ] **(gated on Ph1 engine)** `cardSwatches(brandColor)` helper: runs the engine (Consumer C), returns a few stops as inline `--c-*`, same parse/validate path, no island / no `<style>` (§3.2, §6) `[D9]` — **fast-follow; not in the 2026-06-23 run**
+- [√] **(gated on Ph1 engine)** `cardSwatches(brandColor)` helper: runs the engine (Consumer C), returns a few stops as inline `--c-*`, same parse/validate path, no island / no `<style>` (§3.2, §6) `[D9]` — _done 2026-06-24 (PR #15)_
 - [√] `/work` index query: pull `blurb`, `brandColor`, `fontKey` — **not** the essay (§6)
-- [ ] Key-drift CI check goes **live** (§4.2) `[D10]` — **fast-follow; not in the 2026-06-23 run**
+- [√] Key-drift CI check goes **live** (§4.2) `[D10]` — _done 2026-06-24 (PR #16); runtime well-formedness + a comment-stripped `satisfies` tripwire. The published-Sanity-keys-vs-code net stays Phase 4._
 - [√] **log-explorer fit-spike:** map its _real_ surface (odd state shapes, embed-prop needs, page shapes) onto the module structure + content model **now, while cheap** — pulls the migration risk forward without doing the full migration (§1, §4) `[D17]`
-- [~] **Co-located tests:** resolver (incl. the NotFound path) ✅ / `cardSwatches` ⛔ (with the gated helper) / index-query ✅
+- [√] **Co-located tests:** resolver (incl. the NotFound path) ✅ / `cardSwatches` ✅ (PR #15) / index-query ✅
 
-_Schema, stega, resolvers, `/work` query, and fit-spike done 2026-06-23 (PRs #10 `49f1071`, #11 `0ff5461`). Remaining: `cardSwatches`, live key-drift, and engine-backed `brandColor` validation — see "Review-surfaced follow-ups" below._
+_Schema, stega, resolvers, `/work` query, and fit-spike done 2026-06-23 (PRs #10 `49f1071`, #11 `0ff5461`); `cardSwatches` + live key-drift done 2026-06-24 (PRs #15, #16). Remaining: engine-backed `brandColor` validation (a package-boundary task — see "Review-surfaced follow-ups" below)._
 
 **Exit:** editing a project doc drives brand/font/embeds by key; the `/work` query is
 essay-free; `cardSwatches` produces card colors with no scope; the Studio bundle excludes
@@ -177,10 +177,19 @@ local embed tier introduced without a real second consumer.
 PR. Run record:
 [`runs/2026-06-23-phase-0.5-walking-skeleton.md`](./runs/2026-06-23-phase-0.5-walking-skeleton.md).
 
+**2026-06-24 run — PRs #14–#16** — the gated fast-follows: real `ProjectScope` (Phase 1, PR #14),
+`cardSwatches` + live key-drift (Phase 2, PRs #15/#16), and the two minor engine cleanups. The
+pre-PR dev↔QA loop ([`handbook/working-with-agents.md`](./handbook/working-with-agents.md) §6.2)
+caught three gate-invisible defects — a latent `next/font` build break, a key-drift guard that
+false-passed on brace-bearing comments, and a WCAG-AA contrast failure from stub→engine token-name
+drift — **all fixed in-branch before their PR**, so nothing from this run is deferred except the
+pre-existing Phase-2 `brandColor`-validation package-boundary item below. Run record:
+[`runs/2026-06-24-phase-1-projectscope.md`](./runs/2026-06-24-phase-1-projectscope.md).
+
 **Phase 1 — real `ProjectScope` (swaps the stub palette → engine output):**
 
-- [ ] Keep the streamed `<style precedence="brand">` string and its `@layer brand { … }` wrapper **synchronized** — if they diverge the style hoists with the wrong precedence order (PR #9) `[D13]`
-- [ ] Map the engine's generic `--brand-*` output into the scope namespace **and** into `--focus-ring-color` (foundation's `:focus-visible` reads it) — e.g. `--focus-ring-color: var(--brand-focus-ring)` (PR #8) `[D7]`
+- [√] Keep the streamed `<style precedence="brand">` string and its `@layer brand { … }` wrapper **synchronized** — done 2026-06-24 (PR #14): single-sourced via a shared `const BRAND_LAYER = "brand"` used by both the template and the `precedence` prop, so they can't desync; a test pins the hoisted style's `data-precedence` `[D13]`
+- [√] Map the engine's generic `--brand-*` output into the scope namespace **and** into `--focus-ring-color` (foundation's `:focus-visible` reads it) — done 2026-06-24 (PR #14): `--focus-ring-color: var(--brand-focus-ring)`, browser-verified resolving to a real engine color `[D7]`
 
 **Phase 2 — engine-backed `brandColor` validation (a package-boundary task, not a quick fix):**
 
@@ -198,8 +207,8 @@ PR. Run record:
 
 **Minor cleanups (opportunistic, any phase):**
 
-- [ ] `palette.ts` — `TOKEN_NAMES` is already typed `readonly BrandTokenName[]` (`palette.ts:272`), but the token-set accumulator still uses `{} as Record<BrandTokenName, SchemePair>` (`palette.ts:297`), so a missing token is **not** a compile error. Build the set without the cast (typed `reduce` / `Object.fromEntries` + check) to make exhaustiveness type-enforced (PR #8)
-- [ ] The OKLCH visual harness writes `swatches.html` under both the jsdom and node Vitest projects (identical writes, no race) — optionally scope it to one project (PR #8)
+- [√] `palette.ts` — `TOKEN_NAMES` is already typed `readonly BrandTokenName[]`, but the token-set accumulator still used `{} as Record<BrandTokenName, SchemePair>`, so a missing token was **not** a compile error. Done 2026-06-24 (PR #16): rebuilt without the cast so exhaustiveness is type-enforced (verified `TS2322` on a dropped token); output byte-identical
+- [√] The OKLCH visual harness wrote `swatches.html` under both the jsdom and node Vitest projects — done 2026-06-24 (PR #16): scoped to the `node` project via `ctx.task.file.projectName`; exactly one write, assertions still run under both projects
 
 ---
 
