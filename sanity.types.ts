@@ -264,6 +264,16 @@ export type AllSanitySchemaTypes =
   | SanityImageAsset
   | Geopoint;
 
+// Source: ../src/app/notes/queries.ts
+// Variable: NOTES_INDEX_QUERY
+// Query: *[_type == "note" && defined(slug.current)] | order(title asc) {    _id,    title,    "slug": slug.current,    "relatedCount": count(related)  }
+export type NOTES_INDEX_QUERY_RESULT = Array<{
+  _id: string;
+  title: string | null;
+  slug: string | null;
+  relatedCount: number | null;
+}>;
+
 // Source: ../src/sanity/lib/queries.ts
 // Variable: WORK_INDEX_QUERY
 // Query: *[_type == "project" && defined(slug.current)] | order(_createdAt desc) {    _id,    title,    "slug": slug.current,    blurb,    brandColor,    fontKey  }
@@ -313,6 +323,7 @@ export type SITE_SETTINGS_QUERY_RESULT = {
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
+    '\n  *[_type == "note" && defined(slug.current)] | order(title asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    "relatedCount": count(related)\n  }\n': NOTES_INDEX_QUERY_RESULT;
     '\n  *[_type == "project" && defined(slug.current)] | order(_createdAt desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': WORK_INDEX_QUERY_RESULT;
     '\n  *[_type == "project" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    blurb,\n    brandColor,\n    brandColorDark,\n    fontKey,\n    componentKey,\n    essay,\n    notes[]->{ _id, title, "slug": slug.current },\n    tags\n  }\n': PROJECT_DETAIL_QUERY_RESULT;
     '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description,\n    brandColor,\n    brandColorDark,\n    fontKey\n  }\n': SITE_SETTINGS_QUERY_RESULT;
