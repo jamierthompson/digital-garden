@@ -10,7 +10,7 @@
     margin: 0 auto;
     padding: var(--space-7) var(--space-6);
     font-family: var(--font-face);
-    color: var(--brand-on-surface);
+    color: var(--brand-text);
     background: var(--brand-surface);
   }
 
@@ -32,7 +32,7 @@
     padding: var(--space-2) var(--space-4);
     border-radius: 0.5rem;
     background: var(--brand-accent);
-    color: var(--brand-accent-contrast);
+    color: var(--brand-on-accent);
     font-size: var(--text-sm);
   }
 
@@ -56,7 +56,7 @@
 
   .skeleton {
     margin-top: var(--space-6);
-    color: color-mix(in oklab, var(--brand-on-surface) 50%, transparent);
+    color: color-mix(in oklab, var(--brand-text) 50%, transparent);
     font-size: var(--text-sm);
   }
 }
