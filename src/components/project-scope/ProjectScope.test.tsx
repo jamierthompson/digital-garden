@@ -14,6 +14,7 @@ vi.mock("next/font/google", () => ({
 import { FONT_FACES } from "@/fonts/roster";
 
 import ProjectScope from "./ProjectScope";
+import { BRAND_LAYER } from "./scopeSeed";
 
 // A valid seed for the walking-skeleton module (real brand color + roster fontKey).
 const VALID_SEED = {
@@ -23,9 +24,9 @@ const VALID_SEED = {
 } as const;
 
 // ProjectScope is a SYNC server component, so jsdom can render it (async RSCs cannot —
-// see testing.md). React hoists the `<style precedence>` into <head>, so we assert the
-// observable wrapper + children (and the mounted font class) rather than the style node;
-// its flush-before-paint behaviour is verified in the browser (phase-0.5-render-proofs.md).
+// see testing.md). React hoists the `<style precedence>` into <head> and serializes the
+// precedence as `data-precedence`, so we CAN observe it there; its actual flush-before-
+// paint ordering is verified in the browser (phase-0.5-render-proofs.md).
 describe("ProjectScope (engine-driven)", () => {
   it("wraps children in the scoped [data-project] and mounts the resolved font class", () => {
     render(
@@ -39,6 +40,21 @@ describe("ProjectScope (engine-driven)", () => {
     expect(wrapper).toHaveAttribute("data-project", "oklch-engine");
     // The resolved roster face's `.variable` className is on the wrapper [D11].
     expect(wrapper).toHaveClass(FONT_FACES["jetbrains-mono"].variable);
+  });
+
+  it("hoists the theme <style> with precedence == the brand @layer [D13]", () => {
+    render(
+      <ProjectScope seed={VALID_SEED}>
+        <p>themed</p>
+      </ProjectScope>,
+    );
+    // React hoists the `<style precedence>` into <head> and serializes the precedence as
+    // `data-precedence`. Asserting it equals BRAND_LAYER proves the hoist order and the
+    // `@layer ${BRAND_LAYER}` wrapper are driven by the SAME value — they cannot desync.
+    const style = document.head.querySelector("style[data-precedence]");
+    expect(style).not.toBeNull();
+    expect(style).toHaveAttribute("data-precedence", BRAND_LAYER);
+    expect(style?.textContent).toContain(`@layer ${BRAND_LAYER} {`);
   });
 
   it("degrades to the fallback scope for an unknown slug (never throws) [D9]", () => {

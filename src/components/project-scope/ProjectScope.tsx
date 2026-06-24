@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { resolveScope, scopedStyleCss } from "./scopeSeed";
+import { BRAND_LAYER, resolveScope, scopedStyleCss } from "./scopeSeed";
 
 interface ProjectScopeProps {
   /** Untrusted scope seed (e.g. `{ slug }` from route params). Resolved defensively. */
@@ -22,9 +22,9 @@ interface ProjectScopeProps {
  * Flash-free mechanics `[D13]`: the `<style>` uses React 19's `precedence` + a slug
  * `href`. React hoists it into `<head>`, de-dupes by `href`, and orders by precedence —
  * so even when the route streams (a suspended hole below), the theme is in the initial
- * shell HTML **before** the body paints (no FOUC). The `precedence` string and the
- * `@layer brand` wrapper produced by `scopedStyleCss` are two halves of one mechanism and
- * MUST stay the literal string `brand` together — see `scopeSeed.ts` `[D13]`.
+ * shell HTML **before** the body paints (no FOUC). The `precedence` and the `@layer`
+ * wrapper produced by `scopedStyleCss` are two halves of one mechanism; both read the
+ * single `BRAND_LAYER` const so they cannot desync — see `scopeSeed.ts` `[D13]`.
  *
  * Defensive by construction `[D9]`: `resolveScope` never throws and collapses any bad
  * seed to a safe fallback palette + shell font, so this component cannot throw on bad
@@ -42,7 +42,9 @@ export default function ProjectScope({ seed, children }: ProjectScopeProps) {
   const scope = resolveScope(seed);
   return (
     <>
-      <style href={`project-theme-${scope.slug}`} precedence="brand">
+      {/* `precedence` and the `@layer` in `scopedStyleCss` read the SAME `BRAND_LAYER`
+          const, so the hoist order and the cascade layer cannot desync [D13]. */}
+      <style href={`project-theme-${scope.slug}`} precedence={BRAND_LAYER}>
         {scopedStyleCss(scope)}
       </style>
       {/* The resolved face's `.variable` className brings `var(--font-face)`'s variable

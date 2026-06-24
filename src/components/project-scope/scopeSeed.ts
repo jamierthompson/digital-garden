@@ -50,6 +50,16 @@ export interface ScopeSeed {
 export const FALLBACK_SLUG = "fallback";
 
 /**
+ * The cascade layer the scoped theme is emitted into [D12] AND the React `precedence` the
+ * `<style>` is hoisted with [D13] — ONE value, used on both sides. These two are halves of
+ * one mechanism: the cascade slots the rule by `@layer` name while React orders the hoisted
+ * `<style>` by precedence. Single-sourcing the literal here makes the invariant mechanical
+ * rather than vigilance-dependent — `scopedStyleCss` builds `@layer ${BRAND_LAYER}` and
+ * `ProjectScope` sets `precedence={BRAND_LAYER}`, so they cannot silently desync [D13].
+ */
+export const BRAND_LAYER = "brand";
+
+/**
  * The shell mono face, reused when a `fontKey` does not resolve [D11]. This is an
  * already-loaded shell variable (root layout), NOT a new `next/font` import, so the
  * `preload:false` roster policy is untouched. Shaped as a `FontFace` so the serializer
@@ -121,11 +131,11 @@ export function resolveScope(seed: unknown): ResolvedScope {
  * so the engine's `--brand-*` declarations, the `--focus-ring-color` alias [D7], and the
  * `--font-face` mapping all live in the SAME selector block.
  *
- * CRITICAL [D13]: the `@layer brand` wrapper here and the `precedence="brand"` on the
- * `<style>` in `ProjectScope` are two halves of one mechanism — React hoists the style and
- * orders it by precedence, and the cascade slots it by layer. If the layer name and the
- * precedence diverge, the theme hoists with the wrong precedence order. They MUST stay in
- * lockstep; both are the literal string `brand`.
+ * CRITICAL [D13]: the `@layer` wrapper here and the `precedence` on the `<style>` in
+ * `ProjectScope` are two halves of one mechanism — React hoists the style and orders it by
+ * precedence, and the cascade slots it by layer. If the layer name and the precedence
+ * diverge, the theme hoists with the wrong precedence order. Both read the single
+ * `BRAND_LAYER` const, so they cannot desync.
  */
 export function scopedStyleCss(scope: ResolvedScope): string {
   // Engine declarations: `color-scheme: light dark;` + each `--brand-*: light-dark(…)`.
@@ -142,5 +152,5 @@ export function scopedStyleCss(scope: ResolvedScope): string {
   const fontFace = `    --font-face: var(${scope.font.cssVariable}), ${FONT_STACK};`;
 
   const body = [brandDecls, focusRing, fontFace].join("\n");
-  return `@layer brand {\n  [data-project="${scope.slug}"] {\n${body}\n  }\n}`;
+  return `@layer ${BRAND_LAYER} {\n  [data-project="${scope.slug}"] {\n${body}\n  }\n}`;
 }
