@@ -101,7 +101,7 @@ safely** on bad input; tests green.
 _Model content in Sanity and wire the key→code resolvers, keeping implementations out of the
 Studio bundle. Mark the true dependency gates `[D17]`._
 
-- [√] **(concurrent with Ph1)** Sanity `project` doc: essay (portable text), typed embed blocks (`liveEmbed` = `embedKey` + caption by default; a dedicated typed block only for genuine editorial content `[D15]`), `brandColor` (typed + **validated via the engine's own color pipeline** `[D9]` — _engine validation deferred; format-check now, see Phase-2 follow-up below_), `fontKey`, `componentKey`, `blurb`, notes, tags; optional `brandColorDark` override `[D5]` (§6)
+- [√] **(concurrent with Ph1)** Sanity `project` doc: essay (portable text), typed embed blocks (`liveEmbed` = `embedKey` + caption by default; a dedicated typed block only for genuine editorial content `[D15]`), `brandColor` (typed + **validated via the engine's own color pipeline** `[D9]` — _done 2026-06-24 (PR #18): the engine now lives in the shared `@garden/oklch` package the Studio imports `[D23]`_), `fontKey`, `componentKey`, `blurb`, notes, tags; optional `brandColorDark` override `[D5]` (§6)
 - [√] **(concurrent)** Sanity `siteSettings` (shell brand, same validation) + notes doc with backlinks via **real `reference` fields** `[D16]` (§6)
 - [√] **(concurrent)** Disable stega on `brandColor`/`fontKey`; plan `liveEmbed` click-to-edit as caption-only (§6) `[D16]`
 - [√] **(gated on `keys.ts`)** App-side resolvers, never imported by the Studio: typed `satisfies Record<Key, …>` (missing entry = compile error), returning a typed `NotFound` (§4.2, §6) `[D10]`
@@ -111,7 +111,7 @@ Studio bundle. Mark the true dependency gates `[D17]`._
 - [√] **log-explorer fit-spike:** map its _real_ surface (odd state shapes, embed-prop needs, page shapes) onto the module structure + content model **now, while cheap** — pulls the migration risk forward without doing the full migration (§1, §4) `[D17]`
 - [√] **Co-located tests:** resolver (incl. the NotFound path) ✅ / `cardSwatches` ✅ (PR #15) / index-query ✅
 
-_Schema, stega, resolvers, `/work` query, and fit-spike done 2026-06-23 (PRs #10 `49f1071`, #11 `0ff5461`); `cardSwatches` + live key-drift done 2026-06-24 (PRs #15, #16). Remaining: engine-backed `brandColor` validation (a package-boundary task — see "Review-surfaced follow-ups" below)._
+_Schema, stega, resolvers, `/work` query, and fit-spike done 2026-06-23 (PRs #10 `49f1071`, #11 `0ff5461`); `cardSwatches` + live key-drift done 2026-06-24 (PRs #15, #16); engine-backed `brandColor` validation done 2026-06-24 (PR #18) — the engine moved into the shared `@garden/oklch` package the Studio imports `[D23]`. **Phase 2 complete.**_
 
 **Exit:** editing a project doc drives brand/font/embeds by key; the `/work` query is
 essay-free; `cardSwatches` produces card colors with no scope; the Studio bundle excludes
@@ -186,6 +186,18 @@ drift — **all fixed in-branch before their PR**, so nothing from this run is d
 pre-existing Phase-2 `brandColor`-validation package-boundary item below. Run record:
 [`runs/2026-06-24-phase-1-projectscope.md`](./runs/2026-06-24-phase-1-projectscope.md).
 
+**2026-06-24 run — PR #18 (solo + fresh QA)** — the last open Phase-2 item, the cross-phase
+package-boundary one: engine-backed `brandColor` validation. Extracted the OKLCH engine into the
+shared **`@garden/oklch`** workspace package both the app and the standalone Studio depend on
+`[D23]`, then swapped the Studio's regex validation for the engine's own pipeline `[D9]`. Solo
+(mostly-serial refactor; no disjoint-file split to parallelize), with a **fresh independent QA
+pass** (`pr-review-toolkit:code-reviewer`) per §6.2 — it re-ran the gate, probed the `[D14]` guard
+fails-closed at the new path, and verified the validation behavior changes. QA surfaced one class
+of finding: **doc-rot the move introduced** (living docs still located the engine at the deleted
+`src/lib/oklch/`), **all fixed in-branch** (AGENTS.md guardrail, engineering-standards, orientation,
+README, architecture-plan, testing). Nothing deferred from this run. Run record:
+[`runs/2026-06-24-phase-2-engine-backed-validation.md`](./runs/2026-06-24-phase-2-engine-backed-validation.md).
+
 **Phase 1 — real `ProjectScope` (swaps the stub palette → engine output):**
 
 - [√] Keep the streamed `<style precedence="brand">` string and its `@layer brand { … }` wrapper **synchronized** — done 2026-06-24 (PR #14): single-sourced via a shared `const BRAND_LAYER = "brand"` used by both the template and the `precedence` prop, so they can't desync; a test pins the hoisted style's `data-precedence` `[D13]`
@@ -193,7 +205,16 @@ pre-existing Phase-2 `brandColor`-validation package-boundary item below. Run re
 
 **Phase 2 — engine-backed `brandColor` validation (a package-boundary task, not a quick fix):**
 
-- [ ] True engine-backed `brandColor` validation requires moving the **engine into a shared workspace package** the Studio can import — the same move `keys.ts` needs `[D23]`; the standalone Studio cannot import `src/lib/oklch`. Until then `isBrandColorString` stays a format check (layer 1 of `[D9]`) and the engine's defensive parse is the app-side layer. Once the shared package exists, swapping `isBrandColorString`'s body for the engine parse is a near-drop-in (PR #11) `[D9, D23]`
+- [√] True engine-backed `brandColor` validation — done 2026-06-24 (PR #18). The engine moved
+  out of `src/lib/oklch` into a shared workspace package, **`@garden/oklch`** (`packages/oklch`,
+  a just-in-time TypeScript-source package; consumers transpile — Next via `transpilePackages`,
+  the Studio's Vite/Sanity natively), so the standalone Studio can finally import it `[D23]`.
+  `isBrandColorString` now runs the engine's own pipeline (`buildTokenSet`) and accepts iff the
+  engine won't fall back — author-time validation equals the render-time contract `[D9]`. The
+  `[D14]` isomorphism guard moved with the engine (a dedicated `eslint` block on
+  `packages/oklch/**`). _`keys.ts` still awaits its own shared-package move (Phase 4) — this run
+  built the package pattern the Studio needed; `keys.ts` can join `@garden/oklch` or take its own
+  package when that work lands._
 
 **Phase 3 — content / route housekeeping:**
 
