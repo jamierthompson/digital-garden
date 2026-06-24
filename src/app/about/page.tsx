@@ -26,10 +26,10 @@ export default function AboutPage() {
         <p>
           This is a personal portfolio and digital garden — part showcase, part
           notebook. Each project is a self-contained island with its own brand
-          colour and typeface, composed on one shared, invariant foundation.
+          color and typeface, composed on one shared, invariant foundation.
         </p>
         <p>
-          The colours you see are not hand-picked per element. A single brand
+          The colors you see are not hand-picked per element. A single brand
           seed runs through an OKLCH engine that derives an accessible palette
           for both light and dark schemes, then bakes it into the page so the
           theme is present before the first paint — no flash, no client-side

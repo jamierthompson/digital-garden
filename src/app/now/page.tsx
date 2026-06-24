@@ -35,7 +35,7 @@ export default function NowPage() {
           knowledge graph.
         </li>
         <li className={styles.item}>
-          Reading about colour science, accessible contrast, and how to keep a
+          Reading about color science, accessible contrast, and how to keep a
           personal site fast.
         </li>
       </ul>
