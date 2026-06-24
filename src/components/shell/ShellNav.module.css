@@ -1,0 +1,41 @@
+/* Shell navigation — consumes the shell island's brand/font tokens. [D12, §3.1]
+   Declares @layer project so it never outranks foundation/brand styles. */
+@layer project {
+  .header {
+    border-bottom: 1px solid var(--brand-border, var(--foreground));
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-5);
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-6);
+  }
+
+  .brand {
+    font-family: var(--font-face);
+    font-weight: 600;
+    font-size: var(--text-lg);
+    color: var(--brand-text, var(--foreground));
+    text-decoration: none;
+  }
+
+  .links {
+    display: flex;
+    gap: var(--space-5);
+    list-style: none;
+  }
+
+  .link {
+    color: var(--brand-text-muted, var(--foreground));
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .link:hover {
+    color: var(--brand-text, var(--foreground));
+  }
+}
