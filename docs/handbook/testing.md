@@ -148,11 +148,12 @@ from [What to test](#what-to-test-vs-skip).
 
 ## Dual-env: the OKLCH engine ([D14])
 
-`src/lib/oklch/**` is **isomorphic** — it must run identically server- and client-side. Two
-guards enforce this, and both are mandatory:
+`packages/oklch/**` (the `@garden/oklch` package [D23]) is **isomorphic** — it must run
+identically server- and client-side. Two guards enforce this, and both are mandatory:
 
-1. **Import-boundary lint** (`pnpm lint`, `eslint-plugin-boundaries`): the engine may not
-   import `next/*`, `react`, `react-dom`, or touch DOM/Node globals. **Never** add
+1. **Isomorphism lint** (`pnpm lint`): a dedicated `eslint.config.mjs` block on
+   `packages/oklch/**` (`no-restricted-imports` + `no-restricted-globals`) forbids the engine
+   from importing `next`/`next/*`, `react`, `react-dom`, or touching DOM/Node globals. **Never** add
    `server-only` / `client-only` to engine files — they pin the module to one side and
    break isomorphism ([D14]).
 2. **Dual-environment test run:** the engine suite executes under **both** `environment:
@@ -174,7 +175,7 @@ export default defineConfig({
   // PLUGIN, not a `resolve.tsconfigPaths` flag. The live single-env config uses
   // `resolve: { tsconfigPaths: true }` — that key is non-standard/unverified against
   // Vite/Vitest docs. Prefer the plugin form here, and CONFIRM that an aliased import
-  // (e.g. `@/lib/oklch`) actually resolves in BOTH projects before relying on it.
+  // (e.g. `@/lib/cardSwatches`) actually resolves in BOTH projects before relying on it.
   plugins: [tsconfigPaths(), react()],
   test: {
     projects: [
@@ -199,7 +200,7 @@ export default defineConfig({
           globals: true,
           // node project is scoped to the engine glob ONLY. No jsdom matcher setup
           // (no setupFiles) — it needs none.
-          include: ["src/lib/oklch/**/*.test.ts"],
+          include: ["packages/oklch/**/*.test.ts"],
         },
       },
     ],

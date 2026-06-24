@@ -151,8 +151,9 @@ a small color _system_. It is **both a feature and a project — same logic, two
 consumers.**
 
 - A **pure function**: takes a brand color **and a scheme**, emits a color-token set. Knows
-  nothing about projects. Lives in a shared module (e.g. `src/lib/oklch/`) — no React, no DOM,
-  no Node built-ins — as the single source of truth for the algorithm. Its isomorphism is
+  nothing about projects. Lives in its own workspace package (`packages/oklch`, imported as
+  `@garden/oklch` [D23]) — no React, no DOM, no Node built-ins — as the single source of truth
+  for the algorithm. Its isomorphism is
   **enforced**, not hoped: a lint import-boundary on the folder forbids `next/*`, `react`,
   `react-dom`, and DOM/Node globals, and a dual-environment test runs the suite under both
   `node` and `jsdom`. (Do **not** use `server-only`/`client-only` — those pin it to one side
@@ -510,7 +511,7 @@ Practical notes:
   single app with no project sub-packages — project code lives under `src/projects/*`; shared
   bits live in shared `src/` modules. Boundaries are **lint-import rules enforced from Phase 0**
   (a project can't import another project; shared can't import a project), plus the
-  `src/lib/oklch/` isomorphism boundary (§3.2) and the every-CSS-module-declares-its-`@layer`
+  `packages/oklch/**` isomorphism boundary (§3.2) and the every-CSS-module-declares-its-`@layer`
   rule (§3.1).
 - The site runs on **Vercel** with full SSR / RSC. The old log-explorer used `output: "export"`
   only to host free on Render — _not_ carried forward. This unlocks server-rendered flash-free
