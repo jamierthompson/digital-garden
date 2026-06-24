@@ -50,8 +50,16 @@ export interface FontFace {
   readonly cssVariable: string;
 }
 
-// Each face's CSS variable name is declared once and reused in both the
-// next/font call and the FontFace map, so the two can never drift.
+// Each face's CSS variable name. The `*_VAR` const is the single source for the
+// FontFace map's `cssVariable` below — but it CANNOT be passed to the next/font loader
+// call: next/font's compile-time static analysis requires loader argument values to be
+// *explicitly written literals*, not references (build error: "Font loader values must
+// be explicitly written literals" — the SWC font plugin, Next 16.2.9; every example in
+// `node_modules/next/dist/docs/01-app/01-getting-started/13-fonts.md` and this repo's
+// own `src/app/layout.tsx` pass the `variable:` inline). So each loader's `variable:`
+// repeats the SAME string as its `*_VAR` const, and `roster.test.ts` asserts the two
+// agree to catch drift. DO NOT "DRY this up" by passing the const into the loader call
+// — that re-breaks the build [D11].
 const INTER_VAR = "--font-inter";
 const NEWSREADER_VAR = "--font-newsreader";
 const FRAUNCES_VAR = "--font-fraunces";
@@ -62,35 +70,35 @@ const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   preload: false,
-  variable: INTER_VAR,
+  variable: "--font-inter", // must equal INTER_VAR (next/font literal constraint)
 });
 
 const newsreader = Newsreader({
   subsets: ["latin"],
   display: "swap",
   preload: false,
-  variable: NEWSREADER_VAR,
+  variable: "--font-newsreader", // must equal NEWSREADER_VAR
 });
 
 const fraunces = Fraunces({
   subsets: ["latin"],
   display: "swap",
   preload: false,
-  variable: FRAUNCES_VAR,
+  variable: "--font-fraunces", // must equal FRAUNCES_VAR
 });
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   display: "swap",
   preload: false,
-  variable: SPACE_GROTESK_VAR,
+  variable: "--font-space-grotesk", // must equal SPACE_GROTESK_VAR
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   display: "swap",
   preload: false,
-  variable: JETBRAINS_MONO_VAR,
+  variable: "--font-jetbrains-mono", // must equal JETBRAINS_MONO_VAR
 });
 
 /**
