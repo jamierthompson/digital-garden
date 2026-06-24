@@ -19,6 +19,7 @@ import {
   type TokenSet,
 } from "@garden/oklch";
 import { resolveFontKey } from "@/lib/resolvers/fonts";
+import { COMPONENT_KEYS } from "@/lib/keys";
 import type { FontFace } from "@/fonts/roster";
 
 /** A resolved scope: the vetted slug it is keyed on + everything needed to emit its theme. */
@@ -74,10 +75,19 @@ const SHELL_MONO_FACE: FontFace = {
 /** The font fallback stack appended after the resolved face's CSS variable. */
 const FONT_STACK = "ui-monospace, monospace";
 
-// The slugs that may key a scope. Today only the walking-skeleton module exists; Phase 3
-// drives this from real project slugs. An unknown slug collapses to `FALLBACK_SLUG`, which
-// is what keeps a hostile slug out of the emitted selector.
-const KNOWN_SLUGS: ReadonlySet<string> = new Set(["oklch-engine"]);
+// The slugs that may key a scope — now DRIVEN from the real registry (Phase 3). A project's
+// slug equals its `componentKey` in our model (§4.2), so `COMPONENT_KEYS` is the source of
+// truth for which project slugs exist; `"garden"` is the shell island's slug (ProjectScope
+// uses `slug="garden"`); `"oklch-engine"` stays for the walking-skeleton route + the Phase
+// 0.5/1 scope tests that assert on it. An unknown slug still collapses to `FALLBACK_SLUG`,
+// which is what keeps a hostile slug out of the emitted selector — the set is always vetted
+// constants, never raw input. Deriving from `COMPONENT_KEYS` means a new project is accepted
+// automatically the moment it registers its key — no per-slug edit here ever again [D10].
+const KNOWN_SLUGS: ReadonlySet<string> = new Set<string>([
+  ...COMPONENT_KEYS,
+  "garden",
+  "oklch-engine",
+]);
 
 /** Vet an untrusted slug down to a known constant — never returns raw input. */
 function vetSlug(slug: unknown): string {

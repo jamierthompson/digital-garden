@@ -1,0 +1,14 @@
+/* The live-embed wrapper styling. `@layer project` (the @layer trap, [D12]). Var-consuming
+   only — the embedded widget themes off the surrounding project scope (§8). */
+@layer project {
+  .embed {
+    margin: var(--space-6) 0;
+  }
+
+  .caption {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: color-mix(in oklab, var(--brand-text) 65%, transparent);
+    text-align: center;
+  }
+}
