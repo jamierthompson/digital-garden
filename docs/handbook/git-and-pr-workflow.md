@@ -271,10 +271,10 @@ assume merges are mechanically blocked. If enabled, the sensible configuration i
 This is the team lead's step. Two parts: **curate the branch** (the "git magic"), then
 **squash-merge** it. Do it only when the work is complete and the PR is **ready to merge** —
 which, on a team branch, is the lead's explicit call and means **both**: the CI `verify` gate
-green on the curated tip (§5) **and** the `claude-review` bot review resolved. The lead
-coordinates the bot's findings — in-scope items get fixed on the branch by the owning agent (then
-re-review), genuinely-later items get filed as follow-ups in [../build-phases.md](../build-phases.md)
-with the PR# and a reason (see [./working-with-agents.md](./working-with-agents.md) §6.2).
+green on the curated tip (§5) **and** the independent pre-PR QA review clean, with every finding
+either fixed in-branch by the owning agent or filed as a cross-phase follow-up in
+[../build-phases.md](../build-phases.md) with its PR# and a reason (see
+[./working-with-agents.md](./working-with-agents.md) §6.2 for the dev↔QA loop).
 
 ### 6a. Curate the branch (the lead's git magic)
 

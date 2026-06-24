@@ -166,13 +166,12 @@ local embed tier introduced without a real second consumer.
 
 ## Review-surfaced follow-ups
 
-> **The standing home for deferred review findings.** When pre-PR QA (the dev↔QA loop) or the
-> post-PR `claude-review` bot surfaces something real that's genuinely **cross-phase** — it needs a
-> package boundary that doesn't exist yet, a future consumer, or later-phase work — the team lead
-> files it here under the phase that should pick it up, with its **PR#** and a one-line reason.
-> In-scope findings are fixed in-branch before the PR, not deferred (see
-> [`handbook/working-with-agents.md`](./handbook/working-with-agents.md) §6.2). Group new entries
-> by run.
+> **The standing home for deferred review findings.** When the pre-PR QA review (the dev↔QA loop,
+> [`handbook/working-with-agents.md`](./handbook/working-with-agents.md) §6.2) surfaces something
+> real that's genuinely **cross-phase** — it needs a package boundary that doesn't exist yet, a
+> future consumer, or later-phase work — the team lead files it here under the phase that should
+> pick it up, with its **PR#** and a one-line reason. In-scope findings are fixed in-branch before
+> the PR, not deferred. Group new entries by run.
 
 **2026-06-23 run — PRs #8–#11** — surfaced on the Phase 0.5 / parallel build; none blocked their
 PR. Run record:
@@ -192,6 +191,7 @@ PR. Run record:
 - [ ] `project.blurb` — consider a hard `rule.max(300).error()` alongside the soft 280-char warning if the card layout can't absorb overflow (PR #11)
 - [ ] `siteSettings` — enforce the singleton via Studio Structure and use an explicit `*[_type == "siteSettings"][0]` guard in its query (nothing forces uniqueness today) (PR #11) `[D24]`
 - [ ] Draft-mode / Presentation client needs `useCdn: false` + `perspective: "previewDrafts"`, distinct from the publishes-only public client (PR #11) `[D16]`
+- [ ] `/work/[slug]` Suspense fallback reaches into `ModuleShell.module.css` for its `.skeleton` class — give the fallback its own style (or inline it) so the route file isn't soft-coupled to a presentational component's stylesheet (PR #9)
 
 **Phase 4 — engine playground (Consumer B) performance:**
 
@@ -199,7 +199,7 @@ PR. Run record:
 
 **Minor cleanups (opportunistic, any phase):**
 
-- [ ] `palette.ts` — annotate `TOKEN_NAMES` as `readonly BrandTokenName[]` so the token-set builder's exhaustiveness is type-enforced rather than cast (PR #8)
+- [ ] `palette.ts` — `TOKEN_NAMES` is already typed `readonly BrandTokenName[]` (`palette.ts:272`), but the token-set accumulator still uses `{} as Record<BrandTokenName, SchemePair>` (`palette.ts:297`), so a missing token is **not** a compile error. Build the set without the cast (typed `reduce` / `Object.fromEntries` + check) to make exhaustiveness type-enforced (PR #8)
 - [ ] The OKLCH visual harness writes `swatches.html` under both the jsdom and node Vitest projects (identical writes, no race) — optionally scope it to one project (PR #8)
 
 ---

@@ -255,13 +255,15 @@ each tool call.**
     the phase that should pick it up (the "Review-surfaced follow-ups" section), with the PR#
     and a one-line reason. Deferring is for cross-phase work, **not** a shortcut around the slice.
 
-- **Own merge-readiness — CI _and_ the `claude-review` bot, both green.** Once the PR is open,
-  the `claude-review` bot posts a review. "Ready to merge" is the **lead's** call, and it means
-  **all** of: the CI `verify` gate green ([`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)
-  §5) **and** the `claude-review` review resolved. The lead coordinates the bot's findings the
-  same way as QA's — in-scope items get fixed on the branch by the owning agent (then re-review);
-  genuinely-later items get filed as follow-ups in [`../build-phases.md`](../build-phases.md) with
-  the PR# and reason. Only then does the lead curate history (§6.1) and squash-merge.
+- **Own merge-readiness — CI green, review clean.** "Ready to merge" is the **lead's** call, and
+  it means **both**: the CI `verify` gate green on the curated tip
+  ([`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §5) **and** the independent QA review
+  (above) clean — every finding either fixed in-branch by the owning agent or filed as a
+  cross-phase follow-up in [`../build-phases.md`](../build-phases.md) with its PR# and reason. The
+  independent review happens **pre-PR** via the QA subagent — there is **no automatic review bot**
+  in CI. The repo keeps one on-demand Claude workflow (`@claude` in a PR comment); the lead may
+  invoke it for a second opinion and treats anything it surfaces like QA's findings, but it's a
+  tool, not a gate. Only then does the lead curate history (§6.1) and squash-merge.
 
 ## 7. Keeping agents from drifting the architecture — quick gate
 
