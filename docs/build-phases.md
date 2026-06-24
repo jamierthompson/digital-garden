@@ -127,21 +127,27 @@ riding on it, and stand up routing + the shell island. A dead-simple project (st
 one brand color, one tiny embed) isolates the routing/Sanity/RSS machinery — the engine
 showcase can't, which is why oklch-engine moves to Phase 4._
 
-- [ ] Define the project module skeleton (§4.1): `pages/`, `experience.tsx` (mounted by a thin page), `embeds.ts`, `tokens.css`, `index.ts`. No `core/` unless the trivial experience needs one `[D20]`
-- [ ] Build the **dead-simple project**: a trivial real entry (static essay, one brand color, one small embed) — exercises module structure + content model end-to-end
-- [ ] Routing: `/work` index (cards via `cardSwatches`); `/work/<slug>` mounts module pages via thin route files (§4.1) — _separate commits_ `[D17]`
-- [ ] **Error/empty/loading states** (corrected placement) `[D9, D19]`: `not-found.tsx` via `notFound()` for an unresolved slug/`componentKey`; "missing embed" placeholder in the PT serializer for an unresolved `embedKey`; `error.tsx`/`loading.tsx` for page-level concerns. The ProjectScope/layout throw is already contained by the defensive engine + `unstable_catchError` (Ph0.5/1), **not** by these boundaries
-- [ ] **`generateMetadata` per route** (SEO/OG) `[D19]`
-- [ ] Theme the shell island through `ProjectScope` with `slug="garden"`; build home, about, `/now` — _separate commits each_ (§2, §3.1, §6) `[D17]`
-- [ ] Add an RSS route handler — _own commit_; enable Sanity draft mode / visual editing — _own commit_ (§7) `[D17]`
-- [ ] Add `proxy.ts` (replaces `middleware.ts`, Node runtime only; treat Request APIs as async) — deferred from Phase 0 until there is real request logic to host, which draft mode is (§7)
-- [ ] Note rendering: notes stay lightweight (shell + shared), pulling a demo bundle only when a note explicitly embeds one (§6)
-- [ ] **Co-located test:** one integration/E2E of the primary flow
+- [√] Define the project module skeleton (§4.1): `pages/`, `experience.tsx` (mounted by a thin page), `embeds.ts`, `tokens.css`, `index.ts`. No `core/` unless the trivial experience needs one `[D20]` — done (PR #20): `src/projects/first-light/`
+- [√] Build the **dead-simple project**: a trivial real entry (static essay, one brand color, one small embed) — exercises module structure + content model end-to-end — done (PR #20): "First Light" (brand `oklch(0.7 0.15 70)`, font `newsreader`, embed `sunrise-meter`), driven by a published Sanity `project` doc
+- [√] Routing: `/work` index (cards via `cardSwatches`); `/work/<slug>` mounts module pages via thin route files (§4.1) — _separate commits_ `[D17]` — done (PR #20)
+- [√] **Error/empty/loading states** (corrected placement) `[D9, D19]`: `not-found.tsx` via `notFound()` for an unresolved slug/`componentKey`; "missing embed" placeholder in the PT serializer for an unresolved `embedKey`; `error.tsx`/`loading.tsx` for page-level concerns. The ProjectScope/layout throw is already contained by the defensive engine + `unstable_catchError` (Ph0.5/1), **not** by these boundaries — done (PR #20): `not-found`/`error`/`loading.tsx` + `MissingEmbed` in the PT serializer
+- [√] **`generateMetadata` per route** (SEO/OG) `[D19]` — done (PR #20)
+- [√] Theme the shell island through `ProjectScope` with `slug="garden"`; build home, about, `/now` — _separate commits each_ (§2, §3.1, §6) `[D17]` — done (PR #20): shell themed from a `siteSettings` singleton (brand `oklch(0.62 0.13 150)`, font `fraunces`); home/about/now (+ a lightweight `/notes`) built
+- [√] Add an RSS route handler — _own commit_; enable Sanity draft mode / visual editing — _own commit_ (§7) `[D17]` — done (PR #20): RSS at `/rss.xml`; draft-mode **mechanism** shipped (enable/disable handlers, `getClient(isDraft)`, `<VisualEditingControls>`). _Draft-content **rendering** on the `/work` routes is a tracked follow-up below — all content fetches stay on the published `use cache` path for now._
+- [√] Add `proxy.ts` (replaces `middleware.ts`, Node runtime only; treat Request APIs as async) — deferred from Phase 0 until there is real request logic to host, which draft mode is (§7) — **evaluated, intentionally not added** (decision recorded in the housekeeping block below): draft mode runs entirely through native Route Handlers; an empty Node-only proxy would tax every request. The Phase-0 deferral stands.
+- [√] Note rendering: notes stay lightweight (shell + shared), pulling a demo bundle only when a note explicitly embeds one (§6) — done (PR #20): `/notes` index, shell + shared only
+- [√] **Co-located test:** one integration/E2E of the primary flow — done (PR #20): `src/app/work/[slug]/page.integration.test.tsx` (Sanity mocked) `[D18]`
 
 **Exit:** the dead-simple project renders flash-free at `/work/<slug>` with its own brand
 (both schemes) + font through the proven keystone; the `/work` index shows swatch cards; shell
 pages are live and themed; RSS + draft mode work; error/not-found/loading states present;
 metadata emitted; integration test green.
+
+_Done 2026-06-24 (PR #20) via an agent team (Core/Studio/Data/Shell) — lead-curated, fresh-QA'd
+(handbook §6.2), `[D25]` browser-verified. **Phase 3 complete.** Run record:
+[`runs/2026-06-24-phase-3-first-vertical-slice.md`](./runs/2026-06-24-phase-3-first-vertical-slice.md).
+Two follow-ups carried forward (draft-content rendering; detail-query `notes`/`tags`) — tracked in
+the housekeeping block below._
 
 ---
 
@@ -198,6 +204,26 @@ of finding: **doc-rot the move introduced** (living docs still located the engin
 README, architecture-plan, testing). Nothing deferred from this run. Run record:
 [`runs/2026-06-24-phase-2-engine-backed-validation.md`](./runs/2026-06-24-phase-2-engine-backed-validation.md).
 
+**2026-06-24 run — PR #20 (Phase 3, agent team)** — the first vertical slice, the whole of Phase 3
+in one curated PR. A 4-agent team over **file-disjoint slices, each in its own git worktree**:
+**Core** (the `first-light` project end-to-end — module, `/work` index + `[slug]` route, PT
+serializer, states, metadata, integration test), **Studio** (blurb cap + `siteSettings` singleton),
+**Data** (RSS, draft-mode mechanism, `proxy.ts` deferral), **Shell** (garden home/about/now/notes
+themed via `ProjectScope slug="garden"`). The lead resolved three integration seams the slices
+surfaced — a `registry` ESLint-boundary element so the resolver registry may literal-import projects
+`[D21, §4.2]`, a registry-derived `scopeSeed.ts` `KNOWN_SLUGS`, and the draft-content rendering seam
+(deferred, below) — then ran a fresh independent QA pass (`pr-review-toolkit:code-reviewer`, §6.2)
+and a `[D25]` browser pass. QA found **no blockers**: it _measured_ the brand-on-surface contrast
+(amber 4.31:1 / green 5.58:1, all accent-as-text large/bold ≥ 3:1) and diagnosed a scary-looking
+console error as the **React DevTools extension** tripping on React 19.2 async-Suspense
+instrumentation (absent in production). Its two in-branch nits were fixed (accent→`accent-text`
+token for heading text; thin-page scaffold comment); two items were **deferred as cross-route work**
+(draft-content rendering; detail-query `notes`/`tags` — both in the housekeeping block above). Two
+real Sanity docs were seeded (the `first-light` project + the `siteSettings` singleton). _Flagged for
+ops: the Studio schema isn't yet deployed to the hosted Content Lake (`sanity:deploy-schema`) — not
+needed for the build, but Presentation/visual-editing and MCP schema validation want it._ Run record:
+[`runs/2026-06-24-phase-3-first-vertical-slice.md`](./runs/2026-06-24-phase-3-first-vertical-slice.md).
+
 **Phase 1 — real `ProjectScope` (swaps the stub palette → engine output):**
 
 - [√] Keep the streamed `<style precedence="brand">` string and its `@layer brand { … }` wrapper **synchronized** — done 2026-06-24 (PR #14): single-sourced via a shared `const BRAND_LAYER = "brand"` used by both the template and the `precedence` prop, so they can't desync; a test pins the hoisted style's `data-precedence` `[D13]`
@@ -218,8 +244,10 @@ README, architecture-plan, testing). Nothing deferred from this run. Run record:
 
 **Phase 3 — content / route housekeeping:**
 
-- [ ] `project.blurb` — consider a hard `rule.max(300).error()` alongside the soft 280-char warning if the card layout can't absorb overflow (PR #11)
-- [ ] `siteSettings` — enforce the singleton via Studio Structure and use an explicit `*[_type == "siteSettings"][0]` guard in its query (nothing forces uniqueness today) (PR #11) `[D24]`
+- [√] `project.blurb` — hard `rule.max(300).error()` alongside the soft 280-char warning (PR #11) — done (PR #20): both chained, so an editor sees a warning at 280 and a blocking error past 300
+- [√] `siteSettings` — enforce the singleton via Studio Structure and use an explicit `*[_type == "siteSettings"][0]` guard in its query (nothing forces uniqueness today) (PR #11) `[D24]` — done (PR #20): a fixed-`documentId` Structure item (excluded from the default list so editors can't create duplicates) + the `[0]`-guarded `SITE_SETTINGS_QUERY`
+- [ ] **Draft-content _rendering_ on the `/work` routes** (carried from PR #20) — the draft-mode mechanism ships, but every content fetch (`/work`, `/work/<slug>`, `layout` siteSettings, `/notes`) deliberately uses `use cache` + the **published** client, so Preview shows published content, not drafts. To render drafts: introduce a shared `sanityFetch(query)` that reads `(await draftMode()).isEnabled` _outside_ the `use cache` boundary and branches to `getClient(true)` (uncached, drafts perspective, stega on) — a small refactor adopted across those routes. Deferred from PR #20 as a cross-route helper change, not a per-route hack `[D11, D16]`
+- [ ] **`PROJECT_DETAIL_QUERY` over-fetch** (carried from PR #20) — the detail query pulls `notes[]->{…}` + `tags`, which the project route renders neither; either render them (related-notes / tag chips on the project page) or trim them to honor the index query's no-over-fetch discipline. Decide when the project page grows `[§6]`
 - [√] Draft-mode / Presentation client needs `useCdn: false` + `perspective: "previewDrafts"`, distinct from the publishes-only public client (PR #11) `[D16]` — done 2026-06-24: added `draftClient` (`useCdn:false`, perspective `"drafts"` — `"previewDrafts"` is `DeprecatedPreviewDrafts` in `@sanity/client` v7, so the current spelling is used for the same behaviour) + a `getClient(isDraft)` selector that attaches the server-only `SANITY_API_READ_TOKEN` per request, alongside the published-only public client. Draft Mode enable/disable route handlers (`/api/draft-mode/*`) and a draft-gated `<VisualEditingControls>` ship with it `[D16]`.
 - [√] **`proxy.ts` — deferred, not built (decision recorded).** Draft mode needs **no** request-level proxy logic: it runs entirely through Route Handlers that flip the `__prerender_bypass` cookie (`await draftMode().enable()/.disable()`), which Next handles natively. `proxy.ts` is a CDN-deployable redirect/rewrite boundary, is **Node-runtime-only** (setting `runtime` throws — `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md` §Runtime), and the security runbook explicitly says **don't drive draft mode from proxy** (`docs/handbook/security-and-ops.md` §4). Adding an empty/no-op `proxy.ts` would tax every request for nothing, so the Phase-0 deferral stands until there's genuine cross-cutting request logic (auth, geo-rewrite, etc.) to host.
 
