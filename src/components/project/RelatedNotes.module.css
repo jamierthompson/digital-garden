@@ -1,0 +1,26 @@
+/* Project "Related notes" list. `@layer project` — a CSS Module MUST declare its layer
+   or it silently outranks every @layer style (the @layer trap, [D12]). Var-consuming
+   only: themed by the surrounding project scope's generic `--brand-*` tokens (§8, [D2]).
+   Minimal styling on purpose — a proper visual pass lands in a later phase. */
+@layer project {
+  .related {
+    margin-top: var(--space-7);
+    border-top: 1px solid var(--brand-border, var(--brand-text));
+    padding-top: var(--space-5);
+  }
+
+  .heading {
+    font-size: var(--text-lg);
+    color: var(--brand-accent-text);
+  }
+
+  .list {
+    margin: var(--space-3) 0 0;
+    padding-left: var(--space-5);
+  }
+
+  .item {
+    margin-top: var(--space-2);
+    color: var(--brand-text);
+  }
+}

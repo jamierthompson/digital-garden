@@ -224,6 +224,23 @@ ops: the Studio schema isn't yet deployed to the hosted Content Lake (`sanity:de
 needed for the build, but Presentation/visual-editing and MCP schema validation want it._ Run record:
 [`runs/2026-06-24-phase-3-first-vertical-slice.md`](./runs/2026-06-24-phase-3-first-vertical-slice.md).
 
+**2026-06-24 run — PR #21 (Phase 3 carried items, solo)** — the two carry-overs from PR #20 (lines
+below), closed in one curated PR. **Item 1:** a shared `sanityFetch` is now the single content read
+path across `/work`, `/work/<slug>`, `layout` siteSettings, and `/notes`. The original sketch (read
+`draftMode()` _outside_ `use cache`) was **superseded by the version-exact bundled docs**: under
+Cache Components, `draftMode()` is readable _inside_ `use cache` and Next natively re-executes + skips
+the cache while Draft Mode is on, so the helper reads it inside and branches to `getClient(isEnabled)`
+— public visitors keep the static shell, Preview gets fresh drafts. **Item 2:** the project page grew
+to render the `tags`/`notes[]->` the detail query already pulled (`TagList` + `RelatedNotes`,
+plain-text not links until note/tag routes exist) — rendered, not trimmed. **QA, honestly:** the first
+pass was a _primed static_ `code-reviewer` (it confirmed the design but ran no scenarios); a second,
+**independent adversarial QA** (fresh context, no priming, browser-driven) then _tried to break it_ —
+which (a) caught a Prettier blocker I'd committed without re-running `format:check` (fixed), (b)
+surfaced that `getClient`'s fail-loud draft-token guard had no test (added), and (c) **found a
+pre-existing, app-wide `@layer` inversion** (below). The live draft happy-path was **not** verifiable
+locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not faked. Run record:
+[`runs/2026-06-24-phase-3-carried-items.md`](./runs/2026-06-24-phase-3-carried-items.md).
+
 **Phase 1 — real `ProjectScope` (swaps the stub palette → engine output):**
 
 - [√] Keep the streamed `<style precedence="brand">` string and its `@layer brand { … }` wrapper **synchronized** — done 2026-06-24 (PR #14): single-sourced via a shared `const BRAND_LAYER = "brand"` used by both the template and the `precedence` prop, so they can't desync; a test pins the hoisted style's `data-precedence` `[D13]`
@@ -246,10 +263,36 @@ needed for the build, but Presentation/visual-editing and MCP schema validation 
 
 - [√] `project.blurb` — hard `rule.max(300).error()` alongside the soft 280-char warning (PR #11) — done (PR #20): both chained, so an editor sees a warning at 280 and a blocking error past 300
 - [√] `siteSettings` — enforce the singleton via Studio Structure and use an explicit `*[_type == "siteSettings"][0]` guard in its query (nothing forces uniqueness today) (PR #11) `[D24]` — done (PR #20): a fixed-`documentId` Structure item (excluded from the default list so editors can't create duplicates) + the `[0]`-guarded `SITE_SETTINGS_QUERY`
-- [ ] **Draft-content _rendering_ on the `/work` routes** (carried from PR #20) — the draft-mode mechanism ships, but every content fetch (`/work`, `/work/<slug>`, `layout` siteSettings, `/notes`) deliberately uses `use cache` + the **published** client, so Preview shows published content, not drafts. To render drafts: introduce a shared `sanityFetch(query)` that reads `(await draftMode()).isEnabled` _outside_ the `use cache` boundary and branches to `getClient(true)` (uncached, drafts perspective, stega on) — a small refactor adopted across those routes. Deferred from PR #20 as a cross-route helper change, not a per-route hack `[D11, D16]`
-- [ ] **`PROJECT_DETAIL_QUERY` over-fetch** (carried from PR #20) — the detail query pulls `notes[]->{…}` + `tags`, which the project route renders neither; either render them (related-notes / tag chips on the project page) or trim them to honor the index query's no-over-fetch discipline. Decide when the project page grows `[§6]`
+- [~] **Draft-content _rendering_ on the `/work` routes** (carried from PR #20) — **code-complete in PR #21, NOT yet verified end-to-end** (see "What's left" below). A shared `sanityFetch(query, params?, cacheProfile?)` is now the single content read path, adopted across `/work`, `/work/<slug>`, `layout` siteSettings, and `/notes`. **Divergence from the original sketch (bundled docs win):** the helper reads `(await draftMode()).isEnabled` _inside_ the `use cache` scope, not outside — the version-exact docs (`use-cache.md` §"Draft Mode", `draft-mode.md`) confirm `draftMode()` is the one runtime API readable inside `use cache`, and Cache Components **natively** re-executes + skips the cache while Draft Mode is on, so no separate uncached path is needed. Public visitors keep the prerendered static shell; Preview branches to `getClient(true)` (uncached, drafts perspective, stega on). `generateStaticParams` stays on the published client by design. **Verified:** the published path renders live, the fail-loud token guard throws (unit-tested), no draft→published cache leak. **NOT verified:** a real draft actually rendering — blocked on a Sanity read token (absent locally) **and** a Preview entry point (Sanity Presentation is not wired). `[D11, D16]`
+- [√] **`PROJECT_DETAIL_QUERY` over-fetch** (carried from PR #20) — done 2026-06-24 (PR #21): **rendered, not trimmed** — the project page grew to show the data it already pulled. A `TagList` (chips, header metadata) and a `RelatedNotes` list (see-also section after the experience), both pure var-consuming components that self-guard to null when empty. Titles/tags render as plain text, not links — there are no tag-archive or individual-note routes yet, so linking would dead-end; the notes stay real Sanity references `[D16]` and become links when such a route lands. Query + TypeGen unchanged `[§6]`
 - [√] Draft-mode / Presentation client needs `useCdn: false` + `perspective: "previewDrafts"`, distinct from the publishes-only public client (PR #11) `[D16]` — done 2026-06-24: added `draftClient` (`useCdn:false`, perspective `"drafts"` — `"previewDrafts"` is `DeprecatedPreviewDrafts` in `@sanity/client` v7, so the current spelling is used for the same behaviour) + a `getClient(isDraft)` selector that attaches the server-only `SANITY_API_READ_TOKEN` per request, alongside the published-only public client. Draft Mode enable/disable route handlers (`/api/draft-mode/*`) and a draft-gated `<VisualEditingControls>` ship with it `[D16]`.
 - [√] **`proxy.ts` — deferred, not built (decision recorded).** Draft mode needs **no** request-level proxy logic: it runs entirely through Route Handlers that flip the `__prerender_bypass` cookie (`await draftMode().enable()/.disable()`), which Next handles natively. `proxy.ts` is a CDN-deployable redirect/rewrite boundary, is **Node-runtime-only** (setting `runtime` throws — `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md` §Runtime), and the security runbook explicitly says **don't drive draft mode from proxy** (`docs/handbook/security-and-ops.md` §4). Adding an empty/no-op `proxy.ts` would tax every request for nothing, so the Phase-0 deferral stands until there's genuine cross-cutting request logic (auth, geo-rewrite, etc.) to host.
+
+**What's left to close Phase 3 (next session) — Phase 3 is NOT done until these land:**
+
+- [ ] **Verify draft-content rendering end-to-end** (the unverified half of the carried draft item
+      above). Needs: (1) `SANITY_API_READ_TOKEN` in `.env.local` (the user is adding it); (2) a real
+      **draft** doc to preview (create + discard via the Sanity MCP, e.g. a draft `first-light` title
+      edit + a draft note referenced by it so the populated `RelatedNotes` path is exercised against
+      real data — the dataset currently has **zero notes / zero projects-with-notes**); (3) confirm
+      `getClient(true)` returns the draft and `getClient(false)` does not, then see it render in Preview.
+- [ ] **Wire a Preview entry point.** The enable/disable route handlers + `<VisualEditingControls>`
+      exist, but **nothing drives them** — there is no Sanity **Presentation** tool configured in
+      `studio/` (no `presentationTool`/`previewUrl`), so Preview can't currently be entered in-product.
+      This is the missing piece behind "draft content renders in **Preview**." `[D16]`
+- [ ] **Fix the app-wide `@layer` cascade inversion in the built CSS — the foundation reset wipes every
+      `@layer project` rule's `padding`/`margin`.** Source is correct (`foundation.css` declares `@layer
+foundation, brand, project;`), but **Turbopack drops `foundation` from the order _statement_** when
+      it bundles the file alongside foundation's `@layer foundation { … }` _block_, so layers register
+      `brand → project → foundation` (live `<head>` probe: statement `@layer brand, project;` + blocks
+      `project` then `foundation`). Foundation ends up **highest** priority, so `@layer foundation { * {
+padding:0; margin:0 } }` out-ranks `@layer project` rules — tag chips render with `padding:0`, and
+      pre-existing project-layer components (embed caption, experience module) are hit too. `lint:css`
+      can't see it (it checks each module declares a layer, not the runtime registration order). **Likely
+      fix:** a dedicated single-statement `layers.css` (`@layer foundation, brand, project;` and nothing
+      else, imported first) so Turbopack has no `foundation` block to merge against — **must be browser-
+      re-verified** (the same `<head>` cascade probe). Not introduced by PR #21; defeats `[D12]`'s intent,
+      so the fix likely warrants its own `D#`.
 
 **Phase 4 — engine playground (Consumer B) performance:**
 
