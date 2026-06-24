@@ -40,8 +40,7 @@ eslint.config.mjs          the real import-boundary + isomorphism rules
 .github/workflows/ci.yml   the real CI gate (job: verify)
 scripts/
   check-css-layers.mjs     the @layer-declaration lint (pnpm lint:css)
-  check-key-drift.mjs      the key-drift guard (pnpm lint:keys; stub until Phase 2)
-  check-doc-gate-sync.mjs  the gate-doc sync guard (pnpm lint:docs; keeps the AGENTS.md gate ≡ DoD §1)
+  check-key-drift.mjs      the key-drift guard (pnpm lint:keys; live since Phase 2)
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
     layout.tsx             root layout (shell nav skeleton, shell fonts preload:true)
@@ -99,6 +98,7 @@ These are the things that silently break this specific stack, or that the owner 
 - **TypeScript discipline:** `@/*` alias not deep relative chains; `interface` for extensible object shapes, `type` for unions/intersections; **no `any`** (use `unknown`, then narrow); type params + returns.
 - **Never hardcode secrets** — env vars only; keep `.env.example` current; `.env*` is gitignored. The Sanity **project ID / dataset are public** by design (plain env in `ci.yml`); a Sanity **token is secret**, server-side only, never `NEXT_PUBLIC_*`.
 - **Before committing:** code runs, lint passes, `pnpm format` clean, diff reviewed (no debug logs, no commented-out code, no unrelated changes). The full Definition of Done is [`./definition-of-done.md`](./definition-of-done.md).
+- **Docs are everyone's job — see something, say something.** These docs are the source of truth, so a stale one actively misleads. If you notice _any_ doc that's wrong, outdated, or contradicts the code — even outside your task — fix it in your branch when it's a quick, safe correction, or flag it to the owner when it isn't. Don't walk past a stale path, a dead script reference, or a "Phase 0 complete" that isn't true. Keeping a doc current is never "not my task." (Closing a run has its own hard doc requirement — README + run record; see [`./working-with-agents.md`](./working-with-agents.md) §6.2.)
 
 ---
 
