@@ -144,4 +144,34 @@ describe("check-key-drift.mjs — drift detection (fixtures)", () => {
     expect(status).toBe(1);
     expect(stderr).toMatch(/missing its compile-time guard/);
   });
+
+  it("fails on a brace-bearing comment that mimics the live annotation", () => {
+    const script = fixture({
+      // Regression: a comment carrying `} satisfies Record<FontKey, …>` (note the
+      // closing brace) once defeated the line-anchored pattern. Comment-stripping
+      // must remove it so the real (now-absent) annotation can't false-pass.
+      roster: `export const FONT_FACES = {}; /* TODO restore: } satisfies Record<FontKey, FontFace> */`,
+    });
+    const { status, stderr } = run(script);
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/missing its compile-time guard/);
+  });
+
+  it("passes when a legit `satisfies` is reflowed across lines (Prettier tolerance)", () => {
+    const script = fixture({
+      // The brace, `satisfies`, and the `Record<…>` type args all wrap onto
+      // separate lines — a valid annotation Prettier could produce. `\s*` in the
+      // pattern spans newlines, so this must still PASS.
+      roster: `export const FONT_FACES = {
+                 inter: 1,
+               }
+                 satisfies Record<
+                   FontKey,
+                   FontFace
+                 >;`,
+    });
+    const { status, stderr } = run(script);
+    expect(stderr).not.toMatch(/FAIL/);
+    expect(status).toBe(0);
+  });
 });

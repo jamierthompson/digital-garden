@@ -34,9 +34,13 @@
 //      resolver ambiguous. The type system does NOT enforce these (it only checks
 //      the literal union), so this is genuine added safety.
 //   3. The compile-time guard is still WIRED: each resolver/roster source declares
-//      its `satisfies Record<XKey, …>` annotation. This is a source-text check (the
-//      modules can't be imported here, per above); it fails loudly if someone drops
-//      the `satisfies` and reopens direction (a) without `typecheck` noticing.
+//      its `satisfies Record<XKey, …>` annotation. This is a comment-stripped
+//      source-text (regex) check — NOT a full TS parse — so it's a tripwire, not a
+//      proof: it strips `//` and `/* */` comments (so the same phrase quoted in a
+//      doc comment can't false-pass) and requires the annotation to follow the
+//      registry's closing brace. It fails loudly if someone drops the `satisfies`
+//      and reopens direction (a) without `typecheck` noticing. (The compiler is the
+//      real enforcer of (a); this only guards that the enforcer stays in place.)
 //
 // Node 22.21 strips TS types natively, so importing the dependency-free `keys.ts`
 // works; the resolver/roster modules are read as TEXT, never imported.
@@ -128,10 +132,29 @@ for (const [name, arr] of Object.entries(KEY_ARRAYS)) {
 // Each registry that maps a key array to code MUST keep its `satisfies` annotation;
 // that — not this script — is what enforces code<->keys completeness (direction a).
 // We read the source as text (these modules import next/font and can't be imported
-// in a plain node script) and assert the annotation is present. The patterns require
-// the `satisfies` to follow the registry's closing brace (`} satisfies` / `{}
-// satisfies`) so they match the CODE annotation, not the same phrase quoted in a
-// nearby `// … satisfies Record<…> …` doc comment (which would be a false pass).
+// in a plain node script). The phrase `satisfies Record<XKey, …>` ALSO appears in
+// each file's doc comment, so we strip ALL comments first, then require the
+// annotation to follow the registry's closing brace (`} satisfies` / `{} satisfies`).
+// Stripping (not just line-anchoring) is essential: a trailing or brace-bearing
+// comment — e.g. `}; /* TODO restore: } satisfies Record<FontKey, …> */` — would
+// otherwise match the live-code pattern and falsely pass even though the real
+// annotation is gone. The pattern still tolerates Prettier reflow: `\s*` spans
+// newlines, so a real declaration whose `}` and `satisfies` (or whose `Record<…>`
+// type args) wrap onto separate lines still matches.
+
+/**
+ * Remove `//` line comments and `/* … *\/` block comments (including multiline)
+ * from TS/JS source so the `satisfies` check only sees live code. Good enough for
+ * these dependency-light registry files: it doesn't parse strings/regex/templates,
+ * but none of them carry a `} satisfies Record<…>`-shaped substring, and a false
+ * NEGATIVE (over-stripping) would only make the guard stricter, never weaker.
+ */
+function stripComments(source) {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, " ") // block comments, incl. multiline
+    .replace(/\/\/[^\n]*/g, ""); // line comments to end of line
+}
+
 const SATISFIES_GUARDS = [
   {
     file: "src/fonts/roster.ts",
@@ -155,7 +178,7 @@ for (const { file, pattern, note } of SATISFIES_GUARDS) {
   const src = await readFile(path, "utf8").catch((err) => {
     fail(`could not read ${file} (${err.message})`);
   });
-  if (!pattern.test(src)) {
+  if (!pattern.test(stripComments(src))) {
     fail(
       `${file} is missing its compile-time guard — ${note}. ` +
         `Without it, code<->keys drift is no longer a typecheck error [D10].`,
