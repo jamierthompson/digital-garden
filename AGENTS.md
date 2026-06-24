@@ -59,7 +59,7 @@ Run the full chain locally before pushing — same scripts, same order as
 [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) (job `verify`). Green here = green CI.
 
 ```bash
-pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm format:check && pnpm typecheck && pnpm test && \
+pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm lint:docs && pnpm format:check && pnpm typecheck && pnpm test && \
 pnpm --filter studio typegen && git diff --exit-code sanity.types.ts && pnpm build
 ```
 

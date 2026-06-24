@@ -50,6 +50,7 @@ pnpm build                   # production build
 pnpm lint                    # ESLint (incl. architectural import boundaries)
 pnpm lint:css                # assert every CSS Module declares its @layer
 pnpm lint:keys               # key-drift guard (live since Phase 2)
+pnpm lint:docs               # assert the gate chain matches across AGENTS.md, DoD, ci.yml
 pnpm typecheck               # tsc --noEmit
 pnpm test                    # run the test suite once
 pnpm format / format:check   # Prettier write / check
