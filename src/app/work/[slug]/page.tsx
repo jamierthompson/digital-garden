@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import EssayBody from "@/components/portable-text/EssayBody";
 import ProjectScope from "@/components/project-scope/ProjectScope";
 import ProjectScopeBoundary from "@/components/project-scope/ProjectScopeBoundary";
+import RelatedNotes from "@/components/project/RelatedNotes";
+import TagList from "@/components/project/TagList";
 import { resolveComponentKey } from "@/lib/resolvers/components";
 import { isNotFound } from "@/lib/resolvers/resolution";
 import type { ProjectModule } from "@/projects/types";
@@ -102,10 +104,15 @@ export default async function WorkPage({ params }: WorkPageProps) {
               {project.blurb ? (
                 <p className={styles.blurb}>{project.blurb}</p>
               ) : null}
+              {/* Tags + related notes render the detail query's `tags`/`notes[]->`
+                  projection (each self-guards to null when empty), so the query no
+                  longer over-fetches fields nothing renders [§6]. */}
+              <TagList tags={project.tags} />
             </header>
             {project.essay ? <EssayBody value={project.essay} /> : null}
           </article>
           <Experience />
+          <RelatedNotes notes={project.notes} />
         </main>
       </ProjectScope>
     </ProjectScopeBoundary>
