@@ -44,7 +44,7 @@ Three themes recurred in round 2 and reshaped every doc:
 
 Two critiques were **rejected after verification**: a link-depth rewrite for
 `decision-records.md` (B1) and `git-and-pr-workflow.md` that assumed a
-`docs/handbook/process/` home — the docs ship at `docs/handbook/`, where the drafts' `../`
+`docs/handbook/making-of/` home — the docs ship at `docs/handbook/`, where the drafts' `../`
 (architecture) and `../../` (repo root) depths were already correct per house style; and a
 critique disputing two bundled-doc paths in `working-with-agents.md` that, on checking, do
 exist and hold the cited facts.
@@ -143,7 +143,7 @@ two-item legend" line to the status vocabulary (A1); gave the next-`D#` rule the
 two-mode path over the audit (A3); pinned the engine-signature contract to [D5]
 `(brandColor, scheme) → tokenSet` and kept `--logx-*` out of the public-names list per [D2]
 (C1/C2). **Rejected B1's link-depth rewrite** — it computed paths for a
-`docs/handbook/process/` home, but the doc ships to `docs/handbook/`, where `../decisions.md`
+`docs/handbook/making-of/` home, but the doc ships to `docs/handbook/`, where `../decisions.md`
 and `../../AGENTS.md` are already correct.
 
 ### `accessibility-and-performance.md`

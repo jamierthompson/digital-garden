@@ -1,4 +1,4 @@
-# Run record — Phase 1 keystone (real `ProjectScope`) + gated Phase 2 fast-follows
+# Session record — Phase 1 keystone (real `ProjectScope`) + gated Phase 2 fast-follows
 
 - **Date:** 2026-06-24
 - **Mode:** agent-team, coding-feature (own-a-slice → independent QA → lead curates → squash-merge)
@@ -6,9 +6,9 @@
 
 ## Why
 
-The 2026-06-23 run completed Phase 0.5 + every ungated Phase 1/2 building block, but deliberately
+The 2026-06-23 session completed Phase 0.5 + every ungated Phase 1/2 building block, but deliberately
 **held the engine-gated fast-follows** for once the OKLCH engine landed. With the engine merged
-(PRs #8/#10), this run picks those up: the **real `ProjectScope`** (the last open Phase 1 item —
+(PRs #8/#10), this session picks those up: the **real `ProjectScope`** (the last open Phase 1 item —
 the engine is built, so the keystone can finally consume it) plus the Phase 2 items gated on the
 engine (`cardSwatches`) and on `keys.ts` (live key-drift), and the two opportunistic engine
 cleanups. Goal: finish Phase 1 and everything in Phase 2 that could run concurrently with it.
@@ -26,6 +26,21 @@ more than one branch; `main` never moved, so no rebase/conflict reconciliation w
 | **Theming**   | `feat/project-scope-engine`                | `src/components/project-scope/**`, `src/app/work/[slug]/page.tsx` (+ `ModuleShell.module.css`, `src/fonts/roster.ts` — added by the lead as in-scope blockers surfaced) | 1 (last open item) |
 | **Swatches**  | `feat/card-swatches`                       | `src/lib/cardSwatches.ts` (+ test)                                                                                                                                      | 2 (engine-gated)   |
 | **Hardening** | `chore/key-drift-live-and-engine-cleanups` | `scripts/check-key-drift.mjs` (+ test), `src/lib/oklch/palette.ts`, `src/lib/oklch/harness/harness.test.ts`                                                             | 2 + cleanups       |
+
+## QA log [D26]
+
+_Retrofit: this session predates [D26]; the table captures the per-slice fresh QA actually run, in the
+[D26] format. Per-defect detail is in the section below._
+
+| Slice                   | Author    | QA agent (fresh)                      | Verdict   | Tests added               |
+| ----------------------- | --------- | ------------------------------------- | --------- | ------------------------- |
+| ProjectScope (keystone) | Theming   | QA-Theming + Verify-Theming (browser) | 2 defects | —                         |
+| key-drift live          | Hardening | QA-Hardening                          | 1 defect  | key-drift regression case |
+| cardSwatches            | Swatches  | QA-Swatches                           | clean     | —                         |
+
+**Defects (detail below):** 1) latent `next/font` build break · 2) WCAG-AA contrast failure (caught
+by the browser pass) · 3) key-drift guard false-pass. All fixed in-branch by the owning author and
+re-verified. **Deferred from QA:** none.
 
 ## The dev↔QA loop did the load-bearing work (handbook §6.2)
 
@@ -68,5 +83,5 @@ Undefined CSS vars don't error and jsdom doesn't compute color — #3 is exactly
 Opened 2026-06-24, all CI-green + QA-clean at hand-off, left for the owner to squash-merge:
 **#14** real `ProjectScope` (Phase 1 complete), **#15** `cardSwatches`, **#16** key-drift live +
 engine cleanups. The branches are file-disjoint, so they merge in any order. The only item from
-this run carried forward is the pre-existing Phase-2 engine-backed `brandColor` validation (a
+this session carried forward is the pre-existing Phase-2 engine-backed `brandColor` validation (a
 package-boundary task), tracked in [`../build-phases.md`](../build-phases.md).

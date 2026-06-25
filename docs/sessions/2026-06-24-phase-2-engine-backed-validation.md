@@ -1,4 +1,4 @@
-# Run record — Phase 2 close-out: engine-backed `brandColor` validation (`@garden/oklch` package)
+# Session record — Phase 2 close-out: engine-backed `brandColor` validation (`@garden/oklch` package)
 
 - **Date:** 2026-06-24
 - **Mode:** solo (single-agent) + a fresh independent QA pass before the PR (handbook §6.2)
@@ -7,7 +7,7 @@
 
 ## Why
 
-This was the **last open Phase 2 item** and the one deliberately deferred across the prior runs:
+This was the **last open Phase 2 item** and the one deliberately deferred across the prior sessions:
 true engine-backed `brandColor` validation `[D9]` (layer 2 — author-time Sanity validation via
 the engine's _own_ color pipeline, not a regex). It was deferred because it's a **package-boundary
 task**: the standalone Studio cannot import the app's `src/lib/oklch` `[D23]`, so real validation
@@ -26,7 +26,7 @@ cleanly over distinct files (§6.1). Three logical commits, then QA, then two fi
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `refactor:` extract engine → `@garden/oklch` | `git mv src/lib/oklch → packages/oklch/src`; package.json `exports → ./src/index.ts`; rewire all wiring |
 | `feat:` engine-backed validation             | `isBrandColorString` runs `buildTokenSet`; accepts iff `!meta.isFallback`                               |
-| `style:` `colour` → `color`                  | repo-wide spelling normalization (owner request, mid-run)                                               |
+| `style:` `colour` → `color`                  | repo-wide spelling normalization (owner request, mid-session)                                           |
 | `test:` validation oracle contract           | table-driven accept/reject pinned in the engine package (the Studio has no runner)                      |
 | `docs:` repoint engine location              | fix the doc-rot the move introduced (QA finding)                                                        |
 
@@ -65,9 +65,21 @@ on a planted `window` reference. Dual-env (node + jsdom) Vitest include retarget
   behavior, so it's a table-driven test in `packages/oklch`, where the runner already exists.
 - **ADR text left immutable.** The relocation _executes_ `[D23]`'s own implication (engine → shared
   package), so it needed no superseding record. `decisions.md` (D14's `src/lib/oklch` mention) and
-  the historical `audit/` + `process/` records were left as-is; only living docs were repointed.
+  the historical `audit/` + `making-of/` records were left as-is; only living docs were repointed.
 
-## QA (fresh, pre-PR) — verdict SHIP-WITH-FIXES
+## QA log [D26] — verdict SHIP-WITH-FIXES
+
+_Retrofit: this session predates [D26] but already ran a fresh pre-PR QA pass; captured here in the
+[D26] format. Detail below._
+
+| Slice                                          | Author       | QA agent (fresh)                  | Verdict                                              | Tests added                     |
+| ---------------------------------------------- | ------------ | --------------------------------- | ---------------------------------------------------- | ------------------------------- |
+| engine → `@garden/oklch` + engine-backed valid | main session | `pr-review-toolkit:code-reviewer` | ship-with-fixes (engineering clean; 6 doc-rot fixes) | validation-oracle contract test |
+
+**What QA probed:** re-ran the full gate; planted `window` + 5 framework imports against the `[D14]`
+isomorphism guard (all caught, lint non-zero, reverted); verified the `[D9]` no-throw + the
+accept/reject boundary shift against the real engine; grep'd living docs for the deleted engine path.
+**Deferred from QA:** none.
 
 A fresh `code-reviewer` (not the author) re-ran the full gate, independently probed the `[D14]`
 guard (planted `window` + five framework imports → all caught, lint non-zero, reverted), and
@@ -76,21 +88,21 @@ were **doc-rot the move introduced** — `AGENTS.md` (a guardrail), `engineering
 `orientation.md`, `README.md`, `architecture-plan.md`, `testing.md` still located the engine at the
 deleted `src/lib/oklch/`. All **fixed in-branch** before the PR (the repo's "tell me so I can fix
 the stale one" rule; in-scope because the move caused it). The optional coverage suggestion was
-satisfied by the `test:` commit. **Nothing deferred from this run.**
+satisfied by the `test:` commit. **Nothing deferred from this session.**
 
 ## Outcome
 
 - **Shipped (PR #18):** `@garden/oklch` workspace package; engine-backed `brandColor` validation in
   the Studio; repo-wide `colour→color`; the validation-oracle contract test; doc-rot fixes; the
-  README brought current (Status: Phases 0–2 complete); and a new **standing end-of-run
-  requirement** — every run refreshes the README + writes a run record — codified in
+  README brought current (Status: Phases 0–2 complete); and a new **standing end-of-session
+  requirement** — every session refreshes the README + writes a session record — codified in
   [`../handbook/working-with-agents.md`](../handbook/working-with-agents.md) §6.2 and the DoD
-  (owner request, mid-run).
+  (owner request, mid-session).
 - **Gate green** on the curated tip: `lint · lint:css · lint:keys · format:check · typecheck ·
 test (447) · studio typegen + no-drift · build` — plus `cd studio && pnpm build` and
   `pnpm install --frozen-lockfile`.
 - **Phase 2 complete.** Remaining package-boundary work (`keys.ts` → shared package) stays Phase 4;
-  this run built the package pattern that move will reuse.
+  this session built the package pattern that move will reuse.
 
 ## Lessons
 

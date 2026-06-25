@@ -67,6 +67,14 @@ owner's "meaningful coverage, not exhaustive" rule.
 - **Engine CSS snapshots** — assert _measured_ numeric contrast/gamut values so a failure
   means the right thing (see below).
 
+> **Adversarial QA authors tests too.** The independent pre-PR QA pass `[D26]` isn't only a
+> read-through — it **writes the breaking test cases the author optimized past** (malformed
+> `brandColor` → fallback never throws `[D9]`, the not-found / error path, both schemes, the empty
+> and boundary inputs) and proves the break with a failing case before the owning author fixes it.
+> Those cases are normal co-located tests held to the same bar as everything here — meaningful, by
+> role/behavior, no snapshot dumps. The dev↔QA loop lives in
+> [`./working-with-agents.md`](./working-with-agents.md) §6.2.
+
 ---
 
 ## RTL usage rules
@@ -305,7 +313,7 @@ paint, no async RSCs) and the absent Playwright (Phase 3) leave open for UI buil
 
 ## Anchors
 
-[D4] · [D5] · [D6] · [D9] · [D10] · [D14] · [D17] · [D18] · [D19] · [D25] —
+[D4] · [D5] · [D6] · [D9] · [D10] · [D14] · [D17] · [D18] · [D19] · [D25] · [D26] —
 [`../decisions.md`](../decisions.md). Plan §3.2 (OKLCH engine) —
 [`../architecture-plan.md`](../architecture-plan.md). Phase 1 / Phase 3 —
-[`../build-phases.md`](../build-phases.md). Research: [`./process/research/R3-testing.md`](./process/research/R3-testing.md).
+[`../build-phases.md`](../build-phases.md). Research: [`./making-of/research/R3-testing.md`](./making-of/research/R3-testing.md).

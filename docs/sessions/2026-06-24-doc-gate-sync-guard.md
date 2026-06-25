@@ -1,4 +1,4 @@
-# Run record — the gate-doc sync guard (`pnpm lint:docs`)
+# Session record — the gate-doc sync guard (`pnpm lint:docs`)
 
 - **Date:** 2026-06-24
 - **Mode:** solo (small tooling chore), adversarially self-tested
@@ -30,7 +30,18 @@ sight (orientation "Golden rules", added in PR #18).
   prose mention of the chain (orientation cold-start, working-with-agents §7, DoD §7) and the
   README scripts list to include `lint:docs`.
 
-## Verification
+## QA log [D26]
+
+_Retrofit + honest label: a small, self-contained tooling chore, **adversarially self-tested** (no
+separate fresh QA agent — predates [D26]). Detail below._
+
+| Slice                     | Author       | QA                                               | Verdict | Tests added                                                                            |
+| ------------------------- | ------------ | ------------------------------------------------ | ------- | -------------------------------------------------------------------------------------- |
+| `check-doc-gate-sync.mjs` | main session | solo adversarial self-test (mutation + fixtures) | clean   | fixture suite: synced-passes, dropped-step-fails, reorder-fails, missing-section-fails |
+
+**What QA probed:** mutation-tested the guard — deleted a step from `ci.yml`, confirmed it exits
+non-zero with the right message, then reverted; the fixture suite pins divergence detection so a
+future false-pass fails a test. **Deferred:** none.
 
 Adversarially self-tested rather than via a separate QA agent (small, self-contained tooling with
 its own adversarial test suite): proved the guard **fails-closed** by deleting a step from `ci.yml`
@@ -42,6 +53,6 @@ studio typegen + no-drift · build`.
 ## Lessons
 
 - **A guard the docs claim exists but doesn't is worse than no guard** — it implies a safety net
-  that isn't there. This run turned the claim true. Meta-point: the new `lint:docs` would itself
+  that isn't there. This session turned the claim true. Meta-point: the new `lint:docs` would itself
   have caught the gate-chain drift that motivated it; the doc-rot that motivated it (a phantom
   script) is the class the "see something, say something" norm (PR #18) targets.

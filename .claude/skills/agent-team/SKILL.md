@@ -12,7 +12,7 @@ doing that well **in this repo**. It is grounded in:
 - The repo's own operating manual: [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md)
   §4 (research → drafts → debate → synthesis), §5 (briefing), §6/§6.1 (own-a-slice, lead curates).
 - Two worked examples already in the repo: [`docs/audit/`](../../../docs/audit/) and
-  [`docs/handbook/process/`](../../../docs/handbook/process/) — both are this pattern, run to completion.
+  [`docs/handbook/making-of/`](../../../docs/handbook/making-of/) — both are this pattern, run to completion.
 - Official guidance: [Agent teams](https://code.claude.com/docs/en/agent-teams) and
   [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
 
@@ -139,11 +139,16 @@ However the mode ends, you (the lead) finish it:
 - **Research / review / debugging** → **synthesize** into one cited artifact. Resolve conflicts
   explicitly (§1). For an architecture decision, record the resolved calls as a **new `[D#]`** in
   [`docs/decisions.md`](../../../docs/decisions.md) (decisions are immutable — supersede, never
-  edit). Persist the trail to the repo (mirror `docs/audit/` or `docs/handbook/process/`) so the
+  edit). Persist the trail to the repo (mirror `docs/audit/` or `docs/handbook/making-of/`) so the
   next session has external memory, not a lost context window.
-- **Coding** → each teammate hands off a **complete, gate-green slice** over its own files; **you
-  curate history** (rebase onto `main`, squash fix-ups, reorder, drop false starts) and
-  **squash-merge** with a deliberate PR body. Never commit to `main`. Full mechanics:
-  [`docs/handbook/git-and-pr-workflow.md`](../../../docs/handbook/git-and-pr-workflow.md) §6.
+- **Coding** → each teammate hands off a **complete, gate-green slice** over its own files. Before a
+  slice enters the PR, run **one fresh, adversarial QA per coding agent** (`[D26]`) — a fresh
+  reviewer, never the author, that **tries to break** the slice and writes the missing test cases
+  (edge / error / boundary / malformed input, both schemes); the owning agent fixes, QA re-checks
+  (the dev↔QA loop — same shape solo, just one author→one QA). Then **you curate history** (rebase
+  onto `main`, squash fix-ups, reorder, drop false starts) and **squash-merge** with a deliberate PR
+  body. Never commit to `main`. Full mechanics:
+  [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md) §6.2 (QA loop)
+  and [`docs/handbook/git-and-pr-workflow.md`](../../../docs/handbook/git-and-pr-workflow.md) §6 (curate/merge).
 - **Shut down** teammates by name when done; the team's directories clean up automatically when the
   session ends.

@@ -1,4 +1,4 @@
-# Run record — Phase 3 carried items (draft-content rendering + project notes/tags)
+# Session record — Phase 3 carried items (draft-content rendering + project notes/tags)
 
 - **Date:** 2026-06-24
 - **Mode:** **solo, step-by-step** (lead session; no team) — the two items are sequential and overlap
@@ -51,6 +51,23 @@ the experience) — each self-guards to `null` when empty. Titles/tags are **pla
 there are no individual-note or tag-archive routes yet, so linking would dead-end; the notes stay
 real Sanity references `[D16]` and become links when such a route lands. The GROQ query is unchanged,
 so TypeGen doesn't drift. Minimal CSS only (a styling pass is explicitly deferred).
+
+## QA log [D26]
+
+_Retrofit: this session predates [D26], but it is the sharpest live illustration of why [D26] says
+**adversarial** — the primed first pass confirmed the design and found nothing; the unprimed,
+break-it second pass caught the real defects. Detail in the section below._
+
+| Slice                            | Author       | QA agent (fresh)                                                                               | Verdict                               | Tests added                              |
+| -------------------------------- | ------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------- |
+| draft `sanityFetch` + notes/tags | main session | (1) primed `code-reviewer` — _insufficient_; (2) fresh adversarial `general-purpose` + browser | ship-with-fixes (2 fixed, 1 deferred) | `getClient` fail-loud guard (3 branches) |
+
+**Defects (detail below):** 1) Prettier blocker in `getClient.test.ts` → `pnpm format` → fixed
+(would have gone red in CI). 2) Missing test for the `getClient(true)` fail-loud guard → added,
+pins all three branches. 3) App-wide `@layer` order inversion (pre-existing) → **deferred**.
+**Couldn't test locally (flagged, not faked):** the draft happy-path — no `SANITY_API_READ_TOKEN` +
+empty dataset. **Deferred from QA:** the `@layer` inversion → `build-phases.md` "Known defect — fix
+next" (pre-existing, defeats `[D12]`'s intent).
 
 ## The QA story — honestly
 

@@ -144,7 +144,7 @@ The shape (as practiced in `audit/`):
 
 1. **Research, with citations.** Pin every claim to a primary source — bundled docs, a
    spec URL, or a `[D#]`. Verbose fetching/log-crunching happens in isolated subagents that
-   return a **dense, cited digest** (see the `process/research/` notes R1–R6, and §5).
+   return a **dense, cited digest** (see the `making-of/research/` notes R1–R6, and §5).
 2. **N independent drafts.** Diverse role-lenses draft _independently, before seeing each
    other's work_ — the audit's five lenses (Architect, FrameworkFit, Theming, ContentModel,
    Sequencing). Diversity is what makes the next step work; identical agents add nothing.
@@ -195,7 +195,7 @@ Context doesn't carry across a handoff — the mechanics of self-contained-in / 
 live in §5. This section is what to do _between_ handoffs:
 
 - **Persist phase summaries to the repo before re-spawning.** External memory (the docs
-  themselves — this handbook, `decisions.md`, the `process/` notes) beats context-window
+  themselves — this handbook, `decisions.md`, the `making-of/` notes) beats context-window
   stuffing for long, multi-session efforts
   ([Anthropic — Multi-Agent Research](https://www.anthropic.com/engineering/multi-agent-research-system)).
   A prompt that says "continue what we were doing" fails; a pointer to a written summary doesn't.
@@ -205,6 +205,19 @@ live in §5. This section is what to do _between_ handoffs:
   it, so the story is told once in the PR (see §6.1 and
   [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §6) — but that's about _history_, not
   about lowering the bar on a handoff.
+
+**Every coding session has a lead and an independent, adversarial QA pass — staffing just scales
+([D26]).** A run is never "write code, open a PR." It always has a **lead** and a **fresh QA** step
+between developer-done and the PR, whether one Claude or ten do the work:
+
+- **Solo session** — one Claude **is** the lead and the sole author. It does the work, then spawns **one
+  fresh QA agent** to try to break it before the PR.
+- **Team session** — the lead manages N coding agents over distinct slices and spawns **one fresh QA
+  agent per coding agent**, each trying to break the slice it reviews before that slice enters the PR.
+
+The split below is written team-first, but **solo is the degenerate case**: lead and author collapse
+into one agent; the slice count is one; the dev↔QA loop (§6.2) is identical and still mandatory. The
+QA is always **adversarial** and always **fresh** — never the agent that wrote the code.
 
 ### 6.1 Agent teams: each agent owns a slice; the lead curates history
 
@@ -226,28 +239,41 @@ deliverable." Split the responsibility cleanly:
   `--force`) so a teammate's concurrent push isn't clobbered. Full mechanics:
   [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §6.
 
-### 6.2 The team lead runs the loop: permissions · QA · merge-readiness
+### 6.2 The lead runs the loop: permissions · adversarial QA · merge-readiness
 
-§6.1 splits _ownership_; this is what the lead actively **runs** during a team session. The
-lead is the run's single point of contact with the owner — **the owner directs the run, not
+§6.1 splits _ownership_; this is what the lead actively **runs** during **any** session — solo or team.
+(On a solo session the lead is also the sole author; the loop is the same, with one slice and one QA.)
+The lead is the session's single point of contact with the owner — **the owner directs the session, not
 each tool call.**
 
-- **Own the permission surface — don't make the owner babysit.** Set the run's permission
+- **Own the permission surface — don't make the owner babysit.** Set the session's permission
   posture once at spawn (the `agent-team` skill's preflight covers the spawn-time mechanic),
-  then resolve teammates' permission requests on the run's behalf: batch them and
+  then resolve teammates' permission requests on the session's behalf: batch them and
   decide. Escalate to the owner only for genuinely out-of-policy actions — something
   destructive or outward-facing, anything a `[D#]` forbids, anything that spends real money or
   touches production — with a one-line _what + why_. The default is **the lead clears the
   path**, not _the owner approves each call_.
 
-- **Independent QA before the PR — run a dev↔QA loop.** A gate-green slice is
-  _developer-done_, not _review-done_ — the §3 self-check and the green gate are necessary, not
-  sufficient. Before a slice enters the PR, the lead spawns a **fresh** code-review subagent
-  (`pr-review-toolkit:code-reviewer` / `feature-dev:code-reviewer`, or the `/code-review`
-  skill) to **independently review and test it** — _fresh_ meaning **not** the agent that wrote
-  it; an isolated context is the whole point (brief it per §5). The loop mirrors dev↔QA:
+- **Independent, adversarial QA before the PR — run a dev↔QA loop ([D26]).** A gate-green slice is
+  _developer-done_, not _review-done_ — the §3 self-check and the green gate prove the author's own
+  intent, not that the work survives someone trying to break it. **Every** session does this, scaled to
+  its staffing: a solo session spawns **one** fresh QA for its own work; a team session spawns **one fresh QA
+  per coding agent**. Before a slice enters the PR, the lead spawns a **fresh** QA subagent
+  (`pr-review-toolkit:code-reviewer` / `feature-dev:code-reviewer`, or the `/code-review` skill) —
+  _fresh_ meaning **not** the agent that wrote it; an isolated context is the whole point (brief it
+  per §5). **QA is adversarial, not a once-over:**
+  - **Try to break it — think like a QA engineer on a product team.** Don't just confirm the happy
+    path renders. Attack the edges the author optimized past: malformed / boundary / empty / hostile
+    input (a garbage `brandColor` → safe fallback, never a throw [D9]), the error and not-found
+    paths, both color schemes, the interaction/focus floor on any rendered surface. **Write the
+    missing test cases** the author didn't — co-located, meaningful (see [`./testing.md`](./testing.md)) —
+    and prove the break with a failing case before it's fixed. (This is exactly what worked well in
+    practice — QA agents that hunted for breaks, rather than skimming the diff, caught the real
+    defects.) Keep critiques **fact-grounded** — cite a `[D#]`, a bundled doc, or a failing test, not
+    vibes.
   - **The reviewer reviews; the author fixes — don't collapse the two.** Findings go back to
-    the **owning agent**, which makes the changes; then QA reviews **again**. Repeat until clean.
+    the **owning agent** (on a solo session, that's the lead wearing its author hat — but the QA pass is
+    still a separate, fresh agent), which makes the changes; then QA reviews **again**. Repeat until clean.
   - **Fix in-scope now; defer only genuinely-later work.** Anything in the current slice's or
     phase's scope gets **fixed before the PR**. A finding is deferred only when it truly belongs
     to a later phase — it needs a package boundary that doesn't exist yet, a future consumer, or
@@ -265,17 +291,24 @@ each tool call.**
   invoke it for a second opinion and treats anything it surfaces like QA's findings, but it's a
   tool, not a gate. Only then does the lead curate history (§6.1) and squash-merge.
 
-- **Close the run — every run ends with two writes (non-negotiable).** Before the squash-merge,
-  the run produces both, or it isn't done:
+- **Close the session — every session ends with two writes (non-negotiable).** A session is one
+  team's (or the solo lead's) sitting: it ends when the team stops — whether it _completed_ the unit
+  of work or stopped at a good handoff point (between tasks, so QA can run and a PR can open) for the
+  next team to pick up. At that point, and before any squash-merge, the session produces both, or it
+  isn't done:
   1. **Update the project [`README.md`](../../README.md)** so it still describes the repo as it now
      is — at minimum the **Status** line (phase progress) and any changed scripts, structure, or
      conventions. The README is human-facing and rots silently; a stale "Phase 0 complete" is the
      smell this rule exists to kill. (The per-task echo of this is the DoD §6 "docs updated" box;
-     this makes it a hard **run-level** requirement, not a maybe.)
-  2. **Write the run record** in [`../runs/`](../runs) (`YYYY-MM-DD-<slug>.md`) — why / shape /
-     outcome / review + fixes / lessons, per [`../runs/README.md`](../runs/README.md) — and add its
-     row to that index. This is the repo's external memory; a run that did real product work and
-     left no record is invisible to the next session. Applies to **solo runs too**, not just teams.
+     this makes it a hard **session-level** requirement, not a maybe.)
+  2. **Write the session record** in [`../sessions/`](../sessions) (`YYYY-MM-DD-<slug>.md`) — why / shape /
+     outcome / **QA log** / lessons, per [`../sessions/README.md`](../sessions/README.md) — and add its
+     row to that index. This is the repo's external memory; a session that did real product work and
+     left no record is invisible to the next session. The **QA log is the durable evidence of the
+     dev↔QA loop** (`[D26]`): one entry per coding agent — what QA probed, what passed, each defect
+     → fix → re-check, and the tests QA added. The green gate is not that evidence; the log is.
+     Record each slice's entry **as its loop closes**, not reconstructed at the end. Applies to
+     **solo sessions too**, not just teams.
 
 ## 7. Keeping agents from drifting the architecture — quick gate
 

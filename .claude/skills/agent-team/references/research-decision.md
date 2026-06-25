@@ -8,14 +8,14 @@
 
 The repo has run this twice end-to-end — study them as templates:
 [`docs/audit/`](../../../../docs/audit/) (five-lens architecture audit) and
-[`docs/handbook/process/`](../../../../docs/handbook/process/) (research → drafts → debate → synthesis).
+[`docs/handbook/making-of/`](../../../../docs/handbook/making-of/) (research → drafts → debate → synthesis).
 
 ## The shape: research → N independent drafts → adversarial debate → cited synthesis
 
 **1. Research, with citations.** Pin every claim to a primary source — the bundled docs
 (`node_modules/next/dist/docs/`), a spec URL, or a `[D#]`. Isolate verbose fetching/log-crunching
 in subagents (or research-phase teammates) that return a **dense, cited digest**. The repo's
-[`docs/handbook/process/research/`](../../../../docs/handbook/process/research/) R1–R6 notes are the
+[`docs/handbook/making-of/research/`](../../../../docs/handbook/making-of/research/) R1–R6 notes are the
 output shape to aim for.
 
 **2. N independent drafts — diversity is the whole point.** Spawn one teammate per **distinct
@@ -51,5 +51,5 @@ texture: a critique is only valid if it cites the source that _actually contains
 
 - 3–5 lens teammates + you as lead/synthesizer. Name them by lens.
 - Require **plan approval** if any teammate will write code as part of the decision.
-- Keep each lens's draft in its **own file** (e.g. `process/round-1-drafts/<lens>.md`) so no two
+- Keep each lens's draft in its **own file** (e.g. `making-of/round-1-drafts/<lens>.md`) so no two
   teammates write the same file.

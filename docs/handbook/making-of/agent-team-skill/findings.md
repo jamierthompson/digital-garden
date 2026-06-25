@@ -1,6 +1,6 @@
 # Findings — With-Skill vs. Baseline
 
-This trail's analogue of the debate round ([`../round-2-debate/`](../round-2-debate/)): the plans in [`runs/`](./runs/)
+This trail's analogue of the debate round ([`../round-2-debate/`](../round-2-debate/)): the plans in [`eval-runs/`](./eval-runs/)
 graded against the [`eval-design.md`](./eval-design.md) assertions, and the head-to-head that drove the
 iteration. Grading is assertion-pass-rate, judged by the lead from the verbatim outputs.
 
@@ -18,13 +18,13 @@ traps — no with-skill plan spawned a team against a non-existent target.
 
 ## Where the skill clearly added value
 
-- **Decision ([`runs/decision-with-skill.md`](./runs/decision-with-skill.md)):** the strongest single
+- **Decision ([`eval-runs/decision-with-skill.md`](./eval-runs/decision-with-skill.md)):** the strongest single
   artifact. It read `docs/decisions.md` first, found **`[D5]` already chose `light-dark()`**, and
   reframed the entire job: a team here is "a deliberate re-litigation to either reaffirm with fresh
   evidence or **supersede** — decisions are immutable." It planned a `D24 — reaffirms/supersedes D5`
   record and a persisted `round-1/round-2/synthesis` trail. This is the handbook's ADR discipline
   applied without being told.
-- **Coding ([`runs/coding-with-skill.md`](./runs/coding-with-skill.md)):** spotted that
+- **Coding ([`eval-runs/coding-with-skill.md`](./eval-runs/coding-with-skill.md)):** spotted that
   data→component→tests is a _sequential dependency chain_, and neutralized it with a **frozen contract**
   (field shape + props + component key fixed in the briefs) so all three slices code in parallel against
   it. File-ownership table with a **single writer** for the generated `sanity.types.ts`. Gate-green
@@ -37,17 +37,17 @@ pattern, the handbook-reading baselines were excellent too — and on two points
 with-skill runs:
 
 1. **Tool selection / over-spawning.**
-   [`runs/debug-baseline.md`](./runs/debug-baseline.md) argued that **diagnosis is read-only and belongs
+   [`eval-runs/debug-baseline.md`](./eval-runs/debug-baseline.md) argued that **diagnosis is read-only and belongs
    in parallel subagents**, reserving a true **team for the multi-file fix** — and only if the fix
-   crosses ≥2 owned file sets. [`runs/debug-with-skill.md`](./runs/debug-with-skill.md) instead spawned a
+   crosses ≥2 owned file sets. [`eval-runs/debug-with-skill.md`](./eval-runs/debug-with-skill.md) instead spawned a
    4-agent team for diagnosis itself. The skill's §0 had the team-vs-subagent gate but the mode
    references assumed "you've decided on a team" and didn't re-test staffing per phase. **The baseline's
    instinct was the better one.**
 
 2. **Knowing the existing capabilities.**
-   [`runs/review-baseline.md`](./runs/review-baseline.md) built a full options table that named
+   [`eval-runs/review-baseline.md`](./eval-runs/review-baseline.md) built a full options table that named
    **`pr-review-toolkit:review-pr`** as the ~80% substitute ("honest call: it covers ~80% of this") and
-   `/code-review` as the fast single-pass. [`runs/review-with-skill.md`](./runs/review-with-skill.md)
+   `/code-review` as the fast single-pass. [`eval-runs/review-with-skill.md`](./eval-runs/review-with-skill.md)
    mapped lenses onto `pr-review-toolkit:*` agents but **never surfaced the existing review-pr
    orchestrator** as the lighter-first option. The skill should make the agent _more_ aware of existing
    tools, not less.

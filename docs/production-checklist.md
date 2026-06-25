@@ -3,7 +3,7 @@
 A standalone, durable checklist of what must be true for a **production deploy to actually work** —
 the env-side and Sanity-side setup the build alone doesn't verify (the build can pass while Preview,
 Visual Editing, or even content rendering are misconfigured). It lives at `docs/` root, not inside a
-run record or PR body, so it doesn't get buried.
+session record or PR body, so it doesn't get buried.
 
 > **Merge to `main` = a production deploy on Vercel.** Run the one-time items before the first
 > production deploy (and again whenever the environment changes); run the every-deploy items each

@@ -62,7 +62,7 @@ project, and proves the genuinely version-dependent unknowns before any subsyste
 - [√] **Prove the no-throw path:** stub `ProjectScope` returns a safe fallback on missing/invalid seed and **never throws**; wrap it in `unstable_catchError` (§6, §7) `[D9]`
 - [√] **Empirical `<head>` check:** `pnpm build` → inspect `/work/<slug>` for `<link rel="preload" as="font">` and confirm the `preload:false` policy holds (§5) `[D11]`
 
-_Done 2026-06-23 (PR #9, `a36c5fd`) — verdicts in [`runs/2026-06-23-phase-0.5-walking-skeleton.md`](./runs/2026-06-23-phase-0.5-walking-skeleton.md)._
+_Done 2026-06-23 (PR #9, `a36c5fd`) — verdicts in [`sessions/2026-06-23-phase-0.5-walking-skeleton.md`](./sessions/2026-06-23-phase-0.5-walking-skeleton.md)._
 
 **Exit:** a hardcoded project renders flash-free through the stub scope on Vercel; verified
 precedence/flush + correct layered cascade on the real Next 16 / React 19 build; `ProjectScope`
@@ -144,8 +144,8 @@ pages are live and themed; RSS + draft mode work; error/not-found/loading states
 metadata emitted; integration test green.
 
 _Done 2026-06-24 (PR #20) via an agent team (Core/Studio/Data/Shell) — lead-curated, fresh-QA'd
-(handbook §6.2), `[D25]` browser-verified. **Phase 3 complete.** Run record:
-[`runs/2026-06-24-phase-3-first-vertical-slice.md`](./runs/2026-06-24-phase-3-first-vertical-slice.md).
+(handbook §6.2), `[D25]` browser-verified. **Phase 3 complete.** Session record:
+[`sessions/2026-06-24-phase-3-first-vertical-slice.md`](./sessions/2026-06-24-phase-3-first-vertical-slice.md).
 Two follow-ups carried forward (draft-content rendering; detail-query `notes`/`tags`) — tracked in
 the housekeeping block below._
 
@@ -177,22 +177,22 @@ local embed tier introduced without a real second consumer.
 > real that's genuinely **cross-phase** — it needs a package boundary that doesn't exist yet, a
 > future consumer, or later-phase work — the team lead files it here under the phase that should
 > pick it up, with its **PR#** and a one-line reason. In-scope findings are fixed in-branch before
-> the PR, not deferred. Group new entries by run.
+> the PR, not deferred. Group new entries by session.
 
-**2026-06-23 run — PRs #8–#11** — surfaced on the Phase 0.5 / parallel build; none blocked their
-PR. Run record:
-[`runs/2026-06-23-phase-0.5-walking-skeleton.md`](./runs/2026-06-23-phase-0.5-walking-skeleton.md).
+**2026-06-23 session — PRs #8–#11** — surfaced on the Phase 0.5 / parallel build; none blocked their
+PR. Session record:
+[`sessions/2026-06-23-phase-0.5-walking-skeleton.md`](./sessions/2026-06-23-phase-0.5-walking-skeleton.md).
 
-**2026-06-24 run — PRs #14–#16** — the gated fast-follows: real `ProjectScope` (Phase 1, PR #14),
+**2026-06-24 session — PRs #14–#16** — the gated fast-follows: real `ProjectScope` (Phase 1, PR #14),
 `cardSwatches` + live key-drift (Phase 2, PRs #15/#16), and the two minor engine cleanups. The
 pre-PR dev↔QA loop ([`handbook/working-with-agents.md`](./handbook/working-with-agents.md) §6.2)
 caught three gate-invisible defects — a latent `next/font` build break, a key-drift guard that
 false-passed on brace-bearing comments, and a WCAG-AA contrast failure from stub→engine token-name
-drift — **all fixed in-branch before their PR**, so nothing from this run is deferred except the
-pre-existing Phase-2 `brandColor`-validation package-boundary item below. Run record:
-[`runs/2026-06-24-phase-1-projectscope.md`](./runs/2026-06-24-phase-1-projectscope.md).
+drift — **all fixed in-branch before their PR**, so nothing from this session is deferred except the
+pre-existing Phase-2 `brandColor`-validation package-boundary item below. Session record:
+[`sessions/2026-06-24-phase-1-projectscope.md`](./sessions/2026-06-24-phase-1-projectscope.md).
 
-**2026-06-24 run — PR #18 (solo + fresh QA)** — the last open Phase-2 item, the cross-phase
+**2026-06-24 session — PR #18 (solo + fresh QA)** — the last open Phase-2 item, the cross-phase
 package-boundary one: engine-backed `brandColor` validation. Extracted the OKLCH engine into the
 shared **`@garden/oklch`** workspace package both the app and the standalone Studio depend on
 `[D23]`, then swapped the Studio's regex validation for the engine's own pipeline `[D9]`. Solo
@@ -201,10 +201,10 @@ pass** (`pr-review-toolkit:code-reviewer`) per §6.2 — it re-ran the gate, pro
 fails-closed at the new path, and verified the validation behavior changes. QA surfaced one class
 of finding: **doc-rot the move introduced** (living docs still located the engine at the deleted
 `src/lib/oklch/`), **all fixed in-branch** (AGENTS.md guardrail, engineering-standards, orientation,
-README, architecture-plan, testing). Nothing deferred from this run. Run record:
-[`runs/2026-06-24-phase-2-engine-backed-validation.md`](./runs/2026-06-24-phase-2-engine-backed-validation.md).
+README, architecture-plan, testing). Nothing deferred from this session. Session record:
+[`sessions/2026-06-24-phase-2-engine-backed-validation.md`](./sessions/2026-06-24-phase-2-engine-backed-validation.md).
 
-**2026-06-24 run — PR #20 (Phase 3, agent team)** — the first vertical slice, the whole of Phase 3
+**2026-06-24 session — PR #20 (Phase 3, agent team)** — the first vertical slice, the whole of Phase 3
 in one curated PR. A 4-agent team over **file-disjoint slices, each in its own git worktree**:
 **Core** (the `first-light` project end-to-end — module, `/work` index + `[slug]` route, PT
 serializer, states, metadata, integration test), **Studio** (blurb cap + `siteSettings` singleton),
@@ -221,10 +221,10 @@ token for heading text; thin-page scaffold comment); two items were **deferred a
 (draft-content rendering; detail-query `notes`/`tags` — both in the housekeeping block above). Two
 real Sanity docs were seeded (the `first-light` project + the `siteSettings` singleton). _Flagged for
 ops: the Studio schema isn't yet deployed to the hosted Content Lake (`sanity:deploy-schema`) — not
-needed for the build, but Presentation/visual-editing and MCP schema validation want it._ Run record:
-[`runs/2026-06-24-phase-3-first-vertical-slice.md`](./runs/2026-06-24-phase-3-first-vertical-slice.md).
+needed for the build, but Presentation/visual-editing and MCP schema validation want it._ Session record:
+[`sessions/2026-06-24-phase-3-first-vertical-slice.md`](./sessions/2026-06-24-phase-3-first-vertical-slice.md).
 
-**2026-06-24 run — PR #21 (Phase 3 carried items, solo)** — the two carry-overs from PR #20 (lines
+**2026-06-24 session — PR #21 (Phase 3 carried items, solo)** — the two carry-overs from PR #20 (lines
 below), closed in one curated PR. **Item 1:** a shared `sanityFetch` is now the single content read
 path across `/work`, `/work/<slug>`, `layout` siteSettings, and `/notes`. The original sketch (read
 `draftMode()` _outside_ `use cache`) was **superseded by the version-exact bundled docs**: under
@@ -238,8 +238,8 @@ pass was a _primed static_ `code-reviewer` (it confirmed the design but ran no s
 which (a) caught a Prettier blocker I'd committed without re-running `format:check` (fixed), (b)
 surfaced that `getClient`'s fail-loud draft-token guard had no test (added), and (c) **found a
 pre-existing, app-wide `@layer` inversion** (below). The live draft happy-path was **not** verifiable
-locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not faked. Run record:
-[`runs/2026-06-24-phase-3-carried-items.md`](./runs/2026-06-24-phase-3-carried-items.md).
+locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not faked. Session record:
+[`sessions/2026-06-24-phase-3-carried-items.md`](./sessions/2026-06-24-phase-3-carried-items.md).
 
 **Phase 1 — real `ProjectScope` (swaps the stub palette → engine output):**
 
@@ -255,7 +255,7 @@ locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not
   `isBrandColorString` now runs the engine's own pipeline (`buildTokenSet`) and accepts iff the
   engine won't fall back — author-time validation equals the render-time contract `[D9]`. The
   `[D14]` isomorphism guard moved with the engine (a dedicated `eslint` block on
-  `packages/oklch/**`). _`keys.ts` still awaits its own shared-package move (Phase 4) — this run
+  `packages/oklch/**`). _`keys.ts` still awaits its own shared-package move (Phase 4) — this session
   built the package pattern the Studio needed; `keys.ts` can join `@garden/oklch` or take its own
   package when that work lands._
 

@@ -31,7 +31,7 @@ The stack, verified — do not contradict it:
 docs/
   architecture-plan.md     the system model (§N anchors referenced everywhere)
   build-phases.md          the risk-retirement build sequence (Phases 0–4)
-  decisions.md             ADRs D1–D25 — BINDING. Cite as [D#].
+  decisions.md             ADRs D1–D26 — BINDING. Cite as [D#].
   audit/                   five-lens → debate → synthesis trail (how the decisions were reached)
   handbook/                THIS handbook — how we work (see "Which doc for which task")
 AGENTS.md                  lean pointer for agents; @-imports into CLAUDE.md
@@ -82,7 +82,7 @@ These are the things that silently break this specific stack, or that the owner 
 
 **Use the capabilities you have.** Before hand-rolling or web-searching, check for a skill / subagent / MCP tool that already fits — `sanity:*`, `vercel:*` (incl. `nextjs`, `next-cache-components`), `chrome-devtools` (CWV / a11y audits), `Explore`, `feature-dev:*`. The full discovery list + source-of-truth ladder is [`./working-with-agents.md`](./working-with-agents.md) §1.
 
-**This is not the Next.js in your training data — verify in `node_modules/next/dist/docs/` before writing framework code.** The model-breaking facts (all confirmed against the bundled docs; see [`./accessibility-and-performance.md`](./accessibility-and-performance.md), [`./security-and-ops.md`](./security-and-ops.md), and the research notes in [`./process/research/`](./process/research/)):
+**This is not the Next.js in your training data — verify in `node_modules/next/dist/docs/` before writing framework code.** The model-breaking facts (all confirmed against the bundled docs; see [`./accessibility-and-performance.md`](./accessibility-and-performance.md), [`./security-and-ops.md`](./security-and-ops.md), and the research notes in [`./making-of/research/`](./making-of/research/)):
 
 - **Request APIs are async** — `cookies()`, `headers()`, `draftMode()`, and route `params` / `searchParams` are all `await`-able Promises.
 - **`export const dynamic` / `force-static` no longer apply.** With Cache Components, static-vs-dynamic is a **component-level** concern decided by `use cache` placement and where request-time APIs are touched. A route is a **prerendered shell with dynamic holes** (PPR). Uncached data outside `<Suspense>` is a **build-time hard error** [D11].
@@ -99,7 +99,7 @@ These are the things that silently break this specific stack, or that the owner 
 - **TypeScript discipline:** `@/*` alias not deep relative chains; `interface` for extensible object shapes, `type` for unions/intersections; **no `any`** (use `unknown`, then narrow); type params + returns.
 - **Never hardcode secrets** — env vars only; keep `.env.example` current; `.env*` is gitignored. The Sanity **project ID / dataset are public** by design (plain env in `ci.yml`); a Sanity **token is secret**, server-side only, never `NEXT_PUBLIC_*`.
 - **Before committing:** code runs, lint passes, `pnpm format` clean, diff reviewed (no debug logs, no commented-out code, no unrelated changes). The full Definition of Done is [`./definition-of-done.md`](./definition-of-done.md).
-- **Docs are everyone's job — see something, say something.** These docs are the source of truth, so a stale one actively misleads. If you notice _any_ doc that's wrong, outdated, or contradicts the code — even outside your task — fix it in your branch when it's a quick, safe correction, or flag it to the owner when it isn't. Don't walk past a stale path, a dead script reference, or a "Phase 0 complete" that isn't true. Keeping a doc current is never "not my task." (Closing a run has its own hard doc requirement — README + run record; see [`./working-with-agents.md`](./working-with-agents.md) §6.2.)
+- **Docs are everyone's job — see something, say something.** These docs are the source of truth, so a stale one actively misleads. If you notice _any_ doc that's wrong, outdated, or contradicts the code — even outside your task — fix it in your branch when it's a quick, safe correction, or flag it to the owner when it isn't. Don't walk past a stale path, a dead script reference, or a "Phase 0 complete" that isn't true. Keeping a doc current is never "not my task." (Closing a session has its own hard doc requirement — README + session record; see [`./working-with-agents.md`](./working-with-agents.md) §6.2.)
 
 ---
 
@@ -124,7 +124,8 @@ These are the things that silently break this specific stack, or that the owner 
    ```
    Fix formatting with `pnpm format` — never by hand.
 7. **If you touched the Studio schema**, the `typegen` step above will have rewritten `sanity.types.ts` — **commit it**. This is the easiest gate to trip [D23]: CI regenerates and `git diff --exit-code`s the types unconditionally before `build`, so a stale `sanity.types.ts` fails CI even on app-only changes.
-8. **Curate, then open a PR into `main`.** The lead rebases onto `main` and squashes/reorders the branch into a gate-green tip, then opens the PR — one purpose; the description says what/why/testing and **is** the squash-commit story. All tasks done before opening — no checklists with unfinished items. CI green → **squash-merge**; delete the branch after.
+8. **Independent adversarial QA before the PR** [D26]. Gate-green is _developer-done_, not _review-done_. A **fresh** agent — never the one that wrote the code — tries to **break** the slice (edge / error / boundary / malformed-input cases, both schemes), writes the missing test cases a product-team QA engineer would, and the owning author fixes; QA re-checks until clean. This happens on **every** session, scaled to staffing: a solo session is one Claude as lead + author that spawns one fresh QA for its own work; a team session is the lead spawning one fresh QA per coding agent. See [`./working-with-agents.md`](./working-with-agents.md) §6.2.
+9. **Curate, then open a PR into `main`.** The lead rebases onto `main` and squashes/reorders the branch into a gate-green tip, then opens the PR — one purpose; the description says what/why/testing and **is** the squash-commit story. All tasks done before opening — no checklists with unfinished items. CI green → **squash-merge**; delete the branch after.
 
 ---
 
@@ -140,6 +141,7 @@ These are the things that silently break this specific stack, or that the owner 
 | When a task is "done" (the pre-push / pre-merge bar)              | [`./definition-of-done.md`](./definition-of-done.md)                       |
 | Writing tests, dual-env engine tests, co-location, E2E timing     | [`./testing.md`](./testing.md)                                             |
 | How agents collaborate, handoffs, the audit/debate shape          | [`./working-with-agents.md`](./working-with-agents.md)                     |
+| Independent adversarial QA before a PR (solo or team)             | [`./working-with-agents.md`](./working-with-agents.md) §6.2                |
 | Opening / superseding an ADR                                      | [`./decision-records.md`](./decision-records.md)                           |
 | Contrast targets (APCA/WCAG), focus rings, fonts, Core Web Vitals | [`./accessibility-and-performance.md`](./accessibility-and-performance.md) |
 | Secrets, Sanity tokens, draft mode, Vercel deploys/rollbacks      | [`./security-and-ops.md`](./security-and-ops.md)                           |
