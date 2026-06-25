@@ -291,8 +291,10 @@ each tool call.**
   invoke it for a second opinion and treats anything it surfaces like QA's findings, but it's a
   tool, not a gate. Only then does the lead curate history (§6.1) and squash-merge.
 
-- **Close the run — every run ends with two writes (non-negotiable).** Before the squash-merge,
-  the run produces both, or it isn't done:
+- **Close the run — every run (session) ends with two writes (non-negotiable).** A run **is** a
+  session: it ends when the team stops — whether it _completed_ the unit of work or stopped at a good
+  handoff point (between tasks, so QA can run and a PR can open) for the next team to pick up. At that
+  point, and before any squash-merge, the run produces both, or it isn't done:
   1. **Update the project [`README.md`](../../README.md)** so it still describes the repo as it now
      is — at minimum the **Status** line (phase progress) and any changed scripts, structure, or
      conventions. The README is human-facing and rots silently; a stale "Phase 0 complete" is the

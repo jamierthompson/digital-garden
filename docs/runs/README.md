@@ -1,10 +1,14 @@
 # Run records — project work
 
-A durable, append-only log of every **multi-agent run that did real project work** in this repo:
-**why** it was run, how it was structured, and the **outcome**. One file per run, named
-`YYYY-MM-DD-<slug>.md`. This is the repo's external memory for orchestration — so the next session
-(or a future you) can see what was attempted and how it landed without re-reading a lost context
-window.
+A durable, append-only log of every **run that did real project work** in this repo: **why** it was
+run, how it was structured, and the **outcome**. One file per run, named `YYYY-MM-DD-<slug>.md`.
+
+**A run is a session** — one team's (or the solo lead's) sitting at the work. A run record is written
+at the **end of every session**, whether that session _completed_ a unit of work (e.g. a whole phase)
+or stopped at a good handoff point (between tasks, so QA can run and a PR can open). A unit of work
+often spans **several** sessions; each session is its own run with its own record. The record is the
+repo's external memory and the **handoff to the next team** that picks up the incomplete work — so it
+can see what was attempted and how it landed without re-reading a lost context window.
 
 > **This is not the same as the skill-evaluation runs.** The runs under
 > [`../handbook/process/agent-team-skill/runs/`](../handbook/process/agent-team-skill/runs/) are
