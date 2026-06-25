@@ -27,7 +27,7 @@ differ). Public vars ship to the browser; the read token must not.
 ### Sanity project — [sanity.io/manage](https://sanity.io/manage)
 
 - [ ] **CORS origins** — add the production domain **and** Vercel preview URLs (Sanity → API → CORS Origins). Never wildcard-with-credentials. Required before Preview / Visual Editing will work. (security-and-ops §3)
-- [ ] **Deploy the Studio schema to the Content Lake** — from the `studio/` workspace run `npx sanity schema deploy` (or use the `sanity:deploy-schema` skill). **Not** required for the Next build, but Presentation / Visual Editing and Sanity MCP schema validation rely on the deployed schema. _As of Phase 3 the schema is modeled but not yet deployed._
+- [ ] **Deploy the Studio schema to the Content Lake** — run **from CI**: GitHub → Actions → **Deploy Sanity Schema** → Run workflow (it also auto-runs on a `main` push touching `studio/schemaTypes/**`, `sanity.config.ts`, or `sanity.cli.ts`). The workflow runs `sanity schemas deploy` on Ubuntu with the `SANITY_DEPLOY_TOKEN` repo secret. **Local `sanity schemas deploy` is not an option** — it loads Rolldown's native binary (`@rolldown/binding-darwin-x64`), which SIGABRTs on the owner's darwin-x64 machine (reproduced on `@sanity/cli` 7.2.3 + 7.4.0 and Node 20 + 22); CI/linux-x64 works (PR #25). **Not** required for the Next build, but Presentation / Visual Editing and Sanity MCP schema validation rely on the deployed schema. _As of Phase 3 the schema is modeled; deploy it via the workflow before exercising Preview._
 - [ ] **Deploy the Studio itself** (where editors sign in) — `pnpm --filter studio deploy` (= `sanity deploy`), then point `NEXT_PUBLIC_SANITY_STUDIO_URL` at its URL.
 
 ### Required content (in the `production` dataset)
@@ -39,7 +39,7 @@ differ). Public vars ship to the browser; the read token must not.
 
 - [ ] **Full gate green locally** before pushing — the CI `verify` chain (see AGENTS.md "Pre-flight checks"). CI re-runs it on the PR and is the guard before prod `[D17, D19]`.
 - [ ] Reach `main` **only via squash-merge of a reviewed PR** — never commit to `main` (merge deploys to prod). (security-and-ops §4, git-and-pr-workflow §6)
-- [ ] After any **Studio schema change**: commit the regenerated root `sanity.types.ts` (CI diff-checks it `[D23]`) **and** re-run the schema deploy above so the Content Lake matches the code.
+- [ ] After any **Studio schema change**: commit the regenerated root `sanity.types.ts` (CI diff-checks it `[D23]`). The schema redeploy is **automated** — the **Deploy Sanity Schema** workflow runs on `main` pushes that touch the schema (or dispatch it manually) so the Content Lake matches the code.
 
 ## If prod breaks
 
