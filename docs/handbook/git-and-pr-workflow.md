@@ -212,9 +212,12 @@ deliberately.
   `git log` and find only this. A short, ordered "what landed" list earns its place here.
 - **No checklists with unfinished items.** All tasks are done before the PR opens — the PR is a
   finished unit of work, not a progress tracker.
-- **Passed independent QA.** On a team branch, every slice clears a **fresh** code-review subagent
-  (dev↔QA loop) before it enters the PR — gate-green is _developer-done_, not _review-done_. The
-  lead owns this; mechanics in [./working-with-agents.md](./working-with-agents.md) §6.2.
+- **Passed independent, adversarial QA `[D26]`.** Every slice — solo or team — clears a **fresh**
+  QA subagent (the dev↔QA loop) before it enters the PR: gate-green is _developer-done_, not
+  _review-done_. QA **tries to break the slice** and writes the missing test cases a product-team QA
+  engineer would (edge/error/boundary/malformed-input, both schemes), the owning author fixes, QA
+  re-checks. Staffing scales — solo run → one QA; team run → one per coding agent. The lead owns this
+  loop; mechanics in [./working-with-agents.md](./working-with-agents.md) §6.2.
 
 See [./definition-of-done.md](./definition-of-done.md) for what "done" means before you open.
 
@@ -270,8 +273,9 @@ assume merges are mechanically blocked. If enabled, the sensible configuration i
 
 This is the team lead's step. Two parts: **curate the branch** (the "git magic"), then
 **squash-merge** it. Do it only when the work is complete and the PR is **ready to merge** —
-which, on a team branch, is the lead's explicit call and means **both**: the CI `verify` gate
-green on the curated tip (§5) **and** the independent pre-PR QA review clean, with every finding
+which is the lead's explicit call (on a solo run the lead is also the author) and means **both**:
+the CI `verify` gate green on the curated tip (§5) **and** the independent, adversarial pre-PR QA
+pass clean `[D26]`, with every finding
 either fixed in-branch by the owning agent or filed as a cross-phase follow-up in
 [../build-phases.md](../build-phases.md) with its PR# and a reason (see
 [./working-with-agents.md](./working-with-agents.md) §6.2 for the dev↔QA loop).

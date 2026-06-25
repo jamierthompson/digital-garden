@@ -1,7 +1,7 @@
 # Decision Records
 
 How architecturally significant decisions get made, recorded, and superseded in
-this repo. The log lives in [`../decisions.md`](../decisions.md) (entries `D1`–`D25`).
+this repo. The log lives in [`../decisions.md`](../decisions.md) (entries `D1`–`D26`).
 This page is the **process**; that file is the **record**.
 
 > Lightweight Nygard-style ADR
@@ -172,7 +172,7 @@ status line (don't touch its body):
 
 ## Related
 
-- [`../decisions.md`](../decisions.md) — the live log (`D1`–`D25`) + Open items footer.
+- [`../decisions.md`](../decisions.md) — the live log (`D1`–`D26`) + Open items footer.
 - [`../audit/`](../audit/) — the worked five-lens → debate → synthesis example.
 - [`./working-with-agents.md`](./working-with-agents.md) — how agents cite `[D#]` / `§N` and hand off cleanly.
 - [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) — committing a decision (a `docs:` change, its own commit).

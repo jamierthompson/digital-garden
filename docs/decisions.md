@@ -344,6 +344,35 @@ Operationalized in
 (what to check) and gated per task in
 [`handbook/definition-of-done.md`](./handbook/definition-of-done.md) §6 / §7.
 
+### D26 — Every run gets an independent, adversarial QA pass before the PR (solo or team)
+
+**Decided** (user call, 2026-06-25). Amends `handbook/working-with-agents.md` §6; complements [D25].
+A gate-green slice is _developer-done_, not _review-done_ — `pnpm test` plus the author's own
+self-check prove the author's intent, not that the work survives someone trying to break it.
+Standing requirement, **independent of staffing**: before any slice enters a PR, a **fresh** agent —
+never the one that wrote it, isolated context (briefed per §5) — runs **adversarial QA**. It does not
+merely re-read the diff: it tries to **break** the slice, hunts the edge / error / boundary /
+malformed-input cases the author didn't, and **writes the missing test cases a QA engineer on a
+product team would**. One QA agent **per coding agent**: a solo run (the lead is also the sole author)
+spawns one QA for its own work; a team run spawns one QA per slice author. Findings return to the
+**owning** author to fix; QA re-checks; repeat until clean.
+
+**Boundaries:**
+
+- **Not a CI gate.** There is no automatic review bot in `verify`; this is an agent-in-the-loop step
+  the lead runs **pre-PR** — the same status as the [D25] browser check. The on-demand `@claude` PR
+  workflow is a tool the lead may invoke, not the gate.
+- **Does not replace** the author's own gate (DoD §1) — it is the independent layer on top of it.
+- **"Adversarial" means break-it-and-prove-it**, fact-grounded against the `[D#]`s and the bundled
+  docs — not nit-picking style the formatter already owns.
+- In-scope findings are **fixed before the PR**; only genuinely later-phase work is deferred (logged
+  in `build-phases.md` with PR# + a one-line reason).
+
+Operationalized in
+[`handbook/working-with-agents.md`](./handbook/working-with-agents.md) §6 (the dev↔QA loop), gated
+per task in [`handbook/definition-of-done.md`](./handbook/definition-of-done.md) §6 / §7, and wired
+into the `agent-team` coding mode.
+
 ---
 
 ## Open items summary

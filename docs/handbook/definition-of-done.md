@@ -136,6 +136,13 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       handbook page. An architecturally significant decision gets a new `D#` in
       [`../decisions.md`](../decisions.md) (never edit an accepted one — supersede it; see
       [decision-records.md](./decision-records.md)).
+- [ ] **Independent adversarial QA passed.** `[D26]` Gate-green is _developer-done_, not
+      _review-done_. Before the slice enters the PR, a **fresh** agent (never the author) **tried to
+      break it** — edge / error / boundary / malformed-input cases, both color schemes — and **wrote
+      the missing test cases** a product-team QA engineer would; findings were fixed by the owning
+      author and QA re-checked clean. Staffing scales: solo run → one QA for the lead's own work;
+      team run → one QA per coding agent. The lead owns this loop — it's an agent-in-the-loop step,
+      not a CI gate. See [working-with-agents.md](./working-with-agents.md) §6.2.
 - [ ] **End of a run?** Two writes are mandatory before the squash-merge — refresh the
       [`README.md`](../../README.md) (esp. the **Status** line) and write the run record in
       [`../runs/`](../runs). See [working-with-agents.md](./working-with-agents.md) §6.2.
@@ -154,6 +161,7 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
 [ ] Lockfile committed if deps changed; imports use @/*
 [ ] Tests co-located & meaningful; docs/README/decisions updated if needed      [D18]
 [ ] Rendered surface? Browser-verified via chrome-devtools MCP (focus/tap/CLS/flash) [D25]
+[ ] Independent adversarial QA: fresh agent tried to break it + wrote missing cases; fixed [D26]
 ```
 
 Tick the boxes top to bottom — they aren't independent; the §1 chain short-circuits, so a

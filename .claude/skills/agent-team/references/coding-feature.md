@@ -44,7 +44,20 @@ Broken WIP is **not** handed off. Enforce this with a `TaskCompleted` hook that 
 that stops teammates marking work complete without testing. See
 [`docs/handbook/definition-of-done.md`](../../../../docs/handbook/definition-of-done.md).
 
-**5. Lead curates history & merges.** You do **not** inherit an unfinished slice (it bounces back
+**5. One fresh, adversarial QA per slice — before it enters the PR `[D26]`.** Gate-green is
+_developer-done_, not _review-done_. For **every** coding agent, spawn **one fresh QA teammate**
+(`pr-review-toolkit:code-reviewer` / `feature-dev:code-reviewer`) — **never the agent that wrote the
+slice**; the isolated context is the point. Brief it per §1 to **try to break** the slice, not skim
+it: malformed / boundary / empty / hostile input (garbage `brandColor` → safe fallback, never a throw
+[D9]), the error and not-found paths, both color schemes, the focus/interaction floor on any rendered
+surface — and to **write the missing test cases** a product-team QA engineer would, proving each break
+with a failing case first. Findings go back to the **owning** agent to fix; QA re-checks; repeat until
+clean. In-scope findings are fixed before the PR; defer only genuinely later-phase work (log it in
+[`docs/build-phases.md`](../../../../docs/build-phases.md) with PR# + reason). This loop is **not
+team-only** — a solo run does exactly one author→one QA; here you just run one per coding agent. Full
+mechanics: [`docs/handbook/working-with-agents.md`](../../../../docs/handbook/working-with-agents.md) §6.2.
+
+**6. Lead curates history & merges.** You do **not** inherit an unfinished slice (it bounces back
 to its owner). Your job is _history_: rebase onto latest `main`, squash an agent's fix-ups, reorder
 slices, drop a false start, then **squash-merge** with a deliberate PR body — the story told once.
 Push curated history with `--force-with-lease`, never plain `--force`, so a teammate's concurrent
