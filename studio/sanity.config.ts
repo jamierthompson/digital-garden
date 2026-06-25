@@ -52,12 +52,21 @@ const PREVIEW_URL = process.env.SANITY_STUDIO_PREVIEW_URL || 'http://localhost:3
 const locations = {
   project: defineLocations({
     select: {title: 'title', slug: 'slug.current'},
-    resolve: (doc) => ({
-      locations: [
-        {title: doc?.title || 'Untitled project', href: `/work/${doc?.slug}`},
-        {title: 'Work index', href: '/work'},
-      ],
-    }),
+    resolve: (doc) => {
+      // The "Used on" panel resolves locations for DRAFTS too, where a
+      // just-created project may have a title but no slug yet (slug.required()
+      // is publish-time validation, not a draft-resolve guarantee). Only emit
+      // the /work/<slug> detail link when a non-empty slug exists — otherwise
+      // it would point at /work/undefined or /work/ (both 404). The /work index
+      // link is always valid.
+      const slug = doc?.slug
+      return {
+        locations: [
+          ...(slug ? [{title: doc?.title || 'Untitled project', href: `/work/${slug}`}] : []),
+          {title: 'Work index', href: '/work'},
+        ],
+      }
+    },
   }),
   note: defineLocations({
     select: {title: 'title'},
