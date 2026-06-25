@@ -316,4 +316,4 @@ paint, no async RSCs) and the absent Playwright (Phase 3) leave open for UI buil
 [D4] · [D5] · [D6] · [D9] · [D10] · [D14] · [D17] · [D18] · [D19] · [D25] · [D26] —
 [`../decisions.md`](../decisions.md). Plan §3.2 (OKLCH engine) —
 [`../architecture-plan.md`](../architecture-plan.md). Phase 1 / Phase 3 —
-[`../build-phases.md`](../build-phases.md). Research: [`./process/research/R3-testing.md`](./process/research/R3-testing.md).
+[`../build-phases.md`](../build-phases.md). Research: [`./making-of/research/R3-testing.md`](./making-of/research/R3-testing.md).

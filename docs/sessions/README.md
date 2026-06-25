@@ -11,7 +11,7 @@ and the **handoff to the next team** that picks up the incomplete work — so it
 attempted and how it landed without re-reading a lost context window.
 
 > **This is not the same as the skill-evaluation runs.** The artifacts under
-> [`../handbook/process/agent-team-skill/eval-runs/`](../handbook/process/agent-team-skill/eval-runs/)
+> [`../handbook/making-of/agent-team-skill/eval-runs/`](../handbook/making-of/agent-team-skill/eval-runs/)
 > are **verbatim agent outputs captured to build and grade the `agent-team` skill itself** — i.e. they
 > were tooling/eval work, not product work. This directory is for sessions that build the
 > **digital garden** (features, content model, theming engine, …). When in doubt: _did the session

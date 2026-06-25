@@ -144,7 +144,7 @@ The shape (as practiced in `audit/`):
 
 1. **Research, with citations.** Pin every claim to a primary source — bundled docs, a
    spec URL, or a `[D#]`. Verbose fetching/log-crunching happens in isolated subagents that
-   return a **dense, cited digest** (see the `process/research/` notes R1–R6, and §5).
+   return a **dense, cited digest** (see the `making-of/research/` notes R1–R6, and §5).
 2. **N independent drafts.** Diverse role-lenses draft _independently, before seeing each
    other's work_ — the audit's five lenses (Architect, FrameworkFit, Theming, ContentModel,
    Sequencing). Diversity is what makes the next step work; identical agents add nothing.
@@ -195,7 +195,7 @@ Context doesn't carry across a handoff — the mechanics of self-contained-in / 
 live in §5. This section is what to do _between_ handoffs:
 
 - **Persist phase summaries to the repo before re-spawning.** External memory (the docs
-  themselves — this handbook, `decisions.md`, the `process/` notes) beats context-window
+  themselves — this handbook, `decisions.md`, the `making-of/` notes) beats context-window
   stuffing for long, multi-session efforts
   ([Anthropic — Multi-Agent Research](https://www.anthropic.com/engineering/multi-agent-research-system)).
   A prompt that says "continue what we were doing" fails; a pointer to a written summary doesn't.

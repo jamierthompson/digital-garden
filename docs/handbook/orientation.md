@@ -82,7 +82,7 @@ These are the things that silently break this specific stack, or that the owner 
 
 **Use the capabilities you have.** Before hand-rolling or web-searching, check for a skill / subagent / MCP tool that already fits — `sanity:*`, `vercel:*` (incl. `nextjs`, `next-cache-components`), `chrome-devtools` (CWV / a11y audits), `Explore`, `feature-dev:*`. The full discovery list + source-of-truth ladder is [`./working-with-agents.md`](./working-with-agents.md) §1.
 
-**This is not the Next.js in your training data — verify in `node_modules/next/dist/docs/` before writing framework code.** The model-breaking facts (all confirmed against the bundled docs; see [`./accessibility-and-performance.md`](./accessibility-and-performance.md), [`./security-and-ops.md`](./security-and-ops.md), and the research notes in [`./process/research/`](./process/research/)):
+**This is not the Next.js in your training data — verify in `node_modules/next/dist/docs/` before writing framework code.** The model-breaking facts (all confirmed against the bundled docs; see [`./accessibility-and-performance.md`](./accessibility-and-performance.md), [`./security-and-ops.md`](./security-and-ops.md), and the research notes in [`./making-of/research/`](./making-of/research/)):
 
 - **Request APIs are async** — `cookies()`, `headers()`, `draftMode()`, and route `params` / `searchParams` are all `await`-able Promises.
 - **`export const dynamic` / `force-static` no longer apply.** With Cache Components, static-vs-dynamic is a **component-level** concern decided by `use cache` placement and where request-time APIs are touched. A route is a **prerendered shell with dynamic holes** (PPR). Uncached data outside `<Suspense>` is a **build-time hard error** [D11].

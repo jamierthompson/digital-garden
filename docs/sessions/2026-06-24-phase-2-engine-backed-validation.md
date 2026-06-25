@@ -65,7 +65,7 @@ on a planted `window` reference. Dual-env (node + jsdom) Vitest include retarget
   behavior, so it's a table-driven test in `packages/oklch`, where the runner already exists.
 - **ADR text left immutable.** The relocation _executes_ `[D23]`'s own implication (engine → shared
   package), so it needed no superseding record. `decisions.md` (D14's `src/lib/oklch` mention) and
-  the historical `audit/` + `process/` records were left as-is; only living docs were repointed.
+  the historical `audit/` + `making-of/` records were left as-is; only living docs were repointed.
 
 ## QA log [D26] — verdict SHIP-WITH-FIXES
 

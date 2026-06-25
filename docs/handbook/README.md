@@ -39,14 +39,14 @@ jump to the page your task needs.
 Mirroring the architecture [`../audit/`](../audit/) trail, this handbook was produced with the
 same multi-agent pattern it documents in [`working-with-agents.md`](./working-with-agents.md)
 §4 — **research → independent drafts → adversarial debate → synthesis**. The trail is preserved
-under [`process/`](./process/):
+under [`making-of/`](./making-of/):
 
-| Stage                                                                                         | Where                                                  |
-| --------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| **Research** — every claim pinned to a primary source (bundled docs, a spec URL, or a `[D#]`) | [`process/research/`](./process/research/) (R1–R6)     |
-| **Round-1 drafts** — each doc drafted independently, before seeing the others                 | [`process/round-1-drafts/`](./process/round-1-drafts/) |
-| **Round-2 debate** — each draft critiqued against the others; fact-grounded, not vibes        | [`process/round-2-debate/`](./process/round-2-debate/) |
-| **Synthesis** — what the debate forced to change, per doc                                     | [`process/synthesis.md`](./process/synthesis.md)       |
+| Stage                                                                                         | Where                                                      |
+| --------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **Research** — every claim pinned to a primary source (bundled docs, a spec URL, or a `[D#]`) | [`making-of/research/`](./making-of/research/) (R1–R6)     |
+| **Round-1 drafts** — each doc drafted independently, before seeing the others                 | [`making-of/round-1-drafts/`](./making-of/round-1-drafts/) |
+| **Round-2 debate** — each draft critiqued against the others; fact-grounded, not vibes        | [`making-of/round-2-debate/`](./making-of/round-2-debate/) |
+| **Synthesis** — what the debate forced to change, per doc                                     | [`making-of/synthesis.md`](./making-of/synthesis.md)       |
 
-Start with [`process/synthesis.md`](./process/synthesis.md) if you want the conclusions —
+Start with [`making-of/synthesis.md`](./making-of/synthesis.md) if you want the conclusions —
 how the rounds shaped the final docs.
