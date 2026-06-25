@@ -299,9 +299,13 @@ each tool call.**
      smell this rule exists to kill. (The per-task echo of this is the DoD §6 "docs updated" box;
      this makes it a hard **run-level** requirement, not a maybe.)
   2. **Write the run record** in [`../runs/`](../runs) (`YYYY-MM-DD-<slug>.md`) — why / shape /
-     outcome / review + fixes / lessons, per [`../runs/README.md`](../runs/README.md) — and add its
+     outcome / **QA log** / lessons, per [`../runs/README.md`](../runs/README.md) — and add its
      row to that index. This is the repo's external memory; a run that did real product work and
-     left no record is invisible to the next session. Applies to **solo runs too**, not just teams.
+     left no record is invisible to the next session. The **QA log is the durable evidence of the
+     dev↔QA loop** (`[D26]`): one entry per coding agent — what QA probed, what passed, each defect
+     → fix → re-check, and the tests QA added. The green gate is not that evidence; the log is.
+     Record each slice's entry **as its loop closes**, not reconstructed at the end. Applies to
+     **solo runs too**, not just teams.
 
 ## 7. Keeping agents from drifting the architecture — quick gate
 

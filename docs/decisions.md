@@ -367,11 +367,16 @@ spawns one QA for its own work; a team run spawns one QA per slice author. Findi
   docs — not nit-picking style the formatter already owns.
 - In-scope findings are **fixed before the PR**; only genuinely later-phase work is deferred (logged
   in `build-phases.md` with PR# + a one-line reason).
+- **The QA pass leaves a durable record.** Its outcome — what was tested, what passed, each defect →
+  fix → re-check, and the tests QA authored — is captured in the run record's **QA log** (one entry
+  per coding agent), so the green gate is never mistaken for the QA evidence. Format:
+  [`runs/README.md`](./runs/README.md).
 
 Operationalized in
-[`handbook/working-with-agents.md`](./handbook/working-with-agents.md) §6 (the dev↔QA loop), gated
-per task in [`handbook/definition-of-done.md`](./handbook/definition-of-done.md) §6 / §7, and wired
-into the `agent-team` coding mode.
+[`handbook/working-with-agents.md`](./handbook/working-with-agents.md) §6 (the dev↔QA loop), recorded
+in each [`runs/`](./runs/) run record's **QA log**, gated per task in
+[`handbook/definition-of-done.md`](./handbook/definition-of-done.md) §6 / §7, and wired into the
+`agent-team` coding mode.
 
 ---
 

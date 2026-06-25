@@ -145,7 +145,9 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       not a CI gate. See [working-with-agents.md](./working-with-agents.md) §6.2.
 - [ ] **End of a run?** Two writes are mandatory before the squash-merge — refresh the
       [`README.md`](../../README.md) (esp. the **Status** line) and write the run record in
-      [`../runs/`](../runs). See [working-with-agents.md](./working-with-agents.md) §6.2.
+      [`../runs/`](../runs), **including its QA log** (`[D26]` — what QA tested, what passed, each
+      defect → fix → re-check, tests added; one entry per coding agent). See
+      [working-with-agents.md](./working-with-agents.md) §6.2 and [`../runs/README.md`](../runs/README.md).
 
 ---
 
