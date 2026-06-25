@@ -7,7 +7,7 @@ name: Deploy Sanity Schema
 # native binary (@rolldown/binding-darwin-x64) SIGABRTs on the owner's
 # Intel/macOS machine — a darwin-x64-specific upstream crash, not a version
 # issue. CI runs on Ubuntu (linux-x64) where Rolldown works, so CI is the
-# robust path. (See docs/handbook/security-and-ops.md / production-checklist.md.)
+# robust path. (See docs/handbook/security-and-ops.md / docs/production-checklist.md.)
 
 on:
   # Manual trigger — covers the first deploy and any ad-hoc redeploy.
@@ -18,6 +18,7 @@ on:
     paths:
       - studio/schemaTypes/**
       - studio/sanity.config.ts
+      - studio/sanity.cli.ts
 
 # Schema deploy mutates shared hosted state; serialize runs so two deploys
 # can't race. Don't cancel an in-flight deploy — let it finish.
@@ -28,6 +29,11 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # This job only talks to Sanity (via SANITY_AUTH_TOKEN); it never uses
+    # GITHUB_TOKEN. Drop all of its default permissions (least privilege).
+    permissions: {}
+    # Cap a hung/wedged deploy so it can't run to the runner's 6h default.
+    timeout-minutes: 10
     # Sanity project ID and dataset are public (shipped to the browser), not
     # secrets — same as ci.yml. The Studio also reads them from sanity.cli.ts.
     env:
