@@ -13,8 +13,8 @@ the conclusions; see [`README.md`](./README.md) for the map.**
 
 ### 1. Phase-aware staffing (the anti-over-spawning fix)
 
-**Why:** [`runs/debug-baseline.md`](./eval-runs/debug-baseline.md) correctly used read-only **subagents for
-diagnosis** and reserved a **team for a multi-file fix**; [`runs/debug-with-skill.md`](./eval-runs/debug-with-skill.md)
+**Why:** [`eval-runs/debug-baseline.md`](./eval-runs/debug-baseline.md) correctly used read-only **subagents for
+diagnosis** and reserved a **team for a multi-file fix**; [`eval-runs/debug-with-skill.md`](./eval-runs/debug-with-skill.md)
 spawned a 4-agent team for diagnosis. The skill's §0 had a team-vs-subagent gate, but the mode
 references read as "you've already decided on a team."
 
@@ -32,7 +32,7 @@ references read as "you've already decided on a team."
 
 ### 2. Surface the existing review capabilities
 
-**Why:** [`runs/review-baseline.md`](./eval-runs/review-baseline.md) named **`pr-review-toolkit:review-pr`**
+**Why:** [`eval-runs/review-baseline.md`](./eval-runs/review-baseline.md) named **`pr-review-toolkit:review-pr`**
 as the ~80% substitute and `/code-review` as the fast single-pass; the with-skill plan didn't surface
 either. A skill should make the agent _more_ aware of existing tools.
 
