@@ -89,13 +89,31 @@ on the CI workflow ("low-risk, unexecutable"). The owner caught it; `[D26]` is n
 coding-agent slice including CI/config. Corrected by spawning CIDeployQA, which found the real
 least-privilege gap. A lead review is a complement, not a substitute.
 
-## Could NOT verify this session (flagged, not faked)
+## Item C — attempted, surfaced a blocking defect (Phase 3 stays OPEN)
 
-- **Item C** — a real draft rendering in Preview end-to-end. Blocked on: the schema deploy (owner
-  dispatches PR #25's workflow) **and** an interactive Studio login (the Presentation iframe round-trip is
-  not headless-doable). The published `RelatedNotes` path **is** verified (renders locally; appears on prod
-  after the next deploy).
-- The **live schema deploy** run (no token in-session; owner runs it).
+After the merges, the owner deployed the schema (PR #25 workflow, successful) and Preview was entered.
+**Verified observations:** draft/published isolation holds at the data layer (`published` = "First Light" /
+3 notes; a test draft = edited title / 4 notes); cookieless public + prod sessions render **published** (no
+leak); the `/work/[slug]` page **renders the draft** under Draft Mode. **Defect found:** with Draft Mode ON,
+a runtime **Blocking Route** error fires — `Route "/": Uncached data … accessed outside of <Suspense>` at
+`generateMetadata` (`layout.tsx:39`) → `sanityFetch(SITE_SETTINGS_QUERY)`. It blocks clean end-to-end preview
+and appears **only with Draft Mode ON** (the path unverified since PR #21). Full draft preview — including
+`siteSettings`/the shell — is a Phase-3 goal **and** a Phase-4 prerequisite, so it is in scope. **Handed to
+the next session for FRESH exploration — no suspected fix is recorded, deliberately (avoid confirmation
+bias).** Full observations + repro live in `build-phases.md` ("What's left to close Phase 3 / Item C"). The
+test draft was created and **discarded** (dataset left clean).
+
+## Could NOT verify
+
+- The Blocking Route defect's root cause / fix — left for fresh exploration next session, by design.
+
+## Wrap-up PR — `chore/deps-node24-and-item-c-findings`
+
+A maintenance PR closing this session: **Node 24 CI actions** (`checkout`/`setup-node`/`pnpm-action-setup`
+→ `@v5`, clearing the Node-20 runner deprecation); an **in-range dependency refresh** (React 19.2.7,
+`@vitejs/plugin-react` 6.0.3, `styled-components` 6.4.3, sanity/vision 6.2.0, uuid) with the breaking majors
+(TypeScript 6, ESLint 10, `@types/node` 26) **deferred** as deliberate follow-ups; and the Item C findings
+above recorded into the docs. Full gate green.
 
 ## Gate
 

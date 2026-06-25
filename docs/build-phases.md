@@ -270,13 +270,29 @@ locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not
 
 **What's left to close Phase 3 — Phase 3 is NOT done until Item C lands:**
 
-- [ ] **(Item C) Verify draft-content rendering end-to-end** — **STILL OPEN; Phase 3 is not done.**
-      Prereqs are now in place: `SANITY_API_READ_TOKEN` is in `.env.local`, and the dataset is seeded
-      (4 published notes + `first-light` wired to 3 notes — populated `RelatedNotes` renders locally and
-      will appear on prod after the next deploy). Remaining: deploy the Studio schema (PR #25 CI workflow —
-      owner dispatches), enter Preview via the new Presentation tool (PR #24), create + discard a draft,
-      and confirm `getClient(true)` returns it / `getClient(false)` does not, rendering live in Preview.
-      Needs the owner's **interactive Studio login** (not headless-doable). `[D16]`
+- [ ] **(Item C) Verify draft-content rendering end-to-end in Preview** — **STILL OPEN; Phase 3 is NOT
+      done.** Attempted 2026-06-25; surfaced a blocking defect. **Verified observations (only):**
+  - Schema deployed to the Content Lake (PR #25 CI workflow ran successfully); the Presentation tool
+    loads and Preview is enterable after Studio login.
+  - Draft/published isolation holds at the **data layer** (GROQ): `published` perspective = "First Light"
+    / 3 notes; `drafts` perspective (a test draft) = edited title / 4 notes. Cookieless sessions
+    (public + prod) render **published** — no leak.
+  - With Draft Mode ON, the `/work/[slug]` project page **does** render the draft (edited title + the
+    extra related note, observed in-browser).
+  - **DEFECT — blocks clean preview:** with Draft Mode ON, a runtime **Blocking Route** error fires.
+    Verbatim: `Route "/": Uncached data or connection() was accessed outside of <Suspense>` … at
+    `Module.generateMetadata (src/app/layout.tsx:39:20)` → `await sanityFetch(SITE_SETTINGS_QUERY)`. It
+    appears only with Draft Mode ON (this path was unverified since PR #21); the published path is clean.
+  - **Requirement (owner):** full draft preview must work for **all** content, **including
+    `siteSettings`/the shell** — not just project pages. It is a Phase-3 goal **and** a Phase-4
+    prerequisite (Phase 4 migrates an existing project into the garden, which can't ship if preview is
+    broken). The original plan may not have anticipated this interaction; that does **not** put it out of
+    scope.
+  - **Next session: explore this FRESH.** Diagnose the Blocking Route error from first principles — **no
+    suspected fix is recorded here, on purpose** (avoid confirmation bias). **Repro:** token in
+    `.env.local`; `pnpm dev` (:3000) + `pnpm --filter studio dev` (:3333); create a draft edit of
+    `first-light` via the Sanity MCP; open Studio `/presentation` and enter Preview; observe the error.
+    `[D11, D16]`
 - [√] **Wire a Preview entry point** — done 2026-06-25 (PR #24): `presentationTool` + slug-guarded
   `defineLocations` in `studio/sanity.config.ts`, driving the existing draft-mode handlers; localhost
   CORS origin added; the schema deploy it relies on is the CI follow-up (PR #25). `[D16]`
@@ -299,6 +315,15 @@ locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not
 
 - [√] `palette.ts` — `TOKEN_NAMES` is already typed `readonly BrandTokenName[]`, but the token-set accumulator still used `{} as Record<BrandTokenName, SchemePair>`, so a missing token was **not** a compile error. Done 2026-06-24 (PR #16): rebuilt without the cast so exhaustiveness is type-enforced (verified `TS2322` on a dropped token); output byte-identical
 - [√] The OKLCH visual harness wrote `swatches.html` under both the jsdom and node Vitest projects — done 2026-06-24 (PR #16): scoped to the `node` project via `ctx.task.file.projectName`; exactly one write, assertions still run under both projects
+
+**Dependency upgrades — deferred breaking majors (2026-06-25):**
+
+_Held back from the 2026-06-25 in-range refresh (which took React 19.2.7, sanity 6.2.0, etc.); each is a
+breaking major that needs deliberate work, not a blind bump. Do each on its own branch with the full gate._
+
+- [ ] **TypeScript 5.9 → 6.0** — major. Run `pnpm typecheck` + `pnpm build` and resolve any new diagnostics (stricter inference / removed APIs) before adopting.
+- [ ] **ESLint 9 → 10** — major. Verify the flat config, `eslint-config-next`, and the boundary plugins still load and pass; fix any config breakage before adopting.
+- [ ] **`@types/node` 20 → matching runtime** — currently `^20`, already lagging CI's Node 22. Bump to the `@types/node` major that matches the project's Node version (re-check after any Node-version bump), watching for new type errors.
 
 ---
 
