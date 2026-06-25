@@ -268,31 +268,28 @@ locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not
 - [√] Draft-mode / Presentation client needs `useCdn: false` + `perspective: "previewDrafts"`, distinct from the publishes-only public client (PR #11) `[D16]` — done 2026-06-24: added `draftClient` (`useCdn:false`, perspective `"drafts"` — `"previewDrafts"` is `DeprecatedPreviewDrafts` in `@sanity/client` v7, so the current spelling is used for the same behaviour) + a `getClient(isDraft)` selector that attaches the server-only `SANITY_API_READ_TOKEN` per request, alongside the published-only public client. Draft Mode enable/disable route handlers (`/api/draft-mode/*`) and a draft-gated `<VisualEditingControls>` ship with it `[D16]`.
 - [√] **`proxy.ts` — deferred, not built (decision recorded).** Draft mode needs **no** request-level proxy logic: it runs entirely through Route Handlers that flip the `__prerender_bypass` cookie (`await draftMode().enable()/.disable()`), which Next handles natively. `proxy.ts` is a CDN-deployable redirect/rewrite boundary, is **Node-runtime-only** (setting `runtime` throws — `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md` §Runtime), and the security runbook explicitly says **don't drive draft mode from proxy** (`docs/handbook/security-and-ops.md` §4). Adding an empty/no-op `proxy.ts` would tax every request for nothing, so the Phase-0 deferral stands until there's genuine cross-cutting request logic (auth, geo-rewrite, etc.) to host.
 
-**What's left to close Phase 3 (next session) — Phase 3 is NOT done until these land:**
+**What's left to close Phase 3 — Phase 3 is NOT done until Item C lands:**
 
-- [ ] **Verify draft-content rendering end-to-end** (the unverified half of the carried draft item
-      above). Needs: (1) `SANITY_API_READ_TOKEN` in `.env.local` (the user is adding it); (2) a real
-      **draft** doc to preview (create + discard via the Sanity MCP, e.g. a draft `first-light` title
-      edit + a draft note referenced by it so the populated `RelatedNotes` path is exercised against
-      real data — the dataset currently has **zero notes / zero projects-with-notes**); (3) confirm
-      `getClient(true)` returns the draft and `getClient(false)` does not, then see it render in Preview.
-- [ ] **Wire a Preview entry point.** The enable/disable route handlers + `<VisualEditingControls>`
-      exist, but **nothing drives them** — there is no Sanity **Presentation** tool configured in
-      `studio/` (no `presentationTool`/`previewUrl`), so Preview can't currently be entered in-product.
-      This is the missing piece behind "draft content renders in **Preview**." `[D16]`
-- [ ] **Fix the app-wide `@layer` cascade inversion in the built CSS — the foundation reset wipes every
-      `@layer project` rule's `padding`/`margin`.** Source is correct (`foundation.css` declares `@layer
-foundation, brand, project;`), but **Turbopack drops `foundation` from the order _statement_** when
-      it bundles the file alongside foundation's `@layer foundation { … }` _block_, so layers register
-      `brand → project → foundation` (live `<head>` probe: statement `@layer brand, project;` + blocks
-      `project` then `foundation`). Foundation ends up **highest** priority, so `@layer foundation { * {
-padding:0; margin:0 } }` out-ranks `@layer project` rules — tag chips render with `padding:0`, and
-      pre-existing project-layer components (embed caption, experience module) are hit too. `lint:css`
-      can't see it (it checks each module declares a layer, not the runtime registration order). **Likely
-      fix:** a dedicated single-statement `layers.css` (`@layer foundation, brand, project;` and nothing
-      else, imported first) so Turbopack has no `foundation` block to merge against — **must be browser-
-      re-verified** (the same `<head>` cascade probe). Not introduced by PR #21; defeats `[D12]`'s intent,
-      so the fix likely warrants its own `D#`.
+- [ ] **(Item C) Verify draft-content rendering end-to-end** — **STILL OPEN; Phase 3 is not done.**
+      Prereqs are now in place: `SANITY_API_READ_TOKEN` is in `.env.local`, and the dataset is seeded
+      (4 published notes + `first-light` wired to 3 notes — populated `RelatedNotes` renders locally and
+      will appear on prod after the next deploy). Remaining: deploy the Studio schema (PR #25 CI workflow —
+      owner dispatches), enter Preview via the new Presentation tool (PR #24), create + discard a draft,
+      and confirm `getClient(true)` returns it / `getClient(false)` does not, rendering live in Preview.
+      Needs the owner's **interactive Studio login** (not headless-doable). `[D16]`
+- [√] **Wire a Preview entry point** — done 2026-06-25 (PR #24): `presentationTool` + slug-guarded
+  `defineLocations` in `studio/sanity.config.ts`, driving the existing draft-mode handlers; localhost
+  CORS origin added; the schema deploy it relies on is the CI follow-up (PR #25). `[D16]`
+- [√] **Fix the app-wide `@layer` cascade inversion** — done 2026-06-25 (PR #23), `[D27]`. The root cause
+  was **not** the "Turbopack drops `foundation` from the order statement" hypothesis once feared here —
+  it was **import order**: `next/font` was imported before `foundation.css` in `layout.tsx`, so the
+  font/component chunk emitted first and registered `@layer project` as the **lowest** layer
+  (`project < foundation < brand`), letting the foundation reset out-rank every project rule.
+  **Deterministic on a fresh checkout and live in production** (chips `padding:0`); did **not** reproduce
+  in git worktrees (a verification trap). **Fix:** import the global CSS above `next/font` (no `layers.css`,
+  no reset surgery), pinned by `src/app/layout.import-order.test.ts`. Browser-verified
+  `foundation < brand < project`, chips `4px 12px`, both schemes, 3/3 clean builds × 5 routes. Session
+  record: [`sessions/2026-06-25-phase-3-layer-preview-deploy.md`](./sessions/2026-06-25-phase-3-layer-preview-deploy.md).
 
 **Phase 4 — engine playground (Consumer B) performance:**
 

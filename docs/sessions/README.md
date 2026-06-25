@@ -71,14 +71,15 @@ live shape. Skeleton:
 
 ## Index
 
-| Date       | Session                                                                                                    | Outcome                                       |
-| ---------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| 2026-06-23 | [Phase 0.5 walking skeleton + parallel Phase 1/2](./2026-06-23-phase-0.5-walking-skeleton.md)              | 4 feature PRs (#8–#11) + review fixes         |
-| 2026-06-24 | [Phase 1 keystone (real ProjectScope) + fast-follows](./2026-06-24-phase-1-projectscope.md)                | 3 PRs (#14–#16); Phase 1 complete             |
-| 2026-06-24 | [Phase 2 close-out: engine-backed brandColor validation](./2026-06-24-phase-2-engine-backed-validation.md) | PR #18; `@garden/oklch` pkg; Phase 2 complete |
-| 2026-06-24 | [Gate-doc sync guard (`pnpm lint:docs`)](./2026-06-24-doc-gate-sync-guard.md)                              | PR #19; builds the missing doc-sync guard     |
-| 2026-06-24 | [Phase 3: first vertical slice end-to-end](./2026-06-24-phase-3-first-vertical-slice.md)                   | PR #20; first real project end-to-end         |
-| 2026-06-24 | [Phase 3 carried items (draft rendering + notes/tags)](./2026-06-24-phase-3-carried-items.md)              | PR #21; Phase 3 still open (1 known defect)   |
+| Date       | Session                                                                                                      | Outcome                                       |
+| ---------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| 2026-06-23 | [Phase 0.5 walking skeleton + parallel Phase 1/2](./2026-06-23-phase-0.5-walking-skeleton.md)                | 4 feature PRs (#8–#11) + review fixes         |
+| 2026-06-24 | [Phase 1 keystone (real ProjectScope) + fast-follows](./2026-06-24-phase-1-projectscope.md)                  | 3 PRs (#14–#16); Phase 1 complete             |
+| 2026-06-24 | [Phase 2 close-out: engine-backed brandColor validation](./2026-06-24-phase-2-engine-backed-validation.md)   | PR #18; `@garden/oklch` pkg; Phase 2 complete |
+| 2026-06-24 | [Gate-doc sync guard (`pnpm lint:docs`)](./2026-06-24-doc-gate-sync-guard.md)                                | PR #19; builds the missing doc-sync guard     |
+| 2026-06-24 | [Phase 3: first vertical slice end-to-end](./2026-06-24-phase-3-first-vertical-slice.md)                     | PR #20; first real project end-to-end         |
+| 2026-06-24 | [Phase 3 carried items (draft rendering + notes/tags)](./2026-06-24-phase-3-carried-items.md)                | PR #21; Phase 3 still open (1 known defect)   |
+| 2026-06-25 | [Phase 3: @layer fix + Preview entry point + CI schema deploy](./2026-06-25-phase-3-layer-preview-deploy.md) | PRs #23–#25; Phase 3 still open (Item C)      |
 
 _The 2026-06-23 session also produced two co-located **deliverable** docs (evidence, not standalone
 sessions): [phase-0.5 render proofs](./2026-06-23-phase-0.5-render-proofs.md) and the
