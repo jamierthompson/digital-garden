@@ -56,6 +56,23 @@ across the line. Three such seams came up, each resolved deliberately (not paper
    mechanism (enable/disable handlers, draft client, `<VisualEditingControls>`) shipped; tracked in
    `build-phases.md`.
 
+## QA log [D26]
+
+_Retrofit: this run predates [D26]; QA ran over the whole integrated branch (not per-slice). Detail
+in the section below._
+
+| Slice                     | Author                 | QA agent (fresh)                                            | Verdict                          | Tests added |
+| ------------------------- | ---------------------- | ----------------------------------------------------------- | -------------------------------- | ----------- |
+| Integrated Phase-3 branch | Core·Studio·Data·Shell | QA (`pr-review-toolkit:code-reviewer`) + lead browser [D25] | clean (2 nits fixed, 0 blockers) | —           |
+
+**What QA probed:** re-read the whole integrated diff against the binding `[D#]`s; ran the real
+`buildTokenSet` to _measure_ contrast (amber accent/surface 4.31:1, garden green 5.58:1 — not
+eyeballed); drove a `[D25]` browser pass on `/`, `/work`, `/work/first-light` (focus ring, themed
+`light-dark()` tokens, zero console errors). **Nits fixed in-branch:** heading token
+`--brand-accent` (3:1 UI-fill) → `--brand-accent-text` (4.5:1); a clarifying comment. A scary console
+error was diagnosed as the React DevTools extension (tooling, not code). **Deferred from QA:** none
+(3 scope items deferred separately — see below).
+
 ## The dev↔QA loop + browser pass (handbook §6.2, [D25])
 
 A gate-green branch is _developer-done_, not _review-done_. A **fresh** reviewer (never an author)

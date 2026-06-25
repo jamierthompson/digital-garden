@@ -67,7 +67,19 @@ on a planted `window` reference. Dual-env (node + jsdom) Vitest include retarget
   package), so it needed no superseding record. `decisions.md` (D14's `src/lib/oklch` mention) and
   the historical `audit/` + `process/` records were left as-is; only living docs were repointed.
 
-## QA (fresh, pre-PR) — verdict SHIP-WITH-FIXES
+## QA log [D26] — verdict SHIP-WITH-FIXES
+
+_Retrofit: this run predates [D26] but already ran a fresh pre-PR QA pass; captured here in the
+[D26] format. Detail below._
+
+| Slice                                          | Author       | QA agent (fresh)                  | Verdict                                              | Tests added                     |
+| ---------------------------------------------- | ------------ | --------------------------------- | ---------------------------------------------------- | ------------------------------- |
+| engine → `@garden/oklch` + engine-backed valid | main session | `pr-review-toolkit:code-reviewer` | ship-with-fixes (engineering clean; 6 doc-rot fixes) | validation-oracle contract test |
+
+**What QA probed:** re-ran the full gate; planted `window` + 5 framework imports against the `[D14]`
+isomorphism guard (all caught, lint non-zero, reverted); verified the `[D9]` no-throw + the
+accept/reject boundary shift against the real engine; grep'd living docs for the deleted engine path.
+**Deferred from QA:** none.
 
 A fresh `code-reviewer` (not the author) re-ran the full gate, independently probed the `[D14]`
 guard (planted `window` + five framework imports → all caught, lint non-zero, reverted), and

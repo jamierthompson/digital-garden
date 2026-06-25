@@ -27,6 +27,21 @@ more than one branch; `main` never moved, so no rebase/conflict reconciliation w
 | **Swatches**  | `feat/card-swatches`                       | `src/lib/cardSwatches.ts` (+ test)                                                                                                                                      | 2 (engine-gated)   |
 | **Hardening** | `chore/key-drift-live-and-engine-cleanups` | `scripts/check-key-drift.mjs` (+ test), `src/lib/oklch/palette.ts`, `src/lib/oklch/harness/harness.test.ts`                                                             | 2 + cleanups       |
 
+## QA log [D26]
+
+_Retrofit: this run predates [D26]; the table captures the per-slice fresh QA actually run, in the
+[D26] format. Per-defect detail is in the section below._
+
+| Slice                   | Author    | QA agent (fresh)                      | Verdict   | Tests added               |
+| ----------------------- | --------- | ------------------------------------- | --------- | ------------------------- |
+| ProjectScope (keystone) | Theming   | QA-Theming + Verify-Theming (browser) | 2 defects | —                         |
+| key-drift live          | Hardening | QA-Hardening                          | 1 defect  | key-drift regression case |
+| cardSwatches            | Swatches  | QA-Swatches                           | clean     | —                         |
+
+**Defects (detail below):** 1) latent `next/font` build break · 2) WCAG-AA contrast failure (caught
+by the browser pass) · 3) key-drift guard false-pass. All fixed in-branch by the owning author and
+re-verified. **Deferred from QA:** none.
+
 ## The dev↔QA loop did the load-bearing work (handbook §6.2)
 
 A gate-green slice is _developer-done_, not _review-done_. Each slice went to a **fresh** QA

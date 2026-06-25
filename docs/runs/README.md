@@ -45,7 +45,7 @@ per slice. The lead records each entry **as that slice's loop closes**, not reco
 - **Deferred** — anything filed to [`../build-phases.md`](../build-phases.md) with its PR# + reason.
 
 A compact table up top + a short per-defect note below reads best — see
-[`2026-06-24-phase-1-projectscope.md`](./2026-06-24-phase-1-projectscope.md) (§"dev↔QA loop") for the
+[`2026-06-24-phase-1-projectscope.md`](./2026-06-24-phase-1-projectscope.md) (§"QA log") for the
 live shape. Skeleton:
 
 ```markdown
@@ -59,6 +59,11 @@ live shape. Skeleton:
 **<slice-a> defects** — 1) <what broke> → <fix by author> → re-checked <result>. 2) …
 **Deferred:** <finding> → build-phases.md "<phase>" (PR #NN, <reason>), or "none".
 ```
+
+> **Backfill note.** Records dated **before 2026-06-25** predate [D26]; their QA logs were
+> **backfilled** from the QA actually performed at the time, in this format — and **honestly
+> labeled** where the pass wasn't a fresh adversarial agent (e.g. a `@claude` bot review round or a
+> solo self-test). The format is retroactive; the history is not rewritten.
 
 ## Index
 

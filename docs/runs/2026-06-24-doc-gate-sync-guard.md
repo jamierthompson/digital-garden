@@ -30,7 +30,19 @@ sight (orientation "Golden rules", added in PR #18).
   prose mention of the chain (orientation cold-start, working-with-agents §7, DoD §7) and the
   README scripts list to include `lint:docs`.
 
-## Verification
+## QA log [D26]
+
+_Retrofit + honest label: a small, self-contained tooling chore, **adversarially self-tested** (no
+separate fresh QA agent — predates [D26]). Detail below._
+
+| Slice                     | Author       | QA                                               | Verdict | Tests added                                                                            |
+| ------------------------- | ------------ | ------------------------------------------------ | ------- | -------------------------------------------------------------------------------------- |
+| `check-doc-gate-sync.mjs` | main session | solo adversarial self-test (mutation + fixtures) | clean   | fixture suite: synced-passes, dropped-step-fails, reorder-fails, missing-section-fails |
+
+**What QA probed:** mutation-tested the guard — deleted a step from `ci.yml`, confirmed non-zero exit
+
+- the right message, reverted; the fixture suite pins divergence detection so a future false-pass
+  fails a test. **Deferred:** none.
 
 Adversarially self-tested rather than via a separate QA agent (small, self-contained tooling with
 its own adversarial test suite): proved the guard **fails-closed** by deleting a step from `ci.yml`
