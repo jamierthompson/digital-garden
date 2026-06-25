@@ -216,7 +216,7 @@ deliberately.
   QA subagent (the dev↔QA loop) before it enters the PR: gate-green is _developer-done_, not
   _review-done_. QA **tries to break the slice** and writes the missing test cases a product-team QA
   engineer would (edge/error/boundary/malformed-input, both schemes), the owning author fixes, QA
-  re-checks. Staffing scales — solo run → one QA; team run → one per coding agent. The lead owns this
+  re-checks. Staffing scales — solo session → one QA; team session → one per coding agent. The lead owns this
   loop; mechanics in [./working-with-agents.md](./working-with-agents.md) §6.2.
 
 See [./definition-of-done.md](./definition-of-done.md) for what "done" means before you open.
@@ -273,7 +273,7 @@ assume merges are mechanically blocked. If enabled, the sensible configuration i
 
 This is the team lead's step. Two parts: **curate the branch** (the "git magic"), then
 **squash-merge** it. Do it only when the work is complete and the PR is **ready to merge** —
-which is the lead's explicit call (on a solo run the lead is also the author) and means **both**:
+which is the lead's explicit call (on a solo session the lead is also the author) and means **both**:
 the CI `verify` gate green on the curated tip (§5) **and** the independent, adversarial pre-PR QA
 pass clean `[D26]`, with every finding
 either fixed in-branch by the owning agent or filed as a cross-phase follow-up in

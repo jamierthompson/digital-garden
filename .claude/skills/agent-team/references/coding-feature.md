@@ -54,10 +54,10 @@ surface — and to **write the missing test cases** a product-team QA engineer w
 with a failing case first. Findings go back to the **owning** agent to fix; QA re-checks; repeat until
 clean. In-scope findings are fixed before the PR; defer only genuinely later-phase work (log it in
 [`docs/build-phases.md`](../../../../docs/build-phases.md) with PR# + reason). **Record each slice's
-QA outcome** — what was probed, verdict, each defect → fix → re-check, tests QA added — in the run
-record's **QA log** as the loop closes (`[D26]`; format in
-[`docs/runs/README.md`](../../../../docs/runs/README.md)), not reconstructed at the end. This loop is
-**not team-only** — a solo run does exactly one author→one QA; here you just run one per coding agent.
+QA outcome** — what was probed, verdict, each defect → fix → re-check, tests QA added — in the
+session record's **QA log** as the loop closes (`[D26]`; format in
+[`docs/sessions/README.md`](../../../../docs/sessions/README.md)), not reconstructed at the end. This loop is
+**not team-only** — a solo session does exactly one author→one QA; here you just run one per coding agent.
 Full mechanics: [`docs/handbook/working-with-agents.md`](../../../../docs/handbook/working-with-agents.md) §6.2.
 
 **6. Lead curates history & merges.** You do **not** inherit an unfinished slice (it bounces back

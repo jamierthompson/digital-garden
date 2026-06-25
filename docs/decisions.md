@@ -344,7 +344,7 @@ Operationalized in
 (what to check) and gated per task in
 [`handbook/definition-of-done.md`](./handbook/definition-of-done.md) §6 / §7.
 
-### D26 — Every run gets an independent, adversarial QA pass before the PR (solo or team)
+### D26 — Every session gets an independent, adversarial QA pass before the PR (solo or team)
 
 **Decided** (user call, 2026-06-25). Amends `handbook/working-with-agents.md` §6; complements [D25].
 A gate-green slice is _developer-done_, not _review-done_ — `pnpm test` plus the author's own
@@ -353,8 +353,8 @@ Standing requirement, **independent of staffing**: before any slice enters a PR,
 never the one that wrote it, isolated context (briefed per §5) — runs **adversarial QA**. It does not
 merely re-read the diff: it tries to **break** the slice, hunts the edge / error / boundary /
 malformed-input cases the author didn't, and **writes the missing test cases a QA engineer on a
-product team would**. One QA agent **per coding agent**: a solo run (the lead is also the sole author)
-spawns one QA for its own work; a team run spawns one QA per slice author. Findings return to the
+product team would**. One QA agent **per coding agent**: a solo session (the lead is also the sole author)
+spawns one QA for its own work; a team session spawns one QA per slice author. Findings return to the
 **owning** author to fix; QA re-checks; repeat until clean.
 
 **Boundaries:**
@@ -368,13 +368,13 @@ spawns one QA for its own work; a team run spawns one QA per slice author. Findi
 - In-scope findings are **fixed before the PR**; only genuinely later-phase work is deferred (logged
   in `build-phases.md` with PR# + a one-line reason).
 - **The QA pass leaves a durable record.** Its outcome — what was tested, what passed, each defect →
-  fix → re-check, and the tests QA authored — is captured in the run record's **QA log** (one entry
+  fix → re-check, and the tests QA authored — is captured in the session record's **QA log** (one entry
   per coding agent), so the green gate is never mistaken for the QA evidence. Format:
-  [`runs/README.md`](./runs/README.md).
+  [`sessions/README.md`](./sessions/README.md).
 
 Operationalized in
 [`handbook/working-with-agents.md`](./handbook/working-with-agents.md) §6 (the dev↔QA loop), recorded
-in each [`runs/`](./runs/) run record's **QA log**, gated per task in
+in each [`sessions/`](./sessions/) session record's **QA log**, gated per task in
 [`handbook/definition-of-done.md`](./handbook/definition-of-done.md) §6 / §7, and wired into the
 `agent-team` coding mode.
 

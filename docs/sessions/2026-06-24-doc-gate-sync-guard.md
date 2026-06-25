@@ -1,4 +1,4 @@
-# Run record — the gate-doc sync guard (`pnpm lint:docs`)
+# Session record — the gate-doc sync guard (`pnpm lint:docs`)
 
 - **Date:** 2026-06-24
 - **Mode:** solo (small tooling chore), adversarially self-tested
@@ -54,6 +54,6 @@ studio typegen + no-drift · build`.
 ## Lessons
 
 - **A guard the docs claim exists but doesn't is worse than no guard** — it implies a safety net
-  that isn't there. This run turned the claim true. Meta-point: the new `lint:docs` would itself
+  that isn't there. This session turned the claim true. Meta-point: the new `lint:docs` would itself
   have caught the gate-chain drift that motivated it; the doc-rot that motivated it (a phantom
   script) is the class the "see something, say something" norm (PR #18) targets.

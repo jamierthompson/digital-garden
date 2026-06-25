@@ -206,13 +206,13 @@ live in §5. This section is what to do _between_ handoffs:
   [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §6) — but that's about _history_, not
   about lowering the bar on a handoff.
 
-**Every coding run has a lead and an independent, adversarial QA pass — staffing just scales
+**Every coding session has a lead and an independent, adversarial QA pass — staffing just scales
 ([D26]).** A run is never "write code, open a PR." It always has a **lead** and a **fresh QA** step
 between developer-done and the PR, whether one Claude or ten do the work:
 
-- **Solo run** — one Claude **is** the lead and the sole author. It does the work, then spawns **one
+- **Solo session** — one Claude **is** the lead and the sole author. It does the work, then spawns **one
   fresh QA agent** to try to break it before the PR.
-- **Team run** — the lead manages N coding agents over distinct slices and spawns **one fresh QA
+- **Team session** — the lead manages N coding agents over distinct slices and spawns **one fresh QA
   agent per coding agent**, each trying to break the slice it reviews before that slice enters the PR.
 
 The split below is written team-first, but **solo is the degenerate case**: lead and author collapse
@@ -241,14 +241,14 @@ deliverable." Split the responsibility cleanly:
 
 ### 6.2 The lead runs the loop: permissions · adversarial QA · merge-readiness
 
-§6.1 splits _ownership_; this is what the lead actively **runs** during **any** run — solo or team.
-(On a solo run the lead is also the sole author; the loop is the same, with one slice and one QA.)
-The lead is the run's single point of contact with the owner — **the owner directs the run, not
+§6.1 splits _ownership_; this is what the lead actively **runs** during **any** session — solo or team.
+(On a solo session the lead is also the sole author; the loop is the same, with one slice and one QA.)
+The lead is the session's single point of contact with the owner — **the owner directs the session, not
 each tool call.**
 
-- **Own the permission surface — don't make the owner babysit.** Set the run's permission
+- **Own the permission surface — don't make the owner babysit.** Set the session's permission
   posture once at spawn (the `agent-team` skill's preflight covers the spawn-time mechanic),
-  then resolve teammates' permission requests on the run's behalf: batch them and
+  then resolve teammates' permission requests on the session's behalf: batch them and
   decide. Escalate to the owner only for genuinely out-of-policy actions — something
   destructive or outward-facing, anything a `[D#]` forbids, anything that spends real money or
   touches production — with a one-line _what + why_. The default is **the lead clears the
@@ -256,8 +256,8 @@ each tool call.**
 
 - **Independent, adversarial QA before the PR — run a dev↔QA loop ([D26]).** A gate-green slice is
   _developer-done_, not _review-done_ — the §3 self-check and the green gate prove the author's own
-  intent, not that the work survives someone trying to break it. **Every** run does this, scaled to
-  its staffing: a solo run spawns **one** fresh QA for its own work; a team run spawns **one fresh QA
+  intent, not that the work survives someone trying to break it. **Every** session does this, scaled to
+  its staffing: a solo session spawns **one** fresh QA for its own work; a team session spawns **one fresh QA
   per coding agent**. Before a slice enters the PR, the lead spawns a **fresh** QA subagent
   (`pr-review-toolkit:code-reviewer` / `feature-dev:code-reviewer`, or the `/code-review` skill) —
   _fresh_ meaning **not** the agent that wrote it; an isolated context is the whole point (brief it
@@ -272,7 +272,7 @@ each tool call.**
     defects.) Keep critiques **fact-grounded** — cite a `[D#]`, a bundled doc, or a failing test, not
     vibes.
   - **The reviewer reviews; the author fixes — don't collapse the two.** Findings go back to
-    the **owning agent** (on a solo run, that's the lead wearing its author hat — but the QA pass is
+    the **owning agent** (on a solo session, that's the lead wearing its author hat — but the QA pass is
     still a separate, fresh agent), which makes the changes; then QA reviews **again**. Repeat until clean.
   - **Fix in-scope now; defer only genuinely-later work.** Anything in the current slice's or
     phase's scope gets **fixed before the PR**. A finding is deferred only when it truly belongs
@@ -291,23 +291,24 @@ each tool call.**
   invoke it for a second opinion and treats anything it surfaces like QA's findings, but it's a
   tool, not a gate. Only then does the lead curate history (§6.1) and squash-merge.
 
-- **Close the run — every run (session) ends with two writes (non-negotiable).** A run **is** a
-  session: it ends when the team stops — whether it _completed_ the unit of work or stopped at a good
-  handoff point (between tasks, so QA can run and a PR can open) for the next team to pick up. At that
-  point, and before any squash-merge, the run produces both, or it isn't done:
+- **Close the session — every session ends with two writes (non-negotiable).** A session is one
+  team's (or the solo lead's) sitting: it ends when the team stops — whether it _completed_ the unit
+  of work or stopped at a good handoff point (between tasks, so QA can run and a PR can open) for the
+  next team to pick up. At that point, and before any squash-merge, the session produces both, or it
+  isn't done:
   1. **Update the project [`README.md`](../../README.md)** so it still describes the repo as it now
      is — at minimum the **Status** line (phase progress) and any changed scripts, structure, or
      conventions. The README is human-facing and rots silently; a stale "Phase 0 complete" is the
      smell this rule exists to kill. (The per-task echo of this is the DoD §6 "docs updated" box;
-     this makes it a hard **run-level** requirement, not a maybe.)
-  2. **Write the run record** in [`../runs/`](../runs) (`YYYY-MM-DD-<slug>.md`) — why / shape /
-     outcome / **QA log** / lessons, per [`../runs/README.md`](../runs/README.md) — and add its
-     row to that index. This is the repo's external memory; a run that did real product work and
+     this makes it a hard **session-level** requirement, not a maybe.)
+  2. **Write the session record** in [`../sessions/`](../sessions) (`YYYY-MM-DD-<slug>.md`) — why / shape /
+     outcome / **QA log** / lessons, per [`../sessions/README.md`](../sessions/README.md) — and add its
+     row to that index. This is the repo's external memory; a session that did real product work and
      left no record is invisible to the next session. The **QA log is the durable evidence of the
      dev↔QA loop** (`[D26]`): one entry per coding agent — what QA probed, what passed, each defect
      → fix → re-check, and the tests QA added. The green gate is not that evidence; the log is.
      Record each slice's entry **as its loop closes**, not reconstructed at the end. Applies to
-     **solo runs too**, not just teams.
+     **solo sessions too**, not just teams.
 
 ## 7. Keeping agents from drifting the architecture — quick gate
 

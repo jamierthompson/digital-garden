@@ -1,4 +1,4 @@
-# Run record — Phase 1 keystone (real `ProjectScope`) + gated Phase 2 fast-follows
+# Session record — Phase 1 keystone (real `ProjectScope`) + gated Phase 2 fast-follows
 
 - **Date:** 2026-06-24
 - **Mode:** agent-team, coding-feature (own-a-slice → independent QA → lead curates → squash-merge)
@@ -6,9 +6,9 @@
 
 ## Why
 
-The 2026-06-23 run completed Phase 0.5 + every ungated Phase 1/2 building block, but deliberately
+The 2026-06-23 session completed Phase 0.5 + every ungated Phase 1/2 building block, but deliberately
 **held the engine-gated fast-follows** for once the OKLCH engine landed. With the engine merged
-(PRs #8/#10), this run picks those up: the **real `ProjectScope`** (the last open Phase 1 item —
+(PRs #8/#10), this session picks those up: the **real `ProjectScope`** (the last open Phase 1 item —
 the engine is built, so the keystone can finally consume it) plus the Phase 2 items gated on the
 engine (`cardSwatches`) and on `keys.ts` (live key-drift), and the two opportunistic engine
 cleanups. Goal: finish Phase 1 and everything in Phase 2 that could run concurrently with it.
@@ -29,7 +29,7 @@ more than one branch; `main` never moved, so no rebase/conflict reconciliation w
 
 ## QA log [D26]
 
-_Retrofit: this run predates [D26]; the table captures the per-slice fresh QA actually run, in the
+_Retrofit: this session predates [D26]; the table captures the per-slice fresh QA actually run, in the
 [D26] format. Per-defect detail is in the section below._
 
 | Slice                   | Author    | QA agent (fresh)                      | Verdict   | Tests added               |
@@ -83,5 +83,5 @@ Undefined CSS vars don't error and jsdom doesn't compute color — #3 is exactly
 Opened 2026-06-24, all CI-green + QA-clean at hand-off, left for the owner to squash-merge:
 **#14** real `ProjectScope` (Phase 1 complete), **#15** `cardSwatches`, **#16** key-drift live +
 engine cleanups. The branches are file-disjoint, so they merge in any order. The only item from
-this run carried forward is the pre-existing Phase-2 engine-backed `brandColor` validation (a
+this session carried forward is the pre-existing Phase-2 engine-backed `brandColor` validation (a
 package-boundary task), tracked in [`../build-phases.md`](../build-phases.md).

@@ -140,14 +140,14 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       _review-done_. Before the slice enters the PR, a **fresh** agent (never the author) **tried to
       break it** — edge / error / boundary / malformed-input cases, both color schemes — and **wrote
       the missing test cases** a product-team QA engineer would; findings were fixed by the owning
-      author and QA re-checked clean. Staffing scales: solo run → one QA for the lead's own work;
-      team run → one QA per coding agent. The lead owns this loop — it's an agent-in-the-loop step,
+      author and QA re-checked clean. Staffing scales: solo session → one QA for the lead's own work;
+      team session → one QA per coding agent. The lead owns this loop — it's an agent-in-the-loop step,
       not a CI gate. See [working-with-agents.md](./working-with-agents.md) §6.2.
-- [ ] **End of a run?** Two writes are mandatory before the squash-merge — refresh the
-      [`README.md`](../../README.md) (esp. the **Status** line) and write the run record in
-      [`../runs/`](../runs), **including its QA log** (`[D26]` — what QA tested, what passed, each
+- [ ] **End of a session?** Two writes are mandatory before the squash-merge — refresh the
+      [`README.md`](../../README.md) (esp. the **Status** line) and write the session record in
+      [`../sessions/`](../sessions), **including its QA log** (`[D26]` — what QA tested, what passed, each
       defect → fix → re-check, tests added; one entry per coding agent). See
-      [working-with-agents.md](./working-with-agents.md) §6.2 and [`../runs/README.md`](../runs/README.md).
+      [working-with-agents.md](./working-with-agents.md) §6.2 and [`../sessions/README.md`](../sessions/README.md).
 
 ---
 

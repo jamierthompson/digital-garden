@@ -1,4 +1,4 @@
-# Run record — Phase 3 carried items (draft-content rendering + project notes/tags)
+# Session record — Phase 3 carried items (draft-content rendering + project notes/tags)
 
 - **Date:** 2026-06-24
 - **Mode:** **solo, step-by-step** (lead session; no team) — the two items are sequential and overlap
@@ -54,7 +54,7 @@ so TypeGen doesn't drift. Minimal CSS only (a styling pass is explicitly deferre
 
 ## QA log [D26]
 
-_Retrofit: this run predates [D26], but it is the sharpest live illustration of why [D26] says
+_Retrofit: this session predates [D26], but it is the sharpest live illustration of why [D26] says
 **adversarial** — the primed first pass confirmed the design and found nothing; the unprimed,
 break-it second pass caught the real defects. Detail in the section below._
 

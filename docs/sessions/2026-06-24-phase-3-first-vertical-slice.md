@@ -1,4 +1,4 @@
-# Run record — Phase 3: first vertical slice (a dead-simple project, end-to-end)
+# Session record — Phase 3: first vertical slice (a dead-simple project, end-to-end)
 
 - **Date:** 2026-06-24
 - **Mode:** agent-team, coding-feature (own-a-slice → independent QA → lead curates → squash-merge)
@@ -58,7 +58,7 @@ across the line. Three such seams came up, each resolved deliberately (not paper
 
 ## QA log [D26]
 
-_Retrofit: this run predates [D26]; QA ran over the whole integrated branch (not per-slice). Detail
+_Retrofit: this session predates [D26]; QA ran over the whole integrated branch (not per-slice). Detail
 in the section below._
 
 | Slice                     | Author                 | QA agent (fresh)                                            | Verdict                          | Tests added |
@@ -108,7 +108,7 @@ cleaning up async info …"` originates in the **React DevTools extension** trip
   requires `studioUrl`, so a public `NEXT_PUBLIC_SANITY_STUDIO_URL` was added. (Exactly the
   "verify, don't trust memory" trap the briefs warn about — caught by Data against the bundled docs.)
 - **Worktree hygiene fix.** ESLint flat config doesn't read `.gitignore`, so `pnpm lint` from the
-  lead's checkout was scanning every teammate's `.claude/worktrees/` copy mid-run. `.claude/worktrees`
+  lead's checkout was scanning every teammate's `.claude/worktrees/` copy mid-session. `.claude/worktrees`
   is now ignored in both ESLint and Prettier — agent teams are a first-class workflow here, so the
   gate must survive one.
 
