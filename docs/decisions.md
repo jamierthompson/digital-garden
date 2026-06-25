@@ -380,6 +380,47 @@ in each [`sessions/`](./sessions/) session record's **QA log**, gated per task i
 
 ---
 
+### D27 — Cascade layers must register before `next/font`: global CSS imported first in the root layout
+
+**Decided** (2026-06-25, after prod/browser verification). Refines [D12]; relates to [D11].
+
+[D12] (the "@layer trap") established that `foundation.css` declares `@layer foundation, brand, project;`
+so later sheets slot into a named order instead of fighting specificity. Its stated mechanism — "a
+global sheet **loaded first** establishes the order" — was necessary but **under-specified**: in
+Next 16 / Turbopack, sheet load order is set by **import order in the root layout**, and
+`src/app/layout.tsx` imported `next/font/google` (and the component modules) **before**
+`import "./foundation.css"`.
+
+Consequence (proven, not theorized): Turbopack anchors a route's **first emitted stylesheet** to
+whatever is imported first. With `next/font` ahead of `foundation.css`, the font + component-module
+chunk — which carries `@layer project { … }` but never names `foundation` — loaded first, so the
+browser registered **`project` as the lowest-priority layer**. The foundation reset
+(`@layer foundation { * { margin:0; padding:0 } }`) then out-ranked every `@layer project` rule and
+zeroed their padding/margin (tag chips, embed caption, experience module). This was **deterministic
+on a fresh checkout** (3/3 clean builds) and was **live in production** (`/work/first-light` chips
+computed `padding: 0`, registered order `project < foundation < brand`). It did **not** reproduce in
+git **worktrees** — Turbopack's chunk emission order is environment-sensitive — a verification trap: a
+worktree can mask a bug that ships from a fresh checkout. **Trust a clean `main`/CI build and the live
+deploy, not a worktree.**
+
+**Decision:** the layer-establishing global CSS (`foundation.css`, then `globals.css`) **must be
+imported first in `src/app/layout.tsx`** — above the `next/font` import and every component import — so
+the foundation chunk is the first emitted stylesheet and registers `foundation < brand < project` as
+declared. This is a **source-order invariant**: load order = import order, which an import-sorter
+(ESLint `import/order` / `simple-import-sort` / Prettier organize-imports) would silently break. None is
+enabled today; a **guard test** (`src/app/layout.import-order.test.ts`) pins it — `foundation.css` must
+be the first side-effect import — so a reorder or a future sorter fails the gate instead of reinverting
+the cascade. `lint:css` cannot catch this (it checks per-module layer declaration, not runtime
+registration order).
+
+**Verified:** the fix produces `foundation`-first across 3 clean builds × 5 routes on the canonical
+(fresh-checkout) environment, and browser-verified `padding: 4px 12px` on the chips in both color
+schemes. It is a one-region import reorder — no reset surgery — restoring [D12]'s intent rather than
+working around it. The rejected symptom-patch (retargeting the reset so this one collision disappears
+while the layers stay inverted) was explicitly **not** taken.
+
+---
+
 ## Open items summary
 
 None. D5 (dark mode in scope from v1) and D11 (Cache Components, component-level

@@ -1,4 +1,16 @@
 import type { Metadata } from "next";
+
+// LOAD-BEARING IMPORT ORDER — do not reorder, and do not enable an import-sorter
+// that would [D27, D12]. These global sheets establish the cascade-layer order
+// (`@layer foundation, brand, project;` lives in foundation.css) and MUST be imported
+// before `next/font` and every component below. Turbopack anchors the route's FIRST
+// emitted stylesheet to whatever is imported first; if a `next/font`/component-module
+// chunk lands first it registers `@layer project` as the LOWEST layer, so the
+// foundation reset out-ranks every project rule and zeroes their padding/margin (the
+// cascade inversion). Pinned by layout.import-order.test.ts.
+import "./foundation.css";
+import "./globals.css";
+
 import { Geist, Geist_Mono } from "next/font/google";
 
 import ProjectScope from "@/components/project-scope/ProjectScope";
@@ -7,9 +19,6 @@ import ShellNav from "@/components/shell/ShellNav";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
 import VisualEditingControls from "@/sanity/VisualEditingControls";
-
-import "./foundation.css";
-import "./globals.css";
 
 // The shell's own faces — the only fonts preloaded on every route (D11).
 // Per-project (and shell-brand) faces load on demand via the Phase 1 roster with
