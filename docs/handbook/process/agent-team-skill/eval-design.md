@@ -16,7 +16,7 @@ is what the skill most directly shapes).
   `.claude/skills/` and a copy staged elsewhere; with-skill runs were pointed at the staged path, and
   the skill was **restored** afterward.
 - **Grading:** each plan is scored against its mode's assertions (below), pass/partial/fail, judged from
-  the verbatim output in [`runs/`](./runs/).
+  the verbatim output in [`eval-runs/`](./eval-runs/).
 
 ## The test prompts
 

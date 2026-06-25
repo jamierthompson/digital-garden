@@ -17,7 +17,7 @@ coding.
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`sources.md`](./sources.md)         | The research input: what the **official** Anthropic/Claude Code docs say agent teams are good at — the ground truth the skill is built on.                          |
 | [`eval-design.md`](./eval-design.md) | The eval method: the 4 test prompts (one per mode), the per-mode assertions, and how the with-skill vs. baseline comparison was run.                                |
-| [`runs/`](./runs/)                   | The **real, verbatim agent outputs** — the orchestration plans each subagent produced. This is the evidence, not a summary of it.                                   |
+| [`eval-runs/`](./eval-runs/)         | The **real, verbatim agent outputs** — the orchestration plans each subagent produced. This is the evidence, not a summary of it.                                   |
 | [`findings.md`](./findings.md)       | The comparison round (this trail's analogue of `round-2-debate.md`): with-skill vs. baseline, graded against the assertions, and the two gaps the baseline exposed. |
 | [`synthesis.md`](./synthesis.md)     | **Start here for the conclusions.** What the eval forced to change in the skill, and the verdict.                                                                   |
 
@@ -53,4 +53,4 @@ See [`synthesis.md`](./synthesis.md) for the full reasoning and the exact edits.
   decision/coding baseline deltas are inferred, not measured. Flagged rather than smoothed over —
   same discipline as the handbook synthesis rejecting two critiques on verification.
 - **Quantitative grading is assertion-pass-rate, judged by the lead from the verbatim plans in
-  [`runs/`](./runs/)** — not a token/latency benchmark (the incident made timing data unreliable).
+  [`eval-runs/`](./eval-runs/)** — not a token/latency benchmark (the incident made timing data unreliable).

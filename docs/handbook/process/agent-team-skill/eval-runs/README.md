@@ -1,4 +1,7 @@
-# Run Artifacts — Verbatim Agent Outputs
+# Eval-Run Artifacts — Verbatim Agent Outputs
+
+> These are **skill-eval runs** (the testing done while building the `agent-team` skill), not project
+> work sessions. Real coding-session records live in [`../../../../sessions/`](../../../../sessions/).
 
 The actual orchestration plans produced by the eval subagents, copied **verbatim** (the real evidence,
 not a summary). Each was written by a fresh `general-purpose` subagent given the test prompt from

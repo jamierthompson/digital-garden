@@ -10,10 +10,10 @@ spans **several** sessions; each session has its own record. The record is the r
 and the **handoff to the next team** that picks up the incomplete work — so it can see what was
 attempted and how it landed without re-reading a lost context window.
 
-> **This is not the same as the skill-evaluation runs.** The runs under
-> [`../handbook/process/agent-team-skill/runs/`](../handbook/process/agent-team-skill/runs/) are
-> **verbatim agent outputs captured to build and grade the `agent-team` skill itself** — i.e. they
-> were documentation/tooling work, not product work. This directory is for sessions that build the
+> **This is not the same as the skill-evaluation runs.** The artifacts under
+> [`../handbook/process/agent-team-skill/eval-runs/`](../handbook/process/agent-team-skill/eval-runs/)
+> are **verbatim agent outputs captured to build and grade the `agent-team` skill itself** — i.e. they
+> were tooling/eval work, not product work. This directory is for sessions that build the
 > **digital garden** (features, content model, theming engine, …). When in doubt: _did the session
 > change `src/`, `studio/`, or the product? → it belongs here._
 
@@ -77,3 +77,9 @@ live shape. Skeleton:
 | 2026-06-24 | [Phase 1 keystone (real ProjectScope) + fast-follows](./2026-06-24-phase-1-projectscope.md)                | 3 PRs (#14–#16); Phase 1 complete             |
 | 2026-06-24 | [Phase 2 close-out: engine-backed brandColor validation](./2026-06-24-phase-2-engine-backed-validation.md) | PR #18; `@garden/oklch` pkg; Phase 2 complete |
 | 2026-06-24 | [Gate-doc sync guard (`pnpm lint:docs`)](./2026-06-24-doc-gate-sync-guard.md)                              | PR #19; builds the missing doc-sync guard     |
+| 2026-06-24 | [Phase 3: first vertical slice end-to-end](./2026-06-24-phase-3-first-vertical-slice.md)                   | PR #20; first real project end-to-end         |
+| 2026-06-24 | [Phase 3 carried items (draft rendering + notes/tags)](./2026-06-24-phase-3-carried-items.md)              | PR #21; Phase 3 still open (1 known defect)   |
+
+_The 2026-06-23 session also produced two co-located **deliverable** docs (evidence, not standalone
+sessions): [phase-0.5 render proofs](./2026-06-23-phase-0.5-render-proofs.md) and the
+[log-explorer fit-spike](./2026-06-23-log-explorer-fit-spike.md)._
