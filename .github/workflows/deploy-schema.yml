@@ -1,0 +1,58 @@
+name: Deploy Sanity Schema
+
+# Deploys the Studio's content-model schema to the hosted Content Lake so apps
+# like Dashboard/Canvas/Agent Actions see the current model.
+#
+# Why from CI and not locally: `sanity schemas deploy` loads Rolldown, whose
+# native binary (@rolldown/binding-darwin-x64) SIGABRTs on the owner's
+# Intel/macOS machine — a darwin-x64-specific upstream crash, not a version
+# issue. CI runs on Ubuntu (linux-x64) where Rolldown works, so CI is the
+# robust path. (See docs/handbook/security-and-ops.md / production-checklist.md.)
+
+on:
+  # Manual trigger — covers the first deploy and any ad-hoc redeploy.
+  workflow_dispatch:
+  # Auto-redeploy only when the schema actually changes on main.
+  push:
+    branches: [main]
+    paths:
+      - studio/schemaTypes/**
+      - studio/sanity.config.ts
+
+# Schema deploy mutates shared hosted state; serialize runs so two deploys
+# can't race. Don't cancel an in-flight deploy — let it finish.
+concurrency:
+  group: deploy-schema
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Sanity project ID and dataset are public (shipped to the browser), not
+    # secrets — same as ci.yml. The Studio also reads them from sanity.cli.ts.
+    env:
+      NEXT_PUBLIC_SANITY_PROJECT_ID: 7id6sf36
+      NEXT_PUBLIC_SANITY_DATASET: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Deploy the schema from the studio/ workspace so the CLI picks up
+      # studio/sanity.cli.ts + sanity.config.ts (projectId, dataset, workspace).
+      #
+      # Auth: in CI there's no `sanity login`, so the CLI reads a deploy token
+      # from the SANITY_AUTH_TOKEN env var. We source it from the repo secret
+      # SANITY_DEPLOY_TOKEN (Deploy/Editor scope). NEVER hardcode a token.
+      # Ref: https://www.sanity.io/docs/apis-and-sdks/schema-deployment
+      - name: Deploy schema
+        env:
+          SANITY_AUTH_TOKEN: ${{ secrets.SANITY_DEPLOY_TOKEN }}
+        run: pnpm --filter studio exec sanity schemas deploy --verbose
