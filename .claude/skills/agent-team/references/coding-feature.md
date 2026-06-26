@@ -26,12 +26,31 @@ persist a progress doc to the repo (what's done, what's next, the slice→owner�
 re-spawned teammate reads state instead of "continue what we were doing". The repo's docs are the
 durable memory; the context window is not.
 
-**3. Brief each slice owner** per §1, and make the boundary explicit: **"you own these files; do
-not edit any others."** Include the binding `[D#]`s for the area, the bundled-doc paths, and
-**cite-don't-remember** (Next 16 / React 19). Consider **plan approval** for risky slices — the
+**3. Provision an in-root worktree per slice — so accept-edits just works `[D29]`.** Give each
+slice its own checkout + branch **inside the repo root**, where the teammate's cwd scope already
+covers it — `acceptEdits` then auto-accepts every edit there and you never babysit per-edit prompts:
+
+```bash
+git worktree add -b feat/<slug> .claude/worktrees/<slug> main   # creates the path + branch off main
+(cd .claude/worktrees/<slug> && pnpm install)                    # worktrees don't inherit the gitignored node_modules
+```
+
+Brief the teammate that **its working directory is `.claude/worktrees/<slug>/`** — every edit, build,
+test, and `git` command happens there. **Do not** use the harness `isolation: "worktree"` spawn flag:
+it drops the checkout in an **ephemeral dir _outside_ the root**, out of `acceptEdits` scope, so every
+write prompts the owner (`[D29]`; PR #20's prompt storm). `.claude/worktrees/` is already git-excluded
+and Prettier/ESLint/tsconfig-ignored, so these nested checkouts don't pollute the lead's gate. If a
+slice runs a dev/preview server, give it a **distinct port** (`pnpm dev -p 3010`, `3011`, …) — ports are
+host-global and worktrees don't isolate them. The lead tears each one down (`git worktree remove
+.claude/worktrees/<slug>`) at cleanup. **Caveat `[D27]`:** a worktree isolates _editing_ only — never
+trust it for _final_ verification; gate on a clean `main`/CI build and the live deploy.
+
+**4. Brief each slice owner** per §1, and make the boundary explicit: **"you own these files in your
+worktree; do not edit any others."** Include the binding `[D#]`s for the area, the bundled-doc paths,
+and **cite-don't-remember** (Next 16 / React 19). Consider **plan approval** for risky slices — the
 teammate plans in read-only mode and you approve before it writes.
 
-**4. Each slice ships complete and gate-green.** A slice is "done" only when it passes the full gate
+**5. Each slice ships complete and gate-green.** A slice is "done" only when it passes the full gate
 in CI order:
 
 ```bash
@@ -44,7 +63,7 @@ Broken WIP is **not** handed off. Enforce this with a `TaskCompleted` hook that 
 that stops teammates marking work complete without testing. See
 [`docs/handbook/definition-of-done.md`](../../../../docs/handbook/definition-of-done.md).
 
-**5. One fresh, adversarial QA per slice — before it enters the PR `[D26]`.** Gate-green is
+**6. One fresh, adversarial QA per slice — before it enters the PR `[D26]`.** Gate-green is
 _developer-done_, not _review-done_. For **every** coding agent, spawn **one fresh QA teammate**
 (`pr-review-toolkit:code-reviewer` / `feature-dev:code-reviewer`) — **never the agent that wrote the
 slice**; the isolated context is the point. Brief it per §1 to **try to break** the slice, not skim
@@ -60,7 +79,7 @@ session record's **QA log** as the loop closes (`[D26]`; format in
 **not team-only** — a solo session does exactly one author→one QA; here you just run one per coding agent.
 Full mechanics: [`docs/handbook/working-with-agents.md`](../../../../docs/handbook/working-with-agents.md) §6.2.
 
-**6. Lead curates history & merges.** You do **not** inherit an unfinished slice (it bounces back
+**7. Lead curates history & merges.** You do **not** inherit an unfinished slice (it bounces back
 to its owner). Your job is _history_: rebase onto latest `main`, squash an agent's fix-ups, reorder
 slices, drop a false start, then **squash-merge** with a deliberate PR body — the story told once.
 Push curated history with `--force-with-lease`, never plain `--force`, so a teammate's concurrent
@@ -71,7 +90,9 @@ mechanics: [`git-and-pr-workflow.md`](../../../../docs/handbook/git-and-pr-workf
 
 - **File ownership is the whole game.** The most common team failure is two teammates editing the
   same file. If you can't cleanly partition files, this isn't a team job — sequence it solo.
-- **Shared-branch hygiene:** teammates on one branch must pull/rebase before pushing; the lead
-  reconciles. Worktree isolation is an alternative if slices are truly independent.
+- **Worktree-per-slice is the default isolation `[D29]`** (step 3): each teammate gets its own
+  in-root checkout + branch, so file conflicts are structurally impossible and accept-edits stays
+  silent. A **shared branch** is the fallback when slices can't be cleanly partitioned — then
+  teammates must pull/rebase before pushing and the lead reconciles.
 - **Monitor for premature "done."** Watch task status (it can lag); confirm the slice actually
   passes the gate before you curate it in.

@@ -449,6 +449,25 @@ QA agent. Operative wording updated in `AGENTS.md`, `handbook/working-with-agent
 
 ---
 
+### D29 — Agent-team coding slices run in in-root git worktrees, not the ephemeral `isolation` flag
+
+**Decided** (user call, 2026-06-26). Relates to [D27]; makes the `handbook/working-with-agents.md` §6.2 "lead clears the path" principle mechanical.
+
+Parallel coding slices need real isolation — a separate checkout + branch per teammate so edits don't overwrite and builds (`.next`) don't collide. Two ways to get a worktree:
+
+- the harness **`isolation: "worktree"`** spawn flag → the checkout lands in an **ephemeral dir outside the project root**;
+- **`git worktree add .claude/worktrees/<slug>`** → a persistent checkout **inside** the root.
+
+The flag breaks the permission model: `acceptEdits` auto-accepts edits only within the session **cwd + `permissions.additionalDirectories`**; an out-of-root path falls out of scope, so **every** Edit/Write prompts the owner (PR #20's prompt storm). Path-glob `allow` rules don't help — the mode/scope check runs **before** allow-rule matching. (Confirmed empirical-but-undocumented for the experimental agent-teams feature.)
+
+**Decision:** team coding slices use **in-root** worktrees — `git worktree add .claude/worktrees/<slug> <branch>` — **never** the `isolation: "worktree"` spawn flag. Because `.claude/worktrees/` sits under the repo root (= the teammate's cwd), `acceptEdits` silently covers every edit there; the lead never babysits per-edit prompts. The dir is already git-excluded (`.git/info/exclude`) and Prettier/ESLint-ignored; this change adds it to tsconfig `exclude` and to `permissions.additionalDirectories` (belt-and-suspenders). The **lead owns the sharing mess**: create the worktree + branch, run `pnpm install` per worktree (worktrees don't inherit the gitignored `node_modules`), assign a **distinct dev-server port** per slice (ports are host-global — worktrees don't isolate them), and `git worktree remove` on cleanup.
+
+**Verification caveat [D27]:** a worktree isolates _editing_ — it must **never** be trusted for _final verification_. [D27]'s trap stands: Turbopack chunk-emission order is environment-sensitive and a worktree can mask a bug that ships from a fresh checkout. Gate the curated tip on a clean `main`/CI build and the live deploy, not in a worktree.
+
+**Boundaries:** applies to the parallel-coding mode (file-disjoint slices). Read-only modes (research / debate / review) need no worktree. Operative wording added to `.claude/skills/agent-team/SKILL.md` §1, `references/coding-feature.md`, and `handbook/working-with-agents.md` §6.1.
+
+---
+
 ## Open items summary
 
 None. D5 (dark mode in scope from v1) and D11 (Cache Components, component-level
