@@ -93,8 +93,10 @@ async function ShellTheme({ children }: { children: React.ReactNode }) {
 // body, so a themed fallback silently themes the whole shell with the engine fallback palette on BOTH
 // the published static build and draft Preview (the Item C regression QA caught). Unthemed-but-
 // structural (boundary + nav + content) keeps the layout stable; brand vars resolve when `ShellTheme`
-// streams in. The brief unbranded flash is draft-only — published serves the resolved real-brand tree.
-// MUST stay free of `<ProjectScope>` (pinned by layout.shell-theme-dedup.qa.test.tsx). [D9, D11]
+// streams in. The brief unbranded fallback frame is a `next dev`-only artifact — a production build
+// serves the build-time-resolved themed shell in the initial bytes (zero unbranded frames, draft
+// included), symmetric with every project island (verified: docs/sessions/2026-06-26-shell-sourcing-
+// islands/). MUST stay free of `<ProjectScope>` (pinned by layout.shell-theme-dedup.qa.test.tsx). [D9, D11]
 function ShellThemeFallback({ children }: { children: React.ReactNode }) {
   return (
     <ProjectScopeBoundary>
@@ -112,20 +114,23 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        {/* LOAD-BEARING <Suspense> — do NOT remove, do NOT read `siteSettings` outside
-            `ShellTheme`/this boundary, and do NOT render `<ProjectScope>` in the fallback (see
-            `ShellThemeFallback`). [D11, D16, D27]
-            Under Cache Components, Draft Mode bypasses `use cache`: `sanityFetch` re-executes
-            uncached on every request (use-cache.md §"Draft Mode"), so the shell brand read becomes
-            request-time data. This boundary is what lets it defer — the published cached read
-            completes at prerender (resolved real-brand tree is served, statically); the draft read
-            suspends and streams. It ALSO licenses `generateMetadata`'s `siteSettings` read: once
-            this body subtree defers under Draft Mode, the route is in the sanctioned "other parts
-            also defer → metadata streams with them" branch (generate-metadata.md §"With Cache
-            Components"), so the metadata read no longer trips its own blocking-route error. Remove
-            this boundary and BOTH the body read AND `generateMetadata` throw `Uncached data … outside
-            of <Suspense>` under Draft Mode. If a future Next narrows that rule, the recorded
-            escalation is `'use cache'` on `generateMetadata` (decisions.md). */}
+        {/* LOAD-BEARING <Suspense> — do NOT remove, and do NOT render `<ProjectScope>` in the
+            fallback (see `ShellThemeFallback`). [D11, D16, D27]
+            `ShellTheme` is an async island: it awaits `sanityFetch(SITE_SETTINGS_QUERY)`. Under
+            Cache Components, Draft Mode bypasses `use cache`, so that read re-executes uncached per
+            request (use-cache.md §"Draft Mode") — request-time data in the body. This boundary is
+            what lets it defer: the published cached read completes at prerender (the resolved
+            real-brand tree is served statically); the draft read suspends and streams behind the
+            fallback. Remove the boundary and the async body read trips `Uncached data … outside of
+            <Suspense>` (the blocking-route error) — verified: it surfaces live in `next dev`; a
+            production build prerendered the cached read so prod tolerates it, but the shape is wrong.
+            NOTE: this boundary does NOT license `generateMetadata` — that read is `use cache` (cached
+            at build, dynamic under draft) and is independently legal (Control C: a synchronous body +
+            no boundary → metadata does NOT throw). CAVEAT: if you remove this boundary while
+            `ShellTheme` is still async, `next dev` WILL log a blocking-route error whose stack frame
+            points at `generateMetadata` (~line 42) — but that's the un-deferred async body making the
+            whole route blocking, not metadata itself. Restore the boundary; don't "fix" metadata.
+            (spike: docs/sessions/2026-06-26-shell-sourcing-islands/spike-findings.md) */}
         <Suspense
           fallback={<ShellThemeFallback>{children}</ShellThemeFallback>}
         >

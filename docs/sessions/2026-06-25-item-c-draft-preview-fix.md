@@ -1,5 +1,13 @@
 # Session — Item C: draft-preview blocking-route fix (debate → experiment → fix)
 
+> **[Superseded in part — 2026-06-26]** This record's framing that the body `<Suspense>` deferral
+> "licenses"/"rescues" `generateMetadata` (the "other parts defer → metadata streams" mechanism) was
+> **refuted** by a later spike: `generateMetadata`'s `use cache` read is independently legal; the
+> boundary is load-bearing for the async **body** read only. See
+> [`./2026-06-26-shell-sourcing-islands/spike-findings.md`](./2026-06-26-shell-sourcing-islands/spike-findings.md).
+> The fix itself (the boundary + unthemed fallback) stands; only the _why-it-works_ mechanism was
+> mis-attributed.
+
 **Date:** 2026-06-25 · **Shape:** solo lead + a 3-agent adversarial design debate (read-only, no
 worktrees) → lead-run experiments → solo implementation → fresh blind QA `[D26]`. · **Versions:**
 Next 16.xx / React 19.xx, Cache Components on.

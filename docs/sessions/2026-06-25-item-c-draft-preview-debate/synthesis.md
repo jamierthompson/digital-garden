@@ -1,5 +1,13 @@
 # Synthesis — Item C draft-preview blocking-route fix (lead's verdict)
 
+> **[Superseded in part — 2026-06-26, applies to this whole debate folder]** The conclusion that the
+> body `<Suspense>` deferral "licenses"/"rescues" `generateMetadata` (the "other parts defer → metadata
+> streams" mechanism, recurring across the round drafts here) was **refuted** by a later spike:
+> `generateMetadata`'s `use cache` read is independently legal; the boundary is load-bearing for the
+> async **body** read only. See
+> [`../2026-06-26-shell-sourcing-islands/spike-findings.md`](../2026-06-26-shell-sourcing-islands/spike-findings.md).
+> The fix that shipped stands; the mechanism was mis-attributed.
+
 Three lenses (FrameworkFit, Architect, ShellGuardian) drafted independently, then re-evaluated
 against lead-run experiments (C1/C2, real `__prerender_bypass` cookie, tree reverted clean).
 Next 16.xx / React 19.xx, Cache Components on.

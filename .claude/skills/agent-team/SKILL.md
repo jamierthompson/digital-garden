@@ -139,8 +139,11 @@ However the mode ends, you (the lead) finish it:
 - **Research / review / debugging** → **synthesize** into one cited artifact. Resolve conflicts
   explicitly (§1). For an architecture decision, record the resolved calls as a **new `[D#]`** in
   [`docs/decisions.md`](../../../docs/decisions.md) (decisions are immutable — supersede, never
-  edit). Persist the trail to the repo (mirror `docs/audit/` or `docs/handbook/making-of/`) so the
-  next session has external memory, not a lost context window.
+  edit). Persist the trail to the repo under **`docs/sessions/YYYY-MM-DD-<slug>/`** (a dated session
+  folder — `docs/audit/` and `docs/handbook/making-of/` show the _shape_, but session/product work
+  lives in `docs/sessions/`, NOT in `making-of/`, which is the making-of the handbook itself; see
+  [`docs/sessions/README.md`](../../../docs/sessions/README.md)) so the next session has external
+  memory, not a lost context window.
 - **Coding** → each teammate hands off a **complete, gate-green slice** over its own files. Before a
   slice enters the PR, run **one fresh, adversarial QA per coding agent** (`[D26]`) — a fresh
   reviewer, never the author, that **tries to break** the slice and writes the missing test cases

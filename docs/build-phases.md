@@ -274,53 +274,91 @@ locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not
   DIAGNOSED + FIXED 2026-06-25; full sign-off still OPEN (two items below).** Session record +
   verbatim debate/QA trail:
   [`sessions/2026-06-25-item-c-draft-preview-fix.md`](./sessions/2026-06-25-item-c-draft-preview-fix.md).
-  - **Cause (proven):** under Draft Mode, Cache Components bypasses `use cache`, so
-    `sanityFetch(SITE_SETTINGS_QUERY)` is uncached at two un-`<Suspense>`'d sites in `layout.tsx`
-    (`generateMetadata` + the `RootLayout` body) → the blocking-route error. (Originally surfaced as
-    `Route "/": Uncached data … outside of <Suspense>` at `generateMetadata`.)
-  - **Fix (this PR):** body read extracted to an async `ShellTheme` behind one in-`<body>` `<Suspense>`;
-    the body deferral also licenses `generateMetadata` (the "other parts defer → metadata streams" branch);
-    `generateMetadata` untouched. Adversarial QA caught a **ship-blocking regression** (a _themed_
+  - **Cause (corrected 2026-06-26 by spike — see
+    [`sessions/2026-06-26-shell-sourcing-islands/spike-findings.md`](./sessions/2026-06-26-shell-sourcing-islands/spike-findings.md)):**
+    under Draft Mode, Cache Components bypasses `use cache`, so the async `ShellTheme` **body** read of
+    `sanityFetch(SITE_SETTINGS_QUERY)` is uncached and, without a `<Suspense>` ancestor, trips the
+    blocking-route error (`Uncached data … outside of <Suspense>`) — verified live in `next dev`.
+    **The originally-recorded framing that `generateMetadata` _also_ throws, and that the body deferral
+    "licenses" the metadata read, was REFUTED** (spike Control C): `generateMetadata`'s read is
+    `use cache` (cached at build, dynamic under draft) and is independently legal — it does not depend on
+    the boundary. So the boundary is load-bearing for the **body** read only.
+  - **Fix (PR #27):** body read extracted to an async `ShellTheme` behind one in-`<body>` `<Suspense>`
+    (load-bearing for the body read). Adversarial QA caught a **ship-blocking regression** (a _themed_
     fallback collided with the real shell on `<style href="project-theme-garden">` → React 19 href-de-dup
     kept the fallback → fallback palette rendered); fixed by an **unthemed** `ShellThemeFallback`.
   - **Verified locally (clean-build, computed/applied style):** published `/` = `○ Static` carrying the
     REAL brand (hue 150 / Fraunces); draft Preview renders the **edited** `siteSettings` brand + title
     **including the shell**; no draft→published leak; full gate green. `[D11, D16]`
-  - **REMAINING for sign-off (Phase 3 not closed until both land):**
+  - **REMAINING for sign-off:**
     1. **Live-browser production experimentation** in the real Sanity Presentation tool, across **more
        mock projects** (not just `first-light`/`garden`) — the owner has not yet accepted the behavior in
-       a real production preview. Local clean-build + cookie repro is necessary, not sufficient.
-    2. The **themed draft-loading fallback** follow-up below — the interim is unthemed.
+       a real production preview. Now also carries the **Path A Vercel flash re-verification** (confirm
+       zero unbranded frames on the live deploy; the local prod build already measured clean). Local
+       clean-build + cookie repro is necessary, not sufficient.
+    2. ~~The themed draft-loading fallback follow-up~~ — **RETIRED 2026-06-26 (Path A).** See below.
 
-- [ ] **Themed draft-loading fallback (Item C interim shipped UNTHEMED — open, do NOT forget).** The Item
-      C fix made the `<Suspense>` fallback **unthemed** (`ShellThemeFallback` renders no `ProjectScope`)
-      because a themed fallback re-used `slug="garden"` → same `<style href="project-theme-garden">` →
-      React 19 de-dupes hoisted styles by href and keeps the first (the fallback) → the real/edited brand
-      is dropped on the published build AND draft Preview. So the draft **loading frame** shows the neutral
-      foundation palette, not a brand-tinted one — a **literal deviation from the standing requirement that
-      the draft fallback be themed** (requirement intentionally **left as-is**, not reworded to bless the
-      interim). It is _not_ a flash of unstyled content (`ShellNav` token fallbacks keep it readable +
-      layout-stable; `font-family` now falls back to the shell mono face), and it is **draft-Preview-only**
-      (published serves the resolved real-brand tree). **Candidate fix:** a **distinct-`href`/slug themed
-      fallback** — give the fallback `ProjectScope` a non-`"garden"` slug so it emits a _different_
-      `<style href>` that can't lose the de-dup, themed via the engine fallback palette; both styles then
-      coexist, each scoped to its own `[data-project]`. **Unknowns to settle before adopting:** does
-      `resolveScope` cleanly handle a made-up, non-`KNOWN_SLUGS` slug `[D9]`; the always-present extra
-      `<style>` on every page (incl. published) it would add; whether it's worth the complexity for a
-      loading frame only the editor ever sees. **Gate:** must be validated with **live-browser production
-      experimentation across more mock projects** before shipping — no behavior change pre-accepted. `[D11, D16, D9]`
+- [√] **Themed draft-loading fallback — RESOLVED (not built) 2026-06-26 → Path A.** The unthemed
+  `<Suspense>` fallback was treated as a defect to fix; a 4-lens debate + empirical spike (Controls
+  A–D) reframed it. The unbranded fallback frame is **`next dev`-only** — a production build serves the
+  build-time-resolved (PPR) themed shell in the initial bytes (**zero** unbranded frames, draft
+  included), and it is **symmetric with every project island** (each project's `loading.tsx` is likewise
+  unthemed). The shell is an **editorial Sanity island** like a project, not a per-request constant — so
+  the dev-only flash is **accepted** and the "theme the fallback" requirement is **retired**. The
+  `spike/zero-flash-shell` themed-fallback branch and the "make the shell a synchronous code constant" /
+  `shell.config.ts` direction are **abandoned**; the implementation is unchanged. Full trail (decision +
+  controls + the dev-vs-prod PPR mechanism):
+  [`sessions/2026-06-26-shell-sourcing-islands/`](./sessions/2026-06-26-shell-sourcing-islands/).
 
-- [ ] **Re-run the `[D27]` import-order red-herring experiment.** `[D27]` (PR #23) attributes the app-wide
-      `@layer` cascade inversion to **import order** (`next/font` before `foundation.css`), and `layout.tsx`
-      now carries a load-bearing comment + `layout.import-order.test.ts` pinning it. There's a standing
-      suspicion the import-order fix may be a **red herring** (the inversion "did NOT reproduce in git
-      worktrees" — a verification trap; it was deterministic only on a fresh checkout / production build).
-      **Experiment:** in the **main tree** (worktrees mask it), on a clean production build, reorder the
-      imports (`next/font` before the global sheets) and check whether the inversion actually returns — the
-      observable is the `.tag` chip computing `padding: var(--space-1) var(--space-3)` (4px 12px, correct)
-      vs `0` (inverted) on `/work/first-light`. If it returns → `[D27]` is real, constraint stays. If it
-      does **not** → the constraint (and the contorted `Suspense`-import placement) may be unnecessary;
-      supersede `[D27]` with a new decision. Do on its own branch. `[D27, D12]`
+**Sanity Live Preview & production wiring — carried from the 2026-06-26 session (handoff retired):**
+
+_The shell-flash question is resolved (Path A, above). These are the still-live Sanity-preview tasks
+formerly tracked in the now-deleted `docs/handoff-sanity-preview-session.md`. **Mock data**, not a
+log-explorer migration — the owner does NOT want to migrate the log-explorer project; create a few
+varied mock projects to exercise everything._
+
+- [ ] **(#2) Live Content API — `defineLive` + `<SanityLive/>`** for real-time draft preview of
+      _content_ (project brand/essay/notes, page content). **Verify the `defineLive` / `<SanityLive>` API
+      against the installed `next-sanity` before writing** — don't trust memory (it was v13.1.1 at last
+      check). Shape: a `defineLive` instance (strict; `serverToken` = `SANITY_API_READ_TOKEN`,
+      `browserToken` = a dedicated minimal-permission **Viewer** token the owner mints in sanity.io/manage —
+      NOT the read token, exposed as `SANITY_API_BROWSER_TOKEN`); route the content reads through
+      `liveSanityFetch`; mount `<SanityLive includeDrafts={isDraftMode}/>` in `layout.tsx`; add the CORS
+      origins + Vercel env. Single-source the `[D16]` stega field-exclusion (into `src/sanity/lib/stega.ts`)
+      while you're in there. **Path A frames the read-path:** the shell is an editorial island on the normal
+      draft path, so `defineLive` only ever handles _content_ — design the content read-path with that in
+      mind (the shell never needs the live path). Batched adversarial QA ([D26]/[D28]): token-leak grep of
+      the public bundle, [D16] stega exclusions hold, live updates actually fire, no draft→published leak.
+      `[D16]`
+- [ ] **(#3) Publish → production revalidation.** A Sanity webhook → a `revalidateTag` route so a
+      _published_ change auto-appears on Vercel (today the published cache is `cacheLife max`, so it does
+      not). Not started.
+- [ ] **(#4) Production preview wiring + Path A Vercel verification.** Deploy the Studio (currently
+      local-only, NOT on `*.sanity.studio`), add CORS origins (`localhost:3000`, `localhost:3333`, the
+      Vercel URL — with credentials, for the `<SanityLive>` `EventSource`), set Vercel env vars, mint the
+      dedicated browser token. **Includes the Path A flash re-verification on the live Vercel deploy**
+      (closes the sign-off item above) — and, once green, writing the **Path A `[D#]`** into `decisions.md`
+      (held back until then; the drafted record is in
+      [`sessions/2026-06-26-shell-sourcing-islands/synthesis.md`](./sessions/2026-06-26-shell-sourcing-islands/synthesis.md)
+      §0/§7, framed as the reversed outcome). Outward config — confirm with the owner before adding CORS
+      origins.
+- [ ] **Mock data** — a few varied mock projects to exercise preview/live/revalidation end-to-end (the
+      dataset already has First Light + a few docs). NOT a log-explorer migration.
+
+- [~] **`[D27]` import-order red-herring experiment — RAN 2026-06-26: does NOT reproduce.** `[D27]`
+  (PR #23) attributes the app-wide `@layer` cascade inversion to **import order** (`next/font` before
+  `foundation.css`); `layout.tsx` carries a load-bearing comment + `layout.import-order.test.ts` pins it.
+  **Result (main tree, confirmed not a worktree; COLD `.next`; clean production build — the [D27] repro
+  conditions):** moving `next/font` ABOVE the global sheets did **NOT** invert the cascade — the `.tag`
+  chip on `/work/first-light` computed `padding: 4px 12px` (correct) in baseline AND reordered, warm AND
+  cold builds (browser-verified computed style via Chrome DevTools). So in **Next 16.2.9 the import-order
+  constraint is a red herring** — either it never was load-bearing, or Turbopack's stylesheet ordering
+  was since fixed. _(Honest caveat: `[D27]` was recorded on an earlier Next; this proves the constraint
+  is not load-bearing **now**, not that it was wrong **then**.)_ **Follow-up (owner's call, own branch):**
+  supersede `[D27]` with a new decision and relax the constraint — drop the load-bearing import-order
+  comment, the contorted `Suspense`-import placement, and `layout.import-order.test.ts` — OR keep it as
+  cheap insurance. NOT done unilaterally (immutable decision). Finding recorded in
+  [`sessions/2026-06-26-shell-sourcing-islands/spike-findings.md`](./sessions/2026-06-26-shell-sourcing-islands/spike-findings.md). `[D27, D12]`
 - [√] **Wire a Preview entry point** — done 2026-06-25 (PR #24): `presentationTool` + slug-guarded
   `defineLocations` in `studio/sanity.config.ts`, driving the existing draft-mode handlers; localhost
   CORS origin added; the schema deploy it relies on is the CI follow-up (PR #25). `[D16]`
