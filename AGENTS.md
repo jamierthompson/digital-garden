@@ -44,7 +44,8 @@ These silently break *this* stack. Most are lint/CI-enforced; know them so you d
   history (rebase/squash/reorder) and **squash-merges** — the story is told once in the
   PR body. Gate green at every slice handoff and on the curated tip; delete the branch.
 - **Every slice clears independent, adversarial QA before the PR** `[D26]`. Gate-green is
-  _developer-done_, not _review-done_: a **fresh** agent (never the author) **tries to break** the
+  _developer-done_, not _review-done_: a **fresh** agent with **no prior context of the work** (not
+  merely "not the author" `[D28]`) **tries to break** the
   slice and writes the missing test cases a product-team QA engineer would, the owning author fixes,
   QA re-checks. This holds on **every** session — solo (lead is also author → one QA) or team (one QA per
   coding agent). The lead owns the loop (see [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md) §6.2).

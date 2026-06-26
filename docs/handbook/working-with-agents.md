@@ -217,7 +217,8 @@ between developer-done and the PR, whether one Claude or ten do the work:
 
 The split below is written team-first, but **solo is the degenerate case**: lead and author collapse
 into one agent; the slice count is one; the dev↔QA loop (§6.2) is identical and still mandatory. The
-QA is always **adversarial** and always **fresh** — never the agent that wrote the code.
+QA is always **adversarial** and always **fresh with no prior context of the work** — not merely "not
+the agent that wrote the code" `[D28]`.
 
 ### 6.1 Agent teams: each agent owns a slice; the lead curates history
 
@@ -260,8 +261,10 @@ each tool call.**
   its staffing: a solo session spawns **one** fresh QA for its own work; a team session spawns **one fresh QA
   per coding agent**. Before a slice enters the PR, the lead spawns a **fresh** QA subagent
   (`pr-review-toolkit:code-reviewer` / `feature-dev:code-reviewer`, or the `/code-review` skill) —
-  _fresh_ meaning **not** the agent that wrote it; an isolated context is the whole point (brief it
-  per §5). **QA is adversarial, not a once-over:**
+  _fresh_ meaning **no prior context of the work**, not merely **not** the agent that wrote it `[D28]` —
+  a teammate that helped design, debate, or diagnose the slice is **disqualified** even though it didn't
+  type the code; an isolated context is the whole point (brief it per §5 on the **requirements + the
+  diff only**, never the author's reasoning). **QA is adversarial, not a once-over:**
   - **Try to break it — think like a QA engineer on a product team.** Don't just confirm the happy
     path renders. Attack the edges the author optimized past: malformed / boundary / empty / hostile
     input (a garbage `brandColor` → safe fallback, never a throw [D9]), the error and not-found
