@@ -17,6 +17,10 @@ const { liveFetchSpy, draftModeSpy } = vi.hoisted(() => ({
   draftModeSpy: vi.fn(),
 }));
 
+// `sanityFetch.ts` imports `server-only`, which throws when loaded outside a
+// react-server condition (vitest sets none) — neutralize it so the module under test
+// loads. The guard's real job (failing a client-bundle import) is a build-time concern.
+vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({ draftMode: draftModeSpy }));
 vi.mock("./live", () => ({ liveFetch: liveFetchSpy, SanityLive: () => null }));
 

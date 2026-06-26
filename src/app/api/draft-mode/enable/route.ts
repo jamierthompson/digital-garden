@@ -16,8 +16,9 @@ import { client } from "@/sanity/lib/client";
  * The token is the server-only secret `SANITY_API_READ_TOKEN`, attached here with
  * `.withConfig` to the PUBLIC client instance purely to authorize the preview
  * handshake — it is NOT baked into any exported client. The draft READS happen
- * through `getClient(true)` (which builds the drafts-perspective client); this
- * route only flips the cookie. [security-and-ops §3]
+ * through `sanityFetch` → `liveFetch`/`defineLive` (drafts perspective, token
+ * attached server-side per request); this route only flips the cookie.
+ * [security-and-ops §3]
  */
 export const { GET } = defineEnableDraftMode({
   client: client.withConfig({ token: process.env.SANITY_API_READ_TOKEN }),

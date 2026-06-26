@@ -1,3 +1,8 @@
+// Build-time guard: this module holds the server-only token-selection logic, so it must
+// never reach a client bundle. A stray `"use client"` import would fail the build here
+// instead of silently shipping the draft-read path to the browser. [security-and-ops §3]
+import "server-only";
+
 import { draftMode } from "next/headers";
 import type { ClientReturn, QueryParams } from "next-sanity";
 
