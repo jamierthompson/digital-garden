@@ -137,7 +137,8 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       [`../decisions.md`](../decisions.md) (never edit an accepted one — supersede it; see
       [decision-records.md](./decision-records.md)).
 - [ ] **Independent adversarial QA passed.** `[D26]` Gate-green is _developer-done_, not
-      _review-done_. Before the slice enters the PR, a **fresh** agent (never the author) **tried to
+      _review-done_. Before the slice enters the PR, a **fresh** agent with **no prior context of the
+      work** (not merely "not the author" `[D28]`) **tried to
       break it** — edge / error / boundary / malformed-input cases, both color schemes — and **wrote
       the missing test cases** a product-team QA engineer would; findings were fixed by the owning
       author and QA re-checked clean. Staffing scales: solo session → one QA for the lead's own work;
@@ -163,7 +164,7 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
 [ ] Lockfile committed if deps changed; imports use @/*
 [ ] Tests co-located & meaningful; docs/README/decisions updated if needed      [D18]
 [ ] Rendered surface? Browser-verified via chrome-devtools MCP (focus/tap/CLS/flash) [D25]
-[ ] Independent adversarial QA: fresh agent tried to break it + wrote missing cases; fixed [D26]
+[ ] Independent adversarial QA: fresh, no-prior-context agent tried to break it + wrote missing cases; fixed [D26, D28]
 ```
 
 Tick the boxes top to bottom — they aren't independent; the §1 chain short-circuits, so a

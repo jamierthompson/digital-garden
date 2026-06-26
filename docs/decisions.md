@@ -421,6 +421,34 @@ while the layers stay inverted) was explicitly **not** taken.
 
 ---
 
+### D28 — Adversarial QA must have no prior context of the work, not merely "not the author"
+
+**Decided** (user call, 2026-06-25). Refines [D26].
+
+[D26] requires the pre-PR adversarial QA to be a **fresh** agent — "never the one that wrote it." This
+session (Item C, the draft-preview blocking-route fix) showed "not the author" is too weak: a fresh
+agent that has nonetheless absorbed the slice's diagnosis, design debate, and fix rationale is **primed
+to confirm** — it inherits the author's mental model, including the author's blind spot. Here the author
+"verified" the fix by checking brand-token _presence_ in dev-server HTML and rationalized past a
+ship-blocker (a React 19 `<style>` href de-dup that made the engine fallback palette win on the
+production build). The QA that caught it was a **fresh agent with no prior context of the work** — it
+independently chose the right method (computed/applied style on a clean production build) precisely
+because it had not been told what to expect.
+
+**Decision:** the [D26] QA agent must have **no prior context of the work under review** — it must not
+have participated in, nor been briefed on, the slice's diagnosis, design, or implementation, and must
+not be shown the author's verification reasoning. It is briefed only on the **requirements** and the
+**artifact** (the diff), then told to break it. "Fresh / not the author" is the floor; **no prior
+context** is the standard: a teammate that helped design or debate the slice is **disqualified** as its
+QA even though it didn't type the code.
+
+**Boundaries:** otherwise unchanged from [D26] — one QA per coding agent, findings to the owning author,
+re-check until clean, durable QA log in the session record. D28 only strengthens _who qualifies_ as the
+QA agent. Operative wording updated in `AGENTS.md`, `handbook/working-with-agents.md` §6,
+`handbook/definition-of-done.md`, and `handbook/orientation.md`.
+
+---
+
 ## Open items summary
 
 None. D5 (dark mode in scope from v1) and D11 (Cache Components, component-level
