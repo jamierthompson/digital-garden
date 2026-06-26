@@ -270,29 +270,57 @@ locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not
 
 **What's left to close Phase 3 — Phase 3 is NOT done until Item C lands:**
 
-- [ ] **(Item C) Verify draft-content rendering end-to-end in Preview** — **STILL OPEN; Phase 3 is NOT
-      done.** Attempted 2026-06-25; surfaced a blocking defect. **Verified observations (only):**
-  - Schema deployed to the Content Lake (PR #25 CI workflow ran successfully); the Presentation tool
-    loads and Preview is enterable after Studio login.
-  - Draft/published isolation holds at the **data layer** (GROQ): `published` perspective = "First Light"
-    / 3 notes; `drafts` perspective (a test draft) = edited title / 4 notes. Cookieless sessions
-    (public + prod) render **published** — no leak.
-  - With Draft Mode ON, the `/work/[slug]` project page **does** render the draft (edited title + the
-    extra related note, observed in-browser).
-  - **DEFECT — blocks clean preview:** with Draft Mode ON, a runtime **Blocking Route** error fires.
-    Verbatim: `Route "/": Uncached data or connection() was accessed outside of <Suspense>` … at
-    `Module.generateMetadata (src/app/layout.tsx:39:20)` → `await sanityFetch(SITE_SETTINGS_QUERY)`. It
-    appears only with Draft Mode ON (this path was unverified since PR #21); the published path is clean.
-  - **Requirement (owner):** full draft preview must work for **all** content, **including
-    `siteSettings`/the shell** — not just project pages. It is a Phase-3 goal **and** a Phase-4
-    prerequisite (Phase 4 migrates an existing project into the garden, which can't ship if preview is
-    broken). The original plan may not have anticipated this interaction; that does **not** put it out of
-    scope.
-  - **Next session: explore this FRESH.** Diagnose the Blocking Route error from first principles — **no
-    suspected fix is recorded here, on purpose** (avoid confirmation bias). **Repro:** token in
-    `.env.local`; `pnpm dev` (:3000) + `pnpm --filter studio dev` (:3333); create a draft edit of
-    `first-light` via the Sanity MCP; open Studio `/presentation` and enter Preview; observe the error.
-    `[D11, D16]`
+- [~] **(Item C) Verify draft-content rendering end-to-end in Preview** — **blocking-route defect
+  DIAGNOSED + FIXED 2026-06-25; full sign-off still OPEN (two items below).** Session record +
+  verbatim debate/QA trail:
+  [`sessions/2026-06-25-item-c-draft-preview-fix.md`](./sessions/2026-06-25-item-c-draft-preview-fix.md).
+  - **Cause (proven):** under Draft Mode, Cache Components bypasses `use cache`, so
+    `sanityFetch(SITE_SETTINGS_QUERY)` is uncached at two un-`<Suspense>`'d sites in `layout.tsx`
+    (`generateMetadata` + the `RootLayout` body) → the blocking-route error. (Originally surfaced as
+    `Route "/": Uncached data … outside of <Suspense>` at `generateMetadata`.)
+  - **Fix (this PR):** body read extracted to an async `ShellTheme` behind one in-`<body>` `<Suspense>`;
+    the body deferral also licenses `generateMetadata` (the "other parts defer → metadata streams" branch);
+    `generateMetadata` untouched. Adversarial QA caught a **ship-blocking regression** (a _themed_
+    fallback collided with the real shell on `<style href="project-theme-garden">` → React 19 href-de-dup
+    kept the fallback → fallback palette rendered); fixed by an **unthemed** `ShellThemeFallback`.
+  - **Verified locally (clean-build, computed/applied style):** published `/` = `○ Static` carrying the
+    REAL brand (hue 150 / Fraunces); draft Preview renders the **edited** `siteSettings` brand + title
+    **including the shell**; no draft→published leak; full gate green. `[D11, D16]`
+  - **REMAINING for sign-off (Phase 3 not closed until both land):**
+    1. **Live-browser production experimentation** in the real Sanity Presentation tool, across **more
+       mock projects** (not just `first-light`/`garden`) — the owner has not yet accepted the behavior in
+       a real production preview. Local clean-build + cookie repro is necessary, not sufficient.
+    2. The **themed draft-loading fallback** follow-up below — the interim is unthemed.
+
+- [ ] **Themed draft-loading fallback (Item C interim shipped UNTHEMED — open, do NOT forget).** The Item
+      C fix made the `<Suspense>` fallback **unthemed** (`ShellThemeFallback` renders no `ProjectScope`)
+      because a themed fallback re-used `slug="garden"` → same `<style href="project-theme-garden">` →
+      React 19 de-dupes hoisted styles by href and keeps the first (the fallback) → the real/edited brand
+      is dropped on the published build AND draft Preview. So the draft **loading frame** shows the neutral
+      foundation palette, not a brand-tinted one — a **literal deviation from the standing requirement that
+      the draft fallback be themed** (requirement intentionally **left as-is**, not reworded to bless the
+      interim). It is _not_ a flash of unstyled content (`ShellNav` token fallbacks keep it readable +
+      layout-stable; `font-family` now falls back to the shell mono face), and it is **draft-Preview-only**
+      (published serves the resolved real-brand tree). **Candidate fix:** a **distinct-`href`/slug themed
+      fallback** — give the fallback `ProjectScope` a non-`"garden"` slug so it emits a _different_
+      `<style href>` that can't lose the de-dup, themed via the engine fallback palette; both styles then
+      coexist, each scoped to its own `[data-project]`. **Unknowns to settle before adopting:** does
+      `resolveScope` cleanly handle a made-up, non-`KNOWN_SLUGS` slug `[D9]`; the always-present extra
+      `<style>` on every page (incl. published) it would add; whether it's worth the complexity for a
+      loading frame only the editor ever sees. **Gate:** must be validated with **live-browser production
+      experimentation across more mock projects** before shipping — no behavior change pre-accepted. `[D11, D16, D9]`
+
+- [ ] **Re-run the `[D27]` import-order red-herring experiment.** `[D27]` (PR #23) attributes the app-wide
+      `@layer` cascade inversion to **import order** (`next/font` before `foundation.css`), and `layout.tsx`
+      now carries a load-bearing comment + `layout.import-order.test.ts` pinning it. There's a standing
+      suspicion the import-order fix may be a **red herring** (the inversion "did NOT reproduce in git
+      worktrees" — a verification trap; it was deterministic only on a fresh checkout / production build).
+      **Experiment:** in the **main tree** (worktrees mask it), on a clean production build, reorder the
+      imports (`next/font` before the global sheets) and check whether the inversion actually returns — the
+      observable is the `.tag` chip computing `padding: var(--space-1) var(--space-3)` (4px 12px, correct)
+      vs `0` (inverted) on `/work/first-light`. If it returns → `[D27]` is real, constraint stays. If it
+      does **not** → the constraint (and the contorted `Suspense`-import placement) may be unnecessary;
+      supersede `[D27]` with a new decision. Do on its own branch. `[D27, D12]`
 - [√] **Wire a Preview entry point** — done 2026-06-25 (PR #24): `presentationTool` + slug-guarded
   `defineLocations` in `studio/sanity.config.ts`, driving the existing draft-mode handlers; localhost
   CORS origin added; the schema deploy it relies on is the CI follow-up (PR #25). `[D16]`

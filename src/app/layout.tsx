@@ -11,6 +11,9 @@ import type { Metadata } from "next";
 import "./foundation.css";
 import "./globals.css";
 
+// Binding import (no CSS side-effect) → does not move the Turbopack stylesheet anchor that
+// the LOAD-BEARING block above pins, so it sits safely after the global sheets [D27, D12].
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import ProjectScope from "@/components/project-scope/ProjectScope";
@@ -55,22 +58,18 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  // `sanityFetch` caches the published shell brand into the static HTML (the flash-free
-  // theme has to be in the initial bytes, [D11]) and serves fresh `siteSettings` drafts
-  // under Draft Mode, so an edited shell title/brand previews like any other content.
-  // Same cache key as `generateMetadata`'s call, so the read is deduped to one fetch.
+// The shell's themed subtree, extracted into its own async component for ONE reason: so the
+// `siteSettings` read can live behind the `<Suspense>` boundary in `RootLayout` below. [D11, D16]
+async function ShellTheme({ children }: { children: React.ReactNode }) {
+  // `sanityFetch` caches the published shell brand into the static HTML (the flash-free theme
+  // has to be in the initial bytes, [D11]) and serves fresh `siteSettings` drafts under Draft
+  // Mode, so an edited shell title/brand previews like any other content. Same cache key as
+  // `generateMetadata`'s call, so the read is deduped to one fetch.
   const settings = await sanityFetch(SITE_SETTINGS_QUERY);
 
-  // Feed the shell scope its brand seed. ProjectScope/resolveScope is TOTAL and never
-  // throws [D9]: a missing `siteSettings`, a bad `brandColor`, or an unknown `fontKey`
-  // each degrade to the engine fallback palette + shell mono face. `slug="garden"`
-  // keys the shell island [§3.1] (Core registers "garden" in the allowed-slug set
-  // during integration; until then it safely collapses to the fallback selector).
+  // Feed the shell scope its brand seed. ProjectScope/resolveScope is TOTAL and never throws
+  // [D9]: a missing `siteSettings`, a bad `brandColor`, or an unknown `fontKey` each degrade to
+  // the engine fallback palette + shell mono face. `slug="garden"` keys the shell island [§3.1].
   const scopeSeed = {
     slug: "garden",
     brandColor: settings?.brandColor ?? "",
@@ -78,16 +77,62 @@ export default async function RootLayout({
   };
 
   return (
+    <ProjectScopeBoundary>
+      <ProjectScope seed={scopeSeed}>
+        <ShellNav />
+        {children}
+      </ProjectScope>
+    </ProjectScopeBoundary>
+  );
+}
+
+// The Suspense fallback. It deliberately renders NO `<ProjectScope>`: the real `ShellTheme` and a
+// themed fallback would BOTH emit `<style href="project-theme-garden">`, and React 19 de-dupes
+// hoisted stylesheets by href keeping the FIRST committed — the fallback. During prerender React
+// hoists the fallback's `<style>` even though the resolved `ShellTheme` is what ends up in the served
+// body, so a themed fallback silently themes the whole shell with the engine fallback palette on BOTH
+// the published static build and draft Preview (the Item C regression QA caught). Unthemed-but-
+// structural (boundary + nav + content) keeps the layout stable; brand vars resolve when `ShellTheme`
+// streams in. The brief unbranded flash is draft-only — published serves the resolved real-brand tree.
+// MUST stay free of `<ProjectScope>` (pinned by layout.shell-theme-dedup.qa.test.tsx). [D9, D11]
+function ShellThemeFallback({ children }: { children: React.ReactNode }) {
+  return (
+    <ProjectScopeBoundary>
+      <ShellNav />
+      {children}
+    </ProjectScopeBoundary>
+  );
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        <ProjectScopeBoundary>
-          <ProjectScope seed={scopeSeed}>
-            <ShellNav />
-            {children}
-          </ProjectScope>
-        </ProjectScopeBoundary>
-        {/* Self-gates on Draft Mode — renders nothing for public visitors. Mounted
-            once near the root per the bundled draft-mode doc. */}
+        {/* LOAD-BEARING <Suspense> — do NOT remove, do NOT read `siteSettings` outside
+            `ShellTheme`/this boundary, and do NOT render `<ProjectScope>` in the fallback (see
+            `ShellThemeFallback`). [D11, D16, D27]
+            Under Cache Components, Draft Mode bypasses `use cache`: `sanityFetch` re-executes
+            uncached on every request (use-cache.md §"Draft Mode"), so the shell brand read becomes
+            request-time data. This boundary is what lets it defer — the published cached read
+            completes at prerender (resolved real-brand tree is served, statically); the draft read
+            suspends and streams. It ALSO licenses `generateMetadata`'s `siteSettings` read: once
+            this body subtree defers under Draft Mode, the route is in the sanctioned "other parts
+            also defer → metadata streams with them" branch (generate-metadata.md §"With Cache
+            Components"), so the metadata read no longer trips its own blocking-route error. Remove
+            this boundary and BOTH the body read AND `generateMetadata` throw `Uncached data … outside
+            of <Suspense>` under Draft Mode. If a future Next narrows that rule, the recorded
+            escalation is `'use cache'` on `generateMetadata` (decisions.md). */}
+        <Suspense
+          fallback={<ShellThemeFallback>{children}</ShellThemeFallback>}
+        >
+          <ShellTheme>{children}</ShellTheme>
+        </Suspense>
+        {/* Self-gates on Draft Mode — renders nothing for public visitors. Mounted once near
+            the root per the bundled draft-mode doc. */}
         <VisualEditingControls />
       </body>
     </html>

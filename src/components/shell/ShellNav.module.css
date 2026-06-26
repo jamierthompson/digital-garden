@@ -16,7 +16,10 @@
   }
 
   .brand {
-    font-family: var(--font-face);
+    /* Fall back to the shell mono face (the [D9] degrade) when no scope sets `--font-face`
+       — e.g. the draft-Preview loading frame, whose ShellThemeFallback renders no ProjectScope.
+       Matches the `var(--brand-*, var(--foreground))` fallbacks on the other properties here. */
+    font-family: var(--font-face, var(--font-geist-mono));
     font-weight: 600;
     font-size: var(--text-lg);
     color: var(--brand-text, var(--foreground));
