@@ -263,9 +263,9 @@ locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not
 
 - [√] `project.blurb` — hard `rule.max(300).error()` alongside the soft 280-char warning (PR #11) — done (PR #20): both chained, so an editor sees a warning at 280 and a blocking error past 300
 - [√] `siteSettings` — enforce the singleton via Studio Structure and use an explicit `*[_type == "siteSettings"][0]` guard in its query (nothing forces uniqueness today) (PR #11) `[D24]` — done (PR #20): a fixed-`documentId` Structure item (excluded from the default list so editors can't create duplicates) + the `[0]`-guarded `SITE_SETTINGS_QUERY`
-- [~] **Draft-content _rendering_ on the `/work` routes** (carried from PR #20) — **code-complete in PR #21, NOT yet verified end-to-end** (see "What's left" below). A shared `sanityFetch(query, params?, cacheProfile?)` is now the single content read path, adopted across `/work`, `/work/<slug>`, `layout` siteSettings, and `/notes`. **Divergence from the original sketch (bundled docs win):** the helper reads `(await draftMode()).isEnabled` _inside_ the `use cache` scope, not outside — the version-exact docs (`use-cache.md` §"Draft Mode", `draft-mode.md`) confirm `draftMode()` is the one runtime API readable inside `use cache`, and Cache Components **natively** re-executes + skips the cache while Draft Mode is on, so no separate uncached path is needed. Public visitors keep the prerendered static shell; Preview branches to `getClient(true)` (uncached, drafts perspective, stega on). `generateStaticParams` stays on the published client by design. **Verified:** the published path renders live, the fail-loud token guard throws (unit-tested), no draft→published cache leak. **NOT verified:** a real draft actually rendering — blocked on a Sanity read token (absent locally) **and** a Preview entry point (Sanity Presentation is not wired). `[D11, D16]`
+- [√] **Draft-content _rendering_ on the `/work` routes** (carried from PR #20) — **shipped: PR #21 (code) → superseded + completed by PR #31's `defineLive` migration ([D31]); prod-verified.** The PR #21 description below is historical (the `getClient` mechanism it describes is now removed). A shared `sanityFetch(query, params?, cacheProfile?)` was the single content read path, adopted across `/work`, `/work/<slug>`, `layout` siteSettings, and `/notes`. **Divergence from the original sketch (bundled docs win):** the helper reads `(await draftMode()).isEnabled` _inside_ the `use cache` scope, not outside — the version-exact docs (`use-cache.md` §"Draft Mode", `draft-mode.md`) confirm `draftMode()` is the one runtime API readable inside `use cache`, and Cache Components **natively** re-executes + skips the cache while Draft Mode is on, so no separate uncached path is needed. Public visitors keep the prerendered static shell; Preview branches to `getClient(true)` (uncached, drafts perspective, stega on). `generateStaticParams` stays on the published client by design. **Verified:** the published path renders live, the fail-loud token guard throws (unit-tested), no draft→published cache leak. **NOT verified:** a real draft actually rendering — blocked on a Sanity read token (absent locally) **and** a Preview entry point (Sanity Presentation is not wired). `[D11, D16]`
 - [√] **`PROJECT_DETAIL_QUERY` over-fetch** (carried from PR #20) — done 2026-06-24 (PR #21): **rendered, not trimmed** — the project page grew to show the data it already pulled. A `TagList` (chips, header metadata) and a `RelatedNotes` list (see-also section after the experience), both pure var-consuming components that self-guard to null when empty. Titles/tags render as plain text, not links — there are no tag-archive or individual-note routes yet, so linking would dead-end; the notes stay real Sanity references `[D16]` and become links when such a route lands. Query + TypeGen unchanged `[§6]`
-- [√] Draft-mode / Presentation client needs `useCdn: false` + `perspective: "previewDrafts"`, distinct from the publishes-only public client (PR #11) `[D16]` — done 2026-06-24: added `draftClient` (`useCdn:false`, perspective `"drafts"` — `"previewDrafts"` is `DeprecatedPreviewDrafts` in `@sanity/client` v7, so the current spelling is used for the same behaviour) + a `getClient(isDraft)` selector that attaches the server-only `SANITY_API_READ_TOKEN` per request, alongside the published-only public client. Draft Mode enable/disable route handlers (`/api/draft-mode/*`) and a draft-gated `<VisualEditingControls>` ship with it `[D16]`.
+- [√] Draft-mode / Presentation client needs `useCdn: false` + `perspective: "previewDrafts"`, distinct from the publishes-only public client (PR #11) `[D16]` — done 2026-06-24: added `draftClient` (`useCdn:false`, perspective `"drafts"` — `"previewDrafts"` is `DeprecatedPreviewDrafts` in `@sanity/client` v7, so the current spelling is used for the same behaviour) + a `getClient(isDraft)` selector that attaches the server-only `SANITY_API_READ_TOKEN` per request, alongside the published-only public client. Draft Mode enable/disable route handlers (`/api/draft-mode/*`) and a draft-gated `<VisualEditingControls>` ship with it `[D16]`. **Superseded 2026-06-26 (PR #31, [D31]):** `getClient`/`draftClient` are removed — the single read path is now `defineLive` (`src/sanity/lib/live.ts`); the draft-mode enable route keeps the read token via `client.withConfig`.
 - [√] **`proxy.ts` — deferred, not built (decision recorded).** Draft mode needs **no** request-level proxy logic: it runs entirely through Route Handlers that flip the `__prerender_bypass` cookie (`await draftMode().enable()/.disable()`), which Next handles natively. `proxy.ts` is a CDN-deployable redirect/rewrite boundary, is **Node-runtime-only** (setting `runtime` throws — `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md` §Runtime), and the security runbook explicitly says **don't drive draft mode from proxy** (`docs/handbook/security-and-ops.md` §4). Adding an empty/no-op `proxy.ts` would tax every request for nothing, so the Phase-0 deferral stands until there's genuine cross-cutting request logic (auth, geo-rewrite, etc.) to host.
 
 **What's left to close Phase 3 — Phase 3 is NOT done until Item C lands:**
@@ -290,13 +290,14 @@ locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not
   - **Verified locally (clean-build, computed/applied style):** published `/` = `○ Static` carrying the
     REAL brand (hue 150 / Fraunces); draft Preview renders the **edited** `siteSettings` brand + title
     **including the shell**; no draft→published leak; full gate green. `[D11, D16]`
-  - **REMAINING for sign-off:**
-    1. **Live-browser production experimentation** in the real Sanity Presentation tool, across **more
-       mock projects** (not just `first-light`/`garden`) — the owner has not yet accepted the behavior in
-       a real production preview. Now also carries the **Path A Vercel flash re-verification** (confirm
-       zero unbranded frames on the live deploy; the local prod build already measured clean). Local
-       clean-build + cookie repro is necessary, not sufficient.
-    2. ~~The themed draft-loading fallback follow-up~~ — **RETIRED 2026-06-26 (Path A).** See below.
+  - **Path A flash re-verification: DONE 2026-06-26** — verified flash-free on the live Vercel deploy
+    (branded shell in the initial PPR bytes, `x-nextjs-prerender:1`), both before and after the
+    defineLive read-path migration → **[D30]** recorded.
+  - **REMAINING for full sign-off (owner-gated):** the **draft-content Presentation walkthrough** across
+    the mock projects — edit a draft, watch it preview live — needs the hosted Studio / an authenticated
+    Presentation session. The draft _path_ is code-verified (QA: perspective branch + no draft→published
+    leak) and the mechanism is deployed (PR #31); only the live UI walkthrough remains.
+    - ~~The themed draft-loading fallback follow-up~~ — **RETIRED 2026-06-26 (Path A, [D30]).**
 
 - [√] **Themed draft-loading fallback — RESOLVED (not built) 2026-06-26 → Path A.** The unthemed
   `<Suspense>` fallback was treated as a defect to fix; a 4-lens debate + empirical spike (Controls
@@ -317,33 +318,30 @@ formerly tracked in the now-deleted `docs/handoff-sanity-preview-session.md`. **
 log-explorer migration — the owner does NOT want to migrate the log-explorer project; create a few
 varied mock projects to exercise everything._
 
-- [ ] **(#2) Live Content API — `defineLive` + `<SanityLive/>`** for real-time draft preview of
-      _content_ (project brand/essay/notes, page content). **Verify the `defineLive` / `<SanityLive>` API
-      against the installed `next-sanity` before writing** — don't trust memory (it was v13.1.1 at last
-      check). Shape: a `defineLive` instance (strict; `serverToken` = `SANITY_API_READ_TOKEN`,
-      `browserToken` = a dedicated minimal-permission **Viewer** token the owner mints in sanity.io/manage —
-      NOT the read token, exposed as `SANITY_API_BROWSER_TOKEN`); route the content reads through
-      `liveSanityFetch`; mount `<SanityLive includeDrafts={isDraftMode}/>` in `layout.tsx`; add the CORS
-      origins + Vercel env. Single-source the `[D16]` stega field-exclusion (into `src/sanity/lib/stega.ts`)
-      while you're in there. **Path A frames the read-path:** the shell is an editorial island on the normal
-      draft path, so `defineLive` only ever handles _content_ — design the content read-path with that in
-      mind (the shell never needs the live path). Batched adversarial QA ([D26]/[D28]): token-leak grep of
-      the public bundle, [D16] stega exclusions hold, live updates actually fire, no draft→published leak.
-      `[D16]`
-- [ ] **(#3) Publish → production revalidation.** A Sanity webhook → a `revalidateTag` route so a
-      _published_ change auto-appears on Vercel (today the published cache is `cacheLife max`, so it does
-      not). Not started.
-- [ ] **(#4) Production preview wiring + Path A Vercel verification.** Deploy the Studio (currently
-      local-only, NOT on `*.sanity.studio`), add CORS origins (`localhost:3000`, `localhost:3333`, the
-      Vercel URL — with credentials, for the `<SanityLive>` `EventSource`), set Vercel env vars, mint the
-      dedicated browser token. **Includes the Path A flash re-verification on the live Vercel deploy**
-      (closes the sign-off item above) — and, once green, writing the **Path A `[D#]`** into `decisions.md`
-      (held back until then; the drafted record is in
-      [`sessions/2026-06-26-shell-sourcing-islands/synthesis.md`](./sessions/2026-06-26-shell-sourcing-islands/synthesis.md)
-      §0/§7, framed as the reversed outcome). Outward config — confirm with the owner before adding CORS
-      origins.
-- [ ] **Mock data** — a few varied mock projects to exercise preview/live/revalidation end-to-end (the
-      dataset already has First Light + a few docs). NOT a log-explorer migration.
+- [√] **(#2) Live Content API — `defineLive` + `<SanityLive/>`** — done 2026-06-26 (PR #31, **[D31]**).
+  Migrated the content read path to next-sanity v13 `defineLive` (resolved from `next-sanity/live`,
+  `strict: true`; `serverToken` = `SANITY_API_READ_TOKEN`, `browserToken` = a dedicated Viewer
+  `SANITY_API_BROWSER_TOKEN`); `<SanityLive>` mounted via a draft-gated async island; stega
+  single-sourced into `src/sanity/lib/stega.ts` [D16]; `server-only` guard on `sanityFetch.ts`. Fresh
+  QA `[D26]`: token-leak grep clean (neither token in `.next/`), no draft→published leak, layout
+  invariants mutation-proven. **Prod-verified:** the `<SanityLive>` EventSource connects (200).
+  The shell stays on the normal draft path (Path A [D30]); `defineLive` only handles _content_.
+- [√] **(#3) Publish → production revalidation** — done 2026-06-26 (PR #31, **[D31]**). Signed webhook
+  `POST /api/revalidate` → `revalidateTag(tag, { expire: 0 })` for `sanity:<_type>` + `sanity`
+  (derived server-side from `_type`, never a payload tag). **Prod-verified:** valid Sanity HMAC →
+  `200 {revalidated, tags}`; tampered/unsigned → 401; GET → 405. **Owner step remaining:** register the
+  webhook in sanity.io/manage (URL `/api/revalidate`, secret `SANITY_REVALIDATE_SECRET` — already in
+  Vercel) so it fires automatically on publish.
+- [~] **(#4) Production preview wiring + Path A Vercel verification** — **partial.** Done 2026-06-26:
+  Vercel Production env set (`SANITY_API_READ_TOKEN`, `SANITY_API_BROWSER_TOKEN`,
+  `SANITY_REVALIDATE_SECRET`); CORS origins added (prod + `localhost:3000`/`3333`, with credentials);
+  browser Viewer token minted; **Path A flash re-verified flash-free on the live deploy** → **[D30]**
+  recorded. **Remaining (owner-gated):** deploy the hosted Studio (`pnpm --filter studio deploy`,
+  first run picks a `*.sanity.studio` host) + set `NEXT_PUBLIC_SANITY_STUDIO_URL` in Vercel.
+- [√] **Mock data** — done 2026-06-26: 3 published projects seeded via the Sanity MCP — `tidepool` (teal,
+  space-grotesk, embed + 2 notes), `marginalia` (indigo + `brandColorDark` override, jetbrains-mono,
+  no embed/notes), `goldenrod` (yellow contrast-stresser, inter). Vary hue/font/notes/tags; all
+  engine-validated (`isFallback: false`); all render themed on prod, both schemes.
 
 - [~] **`[D27]` import-order red-herring experiment — RAN 2026-06-26: does NOT reproduce.** `[D27]`
   (PR #23) attributes the app-wide `@layer` cascade inversion to **import order** (`next/font` before

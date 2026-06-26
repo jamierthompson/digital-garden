@@ -468,6 +468,32 @@ The flag breaks the permission model: `acceptEdits` auto-accepts edits only with
 
 ---
 
+### D30 — Path A: the shell is an editorial Sanity island; the `next dev`-only unbranded flash is accepted
+
+**Decided** (2026-06-26, after a 4-lens agent-team debate + empirical spike; reverses a mid-point "code-config" verdict — see [`sessions/2026-06-26-shell-sourcing-islands/`](./sessions/2026-06-26-shell-sourcing-islands/)). Relates to [D11], [D16].
+
+The question circled several sessions: where does the shell's brand/identity come from, and why does the shell "flash" unthemed? A mid-point verdict was to make the shell a synchronous code constant (`shell.config.ts`). The spike refuted both its pillars: (a) the flash is **`next dev`-only** — a production build serves the PPR build-time-resolved themed shell in the initial bytes (zero unbranded frames, draft included); and (b) the shell brand is **editorial content, not a constant** — it lives in `siteSettings`, read async + draft-aware exactly like a project reads its own brand.
+
+**Decision:** the shell is an **editorial Sanity island, symmetric with each project island**. Brand / font / title / description stay in `siteSettings`, read through the normal async draft-aware path; **no** synchronous-config refactor, **no** `shell.config.ts`, `siteSettings` is **not** dissolved. The unbranded fallback frame is a **dev-only** artifact and is **accepted** — symmetric with every project's unthemed `loading.tsx`. The `<Suspense>` boundary + **unthemed** `ShellThemeFallback` in `layout.tsx` stay load-bearing (a themed fallback collides with the real shell on `<style href>` de-dup — the Item C regression QA caught). **Verified flash-free on the live Vercel deploy** (2026-06-26, both before and after the defineLive read-path migration): branded shell in the initial PPR bytes, `x-nextjs-prerender:1`.
+
+**Boundaries:** "theme the fallback" is **retired** (it was never the problem). Abandoned directions: the `spike/zero-flash-shell` themed-fallback branch and the synchronous-shell / `shell.config.ts` design.
+
+---
+
+### D31 — Content read path uses next-sanity `defineLive`; the publish→revalidate webhook is the freshness source
+
+**Decided** (2026-06-26, PR #31). Relates to [D11], [D16]; supersedes the hand-rolled `getClient`/`sanityFetch` draft branch.
+
+Phase 3 shipped a hand-rolled `sanityFetch` (`use cache` + `draftMode()`-inside-cache → `getClient`). To get real-time draft preview (`<SanityLive>`) we migrated to next-sanity v13's `defineLive`.
+
+**Decision:** the single content read path is **`defineLive`** (`src/sanity/lib/live.ts`), resolved from `next-sanity/live`, `strict: true`, with `serverToken` = `SANITY_API_READ_TOKEN` and a dedicated minimum-scope **Viewer** `browserToken` = `SANITY_API_BROWSER_TOKEN` (browser-exposed via the SanityLive EventSource, so never the read token). `getClient`/`draftClient` are removed. **Tag contract:** every fetch carries `sanity` + `sanity:<_type>`; `sanityFetch.ts` carries an `import "server-only"` guard. Stega field-exclusions `[D16]` are single-sourced in `src/sanity/lib/stega.ts`.
+
+The time-based `cacheProfile` ("hours" for notes) is **dropped**: `defineLive` owns cache lifetime (1y) and freshness is **on-demand via tag revalidation**. Consequence: the **publish→revalidate webhook** (`/api/revalidate`, signed, `revalidateTag(tag, { expire: 0 })`) is now **load-bearing for published cold-cache freshness** — without it (and without a connected `<SanityLive>` EventSource) a cold visitor could be served up-to-1y-stale initial HTML. Acceptable for a personal garden **given the webhook is verified in prod**. Path A [D30] frames the read-path: the shell is an editorial island on the normal draft path, so `<SanityLive>`/`defineLive` only ever handle _content_ — the shell never needs the live path.
+
+**Boundaries:** the webhook registration in Sanity + the hosted Studio deploy are owner-ops, tracked in [`build-phases.md`](./build-phases.md). The shell `siteSettings` read stays on the normal draft path, not the live browser path.
+
+---
+
 ## Open items summary
 
 None. D5 (dark mode in scope from v1) and D11 (Cache Components, component-level
