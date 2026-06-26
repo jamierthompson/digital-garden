@@ -5,23 +5,24 @@ over time. Each project is a self-contained, independently themed module: its ow
 brand color (a perceptual OKLCH palette) and font, composed on a shared invariant
 foundation. Content and brand seeds live in Sanity; the site renders on Next.js.
 
-> Status: **Phases 0–2 complete; Phase 3 nearly there (closing out).** Scaffolding +
-> guardrails (Ph0), the walking skeleton (Ph0.5), the OKLCH theming engine + real
+> Status: **Phases 0–2 complete; Phase 3 essentially complete — pending final sign-off.**
+> Scaffolding + guardrails (Ph0), the walking skeleton (Ph0.5), the OKLCH theming engine + real
 > `ProjectScope` (Ph1), and the Sanity content model with reference-by-key wiring and
 > engine-backed `brandColor` validation (Ph2) are done. **Phase 3** drives one dead-simple
 > project (`first-light`) end-to-end — `/work` index + themed `/work/<slug>` route,
 > error/not-found/loading states, metadata — alongside the themed garden shell
-> (home / about / now / notes), an RSS feed, and the Sanity draft-mode plumbing.
-> Of the two PR #20 carry-overs: the project page now renders its `tags` + related `notes`
-> (done), and draft-content rendering is **code-complete via a shared `sanityFetch`**
-> (`use cache` + native draft-bypass) but **not yet verified end-to-end** — it needs a
-> Sanity read token and a Preview entry point (Sanity Presentation isn't wired yet). **What's
-> left to close Phase 3** (tracked in [`docs/build-phases.md`](./docs/build-phases.md)):
-> verify draft rendering with a real token, wire Presentation/Preview entry, and fix a
-> pre-existing app-wide `@layer`-order inversion an independent QA pass found (Turbopack drops
-> `foundation` from the order statement, wiping `padding`/`margin` on every project-layer
-> rule). **Then Phase 4** — the OKLCH-engine showcase and the `log-explorer` migration. See
-> [`docs/`](./docs) for the architecture plan, build phases, decision log, per-session records
+> (home / about / now / notes), an RSS feed, and Sanity draft mode with the **Presentation /
+> Preview tool wired** and the schema deployed from CI. In-product draft **Preview now renders
+> edited content across all surfaces including the shell** — the Cache-Components "blocking-route"
+> error that broke it is fixed by deferring the shell `siteSettings` read behind `<Suspense>`
+> `[D11, D16]`. The earlier app-wide `@layer`-order inversion was fixed in Phase 3 `[D27]` — its
+> real cause was **import order** (`next/font` ahead of the global sheets), not a Turbopack quirk.
+> **What's left to close Phase 3** (tracked in [`docs/build-phases.md`](./docs/build-phases.md)):
+> sign off draft Preview with **live-browser production experimentation across more mock projects**,
+> and a follow-up to give the draft loading-state fallback a brand theme (it currently ships
+> **unthemed** as an interim, to avoid a React-19 style-dedup collision). **Then Phase 4** — the
+> OKLCH-engine showcase and the `log-explorer` migration. See [`docs/`](./docs) for the
+> architecture plan, build phases, decision log, per-session records
 > ([`docs/sessions/`](./docs/sessions)), and the
 > [production deploy checklist](./docs/production-checklist.md).
 
