@@ -140,4 +140,84 @@ describe("POST /api/revalidate", () => {
     expect(res.status).toBe(400);
     expect(revalidateTagSpy).not.toHaveBeenCalled();
   });
+
+  // ── Adversarial QA additions [D26] ──────────────────────────────────────────────────
+  // The above 8 cover the happy path + each rejection branch where `body` is null. These
+  // attack the branches a non-null payload opens: a present-but-typeless body, a falsy
+  // `_type`, attacker-supplied tag fields, and secret leakage.
+
+  it("returns 400 (no revalidate) for a signed body that is present but has no `_type`", async () => {
+    // Distinct from the `body: null` case above: here `body` is a real object, so the
+    // guard rests entirely on the `body?._type` optional read being undefined — exercising
+    // the `!type` branch with a truthy body, the shape a real Sanity webhook with a
+    // misconfigured projection would send.
+    parseBodySpy.mockResolvedValue({
+      isValidSignature: true,
+      body: { _id: "p1", slug: "first-light" },
+    });
+
+    const res = await POST(fakeReq);
+
+    expect(res.status).toBe(400);
+    expect(revalidateTagSpy).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 (no revalidate) when `_type` is an empty string", async () => {
+    // `""` is falsy, so `!type` must catch it — otherwise we'd revalidate the garbage tag
+    // `sanity:` (and the catch-all) off an empty type.
+    parseBodySpy.mockResolvedValue({
+      isValidSignature: true,
+      body: { _type: "", _id: "p1" },
+    });
+
+    const res = await POST(fakeReq);
+
+    expect(res.status).toBe(400);
+    expect(revalidateTagSpy).not.toHaveBeenCalled();
+  });
+
+  it("ignores attacker-supplied `tags`/`tag` fields — tags derive from `_type` ONLY", async () => {
+    // Tag-injection probe: even on a fully VALID, signed request, a payload smuggling its
+    // own `tags`/`tag` must NOT aim revalidation anywhere but `sanity:<_type>` + `sanity`.
+    // The handler must never read these fields.
+    parseBodySpy.mockResolvedValue({
+      isValidSignature: true,
+      body: {
+        _type: "project",
+        _id: "p1",
+        tags: ["sanity:siteSettings", "evil"],
+        tag: "admin",
+      } as never,
+    });
+
+    const res = await POST(fakeReq);
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      revalidated: true,
+      tags: ["sanity:project", "sanity"],
+    });
+    // Exactly the two server-derived tags — nothing the attacker named.
+    expect(revalidateTagSpy.mock.calls).toEqual([
+      ["sanity:project", { expire: 0 }],
+      ["sanity", { expire: 0 }],
+    ]);
+    const revalidatedTags = revalidateTagSpy.mock.calls.map(([tag]) => tag);
+    expect(revalidatedTags).not.toContain("evil");
+    expect(revalidatedTags).not.toContain("admin");
+    expect(revalidatedTags).not.toContain("sanity:siteSettings");
+  });
+
+  it("never echoes the secret in any response body", async () => {
+    // Defense in depth: a valid request must not leak `SANITY_REVALIDATE_SECRET` into the
+    // response. (The 500-on-unset path can't leak it — there's no secret then.)
+    parseBodySpy.mockResolvedValue({
+      isValidSignature: true,
+      body: { _type: "project" },
+    });
+
+    const res = await POST(fakeReq);
+
+    expect(JSON.stringify(await res.json())).not.toContain(SECRET);
+  });
 });
