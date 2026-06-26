@@ -18,10 +18,10 @@ export const metadata: Metadata = {
 };
 
 export default async function NotesPage() {
-  // Notes are lightweight by construction (shell + shared only, no project demo bundles);
-  // `cacheLife("hours")` because notes change more often than the shell brand but still
-  // prerender into the static shell. `sanityFetch` serves fresh drafts under Draft Mode. [§6, D11]
-  const notes = await sanityFetch(NOTES_INDEX_QUERY, undefined, "hours");
+  // Notes prerender into the static shell and serve fresh drafts under Draft Mode [§6, D11].
+  // Freshness is on-demand now: `defineLive` owns cache lifetime and the publish webhook
+  // flushes `sanity:note` the moment a note is published, so no time-based window is needed.
+  const notes = await sanityFetch(NOTES_INDEX_QUERY);
 
   return (
     <main className={styles.main}>
