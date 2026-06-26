@@ -15,12 +15,15 @@ foundation. Content and brand seeds live in Sanity; the site renders on Next.js.
 > Preview tool wired** and the schema deployed from CI. In-product draft **Preview now renders
 > edited content across all surfaces including the shell** — the Cache-Components "blocking-route"
 > error that broke it is fixed by deferring the shell `siteSettings` read behind `<Suspense>`
-> `[D11, D16]`. The earlier app-wide `@layer`-order inversion was fixed in Phase 3 `[D27]` — its
-> real cause was **import order** (`next/font` ahead of the global sheets), not a Turbopack quirk.
+> `[D11, D16]`. The earlier app-wide `@layer`-order inversion was addressed in Phase 3 `[D27]` (import
+> the global sheets first) — though a 2026-06-26 re-test found that import-order cause **does not
+> reproduce** in Next 16.2.9 (likely a red herring; see the
+> [session](./docs/sessions/2026-06-26-shell-sourcing-islands/spike-findings.md)).
 > **What's left to close Phase 3** (tracked in [`docs/build-phases.md`](./docs/build-phases.md)):
-> sign off draft Preview with **live-browser production experimentation across more mock projects**,
-> and a follow-up to give the draft loading-state fallback a brand theme (it currently ships
-> **unthemed** as an interim, to avoid a React-19 style-dedup collision). **Then Phase 4** — the
+> sign off draft Preview with **live-browser production experimentation across more mock projects**.
+> (The draft loading-state fallback ships **unthemed** by design — the brief unbranded frame is
+> `next dev`-only and symmetric with every project island, accepted as a non-issue; see the
+> [2026-06-26 session](./docs/sessions/2026-06-26-shell-sourcing-islands/).) **Then Phase 4** — the
 > OKLCH-engine showcase and the `log-explorer` migration. See [`docs/`](./docs) for the
 > architecture plan, build phases, decision log, per-session records
 > ([`docs/sessions/`](./docs/sessions)), and the

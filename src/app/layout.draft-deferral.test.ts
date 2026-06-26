@@ -4,28 +4,30 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * Guards the load-bearing `<Suspense>` boundary in `layout.tsx` that makes Draft Mode
- * preview of the shell legal under Cache Components [D11, D16, D27].
+ * Guards the load-bearing `<Suspense>` boundary in `layout.tsx` that defers the shell's async
+ * body read under Draft Mode + Cache Components [D11, D16, D27].
  *
- * Under Cache Components, Draft Mode bypasses `use cache`: `sanityFetch` re-executes
- * uncached on every request (use-cache.md §"Draft Mode"), so the shell `siteSettings` read
- * becomes request-time data. Cache Components forbids uncached data accessed during prerender
- * unless it sits behind `<Suspense>` (caching.md "blocking-route"). The shell reads
- * `siteSettings` in TWO places — `generateMetadata` and the body's `ShellTheme` — and the
- * body `<Suspense>` is what lets BOTH defer: once the body subtree defers under Draft Mode,
- * the route is in the sanctioned "other parts also defer → metadata streams with them" branch
- * (generate-metadata.md §"With Cache Components"), so `generateMetadata` no longer trips its
- * own error. Remove the boundary, or add a third un-Suspense'd `siteSettings` read, and the
- * draft path throws `Uncached data … outside of <Suspense>` again.
+ * `ShellTheme` awaits `sanityFetch(SITE_SETTINGS_QUERY)`. Under Cache Components, Draft Mode
+ * bypasses `use cache`, so that read re-executes uncached per request (use-cache.md §"Draft
+ * Mode") — request-time data in the body. Cache Components forbids uncached data accessed during
+ * prerender unless it sits behind `<Suspense>` (caching.md "blocking-route"); the body
+ * `<Suspense>` is what lets the async `ShellTheme` read defer. Remove the boundary and the body
+ * read trips `Uncached data … outside of <Suspense>` — verified: it surfaces live in `next dev`
+ * (a production build prerendered the cached read, so prod tolerates it, but the shape is wrong).
+ * See docs/sessions/2026-06-26-shell-sourcing-islands/spike-findings.md.
  *
- * That failure only manifests at RUNTIME under the draft cookie — `pnpm build` prerenders the
- * published path and stays green, and an async-RSC draft render is not jsdom-testable [D25].
- * So the runtime proof lives on the pre-merge QA bar (a real draft edit through Preview). These
- * are the cheap CI tripwires for the SOURCE invariants the runtime proof depends on.
+ * NOTE: `generateMetadata` ALSO reads `siteSettings`, but it does NOT depend on this boundary —
+ * its read is `use cache` (cached at build, dynamic under draft) and is independently legal;
+ * "removing the boundary does NOT make metadata throw" was proven by spike Control C — but only with a
+ * SYNCHRONOUS body. CAVEAT: removing the boundary while `ShellTheme` is still async makes `next dev` log
+ * a blocking-route error whose stack frame points at `generateMetadata` (the un-deferred async body
+ * makes the whole route blocking; metadata is just where it's reported — not metadata failing alone).
+ * The "exactly twice" count below just pins the current two call sites; it is a structural tripwire,
+ * NOT evidence of a metadata-licensing relationship.
  *
- * If a future Next narrows the "other parts defer → metadata streams" rule, the recorded
- * escalation is `'use cache'` on `generateMetadata` (see docs/decisions.md) — at which point
- * this test's read-count expectation is updated alongside.
+ * The body-read failure only manifests at RUNTIME (in `next dev`, or under the draft cookie) —
+ * `pnpm build` prerenders the published path and stays green, and an async-RSC draft render is
+ * not jsdom-testable [D25]. These are the cheap CI tripwires for the SOURCE invariants.
  */
 describe("layout.tsx draft-mode deferral boundary [D11, D16]", () => {
   const source = readFileSync(
@@ -43,14 +45,14 @@ describe("layout.tsx draft-mode deferral boundary [D11, D16]", () => {
   it("wraps the shell subtree in a real <Suspense> JSX boundary (not just a comment)", () => {
     expect(
       /<Suspense[\s\n/>]/.test(code),
-      "expected a real <Suspense> JSX element — it licenses the Draft-Mode deferral of the " +
-        "shell siteSettings read at BOTH the body and generateMetadata",
+      "expected a real <Suspense> JSX element — it defers the async ShellTheme body " +
+        "siteSettings read under Draft Mode (generateMetadata's read is independently legal via use cache)",
     ).toBe(true);
   });
 
   it("reads SITE_SETTINGS_QUERY exactly twice (generateMetadata + ShellTheme)", () => {
-    // A THIRD read risks an un-Suspense'd request-time access that re-breaks the draft path; a
-    // MISSING read (count 1) means the body deferral — which rescues generateMetadata — was removed.
+    // A THIRD read risks an un-Suspense'd request-time access that re-breaks the body draft path; a
+    // MISSING read (count 1) means the async body read in ShellTheme was removed.
     const reads = code.match(/sanityFetch\(SITE_SETTINGS_QUERY\)/g) ?? [];
     expect(
       reads.length,

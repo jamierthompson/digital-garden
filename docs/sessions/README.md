@@ -3,6 +3,13 @@
 A durable, append-only log of every **session that did real project work** in this repo: **why** it
 ran, how it was structured, and the **outcome**. One file per session, named `YYYY-MM-DD-<slug>.md`.
 
+> **Convention — ALL new session documentation goes here.** Session notes, spikes, decision
+> debates/trails, empirical findings, and handoffs all live under `docs/sessions/`, named
+> `YYYY-MM-DD-<slug>.md` (or a `YYYY-MM-DD-<slug>/` **folder** for a multi-file trail — e.g.
+> [`2026-06-26-shell-sourcing-islands/`](./2026-06-26-shell-sourcing-islands/)). Do **not** put
+> session work in `docs/handbook/making-of/` — that directory is the \*making-of the **handbook\***
+> (how the handbook itself was written/evaluated), not a home for product-session notes.
+
 **A session is one team's (or the solo lead's) sitting at the work.** A session record is written at
 the **end of every session**, whether that session _completed_ a unit of work (e.g. a whole phase) or
 stopped at a good handoff point (between tasks, so QA can run and a PR can open). A unit of work often

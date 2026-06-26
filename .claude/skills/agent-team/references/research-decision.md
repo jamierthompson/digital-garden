@@ -45,11 +45,13 @@ texture: a critique is only valid if it cites the source that _actually contains
   synthesis rejected two; that's the pattern working.
 - **Record the resolved calls as a new `[D#]`** in [`docs/decisions.md`](../../../../docs/decisions.md).
   Decisions are immutable — write a _superseding_ record, never edit an accepted one.
-- **Persist the trail** (`round-1-*`, `round-2-*`, `synthesis.md`) to the repo as external memory.
+- **Persist the trail** (`round-1-*`, `round-2-*`, `synthesis.md`) to the repo as external memory,
+  under **`docs/sessions/YYYY-MM-DD-<slug>/`** (session work lives in `docs/sessions/`, NOT in
+  `making-of/` — that is the making-of the handbook itself; see `docs/sessions/README.md`).
 
 ## Team setup
 
 - 3–5 lens teammates + you as lead/synthesizer. Name them by lens.
 - Require **plan approval** if any teammate will write code as part of the decision.
-- Keep each lens's draft in its **own file** (e.g. `making-of/round-1-drafts/<lens>.md`) so no two
-  teammates write the same file.
+- Keep each lens's draft in its **own file** (e.g.
+  `docs/sessions/<YYYY-MM-DD-slug>/round-1-drafts/<lens>.md`) so no two teammates write the same file.

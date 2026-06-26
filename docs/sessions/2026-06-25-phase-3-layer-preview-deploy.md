@@ -1,5 +1,12 @@
 # Session record — Phase 3 close attempt: @layer fix + Preview entry point + CI schema deploy
 
+> **[Two later corrections — 2026-06-26]** (1) The `generateMetadata`-throws / blocking-route framing
+> here was refined — the boundary is load-bearing for the async **body** read, not `generateMetadata`
+> (whose `use cache` read is independently legal). (2) The `[D27]` `@layer` import-order fix recorded
+> here **does not reproduce** in Next 16.2.9 (cold prod build, main tree) — it appears to be a red
+> herring now. Both: see
+> [`./2026-06-26-shell-sourcing-islands/spike-findings.md`](./2026-06-26-shell-sourcing-islands/spike-findings.md).
+
 - **Date:** 2026-06-25
 - **Mode:** **agent team** (lead + spawned background teammates over file-disjoint slices), per
   `.claude/skills/agent-team`. Staffing was re-evaluated per phase: data seeding, the deep
