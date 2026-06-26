@@ -5,28 +5,28 @@ over time. Each project is a self-contained, independently themed module: its ow
 brand color (a perceptual OKLCH palette) and font, composed on a shared invariant
 foundation. Content and brand seeds live in Sanity; the site renders on Next.js.
 
-> Status: **Phases 0–2 complete; Phase 3 essentially complete — pending final sign-off.**
+> Status: **Phases 0–2 complete; Phase 3 complete bar one owner-gated sign-off step.**
 > Scaffolding + guardrails (Ph0), the walking skeleton (Ph0.5), the OKLCH theming engine + real
 > `ProjectScope` (Ph1), and the Sanity content model with reference-by-key wiring and
 > engine-backed `brandColor` validation (Ph2) are done. **Phase 3** drives one dead-simple
 > project (`first-light`) end-to-end — `/work` index + themed `/work/<slug>` route,
 > error/not-found/loading states, metadata — alongside the themed garden shell
-> (home / about / now / notes), an RSS feed, and Sanity draft mode with the **Presentation /
-> Preview tool wired** and the schema deployed from CI. In-product draft **Preview now renders
-> edited content across all surfaces including the shell** — the Cache-Components "blocking-route"
-> error that broke it is fixed by deferring the shell `siteSettings` read behind `<Suspense>`
-> `[D11, D16]`. The earlier app-wide `@layer`-order inversion was addressed in Phase 3 `[D27]` (import
-> the global sheets first) — though a 2026-06-26 re-test found that import-order cause **does not
-> reproduce** in Next 16.2.9 (likely a red herring; see the
-> [session](./docs/sessions/2026-06-26-shell-sourcing-islands/spike-findings.md)).
-> **What's left to close Phase 3** (tracked in [`docs/build-phases.md`](./docs/build-phases.md)):
-> sign off draft Preview with **live-browser production experimentation across more mock projects**.
-> (The draft loading-state fallback ships **unthemed** by design — the brief unbranded frame is
-> `next dev`-only and symmetric with every project island, accepted as a non-issue; see the
-> [2026-06-26 session](./docs/sessions/2026-06-26-shell-sourcing-islands/).) **Then Phase 4** — the
-> OKLCH-engine showcase and the `log-explorer` migration. See [`docs/`](./docs) for the
-> architecture plan, build phases, decision log, per-session records
-> ([`docs/sessions/`](./docs/sessions)), and the
+> (home / about / now / notes), an RSS feed, and Sanity draft mode + Presentation. The content
+> read path runs on next-sanity **`defineLive`** with **`<SanityLive>`** for real-time draft
+> preview, and a signed **publish→production revalidation** webhook (`/api/revalidate`) expires
+> cache tags so a published change appears on Vercel without a redeploy `[D31]`. The garden shell
+> is an **editorial Sanity island** like any project — its brief unbranded loading frame is
+> `next dev`-only (production serves the build-time-resolved themed shell in the initial PPR bytes,
+> zero unbranded frames) and is accepted by design `[D30]`. All of this is **verified on the live
+> deploy**: published path, flash-free shell, the `<SanityLive>` EventSource, and the signed
+> revalidate endpoint (valid HMAC → 200, forged → 401). _(A 2026-06-26 re-test also found the
+> earlier `@layer` import-order cause `[D27]` **does not reproduce** in Next 16.2.9 — likely a red
+> herring; see the [session](./docs/sessions/2026-06-26-shell-sourcing-islands/spike-findings.md).)_
+> **What's left to close Phase 3** (tracked in [`docs/build-phases.md`](./docs/build-phases.md)) is
+> owner-gated: register the Sanity webhook, deploy the hosted Studio, and run the live draft
+> **Presentation walkthrough** across the mock projects. **Then Phase 4** — the OKLCH-engine
+> showcase and the `log-explorer` migration. See [`docs/`](./docs) for the architecture plan,
+> build phases, decision log, per-session records ([`docs/sessions/`](./docs/sessions)), and the
 > [production deploy checklist](./docs/production-checklist.md).
 
 ## Tech stack
@@ -52,9 +52,9 @@ pnpm dev                     # Next app at http://localhost:3000
 pnpm --filter studio dev     # Sanity Studio at http://localhost:3333
 ```
 
-`.env.local` needs the (public) Sanity project values, plus the site origin and — only
-once you use draft mode / Visual Editing — a **secret** read token. See
-[`.env.example`](./.env.example) for the annotated list:
+`.env.local` needs the (public) Sanity project values, plus the site origin and — for draft
+mode, live preview, and revalidation — three **secrets**. See [`.env.example`](./.env.example)
+for the annotated list:
 
 ```bash
 # Public — shipped to the browser
@@ -64,12 +64,16 @@ NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_SANITY_API_VERSION=2026-06-21
 NEXT_PUBLIC_SANITY_STUDIO_URL=http://localhost:3333 # Visual Editing click-to-edit deep links
 
-# SECRET — server-side only, NEVER NEXT_PUBLIC_*; grants draft reads
-SANITY_API_READ_TOKEN=your-read-token
+# Secrets — server-side only, NEVER NEXT_PUBLIC_*
+SANITY_API_READ_TOKEN=your-read-token               # grants draft reads (server-side, per request)
+SANITY_API_BROWSER_TOKEN=your-browser-viewer-token  # dedicated minimal Viewer token for <SanityLive>;
+                                                    # next-sanity exposes it to the browser EventSource
+SANITY_REVALIDATE_SECRET=your-webhook-secret        # HMAC secret for the /api/revalidate webhook
 ```
 
-In production, set these in Vercel per-environment and add the deploy URL to the Sanity
-project's CORS origins before Preview / Visual Editing will work.
+In production, set all of these in Vercel per-environment, add the deploy URL to the Sanity
+project's CORS origins (**with credentials**, for the `<SanityLive>` EventSource), and register a
+Sanity webhook → `/api/revalidate` carrying the same `SANITY_REVALIDATE_SECRET`.
 
 ### Scripts
 
@@ -110,6 +114,7 @@ src/
     page.tsx            # home; about/ now/ notes/ — themed shell pages
     work/               # /work index (swatch cards) + /work/[slug] project route (+ states)
     api/draft-mode/     # draft-mode enable/disable route handlers
+    api/revalidate/     # signed Sanity webhook → revalidateTag (publish→prod)
     rss.xml/            # RSS feed route handler
     foundation.css      # invariant :root tier + @layer order + reset
   projects/             # self-contained project modules (e.g. first-light/) [§4.1]
@@ -117,7 +122,7 @@ src/
   components/           # project-scope (keystone), portable-text serializer, shell nav
   fonts/roster.ts       # curated next/font faces, one per key
   lib/                  # keys.ts (key contracts), resolvers/, cardSwatches.ts, breakpoints.ts
-  sanity/lib/           # Sanity client(s) + env + typed GROQ queries
+  sanity/lib/           # Sanity client + defineLive (live.ts) + stega + env + typed GROQ queries
 packages/
   oklch/                # @garden/oklch engine — pure, isomorphic; app + studio depend on it
 studio/                 # standalone Sanity Studio (pnpm workspace package)
