@@ -21,6 +21,7 @@ import ProjectScopeBoundary from "@/components/project-scope/ProjectScopeBoundar
 import ShellNav from "@/components/shell/ShellNav";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
+import SanityLiveMount from "@/sanity/SanityLiveMount";
 import VisualEditingControls from "@/sanity/VisualEditingControls";
 
 // The shell's own faces — the only fonts preloaded on every route (D11).
@@ -136,6 +137,11 @@ export default function RootLayout({
         >
           <ShellTheme>{children}</ShellTheme>
         </Suspense>
+        {/* Opens the Sanity Live EventSource so pages revalidate on content changes.
+            Renders for every visitor (published live updates); streams drafts only with a
+            browser token. Its own async island so the draftMode() read stays out of the
+            sync RootLayout root — same proven shape as VisualEditingControls. [D11, D16] */}
+        <SanityLiveMount />
         {/* Self-gates on Draft Mode — renders nothing for public visitors. Mounted once near
             the root per the bundled draft-mode doc. */}
         <VisualEditingControls />

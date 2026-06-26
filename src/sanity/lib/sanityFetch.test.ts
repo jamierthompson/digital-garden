@@ -1,58 +1,71 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { cacheLife } from "next/cache";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * `sanityFetch` is the single content read path, so its one job under test is the
- * branch: PUBLISHED client for a normal request, DRAFT client when Draft Mode is on.
- * The `use cache` directive is a no-op under Vitest (no Next compiler), so the function
- * runs as a plain async fn — exactly the seam we want to exercise. The native
- * cache-bypass-under-draft behaviour is the framework's job, verified by the bundled
- * docs and the browser pass, not jsdom.
+ * `sanityFetch` is the single content read path. Its jobs under test:
+ *  - map Draft Mode → the right perspective/stega for `liveFetch` (`./live`);
+ *  - fail LOUD when Draft Mode is on but the server token is missing (never a silent
+ *    published fallback) [security-and-ops §3];
+ *  - return `liveFetch`'s `.data` unwrapped (call sites keep their typed result);
+ *  - emit the coarse tag contract (`sanity` + `sanity:<_type>`).
  *
- * The runtime deps are mocked: `draftMode` (the request API the helper reads),
- * `getClient` (the client selector — stubbed to a fake `fetch` so no network touches
- * the test), and `cacheLife` (a no-op we assert the profile threads through to).
+ * The `use cache` directive is a no-op under Vitest (no Next compiler), so the function
+ * runs as a plain async fn — exactly the seam we want. `liveFetch` is mocked to a spy so
+ * no `defineLive`/network machinery runs; `draftMode` is the request API the helper reads.
  */
-const { fetchSpy, getClientSpy, draftModeSpy } = vi.hoisted(() => {
-  const fetchSpy = vi.fn();
-  return {
-    fetchSpy,
-    getClientSpy: vi.fn(() => ({ fetch: fetchSpy })),
-    draftModeSpy: vi.fn(),
-  };
-});
+const { liveFetchSpy, draftModeSpy } = vi.hoisted(() => ({
+  liveFetchSpy: vi.fn(),
+  draftModeSpy: vi.fn(),
+}));
 
-vi.mock("next/cache", () => ({ cacheLife: vi.fn() }));
 vi.mock("next/headers", () => ({ draftMode: draftModeSpy }));
-vi.mock("./getClient", () => ({ getClient: getClientSpy }));
+vi.mock("./live", () => ({ liveFetch: liveFetchSpy, SanityLive: () => null }));
 
-import { sanityFetch } from "./sanityFetch";
+import { coarseTags, sanityFetch } from "./sanityFetch";
 
 const QUERY = '*[_type == "project"]';
+const TOKEN_VAR = "SANITY_API_READ_TOKEN";
+let savedToken: string | undefined;
 
 beforeEach(() => {
   vi.clearAllMocks();
-  fetchSpy.mockResolvedValue([{ _id: "p1" }]);
+  savedToken = process.env[TOKEN_VAR];
+  process.env[TOKEN_VAR] = "secret-token";
+  liveFetchSpy.mockResolvedValue({
+    data: [{ _id: "p1" }],
+    sourceMap: null,
+    tags: [],
+  });
+});
+
+afterEach(() => {
+  if (savedToken === undefined) delete process.env[TOKEN_VAR];
+  else process.env[TOKEN_VAR] = savedToken;
 });
 
 describe("sanityFetch", () => {
-  it("reads through the PUBLISHED client when Draft Mode is off", async () => {
+  it("reads the PUBLISHED perspective with stega OFF when Draft Mode is off", async () => {
     draftModeSpy.mockResolvedValue({ isEnabled: false });
 
     const result = await sanityFetch(QUERY);
 
-    expect(getClientSpy).toHaveBeenCalledWith(false);
-    expect(fetchSpy).toHaveBeenCalledWith(QUERY, undefined);
+    expect(liveFetchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: QUERY,
+        perspective: "published",
+        stega: false,
+      }),
+    );
     expect(result).toEqual([{ _id: "p1" }]);
   });
 
-  it("reads through the DRAFT client when Draft Mode is on", async () => {
+  it("reads the DRAFTS perspective with stega ON when Draft Mode is on", async () => {
     draftModeSpy.mockResolvedValue({ isEnabled: true });
 
     await sanityFetch(QUERY);
 
-    expect(getClientSpy).toHaveBeenCalledWith(true);
+    expect(liveFetchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ perspective: "drafts", stega: true }),
+    );
   });
 
   it("forwards query params (so $slug is never string-interpolated)", async () => {
@@ -60,16 +73,59 @@ describe("sanityFetch", () => {
 
     await sanityFetch(QUERY, { slug: "first-light" });
 
-    expect(fetchSpy).toHaveBeenCalledWith(QUERY, { slug: "first-light" });
+    expect(liveFetchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { slug: "first-light" } }),
+    );
   });
 
-  it("threads the cacheLife profile through (defaulting to 'max')", async () => {
+  it("throws loudly (never silently published) when the token is missing under Draft Mode", async () => {
+    draftModeSpy.mockResolvedValue({ isEnabled: true });
+    delete process.env[TOKEN_VAR];
+
+    await expect(sanityFetch(QUERY)).rejects.toThrow(
+      /SANITY_API_READ_TOKEN is not set/,
+    );
+    // The fail is the whole point: it must NOT fall through to a published read.
+    expect(liveFetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("does NOT require the token on the published path (off + no token still reads)", async () => {
+    draftModeSpy.mockResolvedValue({ isEnabled: false });
+    delete process.env[TOKEN_VAR];
+
+    await expect(sanityFetch(QUERY)).resolves.toEqual([{ _id: "p1" }]);
+    expect(liveFetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("emits the coarse tag contract for the fetch", async () => {
     draftModeSpy.mockResolvedValue({ isEnabled: false });
 
     await sanityFetch(QUERY);
-    expect(cacheLife).toHaveBeenCalledWith("max");
 
-    await sanityFetch(QUERY, undefined, "hours");
-    expect(cacheLife).toHaveBeenCalledWith("hours");
+    expect(liveFetchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ tags: ["sanity", "sanity:project"] }),
+    );
+  });
+});
+
+describe("coarseTags — the tag contract the publish webhook depends on", () => {
+  it("always includes the bare `sanity` tag", () => {
+    expect(coarseTags("*[true]")).toContain("sanity");
+  });
+
+  it.each([
+    ['*[_type == "project"]{ _id }', "sanity:project"],
+    ['*[_type == "siteSettings"][0]', "sanity:siteSettings"],
+    ['*[_type == "note" && defined(slug.current)]', "sanity:note"],
+    ["*[_type=='project']", "sanity:project"], // tolerant of single quotes / no spaces
+  ])("derives %s → %s (plus the bare tag)", (query, expectedTypeTag) => {
+    expect(coarseTags(query)).toEqual(["sanity", expectedTypeTag]);
+  });
+
+  it("dedupes when a type appears more than once", () => {
+    expect(coarseTags('*[_type == "project" || _type == "project"]')).toEqual([
+      "sanity",
+      "sanity:project",
+    ]);
   });
 });
