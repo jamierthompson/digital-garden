@@ -95,6 +95,13 @@ Theming, …"). You can spawn a teammate **using a subagent definition** (e.g. `
 `Explore`) to reuse a role's tool-allowlist and system prompt — mention the agent type in the
 spawn instruction.
 
+**Own the permission surface — don't make the owner babysit** (handbook §6.2). Set the posture once
+at spawn, then clear teammates' permission requests yourself; escalate to the owner only for genuinely
+out-of-policy actions. For the **coding mode** this is mostly free: give each teammate an **in-root git
+worktree** at `.claude/worktrees/<slug>/` (never the ephemeral `isolation: "worktree"` flag, which lands
+outside the root) so its edits sit inside cwd scope and `acceptEdits` auto-accepts them with no prompts
+`[D29]` — full recipe in [`references/coding-feature.md`](references/coding-feature.md) step 3.
+
 **Two failure modes to design against** (both documented):
 
 - **Don't add agents to fix coordination.** When teammates duplicate or miss work, the fix is a

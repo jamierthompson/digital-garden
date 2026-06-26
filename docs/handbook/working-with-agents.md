@@ -232,6 +232,14 @@ deliverable." Split the responsibility cleanly:
   gate-green**, and own its quality. A task is "done" only when it passes the gate — quality can
   be hook-enforced (`TaskCompleted` / `TeammateIdle` exit code 2 keeps a teammate working). Broken
   WIP is **not** something you hand off; local checkpoints are your own business.
+- **Isolate each slice in an in-root worktree `[D29]`.** Give every teammate its own checkout +
+  branch at `.claude/worktrees/<slug>/` (`git worktree add`) — **not** the ephemeral
+  `isolation: "worktree"` spawn flag. Two payoffs: file conflicts become structurally impossible
+  (separate checkouts), and because the path is under the repo root (= the teammate's cwd),
+  `acceptEdits` covers every edit with **no permission prompts** — §6.2's "lead clears the path"
+  made mechanical. The lead owns setup/teardown (a `pnpm install` per worktree, a distinct dev-server
+  port per slice, `git worktree remove` at cleanup); recipe in the `agent-team` skill. A worktree
+  isolates _editing_ only — never trust it for _final_ verification (`[D27]`'s trap).
 - **The team lead curates history, not your slice.** The lead's git magic is about _history_:
   rebase onto latest `main`, squash an agent's fix-ups, reorder slices, drop a false start, then
   **squash-merge** and write the PR body (the durable story). The lead does **not** inherit
