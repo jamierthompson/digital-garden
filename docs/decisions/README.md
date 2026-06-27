@@ -2,28 +2,30 @@
 
 ADR-style record of binding decisions. Each entry: the decision, the status, why, and which
 system-model section (`§N`) it amends. Status legend: **Decided** (in force) · **Superseded by
-D#** (replaced) · **Open** (needs the owner's call). The process for opening/superseding an entry
-is in [`../handbook/decision-records.md`](../handbook/decision-records.md); the full format and
-copy-paste template live there.
+D#** (replaced) · **Open** (needs the owner's call). Records are **mutable** — edited in place, with
+git as the audit trail `[D33]`. The process for opening or editing an entry is in
+[`../handbook/decision-records.md`](../handbook/decision-records.md); the full format and copy-paste
+template live there.
 
 > `§N` references point at the system model in
 > [`../handbook/architecture.md`](../handbook/architecture.md); this log is the source of truth
-> where the two disagree. The original entries (D1–D23) came from the pre-build architecture
-> audit, preserved frozen in a local, out-of-repo `archive/`.
+> where the two disagree. The original entries (D1–D23) came from the pre-build architecture audit.
 
 ---
 
 ### D1 — Token model is three tiers, not "complete self-described islands"
 
 **Decided.** Amends §3.1, §1, §8.
-Invariant foundation (spacing, motion, breakpoints, z-index, type-scale ratios,
-semantic colors) lives at global `:root`. Brand ramp + font are engine-scoped per
+Foundation (spacing, motion, breakpoints, z-index, type-scale ratios) lives at global `:root`. Brand ramp + font are engine-scoped per
 `[data-project]`. Feel/geometry (radius, border weight, shadow, density) is a small
 scoped override set with defaults inherited from the global tier.
 **Why:** only brand, font, and feel actually vary across ~5 projects; re-declaring a
 complete foundation per island is cost without benefit and bloats each `<style>`
-flush. Rewrite §3.1's rule to "no global **brand/feel** values; invariant foundation
+flush. Rewrite §3.1's rule to "no global **brand/feel** values; foundation
 is global."
+
+_Updated 2026-06-27 `[D33]`: dropped semantic colors from the foundation tier — status colors are
+brand-derived per island per `[D32]`._
 
 ### D2 — Public token contract is the generic layer; `--logx-*` is an internal alias
 
@@ -79,10 +81,8 @@ color) and move them to the scoped tier.
 
 ### D8 — Semantic colors are seeded independently, not brand-derived
 
-**Superseded by D32.** Amends §3.2, tier 1 of D1.
-success/error/warning/info are fixed signal colors, not rotations of the brand hue.
-Reserve the slot in the global tier now (one sentence in the plan); build them when
-the first status-bearing UI lands (likely the log-explorer migration, Phase 4).
+**Superseded by [D32].** Body removed; the original rationale lives in git history `[D33]`. D32
+(status colors are brand-derived per island) is what holds.
 
 ### D9 — `brandColor` gets a three-layer defense
 
@@ -194,7 +194,7 @@ early.
 
 ### D17 — Sequence by risk-retirement: add Phase 0.5; dead-simple project is the first slice, oklch-engine second
 
-**Decided.** Amends `build-phases.md` throughout. (Final converged sequence per
+**Decided.** Amends the build plan throughout. (Final converged sequence per
 Sequencing's closing artifact, reconciling its earlier mischaracterization with what
 Architect actually conceded.)
 
@@ -235,14 +235,14 @@ Architect actually conceded.)
 
 ### D18 — Testing is co-located with its subject in every phase
 
-**Decided.** Amends `build-phases.md` (was unscheduled).
+**Decided.** Amends the build plan (was unscheduled).
 Vitest + RTL are already in the repo (commit `3401f2d`). Engine unit + isomorphism +
 contrast tests in Phase 1; resolver/cardSwatches/index-query tests in Phase 2; one
 integration/E2E of the primary flow in Phase 3. One test file ≈ one commit.
 
 ### D19 — Cross-cutting concerns get scheduled where they belong
 
-**Decided.** Amends `build-phases.md` (was unscheduled).
+**Decided.** Amends the build plan (was unscheduled).
 CI in Phase 0; `error.tsx`/`not-found.tsx`/`loading.tsx` and `generateMetadata` (SEO/OG)
 in Phase 3 where routing appears; accessibility/contrast assertions folded into Phase
 1's engine harness.
@@ -319,7 +319,7 @@ trigger, per concern).
 
 ### D25 — Rendered surfaces get an agent-driven browser check (Chrome DevTools MCP) before done
 
-**Decided** (user call, 2026-06-22). Amends `build-phases.md` (Phase 0.5+). Complements [D17],
+**Decided** (user call, 2026-06-22). Amends the build plan (Phase 0.5+). Complements [D17],
 [D18], [D19].
 `pnpm test` runs in **jsdom** — it doesn't paint, can't render async RSCs, and measures nothing
 about focus visibility, tap-target size, layout shift, or paint timing. So build-green +
@@ -367,8 +367,8 @@ spawns one QA for its own work; a team session spawns one QA per slice author. F
 - **Does not replace** the author's own gate (DoD §1) — it is the independent layer on top of it.
 - **"Adversarial" means break-it-and-prove-it**, fact-grounded against the `[D#]`s and the bundled
   docs — not nit-picking style the formatter already owns.
-- In-scope findings are **fixed before the PR**; only genuinely later-phase work is deferred (logged
-  in `build-phases.md` with PR# + a one-line reason).
+- In-scope findings are **fixed before the PR**; only genuinely later-phase work is deferred (filed
+  as a GitHub issue with a one-line reason).
 - **The QA pass leaves a durable record.** Its outcome — what was tested, what passed, each defect →
   fix → re-check, and the tests QA authored — is captured in the session record's **QA log** (one entry
   per coding agent), so the green gate is never mistaken for the QA evidence. Format:
@@ -432,7 +432,7 @@ Turbopack chunk-emission order is environment-sensitive enough `[D29]` that the 
 import order + `layout.import-order.test.ts`) is worth keeping as insurance against a future regression.
 **Owner's call (2026-06-27): retain the constraint; D27 stands, not superseded.** The non-reproduction
 finding lives in [`sessions/2026-06-26-shell-sourcing-islands/spike-findings.md`](../sessions/2026-06-26-shell-sourcing-islands/spike-findings.md);
-the retention decision is logged in `build-phases.md` (Phase-3 close-out block).
+the retention decision is recorded in this register (D27).
 
 ---
 
@@ -531,6 +531,30 @@ the first status-bearing UI lands — the _approach_ changed, not the trigger. O
 for the implementing PR: how far each status hue may rotate toward the brand while staying a
 recognizable signal. Tracked in the
 [GitHub issue backlog](https://github.com/jamierthompson/digital-garden/issues).
+
+### D33 — Decision records are mutable; git is the audit trail (retires the supersede-only norm)
+
+**Decided** (owner call, 2026-06-27). Amends the decision-records process
+([`../handbook/decision-records.md`](../handbook/decision-records.md)).
+
+Earlier practice treated every accepted decision as **immutable**: when the thinking changed you
+appended a _superseding_ `D#` and never edited the original (classic ADR discipline — Nygard/Fowler).
+The owner retires that norm. **Decision records are now edited in place**, and **git history is the
+audit trail** — `git log -p docs/decisions/README.md` recovers any prior wording with author and
+message. Every change already lands through the normal branch → gate → squash-merge flow, so the
+trail is durable without the in-document ceremony.
+
+**Why.** The supersede-only rule existed to preserve _why the thinking moved_ when nothing else
+recorded it. Git already does — per line, with author and message — so the ceremony was duplicated
+bookkeeping that grew the log (D8 sat frozen-wrong beside D32) and let stale prose linger in
+"frozen" bodies. Editing in place keeps the register reading as **current truth**.
+
+**Consequences.** Supersession becomes **optional** — kept only when leaving the old rationale
+visible _inline_ genuinely helps (the `Superseded by D#` status token stays in the legend for that
+case). A material edit may carry a dated `_Updated YYYY-MM-DD:_` note for inline legibility, but git
+is the record. Existing superseded pairs are left as-is. This decision is the first edit under the
+new norm: in the same change, D8 was tombstoned into D32 and D1's stale semantic-color line was
+corrected.
 
 ---
 

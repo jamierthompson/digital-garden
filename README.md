@@ -102,7 +102,7 @@ src/
     api/draft-mode/     # draft-mode enable/disable route handlers
     api/revalidate/     # signed Sanity webhook → revalidateTag (publish→prod)
     rss.xml/            # RSS feed route handler
-    foundation.css      # invariant :root tier + @layer order + reset
+    foundation.css      # foundation :root tier + @layer order + reset
   projects/             # self-contained project modules (e.g. first-light/) [§4.1]
   embeds/               # shared in-essay embed components (key → component)
   components/           # project-scope (keystone), portable-text serializer, shell nav

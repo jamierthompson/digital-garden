@@ -1,4 +1,4 @@
-/* Invariant foundation tier (global, house-style, non-themeable) — [D1].
+/* Foundation tier (global, house-style, non-themeable) — [D1].
    Loaded before every other sheet so the cascade-layer order is established first. */
 
 /* Cascade order: foundation < brand < project. Declaring it up front means later
@@ -33,7 +33,6 @@
   --leading-normal: 1.5;
   --leading-loose: 1.75;
 
-  /* Motion */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
@@ -41,7 +40,6 @@
   --duration-base: 200ms;
   --duration-slow: 320ms;
 
-  /* Z-index scale */
   --z-base: 0;
   --z-dropdown: 100;
   --z-sticky: 200;
@@ -58,7 +56,7 @@
   /* No global semantic-color slots: status colors (success/error/warning/info) are
      brand-derived per island — engine-emitted into each [data-project] scope,
      scheme-aware and contrast-solved like the rest of the ramp — not a fixed global
-     set. Built when the first status-bearing UI lands [D32] (supersedes [D8]). */
+     set. Built when the first status-bearing UI lands [D32]. */
 }
 
 @layer foundation {

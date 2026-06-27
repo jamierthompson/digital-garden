@@ -8,7 +8,7 @@ Where this handbook and the architecture doc ever disagree, **[`../decisions/`](
 
 ## What this project is
 
-A personal portfolio + digital garden. Each **project is a self-contained module** — its pages, its interactive experience, the components its essay embeds, and its scoped tokens — composed on a shared invariant foundation. Content + brand seeds live in **Sanity**; the site renders on **Next.js 16 / React 19** on Vercel. The foundation, the OKLCH engine, the content model, and the first project are live; remaining work is tracked in the [GitHub issue tracker](https://github.com/jamierthompson/digital-garden/issues).
+A personal portfolio + digital garden. Each **project is a self-contained module** — its pages, its interactive experience, the components its essay embeds, and its scoped tokens — composed on a shared foundation. Content + brand seeds live in **Sanity**; the site renders on **Next.js 16 / React 19** on Vercel. The foundation, the OKLCH engine, the content model, and the first project are live; remaining work is tracked in the [GitHub issue tracker](https://github.com/jamierthompson/digital-garden/issues).
 
 The stack, verified — do not contradict it:
 
@@ -44,10 +44,10 @@ scripts/
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
     layout.tsx             root layout (shell nav skeleton, shell fonts preload:true)
-    foundation.css         invariant :root tier + the @layer foundation, brand, project order
+    foundation.css         foundation :root tier + the @layer foundation, brand, project order
   lib/                     resolvers, keys, cardSwatches, breakpoints (build-time, NOT :root vars [D22])
   projects/<slug>/         self-contained project modules (registry-resolved, literal imports [D21])
-  embeds/registry.ts       shared embed map · src/projects/registry.ts  componentKey → module
+  embeds/                  shared cross-project embed components (componentKey/embedKey resolved in lib/resolvers/)
   fonts/roster.ts          curated next/font faces, one per key (preload:false [D11])
   sanity/lib/              Sanity client + env + the defineLive read path [D31]
 packages/
@@ -64,7 +64,7 @@ Four ideas carry the whole architecture. Internalize the shape; read the cited s
 
 1. **Modules, not a monolith** (§1, §4). Each project is a self-contained module under `src/projects/<slug>/`; genuinely shared parts live in plain shared `src/` modules. Dependencies point **projects → shared, never back**, and never project → project. This is lint-enforced (see Golden rules).
 
-2. **Three-tier theming** (§3.1 [D1, D2]). Only **brand color, font, and feel/geometry** vary per project; everything else is the invariant foundation at global `:root`. The public token contract is the **generic** layer (`--brand-*`, `--font-face`, `--space-*`) — a project-prefixed `--<proj>-*` is a project-internal alias, never what a shared unit codes against [D2].
+2. **Three-tier theming** (§3.1 [D1, D2]). Only **brand color, font, and feel/geometry** vary per project; everything else is the foundation at global `:root`. The public token contract is the **generic** layer (`--brand-*`, `--font-face`, `--space-*`) — a project-prefixed `--<proj>-*` is a project-internal alias, never what a shared unit codes against [D2].
 
 3. **The OKLCH engine** (§3.2 [D3–D6, D9]) — a pure, **isomorphic** `(brandColor, scheme) → tokenSet` in `packages/oklch` (the `@garden/oklch` workspace package, so the Studio can import it too [D23]). It bakes literals server-side, is scheme-aware, and is **defensive — never throws** [D9]. The load-bearing, genuinely hard piece; one engine, three consumers. Read §3.2 before building against it.
 
@@ -133,7 +133,7 @@ These are the things that silently break this specific stack, or that the owner 
 | Writing tests, dual-env engine tests, co-location, E2E timing     | [`./testing.md`](./testing.md)                                             |
 | How agents collaborate, handoffs, the audit/debate shape          | [`./working-with-agents.md`](./working-with-agents.md)                     |
 | Independent adversarial QA before a PR (solo or team)             | [`./working-with-agents.md`](./working-with-agents.md) §6.2                |
-| Opening / superseding an ADR                                      | [`./decision-records.md`](./decision-records.md)                           |
+| Opening / editing an ADR                                          | [`./decision-records.md`](./decision-records.md)                           |
 | Contrast targets (APCA/WCAG), focus rings, fonts, Core Web Vitals | [`./accessibility-and-performance.md`](./accessibility-and-performance.md) |
 | Secrets, Sanity tokens, draft mode, Vercel deploys/rollbacks      | [`./security-and-ops.md`](./security-and-ops.md)                           |
 | Anything about how Next.js 16 / React 19 actually works           | `node_modules/next/dist/docs/` (version-matched)                           |

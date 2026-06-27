@@ -3,10 +3,13 @@ name: Deploy Sanity Schema
 # Deploys the Studio's content-model schema to the hosted Content Lake so apps
 # like Dashboard/Canvas/Agent Actions see the current model.
 #
-# NOTE: this workflow is currently DISABLED and broken — `sanity schemas deploy`
-# now SIGABRTs in Rolldown's native binary on linux-x64 CI as well as darwin-x64.
-# Schema is refreshed via `sanity deploy` instead; fixing/retiring this workflow is
-# tracked in the GitHub issue backlog. (See docs/handbook/security-and-ops.md §5.)
+# NOTE: this workflow is DISABLED in the GitHub Actions UI (repo Settings → Actions →
+# this workflow → "Disable workflow"), so GitHub does NOT run it despite the triggers
+# below — they are kept for when it's re-enabled. It's also broken: `sanity schemas
+# deploy` SIGABRTs in Rolldown's native binary on linux-x64 CI and darwin-x64, so schema
+# is refreshed via `sanity deploy` instead. Fixing/retiring this is tracked in
+# https://github.com/jamierthompson/digital-garden/issues/43.
+# (See docs/handbook/security-and-ops.md §5.)
 
 on:
   # Manual trigger — covers the first deploy and any ad-hoc redeploy.

@@ -1,7 +1,7 @@
 # Decision Records
 
-How architecturally significant decisions get made, recorded, and superseded in
-this repo. The log lives in [`../decisions/`](../decisions/) (entries `D1`–`D32`).
+How architecturally significant decisions get made, recorded, and revised in
+this repo. The log lives in [`../decisions/`](../decisions/).
 This page is the **process**; that file is the **record**.
 
 > Lightweight Nygard-style ADR
@@ -38,10 +38,9 @@ enforces (lint/format/type rules — see [`./definition-of-done.md`](./definitio
 
 ## How much debate (right-sized)
 
-For a single later decision, **the two-mode table below is the whole process.**
-The pre-build five-lens audit (frozen in the local, out-of-repo `archive/`) is the reference for an
-architecture-class _batch_ of decisions — not a per-decision requirement. Don't
-over-apply it.
+For a single later decision, **the two-mode table below is the whole process.** Full five-lens
+ceremony is the reference for an architecture-class _batch_ of decisions — not a per-decision
+requirement. Don't over-apply it.
 
 A decision earns as much process as its blast radius:
 
@@ -57,12 +56,11 @@ _enumerated alternatives_, not the head-count. Rules:
   bundled docs (`node_modules/next/dist/docs/`) or an external standard — never
   model memory. This mirrors [`../../AGENTS.md`](../../AGENTS.md). Precedents:
   [D11], [D12], [D23] each name the doc path they checked.
-- **The worked example is the pre-build five-lens audit** (frozen in the local, out-of-repo
-  `archive/`). The original 23 decisions (`D1`–`D23`) in the log came from it
-  (independent findings → round-2 debate → synthesis) —
-  the full-ceremony shape for an architecture-class batch. Borrow its _spirit_
-  (independent reasoning → adversarial challenge → synthesis that resolves
-  conflict, never smooths it over), not its head-count, for a single call.
+- **The full-ceremony shape** is independent findings → round-2 debate → synthesis; the original
+  23 decisions (`D1`–`D23`) were settled that way. A worked example in-tree is any debate trail
+  under [`../sessions/`](../sessions/) (e.g. `2026-06-25-item-c-draft-preview-debate/`). Borrow its
+  _spirit_ (independent reasoning → adversarial challenge → synthesis that resolves conflict, never
+  smooths it over), not its head-count, for a single call.
 - **Don't fake consensus.** If options genuinely conflict, the record states the
   tradeoff that was accepted — it does not pretend there was no cost.
 
@@ -73,14 +71,14 @@ _enumerated alternatives_, not the head-count. Rules:
 The required-fields table below is the contract; the [copy-paste template](#copy-paste-template)
 at the bottom renders it. Match the shape already running in `decisions/README.md`.
 
-| Field           | Rule                                                                                                                                                                             |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Number**      | Next monotonic `D#`. **Never reused, never renumbered.** Find the current max — today the next is `D33`; check with `grep -oE '^### D[0-9]+' ../decisions/README.md \| tail -1`. |
-| **Title**       | Imperative noun phrase — the decision, not the topic ("Bake `oklch()` literals server-side", not "Color baking").                                                                |
-| **Status**      | From the closed vocabulary below — not free text.                                                                                                                                |
-| **`Amends §N`** | The plan section(s) this changes. A decision that touches the plan **must** cite the section; this is what keeps the log and the plan from silently diverging.                   |
-| **Why**         | The reasoning. Add `(user call, <date>)` when the owner makes the final call; add `(verified against <path>)` for version-dependent facts.                                       |
-| **`[D#]` refs** | Cross-reference related decisions inline.                                                                                                                                        |
+| Field           | Rule                                                                                                                                                           |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Number**      | Next monotonic `D#`. **Never reused, never renumbered.** Find the current max with `grep -oE '^### D[0-9]+' ../decisions/README.md \| tail -1`.                |
+| **Title**       | Imperative noun phrase — the decision, not the topic ("Bake `oklch()` literals server-side", not "Color baking").                                              |
+| **Status**      | From the closed vocabulary below — not free text.                                                                                                              |
+| **`Amends §N`** | The plan section(s) this changes. A decision that touches the plan **must** cite the section; this is what keeps the log and the plan from silently diverging. |
+| **Why**         | The reasoning. Add `(user call, <date>)` when the owner makes the final call; add `(verified against <path>)` for version-dependent facts.                     |
+| **`[D#]` refs** | Cross-reference related decisions inline.                                                                                                                      |
 
 **Status vocabulary (closed set — adopt one, don't invent).** This expands
 `decisions/README.md`'s legend (`Decided` / `Superseded by D#` / `Open`) with the
@@ -96,22 +94,26 @@ full parenthetical and supersession patterns the log uses:
 
 ---
 
-## Superseding — never edit, always supersede
+## Editing & supersession — git is the audit trail `[D33]`
 
-This is the **one rule that keeps the log trustworthy** (Nygard + Fowler): an
-accepted decision is **never edited or reopened**. When the thinking changes:
+Decision records are **mutable**: edit an entry in place so the register reads as **current truth**.
+This is a deliberate **departure from classic ADR immutability** (Nygard/Fowler) — `git log -p
+docs/decisions/README.md` recovers any prior wording with author and message, so the audit trail the
+immutable rule existed to protect is already there `[D33]`. Every edit lands through the normal
+branch → gate → squash-merge flow.
 
-1. **Append a new `D#`** that begins **"Supersedes D#"** and explains what changed and why.
-2. **Edit only the old entry's status line** to add **`Superseded by D#`** — a pointer, not a rewrite. Leave its body intact so the audit trail of _why the thinking moved_ survives.
+- **Edit in place** when the thinking changes. For a _material_ change, optionally add a dated
+  `_Updated YYYY-MM-DD:_` note so the shift is legible inline without `git blame` (D1 carries one).
+- **Supersession is optional.** When the old rationale is worth keeping visible _beside_ the new call,
+  append a new `D#` ("Supersedes D#"), add `Superseded by D#` to the old entry's status line, and
+  leave its body intact. When it isn't, **tombstone** the old entry instead — keep its heading/anchor
+  (so no `[D#]` citation dangles) and replace the body with a one-line `Superseded by D#` pointer,
+  letting git hold the original (the D8 → D32 pair is the model). The `Superseded by D#` status token
+  covers both.
 
-The repo already does this informally — [D11] supersedes a §7 reading of the
-`use cache` note; [D23] supersedes the "one app, no workspace" §7 framing. This
-process formalizes `Superseded by D#` as a fixed status token so supersession is
-greppable.
-
-> **Why it matters here:** agents work from the log to avoid re-litigating settled
-> calls. If you rewrite history instead of superseding, the next agent loses the
-> reasoning and may silently reintroduce the rejected option.
+> **Why it matters here:** agents work from the log to avoid re-litigating settled calls. Keep the
+> register accurate and let git hold the history — a stale entry left "frozen for the audit trail"
+> misleads the next agent more than an honest in-place edit ever would.
 
 ---
 
@@ -127,7 +129,7 @@ likely to trip), see [`./definition-of-done.md`](./definition-of-done.md).
 ## Quick reference
 
 - Bar = **architecturally significant** ([gate above](#when-to-open-a-decision-vs-just-proceed)). No trivia.
-- **Never edit** an accepted entry — supersede with a new `D#`.
+- **Edit in place** — git holds the history `[D33]`; supersede only when inline contrast helps.
 - **Don't over-template** — one paragraph fits most calls; full MADR is ceremony this repo skips.
 - **Keep the anchors** — every plan-touching decision cites `Amends §N`; cross-link siblings as `[D#]`.
 - **Don't trust memory on framework facts** — cite the bundled-doc path ([D11]/[D12]/[D23] precedent).
@@ -148,10 +150,10 @@ For a version-dependent fact, append "(verified against
 node_modules/next/dist/docs/<path>)".>
 ```
 
-(`D<n>` is the next free number — find it per the table above; it's `D33` today.)
+(`D<n>` is the next free number — find it per the table above.)
 
-**Superseding** — append the new entry, then add the pointer to the old one's
-status line (don't touch its body):
+**Superseding (optional)** — when you want the old rationale visible inline, append the new entry
+and add the pointer to the old one's status line (keep its body intact):
 
 ```markdown
 ### D<new> — <new decision that replaces an old one>
@@ -161,18 +163,27 @@ status line (don't touch its body):
 ```
 
 ```markdown
-### D<old> — <the superseded decision's original title — body unchanged>
+### D<old> — <the superseded decision's original title>
 
 **Decided.** Superseded by D<new>. Amends §N.
-<...original body unchanged...>
+<...original body kept intact...>
+```
+
+To **tombstone** instead — when the old rationale isn't worth keeping inline, since git has it —
+keep the heading/anchor and replace the body with a one-line pointer, as D8 does:
+
+```markdown
+### D<old> — <original title>
+
+**Superseded by [D<new>].** Body removed; original rationale in git history `[D33]`.
 ```
 
 ---
 
 ## Related
 
-- [`../decisions/`](../decisions/) — the live log (`D1`–`D32`) + Open items footer.
-- The pre-build five-lens → debate → synthesis audit — the worked example, frozen in the local, out-of-repo `archive/`.
+- [`../decisions/`](../decisions/) — the live log + Open items footer.
+- [`../sessions/`](../sessions/) — worked five-lens → debate → synthesis trails in-tree (the example to borrow from).
 - [`./working-with-agents.md`](./working-with-agents.md) — how agents cite `[D#]` / `§N` and hand off cleanly.
 - [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) — committing a decision (a `docs:` change, its own commit).
 - [`./definition-of-done.md`](./definition-of-done.md) — the full CI gate chain.

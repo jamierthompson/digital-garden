@@ -26,7 +26,7 @@ export default function AboutPage() {
         <p>
           This is a personal portfolio and digital garden — part showcase, part
           notebook. Each project is a self-contained island with its own brand
-          color and typeface, composed on one shared, invariant foundation.
+          color and typeface, composed on one shared foundation.
         </p>
         <p>
           The colors you see are not hand-picked per element. A single brand

@@ -91,7 +91,7 @@ used only across a single project's own pages, is **self-sufficient**: it reads 
 values from **generic tokens** (`--brand-*`, `--font-face`, `--space-*`) and its **props**, and
 never reaches _up_ for a host's look or a parent's internal state. A card shown on both a hero
 and an essay page consumes the project tokens, not "whatever the hero mounted above me."
-Reading the global **invariant** tier (spacing, motion, semantics) is fine — that's plumbing,
+Reading the global **foundation** tier (spacing, motion) is fine — that's plumbing,
 not a look. `[D1][D2]`
 
 **The full litmus is the heavier, shared-primitive gate.** When you ship a _shared_ primitive
@@ -133,8 +133,8 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       [accessibility-and-performance.md](./accessibility-and-performance.md) §5.
 - [ ] **Docs updated** if behavior, scripts, or conventions changed — README and any affected
       handbook page. An architecturally significant decision gets a new `D#` in
-      [`../decisions/`](../decisions/) (never edit an accepted one — supersede it; see
-      [decision-records.md](./decision-records.md)).
+      [`../decisions/`](../decisions/) (records are mutable — edit in place; git holds the history;
+      see [decision-records.md](./decision-records.md)).
 - [ ] **Independent adversarial QA passed `[D26]`.** Gate-green is _developer-done_, not
       _review-done_: before the slice enters the PR, a **fresh** agent with **no prior context** (not
       merely "not the author" `[D28]`) tried to break it and wrote the missing cases; the owning author
@@ -154,7 +154,7 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
 [ ] pnpm lint · lint:css · lint:keys · lint:docs · format:check · typecheck · test · build  — all green
 [ ] sanity.types.ts regenerated & committed (after ANY Studio schema change)    [D23]
 [ ] Cache Components: dynamic reads in <Suspense> or 'use cache'                 [D11]
-[ ] "Don't reach up": every unit self-sufficient; full §8 litmus for shared prims §8 / [D1][D2]
+[ ] "Don't reach up": every unit self-sufficient; full litmus for shared prims → architecture §8 [D1][D2]
 [ ] Concerns separated; types co-located (shared on 2nd use); one file/concern    engineering-standards §6
 [ ] Diff reviewed: clean — no debug logs / dead code / unrelated changes / secrets
 [ ] Lockfile committed if deps changed; imports use @/*

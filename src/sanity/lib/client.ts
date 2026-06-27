@@ -18,7 +18,7 @@ import { apiVersion, dataset, projectId } from "./env";
  *
  * Live/draft content reads go through `sanityFetch` (`./sanityFetch.ts`), which is
  * backed by `defineLive` (`./live.ts`) — that owns the published-vs-drafts branch,
- * the per-request token, and stega now. [security-and-ops §3]
+ * the per-request token, and stega. [security-and-ops §3]
  */
 export const client = createClient({
   projectId,
