@@ -74,14 +74,14 @@ _enumerated alternatives_, not the head-count. Rules:
 The required-fields table below is the contract; the [copy-paste template](#copy-paste-template)
 at the bottom renders it. Match the shape already running in `decisions.md`.
 
-| Field           | Rule                                                                                                                                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Field           | Rule                                                                                                                                                                             |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Number**      | Next monotonic `D#`. **Never reused, never renumbered.** Find the current max — today the next is `D33`; check with `grep -oE '^### D[0-9]+' ../decisions/README.md \| tail -1`. |
-| **Title**       | Imperative noun phrase — the decision, not the topic ("Bake `oklch()` literals server-side", not "Color baking").                                                         |
-| **Status**      | From the closed vocabulary below — not free text.                                                                                                                         |
-| **`Amends §N`** | The plan section(s) this changes. A decision that touches the plan **must** cite the section; this is what keeps the log and the plan from silently diverging.            |
-| **Why**         | The reasoning. Add `(user call, <date>)` when the owner makes the final call; add `(verified against <path>)` for version-dependent facts.                                |
-| **`[D#]` refs** | Cross-reference related decisions inline.                                                                                                                                 |
+| **Title**       | Imperative noun phrase — the decision, not the topic ("Bake `oklch()` literals server-side", not "Color baking").                                                                |
+| **Status**      | From the closed vocabulary below — not free text.                                                                                                                                |
+| **`Amends §N`** | The plan section(s) this changes. A decision that touches the plan **must** cite the section; this is what keeps the log and the plan from silently diverging.                   |
+| **Why**         | The reasoning. Add `(user call, <date>)` when the owner makes the final call; add `(verified against <path>)` for version-dependent facts.                                       |
+| **`[D#]` refs** | Cross-reference related decisions inline.                                                                                                                                        |
 
 **Status vocabulary (closed set — adopt one, don't invent).** This **extends**
 `decisions.md`'s two-item legend (`Decided` / `Open`) by formalizing the

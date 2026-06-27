@@ -1,7 +1,6 @@
 // Pure, defensive resolution of a project "scope seed" → a baked, scoped CSS theme.
 //
-// Phase 1: this is the REAL scope. It no longer carries hardcoded palettes — it resolves
-// a `brandColor` through the OKLCH engine (`buildTokenSet` → dual-scheme, `light-dark()`,
+// It resolves a `brandColor` through the OKLCH engine (`buildTokenSet` → dual-scheme, `light-dark()`,
 // baked literals [D3, D5]) and a `fontKey` through the font roster (`resolveFontKey`),
 // then serializes everything into one `@layer brand { [data-project="…"] { … } }` block.
 //
@@ -75,11 +74,11 @@ const SHELL_MONO_FACE: FontFace = {
 /** The font fallback stack appended after the resolved face's CSS variable. */
 const FONT_STACK = "ui-monospace, monospace";
 
-// The slugs that may key a scope — now DRIVEN from the real registry (Phase 3). A project's
-// slug equals its `componentKey` in our model (§4.2), so `COMPONENT_KEYS` is the source of
-// truth for which project slugs exist; `"garden"` is the shell island's slug (ProjectScope
-// uses `slug="garden"`); `"oklch-engine"` stays for the walking-skeleton route + the Phase
-// 0.5/1 scope tests that assert on it. An unknown slug still collapses to `FALLBACK_SLUG`,
+// The slugs that may key a scope — DRIVEN from the registry. A project's slug equals its
+// `componentKey` in our model (§4.2), so `COMPONENT_KEYS` is the source of truth for which
+// project slugs exist; `"garden"` is the shell island's slug (ProjectScope uses
+// `slug="garden"`); `"oklch-engine"` is retained for the scope tests that assert on it (and
+// is the planned engine-playground slug). An unknown slug still collapses to `FALLBACK_SLUG`,
 // which is what keeps a hostile slug out of the emitted selector — the set is always vetted
 // constants, never raw input. Deriving from `COMPONENT_KEYS` means a new project is accepted
 // automatically the moment it registers its key — no per-slug edit here ever again [D10].

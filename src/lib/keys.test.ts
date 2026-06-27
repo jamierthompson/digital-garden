@@ -16,9 +16,9 @@ describe("key contracts", () => {
     for (const key of FONT_KEYS) expect(typeof key).toBe("string");
   });
 
-  it("registers the Phase 3 first-slice keys (first-light / sunrise-meter)", () => {
-    // Phase 3 lands the dead-simple first project [D17], so the registries are no
-    // longer empty. Each holds exactly its one slice key, unique within the array.
+  it("registers the first-slice keys (first-light / sunrise-meter)", () => {
+    // The dead-simple first project [D17] populates the registries. Each holds
+    // exactly its one slice key, unique within the array.
     expect(COMPONENT_KEYS).toContain("first-light");
     expect(EMBED_KEYS).toContain("sunrise-meter");
     expect(new Set(COMPONENT_KEYS).size).toBe(COMPONENT_KEYS.length);

@@ -14,8 +14,8 @@ import { FONT_FACES } from "@/fonts/roster";
 
 import { FALLBACK_SLUG, resolveScope, scopedStyleCss } from "./scopeSeed";
 
-// A valid seed for the walking-skeleton module: a real, engine-parseable brand color and a
-// real roster fontKey. Mirrors what the route hardcodes until Sanity drives it (Phase 3).
+// A valid seed for a scope: a real, engine-parseable brand color and a real roster fontKey.
+// Mirrors the shape the route passes ProjectScope from a Sanity document.
 const VALID_SEED = {
   slug: "oklch-engine",
   brandColor: "oklch(0.62 0.21 264)",

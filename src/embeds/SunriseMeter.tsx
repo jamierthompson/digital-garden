@@ -6,7 +6,7 @@ import styles from "./SunriseMeter.module.css";
  * Deliberately trivial: a static, self-contained "live" widget that proves the
  * embed-by-key path end-to-end (Portable Text `liveEmbed` block → `resolveEmbedKey`
  * → lazy-mounted component) without any hard interactive logic riding on it — the
- * dead-simple slice's job (§Phase 3, [D17]).
+ * dead-simple slice's job ([D17]).
  *
  * It is a pure presentational Server Component: no state, no client JS. It reads ONLY
  * the generic scoped tokens (`--brand-*`, `--font-face`, `--space-*`) its CSS Module

@@ -25,7 +25,7 @@ import SanityLiveMount from "@/sanity/SanityLiveMount";
 import VisualEditingControls from "@/sanity/VisualEditingControls";
 
 // The shell's own faces — the only fonts preloaded on every route (D11).
-// Per-project (and shell-brand) faces load on demand via the Phase 1 roster with
+// Per-project (and shell-brand) faces load on demand via the font roster with
 // preload: false; the resolved shell face's `.variable` is mounted by ProjectScope.
 const geistSans = Geist({
   variable: "--font-geist-sans",

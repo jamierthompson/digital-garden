@@ -1,5 +1,5 @@
 /**
- * Phase-1 visual contrast harness — the engine's real exit criterion [D17].
+ * Visual contrast harness — the engine's real exit criterion [D17].
  *
  * Proves PALETTE QUALITY, not just determinism: for 5 hue-spanning brand colors (incl.
  * the yellow & cyan stressers [D4]), in BOTH schemes [D5], every text-on-surface and

@@ -2,14 +2,13 @@
 // lazy loader for that project module, returning a typed `NotFound` for an
 // unknown key rather than throwing (the caller renders `not-found.tsx`).
 //
-// The registry is **empty until Phase 3** — no project modules exist yet. The
-// type, the resolver, and the `NotFound` path are established now so Phase 3 only
-// adds entries.
+// The registry holds one literal dynamic import per project module; the type, the
+// resolver, and the `NotFound` path guard the content→code seam.
 //
-// ┌─ PHASE 3, READ THIS ────────────────────────────────────────────────────────┐
+// ┌─ ADDING A PROJECT, READ THIS ───────────────────────────────────────────────┐
 // │ Every entry MUST be a LITERAL dynamic import keyed per slug:                  │
 // │                                                                               │
-// │     "log-explorer": () => import("@/projects/log-explorer"),                  │
+// │     "<slug>": () => import("@/projects/<slug>"),                              │
 // │                                                                               │
 // │ NEVER a templated `() => import(`@/projects/${slug}`)` — a templated import   │
 // │ defeats the bundler's static analysis and breaks per-project code-splitting   │
@@ -24,9 +23,7 @@ import { type ComponentKey } from "@/lib/keys";
 import { found, notFound, type Resolution } from "./resolution";
 
 /**
- * Loads a project module. The concrete module shape (its registry entry export)
- * is finalized in Phase 3 when the first project lands; until then a loader just
- * resolves to the module namespace.
+ * Loads a project module, resolving to its module namespace.
  */
 export type ProjectLoader = () => Promise<unknown>;
 
@@ -54,7 +51,7 @@ const loaders: Readonly<Record<string, ProjectLoader>> = PROJECT_LOADERS;
 
 /**
  * Resolve a `componentKey` to its project loader. Returns `NotFound` for an
- * unknown key — which today is every key, since the registry is empty (Phase 3).
+ * unknown key (the caller renders `not-found.tsx`).
  */
 export function resolveComponentKey(key: string): Resolution<ProjectLoader> {
   const loader = loaders[key];

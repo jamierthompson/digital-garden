@@ -79,10 +79,10 @@ What actually varies per project is **brand color, font, and the feel/geometry s
 spacing, type-scale ratios, motion, or breakpoints, which are house style. So the system is three
 tiers, not "a complete self-described foundation per island":
 
-| Tier                     | Lives at                                   | Contents                                                                                                                                            |
-| ------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Invariant foundation** | global `:root`                             | spacing ramp, motion curves/durations, breakpoints, z-index scale, type-scale ratios, focus-ring **geometry**, the reset                          |
-| **Brand + font**         | `[data-project]` scope, engine-driven      | the OKLCH color ramp (incl. focus-ring _color_ and brand-derived status colors), + the resolved font face — always scoped, always flash-free      |
+| Tier                     | Lives at                                   | Contents                                                                                                                                               |
+| ------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Invariant foundation** | global `:root`                             | spacing ramp, motion curves/durations, breakpoints, z-index scale, type-scale ratios, focus-ring **geometry**, the reset                               |
+| **Brand + font**         | `[data-project]` scope, engine-driven      | the OKLCH color ramp (incl. focus-ring _color_ and brand-derived status colors), + the resolved font face — always scoped, always flash-free           |
 | **Feel / geometry**      | `[data-project]` scope, small override set | corner radius, border weight, shadow softness, density — defaults inherited from the invariant tier, overridden only where a project genuinely differs |
 
 A project's pages and the components they embed live in the same scope and read **one per-project
@@ -127,7 +127,7 @@ Key points:
   `@layer` style regardless of specificity or source order. So any component CSS Module that sets
   real properties must wrap its body in `@layer project { … }` (or stay strictly var-_consuming_);
   the engine's scoped `<style>` declares `@layer brand`; the bare `@layer foundation, brand,
-  project;` order statement is emitted in a global sheet loaded first. Lint-enforced (§8).
+project;` order statement is emitted in a global sheet loaded first. Lint-enforced (§8).
 
 - **Cascade order via `@layer`** (foundation < brand < project) to kill CSS-module insertion-order
   accidents instead of fighting specificity. The global order statement must register before
@@ -322,7 +322,7 @@ src/projects/<slug>/   its pages (experience + any essay/hero/other) + embeddabl
   backlog — not a schema decision.)
 - **Lazy-load each module** via a **literal** dynamic import per key
   (`() => import("@/projects/<slug>")`, never a templated `import(\`…/${slug}\`)`, which defeats
-  bundler static analysis) `[D21]`. Server Components are auto-split already; the manual lazy import
+bundler static analysis) `[D21]`. Server Components are auto-split already; the manual lazy import
   buys conditional inclusion, and the real client-bundle savings come from the Client Components
   _inside_ each module.
 

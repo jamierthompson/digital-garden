@@ -4,7 +4,7 @@ import styles from "./experience.module.css";
  * The `first-light` interactive experience — the one constant a project module always has
  * (§4.1). A thin page mounts this component [D20]. For the dead-simple slice it is
  * deliberately trivial: a static, self-contained panel that proves the experience seam
- * (module → thin page → route) without any hard logic riding on it (§Phase 3, [D17]).
+ * (module → thin page → route) without any hard logic riding on it ([D17]).
  *
  * No headless `core/` here — the deferral discipline says don't carve one until an
  * experience's logic earns it, and a static panel does not [D20, D24]. It is a pure

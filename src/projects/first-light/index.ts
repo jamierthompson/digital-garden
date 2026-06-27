@@ -1,4 +1,4 @@
-// `first-light` — the dead-simple first project module (§Phase 3, [D17]).
+// `first-light` — the dead-simple first project module ([D17]).
 //
 // This is the module's REGISTRY ENTRY: the default export the `componentKey`
 // "first-light" resolves to via a literal dynamic import in

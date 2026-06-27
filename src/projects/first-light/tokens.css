@@ -9,7 +9,7 @@
  * out of every other island.
  *
  * Kept minimal on purpose: the dead-simple slice mostly consumes the generic tokens
- * directly (§Phase 3). This file establishes the alias seam so project-local styling has a
+ * directly (§3.1). This file establishes the alias seam so project-local styling has a
  * stable internal name to grow into, per "name the destination, instantiate late" [D24]. */
 @layer project {
   [data-project="first-light"] {

@@ -1,5 +1,5 @@
-/* Placeholder shell styling (Phase 0, unthemed). Will move under the shell
-   island's scope once ProjectScope themes the garden. */
+/* Unthemed base/fallback shell styling; the ProjectScope island overrides these
+   under its [data-project] scope. */
 
 :root {
   --background: #ffffff;

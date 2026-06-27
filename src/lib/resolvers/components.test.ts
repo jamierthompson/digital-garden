@@ -4,7 +4,7 @@ import { resolveComponentKey } from "./components";
 import { isNotFound } from "./resolution";
 
 describe("resolveComponentKey", () => {
-  it("resolves a registered key to a loader (first-light, Phase 3)", () => {
+  it("resolves a registered key to a loader (first-light)", () => {
     const result = resolveComponentKey("first-light");
     expect(isNotFound(result)).toBe(false);
     if (isNotFound(result)) throw new Error("expected a resolved loader");

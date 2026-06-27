@@ -15,7 +15,7 @@ because live decisions still cite them as evidence — but they are **not** oper
 - **`audit/`** — the pre-build five-lens architecture audit (independent findings →
   debate → synthesis) that produced the early decision records.
 - **`handbook-making-of/`** — research notes, first drafts, the adversarial debate round,
-  and the agent-team-skill eval material behind the handbook. The *handbook itself* is
+  and the agent-team-skill eval material behind the handbook. The _handbook itself_ is
   live at [`docs/handbook/`](../handbook/); this is only how it was written.
 
 Per-session build/QA records remain **live** at [`docs/sessions/`](../sessions/) — they

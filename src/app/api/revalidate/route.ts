@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { parseBody } from "next-sanity/webhook";
 
 /**
- * Sanity publish → production revalidation webhook. [build-phases #3, D11]
+ * Sanity publish → production revalidation webhook. [D11, D31]
  *
  * Closes the gap left by the published read path: content is fetched under
  * `use cache` + `cacheLife("max")` (see `src/sanity/lib/sanityFetch.ts`) [D11], so a

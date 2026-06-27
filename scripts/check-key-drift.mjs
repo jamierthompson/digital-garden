@@ -194,6 +194,6 @@ const counts = Object.entries(KEY_ARRAYS)
 console.log(
   `key-drift: OK — keys.ts well-formed (${counts}); ` +
     `${SATISFIES_GUARDS.length} compile-time \`satisfies\` guards wired. ` +
-    `(Published-keys-vs-code GROQ net is Phase 4.)`,
+    `(Published-keys-vs-code GROQ net is tracked in the issue backlog.)`,
 );
 process.exit(0);
