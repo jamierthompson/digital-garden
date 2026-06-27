@@ -92,8 +92,11 @@ discarded the draft and confirmed `draftExists: false` + original published blur
 - **Sanity's webhook Secret field can't be driven by automation** — it's behind "Show secret" and is a
   shadow-DOM input; keystrokes/paste don't land. Have a human paste secrets; never type a secret through
   an agent tool anyway (it would land in the transcript).
-- **`sanity deploy` (Studio) ≠ `sanity schemas deploy`** on darwin-x64: the former deploys the schema and
-  works locally; only the latter hits the Rolldown SIGABRT. The hosted-Studio deploy is a viable local
-  way to refresh the Content Lake schema.
+- **`sanity deploy` (Studio) ≠ `sanity schemas deploy`.** The former deploys the schema **and** works
+  (locally on darwin-x64); the latter hits a Rolldown native **SIGABRT**. As of this session the SIGABRT
+  also breaks the **`deploy-schema.yml` CI** on linux-x64 (it last passed 2026-06-25; the PR #31 lockfile
+  move is the prime suspect) — so the PR #25 "schema deploy from CI" workaround is itself broken. The
+  hosted-Studio `sanity deploy` is the working way to refresh the Content Lake schema. Tracked as a
+  follow-up in `build-phases.md` ("CI / tooling regressions").
 - **The hosted Studio's Presentation preview URL is build-time-baked** (`SANITY_STUDIO_PREVIEW_URL`): a
   bare `sanity deploy` reverts it to `localhost:3000`. Pass the prod URL each deploy (or wire a script).

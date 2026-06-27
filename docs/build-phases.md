@@ -396,6 +396,21 @@ varied mock projects to exercise everything._
 - [√] `palette.ts` — `TOKEN_NAMES` is already typed `readonly BrandTokenName[]`, but the token-set accumulator still used `{} as Record<BrandTokenName, SchemePair>`, so a missing token was **not** a compile error. Done 2026-06-24 (PR #16): rebuilt without the cast so exhaustiveness is type-enforced (verified `TS2322` on a dropped token); output byte-identical
 - [√] The OKLCH visual harness wrote `swatches.html` under both the jsdom and node Vitest projects — done 2026-06-24 (PR #16): scoped to the `node` project via `ctx.task.file.projectName`; exactly one write, assertions still run under both projects
 
+**CI / tooling regressions:**
+
+- [ ] **`Deploy Sanity Schema` workflow (`deploy-schema.yml`) is broken — `sanity schemas deploy` now
+      SIGABRTs on linux-x64 CI too** (surfaced 2026-06-27 when PR #34's `sanity.cli.ts` change was the first
+      schema-path push to trigger it; the run `SIGABRT`s in Rolldown's native binary, exit 1). It **last
+      passed 2026-06-25 19:54** — _after_ the #26 Node-24/dep-refresh, so that's not the cause; the change in
+      between is the **PR #31** lockfile move (next-sanity v13 / live-preview deps). **Not caused by #34** —
+      a native crash isn't triggered by two inert config strings, and it reproduces identically on darwin.
+      **Mitigation in place:** the schema deploys fine via **`sanity deploy`** (the full Studio deploy, which
+      pushes the schema and runs locally on darwin-x64), so the Content Lake is current. **Fix options (own
+      branch, needs CI iteration):** (a) bisect the lockfile to pin the last-good `sanity`/Rolldown and pin it
+      in `studio/`; (b) switch the workflow from `sanity schemas deploy` to `sanity deploy` (deploys the whole
+      Studio, but works); or (c) retire the workflow if `sanity deploy` becomes the standard schema-refresh
+      path. NOT done in the docs-closeout PR (a CI change that can't be verified locally).
+
 **Dependency upgrades — deferred breaking majors (2026-06-25):**
 
 _Held back from the 2026-06-25 in-range refresh (which took React 19.2.7, sanity 6.2.0, etc.); each is a
