@@ -97,7 +97,7 @@ function ciRunSteps(yml) {
   return steps;
 }
 
-// --- Load + normalize all three sources -----------------------------------------
+// --- Load + normalize both sources ----------------------------------------------
 
 const [dodMd, ciYml] = await Promise.all([
   read("docs/handbook/definition-of-done.md"),
