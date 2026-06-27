@@ -207,12 +207,10 @@ deliberately.
   `git log` and find only this. A short, ordered "what landed" list earns its place here.
 - **No checklists with unfinished items.** All tasks are done before the PR opens — the PR is a
   finished unit of work, not a progress tracker.
-- **Passed independent, adversarial QA `[D26]`.** Every slice — solo or team — clears a **fresh**
-  QA subagent (the dev↔QA loop) before it enters the PR: gate-green is _developer-done_, not
-  _review-done_. QA **tries to break the slice** and writes the missing test cases a product-team QA
-  engineer would (edge/error/boundary/malformed-input, both schemes), the owning author fixes, QA
-  re-checks. Staffing scales — solo session → one QA; team session → one per coding agent. The lead owns this
-  loop; mechanics in [./working-with-agents.md](./working-with-agents.md) §6.2.
+- **Passed independent, adversarial QA `[D26]`.** Every slice — solo or team — clears a **fresh** QA
+  subagent (the dev↔QA loop) before it enters the PR: QA tries to break the slice and writes the
+  missing cases, the owning author fixes, QA re-checks. Staffing scales — solo → one QA; team → one
+  per coding agent. Mechanics in [./working-with-agents.md](./working-with-agents.md) §6.2.
 
 See [./definition-of-done.md](./definition-of-done.md) for what "done" means before you open.
 

@@ -135,14 +135,11 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       handbook page. An architecturally significant decision gets a new `D#` in
       [`../decisions/`](../decisions/) (never edit an accepted one — supersede it; see
       [decision-records.md](./decision-records.md)).
-- [ ] **Independent adversarial QA passed.** `[D26]` Gate-green is _developer-done_, not
-      _review-done_. Before the slice enters the PR, a **fresh** agent with **no prior context of the
-      work** (not merely "not the author" `[D28]`) **tried to
-      break it** — edge / error / boundary / malformed-input cases, both color schemes — and **wrote
-      the missing test cases** a product-team QA engineer would; findings were fixed by the owning
-      author and QA re-checked clean. Staffing scales: solo session → one QA for the lead's own work;
-      team session → one QA per coding agent. The lead owns this loop — it's an agent-in-the-loop step,
-      not a CI gate. See [working-with-agents.md](./working-with-agents.md) §6.2.
+- [ ] **Independent adversarial QA passed `[D26]`.** Gate-green is _developer-done_, not
+      _review-done_: before the slice enters the PR, a **fresh** agent with **no prior context** (not
+      merely "not the author" `[D28]`) tried to break it and wrote the missing cases; the owning author
+      fixed and QA re-checked clean. Staffing scales — solo → one QA; team → one per coding agent. The
+      lead owns this loop (not a CI gate) — see [working-with-agents.md](./working-with-agents.md) §6.2.
 - [ ] **End of a session?** Two writes are mandatory before the squash-merge — refresh the
       [`README.md`](../../README.md) (any changed scripts, structure, conventions, or status) and write the session record in
       [`../sessions/`](../sessions), **including its QA log** (`[D26]` — what QA tested, what passed, each
