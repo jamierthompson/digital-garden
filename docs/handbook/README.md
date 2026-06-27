@@ -39,7 +39,5 @@ jump to the page your task needs.
 
 Mirroring the architecture audit trail, this handbook was produced with the same multi-agent
 pattern it documents in [`working-with-agents.md`](./working-with-agents.md) §4 — **research →
-independent drafts → adversarial debate → synthesis**. That making-of trail (research notes,
-round-1 drafts, the round-2 debate, and the synthesis) is preserved as frozen history under
-[`../archive/handbook-making-of/`](../archive/handbook-making-of/), alongside the pre-build
-architecture audit at [`../archive/audit/`](../archive/audit/).
+independent drafts → adversarial debate → synthesis**. That making-of trail and the pre-build
+architecture audit are kept as frozen history in a local, out-of-repo `archive/` (not version-controlled).

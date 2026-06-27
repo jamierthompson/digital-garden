@@ -39,7 +39,7 @@ enforces (lint/format/type rules — see [`./definition-of-done.md`](./definitio
 ## How much debate (right-sized)
 
 For a single later decision, **the two-mode table below is the whole process.**
-The five-lens audit in [`../archive/audit/`](../archive/audit/) is the reference for an
+The pre-build five-lens audit (frozen in the local, out-of-repo `archive/`) is the reference for an
 architecture-class _batch_ of decisions — not a per-decision requirement. Don't
 over-apply it.
 
@@ -57,10 +57,9 @@ _enumerated alternatives_, not the head-count. Rules:
   bundled docs (`node_modules/next/dist/docs/`) or an external standard — never
   model memory. This mirrors [`../../AGENTS.md`](../../AGENTS.md). Precedents:
   [D11], [D12], [D23] each name the doc path they checked.
-- **The worked example is [`../archive/audit/`](../archive/audit/).** The original 23 decisions (`D1`–`D23`) in
-  the log came from the five-lens audit
-  ([`README`](../archive/audit/README.md) → [`round-1-independent-findings`](../archive/audit/round-1-independent-findings.md)
-  → [`round-2-debate`](../archive/audit/round-2-debate.md) → [`synthesis`](../archive/audit/synthesis.md)) —
+- **The worked example is the pre-build five-lens audit** (frozen in the local, out-of-repo
+  `archive/`). The original 23 decisions (`D1`–`D23`) in the log came from it
+  (independent findings → round-2 debate → synthesis) —
   the full-ceremony shape for an architecture-class batch. Borrow its _spirit_
   (independent reasoning → adversarial challenge → synthesis that resolves
   conflict, never smooths it over), not its head-count, for a single call.
@@ -173,7 +172,7 @@ status line (don't touch its body):
 ## Related
 
 - [`../decisions/`](../decisions/) — the live log (`D1`–`D32`) + Open items footer.
-- [`../archive/audit/`](../archive/audit/) — the worked five-lens → debate → synthesis example (frozen).
+- The pre-build five-lens → debate → synthesis audit — the worked example, frozen in the local, out-of-repo `archive/`.
 - [`./working-with-agents.md`](./working-with-agents.md) — how agents cite `[D#]` / `§N` and hand off cleanly.
 - [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) — committing a decision (a `docs:` change, its own commit).
 - [`./definition-of-done.md`](./definition-of-done.md) — the full CI gate chain.

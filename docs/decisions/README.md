@@ -9,7 +9,7 @@ copy-paste template live there.
 > `§N` references point at the system model in
 > [`../handbook/architecture.md`](../handbook/architecture.md); this log is the source of truth
 > where the two disagree. The original entries (D1–D23) came from the pre-build architecture
-> audit, preserved frozen at [`../archive/audit/`](../archive/audit/).
+> audit, preserved frozen in a local, out-of-repo `archive/`.
 
 ---
 

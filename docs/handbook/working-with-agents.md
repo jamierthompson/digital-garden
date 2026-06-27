@@ -8,8 +8,8 @@
 > Sources of truth this doc points at — open them, don't summarize from memory:
 > framework facts → `node_modules/next/dist/docs/`; decisions → [`../decisions/`](../decisions/) (`[D#]`);
 > system model → [`./architecture.md`](./architecture.md) (`§N`); the work backlog →
-> [GitHub issues](https://github.com/jamierthompson/digital-garden/issues); the worked example of this
-> process (frozen) → [`../archive/audit/`](../archive/audit/).
+> [GitHub issues](https://github.com/jamierthompson/digital-garden/issues). The worked example of this
+> process — the pre-build five-lens audit — is frozen in a local, out-of-repo `archive/`.
 
 ---
 
@@ -129,7 +129,7 @@ contradicts the plan or a `[D#]`. It runs ~15× the token cost of single-agent w
 ([Anthropic — Multi-Agent Research](https://www.anthropic.com/engineering/multi-agent-research-system)),
 so reserve it.
 
-This handbook and the [`../archive/audit/`](../archive/audit/) trail were both built with this
+This handbook and the pre-build audit trail were both built with this
 pattern. The shape (as practiced in that audit):
 
 1. **Research, with citations.** Pin every claim to a primary source — bundled docs, a
@@ -140,9 +140,9 @@ pattern. The shape (as practiced in that audit):
    Sequencing). Diversity is what makes the next step work; identical agents add nothing.
 3. **Adversarial debate (devil's advocate).** Each lens challenges, defends, or **concedes**
    against the others. Critiques must be **fact-grounded** (cite a doc/decision), not vibes —
-   this is where the plan actually moves ([`../archive/audit/round-2-debate.md`](../archive/audit/round-2-debate.md)).
+   this is where the plan actually moves.
 4. **Cited synthesis.** Consolidate into a verdict and record the resolved calls as `[D#]`
-   in [`../decisions/`](../decisions/) ([`../archive/audit/synthesis.md`](../archive/audit/synthesis.md)).
+   in [`../decisions/`](../decisions/).
 
 **Two pitfalls to encode (both documented failure modes):**
 

@@ -264,5 +264,4 @@ paint, no async RSCs) and the absent Playwright leave open for any rendered surf
 
 [D4] · [D5] · [D6] · [D9] · [D10] · [D14] · [D17] · [D18] · [D19] · [D25] · [D26] —
 [`../decisions/`](../decisions/). System model §3.2 (OKLCH engine) —
-[`./architecture.md`](./architecture.md). Research (frozen):
-[`../archive/handbook-making-of/research/R3-testing.md`](../archive/handbook-making-of/research/R3-testing.md).
+[`./architecture.md`](./architecture.md).

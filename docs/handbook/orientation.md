@@ -33,7 +33,6 @@ docs/
     architecture.md        the system model (§N anchors referenced everywhere)
   decisions/               ADRs — BINDING. Cite as [D#].
   sessions/                per-session build + QA records (durable QA-log evidence)
-  archive/                 frozen history (the pre-build audit, the handbook making-of)
 AGENTS.md                  lean pointer for agents; @-imports into CLAUDE.md
 README.md                  human-facing overview + scripts
 eslint.config.mjs          the real import-boundary + isomorphism rules
@@ -123,18 +122,18 @@ These are the things that silently break this specific stack, or that the owner 
 
 ## Which doc for which task
 
-| Your task is about…                                               | Read                                                                                |
-| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| The system model / what the architecture _is_                     | [`./architecture.md`](./architecture.md) (§N)                                       |
-| A binding decision / why we chose X                               | [`../decisions/`](../decisions/) ([D#]); pre-build rationale in `../archive/audit/` |
-| What to do next / the work backlog                                | [GitHub issues](https://github.com/jamierthompson/digital-garden/issues)            |
-| Code style, TS rules, the `@layer` trap, import boundaries        | [`./engineering-standards.md`](./engineering-standards.md)                          |
-| Branching, commits, PRs, keeping CI green                         | [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)                              |
-| When a task is "done" (the pre-push / pre-merge bar)              | [`./definition-of-done.md`](./definition-of-done.md)                                |
-| Writing tests, dual-env engine tests, co-location, E2E timing     | [`./testing.md`](./testing.md)                                                      |
-| How agents collaborate, handoffs, the audit/debate shape          | [`./working-with-agents.md`](./working-with-agents.md)                              |
-| Independent adversarial QA before a PR (solo or team)             | [`./working-with-agents.md`](./working-with-agents.md) §6.2                         |
-| Opening / superseding an ADR                                      | [`./decision-records.md`](./decision-records.md)                                    |
-| Contrast targets (APCA/WCAG), focus rings, fonts, Core Web Vitals | [`./accessibility-and-performance.md`](./accessibility-and-performance.md)          |
-| Secrets, Sanity tokens, draft mode, Vercel deploys/rollbacks      | [`./security-and-ops.md`](./security-and-ops.md)                                    |
-| Anything about how Next.js 16 / React 19 actually works           | `node_modules/next/dist/docs/` (version-matched)                                    |
+| Your task is about…                                               | Read                                                                       |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| The system model / what the architecture _is_                     | [`./architecture.md`](./architecture.md) (§N)                              |
+| A binding decision / why we chose X                               | [`../decisions/`](../decisions/) ([D#])                                    |
+| What to do next / the work backlog                                | [GitHub issues](https://github.com/jamierthompson/digital-garden/issues)   |
+| Code style, TS rules, the `@layer` trap, import boundaries        | [`./engineering-standards.md`](./engineering-standards.md)                 |
+| Branching, commits, PRs, keeping CI green                         | [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)                     |
+| When a task is "done" (the pre-push / pre-merge bar)              | [`./definition-of-done.md`](./definition-of-done.md)                       |
+| Writing tests, dual-env engine tests, co-location, E2E timing     | [`./testing.md`](./testing.md)                                             |
+| How agents collaborate, handoffs, the audit/debate shape          | [`./working-with-agents.md`](./working-with-agents.md)                     |
+| Independent adversarial QA before a PR (solo or team)             | [`./working-with-agents.md`](./working-with-agents.md) §6.2                |
+| Opening / superseding an ADR                                      | [`./decision-records.md`](./decision-records.md)                           |
+| Contrast targets (APCA/WCAG), focus rings, fonts, Core Web Vitals | [`./accessibility-and-performance.md`](./accessibility-and-performance.md) |
+| Secrets, Sanity tokens, draft mode, Vercel deploys/rollbacks      | [`./security-and-ops.md`](./security-and-ops.md)                           |
+| Anything about how Next.js 16 / React 19 actually works           | `node_modules/next/dist/docs/` (version-matched)                           |

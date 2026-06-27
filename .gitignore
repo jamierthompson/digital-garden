@@ -44,3 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# frozen making-of / pre-build audit — kept locally for reference, out of version control
+/archive/
