@@ -1,32 +1,15 @@
 // Gate-doc sync guard (`pnpm lint:docs`).
 //
-// THE PROBLEM
-// -----------
-// The CI gate — the ordered chain of `pnpm` checks that must pass before merge — is
-// written down in THREE places that must agree, or a doc lies:
+// The CI gate chain lives in two places that must agree, or a doc lies:
+//   1. `docs/handbook/definition-of-done.md` → "## 1. The one command" — the canonical copy.
+//   2. `.github/workflows/ci.yml` → the `verify` job's `- run:` steps — the REAL gate.
+// (1) promises "same scripts, same order as CI"; every other doc points to it rather than
+// restating it. `pnpm typecheck`/`lint` can't see prose, so nothing else catches the drift.
 //
-//   1. `AGENTS.md` → "## Pre-flight checks (the gate)" — the agent-facing copy-paste chain.
-//   2. `docs/handbook/definition-of-done.md` → "## 1. The one command" — the human bar.
-//   3. `.github/workflows/ci.yml` → the `verify` job's `- run:` steps — the REAL gate.
-//
-// (1) and (2) both promise "same scripts, same order as CI". When someone adds or reorders
-// a gate step in `ci.yml` but forgets a doc (or vice versa), the docs silently mislead —
-// exactly the doc-rot this repo asks everyone to kill on sight (orientation "Golden rules").
-// `pnpm typecheck`/`lint` can't see prose, so without this guard nothing catches the drift.
-//
-// WHAT THIS CHECKS
-// ----------------
-// Extract the gate chain from each of the three sources, normalize each to an ordered list
-// of step commands, and assert all three are IDENTICAL (same steps, same order). On a
-// mismatch it prints each source's list and the first divergence, and exits non-zero.
-//
-// `ci.yml` carries setup steps that aren't part of the gate (`actions/checkout`,
-// `pnpm install`, …); those are dropped — only the `pnpm`/`git` gate commands count. This
-// script's own step (`pnpm lint:docs`) IS part of the canonical chain, so it must appear in
-// all three (a guard that runs as part of the gate it guards — self-consistent, not circular).
-//
-// It is a TEXT check (no YAML/Markdown parser dependency) — robust enough because the three
-// sources have stable, simple shapes and this runs in CI on every PR.
+// Extract the chain from each, normalize to an ordered list of step commands, and assert
+// both are identical. `ci.yml` setup steps (`actions/checkout`, `pnpm install`, …) are
+// dropped — only `pnpm`/`git` gate commands count. It's a text check (no YAML/Markdown
+// parser): robust because the sources have stable, simple shapes.
 
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -45,12 +28,9 @@ const read = async (rel) => {
   );
 };
 
-// --- Normalization --------------------------------------------------------------
-
-// A shell chain like `pnpm lint && pnpm test && \` (possibly wrapped across lines)
-// → ordered list of individual commands. Splits on `&&`, drops line-continuations,
-// comments, and blanks. `pnpm --filter studio typegen && git diff …` becomes two steps,
-// matching how `ci.yml` lists them as two separate `- run:` lines.
+// A shell chain (`pnpm lint && pnpm test && \`, possibly line-wrapped) → ordered list of
+// commands. `pnpm --filter studio typegen && git diff …` splits into two steps, matching
+// how `ci.yml` lists them as two separate `- run:` lines.
 const splitChain = (text) =>
   text
     .replace(/\\\s*\n/g, " ") // join `\`-continued lines
@@ -64,8 +44,6 @@ const isSetupStep = (cmd) => /^pnpm install\b/.test(cmd);
 
 const normalize = (steps) =>
   steps.map((s) => s.trim()).filter((s) => !isSetupStep(s));
-
-// --- Extractors -----------------------------------------------------------------
 
 // The first fenced ```…``` code block AFTER a heading whose text matches `headingRe`.
 function fencedBlockAfter(md, headingRe, label) {
@@ -96,24 +74,12 @@ function ciRunSteps(yml) {
   return steps;
 }
 
-// --- Load + normalize all three sources -----------------------------------------
-
-const [agentsMd, dodMd, ciYml] = await Promise.all([
-  read("AGENTS.md"),
+const [dodMd, ciYml] = await Promise.all([
   read("docs/handbook/definition-of-done.md"),
   read(".github/workflows/ci.yml"),
 ]);
 
 const sources = {
-  "AGENTS.md (Pre-flight checks)": normalize(
-    splitChain(
-      fencedBlockAfter(
-        agentsMd,
-        /^##\s+Pre-flight checks/,
-        "Pre-flight checks",
-      ),
-    ),
-  ),
   "definition-of-done.md (§1)": normalize(
     splitChain(
       fencedBlockAfter(dodMd, /^##\s+1\.\s+The one command/, "The one command"),
@@ -123,8 +89,6 @@ const sources = {
     ciRunSteps(ciYml).flatMap((step) => splitChain(step)),
   ),
 };
-
-// --- Compare ---------------------------------------------------------------------
 
 const names = Object.keys(sources);
 const reference = sources[names[0]];
@@ -139,7 +103,7 @@ for (const name of names.slice(1)) {
       fail(
         `the gate chain differs between sources (first divergence at step ${i + 1}: ` +
           `"${reference[i] ?? "—"}" vs "${list[i] ?? "—"}").` +
-          `\nKeep all three in sync — change the gate in one place and the others must match.` +
+          `\nKeep both in sync — change the gate in one place and the other must match.` +
           show(names[0], reference) +
           show(name, list),
       );

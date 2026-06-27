@@ -1,8 +1,4 @@
-/* The sunrise-meter embed's styling. Every rule lives inside `@layer project` — a CSS
-   Module MUST declare its layer or it silently outranks every @layer style (the "@layer
-   trap", [D12], enforced by `pnpm lint:css`). All themeable values are consumed as generic
-   tokens (`--brand-*`, `--space-*`) set by `ProjectScope` on the `[data-project]` ancestor —
-   a shared embed themes off the generic layer, never a project-prefixed alias [D2]. */
+/* Sunrise-meter embed. @layer project — declares its layer per [D12]; var-consuming only, themed by generic --brand-* (a shared embed never reads a project-prefixed alias, [D2]). */
 @layer project {
   .meter {
     margin: var(--space-5) 0;

@@ -1,16 +1,14 @@
-/* The `first-light` project's scoped tokens (§3.1, §4.1, [D1, D2, D12]).
+/* first-light scoped tokens (§3.1, §4.1, [D1, D2, D12]).
+ * @layer project — declares its layer per [D12]; var-consuming only.
  *
- * Declared in `@layer project` — the highest layer, and the one a CSS Module MUST declare
- * or it silently outranks every layer (the @layer trap, [D12]). These are the project's
- * INTERNAL `--logx-*` aliases, mapped FROM the generic engine-set tokens (`--brand-*`,
- * `--font-face`) that `ProjectScope` emits on the `[data-project]` ancestor. The public
- * contract is the generic layer; `--logx-*` is project-internal and never what a shared
- * unit codes against [D2]. Scoping to `[data-project="first-light"]` keeps these aliases
- * out of every other island.
+ * These are the project's INTERNAL `--logx-*` aliases, mapped FROM the generic engine-set
+ * tokens (`--brand-*`, `--font-face`) that `ProjectScope` emits on the `[data-project]`
+ * ancestor. The public contract is the generic layer; `--logx-*` is project-internal and
+ * never what a shared unit codes against [D2]. Scoping to `[data-project="first-light"]`
+ * keeps these aliases out of every other island.
  *
- * Kept minimal on purpose: the dead-simple slice mostly consumes the generic tokens
- * directly (§Phase 3). This file establishes the alias seam so project-local styling has a
- * stable internal name to grow into, per "name the destination, instantiate late" [D24]. */
+ * Kept minimal on purpose: this slice mostly consumes the generic tokens directly. The file
+ * establishes the alias seam to grow into, per "name the destination, instantiate late" [D24]. */
 @layer project {
   [data-project="first-light"] {
     --logx-font: var(--font-face);

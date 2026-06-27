@@ -84,7 +84,7 @@ both against the bundled docs. Added 4 adversarial tests (8→12). Found **clean
 **Deferred:** the doc-rot QA-D2 (stale `getClient` prose in `security-and-ops.md` + `build-phases.md`)
 was fixed in this session's docs sweep, not in the slice branch. The **owner-gated** items (Sanity
 webhook registration, hosted Studio deploy, draft Presentation walkthrough) are tracked in
-[`../build-phases.md`](../build-phases.md) Item C / wiring block.
+`build-phases.md` Item C / wiring block.
 
 ## Owner handoff — to finish the live story (not code)
 

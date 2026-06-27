@@ -12,13 +12,10 @@
  * never touch DOM/Node globals — lint-enforced [D14].
  */
 
-// --- High-level: brand color → tokens -------------------------------------------
 export { resolveTheme, buildTokenSet, type EngineOptions } from "./palette";
 
-// --- CSS serialization (bake literals into @layer brand) ------------------------
 export { tokenSetToCss, tokenSetToDeclarations } from "./css";
 
-// --- Low-level: contrast --------------------------------------------------------
 export {
   contrastWCAG,
   contrastAPCA,
@@ -28,13 +25,10 @@ export {
   type SolveOptions,
 } from "./contrast";
 
-// --- Low-level: gamut -----------------------------------------------------------
 export { gamutMap, inGamut } from "./gamut";
 
-// --- Low-level: ramp ------------------------------------------------------------
 export { buildLightnessRamp, type RampOptions } from "./ramp";
 
-// --- Low-level: color conversions & parsing -------------------------------------
 export {
   parseColor,
   formatOklch,
@@ -46,7 +40,6 @@ export {
   clamp01,
 } from "./convert";
 
-// --- Types ----------------------------------------------------------------------
 export type {
   OkLCH,
   OkLab,

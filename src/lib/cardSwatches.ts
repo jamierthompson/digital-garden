@@ -1,32 +1,21 @@
 /**
  * `cardSwatches(brandColor)` — engine Consumer C (§3.2, §6).
  *
- * The `/work` index cards want "a few colors per card" derived from a project's
- * `brandColor`, but WITHOUT a project scope: no island, no `<style>` tag, no class —
- * just a small bag of inline CSS custom properties (`--c-*`) to spread onto a card
- * element's `style={…}`. This is a CONSUMER of the OKLCH engine, not part of it, so it
- * lives in `src/lib/` (an app consumer) rather than inside the `@garden/oklch` engine
- * package itself (§3.2) [D23].
+ * Derives a small bag of inline CSS custom properties (`--c-*`) from a project's
+ * `brandColor` for the `/work` index cards — no project scope, no `<style>` tag, no
+ * class. A CONSUMER of the OKLCH engine, not part of it, so it lives in `src/lib/`
+ * rather than inside the `@garden/oklch` package (§3.2) [D23].
  *
- * It runs on the SAME defensive parse/validate path as everything else: it delegates to
- * the high-level `buildTokenSet`, which parses defensively, gamut-maps, contrast-solves,
- * and — on bad/missing/hostile input — returns the safe fallback palette with
- * `meta.isFallback = true`. So `cardSwatches` is TOTAL: it NEVER throws and always
- * returns a valid swatch object [D9].
+ * Total and defensive [D9]: delegates to `buildTokenSet`, which on bad/missing/hostile
+ * input returns the safe fallback palette — so this NEVER throws and always returns a
+ * valid swatch object. Values are BAKED `light-dark(<light oklch()>, <dark oklch()>)`
+ * literals (as in the engine's `css.ts`), so a card reads correctly in both schemes
+ * with zero runtime color math in the browser [D3, D5].
  *
- * Values are BAKED literals, composed the same way the engine's `css.ts` composes them:
- * each
- * stop is `light-dark(<light oklch() literal>, <dark oklch() literal>)` so a card reads
- * correctly in both schemes with zero runtime color math in the browser [D3, D5].
- *
- * WHICH STOPS, AND WHY — kept deliberately to "a few", the minimum a self-themed card
- * needs to stand apart on the shared `/work` grid:
- *   • `--c-surface` — the card's own tinted background fill (brand-tinted near-neutral).
- *   • `--c-border`  — its edge / divider against the page (contrast-solved hairline).
- *   • `--c-text`    — body/label text that clears AA on that surface.
- *   • `--c-accent`  — the brand pop (chip, rule, hover) — the card's identity at a glance.
- * These map 1:1 onto engine tokens, so the colors are exactly the contrast-solved ones
- * the full project scope would use — just a curated subset, inline, with no scope.
+ * The four stops are the minimum a self-themed card needs to stand apart on the shared
+ * `/work` grid: `--c-surface` (tinted background), `--c-border` (contrast-solved
+ * hairline), `--c-text` (AA-clearing label text), `--c-accent` (brand pop). They map
+ * 1:1 onto engine tokens, so the colors match what the full project scope would use.
  */
 
 import {
@@ -66,11 +55,8 @@ function lightDark(pair: SchemePair): string {
 
 /**
  * Derive a small set of inline `--c-*` swatches from a project's `brandColor`.
- *
- * Pure and isomorphic-friendly: it only calls the engine and returns a plain object —
- * no `next/*`, no React, no DOM/Node globals. Defensive and total [D9]: any bad, missing,
- * or hostile `brandColor` flows through the engine's fallback palette and still yields a
- * valid swatch object; this function never throws.
+ * Defensive and total [D9]: any bad/missing/hostile input flows through the engine's
+ * fallback palette and still yields a valid swatch object; never throws.
  *
  * @param brandColor Untrusted input (Sanity field, etc.) — `unknown` by design [D9].
  * @param opts       Engine options (e.g. `{ gamut: "p3" }`); defaults to safe sRGB.

@@ -3,11 +3,10 @@ name: Deploy Sanity Schema
 # Deploys the Studio's content-model schema to the hosted Content Lake so apps
 # like Dashboard/Canvas/Agent Actions see the current model.
 #
-# Why from CI and not locally: `sanity schemas deploy` loads Rolldown, whose
-# native binary (@rolldown/binding-darwin-x64) SIGABRTs on the owner's
-# Intel/macOS machine — a darwin-x64-specific upstream crash, not a version
-# issue. CI runs on Ubuntu (linux-x64) where Rolldown works, so CI is the
-# robust path. (See docs/handbook/security-and-ops.md / docs/production-checklist.md.)
+# NOTE: this workflow is currently DISABLED and broken — `sanity schemas deploy`
+# now SIGABRTs in Rolldown's native binary on linux-x64 CI as well as darwin-x64.
+# Schema is refreshed via `sanity deploy` instead; fixing/retiring this workflow is
+# tracked in the GitHub issue backlog. (See docs/handbook/security-and-ops.md §5.)
 
 on:
   # Manual trigger — covers the first deploy and any ad-hoc redeploy.

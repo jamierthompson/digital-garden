@@ -1,7 +1,7 @@
 # Decision Records
 
 How architecturally significant decisions get made, recorded, and superseded in
-this repo. The log lives in [`../decisions.md`](../decisions.md) (entries `D1`–`D26`).
+this repo. The log lives in [`../decisions/`](../decisions/) (entries `D1`–`D32`).
 This page is the **process**; that file is the **record**.
 
 > Lightweight Nygard-style ADR
@@ -21,8 +21,8 @@ quality. Record it if ANY of these is true:
 
 - [ ] It's **hard to reverse** (changing it later means reworking multiple files or a shipped contract).
 - [ ] It **crosses a module or package boundary** (e.g. the app ↔ `studio/` workspace seam — see [D23]).
-- [ ] It **locks an external contract**: a Sanity schema field, `keys.ts`, public token names (`--brand-*`, `--space-*` — the generic public layer per [D2], **not** the project-internal `--logx-*` alias), or the engine signature `(brandColor, scheme) → tokenSet` ([D5]).
-- [ ] It **contradicts the plan** ([`../architecture-plan.md`](../architecture-plan.md)) or an existing `[D#]`.
+- [ ] It **locks an external contract**: a Sanity schema field, `keys.ts`, public token names (`--brand-*`, `--space-*` — the generic public layer per [D2], **not** a project-internal `--<proj>-*` alias), or the engine signature `(brandColor, scheme) → tokenSet` ([D5]).
+- [ ] It **contradicts the system model** ([`./architecture.md`](./architecture.md)) or an existing `[D#]`.
 - [ ] It rests on a **version-dependent framework fact** that breaks model memory (async request APIs, `cacheComponents`, the `@layer` trap, `proxy.ts`) — record it _with the bundled-doc path you verified against_.
 
 **Litmus (the one-line test):** _would a future agent landing cold be confused, or
@@ -39,7 +39,7 @@ enforces (lint/format/type rules — see [`./definition-of-done.md`](./definitio
 ## How much debate (right-sized)
 
 For a single later decision, **the two-mode table below is the whole process.**
-The five-lens audit in [`../audit/`](../audit/) is the reference for an
+The pre-build five-lens audit (frozen in the local, out-of-repo `archive/`) is the reference for an
 architecture-class _batch_ of decisions — not a per-decision requirement. Don't
 over-apply it.
 
@@ -57,10 +57,9 @@ _enumerated alternatives_, not the head-count. Rules:
   bundled docs (`node_modules/next/dist/docs/`) or an external standard — never
   model memory. This mirrors [`../../AGENTS.md`](../../AGENTS.md). Precedents:
   [D11], [D12], [D23] each name the doc path they checked.
-- **The worked example is [`../audit/`](../audit/).** The original 23 decisions (`D1`–`D23`) in
-  `decisions.md` came from the five-lens audit
-  ([`README`](../audit/README.md) → [`round-1-independent-findings`](../audit/round-1-independent-findings.md)
-  → [`round-2-debate`](../audit/round-2-debate.md) → [`synthesis`](../audit/synthesis.md)) —
+- **The worked example is the pre-build five-lens audit** (frozen in the local, out-of-repo
+  `archive/`). The original 23 decisions (`D1`–`D23`) in the log came from it
+  (independent findings → round-2 debate → synthesis) —
   the full-ceremony shape for an architecture-class batch. Borrow its _spirit_
   (independent reasoning → adversarial challenge → synthesis that resolves
   conflict, never smooths it over), not its head-count, for a single call.
@@ -72,28 +71,28 @@ _enumerated alternatives_, not the head-count. Rules:
 ## The entry format
 
 The required-fields table below is the contract; the [copy-paste template](#copy-paste-template)
-at the bottom renders it. Match the shape already running in `decisions.md`.
+at the bottom renders it. Match the shape already running in `decisions/README.md`.
 
-| Field           | Rule                                                                                                                                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Number**      | Next monotonic `D#`. **Never reused, never renumbered.** Find the current max — today the next is `D26`; check with `grep -oE '^### D[0-9]+' ../decisions.md \| tail -1`. |
-| **Title**       | Imperative noun phrase — the decision, not the topic ("Bake `oklch()` literals server-side", not "Color baking").                                                         |
-| **Status**      | From the closed vocabulary below — not free text.                                                                                                                         |
-| **`Amends §N`** | The plan section(s) this changes. A decision that touches the plan **must** cite the section; this is what keeps the log and the plan from silently diverging.            |
-| **Why**         | The reasoning. Add `(user call, <date>)` when the owner makes the final call; add `(verified against <path>)` for version-dependent facts.                                |
-| **`[D#]` refs** | Cross-reference related decisions inline.                                                                                                                                 |
+| Field           | Rule                                                                                                                                                                             |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Number**      | Next monotonic `D#`. **Never reused, never renumbered.** Find the current max — today the next is `D33`; check with `grep -oE '^### D[0-9]+' ../decisions/README.md \| tail -1`. |
+| **Title**       | Imperative noun phrase — the decision, not the topic ("Bake `oklch()` literals server-side", not "Color baking").                                                                |
+| **Status**      | From the closed vocabulary below — not free text.                                                                                                                                |
+| **`Amends §N`** | The plan section(s) this changes. A decision that touches the plan **must** cite the section; this is what keeps the log and the plan from silently diverging.                   |
+| **Why**         | The reasoning. Add `(user call, <date>)` when the owner makes the final call; add `(verified against <path>)` for version-dependent facts.                                       |
+| **`[D#]` refs** | Cross-reference related decisions inline.                                                                                                                                        |
 
-**Status vocabulary (closed set — adopt one, don't invent).** This **extends**
-`decisions.md`'s two-item legend (`Decided` / `Open`) by formalizing the
-parenthetical and supersession patterns the log already uses informally:
+**Status vocabulary (closed set — adopt one, don't invent).** This expands
+`decisions/README.md`'s legend (`Decided` / `Superseded by D#` / `Open`) with the
+full parenthetical and supersession patterns the log uses:
 
-| Status                                | Meaning                                                                                                          |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `Decided`                             | Resolved and in force.                                                                                           |
-| `Decided (build deferred)`            | Resolved, but implemented later (e.g. [D8] semantic colors, built when status UI lands).                         |
-| `Decided (verified against <source>)` | Resolved on a version-dependent fact, checked against a named doc ([D11], [D12], [D23]).                         |
-| `Open`                                | Needs the owner's call before it can be locked. Track it in the **Open items summary** footer of `decisions.md`. |
-| `Superseded by D#`                    | No longer in force; replaced. See below.                                                                         |
+| Status                                | Meaning                                                                                                                 |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `Decided`                             | Resolved and in force.                                                                                                  |
+| `Decided (build deferred)`            | Resolved, but implemented later (e.g. [D32] brand-derived status colors, built when status UI lands).                   |
+| `Decided (verified against <source>)` | Resolved on a version-dependent fact, checked against a named doc ([D11], [D12], [D23]).                                |
+| `Open`                                | Needs the owner's call before it can be locked. Track it in the **Open items summary** footer of `decisions/README.md`. |
+| `Superseded by D#`                    | No longer in force; replaced. See below.                                                                                |
 
 ---
 
@@ -118,7 +117,7 @@ greppable.
 
 ## CI fit
 
-Decision records are prose; **no CI gate polices `decisions.md`.** The only
+Decision records are prose; **no CI gate polices `decisions/README.md`.** The only
 discipline is `pnpm format` keeping the Markdown clean before commit. For the full
 gate chain (and the [D23] TypeGen drift step a schema-locking decision is most
 likely to trip), see [`./definition-of-done.md`](./definition-of-done.md).
@@ -149,7 +148,7 @@ For a version-dependent fact, append "(verified against
 node_modules/next/dist/docs/<path>)".>
 ```
 
-(`D<n>` is the next free number — find it per the table above; it's `D26` today.)
+(`D<n>` is the next free number — find it per the table above; it's `D33` today.)
 
 **Superseding** — append the new entry, then add the pointer to the old one's
 status line (don't touch its body):
@@ -172,8 +171,8 @@ status line (don't touch its body):
 
 ## Related
 
-- [`../decisions.md`](../decisions.md) — the live log (`D1`–`D26`) + Open items footer.
-- [`../audit/`](../audit/) — the worked five-lens → debate → synthesis example.
+- [`../decisions/`](../decisions/) — the live log (`D1`–`D32`) + Open items footer.
+- The pre-build five-lens → debate → synthesis audit — the worked example, frozen in the local, out-of-repo `archive/`.
 - [`./working-with-agents.md`](./working-with-agents.md) — how agents cite `[D#]` / `§N` and hand off cleanly.
 - [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) — committing a decision (a `docs:` change, its own commit).
 - [`./definition-of-done.md`](./definition-of-done.md) — the full CI gate chain.

@@ -14,17 +14,15 @@ interface EmbedBlockProps {
 }
 
 /**
- * Renders one `liveEmbed` block from an essay (§6, [D15]). An async Server Component: it
+ * Renders one `liveEmbed` block from an essay (§6, [D15]). An async Server Component that
  * resolves the `embedKey` to its lazy loader via `resolveEmbedKey`, awaits the module, and
- * mounts the default export under the surrounding project scope so the widget themes
- * identically to the essay (§4.3).
+ * mounts the default export under the surrounding project scope (§4.3).
  *
  * Defensive at the seam [D10, D19]: a missing or unresolved `embedKey` does NOT throw — it
  * renders the visible `MissingEmbed` placeholder, so a content→code key drift degrades
- * gracefully and the rest of the essay still reads. The loader returns `Promise<unknown>`
- * (the registry can't know each widget's concrete props), so the default export is narrowed
- * to a props-free `ComponentType` here — every embed themes off the ambient scope and takes
- * no props, matching `SunriseMeter`.
+ * gracefully. The loader returns `Promise<unknown>` (the registry can't know each widget's
+ * props), so the default export is narrowed to a props-free `ComponentType` — every embed
+ * themes off the ambient scope and takes no props.
  */
 export default async function EmbedBlock({
   embedKey,

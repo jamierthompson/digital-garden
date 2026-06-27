@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-// next/font/google is normally transformed by the Next plugin; under Vitest it
-// is not, so the real loaders throw ("Inter is not a function"). Mock each used
-// face to return just the `.variable` className the roster reads.
+// Under Vitest next/font/google isn't transformed by the Next plugin, so the real loaders
+// throw ("Inter is not a function"). Mock each face to return just the `.variable` className.
 vi.mock("next/font/google", () => ({
   Inter: () => ({ variable: "mock-inter" }),
   Newsreader: () => ({ variable: "mock-newsreader" }),

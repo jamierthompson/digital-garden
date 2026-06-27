@@ -45,10 +45,7 @@ export const STEGA_EXCLUDED_FIELDS = new Set([
  */
 export const studioUrl = process.env.NEXT_PUBLIC_SANITY_STUDIO_URL || "/studio";
 
-/**
- * `true` when the path's leaf field is one of the code-consumed fields above and must
- * therefore NOT carry stega chars. Pulled out so the filter logic has one home.
- */
+/** `true` when the path's leaf field is one of the code-consumed fields above. */
 export function isStegaExcludedField(sourcePath: readonly unknown[]): boolean {
   const field = sourcePath.at(-1);
   return typeof field === "string" && STEGA_EXCLUDED_FIELDS.has(field);

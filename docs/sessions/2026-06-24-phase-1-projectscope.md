@@ -84,4 +84,4 @@ Opened 2026-06-24, all CI-green + QA-clean at hand-off, left for the owner to sq
 **#14** real `ProjectScope` (Phase 1 complete), **#15** `cardSwatches`, **#16** key-drift live +
 engine cleanups. The branches are file-disjoint, so they merge in any order. The only item from
 this session carried forward is the pre-existing Phase-2 engine-backed `brandColor` validation (a
-package-boundary task), tracked in [`../build-phases.md`](../build-phases.md).
+package-boundary task), tracked in `build-phases.md`.

@@ -45,7 +45,7 @@ export const project = defineType({
           .error('Blurb exceeds the 300-character hard cap — the card layout cannot absorb the overflow.'),
     }),
 
-    // --- Theming seeds (reference-by-key; consumed by code, stega-excluded [D16]) ---
+    // Theming seeds: reference-by-key, consumed by code, stega-excluded [D16].
     defineField({
       name: 'brandColor',
       title: 'Brand color',
@@ -79,7 +79,6 @@ export const project = defineType({
       validation: (rule) => rule.required(),
     }),
 
-    // --- Content ---
     defineField({
       name: 'essay',
       title: 'Essay',

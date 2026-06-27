@@ -2,34 +2,20 @@
 
 A personal portfolio and digital garden — a place to grow notes, ideas, and work
 over time. Each project is a self-contained, independently themed module: its own
-brand color (a perceptual OKLCH palette) and font, composed on a shared invariant
+brand color (a perceptual OKLCH palette) and font, composed on a shared
 foundation. Content and brand seeds live in Sanity; the site renders on Next.js.
 
-> Status: **Phases 0–3 complete.**
-> Scaffolding + guardrails (Ph0), the walking skeleton (Ph0.5), the OKLCH theming engine + real
-> `ProjectScope` (Ph1), and the Sanity content model with reference-by-key wiring and
-> engine-backed `brandColor` validation (Ph2) are done. **Phase 3** drives one dead-simple
-> project (`first-light`) end-to-end — `/work` index + themed `/work/<slug>` route,
-> error/not-found/loading states, metadata — alongside the themed garden shell
-> (home / about / now / notes), an RSS feed, and Sanity draft mode + Presentation. The content
-> read path runs on next-sanity **`defineLive`** with **`<SanityLive>`** for real-time draft
-> preview, and a signed **publish→production revalidation** webhook (`/api/revalidate`) expires
-> cache tags so a published change appears on Vercel without a redeploy `[D31]`. The garden shell
-> is an **editorial Sanity island** like any project — its brief unbranded loading frame is
-> `next dev`-only (production serves the build-time-resolved themed shell in the initial PPR bytes,
-> zero unbranded frames) and is accepted by design `[D30]`. All of this is **verified on the live
-> deploy**: published path, flash-free shell, the `<SanityLive>` EventSource, and the signed
-> revalidate endpoint (valid HMAC → 200, forged → 401). _(A 2026-06-26 re-test also found the
-> earlier `@layer` import-order cause `[D27]` **does not reproduce** in Next 16.2.9 — likely a red
-> herring; see the [session](./docs/sessions/2026-06-26-shell-sourcing-islands/spike-findings.md).)_
-> **Phase 3 is now closed** (2026-06-27): the publish→prod revalidation webhook is registered and
-> verified (a real publish drove a `200` in the attempt log), the hosted **Studio is deployed**
-> ([jamiethompson-garden.sanity.studio](https://jamiethompson-garden.sanity.studio)) with Presentation
-> previewing prod, and the live **draft Presentation walkthrough passed** — an unpublished draft rendered
-> in the live preview with no leak to the public page. **Next: Phase 4** — the OKLCH-engine
-> showcase. See [`docs/`](./docs) for the architecture plan,
-> build phases, decision log, per-session records ([`docs/sessions/`](./docs/sessions)), and the
-> [production deploy checklist](./docs/production-checklist.md).
+> **Status:** the shared foundation, the OKLCH theming engine (`@garden/oklch`), the Sanity
+> content model, and mock projects are **live on Vercel** — with the themed
+> garden shell, an RSS feed, and Sanity draft mode + live preview wired to publish→production
+> revalidation. Remaining work is tracked in
+> [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
+
+The engineering handbook lives in [`docs/handbook/`](./docs/handbook) (start at
+[`orientation.md`](./docs/handbook/orientation.md)); the system model is
+[`docs/handbook/architecture.md`](./docs/handbook/architecture.md); binding decisions are in
+[`docs/decisions/`](./docs/decisions); per-session build/QA records in
+[`docs/sessions/`](./docs/sessions).
 
 ## Tech stack
 
@@ -83,8 +69,8 @@ Sanity webhook → `/api/revalidate` carrying the same `SANITY_REVALIDATE_SECRET
 pnpm build                   # production build
 pnpm lint                    # ESLint (incl. architectural import boundaries)
 pnpm lint:css                # assert every CSS Module declares its @layer
-pnpm lint:keys               # key-drift guard (live since Phase 2)
-pnpm lint:docs               # assert the gate chain matches across AGENTS.md, DoD, ci.yml
+pnpm lint:keys               # key-drift guard
+pnpm lint:docs               # assert the gate chain matches across DoD §1 and ci.yml
 pnpm typecheck               # tsc --noEmit
 pnpm test                    # run the test suite once
 pnpm format / format:check   # Prettier write / check
@@ -95,9 +81,7 @@ CI runs all of the above (plus a TypeGen drift check) on every PR.
 
 ## Styling approach
 
-Three tiers, so only what actually varies per project is scoped:
-
-- **Invariant foundation** (`src/app/foundation.css`, global `:root`) — spacing,
+- **Foundation** (`src/app/foundation.css`, global `:root`) — spacing,
   type scale, motion, z-index, focus-ring geometry, the reset. Loaded first, and it
   declares the `@layer foundation, brand, project;` order.
 - **Brand + font** (per-project scope, engine-driven) — the OKLCH color ramp and the
@@ -131,7 +115,7 @@ studio/                 # standalone Sanity Studio (pnpm workspace package)
 scripts/                # CI guardrail scripts (@layer lint, key-drift, doc-gate-sync)
 sanity.types.ts         # generated by Sanity TypeGen
 tests/                  # Vitest + Testing Library
-docs/                   # architecture plan, build phases, decisions, audit, session records
+docs/                   # handbook (incl. architecture.md), decisions/, sessions/
 ```
 
 Each project under `src/projects/<slug>/` is a self-contained module — its pages, its
@@ -140,3 +124,11 @@ a typed reference-by-key resolver maps a Sanity `componentKey` to a literal dyna
 Dependencies point **projects → shared, never back** (lint-enforced). The OKLCH engine
 lives in its own `packages/oklch` workspace package (`@garden/oklch`), so the standalone
 Studio can import it too.
+
+## Contributing & license
+
+This is a personal portfolio, not an open-source project. You're welcome to read the code and
+[open an issue](https://github.com/jamierthompson/digital-garden/issues), but please don't send
+unsolicited pull requests — see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the (solo + AI-agent)
+workflow. The code and content are **source-available, not licensed for reuse** — see
+[`LICENSE`](./LICENSE).

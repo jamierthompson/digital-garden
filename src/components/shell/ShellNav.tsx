@@ -5,11 +5,9 @@ import styles from "./ShellNav.module.css";
 /**
  * The shell's primary navigation. [§2]
  *
- * A pure, synchronous, var-consuming component: it reads `var(--brand-*)` /
- * `var(--font-face)` from whatever scope it renders under (the shell island's
- * `[data-project]` scope in the root layout), so it carries no theme of its own.
- * Real `/work`, `/about`, `/now` routes land in Phase 3 — these are live links now,
- * not the Phase 0 skeleton `<li>` placeholders.
+ * A pure, synchronous, var-consuming component: it reads `var(--brand-*)` / `var(--font-face)`
+ * from whatever scope it renders under (the shell island's `[data-project]` scope in the root
+ * layout), so it carries no theme of its own.
  */
 export default function ShellNav() {
   return (

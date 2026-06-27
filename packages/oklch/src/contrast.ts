@@ -14,8 +14,6 @@ import { clamp01, oklchToSrgb, srgbToLinear } from "./convert";
 import { gamutMap, inGamut } from "./gamut";
 import type { Gamut, OkLCH } from "./types";
 
-// --- WCAG 2.x relative-luminance contrast ratio --------------------------------
-
 /** Clamp gamma sRGB channels into [0,1] for the contrast math (colors are pre-mapped). */
 function clampSrgb({ r, g, b }: { r: number; g: number; b: number }): {
   r: number;
@@ -50,8 +48,6 @@ export function contrastWCAG(a: OkLCH, b: OkLCH): number {
   const darker = Math.min(la, lb);
   return (lighter + 0.05) / (darker + 0.05);
 }
-
-// --- APCA Lc (SA98G) ------------------------------------------------------------
 
 const SA98G = {
   mainTRC: 2.4,
@@ -110,8 +106,6 @@ export function contrastAPCA(text: OkLCH, bg: OkLCH): number {
 export function apcaLc(text: OkLCH, bg: OkLCH): number {
   return Math.abs(contrastAPCA(text, bg));
 }
-
-// --- The contrast solver --------------------------------------------------------
 
 export interface ContrastTarget {
   /** WCAG 2.x ratio floor (compliance) — e.g. 4.5 body, 3 large/UI [D4]. */

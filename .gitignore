@@ -37,9 +37,13 @@ yarn-error.log*
 # vercel
 .vercel
 
-# claude code (runtime-owned, personal; shared perms live in .claude/settings.json)
+# claude code — settings.json is shared (tracked); these are runtime-owned & personal
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# frozen making-of / pre-build audit — kept locally for reference, out of version control
+/archive/

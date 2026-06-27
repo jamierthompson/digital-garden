@@ -71,8 +71,8 @@ it: malformed / boundary / empty / hostile input (garbage `brandColor` → safe 
 [D9]), the error and not-found paths, both color schemes, the focus/interaction floor on any rendered
 surface — and to **write the missing test cases** a product-team QA engineer would, proving each break
 with a failing case first. Findings go back to the **owning** agent to fix; QA re-checks; repeat until
-clean. In-scope findings are fixed before the PR; defer only genuinely later-phase work (log it in
-[`docs/build-phases.md`](../../../../docs/build-phases.md) with PR# + reason). **Record each slice's
+clean. In-scope findings are fixed before the PR; defer only genuinely-separable later work (file it
+as a [GitHub issue](https://github.com/jamierthompson/digital-garden/issues) with PR# + reason). **Record each slice's
 QA outcome** — what was probed, verdict, each defect → fix → re-check, tests QA added — in the
 session record's **QA log** as the loop closes (`[D26]`; format in
 [`docs/sessions/README.md`](../../../../docs/sessions/README.md)), not reconstructed at the end. This loop is

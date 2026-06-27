@@ -3,8 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import TagList from "./TagList";
 
-// TagList is a synchronous, var-consuming component — it renders in jsdom. We assert the
-// empty/null guard (no empty metadata region) and that each tag becomes a chip.
 describe("TagList", () => {
   it("renders nothing when there are no tags", () => {
     const { container: nullContainer } = render(<TagList tags={null} />);

@@ -17,13 +17,8 @@ import { VisualEditing } from "next-sanity/visual-editing";
  *   doc, node_modules/next/dist/docs/.../04-functions/draft-mode.md).
  *
  * `draftMode()` is an async Request API under Next 16 — awaited here. Because this
- * reads a request API, it must render inside a dynamic (non-cached) region; mount
- * it once near the root of the tree (e.g. the root layout `<body>`).
- *
- * INTEGRATION SEAM: the only file that should mount this is the Shell-owned root
- * layout (`src/app/layout.tsx`) — out of this agent's ownership. Shell mounts it
- * with a single `<VisualEditingControls />` line; this component owns the gating
- * and the overlay so Shell needs no Sanity knowledge.
+ * reads a request API, it must render inside a dynamic (non-cached) region; mount it
+ * once near the root of the tree — the root layout `<body>` (`src/app/layout.tsx`).
  */
 export default async function VisualEditingControls() {
   const { isEnabled } = await draftMode();

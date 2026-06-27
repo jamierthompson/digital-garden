@@ -13,13 +13,11 @@ interface RelatedNotesProps {
 /**
  * The project's "Related notes" list. [§6, D16]
  *
- * A pure, synchronous, var-consuming component (§8, [D2]) that renders **nothing**
- * when there are no related notes, so the page shows no empty "Related" heading.
+ * A pure, synchronous, var-consuming component (§8, [D2]) that renders **nothing** when
+ * there are no related notes, so the page shows no empty "Related" heading.
  *
- * Titles render as plain text, not links: there is no individual-note route yet
- * (`/notes` is an index of titles, with no `/notes/<slug>` page), so a link would dead-end.
- * The notes are modelled as real Sanity references [D16]; when a note route lands these
- * become links. Untitled notes fall back to a neutral label rather than an empty `<li>`.
+ * Titles render as plain text, not links: there is no `/notes/<slug>` route, so a link
+ * would dead-end. Untitled notes fall back to a neutral label rather than an empty `<li>`.
  */
 export default function RelatedNotes({ notes }: RelatedNotesProps) {
   if (!notes || notes.length === 0) {

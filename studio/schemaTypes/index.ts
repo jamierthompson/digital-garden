@@ -6,11 +6,9 @@ import {liveEmbed} from './objects/liveEmbed'
 import {portableText} from './objects/portableText'
 
 export const schemaTypes = [
-  // Documents
   project,
   siteSettings,
   note,
-  // Objects / blocks
   portableText,
   liveEmbed,
   figure,

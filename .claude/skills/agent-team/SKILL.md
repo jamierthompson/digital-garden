@@ -11,8 +11,8 @@ doing that well **in this repo**. It is grounded in:
 
 - The repo's own operating manual: [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md)
   §4 (research → drafts → debate → synthesis), §5 (briefing), §6/§6.1 (own-a-slice, lead curates).
-- Two worked examples already in the repo: [`docs/audit/`](../../../docs/audit/) and
-  [`docs/handbook/making-of/`](../../../docs/handbook/making-of/) — both are this pattern, run to completion.
+- Continuous refinement: every session runs this pattern and records what worked (and what didn't)
+  in [`docs/sessions/`](../../../docs/sessions/), so the practice improves with use.
 - Official guidance: [Agent teams](https://code.claude.com/docs/en/agent-teams) and
   [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
 
@@ -145,10 +145,10 @@ However the mode ends, you (the lead) finish it:
 
 - **Research / review / debugging** → **synthesize** into one cited artifact. Resolve conflicts
   explicitly (§1). For an architecture decision, record the resolved calls as a **new `[D#]`** in
-  [`docs/decisions.md`](../../../docs/decisions.md) (decisions are immutable — supersede, never
+  [`docs/decisions/`](../../../docs/decisions/) (decisions are immutable — supersede, never
   edit). Persist the trail to the repo under **`docs/sessions/YYYY-MM-DD-<slug>/`** (a dated session
-  folder — `docs/audit/` and `docs/handbook/making-of/` show the _shape_, but session/product work
-  lives in `docs/sessions/`, NOT in `making-of/`, which is the making-of the handbook itself; see
+  folder — `docs/archive/audit/` and `docs/archive/handbook-making-of/` show the _shape_, but session/product work
+  lives in `docs/sessions/`, NOT in the archived making-of, which is the making-of the handbook itself; see
   [`docs/sessions/README.md`](../../../docs/sessions/README.md)) so the next session has external
   memory, not a lost context window.
 - **Coding** → each teammate hands off a **complete, gate-green slice** over its own files. Before a

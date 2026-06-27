@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-// See roster.test.ts: next/font/google is untransformed under Vitest, so mock the faces
-// the roster imports (the roster is loaded transitively via resolveFontKey + FONT_FACES).
+// Under Vitest next/font/google is untransformed, so mock the faces the roster imports
+// (loaded transitively via resolveFontKey + FONT_FACES). See roster.test.ts.
 vi.mock("next/font/google", () => ({
   Inter: () => ({ variable: "mock-inter" }),
   Newsreader: () => ({ variable: "mock-newsreader" }),
@@ -14,17 +14,15 @@ import { FONT_FACES } from "@/fonts/roster";
 
 import { FALLBACK_SLUG, resolveScope, scopedStyleCss } from "./scopeSeed";
 
-// A valid seed for the walking-skeleton module: a real, engine-parseable brand color and a
-// real roster fontKey. Mirrors what the route hardcodes until Sanity drives it (Phase 3).
+// Mirrors the shape the route passes ProjectScope from a Sanity document.
 const VALID_SEED = {
   slug: "oklch-engine",
   brandColor: "oklch(0.62 0.21 264)",
   fontKey: "jetbrains-mono",
 } as const;
 
-// The defensive-resolution contract `[D9]` the OKLCH engine now backs: `resolveScope` must
-// degrade every bad input to a safe fallback and NEVER throw. These assertions carry over
-// from the stub — they outlived it, exactly as the original suite predicted.
+// The defensive-resolution contract `[D9]`: `resolveScope` must degrade every bad input to
+// a safe fallback and NEVER throw.
 describe("resolveScope — defensive, never throws [D9]", () => {
   it("resolves a valid seed to engine tokens + the keyed slug + resolved font", () => {
     const scope = resolveScope(VALID_SEED);

@@ -45,17 +45,17 @@ re-run from the top, don't cherry-pick steps.
 
 ## 2. Step-by-step: what each gate means
 
-| Step          | Script                                                                  | Guards                                                                                                                                                                    | When it fails, you…                                                                                                                                                                   |
-| ------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lint          | `pnpm lint`                                                             | ESLint + **import boundaries** + **isomorphism** (`eslint.config.mjs`)                                                                                                    | Read the boundary message — it tells you which rule + `[D#]`. Don't suppress; restructure.                                                                                            |
-| CSS layers    | `pnpm lint:css`                                                         | The **`@layer` trap** — every `*.module.css` rule must be inside `@layer` or the module stays var-consuming `[D12]`                                                       | Wrap rules in `@layer foundation\|brand\|project`. (`scripts/check-css-layers.mjs`)                                                                                                   |
-| Key drift     | `pnpm lint:keys`                                                        | `keys.ts` ↔ resolver drift `[D10]` — well-formed key arrays + the compile-time `satisfies` guards stay wired. **Live since Phase 2** (published-keys GROQ net is Phase 4) | Read the failure; fix `keys.ts` or restore the dropped `satisfies`. (`scripts/check-key-drift.mjs`)                                                                                   |
-| Doc-gate sync | `pnpm lint:docs`                                                        | The gate chain is identical across its three declarations — `AGENTS.md`, this file (§1), and `ci.yml` (`verify`) — so no doc silently lies about the gate                 | Sync the divergent source; the failure prints each list + the first mismatch. (`scripts/check-doc-gate-sync.mjs`)                                                                     |
-| Format        | `pnpm format:check`                                                     | Prettier formatting                                                                                                                                                       | Run `pnpm format` (never hand-format). Re-run the chain.                                                                                                                              |
-| Types         | `pnpm typecheck`                                                        | `tsc --noEmit` — incl. resolvers typed `satisfies Record<Key, …>` (the compile-time half of key-drift defense)                                                            | Fix the type. No `any` — use `unknown` then narrow.                                                                                                                                   |
-| Tests         | `pnpm test`                                                             | `vitest run` — co-located unit/component tests                                                                                                                            | Fix the code or the test. See [testing.md](./testing.md).                                                                                                                             |
-| TypeGen drift | `pnpm --filter studio typegen` + `git diff --exit-code sanity.types.ts` | Generated `sanity.types.ts` matches the Studio schema `[D23]`                                                                                                             | **Commit the regenerated `sanity.types.ts`.** The easiest gate to trip after a schema change — why it drifts and how to fix is in [git-and-pr-workflow.md](./git-and-pr-workflow.md). |
-| Build         | `pnpm build`                                                            | Turbopack production build; surfaces Cache Components errors that lint/tsc can't (see §3)                                                                                 | Read the build error; usually a missing `<Suspense>` or `'use cache'`.                                                                                                                |
+| Step          | Script                                                                  | Guards                                                                                                                                                                       | When it fails, you…                                                                                                                                                                   |
+| ------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lint          | `pnpm lint`                                                             | ESLint + **import boundaries** + **isomorphism** (`eslint.config.mjs`)                                                                                                       | Read the boundary message — it tells you which rule + `[D#]`. Don't suppress; restructure.                                                                                            |
+| CSS layers    | `pnpm lint:css`                                                         | The **`@layer` trap** — every `*.module.css` rule must be inside `@layer` or the module stays var-consuming `[D12]`                                                          | Wrap rules in `@layer foundation\|brand\|project`. (`scripts/check-css-layers.mjs`)                                                                                                   |
+| Key drift     | `pnpm lint:keys`                                                        | `keys.ts` ↔ resolver drift `[D10]` — well-formed key arrays + the compile-time `satisfies` guards stay wired. (The published-keys GROQ net is tracked in the issue backlog.) | Read the failure; fix `keys.ts` or restore the dropped `satisfies`. (`scripts/check-key-drift.mjs`)                                                                                   |
+| Doc-gate sync | `pnpm lint:docs`                                                        | The gate chain is identical across its two declarations — this file (§1) and `ci.yml` (`verify`) — so no doc silently lies about the gate                                    | Sync the divergent source; the failure prints each list + the first mismatch. (`scripts/check-doc-gate-sync.mjs`)                                                                     |
+| Format        | `pnpm format:check`                                                     | Prettier formatting                                                                                                                                                          | Run `pnpm format` (never hand-format). Re-run the chain.                                                                                                                              |
+| Types         | `pnpm typecheck`                                                        | `tsc --noEmit` — incl. resolvers typed `satisfies Record<Key, …>` (the compile-time half of key-drift defense)                                                               | Fix the type. No `any` — use `unknown` then narrow.                                                                                                                                   |
+| Tests         | `pnpm test`                                                             | `vitest run` — co-located unit/component tests                                                                                                                               | Fix the code or the test. See [testing.md](./testing.md).                                                                                                                             |
+| TypeGen drift | `pnpm --filter studio typegen` + `git diff --exit-code sanity.types.ts` | Generated `sanity.types.ts` matches the Studio schema `[D23]`                                                                                                                | **Commit the regenerated `sanity.types.ts`.** The easiest gate to trip after a schema change — why it drifts and how to fix is in [git-and-pr-workflow.md](./git-and-pr-workflow.md). |
+| Build         | `pnpm build`                                                            | Turbopack production build; surfaces Cache Components errors that lint/tsc can't (see §3)                                                                                    | Read the build error; usually a missing `<Suspense>` or `'use cache'`.                                                                                                                |
 
 ---
 
@@ -95,10 +95,9 @@ Reading the global **invariant** tier (spacing, motion, semantics) is fine — t
 not a look. `[D1][D2]`
 
 **The full litmus is the heavier, shared-primitive gate.** When you ship a _shared_ primitive
-(rarer — most work is per-project and _supposed_ to be specific), run the complete checklist in
-[`../architecture-plan.md`](../architecture-plan.md) §8 before merging: generic-tokens-only
-rendering, every themeable value a public token with an internal default, downward theming,
-declared-once-and-composed-in, and its CSS Module declaring its `@layer`. `[D1][D2][D12]`
+(rarer — most work is per-project and _supposed_ to be specific), run the complete 7-item
+checklist in [`./architecture.md`](./architecture.md) §8 before merging — the single source of
+truth for it. `[D1][D2][D12]`
 
 > Same rule at both scopes — never reach up for a _look_. The shared-primitive case just adds
 > the full checklist, because there the failure is silent and cross-cutting.
@@ -123,7 +122,7 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
 
 - [ ] **Tests co-located** next to their subject (`*.test.tsx` beside the file). `[D18]`
       New shared logic, sync RSCs, and Client Components get a meaningful test; don't chase
-      coverage %. Async RSCs and the primary flow are **Playwright at Phase 3** — not jsdom.
+      coverage %. Async RSCs and the primary flow are **Playwright (E2E)** — not jsdom.
       See [testing.md](./testing.md).
 - [ ] **Rendered surface? Browser-verified.** `[D25]` If the task ships/changes a route, visual
       output, theming, or focus/interaction, drive it through the **`chrome-devtools` MCP**
@@ -134,18 +133,15 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       [accessibility-and-performance.md](./accessibility-and-performance.md) §5.
 - [ ] **Docs updated** if behavior, scripts, or conventions changed — README and any affected
       handbook page. An architecturally significant decision gets a new `D#` in
-      [`../decisions.md`](../decisions.md) (never edit an accepted one — supersede it; see
+      [`../decisions/`](../decisions/) (never edit an accepted one — supersede it; see
       [decision-records.md](./decision-records.md)).
-- [ ] **Independent adversarial QA passed.** `[D26]` Gate-green is _developer-done_, not
-      _review-done_. Before the slice enters the PR, a **fresh** agent with **no prior context of the
-      work** (not merely "not the author" `[D28]`) **tried to
-      break it** — edge / error / boundary / malformed-input cases, both color schemes — and **wrote
-      the missing test cases** a product-team QA engineer would; findings were fixed by the owning
-      author and QA re-checked clean. Staffing scales: solo session → one QA for the lead's own work;
-      team session → one QA per coding agent. The lead owns this loop — it's an agent-in-the-loop step,
-      not a CI gate. See [working-with-agents.md](./working-with-agents.md) §6.2.
+- [ ] **Independent adversarial QA passed `[D26]`.** Gate-green is _developer-done_, not
+      _review-done_: before the slice enters the PR, a **fresh** agent with **no prior context** (not
+      merely "not the author" `[D28]`) tried to break it and wrote the missing cases; the owning author
+      fixed and QA re-checked clean. Staffing scales — solo → one QA; team → one per coding agent. The
+      lead owns this loop (not a CI gate) — see [working-with-agents.md](./working-with-agents.md) §6.2.
 - [ ] **End of a session?** Two writes are mandatory before the squash-merge — refresh the
-      [`README.md`](../../README.md) (esp. the **Status** line) and write the session record in
+      [`README.md`](../../README.md) (any changed scripts, structure, conventions, or status) and write the session record in
       [`../sessions/`](../sessions), **including its QA log** (`[D26]` — what QA tested, what passed, each
       defect → fix → re-check, tests added; one entry per coding agent). See
       [working-with-agents.md](./working-with-agents.md) §6.2 and [`../sessions/README.md`](../sessions/README.md).

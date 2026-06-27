@@ -1,7 +1,4 @@
-/* Project tag chips. `@layer project` — a CSS Module MUST declare its layer or it
-   silently outranks every @layer style (the @layer trap, [D12]). Var-consuming only:
-   themed by the surrounding project scope's generic `--brand-*` tokens (§8, [D2]).
-   Minimal styling on purpose — a proper visual pass lands in a later phase. */
+/* Project tag chips. @layer project — declares its layer per [D12]; var-consuming only, themed by --brand-* (§8, [D2]). */
 @layer project {
   .tags {
     margin-top: var(--space-4);

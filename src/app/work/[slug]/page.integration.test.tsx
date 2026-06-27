@@ -19,7 +19,7 @@ import { resolveComponentKey } from "@/lib/resolvers/components";
 import { resolveEmbedKey } from "@/lib/resolvers/embeds";
 import { isNotFound } from "@/lib/resolvers/resolution";
 
-// Integration test of the Phase-3 primary flow — Sanity document → themed route → essay
+// Integration test of the primary flow — Sanity document → themed route → essay
 // embed — with the Sanity fetch MOCKED so no network touches Vitest [D18]. It exercises the
 // SYNCHRONOUS seams of the flow (scope resolution, scope render, key resolution, the
 // missing-embed fallback); the async-RSC page render itself is jsdom-untestable and is the
@@ -58,7 +58,7 @@ describe("/work/[slug] primary flow (Sanity mocked)", () => {
   it("drives a real, non-fallback themed scope from the doc's brandColor + slug", () => {
     // The route hands ProjectScope { slug, brandColor, fontKey } from the doc. The slug
     // must resolve to its OWN scope (not collapse to `fallback`) now that KNOWN_SLUGS is
-    // derived from COMPONENT_KEYS — that is the Phase-3 scopeSeed change.
+    // derived from COMPONENT_KEYS — that is the scopeSeed registry wiring.
     const scope = resolveScope({
       slug: FIRST_LIGHT.slug,
       brandColor: FIRST_LIGHT.brandColor,

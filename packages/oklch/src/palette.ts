@@ -42,8 +42,7 @@ export interface EngineOptions {
  */
 const FALLBACK_SEED: OkLCH = { L: 0.55, C: 0.11, H: 264 };
 
-// --- Contrast targets (mirror accessibility-and-performance.md §1 table) --------
-
+// Contrast targets mirror accessibility-and-performance.md §1 table.
 const TARGET = {
   /** Body text: WCAG 4.5 floor, APCA Lc 75 quality target [D4]. */
   bodyText: { wcag: 4.5, apca: 75 } satisfies ContrastTarget,
@@ -61,7 +60,6 @@ const TARGET = {
   border: { wcag: 3, apca: 30 } satisfies ContrastTarget,
 } as const;
 
-// --- Surface anchors per scheme -------------------------------------------------
 // Surfaces are near-neutral with a whisper of brand tint. Dark surfaces use reduced
 // chroma [D5]. Text/accent/border/ring are SOLVED against these, never stepped [D4].
 
@@ -271,9 +269,7 @@ export function resolveTheme(
 
 // The canonical token order. `satisfies readonly BrandTokenName[]` rejects an
 // unknown/misspelled name (the code→type direction); the `_TokenNamesExhaustive`
-// guard below rejects a MISSING name (the type→code direction). Together they
-// replace the old `{} as Record<BrandTokenName, SchemePair>` accumulator, where
-// BOTH a missing token and a stray one slipped through silently.
+// guard below rejects a MISSING name (the type→code direction).
 const TOKEN_NAMES = [
   "bg",
   "surface",
@@ -303,8 +299,7 @@ void _TOKEN_NAMES_EXHAUSTIVE; // referenced so it isn't flagged as unused
  * above (exhaustive + no extras), not from this helper: those make "visit every
  * token, exactly once" a compile-time fact, so the lone `as` here (unavoidable —
  * `Object.fromEntries` is typed to a loose index signature) is sound rather than a
- * blind assertion. This is the cast-free-at-the-call-site replacement for the old
- * `{} as Record<…>` accumulator.
+ * blind assertion.
  */
 function mapTokens<T>(
   value: (name: BrandTokenName) => T,
@@ -326,9 +321,8 @@ export function buildTokenSet(
   const light = resolveTheme(brandColor, "light", opts);
   const dark = resolveTheme(brandColor, "dark", opts);
 
-  // Zip each token's two schemes into a `{ light, dark }` pair. `mapTokens` forces
-  // one entry per `BrandTokenName`, so coverage is type-enforced (no `as` cast at
-  // the call site). Output is identical to the previous `for`-loop accumulator.
+  // `mapTokens` forces one entry per `BrandTokenName`, so coverage is type-enforced
+  // (no `as` cast at the call site).
   const tokens = mapTokens<SchemePair>((name) => ({
     light: light.tokens[name],
     dark: dark.tokens[name],

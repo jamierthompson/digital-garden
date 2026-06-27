@@ -1,6 +1,5 @@
 // fontKey resolver [D10, §4.2, §5]. Resolves a Sanity `fontKey` to its roster
 // face, returning a typed `NotFound` for an unknown key rather than throwing.
-// This is the one resolver with a real registry today — the roster exists.
 
 import { FONT_FACES, type FontFace } from "@/fonts/roster";
 import { isFontKey } from "@/lib/keys";

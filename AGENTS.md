@@ -17,21 +17,23 @@ This file is the agent-facing entry point per the [AGENTS.md convention](https:/
 wins**). It complements `README.md` (humans); this is for **you, the agent**. Keep the managed
 `nextjs-agent-rules` block above untouched — `create-next-app` regenerates it.
 
-**This is an index, not a manual.** The real operating manual is
-[`docs/handbook/`](./docs/handbook/) — **start at [`orientation.md`](./docs/handbook/orientation.md)**.
-Binding decisions are in [`docs/decisions.md`](./docs/decisions.md) (cite as `[D#]`).
+**This is a short index — the non-negotiable guardrails inline, everything else by pointer.** The
+full operating manual is [`docs/handbook/`](./docs/handbook/) — **start at [`orientation.md`](./docs/handbook/orientation.md)**.
+Binding decisions are in [`docs/decisions/`](./docs/decisions/) (cite as `[D#]`); the system
+model is [`docs/handbook/architecture.md`](./docs/handbook/architecture.md) (cite as `§N`); the
+work backlog is [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
 ## The one rule that overrides your memory
 
-**Verify, then write — never trust stale memory.** This repo is Next.js 16.2.9 / React 19.2.4;
-your training data is wrong here often enough to be dangerous.
+**Verify, then write — never trust stale memory.** This repo is Next.js 16 / React 19 (exact pins
+in `package.json`); your training data is wrong here often enough to be dangerous.
 
-- **Capabilities** → before hand-rolling, use an installed skill / subagent / MCP tool if one
-  fits (`sanity:*`, `vercel:*`, `chrome-devtools` for CWV/a11y). Full ladder: [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md) §1.
+- **Capabilities** → before hand-rolling, prefer an installed skill / subagent / MCP tool — the
+  ones you need are likely already there and authed; if not, ask. Full ladder: [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md) §1.
 - **Framework behavior** → read the version-exact bundled docs at `node_modules/next/dist/docs/`
   before writing framework code.
-- **Project decisions** → [`docs/decisions.md`](./docs/decisions.md), cited as `[D#]`.
-  **System model** → `docs/architecture-plan.md`, cited as `§N`.
+- **Project decisions** → [`docs/decisions/`](./docs/decisions/), cited as `[D#]`.
+  **System model** → [`docs/handbook/architecture.md`](./docs/handbook/architecture.md), cited as `§N`.
 - **External standards** (Conventional Commits, WCAG/APCA, this AGENTS.md convention) → cite the
   standard with a URL. **Cite the source that actually contains the fact** — accuracy over confidence.
 
@@ -61,17 +63,13 @@ These silently break *this* stack. Most are lint/CI-enforced; know them so you d
 
 ## Pre-flight checks (the gate)
 
-Run the full chain locally before pushing — same scripts, same order as
-[`.github/workflows/ci.yml`](./.github/workflows/ci.yml) (job `verify`). Green here = green CI.
-
-```bash
-pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm lint:docs && pnpm format:check && pnpm typecheck && pnpm test && \
-pnpm --filter studio typegen && git diff --exit-code sanity.types.ts && pnpm build
-```
+Run the full gate locally before pushing. The one copy-paste command lives in
+[`definition-of-done.md` §1](./docs/handbook/definition-of-done.md#1-the-one-command); CI runs the
+same chain ([`ci.yml`](./.github/workflows/ci.yml), job `verify`), and `pnpm lint:docs` keeps the two
+in sync. Green locally = green CI.
 
 Fix formatting with `pnpm format` (never by hand). After **any** Studio schema change, commit the
-regenerated `sanity.types.ts` (root-anchored) — the easiest gate to trip `[D23]`. The per-task bar
-is [`docs/handbook/definition-of-done.md`](./docs/handbook/definition-of-done.md).
+regenerated `sanity.types.ts` (root-anchored) — the easiest gate to trip `[D23]`.
 
 ## Nested context
 

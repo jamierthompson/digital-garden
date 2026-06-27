@@ -9,8 +9,6 @@
 
 import type { Gamut, OkLab, OkLCH, RGB } from "./types";
 
-// --- sRGB transfer function (gamma) ---------------------------------------------
-
 /** Gamma-encoded sRGB channel → linear-light. Also the Display-P3 transfer fn. */
 export function srgbToLinear(c: number): number {
   const sign = c < 0 ? -1 : 1;
@@ -26,8 +24,6 @@ export function linearToSrgb(c: number): number {
     ? c * 12.92
     : sign * (1.055 * abs ** (1 / 2.4) - 0.055);
 }
-
-// --- OKLab ⇄ linear sRGB --------------------------------------------------------
 
 /** Linear-light sRGB → OKLab. */
 export function linearSrgbToOklab({ r, g, b }: RGB): OkLab {
@@ -63,8 +59,6 @@ export function oklabToLinearSrgb({ L, a, b }: OkLab): RGB {
   };
 }
 
-// --- OKLab ⇄ OKLCH --------------------------------------------------------------
-
 /** OKLab → OKLCH (rectangular → cylindrical). */
 export function oklabToOklch({ L, a, b }: OkLab): OkLCH {
   const C = Math.hypot(a, b);
@@ -78,8 +72,6 @@ export function oklchToOklab({ L, C, H }: OkLCH): OkLab {
   const rad = (H * Math.PI) / 180;
   return { L, a: C * Math.cos(rad), b: C * Math.sin(rad) };
 }
-
-// --- Convenience: OKLCH ⇄ gamma sRGB -------------------------------------------
 
 /** OKLCH → gamma-encoded sRGB (channels may fall outside [0,1] if out of gamut). */
 export function oklchToSrgb(color: OkLCH): RGB {
@@ -96,8 +88,6 @@ export function srgbToOklch({ r, g, b }: RGB): OkLCH {
   const lin = { r: srgbToLinear(r), g: srgbToLinear(g), b: srgbToLinear(b) };
   return oklabToOklch(linearSrgbToOklab(lin));
 }
-
-// --- Display-P3 -----------------------------------------------------------------
 
 /**
  * OKLCH → linear-light Display-P3. Path: OKLab → linear sRGB → XYZ(D65) → linear P3.
@@ -125,8 +115,6 @@ export function oklchToLinearRgb(color: OkLCH, gamut: Gamut): RGB {
     ? oklchToLinearP3(color)
     : oklabToLinearSrgb(oklchToOklab(color));
 }
-
-// --- Parsing & formatting -------------------------------------------------------
 
 const HEX3 = /^#?([0-9a-f])([0-9a-f])([0-9a-f])$/i;
 const HEX6 = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i;

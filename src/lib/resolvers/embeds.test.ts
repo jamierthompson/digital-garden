@@ -4,7 +4,7 @@ import { resolveEmbedKey } from "./embeds";
 import { isNotFound } from "./resolution";
 
 describe("resolveEmbedKey", () => {
-  it("resolves a registered key to a loader (sunrise-meter, Phase 3)", () => {
+  it("resolves a registered key to a loader (sunrise-meter)", () => {
     const result = resolveEmbedKey("sunrise-meter");
     expect(isNotFound(result)).toBe(false);
     if (isNotFound(result)) throw new Error("expected a resolved loader");
