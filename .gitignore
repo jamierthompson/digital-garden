@@ -37,8 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
-# claude code (runtime-owned, personal; shared perms live in .claude/settings.json)
+# claude code — runtime-owned, personal (not shared)
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # typescript
 *.tsbuildinfo
