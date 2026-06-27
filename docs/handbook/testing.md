@@ -105,7 +105,7 @@ describe("Foo", () => {
 - **Async content:** use `findBy*` / `waitFor`, never bare `getBy*` for anything that
   appears after an `await`.
 - `globals: true` is set, so `describe`/`it`/`expect` need no import — but **match the
-  existing file's explicit-import style** (`tests/unit/page.test.tsx` imports them) for
+  existing file's explicit-import style** (`src/app/page.test.tsx` imports them) for
   consistency, not correctness. `jest-dom` matchers (`toBeInTheDocument`) come from
   `tests/setup.ts`.
 
