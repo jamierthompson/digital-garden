@@ -7,32 +7,26 @@ import { stegaFilter, studioUrl } from "./stega";
 /**
  * The Sanity Live Content read path. [D16, D11]
  *
- * `defineLive` (next-sanity v13) is the Cache-Components-aware successor to the old
- * hand-rolled `getClient(isEnabled).fetch`. It returns `{ sanityFetch, SanityLive }`:
- * `sanityFetch` performs the actual Content Lake read (resolving published vs. drafts,
- * the per-request token, and stega), and `<SanityLive>` (mounted once in the root
- * layout) opens the browser EventSource that pushes content-change events so the page
- * revalidates live. Our own `./sanityFetch.ts` wraps this `liveFetch` in `use cache`
- * and maps Draft Mode → perspective/stega; routes import THAT, never this directly.
+ * `defineLive` returns `{ sanityFetch, SanityLive }`: `sanityFetch` performs the
+ * Content Lake read (published vs. drafts, the per-request token, and stega), and
+ * `<SanityLive>` (mounted once in the root layout) opens the browser EventSource that
+ * pushes content-change events so the page revalidates live. Our `./sanityFetch.ts`
+ * wraps this `liveFetch` in `use cache` and maps Draft Mode → perspective/stega; routes
+ * import THAT, never this directly.
  *
- * ── Which implementation runs ────────────────────────────────────────────────────
- * `next.config.ts` sets `cacheComponents: true`, which makes Next add the `'next-js'`
- * export condition (node_modules/next/dist/build/webpack-config.js — `conditionNames:
- * [config.cacheComponents ? 'next-js' : '', '...']`). So `next-sanity/live` resolves
- * to its Cache-Components build, whose `sanityFetch` calls `cacheTag()` + `cacheLife()`
- * and reads NO request APIs itself — it expects the caller to resolve `draftMode()`
- * OUTSIDE/at the edge of `use cache` and pass `perspective`/`stega` in. That is exactly
- * what our wrapper does, which is why we set `strict: true` below.
+ * Which implementation runs: `next.config.ts` sets `cacheComponents: true`, which makes
+ * Next add the `'next-js'` export condition, so `next-sanity/live` resolves to its
+ * Cache-Components build — whose `sanityFetch` calls `cacheTag()` + `cacheLife()` and
+ * reads NO request APIs itself. It expects the caller to resolve `draftMode()` outside
+ * `use cache` and pass `perspective`/`stega` in, which is why we set `strict: true`.
  *
- * ── THE TAG CONTRACT (the Revalidate slice depends on this) ──────────────────────
- * Every content read MUST carry the coarse cache tags **`sanity`** and
- * **`sanity:<_type>`** (e.g. `sanity:project`, `sanity:siteSettings`, `sanity:note`).
- * Our wrapper derives these from the query and passes them as `tags`; `defineLive`
- * appends them to its `cacheTag(...)` call (alongside its own per-document
- * `sanity:<syncTag>` tags from Content Lake). The publish-to-prod webhook
- * (Revalidate slice) calls `revalidateTag("sanity")` / `revalidateTag("sanity:<type>")`
- * to flush published changes into the static shell. Do NOT drop the coarse tags — the
- * automatic syncTags are document-scoped and are NOT a substitute for the contract.
+ * THE TAG CONTRACT (the Revalidate slice depends on this): every content read MUST carry
+ * the coarse cache tags `sanity` and `sanity:<_type>` (e.g. `sanity:project`). Our
+ * wrapper derives these from the query as `tags`; `defineLive` appends them to its
+ * `cacheTag(...)` (alongside its own per-document syncTags). The publish webhook calls
+ * `revalidateTag("sanity")` / `revalidateTag("sanity:<type>")` to flush published changes
+ * into the static shell. Do NOT drop the coarse tags — the document-scoped syncTags are
+ * NOT a substitute.
  */
 
 /**

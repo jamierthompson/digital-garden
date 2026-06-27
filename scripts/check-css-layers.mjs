@@ -9,7 +9,6 @@ import postcss from "postcss";
 
 const SRC = new URL("../src", import.meta.url).pathname;
 
-/** Recursively collect every *.module.css path under a directory. */
 function findModuleCss(dir) {
   const out = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -20,7 +19,6 @@ function findModuleCss(dir) {
   return out;
 }
 
-/** True if the node is inside an `@layer { ... }` block. */
 function isInsideLayer(node) {
   for (let p = node.parent; p; p = p.parent) {
     if (p.type === "atrule" && p.name === "layer" && p.nodes) return true;

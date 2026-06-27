@@ -3,8 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import RelatedNotes from "./RelatedNotes";
 
-// RelatedNotes is a synchronous, var-consuming component — it renders in jsdom. We assert
-// the empty/null guard, one item per note, and the untitled fallback.
 describe("RelatedNotes", () => {
   it("renders nothing when there are no related notes", () => {
     const { container: nullContainer } = render(<RelatedNotes notes={null} />);

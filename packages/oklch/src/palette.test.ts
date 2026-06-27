@@ -124,10 +124,8 @@ describe("buildTokenSet", () => {
 // runner of its own and shouldn't grow one for ~3 lines of glue; the contract that
 // actually matters — "what does the engine consider usable?" — is engine behavior, so
 // it's pinned here, where the runner already exists. This is the validation oracle:
-// `isFallback === false` ⇔ Studio accepts. It also locks the deliberate boundary shift
-// away from the old regex (rgb() now accepted; 4-digit #rgba now rejected, since the
-// engine can't parse it). If this boundary ever moves, author-time validation moves
-// with it — which is the point.
+// `isFallback === false` ⇔ Studio accepts. If this boundary ever moves, author-time
+// validation moves with it — which is the point.
 describe("brandColor validation contract (the Studio's isFallback oracle) [D9, D23]", () => {
   // Inputs an editor would type that the engine CAN theme with → Studio accepts.
   it.each([
@@ -136,7 +134,7 @@ describe("brandColor validation contract (the Studio's isFallback oracle) [D9, D
     "#00ff0080", // 8-digit hex (alpha ignored)
     "oklch(0.62 0.19 256)", // oklch() literal (the documented example)
     "oklch(62% 0.19 256)", // oklch() with percentage L
-    "rgb(79, 70, 229)", // rgb() — accepted by the engine, was NOT by the old regex
+    "rgb(79, 70, 229)", // rgb() — accepted by the engine
     "  #4f46e5  ", // surrounding whitespace is tolerated
   ])("accepts %j (engine parses it → not a fallback)", (input) => {
     expect(buildTokenSet(input).meta.isFallback).toBe(false);
@@ -146,7 +144,7 @@ describe("brandColor validation contract (the Studio's isFallback oracle) [D9, D
   it.each([
     "not-a-color",
     "#xyz", // non-hex digits
-    "#abcd", // 4-digit hex — the engine has no #rgba form, so this is a fallback now
+    "#abcd", // 4-digit hex — the engine has no #rgba form, so this falls back
     "rgb()", // malformed function
     "", // empty (the wrapper also short-circuits this to "allowed", paired with .required())
     "   ", // whitespace only

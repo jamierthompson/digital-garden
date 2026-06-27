@@ -5,42 +5,27 @@ import { parseBody } from "next-sanity/webhook";
 /**
  * Sanity publish → production revalidation webhook. [D11, D31]
  *
- * Closes the gap left by the published read path: content is fetched under
- * `use cache` + `cacheLife("max")` (see `src/sanity/lib/sanityFetch.ts`) [D11], so a
- * PUBLISHED change in Sanity does NOT appear on the Vercel production deploy until a
- * redeploy. This route lets Sanity tell the deploy "this `_type` changed" and we expire
- * the matching cache tag so the change appears on the next request — no redeploy.
+ * Published content is fetched under `use cache` + `cacheLife("max")`
+ * (`src/sanity/lib/sanityFetch.ts`) [D11], so a PUBLISHED change does NOT appear on the
+ * Vercel production deploy until a redeploy. This route expires the matching cache tag so
+ * the change appears on the next request instead.
  *
- * ── TAG CONTRACT (kept in sync with the Live read-path slice) ────────────────────────
- * Every content fetch is tagged with two COARSE cache tags:
- *   • `sanity`            — catch-all across all Sanity-backed reads
- *   • `sanity:<_type>`    — e.g. `sanity:project`, `sanity:siteSettings`, `sanity:note`
- * This handler reads the document `_type` from the verified webhook payload and expires
- * BOTH `sanity:<_type>` AND the `sanity` catch-all (cheap insurance against a fetch that
- * was tagged only with the catch-all). We deliberately derive the tags from `_type`
- * server-side rather than trusting a `tags` array in the payload — the handler owns the
- * contract, so a misconfigured webhook can't aim revalidation at an arbitrary tag.
+ * Tag contract (kept in sync with the Live read-path slice): every fetch is tagged with
+ * two coarse tags — `sanity` (catch-all) and `sanity:<_type>` (e.g. `sanity:project`).
+ * We derive BOTH from the verified payload's `_type` server-side rather than trusting a
+ * `tags` array, so a misconfigured webhook can't aim revalidation at an arbitrary tag.
  *
- * ── WHY `revalidateTag` (not `updateTag`) ────────────────────────────────────────────
- * `updateTag` can ONLY be called from a Server Action — it throws in a Route Handler
- * (node_modules/next/dist/docs/.../04-functions/updateTag.md). A webhook is a Route
- * Handler, so `revalidateTag` is the only valid call here
- * (…/04-functions/revalidateTag.md: "can be called in Server Functions and Route
- * Handlers"). We pass `{ expire: 0 }` — the form that doc explicitly prescribes for
- * "webhooks or third-party services that need immediate expiration". The alternative,
- * `"max"`, is stale-while-revalidate: the FIRST visitor after a publish would still see
- * stale content (exactly the observed bug — a fresh project missing from `/work`), with
- * fresh data arriving only on a later visit. `{ expire: 0 }` makes the next request a
- * blocking fresh fetch so the published change appears immediately — the right trade for
- * a low-traffic portfolio where correctness-on-publish beats shaving one cold fetch.
+ * `revalidateTag`, not `updateTag`: `updateTag` throws outside a Server Action, and a
+ * webhook is a Route Handler (…/04-functions/updateTag.md vs revalidateTag.md). We pass
+ * `{ expire: 0 }` — the form the doc prescribes for webhooks needing immediate
+ * expiration. `"max"` is stale-while-revalidate, so the FIRST visitor after a publish
+ * would still see stale content (the observed bug — a fresh project missing from
+ * `/work`); `{ expire: 0 }` makes the next request a blocking fresh fetch.
  *
- * ── SIGNATURE VERIFICATION ───────────────────────────────────────────────────────────
- * `parseBody` (re-exported by `next-sanity/webhook` from `@sanity/webhook`) reads the raw
- * body, verifies the `sanity-webhook-signature` HMAC against `SANITY_REVALIDATE_SECRET`,
- * and — with the 3rd arg `true` — waits ~3s for Content Lake eventual consistency so the
- * revalidated fetch reads the just-published value, not a stale CDN copy. It returns
- * `isValidSignature: null` when the secret is absent (NO validation performed), so we
- * check the secret FIRST and fail loud — never fall through to that unguarded path.
+ * `parseBody` verifies the `sanity-webhook-signature` HMAC against
+ * `SANITY_REVALIDATE_SECRET`, and with the 3rd arg `true` waits ~3s for Content Lake
+ * eventual consistency. It returns `isValidSignature: null` when the secret is absent
+ * (NO validation performed), so we check the secret FIRST and fail loud.
  *
  * Runs on the default Node.js runtime (NOT edge): signature verification uses Node crypto.
  */

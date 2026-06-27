@@ -22,11 +22,7 @@ import { escapeXml } from "./escapeXml";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-/**
- * Cached read of the published project index. `use cache` + `cacheLife` keep the
- * feed off the per-request path; the public client returns the TypeGen-typed
- * `WORK_INDEX_QUERY_RESULT` (no token, published perspective).
- */
+/** Cached read of the published project index — public client (no token, published perspective) so drafts never leak into the feed. */
 async function getFeedProjects() {
   "use cache";
   cacheLife("hours");
@@ -66,7 +62,6 @@ ${items}
 
   return new Response(xml, {
     headers: {
-      // The registered RSS media type; `charset` documents the declared encoding.
       "Content-Type": "application/rss+xml; charset=utf-8",
     },
   });

@@ -201,6 +201,8 @@ House rule: **establish the pattern early, instantiate it late** `[D24]` (the de
 
 **No magic values.** Extract named constants for anything meaningful or used in more than one place — `src/lib/breakpoints.ts` is the model (`[D22]`).
 
+**Comments — keep them rare.** Write one only when it explains something today's code can't on its own: a non-obvious _why_, a real gotcha, or a `[D#]`/`§N` that justifies a surprising choice. Don't restate what the code plainly does (a competent reader already sees it), and never leave historical (“used to…”) or aspirational (“…later”) notes — those are rot. Fewer, load-bearing comments read better than many.
+
 ---
 
 ## 7. Quick reference — Next-16 / React-19 foot-guns

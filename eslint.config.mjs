@@ -27,7 +27,6 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
@@ -103,11 +102,10 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-  // The OKLCH engine lives in its own workspace package (@garden/oklch) so the
-  // standalone Studio can import it too [D23]. The isomorphism guard [D14] moves
-  // with it: no framework imports, no DOM/Node runtime globals. (It is no longer a
-  // `boundaries` element — that plugin is scoped to `src/**` — so the framework-import
-  // ban that the dropped `from: oklch` rules enforced is restated here.)
+  // The OKLCH engine is its own workspace package (@garden/oklch) so the standalone
+  // Studio can import it too [D23]. The isomorphism guard [D14] applies: no framework
+  // imports, no DOM/Node runtime globals. `boundaries` is scoped to `src/**` and can't
+  // reach here, so the framework-import ban is enforced via no-restricted-imports below.
   {
     files: ["packages/oklch/**/*.{js,jsx,ts,tsx,mts,cts}"],
     rules: {

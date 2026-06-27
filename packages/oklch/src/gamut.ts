@@ -58,9 +58,6 @@ function deltaEOK(a: OkLab, b: OkLab): number {
  * for the sub-JND boundary acceptance, where the residual error is imperceptible.
  */
 function clippedOklab(linear: RGB): OkLab {
-  // Measured through the sRGB OKLab basis. For P3 this treats the P3 linear channels as
-  // sRGB linear — an intentional close approximation, used only for the sub-JND boundary
-  // check where the residual error is imperceptible.
   return linearSrgbToOklab(clipLinear(linear));
 }
 

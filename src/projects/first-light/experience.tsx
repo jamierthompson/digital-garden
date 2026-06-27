@@ -2,14 +2,10 @@ import styles from "./experience.module.css";
 
 /**
  * The `first-light` interactive experience — the one constant a project module always has
- * (§4.1). A thin page mounts this component [D20]. For the dead-simple slice it is
- * deliberately trivial: a static, self-contained panel that proves the experience seam
- * (module → thin page → route) without any hard logic riding on it ([D17]).
- *
- * No headless `core/` here — the deferral discipline says don't carve one until an
- * experience's logic earns it, and a static panel does not [D20, D24]. It is a pure
- * presentational Server Component reading only generic scoped tokens, so it themes off
- * whatever scope composes it downward and never reaches up for a look (§8).
+ * (§4.1); a thin page mounts it [D20]. A pure presentational Server Component reading only
+ * generic scoped tokens, so it themes off whatever scope composes it downward and never
+ * reaches up for a look (§8). No headless `core/` — don't carve one until logic earns it,
+ * and a static panel does not [D20, D24].
  */
 export default function FirstLightExperience() {
   return (

@@ -20,9 +20,9 @@ export default defineConfig({
           environment: "jsdom",
           globals: true,
           setupFiles: ["./tests/setup.ts"],
-          // jsdom is intentionally broad — it runs EVERYTHING, including the engine
-          // glob (which also runs under node below). If a node-ONLY test is ever added
-          // outside the engine, exclude it here so it doesn't run in the wrong env.
+          // jsdom is intentionally broad — it runs everything, including the engine glob
+          // (which also runs under node below). A node-only test added outside the engine
+          // must be excluded here so it doesn't run in the wrong env.
         },
       },
       {
@@ -31,10 +31,9 @@ export default defineConfig({
           name: "node",
           environment: "node",
           globals: true,
-          // Scoped to the engine ONLY — the dual-env half of the isomorphism guard.
-          // No jsdom matcher setup (no setupFiles): the engine suite needs none.
-          // The engine now lives in its own workspace package [D23]; run its tests
-          // from root so the node+jsdom isomorphism guard [D14] stays in one place.
+          // Scoped to the engine — the dual-env half of the isomorphism guard [D14]. No
+          // setupFiles: the engine suite needs no jsdom matchers. The engine is its own
+          // workspace package [D23] but runs from root so both env halves stay in one place.
           include: ["packages/oklch/**/*.test.ts"],
         },
       },

@@ -66,8 +66,7 @@ export async function generateMetadata({
 }
 
 export default async function WorkPage({ params }: WorkPageProps) {
-  // Request API is async under Next 16 — `params` is a Promise, awaited here (outside the
-  // cached fetch, then passed in).
+  // Request API is async under Next 16 — `params` is a Promise, awaited before use.
   const { slug } = await params;
   const project = await sanityFetch(PROJECT_DETAIL_QUERY, { slug });
 

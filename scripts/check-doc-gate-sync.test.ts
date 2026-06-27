@@ -1,12 +1,10 @@
 /**
  * Co-located test for the gate-doc sync guard (scripts/check-doc-gate-sync.mjs).
  *
- * NODE-SAFE BY DESIGN: it runs the script as a child process and asserts on exit
- * code + output; it never imports it. Mirrors check-key-drift.test.ts. Two layers:
- *   • Happy path — the script against the REAL repo passes (exit 0), proving the
- *     two live sources (DoD §1, ci.yml) are actually in sync.
- *   • Drift detection — run against throwaway FIXTURE trees (the real script beside
- *     hand-built doc sources) and assert exit 1 on divergence, exit 0 when synced.
+ * Runs the script as a child process and asserts on exit code + output — never imports it
+ * (the script calls process.exit). Happy path proves the real repo's two live sources
+ * (DoD §1, ci.yml) are in sync; drift detection runs the real script against throwaway
+ * fixture trees and asserts exit 1 on divergence.
  */
 
 import { spawnSync } from "node:child_process";

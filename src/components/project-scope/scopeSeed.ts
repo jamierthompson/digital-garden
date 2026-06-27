@@ -76,12 +76,11 @@ const FONT_STACK = "ui-monospace, monospace";
 
 // The slugs that may key a scope — DRIVEN from the registry. A project's slug equals its
 // `componentKey` in our model (§4.2), so `COMPONENT_KEYS` is the source of truth for which
-// project slugs exist; `"garden"` is the shell island's slug (ProjectScope uses
-// `slug="garden"`); `"oklch-engine"` is retained for the scope tests that assert on it (and
-// is the planned engine-playground slug). An unknown slug still collapses to `FALLBACK_SLUG`,
-// which is what keeps a hostile slug out of the emitted selector — the set is always vetted
-// constants, never raw input. Deriving from `COMPONENT_KEYS` means a new project is accepted
-// automatically the moment it registers its key — no per-slug edit here ever again [D10].
+// project slugs exist; `"garden"` is the shell island's slug; `"oklch-engine"` is asserted on
+// by the scope tests. An unknown slug still collapses to `FALLBACK_SLUG`, which is what keeps a
+// hostile slug out of the emitted selector — the set is always vetted constants, never raw input.
+// Deriving from `COMPONENT_KEYS` means a new project is accepted automatically the moment it
+// registers its key [D10].
 const KNOWN_SLUGS: ReadonlySet<string> = new Set<string>([
   ...COMPONENT_KEYS,
   "garden",
@@ -138,13 +137,8 @@ export function resolveScope(seed: unknown): ResolvedScope {
  * Serialize a resolved scope into the scoped `<style>` body — ONE coherent rule wrapped in
  * `@layer brand` [D12]. The wrapper is hand-assembled here (rather than via `tokenSetToCss`)
  * so the engine's `--brand-*` declarations, the `--focus-ring-color` alias [D7], and the
- * `--font-face` mapping all live in the SAME selector block.
- *
- * CRITICAL [D13]: the `@layer` wrapper here and the `precedence` on the `<style>` in
- * `ProjectScope` are two halves of one mechanism — React hoists the style and orders it by
- * precedence, and the cascade slots it by layer. If the layer name and the precedence
- * diverge, the theme hoists with the wrong precedence order. Both read the single
- * `BRAND_LAYER` const, so they cannot desync.
+ * `--font-face` mapping all live in the SAME selector block. The `@layer ${BRAND_LAYER}`
+ * wrapper here pairs with `ProjectScope`'s `precedence={BRAND_LAYER}` — see `BRAND_LAYER` [D13].
  */
 export function scopedStyleCss(scope: ResolvedScope): string {
   // Engine declarations: `color-scheme: light dark;` + each `--brand-*: light-dark(…)`.

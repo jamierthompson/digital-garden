@@ -16,17 +16,15 @@ import { FONT_FACES } from "@/fonts/roster";
 import ProjectScope from "./ProjectScope";
 import { BRAND_LAYER } from "./scopeSeed";
 
-// A valid seed for the walking-skeleton module (real brand color + roster fontKey).
 const VALID_SEED = {
   slug: "oklch-engine",
   brandColor: "oklch(0.62 0.21 264)",
   fontKey: "jetbrains-mono",
 } as const;
 
-// ProjectScope is a SYNC server component, so jsdom can render it (async RSCs cannot —
-// see testing.md). React hoists the `<style precedence>` into <head> and serializes the
-// precedence as `data-precedence`, so we CAN observe it there; its actual flush-before-
-// paint ordering is verified in the browser (phase-0.5-render-proofs.md).
+// ProjectScope is a SYNC server component, so jsdom can render it (async RSCs cannot).
+// React serializes the `<style precedence>` as `data-precedence` in <head>, so we can
+// observe it; the actual flush-before-paint ordering is verified in the browser.
 describe("ProjectScope (engine-driven)", () => {
   it("wraps children in the scoped [data-project] and mounts the resolved font class", () => {
     render(
@@ -48,9 +46,8 @@ describe("ProjectScope (engine-driven)", () => {
         <p>themed</p>
       </ProjectScope>,
     );
-    // React hoists the `<style precedence>` into <head> and serializes the precedence as
-    // `data-precedence`. Asserting it equals BRAND_LAYER proves the hoist order and the
-    // `@layer ${BRAND_LAYER}` wrapper are driven by the SAME value — they cannot desync.
+    // `data-precedence` == BRAND_LAYER proves the hoist order and the `@layer ${BRAND_LAYER}`
+    // wrapper are driven by the SAME value — they cannot desync.
     const style = document.head.querySelector("style[data-precedence]");
     expect(style).not.toBeNull();
     expect(style).toHaveAttribute("data-precedence", BRAND_LAYER);

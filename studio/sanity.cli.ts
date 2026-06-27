@@ -10,10 +10,6 @@ export default defineCliConfig({
   // https://jamiethompson-garden.sanity.studio.
   studioHost: 'jamiethompson-garden',
   deployment: {
-    /**
-     * Enable auto-updates for studios.
-     * Learn more at https://www.sanity.io/docs/studio/latest-version-of-sanity#k47faf43faf56
-     */
     autoUpdates: true,
     // Pins this deployment to its Sanity application, so future `sanity deploy`
     // runs don't re-prompt for the app id and version selection is fine-grained.

@@ -12,13 +12,13 @@ import { liveFetch } from "./live";
  * The single read path for Sanity content in Server Components. [D11, D16]
  *
  * A thin `use cache` adapter over `defineLive`'s fetcher (`liveFetch`, `./live.ts`),
- * so every route keeps calling `sanityFetch(QUERY, params?)` and getting back the
- * TypeGen'd result directly — the "published vs. drafts" branch lives in exactly one
- * place. What changed under the hood: reads now flow through Sanity Live, so published
- * changes revalidate live via `<SanityLive>` and the publish webhook (tag contract in
- * `./live.ts`), and drafts preview with stega-driven click-to-edit.
+ * so every route calls `sanityFetch(QUERY, params?)` and gets back the TypeGen'd result
+ * directly — the "published vs. drafts" branch lives in exactly one place. Reads flow
+ * through Sanity Live, so published changes revalidate live via `<SanityLive>` and the
+ * publish webhook (tag contract in `./live.ts`), and drafts preview with stega-driven
+ * click-to-edit.
  *
- * How the two paths resolve, same as before the migration:
+ * How the two paths resolve:
  * - Public request → Draft Mode OFF → `perspective: "published"`, `stega: false`. The
  *   read is CDN-backed and lands in the prerendered static shell (PPR), so the shell
  *   brand is flash-free in the initial bytes [D11]. `defineLive` sets a long
@@ -33,15 +33,9 @@ import { liveFetch } from "./live";
  * throw). Reading it arms the native draft-bypass above AND lets us hand `liveFetch`
  * an explicit `perspective`/`stega` — required because under Cache Components
  * `defineLive`'s fetcher reads no request APIs itself (see `./live.ts`). We map
- * Draft Mode to the binary published/drafts perspective the repo has always used
- * [D16]; the Presentation preview-perspective cookie is intentionally not consulted
- * here (reading `cookies()` inside `use cache` is illegal, and Path A keeps the
- * draft path binary).
- *
- * NOTE on cache profiles: the old `cacheProfile` ("max"/"hours") arg is GONE.
- * `defineLive` owns cache lifetime and relies on on-demand tag revalidation, so a
- * shorter time-based window for notes is superseded — publishing a note now flushes
- * `sanity:note` immediately rather than waiting out a timer.
+ * Draft Mode to the binary published/drafts perspective [D16]; the Presentation
+ * preview-perspective cookie is intentionally not consulted here (reading `cookies()`
+ * inside `use cache` is illegal, and Path A keeps the draft path binary).
  *
  * Typing mirrors `@sanity/client`'s `fetch`: the literal query `Q` resolves to its
  * TypeGen'd result via the `SanityQueries` augmentation in the root `sanity.types.ts`.
@@ -89,7 +83,7 @@ const SANITY_TAG = "sanity";
  * the read signature untouched (notably the layout's pinned `sanityFetch(SITE_SETTINGS
  * _QUERY)` call). Parsing is best-effort by design: the bare `sanity` tag guarantees
  * the webhook can always revalidate even if a query shape isn't recognised, and
- * `defineLive` adds precise per-document syncTags on top. Exported for direct testing.
+ * `defineLive` adds precise per-document syncTags on top.
  */
 export function coarseTags(query: string): string[] {
   const tags = new Set<string>([SANITY_TAG]);

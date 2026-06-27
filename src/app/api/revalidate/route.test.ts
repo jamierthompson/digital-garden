@@ -141,10 +141,9 @@ describe("POST /api/revalidate", () => {
     expect(revalidateTagSpy).not.toHaveBeenCalled();
   });
 
-  // ── Adversarial QA additions [D26] ──────────────────────────────────────────────────
-  // The above 8 cover the happy path + each rejection branch where `body` is null. These
-  // attack the branches a non-null payload opens: a present-but-typeless body, a falsy
-  // `_type`, attacker-supplied tag fields, and secret leakage.
+  // Adversarial QA additions [D26]: the cases above cover the happy path + each rejection
+  // branch where `body` is null; these attack the branches a non-null payload opens — a
+  // present-but-typeless body, a falsy `_type`, attacker-supplied tag fields, secret leakage.
 
   it("returns 400 (no revalidate) for a signed body that is present but has no `_type`", async () => {
     // Distinct from the `body: null` case above: here `body` is a real object, so the

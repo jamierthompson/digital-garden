@@ -17,14 +17,12 @@ const structure: StructureResolver = (S) =>
   S.list()
     .title('Content')
     .items([
-      // Singleton: site-wide settings. Fixed documentId prevents duplicates.
       S.listItem()
         .title('Site settings')
         .child(S.document().schemaType('siteSettings').documentId('siteSettings')),
 
       S.divider(),
 
-      // All remaining document types, excluding singletons to avoid duplication.
       ...S.documentTypeListItems().filter(
         (listItem) => !SINGLETONS.includes(listItem.getId() as string),
       ),
@@ -90,14 +88,11 @@ export default defineConfig({
   plugins: [
     structureTool({structure}),
     /**
-     * Presentation tool — the in-product Preview entry point. [D16]
-     *
-     * `presentationTool` is bundled in the `sanity` package (no extra dep). It
-     * loads the front-end (`previewUrl.initial`) in an iframe and toggles Draft
-     * Mode by navigating the iframe to the app's existing route handlers
-     * (`previewMode.{enable,disable}` — src/app/api/draft-mode/*). The enable
-     * handler validates Presentation's signed secret via next-sanity's
-     * `defineEnableDraftMode` (which wraps `@sanity/preview-url-secret`).
+     * Presentation tool — the in-product Preview entry point. [D16] Loads the front-end
+     * (`previewUrl.initial`) in an iframe and toggles Draft Mode via the app's route
+     * handlers (src/app/api/draft-mode/*); the enable handler validates Presentation's
+     * signed secret via next-sanity's `defineEnableDraftMode` (wrapping
+     * `@sanity/preview-url-secret`).
      *
      * API note: `previewUrl.initial` + `previewUrl.previewMode` are the current
      * (sanity@6.1.0) keys; the older `origin` / `draftMode` keys are deprecated.

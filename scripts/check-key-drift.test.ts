@@ -1,18 +1,11 @@
 /**
  * Co-located test for the key-drift guard (scripts/check-key-drift.mjs) [D10].
  *
- * NODE-SAFE BY DESIGN: it runs the script as a child process and asserts on its
- * exit code + output. It NEVER imports the script (or any resolver/roster module,
- * which would pull in `next/font`); it only imports `node:*` and the contract
- * `keys.ts` indirectly via the spawned script. This file runs under the default
- * (jsdom) Vitest project only — it is outside the node project's engine glob — so
- * it executes exactly once.
- *
- * Two layers:
- *   • Happy path — the script run against the REAL repo passes (exit 0).
- *   • Drift detection — run against a throwaway FIXTURE tree (a copy of the script
- *     beside a deliberately-broken `keys.ts`/resolvers) and assert exit 1 with the
- *     right message. Fixtures keep the real source pristine.
+ * Runs the script as a child process and asserts on exit code + output — never imports it
+ * (importing would pull in `next/font` via the resolver/roster modules). Runs under the
+ * jsdom Vitest project only (outside the node project's engine glob), so it executes once.
+ * Happy path runs against the REAL repo; drift detection runs against throwaway fixture
+ * trees with a deliberately-broken `keys.ts`/resolvers, keeping the real source pristine.
  */
 
 import { spawnSync } from "node:child_process";

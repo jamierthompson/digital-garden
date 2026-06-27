@@ -1,49 +1,29 @@
 // Key-drift guard [D10].
 //
-// WHAT KEYS ARE, AND THE TWO DRIFT DIRECTIONS
-// -------------------------------------------
-// `src/lib/keys.ts` is the single source of truth for which keys exist
-// (`FONT_KEYS`, `COMPONENT_KEYS`, `EMBED_KEYS`). Sanity stores a key on a project
-// (`fontKey`, `componentKey`, `embedKey`); code resolves it. Two ways this drifts:
+// `src/lib/keys.ts` is the single source of truth for which keys exist (`FONT_KEYS`,
+// `COMPONENT_KEYS`, `EMBED_KEYS`). Sanity stores a key on a project; code resolves it.
+// Two drift directions:
 //
-//   (a) code <-> keys.ts  — a resolver/roster registry that doesn't cover every
-//       declared key (or covers a key that doesn't exist). This is ALREADY fully
-//       compile-time-enforced: every registry is typed `satisfies Record<XKey,…>`
-//       (FONT_FACES, PROJECT_LOADERS, EMBED_LOADERS), so a missing or stray entry
-//       is a `pnpm typecheck` error. This script does NOT re-prove that at runtime
-//       — it CAN'T usefully, because the resolver/roster modules import `next/font`,
-//       which a plain node script can't load. Instead it guards that the enforcement
-//       stays WIRED (see check 3): delete a `satisfies` and the compile-time net
-//       silently disappears, which a type check alone would not flag.
+//   (a) code <-> keys.ts — a registry that doesn't cover every declared key (or covers a
+//       missing one). ALREADY compile-time-enforced: every registry is typed
+//       `satisfies Record<XKey,…>` (FONT_FACES, PROJECT_LOADERS, EMBED_LOADERS), so a gap
+//       is a `pnpm typecheck` error. This script can't re-prove that at runtime — the
+//       registries import `next/font`, which a plain node script can't load. Instead it
+//       guards that the enforcement stays WIRED (check 3): drop a `satisfies` and the
+//       compile-time net silently disappears, which typecheck alone won't flag.
 //
-//   (b) published Sanity keys <-> keys.ts — an editor saves a `fontKey` whose code
-//       was renamed/deleted (or vice versa). Catching that needs a live GROQ query
-//       against the dataset and a Sanity client; it is tracked separately in the
-//       GitHub issue backlog ("runtime GROQ-published-keys-vs-code net") and OUT OF
-//       SCOPE here. Resolvers already degrade gracefully on a miss (typed NotFound),
-//       so (b) is a lint/observability net, not a crash risk.
+//   (b) published Sanity keys <-> keys.ts — needs a live GROQ query + Sanity client; OUT
+//       OF SCOPE, tracked in the issue backlog. Resolvers degrade gracefully on a miss
+//       (typed NotFound), so (b) is a lint/observability net, not a crash risk.
 //
-// WHAT THIS SCRIPT CHECKS (the honest, node-safe increment)
-// -----------------------------------------------------------------
-//   1. keys.ts loads and exports the three key arrays (catches a broken/renamed
-//      contract module — the thing everything else keys off).
-//   2. Each key array is WELL-FORMED: every entry a non-empty kebab-case string,
-//      no duplicates within an array, and no collisions ACROSS arrays. Kebab-case
-//      and uniqueness are real invariants — keys become Sanity dropdown values and
-//      CSS-ish identifiers, and a duplicate/cross-array collision would make a
-//      resolver ambiguous. The type system does NOT enforce these (it only checks
-//      the literal union), so this is genuine added safety.
-//   3. The compile-time guard is still WIRED: each resolver/roster source declares
-//      its `satisfies Record<XKey, …>` annotation. This is a comment-stripped
-//      source-text (regex) check — NOT a full TS parse — so it's a tripwire, not a
-//      proof: it strips `//` and `/* */` comments (so the same phrase quoted in a
-//      doc comment can't false-pass) and requires the annotation to follow the
-//      registry's closing brace. It fails loudly if someone drops the `satisfies`
-//      and reopens direction (a) without `typecheck` noticing. (The compiler is the
-//      real enforcer of (a); this only guards that the enforcer stays in place.)
+// What this checks: (1) keys.ts loads and exports the three arrays; (2) each array is
+// well-formed — non-empty kebab-case, unique within and across arrays (real invariants the
+// type system does NOT enforce: keys become Sanity dropdown values / CSS-ish identifiers,
+// and a collision makes a resolver ambiguous); (3) each registry still carries its
+// `satisfies` annotation.
 //
-// Node 22.21 strips TS types natively, so importing the dependency-free `keys.ts`
-// works; the resolver/roster modules are read as TEXT, never imported.
+// Node 22.21 strips TS types natively, so importing the dependency-free `keys.ts` works;
+// the registry modules are read as TEXT, never imported.
 
 import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
@@ -73,8 +53,7 @@ const fail = (msg) => {
   process.exit(1);
 };
 
-// --- 1. Load the contract module ------------------------------------------------
-
+// 1. Load the contract module.
 const keys = await import(new URL("src/lib/keys.ts", root).href).catch(
   (err) => {
     fail(`could not import src/lib/keys.ts (${err.message})`);
@@ -93,11 +72,9 @@ for (const [name, value] of Object.entries(KEY_ARRAYS)) {
   }
 }
 
-// --- 2. Well-formedness: shape, kebab-case, intra- and cross-array uniqueness ---
+// 2. Well-formedness: shape, kebab-case, intra- and cross-array uniqueness.
 
 // Lowercase, digits, single internal hyphens — no leading/trailing/double hyphen.
-// Keys surface as Sanity dropdown values and CSS-ish identifiers, so they must be
-// stable, lowercase, hyphen-delimited tokens.
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const seen = new Map(); // key -> array name it first appeared in (cross-array net)
 
@@ -127,27 +104,22 @@ for (const [name, arr] of Object.entries(KEY_ARRAYS)) {
   }
 }
 
-// --- 3. The compile-time `satisfies Record<XKey,…>` guards are still wired ------
+// 3. The compile-time `satisfies Record<XKey,…>` guards are still wired.
 
-// Each registry that maps a key array to code MUST keep its `satisfies` annotation;
-// that — not this script — is what enforces code<->keys completeness (direction a).
-// We read the source as text (these modules import next/font and can't be imported
-// in a plain node script). The phrase `satisfies Record<XKey, …>` ALSO appears in
-// each file's doc comment, so we strip ALL comments first, then require the
-// annotation to follow the registry's closing brace (`} satisfies` / `{} satisfies`).
-// Stripping (not just line-anchoring) is essential: a trailing or brace-bearing
-// comment — e.g. `}; /* TODO restore: } satisfies Record<FontKey, …> */` — would
-// otherwise match the live-code pattern and falsely pass even though the real
-// annotation is gone. The pattern still tolerates Prettier reflow: `\s*` spans
-// newlines, so a real declaration whose `}` and `satisfies` (or whose `Record<…>`
-// type args) wrap onto separate lines still matches.
+// Each registry MUST keep its `satisfies` annotation — that, not this script, enforces
+// code<->keys completeness (direction a). Read as text (the modules import next/font and
+// can't be imported here). The phrase ALSO appears in each file's doc comment, so strip ALL
+// comments first, then require the annotation to follow the registry's closing brace.
+// Stripping (not just line-anchoring) is essential: a brace-bearing comment — e.g.
+// `}; /* TODO restore: } satisfies Record<FontKey, …> */` — would otherwise match the
+// live-code pattern and falsely pass. `\s*` spans newlines, so a real annotation reflowed
+// by Prettier onto separate lines still matches.
 
 /**
- * Remove `//` line comments and `/* … *\/` block comments (including multiline)
- * from TS/JS source so the `satisfies` check only sees live code. Good enough for
- * these dependency-light registry files: it doesn't parse strings/regex/templates,
- * but none of them carry a `} satisfies Record<…>`-shaped substring, and a false
- * NEGATIVE (over-stripping) would only make the guard stricter, never weaker.
+ * Strip `//` and `/* … *\/` comments so the `satisfies` check sees only live code. Good
+ * enough for these registry files: it doesn't parse strings/regex/templates, but none carry
+ * a `} satisfies Record<…>`-shaped substring, and over-stripping would only make the guard
+ * stricter, never weaker.
  */
 function stripComments(source) {
   return source
@@ -185,8 +157,6 @@ for (const { file, pattern, note } of SATISFIES_GUARDS) {
     );
   }
 }
-
-// --- Success -------------------------------------------------------------------
 
 const counts = Object.entries(KEY_ARRAYS)
   .map(([n, a]) => `${n}=${a.length}`)

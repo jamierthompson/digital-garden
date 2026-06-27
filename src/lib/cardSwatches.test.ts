@@ -27,8 +27,6 @@ describe("cardSwatches — valid brandColor", () => {
   });
 
   it("returns plain inline-style data — no <style>, selector, or class [§3.2]", () => {
-    // Every value is a bare CSS value string: no markup, no @layer, no rule
-    // body / selector block (`{ … }`), no class/data-attr selector.
     for (const key of KEYS) {
       const value = swatches[key];
       expect(value).not.toContain("<style");

@@ -8,11 +8,9 @@
 // Sanity key whose code was renamed/deleted) rather than crashing.
 //
 // IMPORTANT — keep this module dependency-free and side-effect-free. It is the
-// contract both the app and the standalone Studio consume; under [D23] it is
-// intended to move to a shared workspace package both import (the Studio can't
-// import `src/*`), so it must not pull in `next/font`, project bundles, or any
-// app-only code. It lives at `src/lib/keys.ts` today; that relocation is a
-// deferred task tracked in the issue backlog.
+// contract both the app and the standalone Studio consume [D23], so it must not
+// pull in `next/font`, project bundles, or any app-only code (the Studio can't
+// import `src/*`).
 
 /**
  * Font keys — each resolves to a curated `next/font` face in the roster

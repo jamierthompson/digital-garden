@@ -17,39 +17,33 @@ interface ProjectScopeProps {
  *    `--font-face` mapping — all in one block declared `@layer brand` `[D12]`.
  * 2. Wraps its subtree in `[data-project="<slug>"]`, mounting the resolved roster face's
  *    `.variable` className so `var(--font-face)` has its variable in scope `[D11]`.
- *    Everything beneath reads `var(--brand-*)` / `var(--font-face)`.
  *
- * Flash-free mechanics `[D13]`: the `<style>` uses React 19's `precedence` + a slug
- * `href`. React hoists it into `<head>`, de-dupes by `href`, and orders by precedence —
- * so even when the route streams (a suspended hole below), the theme is in the initial
- * shell HTML **before** the body paints (no FOUC). The `precedence` and the `@layer`
- * wrapper produced by `scopedStyleCss` are two halves of one mechanism; both read the
- * single `BRAND_LAYER` const so they cannot desync — see `scopeSeed.ts` `[D13]`.
+ * Flash-free mechanics `[D13]`: the `<style>` uses React 19's `precedence` + a slug `href`.
+ * React hoists it into `<head>`, de-dupes by `href`, and orders by precedence — so even when
+ * the route streams, the theme is in the initial shell HTML **before** the body paints (no
+ * FOUC). The `precedence` and the `@layer` wrapper from `scopedStyleCss` both read the single
+ * `BRAND_LAYER` const so they cannot desync — see `scopeSeed.ts` `[D13]`.
  *
- * Defensive by construction `[D9]`: `resolveScope` never throws and collapses any bad
- * seed to a safe fallback palette + shell font, so this component cannot throw on bad
- * input. It is ALSO wrapped at the route in `unstable_catchError` (see
- * `ProjectScopeBoundary`) as the last-resort backstop — `error.tsx` can't catch a
- * layout-level throw, so a component boundary is the correct containment `[D9]`.
+ * Defensive by construction `[D9]`: `resolveScope` never throws — it collapses any bad seed
+ * to a safe fallback palette + shell font. It is ALSO wrapped at the route in
+ * `unstable_catchError` (see `ProjectScopeBoundary`) as the last-resort backstop: `error.tsx`
+ * can't catch a layout-level throw, so a component boundary is the correct containment `[D9]`.
  *
- * Kept synchronous on purpose: it awaits nothing and does no I/O, so it prerenders into
- * the static shell automatically (flash-free) — Next 16's Cache Components includes the
- * output of synchronous components in the static HTML shell with no `use cache` needed
- * (`node_modules/next/dist/docs/01-app/01-getting-started/08-caching.md`). Staying
- * synchronous ALSO keeps it unit-testable in jsdom (async RSCs do not render there).
+ * Synchronous on purpose: it awaits nothing, so it prerenders into the static shell with no
+ * `use cache` needed (`node_modules/next/dist/docs/01-app/01-getting-started/08-caching.md`),
+ * and stays unit-testable in jsdom (async RSCs do not render there).
  */
 export default function ProjectScope({ seed, children }: ProjectScopeProps) {
   const scope = resolveScope(seed);
   return (
     <>
       {/* `precedence` and the `@layer` in `scopedStyleCss` read the SAME `BRAND_LAYER`
-          const, so the hoist order and the cascade layer cannot desync [D13]. */}
+          const, so hoist order and cascade layer cannot desync [D13]. */}
       <style href={`project-theme-${scope.slug}`} precedence={BRAND_LAYER}>
         {scopedStyleCss(scope)}
       </style>
-      {/* The resolved face's `.variable` className brings `var(--font-face)`'s variable
-          into scope. The shell-mono fallback has no roster class (its variable is already
-          on `<html>`), so `className` is omitted to avoid an empty class attribute. */}
+      {/* Shell-mono fallback has no roster class (its variable is already on `<html>`), so
+          `className` is omitted to avoid an empty class attribute. */}
       <div
         data-project={scope.slug}
         className={scope.font.variable || undefined}
