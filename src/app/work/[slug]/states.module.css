@@ -1,8 +1,6 @@
-/* Shared styling for the `/work/<slug>` state boundaries (not-found / error / loading).
-   `@layer project` — a CSS Module MUST declare its layer or it silently outranks every
-   @layer style (the @layer trap, [D12]). These render OUTSIDE a project scope (a not-found
-   or error replaces the themed subtree), so they consume only the invariant foundation
-   tokens (`--space-*`, `--text-*`), never `--brand-*` — there is no scope to read it from. */
+/* /work/<slug> state boundaries (not-found / error / loading). @layer project — declares its
+   layer per [D12]. Render OUTSIDE a project scope (a not-found/error replaces the themed
+   subtree), so var-consuming from foundation tokens only (--space-*, --text-*), never --brand-*. */
 @layer project {
   .state {
     max-width: 40rem;

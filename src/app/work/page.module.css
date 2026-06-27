@@ -1,8 +1,6 @@
-/* The `/work` index styling. `@layer project` — a CSS Module MUST declare its layer or it
-   silently outranks every @layer style (the @layer trap, [D12]). Cards read the inline
-   `--c-*` swatches `cardSwatches` spreads onto each card's `style={…}` (engine Consumer C,
-   no scope) plus the invariant foundation tokens (`--space-*`, `--text-*`). The page frame
-   itself is shell-neutral; only the cards carry per-project color. */
+/* /work index. @layer project — declares its layer per [D12]; var-consuming only. Cards read
+   inline --c-* swatches `cardSwatches` spreads onto each card's `style={…}` (engine Consumer C,
+   no scope) plus foundation tokens; the page frame is shell-neutral, only cards carry color. */
 @layer project {
   .page {
     max-width: 64rem;

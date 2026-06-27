@@ -1,5 +1,4 @@
-/* The live-embed wrapper styling. `@layer project` (the @layer trap, [D12]). Var-consuming
-   only — the embedded widget themes off the surrounding project scope (§8). */
+/* Live-embed wrapper. @layer project — declares its layer per [D12]; var-consuming only (themed by the surrounding project scope, §8). */
 @layer project {
   .embed {
     margin: var(--space-6) 0;

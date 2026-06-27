@@ -1,5 +1,4 @@
-/* The missing-embed placeholder styling. `@layer project` (the @layer trap, [D12]).
-   Var-consuming only — themed by the surrounding project scope's generic tokens (§8). */
+/* Missing-embed placeholder. @layer project — declares its layer per [D12]; var-consuming only (themed by the surrounding project scope, §8). */
 @layer project {
   .missing {
     margin: var(--space-5) 0;

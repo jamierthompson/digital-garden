@@ -1,6 +1,4 @@
-/* The `first-light` experience styling — `@layer project` (the @layer trap, [D12]). Pure
-   var-consuming: only generic scoped tokens (`--brand-*`, `--font-face`, `--space-*`,
-   `--text-*`) the project scope sets on the `[data-project]` ancestor (§8, [D2]). */
+/* first-light experience. @layer project — declares its layer per [D12]; var-consuming only, themed by --brand-* (§8, [D2]). */
 @layer project {
   .experience {
     margin-top: var(--space-7);

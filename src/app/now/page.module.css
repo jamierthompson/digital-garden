@@ -1,4 +1,4 @@
-/* Now page — consumes the shell island's brand/font tokens. [D12, §3.1] */
+/* Now page. @layer project — declares its layer per [D12]; var-consuming only (shell brand/font tokens, §3.1). */
 @layer project {
   .main {
     display: flex;

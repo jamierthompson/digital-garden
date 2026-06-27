@@ -1,8 +1,4 @@
-/* The `/work/<slug>` project page styling. `@layer project` — a CSS Module MUST declare its
-   layer or it silently outranks every @layer style (the @layer trap, [D12]). All themeable
-   values are consumed as generic tokens (`--brand-*`, `--font-face`, `--space-*`,
-   `--text-*`) that `ProjectScope` sets on the `[data-project]` ancestor — the page never
-   reaches up for a look (§8, [D2]). */
+/* /work/<slug> project page. @layer project — declares its layer per [D12]; var-consuming only, themed by --brand-* (§8, [D2]). */
 @layer project {
   .module {
     max-width: 48rem;
