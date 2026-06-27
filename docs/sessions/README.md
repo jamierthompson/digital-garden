@@ -68,7 +68,7 @@ live shape. Skeleton:
 | <slice-b> | QA-B             | clean     | `src/.../bar.test.ts`      |
 
 **<slice-a> defects** — 1) <what broke> → <fix by author> → re-checked <result>. 2) …
-**Deferred:** <finding> → build-phases.md "<phase>" (PR #NN, <reason>), or "none".
+**Deferred:** <finding> → GitHub issue #NN (PR #NN, <reason>), or "none".
 ```
 
 > **Backfill note.** Records dated **before 2026-06-25** predate [D26]; their QA logs were
@@ -78,18 +78,19 @@ live shape. Skeleton:
 
 ## Index
 
-| Date       | Session                                                                                                      | Outcome                                       |
-| ---------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
-| 2026-06-23 | [Phase 0.5 walking skeleton + parallel Phase 1/2](./2026-06-23-phase-0.5-walking-skeleton.md)                | 4 feature PRs (#8–#11) + review fixes         |
-| 2026-06-24 | [Phase 1 keystone (real ProjectScope) + fast-follows](./2026-06-24-phase-1-projectscope.md)                  | 3 PRs (#14–#16); Phase 1 complete             |
-| 2026-06-24 | [Phase 2 close-out: engine-backed brandColor validation](./2026-06-24-phase-2-engine-backed-validation.md)   | PR #18; `@garden/oklch` pkg; Phase 2 complete |
-| 2026-06-24 | [Gate-doc sync guard (`pnpm lint:docs`)](./2026-06-24-doc-gate-sync-guard.md)                                | PR #19; builds the missing doc-sync guard     |
-| 2026-06-24 | [Phase 3: first vertical slice end-to-end](./2026-06-24-phase-3-first-vertical-slice.md)                     | PR #20; first real project end-to-end         |
-| 2026-06-24 | [Phase 3 carried items (draft rendering + notes/tags)](./2026-06-24-phase-3-carried-items.md)                | PR #21; Phase 3 still open (1 known defect)   |
-| 2026-06-25 | [Phase 3: @layer fix + Preview entry point + CI schema deploy](./2026-06-25-phase-3-layer-preview-deploy.md) | PRs #23–#25; Phase 3 still open (Item C)      |
-| 2026-06-26 | [Shell-identity sourcing → Path A (editorial island)](./2026-06-26-shell-sourcing-islands/)                  | Debate + spike; [D30]; no code change         |
-| 2026-06-26 | [Sanity Live preview + publish→prod revalidation](./2026-06-26-sanity-live-preview.md)                       | PR #31; [D31]; #2/#3 done, Item C owner-gated |
-| 2026-06-27 | [Phase 3 close-out: owner-gated wiring + live Item C sign-off](./2026-06-27-phase-3-closeout.md)             | PRs #34–#35; **Phase 3 COMPLETE**             |
+| Date       | Session                                                                                                      | Outcome                                           |
+| ---------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- |
+| 2026-06-23 | [Phase 0.5 walking skeleton + parallel Phase 1/2](./2026-06-23-phase-0.5-walking-skeleton.md)                | 4 feature PRs (#8–#11) + review fixes             |
+| 2026-06-24 | [Phase 1 keystone (real ProjectScope) + fast-follows](./2026-06-24-phase-1-projectscope.md)                  | 3 PRs (#14–#16); Phase 1 complete                 |
+| 2026-06-24 | [Phase 2 close-out: engine-backed brandColor validation](./2026-06-24-phase-2-engine-backed-validation.md)   | PR #18; `@garden/oklch` pkg; Phase 2 complete     |
+| 2026-06-24 | [Gate-doc sync guard (`pnpm lint:docs`)](./2026-06-24-doc-gate-sync-guard.md)                                | PR #19; builds the missing doc-sync guard         |
+| 2026-06-24 | [Phase 3: first vertical slice end-to-end](./2026-06-24-phase-3-first-vertical-slice.md)                     | PR #20; first real project end-to-end             |
+| 2026-06-24 | [Phase 3 carried items (draft rendering + notes/tags)](./2026-06-24-phase-3-carried-items.md)                | PR #21; Phase 3 still open (1 known defect)       |
+| 2026-06-25 | [Phase 3: @layer fix + Preview entry point + CI schema deploy](./2026-06-25-phase-3-layer-preview-deploy.md) | PRs #23–#25; Phase 3 still open (Item C)          |
+| 2026-06-26 | [Shell-identity sourcing → Path A (editorial island)](./2026-06-26-shell-sourcing-islands/)                  | Debate + spike; [D30]; no code change             |
+| 2026-06-26 | [Sanity Live preview + publish→prod revalidation](./2026-06-26-sanity-live-preview.md)                       | PR #31; [D31]; #2/#3 done, Item C owner-gated     |
+| 2026-06-27 | [Phase 3 close-out: owner-gated wiring + live Item C sign-off](./2026-06-27-phase-3-closeout.md)             | PRs #34–#35; **Phase 3 COMPLETE**                 |
+| 2026-06-27 | [Docs house-cleaning → product-team workflow](./2026-06-27-docs-house-cleaning.md)                           | PR #48; issues #37–47, archive, decisions/, [D32] |
 
 _The 2026-06-23 session also produced two co-located **deliverable** docs (evidence, not standalone
 sessions): [phase-0.5 render proofs](./2026-06-23-phase-0.5-render-proofs.md) and the
