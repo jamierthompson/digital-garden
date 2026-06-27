@@ -77,7 +77,7 @@ Four ideas carry the whole architecture. Internalize the shape; read the cited s
 
 These are the things that silently break this specific stack, or that the owner has standardized. Most are lint/CI-enforced — but know them so you don't fight the tools.
 
-**Use the capabilities you have.** Before hand-rolling or web-searching, check for a skill / subagent / MCP tool that already fits — `sanity:*`, `vercel:*` (incl. `nextjs`, `next-cache-components`), `chrome-devtools` (CWV / a11y audits), `Explore`, `feature-dev:*`. The full discovery list + source-of-truth ladder is [`./working-with-agents.md`](./working-with-agents.md) §1.
+**Use the capabilities you have.** Before hand-rolling or web-searching, check for a skill / subagent / MCP tool that already fits — the ones you need are likely already installed and authed; if not, ask. The discovery method + source-of-truth ladder is [`./working-with-agents.md`](./working-with-agents.md) §1.
 
 **This is not the Next.js in your training data — verify in `node_modules/next/dist/docs/` before writing framework code.** The model-breaking facts (all confirmed against the bundled docs; see [`./architecture.md`](./architecture.md), [`./accessibility-and-performance.md`](./accessibility-and-performance.md), and [`./security-and-ops.md`](./security-and-ops.md)):
 

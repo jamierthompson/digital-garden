@@ -17,8 +17,8 @@ This file is the agent-facing entry point per the [AGENTS.md convention](https:/
 wins**). It complements `README.md` (humans); this is for **you, the agent**. Keep the managed
 `nextjs-agent-rules` block above untouched — `create-next-app` regenerates it.
 
-**This is an index, not a manual.** The real operating manual is
-[`docs/handbook/`](./docs/handbook/) — **start at [`orientation.md`](./docs/handbook/orientation.md)**.
+**This is a short index — the non-negotiable guardrails inline, everything else by pointer.** The
+full operating manual is [`docs/handbook/`](./docs/handbook/) — **start at [`orientation.md`](./docs/handbook/orientation.md)**.
 Binding decisions are in [`docs/decisions/`](./docs/decisions/) (cite as `[D#]`); the system
 model is [`docs/handbook/architecture.md`](./docs/handbook/architecture.md) (cite as `§N`); the
 work backlog is [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
@@ -28,8 +28,8 @@ work backlog is [GitHub issues](https://github.com/jamierthompson/digital-garden
 **Verify, then write — never trust stale memory.** This repo is Next.js 16 / React 19 (exact pins
 in `package.json`); your training data is wrong here often enough to be dangerous.
 
-- **Capabilities** → before hand-rolling, use an installed skill / subagent / MCP tool if one
-  fits (`sanity:*`, `vercel:*`, `chrome-devtools` for CWV/a11y). Full ladder: [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md) §1.
+- **Capabilities** → before hand-rolling, prefer an installed skill / subagent / MCP tool — the
+  ones you need are likely already there and authed; if not, ask. Full ladder: [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md) §1.
 - **Framework behavior** → read the version-exact bundled docs at `node_modules/next/dist/docs/`
   before writing framework code.
 - **Project decisions** → [`docs/decisions/`](./docs/decisions/), cited as `[D#]`.

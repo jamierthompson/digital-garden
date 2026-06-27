@@ -29,22 +29,12 @@ framework code.**
   practice, Core Web Vitals) → state them **as that standard**, with a URL. Accuracy over confidence.
 
 **Capabilities before knowledge — use the tools you have, don't hand-roll.** Before you
-research or build, check what specialized capability is already in your session and prefer it
-over reinventing the work. If you're unsure one exists, **look** (`ToolSearch`, the skills
-list, the `Agent` types) before assuming it doesn't.
-
-- **Skills** (the `Skill` tool / `/`-commands) — invokable playbooks. This stack ships deep
-  ones: `sanity:*` (schema, GROQ, TypeGen, Portable Text, migrations, content modeling),
-  `vercel:*` (`nextjs`, `ai-sdk`, `next-cache-components`, `shadcn`, `deployments-cicd`,
-  `turbopack`, `react-best-practices`…), and `chrome-devtools:*` (Lighthouse/CWV, a11y
-  audits — **required** to browser-verify any rendered surface before done, `[D25]`). When a
-  skill matches the task, invoke it **before** writing code or searching the web.
-- **Subagents** (the `Agent` tool, by `subagent_type`) — isolate verbose or specialized work:
-  `Explore` (codebase search), `feature-dev:*` (architecture / blueprints / review),
-  `pr-review-toolkit:*` (review lenses), `vercel:*` (`ai-architect`, `deployment-expert`,
-  `performance-optimizer`). Brief them per §5 — they start with no context.
-- **MCP server tools** — live integrations: the **Sanity** MCP (query/manage the dataset) and
-  **Vercel** MCP (deployments, logs, runtime). Load a referenced-but-unloaded tool with `ToolSearch`.
+research or build, prefer a specialized capability already in your session over reinventing the
+work. The plugins, MCP servers, subagents, and skills you need are **likely already installed and
+authed** — look before assuming (`ToolSearch`, the skills list, the `Agent` types), and if
+something you need is missing, ask. When a capability matches the task, invoke it **before**
+writing code or searching the web. (Browser-verifying any rendered surface before done is required
+— see [`./accessibility-and-performance.md`](./accessibility-and-performance.md) §5 `[D25]`.)
 
 **The source-of-truth ladder** — highest first; never skip straight to memory:
 
