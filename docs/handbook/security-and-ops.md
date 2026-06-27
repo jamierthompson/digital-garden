@@ -1,6 +1,6 @@
 # Security & Ops
 
-How we keep secrets out of the repo, dependencies honest, the Sanity token safe, and the Vercel deploy boring. Right-sized for a solo, agent-driven portfolio: only what an agent (or the owner) actually needs to ship safely. For the architecture, see [`../architecture-plan.md`](../architecture-plan.md); for binding calls, [`../decisions.md`](../decisions.md).
+How we keep secrets out of the repo, dependencies honest, the Sanity token safe, and the Vercel deploy boring. Right-sized for a solo, agent-driven portfolio: only what an agent (or the owner) actually needs to ship safely. For the architecture, see [`./architecture.md`](./architecture.md); for binding calls, [`../decisions/`](../decisions/).
 
 > Verify any framework claim against the bundled docs at `node_modules/next/dist/docs/` before writing code (see [`./working-with-agents.md`](./working-with-agents.md)). Next 16 / React 19 break model memory.
 
@@ -14,22 +14,24 @@ How we keep secrets out of the repo, dependencies honest, the Sanity token safe,
 
 ### Public vs. secret — know the difference
 
-The `NEXT_PUBLIC_*` prefix is the tripwire: **anything so prefixed is inlined into the browser bundle at build time.** Never give that prefix to a value that must stay private.
+The `NEXT_PUBLIC_*` prefix is the tripwire: **anything so prefixed is inlined into the browser bundle at build time.** Never give that prefix to a value that must stay private. [`../../.env.example`](../../.env.example) is the canonical, machine-readable list; this table explains the why.
 
-| Variable                                         | Public or secret? | Why                                                                                                                                                                                                               |
-| ------------------------------------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SANITY_PROJECT_ID`                  | **Public**        | Sanity project IDs are public by design — they ship in every client request. Plain env in `ci.yml` (`7id6sf36`), not a secret.                                                                                    |
-| `NEXT_PUBLIC_SANITY_DATASET`                     | **Public**        | Same — the dataset name (`production`) is part of the client query URL.                                                                                                                                           |
-| `NEXT_PUBLIC_SANITY_API_VERSION`                 | **Public**        | A date string pinning the API contract. Non-sensitive.                                                                                                                                                            |
-| `SANITY_API_READ_TOKEN` (Phase 2, not yet wired) | **Secret**        | Grants dataset read incl. drafts. Server-side only. **Never** `NEXT_PUBLIC_*`. See §3. This is the env var name `next-sanity`'s `defineEnableDraftMode` example uses, so it's the name we'll adopt — not a guess. |
+| Variable                         | Public or secret?      | Why                                                                                                                                                              |
+| -------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`           | **Public**             | The public site origin (no trailing slash); builds absolute URLs in `/rss.xml`.                                                                                  |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID`  | **Public**             | Sanity project IDs are public by design — they ship in every client request. Plain env in `ci.yml`, not a secret.                                                |
+| `NEXT_PUBLIC_SANITY_DATASET`     | **Public**             | The dataset name (`production`) is part of the client query URL.                                                                                                 |
+| `NEXT_PUBLIC_SANITY_API_VERSION` | **Public**             | A date string pinning the API contract. Non-sensitive.                                                                                                           |
+| `NEXT_PUBLIC_SANITY_STUDIO_URL`  | **Public**             | The deployed Studio URL, for Visual Editing click-to-edit deep links.                                                                                            |
+| `SANITY_API_READ_TOKEN`          | **Secret**             | Grants dataset read incl. drafts. Server-side only; attached per request by `defineLive` and the draft-mode enable handshake. **Never** `NEXT_PUBLIC_*`. See §3. |
+| `SANITY_API_BROWSER_TOKEN`       | **Secret (Viewer)**    | next-sanity shares this with the browser (the `<SanityLive>` EventSource) for standalone live-draft preview, so it is a **dedicated minimum-scope Viewer** token — never the read token `[D31]`. |
+| `SANITY_REVALIDATE_SECRET`       | **Secret**             | HMAC secret the `/api/revalidate` webhook verifies; **must exactly match** the Secret on the Sanity webhook or every delivery 401s `[D31]`.                       |
 
 Sanity project ID + dataset being public is a deliberate, documented fact — they're committed as plain env in [`../../.github/workflows/ci.yml`](../../.github/workflows/ci.yml) precisely because they aren't secrets. Don't "fix" this by moving them to GitHub Secrets.
 
 ### `.env.example` is a contract — keep it current
 
 When you add a new env var, add it to [`../../.env.example`](../../.env.example) in the **same commit**, with a placeholder value and a one-line comment on what it is and whether it's public or secret. Anyone (human or agent) cloning the repo should learn the full env surface from that file alone.
-
-Today `.env.example` holds exactly the three public Sanity vars and **no token line** — don't add one until the token actually lands. When draft mode arrives in Phase 2, add a commented `SANITY_API_READ_TOKEN=` line (marked secret / server-only) in the same commit that wires it.
 
 The env readers in [`../../src/sanity/lib/env.ts`](../../src/sanity/lib/env.ts) `throw` on a missing required var via `assertValue` — a missing var fails loudly at boot, not silently at runtime. Mirror that pattern for any new required var.
 
@@ -50,29 +52,29 @@ Right-sized: discipline, not a security org.
 - **pnpm only** — `pnpm add` / `pnpm add -D`, never `npm`/`yarn`. `pnpm dlx`, not `npx`. (See [`./engineering-standards.md`](./engineering-standards.md).)
 - **Vet new deps before adding** — prefer well-maintained, widely-used packages. A quick check on [deps.dev](https://deps.dev) is enough; full OpenSSF Scorecard automation is overkill here.
 - **Run `pnpm audit` in any PR that changes `pnpm-lock.yaml`.** Triage only _exploitable_ advisories that reach reachable code; ignore transitive dev-only noise.
+- **Breaking-major upgrades go one-per-branch with the full gate** — never a blind bump. (Open ones are tracked in the issue backlog.)
 - **GitHub Actions are pinned** (`@v4`) in [`../../.github/workflows/ci.yml`](../../.github/workflows/ci.yml) — keep them pinned when editing the workflow.
 
 ---
 
 ## 3. Sanity token handling
 
-Today the client uses **`useCdn: true`** with **no token** ([`../../src/sanity/lib/client.ts`](../../src/sanity/lib/client.ts)) — published content only, fully public, nothing secret in play. A token enters the picture only when we add **draft mode / Visual Editing** (Phase 2, [`../build-phases.md`](../build-phases.md); [D16]).
+Two clients with different trust levels: the public published-content read path (no token), and the draft-capable read path used by draft mode / Visual Editing, which carries `SANITY_API_READ_TOKEN`.
 
-When that token lands:
-
-- **It is a secret.** Server-side only. Never `NEXT_PUBLIC_*`, never in a Client Component, never in the bundle. We'll name it `SANITY_API_READ_TOKEN` (the name `next-sanity`'s `defineEnableDraftMode` example uses).
-- **Production read perspective is `published`.** The drafts-capable token + `previewDrafts`/`drafts` perspective is gated behind draft mode (§4), never the default public read path.
-- **A leaked token = permanent compromise.** Rotate immediately in [sanity.io/manage](https://sanity.io/manage); revoking is the only fix (you can't un-leak it). Give it the **narrowest scope** that works (read, specific dataset).
-- **CORS allow-list real origins only** — your prod domain and Vercel preview URLs. Never wildcard-with-credentials. Configured in **Sanity → API → CORS Origins** at [sanity.io/manage](https://sanity.io/manage), not in the repo.
-- **Stega off on `brandColor`/`fontKey`** [D16]: Visual Editing's invisible stega chars break the OKLCH parse and font lookup. This is a correctness landmine, not just cosmetics — disable stega on those fields.
+- **The read token is a secret.** Server-side only. Never `NEXT_PUBLIC_*`, never in a Client Component, never in the bundle. It is attached per request by `defineLive` (`src/sanity/lib/live.ts`) and the draft-mode enable handler — never baked into an exported client. `sanityFetch.ts` carries `import "server-only"`.
+- **Production read perspective is `published`.** The drafts-capable token + `drafts` perspective is gated behind draft mode (§4), never the default public read path.
+- **The browser token is separate and minimum-scope** `[D31]`. `<SanityLive>` exposes `SANITY_API_BROWSER_TOKEN` to the browser EventSource for live preview, so it is a dedicated **Viewer** token, never the read token.
+- **A leaked token = permanent compromise.** Rotate immediately in [sanity.io/manage](https://sanity.io/manage); revoking is the only fix. Give every token the **narrowest scope** that works (read, specific dataset).
+- **CORS allow-list real origins only** — your prod domain and Vercel preview URLs (plus `localhost` for dev). Never wildcard-with-credentials. Configured in **Sanity → API → CORS Origins** at [sanity.io/manage](https://sanity.io/manage), not in the repo.
+- **Stega off on `brandColor`/`fontKey`** `[D16]`: Visual Editing's invisible stega chars break the OKLCH parse and font lookup. This is a correctness landmine, not just cosmetics — the field exclusions are single-sourced in `src/sanity/lib/stega.ts`.
 
 ---
 
 ## 4. Vercel deploy runbook
 
-Vercel is wired to the repo: **a merge to `main` deploys to production.** That's why `main` must always be green and shippable (see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)). The CI gate in [`../../.github/workflows/ci.yml`](../../.github/workflows/ci.yml) is the guard [D17][D19] — and because that gate regenerates and diff-checks `sanity.types.ts`, a drifted type file fails the build before it can reach prod [D23].
+Vercel is wired to the repo: **a merge to `main` deploys to production.** That's why `main` must always be green and shippable (see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)). The CI gate in [`../../.github/workflows/ci.yml`](../../.github/workflows/ci.yml) is the guard `[D17][D19]` — and because that gate regenerates and diff-checks `sanity.types.ts`, a drifted type file fails the build before it can reach prod `[D23]`.
 
-For the **first production deploy** (and whenever the environment changes), work through the actionable [`../production-checklist.md`](../production-checklist.md) — env vars, Sanity CORS, schema/Studio deploy, and the required seed content the build doesn't verify.
+For the **first production deploy** (and whenever the environment changes), work through §5 — env vars, Sanity CORS, schema/Studio deploy, the webhook, and the seed content the build doesn't verify.
 
 ### Preview vs. production
 
@@ -85,24 +87,54 @@ For the **first production deploy** (and whenever the environment changes), work
 
 Never alias a preview deployment to the production domain. Set env vars **per environment** in the Vercel dashboard — a preview secret and a prod secret are different values.
 
-### If prod breaks
-
-1. **Roll back first.** Use Vercel's **Instant Rollback** from the dashboard to return prod to a known-good deployment — no rebuild. Then fix-forward on a branch.
-2. For the exact promote/rollback steps and their current semantics, follow [Vercel's deployment docs](https://vercel.com/docs/deployments) rather than memorized mechanics — Vercel changes CLI/dashboard behavior without warning. If a doc here disagrees with the dashboard, the dashboard wins.
-
-### Draft mode (implemented Phase 3 [D16])
+### Draft mode & live preview `[D16][D31]`
 
 - The enable + exit handlers are **Route Handlers** (`app/api/draft-mode/{enable,disable}/route.ts`), using `next-sanity`'s `defineEnableDraftMode` — it validates a secret, then calls `await draftMode().enable()`. These run server-side; don't drive draft mode from `proxy.ts` (it's Node-only and that's not its job — see `…/03-file-conventions/proxy.md`, which confirms a `runtime` config in proxy throws). `proxy.ts` is deliberately not added for this reason.
 - **`draftMode()` is async in Next 16** — `await` it (verify in `node_modules/next/dist/docs/`).
-- The **exit route** calls `await draftMode().disable()`.
-- Draft-content **rendering** ships via the single `sanityFetch` read path, now backed by next-sanity `defineLive` [D31]: it reads `draftMode().isEnabled` inside `use cache` and serves the `drafts` perspective (stega on) under Draft Mode, the published CDN perspective otherwise. The server-only **read token** is attached per request by `defineLive`/`getClient`-replacement, never baked into an exported client. `sanityFetch.ts` carries `import "server-only"`. The browser EventSource (`<SanityLive>`) uses the separate minimum-scope **Viewer** `SANITY_API_BROWSER_TOKEN`, never the read token.
-- Vercel preview deployments are already `noindex` at the platform level, so draft content behind a bypass cookie isn't a normal indexing risk. If you ever surface draft content on an indexable URL, set `X-Robots-Tag: noindex` (general SEO practice, not a Next requirement).
+- The content read path is next-sanity `defineLive` `[D31]`: `sanityFetch` reads `draftMode().isEnabled` inside `use cache` and serves the `drafts` perspective (stega on) under Draft Mode, the published CDN perspective otherwise. Freshness on the published path is on-demand via the publish→revalidate webhook (§5), not time-based.
+- Vercel preview deployments are already `noindex` at the platform level. If you ever surface draft content on an indexable URL, set `X-Robots-Tag: noindex`.
+
+### If prod breaks
+
+1. **Roll back first.** Use Vercel's **Instant Rollback** from the dashboard to return prod to a known-good deployment — no rebuild. Then fix-forward on a branch.
+2. For the exact promote/rollback steps, follow [Vercel's deployment docs](https://vercel.com/docs/deployments) rather than memorized mechanics — if a doc here disagrees with the dashboard, the dashboard wins.
+
+---
+
+## 5. Production deploy checklist
+
+What must be true for a **production deploy to actually work** — the env- and Sanity-side setup the build alone doesn't verify (the build can pass while Preview, Visual Editing, or content rendering are misconfigured). Run the one-time items before the first production deploy and whenever the environment changes; run the every-deploy items each time.
+
+### One-time setup (per environment)
+
+**Vercel → Project → Settings → Environment Variables** — mirror [`../../.env.example`](../../.env.example), set per environment (a preview value and a prod value differ):
+
+- [ ] All `NEXT_PUBLIC_*` vars (§1), incl. `NEXT_PUBLIC_SANITY_STUDIO_URL` pointing at the deployed Studio.
+- [ ] `SANITY_API_READ_TOKEN`, `SANITY_API_BROWSER_TOKEN`, `SANITY_REVALIDATE_SECRET` (all secret, server-side scope).
+
+**Sanity → [sanity.io/manage](https://sanity.io/manage):**
+
+- [ ] **CORS origins** — add the production domain, Vercel preview URLs, and `localhost` (`:3000`/`:3333`), **with credentials**. Required before Preview / Visual Editing work. Never wildcard-with-credentials.
+- [ ] **Deploy the Studio schema to the Content Lake.** Use **`sanity deploy`** (the full Studio deploy below also pushes the schema, `✔ Deployed 1/1 schemas`, and runs fine locally). Not required for the Next build, but Presentation / Visual Editing and Sanity MCP schema validation rely on it. ⚠️ The standalone `sanity schemas deploy` is currently broken (Rolldown native-binary SIGABRT, darwin + linux CI) — tracked in the [issue backlog](https://github.com/jamierthompson/digital-garden/issues); refresh the schema via `sanity deploy` until it's fixed.
+- [ ] **Deploy the Studio** (where editors sign in) — `pnpm --filter studio deploy` (= `sanity deploy`); host + appId are pinned in `studio/sanity.cli.ts` so it's non-interactive. To make the hosted Studio's Presentation preview prod, deploy with `SANITY_STUDIO_PREVIEW_URL=<prod-url>` (a bare deploy reverts it to `localhost:3000`). Then point `NEXT_PUBLIC_SANITY_STUDIO_URL` at its URL.
+- [ ] **Register the publish→revalidation webhook** `[D31]` — Sanity → API → Webhooks → Create: URL `<prod-url>/api/revalidate`, dataset `production`, trigger Create/Update/Delete, filter `_type in ["project","siteSettings","note"]`, **no projection**, drafts/versions **off**, HTTP POST, **Secret = `SANITY_REVALIDATE_SECRET`** (must match Vercel exactly). Without it, a published change won't appear on prod until a redeploy. Verify: publish anything → the webhook's attempt log shows `200 {revalidated:true}`.
+
+**Required content (in the `production` dataset):**
+
+- [ ] A **`siteSettings` singleton** (`_id: "siteSettings"`) — it drives the shell brand/font; a missing one degrades to the engine fallback, never an error `[D9]`.
+- [ ] At least one **published `project`** per `/work/<slug>` route.
+
+### Every deploy
+
+- [ ] **Full gate green locally** before pushing — the CI `verify` chain (AGENTS.md "Pre-flight checks" / [`./definition-of-done.md`](./definition-of-done.md) §1). CI re-runs it as the guard before prod `[D17][D19]`.
+- [ ] Reach `main` **only via squash-merge of a reviewed PR** — never commit to `main` (merge deploys to prod). (§4, [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md))
+- [ ] After any **Studio schema change**: commit the regenerated root `sanity.types.ts` (CI diff-checks it `[D23]`) and redeploy the schema (`sanity deploy`).
 
 ---
 
 ## Anchors
 
-- Decisions: [D16] Visual-editing / stega · [D17] risk-retirement build sequence (CI gate in Phase 0) · [D19] cross-cutting concerns scheduled (CI in Phase 0) · [D23] standalone Studio workspace (TypeGen diff-gated in CI).
-- Plan: §6 (content/query boundary), §7 (rendering / deploy).
+- Decisions: `[D16]` visual-editing / stega · `[D17]` risk-retirement build sequence (CI gate) · `[D19]` cross-cutting concerns scheduled · `[D23]` standalone Studio workspace (TypeGen diff-gated in CI) · `[D31]` `defineLive` read path + revalidate webhook.
+- Architecture: [`./architecture.md`](./architecture.md) §6 (content/query boundary), §7 (rendering / deploy).
 - Files: [`ci.yml`](../../.github/workflows/ci.yml) · [`.env.example`](../../.env.example) · [`src/sanity/lib/client.ts`](../../src/sanity/lib/client.ts) · [`src/sanity/lib/env.ts`](../../src/sanity/lib/env.ts).
 - Siblings: [`./engineering-standards.md`](./engineering-standards.md) · [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) · [`./working-with-agents.md`](./working-with-agents.md) · [`./accessibility-and-performance.md`](./accessibility-and-performance.md).
