@@ -145,7 +145,7 @@ However the mode ends, you (the lead) finish it:
 
 - **Research / review / debugging** → **synthesize** into one cited artifact. Resolve conflicts
   explicitly (§1). For an architecture decision, record the resolved calls as a **new `[D#]`** in
-  [`docs/decisions/`](../../../docs/decisions/) (records are mutable — edit in place; git holds the
+  [`docs/decisions.md`](../../../docs/decisions.md) (records are mutable — edit in place; git holds the
   history `[D33]`; supersede only when inline contrast helps). Persist the trail to the repo as a dated **`docs/sessions/YYYY-MM-DD-<slug>`** record — one
   `.md` file, or a folder for a multi-file trail (convention + example in
   [`docs/sessions/README.md`](../../../docs/sessions/README.md)) — so the next session has external

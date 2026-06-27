@@ -31,6 +31,6 @@ start at [`orientation.md`](./docs/handbook/orientation.md); the agent-facing en
 - **PRs squash-merge**, so the PR description is the durable history — see
   [`docs/handbook/git-and-pr-workflow.md`](./docs/handbook/git-and-pr-workflow.md).
 
-Binding architectural decisions live in [`docs/decisions/`](./docs/decisions/) (cited as `[D#]`)
+Binding architectural decisions live in [`docs/decisions.md`](./docs/decisions.md) (cited as `[D#]`)
 and the system model in [`docs/handbook/architecture.md`](./docs/handbook/architecture.md)
 (cited as `§N`).

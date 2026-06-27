@@ -20,5 +20,5 @@ labels: ""
 
 ## Refs
 
-<!-- Relevant [D#] decisions (docs/decisions/) and §N system-model sections
+<!-- Relevant [D#] decisions (docs/decisions.md) and §N system-model sections
      (docs/handbook/architecture.md), if any. -->

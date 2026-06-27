@@ -19,7 +19,7 @@ labels: "type:spike"
 ## Done when
 
 - [ ] The question is answered, verified against the code / bundled docs (not memory).
-- [ ] Anything architecturally significant is recorded as a new `[D#]` in `docs/decisions/`
+- [ ] Anything architecturally significant is recorded as a new `[D#]` in `docs/decisions.md`
       (reconcile with `docs/handbook/architecture.md`, don't duplicate).
 - [ ] Findings written up (see Outcome).
 

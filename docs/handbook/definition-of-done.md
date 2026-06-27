@@ -133,7 +133,7 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       [accessibility-and-performance.md](./accessibility-and-performance.md) §5.
 - [ ] **Docs updated** if behavior, scripts, or conventions changed — README and any affected
       handbook page. An architecturally significant decision gets a new `D#` in
-      [`../decisions/`](../decisions/) (records are mutable — edit in place; git holds the history;
+      [`../decisions.md`](../decisions.md) (records are mutable — edit in place; git holds the history;
       see [decision-records.md](./decision-records.md)).
 - [ ] **Independent adversarial QA passed `[D26]`.** Gate-green is _developer-done_, not
       _review-done_: before the slice enters the PR, a **fresh** agent with **no prior context** (not

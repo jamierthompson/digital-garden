@@ -1,6 +1,6 @@
 # Engineering Standards
 
-The coding conventions an agent applies in this repo. This is _how we write code_, not _what the system is_ — for the system model read [`./architecture.md`](./architecture.md); for binding rulings read [`../decisions/`](../decisions/) (cited here as `[D#]`).
+The coding conventions an agent applies in this repo. This is _how we write code_, not _what the system is_ — for the system model read [`./architecture.md`](./architecture.md); for binding rulings read [`../decisions.md`](../decisions.md) (cited here as `[D#]`).
 
 **One rule above all others — the framework is not the one you remember.** This is Next.js **16** + React **19** with Cache Components enabled app-wide. Request APIs are async, `middleware.ts` is gone, `export const dynamic` is removed. Before you write any framework code, **read the version-matched doc** in `node_modules/next/dist/docs/` ([`../../AGENTS.md`](../../AGENTS.md) says the same). Don't code from training-data memory — it is stale here.
 
@@ -230,4 +230,4 @@ Skim this before writing framework code; **verify each against the bundled doc**
 - [`./testing.md`](./testing.md) — Vitest/RTL, dual-env engine tests, Playwright
 - [`./accessibility-and-performance.md`](./accessibility-and-performance.md) — contrast engine, focus, CWV
 - [`./security-and-ops.md`](./security-and-ops.md) — secrets, Sanity tokens, Vercel ops
-- [`../decisions/`](../decisions/) · [`./architecture.md`](./architecture.md) · [GitHub issues](https://github.com/jamierthompson/digital-garden/issues)
+- [`../decisions.md`](../decisions.md) · [`./architecture.md`](./architecture.md) · [GitHub issues](https://github.com/jamierthompson/digital-garden/issues)

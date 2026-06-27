@@ -6,7 +6,7 @@ a hero, rich media), the components its essay embeds, and its tokens — compose
 Hosted on Vercel; essay + brand seeds in Sanity.
 
 This is the **reference for how the system is designed**, cited across the codebase as `§N`
-(e.g. `§3.2`, `§4.1`). Binding decisions are recorded in [`../decisions/`](../decisions/) and
+(e.g. `§3.2`, `§4.1`). Binding decisions are recorded in [`../decisions.md`](../decisions.md) and
 cited as `[D#]`; **where this doc and the decisions log ever disagree, the decisions log wins.**
 Token prefixes like `--<proj>-*` below are per-project placeholders.
 

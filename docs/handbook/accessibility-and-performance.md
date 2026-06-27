@@ -216,4 +216,4 @@ _Related: [`./security-and-ops.md`](./security-and-ops.md) (secrets, Sanity toke
 ops), [`./definition-of-done.md`](./definition-of-done.md) (the ship gate),
 [`./testing.md`](./testing.md) (the contrast harness). Architecture:
 [`./architecture.md`](./architecture.md) §3.1–3.2, §5, §7 ·
-[`../decisions/`](../decisions/) `[D4]` `[D5]` `[D6]` `[D7]` `[D11]` `[D17]` `[D19]` `[D25]` `[D32]`._
+[`../decisions.md`](../decisions.md) `[D4]` `[D5]` `[D6]` `[D7]` `[D11]` `[D17]` `[D19]` `[D25]` `[D32]`._

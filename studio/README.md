@@ -26,4 +26,4 @@ gate checks it for drift `[D23]`.
 
 Project-wide conventions live in the root [`AGENTS.md`](../AGENTS.md) and
 [`docs/handbook/`](../docs/handbook/); Sanity-specific decisions are in
-[`docs/decisions/`](../docs/decisions/) (cite as `[D#]`).
+[`docs/decisions.md`](../docs/decisions.md) (cite as `[D#]`).

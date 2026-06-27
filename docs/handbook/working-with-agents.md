@@ -6,7 +6,7 @@
 > theater, only what helps an agent land cold and ship clean code.
 >
 > Sources of truth this doc points at — open them, don't summarize from memory:
-> framework facts → `node_modules/next/dist/docs/`; decisions → [`../decisions/`](../decisions/) (`[D#]`);
+> framework facts → `node_modules/next/dist/docs/`; decisions → [`../decisions.md`](../decisions.md) (`[D#]`);
 > system model → [`./architecture.md`](./architecture.md) (`§N`); the work backlog →
 > [GitHub issues](https://github.com/jamierthompson/digital-garden/issues). Worked examples of this
 > process live under [`../sessions/`](../sessions/).
@@ -23,7 +23,7 @@ framework code.**
 - **Framework behavior** → bundled docs at `node_modules/next/dist/docs/` (`01-app`,
   `02-pages`, `03-architecture`, …). They ship with the installed version, so they are
   correct where memory is not. The root [`AGENTS.md`](../../AGENTS.md) says the same.
-- **Project decisions** → [`../decisions/`](../decisions/). Cite as `[D#]`.
+- **Project decisions** → [`../decisions.md`](../decisions.md). Cite as `[D#]`.
 - **System model** → [`./architecture.md`](./architecture.md). Cite as `§N`.
 - **External standards** (Conventional Commits, WCAG/APCA, the `AGENTS.md` convention, ADR
   practice, Core Web Vitals) → state them **as that standard**, with a URL. Accuracy over confidence.
@@ -89,7 +89,7 @@ theming, content modeling, caching, fonts, or routing, find the relevant `[D#]` 
   OKLCH engine (breaks isomorphism — [D14]); writing an unlayered CSS Module (silently beats
   layered styles — [D12]); a templated `import(\`…/${slug}\`)` ([D21]).
 - **Decision records are mutable; git is the audit trail** `[D33]`. Edit a decided record in place
-  so the register reads as current truth — `git log -p docs/decisions/README.md` holds the history.
+  so the register reads as current truth — `git log -p docs/decisions.md` holds the history.
   This is a deliberate departure from classic ADR immutability (Nygard/Fowler); supersession stays
   available but optional. See [`./decision-records.md`](./decision-records.md) for when and how.
 - **Security and performance are agents' documented blind spots** — agents over-index on
@@ -141,7 +141,7 @@ This handbook itself was built with this pattern. The shape:
    against the others. Critiques must be **fact-grounded** (cite a doc/decision), not vibes —
    this is where the plan actually moves.
 4. **Cited synthesis.** Consolidate into a verdict and record the resolved calls as `[D#]`
-   in [`../decisions/`](../decisions/).
+   in [`../decisions.md`](../decisions.md).
 
 **Two pitfalls to encode (both documented failure modes):**
 

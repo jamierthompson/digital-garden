@@ -19,7 +19,7 @@ wins**). It complements `README.md` (humans); this is for **you, the agent**. Ke
 
 **This is a short index — the non-negotiable guardrails inline, everything else by pointer.** The
 full operating manual is [`docs/handbook/`](./docs/handbook/) — **start at [`orientation.md`](./docs/handbook/orientation.md)**.
-Binding decisions are in [`docs/decisions/`](./docs/decisions/) (cite as `[D#]`); the system
+Binding decisions are in [`docs/decisions.md`](./docs/decisions.md) (cite as `[D#]`); the system
 model is [`docs/handbook/architecture.md`](./docs/handbook/architecture.md) (cite as `§N`); the
 work backlog is [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
@@ -32,7 +32,7 @@ in `package.json`); your training data is wrong here often enough to be dangerou
   ones you need are likely already there and authed; if not, ask. Full ladder: [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md) §1.
 - **Framework behavior** → read the version-exact bundled docs at `node_modules/next/dist/docs/`
   before writing framework code.
-- **Project decisions** → [`docs/decisions/`](./docs/decisions/), cited as `[D#]`.
+- **Project decisions** → [`docs/decisions.md`](./docs/decisions.md), cited as `[D#]`.
   **System model** → [`docs/handbook/architecture.md`](./docs/handbook/architecture.md), cited as `§N`.
 - **External standards** (Conventional Commits, WCAG/APCA, this AGENTS.md convention) → cite the
   standard with a URL. **Cite the source that actually contains the fact** — accuracy over confidence.

@@ -3,7 +3,7 @@
 The **agent-first operating manual** for this repo. It is written for a capable autonomous
 agent (and the solo owner) landing cold: imperative, skimmable, example-driven — _how we
 work here_, not _what the system is_. The system model lives alongside, in
-[`architecture.md`](./architecture.md) (`§N`); binding rulings in [`../decisions/`](../decisions/)
+[`architecture.md`](./architecture.md) (`§N`); binding rulings in [`../decisions.md`](../decisions.md)
 (`[D#]`); the work backlog in [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 The one rule that overrides instinct everywhere: this is **Next.js 16 /
 React 19 with Cache Components on app-wide** — your training data is stale, so verify

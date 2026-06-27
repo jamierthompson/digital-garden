@@ -6,7 +6,7 @@ is a concrete command.
 
 > **Source of truth.** The merge gate is `.github/workflows/ci.yml` (job `verify`). The
 > scripts it runs are in `package.json`. This doc tells you how to stay green; it does
-> not redefine the gate. Decisions are anchored as `[D#]` ([../decisions/](../decisions/))
+> not redefine the gate. Decisions are anchored as `[D#]` ([../decisions.md](../decisions.md))
 > and system-model sections as `§N` ([./architecture.md](./architecture.md)).
 
 Related handbook pages: [./definition-of-done.md](./definition-of-done.md) (the per-task

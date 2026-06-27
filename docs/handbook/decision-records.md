@@ -1,7 +1,7 @@
 # Decision Records
 
 How architecturally significant decisions get made, recorded, and revised in
-this repo. The log lives in [`../decisions/`](../decisions/).
+this repo. The log lives in [`../decisions.md`](../decisions.md).
 This page is the **process**; that file is the **record**.
 
 > Lightweight Nygard-style ADR
@@ -69,11 +69,11 @@ _enumerated alternatives_, not the head-count. Rules:
 ## The entry format
 
 The required-fields table below is the contract; the [copy-paste template](#copy-paste-template)
-at the bottom renders it. Match the shape already running in `decisions/README.md`.
+at the bottom renders it. Match the shape already running in `decisions.md`.
 
 | Field           | Rule                                                                                                                                                           |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Number**      | Next monotonic `D#`. **Never reused, never renumbered.** Find the current max with `grep -oE '^### D[0-9]+' ../decisions/README.md \| tail -1`.                |
+| **Number**      | Next monotonic `D#`. **Never reused, never renumbered.** Find the current max with `grep -oE '^### D[0-9]+' ../decisions.md \| tail -1`.                       |
 | **Title**       | Imperative noun phrase — the decision, not the topic ("Bake `oklch()` literals server-side", not "Color baking").                                              |
 | **Status**      | From the closed vocabulary below — not free text.                                                                                                              |
 | **`Amends §N`** | The plan section(s) this changes. A decision that touches the plan **must** cite the section; this is what keeps the log and the plan from silently diverging. |
@@ -81,16 +81,16 @@ at the bottom renders it. Match the shape already running in `decisions/README.m
 | **`[D#]` refs** | Cross-reference related decisions inline.                                                                                                                      |
 
 **Status vocabulary (closed set — adopt one, don't invent).** This expands
-`decisions/README.md`'s legend (`Decided` / `Superseded by D#` / `Open`) with the
+`decisions.md`'s legend (`Decided` / `Superseded by D#` / `Open`) with the
 full parenthetical and supersession patterns the log uses:
 
-| Status                                | Meaning                                                                                                                 |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `Decided`                             | Resolved and in force.                                                                                                  |
-| `Decided (build deferred)`            | Resolved, but implemented later (e.g. [D32] brand-derived status colors, built when status UI lands).                   |
-| `Decided (verified against <source>)` | Resolved on a version-dependent fact, checked against a named doc ([D11], [D12], [D23]).                                |
-| `Open`                                | Needs the owner's call before it can be locked. Track it in the **Open items summary** footer of `decisions/README.md`. |
-| `Superseded by D#`                    | No longer in force; replaced. See below.                                                                                |
+| Status                                | Meaning                                                                                                          |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `Decided`                             | Resolved and in force.                                                                                           |
+| `Decided (build deferred)`            | Resolved, but implemented later (e.g. [D32] brand-derived status colors, built when status UI lands).            |
+| `Decided (verified against <source>)` | Resolved on a version-dependent fact, checked against a named doc ([D11], [D12], [D23]).                         |
+| `Open`                                | Needs the owner's call before it can be locked. Track it in the **Open items summary** footer of `decisions.md`. |
+| `Superseded by D#`                    | No longer in force; replaced. See below.                                                                         |
 
 ---
 
@@ -98,7 +98,7 @@ full parenthetical and supersession patterns the log uses:
 
 Decision records are **mutable**: edit an entry in place so the register reads as **current truth**.
 This is a deliberate **departure from classic ADR immutability** (Nygard/Fowler) — `git log -p
-docs/decisions/README.md` recovers any prior wording with author and message, so the audit trail the
+docs/decisions.md` recovers any prior wording with author and message, so the audit trail the
 immutable rule existed to protect is already there `[D33]`. Every edit lands through the normal
 branch → gate → squash-merge flow.
 
@@ -119,7 +119,7 @@ branch → gate → squash-merge flow.
 
 ## CI fit
 
-Decision records are prose; **no CI gate polices `decisions/README.md`.** The only
+Decision records are prose; **no CI gate polices `decisions.md`.** The only
 discipline is `pnpm format` keeping the Markdown clean before commit. For the full
 gate chain (and the [D23] TypeGen drift step a schema-locking decision is most
 likely to trip), see [`./definition-of-done.md`](./definition-of-done.md).
@@ -182,7 +182,7 @@ keep the heading/anchor and replace the body with a one-line pointer, as D8 does
 
 ## Related
 
-- [`../decisions/`](../decisions/) — the live log + Open items footer.
+- [`../decisions.md`](../decisions.md) — the live log + Open items footer.
 - [`../sessions/`](../sessions/) — worked five-lens → debate → synthesis trails in-tree (the example to borrow from).
 - [`./working-with-agents.md`](./working-with-agents.md) — how agents cite `[D#]` / `§N` and hand off cleanly.
 - [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) — committing a decision (a `docs:` change, its own commit).

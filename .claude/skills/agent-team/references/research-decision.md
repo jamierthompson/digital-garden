@@ -42,7 +42,7 @@ texture to aim for: a critique is only valid if it cites the source that _actual
 - **Do not smooth a fake consensus.** Where drafts genuinely disagree, resolve it and say which
   won and why. It's healthy for some critiques to be **rejected on verification** — the handbook
   synthesis rejected two; that's the pattern working.
-- **Record the resolved calls as a new `[D#]`** in [`docs/decisions/`](../../../../docs/decisions/).
+- **Record the resolved calls as a new `[D#]`** in [`docs/decisions.md`](../../../../docs/decisions.md).
   Records are mutable — edit in place; git is the audit trail `[D33]` (supersede only when inline contrast helps).
 - **Persist the trail** (`round-1-*`, `round-2-*`, `synthesis.md`) to the repo as external memory,
   under **`docs/sessions/YYYY-MM-DD-<slug>/`** (see `docs/sessions/README.md`).
