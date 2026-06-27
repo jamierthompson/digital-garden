@@ -405,11 +405,18 @@ varied mock projects to exercise everything._
       between is the **PR #31** lockfile move (next-sanity v13 / live-preview deps). **Not caused by #34** —
       a native crash isn't triggered by two inert config strings, and it reproduces identically on darwin.
       **Mitigation in place:** the schema deploys fine via **`sanity deploy`** (the full Studio deploy, which
-      pushes the schema and runs locally on darwin-x64), so the Content Lake is current. **Fix options (own
-      branch, needs CI iteration):** (a) bisect the lockfile to pin the last-good `sanity`/Rolldown and pin it
-      in `studio/`; (b) switch the workflow from `sanity schemas deploy` to `sanity deploy` (deploys the whole
-      Studio, but works); or (c) retire the workflow if `sanity deploy` becomes the standard schema-refresh
-      path. NOT done in the docs-closeout PR (a CI change that can't be verified locally).
+      pushes the schema and runs locally on darwin-x64), so the Content Lake is current. **The workflow is
+      DISABLED** (2026-06-27: `gh workflow disable deploy-schema.yml` → `disabled_manually`) so it stops
+      red-X'ing schema-path merges — **re-enable it (`gh workflow enable deploy-schema.yml`) as part of the
+      fix.** **Root-cause signal:** the dep tree now carries **two Rolldown versions side by side** (`1.0.3` +
+      `1.1.3`, with x64 native `@rolldown/binding-*`) inside `@sanity/cli`'s schema-extract toolchain; the
+      newer `1.1.3` (pulled in by the #31 lockfile move) is the prime suspect — a bad x64 native binary is
+      exactly what SIGABRTs identically on darwin **and** linux. It's an **upstream package regression**, not
+      project code and not Sanity's hosted service (it crashes during local extraction, before any network
+      call). **Fix options (own branch, needs CI iteration):** (a) bisect the lockfile to pin the last-good
+      `sanity`/Rolldown and pin it in `studio/`; (b) switch the workflow from `sanity schemas deploy` to
+      `sanity deploy` (deploys the whole Studio, but works); or (c) retire the workflow if `sanity deploy`
+      becomes the standard schema-refresh path. NOT attempted yet (a CI change that can't be verified locally).
 
 **Dependency upgrades — deferred breaking majors (2026-06-25):**
 
