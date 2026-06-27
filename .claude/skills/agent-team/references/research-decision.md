@@ -6,16 +6,15 @@
 > module/package boundary, locks an external contract (Sanity schema, `keys.ts`, token names), or
 > contradicts the plan or a `[D#]`. For anything smaller, a single session is the right tool.
 
-The repo has run this twice end-to-end — study them as templates (preserved frozen in the archive):
-[`docs/archive/audit/`](../../../../docs/archive/audit/) (five-lens architecture audit) and
-[`docs/archive/handbook-making-of/`](../../../../docs/archive/handbook-making-of/) (research → drafts → debate → synthesis).
+The repo has run this twice end-to-end — study them as templates (frozen in a local, out-of-repo `archive/`):
+the five-lens architecture audit, and the handbook making-of trail (research → drafts → debate → synthesis).
 
 ## The shape: research → N independent drafts → adversarial debate → cited synthesis
 
 **1. Research, with citations.** Pin every claim to a primary source — the bundled docs
 (`node_modules/next/dist/docs/`), a spec URL, or a `[D#]`. Isolate verbose fetching/log-crunching
-in subagents (or research-phase teammates) that return a **dense, cited digest**. The repo's
-[`docs/archive/handbook-making-of/research/`](../../../../docs/archive/handbook-making-of/research/) R1–R6 notes are the
+in subagents (or research-phase teammates) that return a **dense, cited digest**. The handbook
+making-of research notes (R1–R6, frozen in the local out-of-repo `archive/`) are the
 output shape to aim for.
 
 **2. N independent drafts — diversity is the whole point.** Spawn one teammate per **distinct
@@ -35,8 +34,8 @@ a dense cited digest", model tier (route hard reasoning to a stronger model), an
 **3. Adversarial debate.** Have the teammates **challenge, defend, or concede** against each
 other's drafts — message each other directly (this is exactly what teams do that subagents can't).
 Critiques must be **fact-grounded** — cite a doc/decision, not vibes. This is where the decision
-actually moves. See [`docs/archive/audit/round-2-debate.md`](../../../../docs/archive/audit/round-2-debate.md) for the
-texture: a critique is only valid if it cites the source that _actually contains_ the fact.
+actually moves. The pre-build audit's round-2 debate (frozen in the local out-of-repo `archive/`) is the
+texture to aim for: a critique is only valid if it cites the source that _actually contains_ the fact.
 
 **4. Cited synthesis (lead's job).** Consolidate into one verdict.
 
