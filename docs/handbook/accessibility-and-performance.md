@@ -76,7 +76,7 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 | 2.5.8 Target Size (new in 2.2)         | Pointer targets ≥ **24×24** CSS px                    | Nav links, `/work` cards, embed controls. Treat 24×24 as a firm floor.                                   |
 
 - **Focus-ring split:** _geometry_ (width, offset, style, the `:focus-visible` policy) is
-  **global invariant** (§3.1); _color_ is the **engine token** `[D7]`. Don't move geometry
+  **global foundation** (§3.1); _color_ is the **engine token** `[D7]`. Don't move geometry
   into a scope or smuggle a focus color into the global reset.
 - **2.5.8 spacing exception** exists (a target under 24px passes if a ≥24px-diameter circle
   centered on it doesn't overlap another target's circle) — but **don't reach for it to
@@ -216,4 +216,4 @@ _Related: [`./security-and-ops.md`](./security-and-ops.md) (secrets, Sanity toke
 ops), [`./definition-of-done.md`](./definition-of-done.md) (the ship gate),
 [`./testing.md`](./testing.md) (the contrast harness). Architecture:
 [`./architecture.md`](./architecture.md) §3.1–3.2, §5, §7 ·
-[`../decisions/`](../decisions/) `[D4]` `[D5]` `[D6]` `[D7]` `[D11]` `[D17]` `[D19]` `[D25]` `[D32]`._
+[`../decisions.md`](../decisions.md) `[D4]` `[D5]` `[D6]` `[D7]` `[D11]` `[D17]` `[D19]` `[D25]` `[D32]`._

@@ -1,6 +1,6 @@
 # Engineering Standards
 
-The coding conventions an agent applies in this repo. This is _how we write code_, not _what the system is_ — for the system model read [`./architecture.md`](./architecture.md); for binding rulings read [`../decisions/`](../decisions/) (cited here as `[D#]`).
+The coding conventions an agent applies in this repo. This is _how we write code_, not _what the system is_ — for the system model read [`./architecture.md`](./architecture.md); for binding rulings read [`../decisions.md`](../decisions.md) (cited here as `[D#]`).
 
 **One rule above all others — the framework is not the one you remember.** This is Next.js **16** + React **19** with Cache Components enabled app-wide. Request APIs are async, `middleware.ts` is gone, `export const dynamic` is removed. Before you write any framework code, **read the version-matched doc** in `node_modules/next/dist/docs/` ([`../../AGENTS.md`](../../AGENTS.md) says the same). Don't code from training-data memory — it is stale here.
 
@@ -125,7 +125,7 @@ async function Card({ theme }: { theme: string }) {
 
 **Tokens are three-tiered** (see `[D1]`/§3.1 for the full model — the tier names below are what you need to apply the `@layer` rule):
 
-1. **Invariant foundation** (spacing, motion, breakpoints, z-index, type-scale, semantic-color slots) → global `:root` in `src/app/foundation.css`.
+1. **Foundation** (spacing, motion, breakpoints, z-index, type-scale) → global `:root` in `src/app/foundation.css`.
 2. **Brand ramp + font** → engine-scoped per `[data-project]` (emitted by the OKLCH engine).
 3. **Feel/geometry** (radius, border weight, shadow, density) → small scoped override set, defaults inherited from tier 1.
 
@@ -193,7 +193,7 @@ House rule: **establish the pattern early, instantiate it late** `[D24]` (the de
 
 **Type placement.** A single-use type stays **in the module's file**. Promote it to a shared `src/types/*` only when a **second** module imports it — the second importer is the trigger. (`sanity.types.ts` and the `keys.ts` contracts are the existing shared shapes; don't hand-edit the generated one, §1.)
 
-**One file, one concern.** One component per file, with its `*.module.css` and `*.test.tsx` co-located beside it (`[D18]`, [`./testing.md`](./testing.md)). Avoid broad **barrel** `index.ts` re-exports — they defeat the per-project code-splitting `[D21]` depends on; the only `index.ts` files are registry entries (a project module's own, `src/projects/registry.ts`).
+**One file, one concern.** One component per file, with its `*.module.css` and `*.test.tsx` co-located beside it (`[D18]`, [`./testing.md`](./testing.md)). Avoid broad **barrel** `index.ts` re-exports — they defeat the per-project code-splitting `[D21]` depends on; the only `index.ts` files are registry entries (a project module's own `src/projects/<slug>/index.ts`).
 
 **`app/` is routing only.** Route files (`page` / `layout` / `loading` / `error`) stay thin and **mount** components from `src/`; business logic never lives in `app/` ([`./orientation.md`](./orientation.md)).
 
@@ -230,4 +230,4 @@ Skim this before writing framework code; **verify each against the bundled doc**
 - [`./testing.md`](./testing.md) — Vitest/RTL, dual-env engine tests, Playwright
 - [`./accessibility-and-performance.md`](./accessibility-and-performance.md) — contrast engine, focus, CWV
 - [`./security-and-ops.md`](./security-and-ops.md) — secrets, Sanity tokens, Vercel ops
-- [`../decisions/`](../decisions/) · [`./architecture.md`](./architecture.md) · [GitHub issues](https://github.com/jamierthompson/digital-garden/issues)
+- [`../decisions.md`](../decisions.md) · [`./architecture.md`](./architecture.md) · [GitHub issues](https://github.com/jamierthompson/digital-garden/issues)

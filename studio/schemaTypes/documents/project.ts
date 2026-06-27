@@ -75,7 +75,7 @@ export const project = defineType({
       title: 'Component key',
       type: 'string',
       description:
-        'Key of the coded project module (projects/registry.ts), resolved in app code. Picker wired to keys.ts in a later slice.',
+        'Key of the coded project module, resolved in app code (src/lib/resolvers/components.ts).',
       validation: (rule) => rule.required(),
     }),
 

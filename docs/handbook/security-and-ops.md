@@ -1,6 +1,6 @@
 # Security & Ops
 
-How we keep secrets out of the repo, dependencies honest, the Sanity token safe, and the Vercel deploy boring. Right-sized for a solo, agent-driven portfolio: only what an agent (or the owner) actually needs to ship safely. For the architecture, see [`./architecture.md`](./architecture.md); for binding calls, [`../decisions/`](../decisions/).
+How we keep secrets out of the repo, dependencies honest, the Sanity token safe, and the Vercel deploy boring. Right-sized for a solo, agent-driven portfolio: only what an agent (or the owner) actually needs to ship safely. For the architecture, see [`./architecture.md`](./architecture.md); for binding calls, [`../decisions.md`](../decisions.md).
 
 > Verify any framework claim against the bundled docs at `node_modules/next/dist/docs/` before writing code (see [`./working-with-agents.md`](./working-with-agents.md)). Next 16 / React 19 break model memory.
 

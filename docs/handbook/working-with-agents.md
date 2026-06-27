@@ -6,10 +6,10 @@
 > theater, only what helps an agent land cold and ship clean code.
 >
 > Sources of truth this doc points at — open them, don't summarize from memory:
-> framework facts → `node_modules/next/dist/docs/`; decisions → [`../decisions/`](../decisions/) (`[D#]`);
+> framework facts → `node_modules/next/dist/docs/`; decisions → [`../decisions.md`](../decisions.md) (`[D#]`);
 > system model → [`./architecture.md`](./architecture.md) (`§N`); the work backlog →
-> [GitHub issues](https://github.com/jamierthompson/digital-garden/issues). The worked example of this
-> process — the pre-build five-lens audit — is frozen in a local, out-of-repo `archive/`.
+> [GitHub issues](https://github.com/jamierthompson/digital-garden/issues). Worked examples of this
+> process live under [`../sessions/`](../sessions/).
 
 ---
 
@@ -23,7 +23,7 @@ framework code.**
 - **Framework behavior** → bundled docs at `node_modules/next/dist/docs/` (`01-app`,
   `02-pages`, `03-architecture`, …). They ship with the installed version, so they are
   correct where memory is not. The root [`AGENTS.md`](../../AGENTS.md) says the same.
-- **Project decisions** → [`../decisions/`](../decisions/). Cite as `[D#]`.
+- **Project decisions** → [`../decisions.md`](../decisions.md). Cite as `[D#]`.
 - **System model** → [`./architecture.md`](./architecture.md). Cite as `§N`.
 - **External standards** (Conventional Commits, WCAG/APCA, the `AGENTS.md` convention, ADR
   practice, Core Web Vitals) → state them **as that standard**, with a URL. Accuracy over confidence.
@@ -88,10 +88,10 @@ theming, content modeling, caching, fonts, or routing, find the relevant `[D#]` 
   `export const dynamic` (gone under `cacheComponents` — [D11]); adding `server-only` to the
   OKLCH engine (breaks isomorphism — [D14]); writing an unlayered CSS Module (silently beats
   layered styles — [D12]); a templated `import(\`…/${slug}\`)` ([D21]).
-- **Accepted decisions are immutable.** This mirrors ADR practice (Nygard; Fowler): you do
-  **not** edit a decided record. If thinking genuinely changes, write a _new_ superseding
-  decision — see [`./decision-records.md`](./decision-records.md) for when and how. Supersession
-  precedents: [D11] supersedes a §7 reading, [D23] supersedes "one app, no workspace".
+- **Decision records are mutable; git is the audit trail** `[D33]`. Edit a decided record in place
+  so the register reads as current truth — `git log -p docs/decisions.md` holds the history.
+  This is a deliberate departure from classic ADR immutability (Nygard/Fowler); supersession stays
+  available but optional. See [`./decision-records.md`](./decision-records.md) for when and how.
 - **Security and performance are agents' documented blind spots** — agents over-index on
   "make it work" and under-test the non-functional edges (research on agent context files
   flags these as the most common gaps; [arXiv 2511.12884](https://arxiv.org/html/2511.12884v1)).
@@ -129,12 +129,11 @@ contradicts the plan or a `[D#]`. It runs ~15× the token cost of single-agent w
 ([Anthropic — Multi-Agent Research](https://www.anthropic.com/engineering/multi-agent-research-system)),
 so reserve it.
 
-This handbook and the pre-build audit trail were both built with this
-pattern. The shape (as practiced in that audit):
+This handbook itself was built with this pattern. The shape:
 
 1. **Research, with citations.** Pin every claim to a primary source — bundled docs, a
    spec URL, or a `[D#]`. Verbose fetching/log-crunching happens in isolated subagents that
-   return a **dense, cited digest** (see the `making-of/research/` notes R1–R6, and §5).
+   return a **dense, cited digest** (see §5, and the worked trails under [`../sessions/`](../sessions/)).
 2. **N independent drafts.** Diverse role-lenses draft _independently, before seeing each
    other's work_ — the audit's five lenses (Architect, FrameworkFit, Theming, ContentModel,
    Sequencing). Diversity is what makes the next step work; identical agents add nothing.
@@ -142,7 +141,7 @@ pattern. The shape (as practiced in that audit):
    against the others. Critiques must be **fact-grounded** (cite a doc/decision), not vibes —
    this is where the plan actually moves.
 4. **Cited synthesis.** Consolidate into a verdict and record the resolved calls as `[D#]`
-   in [`../decisions/`](../decisions/).
+   in [`../decisions.md`](../decisions.md).
 
 **Two pitfalls to encode (both documented failure modes):**
 
@@ -319,8 +318,8 @@ Before you finish a task, self-check:
       the relevant `[D#]`.
 - [ ] Did I write framework code? → I verified it against `node_modules/next/dist/docs/`
       (or, for spec/bundler rules, against `[D#]` + the lint script), not memory.
-- [ ] Did I contradict a decision? → I stopped and wrote a **superseding** record instead of
-      editing the old one ([`./decision-records.md`](./decision-records.md)).
+- [ ] Did I contradict a decision? → I stopped and **updated the record** (owner's call) rather than
+      silently diverging from it ([`./decision-records.md`](./decision-records.md)).
 - [ ] Is every non-obvious claim in my output anchored to a `[D#]`, a `§N`, or a URL —
       pointing at the source that _actually contains_ it?
 - [ ] Did I keep docs minimal — no restating what CI already enforces?

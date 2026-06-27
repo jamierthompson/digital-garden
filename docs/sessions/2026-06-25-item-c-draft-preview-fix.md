@@ -96,7 +96,7 @@ to `generateMetadata`.** Decisive reasoning beyond the 2-1: the coupling can onl
 already covers the metadata coupling. The directive is redundant with work we must do anyway, and one
 mechanism is conceptually clearer. **Architect's insight is preserved** as the sanctioned one-line
 **escalation** (apply iff a future Next narrows the auto-rescue rule) — recorded in
-[`../decisions/`](../decisions/README.md). The `connection()` marker was dropped entirely (C1 proved it
+[`../decisions.md`](../decisions.md). The `connection()` marker was dropped entirely (C1 proved it
 unnecessary). Full verbatim trail (round-1 drafts, the C1/C2 experiment findings, round-2
 re-evaluations, synthesis, QA log):
 [`2026-06-25-item-c-draft-preview-debate/`](./2026-06-25-item-c-draft-preview-debate/).

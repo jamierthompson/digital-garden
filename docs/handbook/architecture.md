@@ -6,7 +6,7 @@ a hero, rich media), the components its essay embeds, and its tokens — compose
 Hosted on Vercel; essay + brand seeds in Sanity.
 
 This is the **reference for how the system is designed**, cited across the codebase as `§N`
-(e.g. `§3.2`, `§4.1`). Binding decisions are recorded in [`../decisions/`](../decisions/) and
+(e.g. `§3.2`, `§4.1`). Binding decisions are recorded in [`../decisions.md`](../decisions.md) and
 cited as `[D#]`; **where this doc and the decisions log ever disagree, the decisions log wins.**
 Token prefixes like `--<proj>-*` below are per-project placeholders.
 
@@ -23,16 +23,16 @@ These are the through-lines; everything else follows from them.
   abstraction either.
 
 - **Composition over inheritance.** Each project (and the site shell itself) is an independent
-  _themed island_ with its own **brand color and font**, composed on top of a shared invariant
-  foundation. Projects are not variations of one global _brand_; they are self-assembled from
-  shared parts. "Shared" is a build-time authoring convenience for the invariant tier and a
-  runtime parent only for genuinely invariant plumbing `[D1]`.
+  _themed island_ with its own **brand color and font**, composed on top of a shared foundation.
+  Projects are not variations of one global _brand_; they are self-assembled from shared parts.
+  "Shared" is a build-time authoring convenience for the foundation tier and a runtime parent only
+  for genuinely shared plumbing `[D1]`.
 
 - **Self-sufficient contracts; theme downward; never reach up _for a look_.** Every unit — a
   token group, a component, a project module — ships its own defaults and is themed by whatever
   composes it _downward_. Nothing depends on **themeable** ambient context (a brand or feel
-  value) provided by an ancestor it doesn't own. It _may_ depend on the global **invariant**
-  layer (spacing, motion, breakpoints, z-index, semantic colors) — that's shared plumbing, not a
+  value) provided by an ancestor it doesn't own. It _may_ depend on the global **foundation**
+  layer (spacing, motion, breakpoints, z-index) — that's shared plumbing, not a
   look. This is the precise form of "don't reach up the tree," and it generalizes the
   `var(--public-override, var(--_internal-default))` pattern from leaf primitives across the
   system — but as **composition-time** theming (a host sets the tokens a child reads), not
@@ -41,7 +41,7 @@ These are the through-lines; everything else follows from them.
 - **Right-sized, not maximal.** This is one app with a handful of projects, not a set of
   shippable packages. Keep the island model, downward theming, and the don't-reach-up discipline
   where they earn their keep. The foundation is shared globally and only **brand + font + feel**
-  are scoped per island `[D1]`; a small invariant _coordination_ layer is the norm (§3.1), the
+  are scoped per island `[D1]`; a small foundation _coordination_ layer is the norm (§3.1), the
   embed registry starts single-tier (§4.1), and the litmus (§8) applies to shared primitives, not
   every component. Concentrate the sophistication where it pays — the OKLCH engine (the
   load-bearing, genuinely hard piece), the content model, performance — and let the rest be
@@ -73,24 +73,24 @@ the same island way, but owned by the site rather than any project module.
 
 ## 3. Token & theming architecture
 
-### 3.1 Three tiers: invariant (global), brand+font (engine-scoped), feel (scoped override) `[D1]`
+### 3.1 Three tiers: foundation (global), brand+font (engine-scoped), feel (scoped override) `[D1]`
 
 What actually varies per project is **brand color, font, and the feel/geometry set** — not
 spacing, type-scale ratios, motion, or breakpoints, which are house style. So the system is three
 tiers, not "a complete self-described foundation per island":
 
-| Tier                     | Lives at                                   | Contents                                                                                                                                               |
-| ------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Invariant foundation** | global `:root`                             | spacing ramp, motion curves/durations, breakpoints, z-index scale, type-scale ratios, focus-ring **geometry**, the reset                               |
-| **Brand + font**         | `[data-project]` scope, engine-driven      | the OKLCH color ramp (incl. focus-ring _color_ and brand-derived status colors), + the resolved font face — always scoped, always flash-free           |
-| **Feel / geometry**      | `[data-project]` scope, small override set | corner radius, border weight, shadow softness, density — defaults inherited from the invariant tier, overridden only where a project genuinely differs |
+| Tier                | Lives at                                   | Contents                                                                                                                                                |
+| ------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Foundation**      | global `:root`                             | spacing ramp, motion curves/durations, breakpoints, z-index scale, type-scale ratios, focus-ring **geometry**, the reset                                |
+| **Brand + font**    | `[data-project]` scope, engine-driven      | the OKLCH color ramp (incl. focus-ring _color_ and brand-derived status colors), + the resolved font face — always scoped, always flash-free            |
+| **Feel / geometry** | `[data-project]` scope, small override set | corner radius, border weight, shadow softness, density — defaults inherited from the foundation tier, overridden only where a project genuinely differs |
 
 A project's pages and the components they embed live in the same scope and read **one per-project
-token namespace** — e.g. `--<proj>-*` — for the brand/feel tier, on top of the global invariant
+token namespace** — e.g. `--<proj>-*` — for the brand/feel tier, on top of the global foundation
 tier.
 
 ```
-global :root  (the invariant tier — shared plumbing AND shared looks-that-don't-vary)
+global :root  (the foundation tier — shared plumbing AND shared looks-that-don't-vary)
    ├─ spacing ramp · motion curves · breakpoints · z-index · type-scale ratios
    ├─ focus-ring GEOMETRY · reset
    └─ @layer foundation, brand, project;   ← bare order statement, loaded first [D12]
@@ -110,12 +110,12 @@ global :root  (the invariant tier — shared plumbing AND shared looks-that-don'
 Key points:
 
 - **The public token contract is the GENERIC layer** `[D2]`. Shared, cross-project units read
-  `--brand-*`, `--font-face`, and the global `--space-*`/invariant tokens — never a
+  `--brand-*`, `--font-face`, and the global `--space-*`/foundation tokens — never a
   project-prefixed `--<proj>-*`, because a shared embed cannot know a project's prefix. The
   project-prefixed name is a project-internal _alias_ mapped from the generic names; it exists for
   the project's own code, not as the contract.
 
-- **No global _brand/feel_ values; invariant foundation IS global** `[D1]`. The rule is not
+- **No global _brand/feel_ values; foundation IS global** `[D1]`. The rule is not
   "nothing themeable at `:root`" — it is "nothing that carries a project's _brand or feel_ at
   `:root`." Spacing/motion/breakpoints/type-ratios are themeable-in-principle but
   invariant-in-practice, so they live globally and a scope may _override_ a feel token via normal
@@ -172,11 +172,11 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   card swatches re-run the pure function in JS). Relative-color (`oklch(from …)`) is permitted only
   for decorative, non-contrast deltas. This is also what makes server-side validation possible.
 
-- **Focus-ring _color_ is an engine token** `[D7]`; only its geometry is global invariant. The
+- **Focus-ring _color_ is an engine token** `[D7]`; only its geometry is part of the global foundation. The
   global reset is kept free of other smuggled looks (`::selection`, `accent-color`, default link
   color) — those belong in the scoped tier.
 
-- **Status colors are brand-derived** `[D32]` _(supersedes `[D8]`)_. `success`/`error`/`warning`/
+- **Status colors are brand-derived** `[D32]`. `success`/`error`/`warning`/
   `info` are generated by the engine from each island's brand hue — scheme-aware and
   contrast-solved like the rest of the ramp — so every project carries status colors harmonized
   with its brand, not a single fixed global signal set. Build is deferred until the first
@@ -233,14 +233,14 @@ Shared logic lives in a shared module; the project is a presentation of it.
 The **project scope is the single downward-theming owner** for brand + feel: it declares the
 project's brand tokens (from the OKLCH engine) plus any feel overrides, and themes everything
 beneath it — every page and every embedded component — by passing those values _down_. They all
-read the same scoped tokens; the project scope is the authority. The invariant tier sits above,
+read the same scoped tokens; the project scope is the authority. The foundation tier sits above,
 shared.
 
 The directional rule:
 
 - **Host themes the child downward** by setting the tokens the child consumes. Fine.
 - **Child reaching up** for an ancestor's _themeable_ (brand/feel) value. Banned.
-- **Reading the global _invariant_ tier** (spacing, motion). Allowed — it's shared plumbing, not a
+- **Reading the global _foundation_ tier** (spacing, motion). Allowed — it's shared plumbing, not a
   look `[D1]`.
 
 The override surface is precise `[D3]`: you override the **seed** (re-run the engine, server-side,
@@ -268,8 +268,8 @@ src/projects/<slug>/
   ├─ tokens.css         the project's scoped brand + feel (--<proj>-* mapped from --brand-*)
   └─ index.ts           registry entry
 src/fonts/roster.ts        curated next/font declarations, one per face, exported by key
-src/embeds/registry.ts     shared embed map (key → component) — cross-project widgets
-src/projects/registry.ts   componentKey → () => import("@/projects/<slug>")   [literal imports, D21]
+src/lib/resolvers/embeds.ts      embedKey → embed-component loader — cross-project widgets [D10]
+src/lib/resolvers/components.ts  componentKey → () => import("@/projects/<slug>")  [literal imports, D21]
 src/*/keys.ts              string-constant key contracts (Studio imports these; resolvers don't) [D10]
 ```
 
@@ -282,7 +282,7 @@ embed tiers) `[D20, §4.3]`. The module owns its page components; thin route fil
 lives under `src/projects/<slug>/`; **routes live under `/work`** — `/work` is the index of project
 cards, `/work/<slug>` mounts a project's pages.
 
-**Start single-tier** — one shared `src/embeds/registry.ts` until a second project actually reuses a
+**Start single-tier** — one shared `src/lib/resolvers/embeds.ts` until a second project actually reuses a
 widget; introduce the project-local tier only then `[D24]`. Once you do, embeds follow the **same
 per-project-plus-shared shape as tokens and fonts**. For a given project the resolver composes the
 two (`{ ...shared, ...projectLocal }`) so a project-local key **overrides** a shared one of the same
@@ -302,7 +302,7 @@ holding it (§3.2).
 Sanity project doc { componentKey: "<slug>", brandColor, fontKey, copy, notes, tags }
         │
         ▼
-src/projects/registry.ts   "<slug>" → lazy import of the project module
+src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the project module
         │
         ▼
 src/projects/<slug>/   its pages (experience + any essay/hero/other) + embeddable components
@@ -310,7 +310,7 @@ src/projects/<slug>/   its pages (experience + any essay/hero/other) + embeddabl
 
 - **Content references; code resolves.** The essay comes from Sanity and references coded
   components by key, resolved against the project-local `embeds.ts` first, then the shared
-  `src/embeds/registry.ts`. The CMS never reimplements interaction.
+  `src/lib/resolvers/embeds.ts`. The CMS never reimplements interaction.
 - **Keys are a contract with no referential integrity — guard the seam** `[D10]`. `keys.ts` is the
   **single source of truth** for which keys exist; resolvers are typed `satisfies Record<Key, …>`
   so a missing resolver entry is a **compile error** (converts code→code drift from a runtime crash
@@ -420,8 +420,8 @@ Practical notes:
   override, defaulted from the engine — never a required parallel field.
 - **Keys are a contract; the Studio never imports implementations** `[D10]`. Each reference-by-key
   pair is split: a tiny `keys.ts` of string constants (imported by the schema to build its dropdown)
-  and a separate resolver in the app — `projects/registry.ts`, `fonts/roster.ts`,
-  `embeds/registry.ts` — which the Studio never imports. This keeps `next/font` and lazy project
+  and a separate resolver in the app — `lib/resolvers/components.ts`, `lib/resolvers/fonts.ts`,
+  `lib/resolvers/embeds.ts` — which the Studio never imports. This keeps `next/font` and lazy project
   bundles out of the Studio bundle. With the **standalone Studio** `[D23]` this separation is
   structural (different workspace package), so `keys.ts` lives in a shared workspace package both
   consume rather than being duplicated. See §4.2 for the typed-resolver + fallback discipline that
@@ -499,7 +499,7 @@ Before shipping a **shared** unit (the litmus is for shared primitives, not ever
       `--space-*`) plus its own defaults — with no project-specific (`--<proj>-*`) dependency? `[D2]`
 - [ ] Is every themeable value exposed as a **public token** with an internal default?
 - [ ] Does it avoid assuming any **themeable ambient context** (a parent's _brand or feel_ value, a
-      font mounted higher up)? Reading the global **invariant** tier (spacing, motion) is fine —
+      font mounted higher up)? Reading the global **foundation** tier (spacing, motion) is fine —
       that's plumbing, not a look. `[D1]`
 - [ ] If shared, is it **declared once and composed in**, never re-instantiated per island?
 - [ ] Does the host theme it **downward** (set the tokens it consumes) rather than the unit reaching

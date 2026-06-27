@@ -1,6 +1,6 @@
 /**
  * Author-time `brandColor` validation — layer 2 of D9's three-layer defence,
- * now backed by the engine's *own* color pipeline rather than a regex.
+ * backed by the engine's *own* color pipeline, not a regex.
  *
  * This runs `@garden/oklch`'s `buildTokenSet` (parse → gamut-map → contrast-solve)
  * and accepts the value iff the engine did NOT fall back. So the author-time check

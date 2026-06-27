@@ -2,13 +2,13 @@
 
 **Read this first.** It is the map: what lives where, the mental model, the rules you cannot break, and a cold-start sequence for any task. It does **not** re-explain the system — for that, the architecture docs are the source of truth, and this doc points you to the right one.
 
-Where this handbook and the architecture doc ever disagree, **[`../decisions/`](../decisions/) wins** (it is the source of truth for binding rulings). Where any doc and the framework disagree, **the bundled Next docs win** (`node_modules/next/dist/docs/`) — your training data is stale on this stack (`middleware` → `proxy`, async request APIs, `export const dynamic` gone; see [Golden rules](#golden-rules-non-negotiable)).
+Where this handbook and the architecture doc ever disagree, **[`../decisions.md`](../decisions.md) wins** (it is the source of truth for binding rulings). Where any doc and the framework disagree, **the bundled Next docs win** (`node_modules/next/dist/docs/`) — your training data is stale on this stack (`middleware` → `proxy`, async request APIs, `export const dynamic` gone; see [Golden rules](#golden-rules-non-negotiable)).
 
 ---
 
 ## What this project is
 
-A personal portfolio + digital garden. Each **project is a self-contained module** — its pages, its interactive experience, the components its essay embeds, and its scoped tokens — composed on a shared invariant foundation. Content + brand seeds live in **Sanity**; the site renders on **Next.js 16 / React 19** on Vercel. The foundation, the OKLCH engine, the content model, and the first project are live; remaining work is tracked in the [GitHub issue tracker](https://github.com/jamierthompson/digital-garden/issues).
+A personal portfolio + digital garden. Each **project is a self-contained module** — its pages, its interactive experience, the components its essay embeds, and its scoped tokens — composed on a shared foundation. Content + brand seeds live in **Sanity**; the site renders on **Next.js 16 / React 19** on Vercel. The foundation, the OKLCH engine, the content model, and the first project are live; remaining work is tracked in the [GitHub issue tracker](https://github.com/jamierthompson/digital-garden/issues).
 
 The stack, verified — do not contradict it:
 
@@ -31,7 +31,7 @@ The stack, verified — do not contradict it:
 docs/
   handbook/                THIS handbook — how we work (incl. architecture.md, the system model)
     architecture.md        the system model (§N anchors referenced everywhere)
-  decisions/               ADRs — BINDING. Cite as [D#].
+  decisions.md             ADRs — BINDING. Cite as [D#].
   sessions/                per-session build + QA records (durable QA-log evidence)
 AGENTS.md                  lean pointer for agents; @-imports into CLAUDE.md
 README.md                  human-facing overview + scripts
@@ -44,10 +44,10 @@ scripts/
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
     layout.tsx             root layout (shell nav skeleton, shell fonts preload:true)
-    foundation.css         invariant :root tier + the @layer foundation, brand, project order
+    foundation.css         foundation :root tier + the @layer foundation, brand, project order
   lib/                     resolvers, keys, cardSwatches, breakpoints (build-time, NOT :root vars [D22])
   projects/<slug>/         self-contained project modules (registry-resolved, literal imports [D21])
-  embeds/registry.ts       shared embed map · src/projects/registry.ts  componentKey → module
+  embeds/                  shared cross-project embed components (componentKey/embedKey resolved in lib/resolvers/)
   fonts/roster.ts          curated next/font faces, one per key (preload:false [D11])
   sanity/lib/              Sanity client + env + the defineLive read path [D31]
 packages/
@@ -64,7 +64,7 @@ Four ideas carry the whole architecture. Internalize the shape; read the cited s
 
 1. **Modules, not a monolith** (§1, §4). Each project is a self-contained module under `src/projects/<slug>/`; genuinely shared parts live in plain shared `src/` modules. Dependencies point **projects → shared, never back**, and never project → project. This is lint-enforced (see Golden rules).
 
-2. **Three-tier theming** (§3.1 [D1, D2]). Only **brand color, font, and feel/geometry** vary per project; everything else is the invariant foundation at global `:root`. The public token contract is the **generic** layer (`--brand-*`, `--font-face`, `--space-*`) — a project-prefixed `--<proj>-*` is a project-internal alias, never what a shared unit codes against [D2].
+2. **Three-tier theming** (§3.1 [D1, D2]). Only **brand color, font, and feel/geometry** vary per project; everything else is the foundation at global `:root`. The public token contract is the **generic** layer (`--brand-*`, `--font-face`, `--space-*`) — a project-prefixed `--<proj>-*` is a project-internal alias, never what a shared unit codes against [D2].
 
 3. **The OKLCH engine** (§3.2 [D3–D6, D9]) — a pure, **isomorphic** `(brandColor, scheme) → tokenSet` in `packages/oklch` (the `@garden/oklch` workspace package, so the Studio can import it too [D23]). It bakes literals server-side, is scheme-aware, and is **defensive — never throws** [D9]. The load-bearing, genuinely hard piece; one engine, three consumers. Read §3.2 before building against it.
 
@@ -102,7 +102,7 @@ These are the things that silently break this specific stack, or that the owner 
 ## Starting a task from cold
 
 1. **Pick up the work.** Open the [GitHub issue tracker](https://github.com/jamierthompson/digital-garden/issues) (or take the issue the owner assigns). Each issue is a self-contained slice with its own acceptance criteria and cited `[D#]`s.
-2. **Read the cited sections.** Issues and code cite `§N` (the system model, [`./architecture.md`](./architecture.md)) and `[D#]` (decisions, [`../decisions/`](../decisions/)). Open the cited section and ADR before writing code. The ADRs are **binding** and may override the architecture doc.
+2. **Read the cited sections.** Issues and code cite `§N` (the system model, [`./architecture.md`](./architecture.md)) and `[D#]` (decisions, [`../decisions.md`](../decisions.md)). Open the cited section and ADR before writing code. The ADRs are **binding** and may override the architecture doc.
 3. **Verify framework facts.** If your task touches the framework, open the matching bundled doc — do not trust memory:
 
    | Touching…                         | Bundled doc (under `node_modules/next/dist/docs/`)                                   |
@@ -125,7 +125,7 @@ These are the things that silently break this specific stack, or that the owner 
 | Your task is about…                                               | Read                                                                       |
 | ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | The system model / what the architecture _is_                     | [`./architecture.md`](./architecture.md) (§N)                              |
-| A binding decision / why we chose X                               | [`../decisions/`](../decisions/) ([D#])                                    |
+| A binding decision / why we chose X                               | [`../decisions.md`](../decisions.md) ([D#])                                |
 | What to do next / the work backlog                                | [GitHub issues](https://github.com/jamierthompson/digital-garden/issues)   |
 | Code style, TS rules, the `@layer` trap, import boundaries        | [`./engineering-standards.md`](./engineering-standards.md)                 |
 | Branching, commits, PRs, keeping CI green                         | [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)                     |
@@ -133,7 +133,7 @@ These are the things that silently break this specific stack, or that the owner 
 | Writing tests, dual-env engine tests, co-location, E2E timing     | [`./testing.md`](./testing.md)                                             |
 | How agents collaborate, handoffs, the audit/debate shape          | [`./working-with-agents.md`](./working-with-agents.md)                     |
 | Independent adversarial QA before a PR (solo or team)             | [`./working-with-agents.md`](./working-with-agents.md) §6.2                |
-| Opening / superseding an ADR                                      | [`./decision-records.md`](./decision-records.md)                           |
+| Opening / editing an ADR                                          | [`./decision-records.md`](./decision-records.md)                           |
 | Contrast targets (APCA/WCAG), focus rings, fonts, Core Web Vitals | [`./accessibility-and-performance.md`](./accessibility-and-performance.md) |
 | Secrets, Sanity tokens, draft mode, Vercel deploys/rollbacks      | [`./security-and-ops.md`](./security-and-ops.md)                           |
 | Anything about how Next.js 16 / React 19 actually works           | `node_modules/next/dist/docs/` (version-matched)                           |
