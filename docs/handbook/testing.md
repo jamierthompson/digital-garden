@@ -4,7 +4,7 @@ How we test this repo. Lean, meaningful-over-exhaustive, agent-runnable. This is
 test", not "what to test in detail" — what a given change must cover lives in its issue's
 acceptance criteria; the co-location and scheduling rules are locked by [D18]/[D19].
 
-> **Stack is current, not remembered.** Vitest 4, React 19.2.4, Next 16.2.9 all diverge
+> **Stack is current, not remembered.** Vitest 4, React 19, Next.js 16 all diverge
 > from older guides. Verify any framework testing claim against the bundled doc at
 > `node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md` before writing config.
 
@@ -250,9 +250,9 @@ paint, no async RSCs) and the absent Playwright leave open for any rendered surf
 - **`server-only` / `client-only` in the engine break [D14]** — forbidden; the boundary
   lint + dual-env run are the guards, not those packages.
 - **`workspace` is deprecated** — use `test.projects` (Vitest ≥3.2 / 4).
-- **The `@/*` alias is unverified config** — the live `resolve: { tsconfigPaths: true }` is
-  non-standard; prefer the bundled-doc `vite-tsconfig-paths` plugin and confirm aliases
-  resolve in **both** projects before relying on them.
+- **The `@/*` alias** resolves via native `resolve: { tsconfigPaths: true }` (Vite 7+; the older
+  `vite-tsconfig-paths` plugin is redundant now). Confirm aliases resolve in **both** projects
+  before relying on them.
 - **OKLCH `L` ≠ contrast** ([D4]) — assert _measured_ ratios per hue; that's why yellow and
   cyan are mandatory stressers in the harness.
 - **Don't snapshot engine CSS** — assert numeric contrast/gamut so tests fail for the right

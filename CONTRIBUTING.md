@@ -12,7 +12,7 @@ politely, since the repo runs a specific solo + agent workflow (below).
 ## Found a bug or have an idea?
 
 Open a [GitHub issue](https://github.com/jamierthompson/digital-garden/issues). The
-[issue templates](./.github/ISSUE_TEMPLATE/) cover bug reports and tasks; pick whichever fits.
+[issue templates](./.github/ISSUE_TEMPLATE/) cover bug reports, tasks, and spikes; pick whichever fits.
 
 ## How development actually works here
 

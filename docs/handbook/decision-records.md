@@ -83,9 +83,9 @@ at the bottom renders it. Match the shape already running in `decisions/README.m
 | **Why**         | The reasoning. Add `(user call, <date>)` when the owner makes the final call; add `(verified against <path>)` for version-dependent facts.                                       |
 | **`[D#]` refs** | Cross-reference related decisions inline.                                                                                                                                        |
 
-**Status vocabulary (closed set — adopt one, don't invent).** This **extends**
-`decisions/README.md`'s two-item legend (`Decided` / `Open`) by formalizing the
-parenthetical and supersession patterns the log already uses informally:
+**Status vocabulary (closed set — adopt one, don't invent).** This expands
+`decisions/README.md`'s legend (`Decided` / `Superseded by D#` / `Open`) with the
+full parenthetical and supersession patterns the log uses:
 
 | Status                                | Meaning                                                                                                                 |
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |

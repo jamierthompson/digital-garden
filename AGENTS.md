@@ -25,8 +25,8 @@ work backlog is [GitHub issues](https://github.com/jamierthompson/digital-garden
 
 ## The one rule that overrides your memory
 
-**Verify, then write — never trust stale memory.** This repo is Next.js 16.2.9 / React 19.2.4;
-your training data is wrong here often enough to be dangerous.
+**Verify, then write — never trust stale memory.** This repo is Next.js 16 / React 19 (exact pins
+in `package.json`); your training data is wrong here often enough to be dangerous.
 
 - **Capabilities** → before hand-rolling, use an installed skill / subagent / MCP tool if one
   fits (`sanity:*`, `vercel:*`, `chrome-devtools` for CWV/a11y). Full ladder: [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md) §1.

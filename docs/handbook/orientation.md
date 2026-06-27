@@ -2,7 +2,7 @@
 
 **Read this first.** It is the map: what lives where, the mental model, the rules you cannot break, and a cold-start sequence for any task. It does **not** re-explain the system — for that, the architecture docs are the source of truth, and this doc points you to the right one.
 
-Where this handbook and the architecture doc ever disagree, **[`../decisions/`](../decisions/) wins** (it is the source of truth for binding rulings). Where any doc and the framework disagree, **the bundled Next docs win** (`node_modules/next/dist/docs/`) — your training data is stale on this stack (`middleware` → `proxy`, async request APIs, `export const dynamic` gone; see [Golden rules](#golden-rules)).
+Where this handbook and the architecture doc ever disagree, **[`../decisions/`](../decisions/) wins** (it is the source of truth for binding rulings). Where any doc and the framework disagree, **the bundled Next docs win** (`node_modules/next/dist/docs/`) — your training data is stale on this stack (`middleware` → `proxy`, async request APIs, `export const dynamic` gone; see [Golden rules](#golden-rules-non-negotiable)).
 
 ---
 
