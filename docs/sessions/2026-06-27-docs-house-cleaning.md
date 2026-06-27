@@ -37,7 +37,7 @@ Solo lead. Two read-only **audit subagents** up front (citation/blast-radius map
 **Defects → fix → re-check:**
 
 1. `src/app/foundation.css` asserted the **superseded D8** position ("fixed signal colors, NOT brand-derived") in shipped code → rewritten to D32 (no global slot; brand-derived per island) → re-checked, consistent with the new decision.
-2. **14 dangling `docs/sessions/**`links** to deleted/moved docs (the structural author fixed`decisions/README.md`'s links but not the session referrers) → index (`sessions/README.md`) repointed (making-of → archive; deferred-findings → issues); dated logs de-linked deleted-doc refs to code-spans and repointed `../decisions.md`→`../decisions/` → re-checked, zero dangling.
+2. **14 dangling links in the `docs/sessions/` tree** to deleted/moved docs (the structural author fixed `decisions/README.md`'s links but not the session referrers) → index (`sessions/README.md`) repointed (making-of → archive; deferred-findings → issues); dated logs de-linked deleted-doc refs to code-spans and repointed `../decisions.md` → `../decisions/` → re-checked, zero dangling.
 3. `src/lib/resolvers/embeds.ts` leftover **`PHASE 3+:`** comment (uppercase — missed by the case-sensitive sweep) → dropped → re-grep clean (case-insensitive).
 4. `packages/oklch/src/README.md` referenced deleted `architecture-plan §3.2` → `architecture.md §3.2`.
 
