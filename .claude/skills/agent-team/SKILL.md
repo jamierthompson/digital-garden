@@ -11,8 +11,8 @@ doing that well **in this repo**. It is grounded in:
 
 - The repo's own operating manual: [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md)
   §4 (research → drafts → debate → synthesis), §5 (briefing), §6/§6.1 (own-a-slice, lead curates).
-- Two worked examples (frozen, in a local out-of-repo `archive/`): the pre-build five-lens audit and
-  the handbook making-of trail — both are this pattern, run to completion.
+- Continuous refinement: every session runs this pattern and records what worked (and what didn't)
+  in [`docs/sessions/`](../../../docs/sessions/), so the practice improves with use.
 - Official guidance: [Agent teams](https://code.claude.com/docs/en/agent-teams) and
   [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
 
