@@ -1,7 +1,7 @@
 ---
 name: Spike
 about: A time-boxed investigation — the deliverable is a decision/answer, not shippable code
-title: "SPIKE – "
+title: ""
 labels: "type:spike"
 ---
 
