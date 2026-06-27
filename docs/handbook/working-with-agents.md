@@ -6,10 +6,10 @@
 > theater, only what helps an agent land cold and ship clean code.
 >
 > Sources of truth this doc points at — open them, don't summarize from memory:
-> framework facts → `node_modules/next/dist/docs/`; decisions → [`../decisions.md`](../decisions.md) (`[D#]`);
-> system model → [`../architecture-plan.md`](../architecture-plan.md) (`§N`); build order →
-> [`../build-phases.md`](../build-phases.md); the worked example of this process →
-> [`../audit/`](../audit/).
+> framework facts → `node_modules/next/dist/docs/`; decisions → [`../decisions/`](../decisions/) (`[D#]`);
+> system model → [`./architecture.md`](./architecture.md) (`§N`); the work backlog →
+> [GitHub issues](https://github.com/jamierthompson/digital-garden/issues); the worked example of this
+> process (frozen) → [`../archive/audit/`](../archive/audit/).
 
 ---
 
@@ -23,8 +23,8 @@ framework code.**
 - **Framework behavior** → bundled docs at `node_modules/next/dist/docs/` (`01-app`,
   `02-pages`, `03-architecture`, …). They ship with the installed version, so they are
   correct where memory is not. The root [`AGENTS.md`](../../AGENTS.md) says the same.
-- **Project decisions** → [`../decisions.md`](../decisions.md). Cite as `[D#]`.
-- **System model** → [`../architecture-plan.md`](../architecture-plan.md). Cite as `§N`.
+- **Project decisions** → [`../decisions/`](../decisions/). Cite as `[D#]`.
+- **System model** → [`./architecture.md`](./architecture.md). Cite as `§N`.
 - **External standards** (Conventional Commits, WCAG/APCA, the `AGENTS.md` convention, ADR
   practice, Core Web Vitals) → state them **as that standard**, with a URL. Accuracy over confidence.
 
@@ -139,8 +139,8 @@ contradicts the plan or a `[D#]`. It runs ~15× the token cost of single-agent w
 ([Anthropic — Multi-Agent Research](https://www.anthropic.com/engineering/multi-agent-research-system)),
 so reserve it.
 
-This handbook and the [`../audit/`](../audit/) trail were both built with this pattern.
-The shape (as practiced in `audit/`):
+This handbook and the [`../archive/audit/`](../archive/audit/) trail were both built with this
+pattern. The shape (as practiced in that audit):
 
 1. **Research, with citations.** Pin every claim to a primary source — bundled docs, a
    spec URL, or a `[D#]`. Verbose fetching/log-crunching happens in isolated subagents that
@@ -150,9 +150,9 @@ The shape (as practiced in `audit/`):
    Sequencing). Diversity is what makes the next step work; identical agents add nothing.
 3. **Adversarial debate (devil's advocate).** Each lens challenges, defends, or **concedes**
    against the others. Critiques must be **fact-grounded** (cite a doc/decision), not vibes —
-   this is where the plan actually moves ([`../audit/round-2-debate.md`](../audit/round-2-debate.md)).
+   this is where the plan actually moves ([`../archive/audit/round-2-debate.md`](../archive/audit/round-2-debate.md)).
 4. **Cited synthesis.** Consolidate into a verdict and record the resolved calls as `[D#]`
-   in [`../decisions.md`](../decisions.md) ([`../audit/synthesis.md`](../audit/synthesis.md)).
+   in [`../decisions/`](../decisions/) ([`../archive/audit/synthesis.md`](../archive/audit/synthesis.md)).
 
 **Two pitfalls to encode (both documented failure modes):**
 
@@ -194,8 +194,8 @@ fetches, log crunching) or independent enough to parallelize (the audit's per-le
 Context doesn't carry across a handoff — the mechanics of self-contained-in / dense-digest-out
 live in §5. This section is what to do _between_ handoffs:
 
-- **Persist phase summaries to the repo before re-spawning.** External memory (the docs
-  themselves — this handbook, `decisions.md`, the `making-of/` notes) beats context-window
+- **Persist progress summaries to the repo before re-spawning.** External memory (the docs
+  themselves — this handbook, the decisions log, the session records) beats context-window
   stuffing for long, multi-session efforts
   ([Anthropic — Multi-Agent Research](https://www.anthropic.com/engineering/multi-agent-research-system)).
   A prompt that says "continue what we were doing" fails; a pointer to a written summary doesn't.
@@ -285,18 +285,18 @@ each tool call.**
   - **The reviewer reviews; the author fixes — don't collapse the two.** Findings go back to
     the **owning agent** (on a solo session, that's the lead wearing its author hat — but the QA pass is
     still a separate, fresh agent), which makes the changes; then QA reviews **again**. Repeat until clean.
-  - **Fix in-scope now; defer only genuinely-later work.** Anything in the current slice's or
-    phase's scope gets **fixed before the PR**. A finding is deferred only when it truly belongs
-    to a later phase — it needs a package boundary that doesn't exist yet, a future consumer, or
-    later-phase work. The lead then logs it in [`../build-phases.md`](../build-phases.md) under
-    the phase that should pick it up (the "Review-surfaced follow-ups" section), with the PR#
-    and a one-line reason. Deferring is for cross-phase work, **not** a shortcut around the slice.
+  - **Fix in-scope now; defer only genuinely-later work.** Anything in the current slice's
+    scope gets **fixed before the PR**. A finding is deferred only when it truly belongs to
+    later work — it needs a package boundary that doesn't exist yet, a future consumer, or a
+    separable change. The lead then files it as a new
+    [GitHub issue](https://github.com/jamierthompson/digital-garden/issues) with the PR# and a
+    one-line reason. Deferring is for genuinely-separable work, **not** a shortcut around the slice.
 
 - **Own merge-readiness — CI green, review clean.** "Ready to merge" is the **lead's** call, and
   it means **both**: the CI `verify` gate green on the curated tip
   ([`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §5) **and** the independent QA review
   (above) clean — every finding either fixed in-branch by the owning agent or filed as a
-  cross-phase follow-up in [`../build-phases.md`](../build-phases.md) with its PR# and reason. The
+  follow-up [GitHub issue](https://github.com/jamierthompson/digital-garden/issues) with its PR# and reason. The
   independent review happens **pre-PR** via the QA subagent — there is **no automatic review bot**
   in CI. The repo keeps one on-demand Claude workflow (`@claude` in a PR comment); the lead may
   invoke it for a second opinion and treats anything it surfaces like QA's findings, but it's a
@@ -308,10 +308,10 @@ each tool call.**
   next team to pick up. At that point, and before any squash-merge, the session produces both, or it
   isn't done:
   1. **Update the project [`README.md`](../../README.md)** so it still describes the repo as it now
-     is — at minimum the **Status** line (phase progress) and any changed scripts, structure, or
-     conventions. The README is human-facing and rots silently; a stale "Phase 0 complete" is the
-     smell this rule exists to kill. (The per-task echo of this is the DoD §6 "docs updated" box;
-     this makes it a hard **session-level** requirement, not a maybe.)
+     is — any changed scripts, structure, conventions, or status. The README is human-facing and
+     rots silently; a stale status claim is the smell this rule exists to kill. (The per-task echo
+     of this is the DoD §6 "docs updated" box; this makes it a hard **session-level** requirement,
+     not a maybe.)
   2. **Write the session record** in [`../sessions/`](../sessions) (`YYYY-MM-DD-<slug>.md`) — why / shape /
      outcome / **QA log** / lessons, per [`../sessions/README.md`](../sessions/README.md) — and add its
      row to that index. This is the repo's external memory; a session that did real product work and

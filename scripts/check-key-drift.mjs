@@ -1,4 +1,4 @@
-// Key-drift guard [D10]. LIVE as of Phase 2.
+// Key-drift guard [D10].
 //
 // WHAT KEYS ARE, AND THE TWO DRIFT DIRECTIONS
 // -------------------------------------------
@@ -18,12 +18,12 @@
 //
 //   (b) published Sanity keys <-> keys.ts — an editor saves a `fontKey` whose code
 //       was renamed/deleted (or vice versa). Catching that needs a live GROQ query
-//       against the dataset and a Sanity client; it is explicitly **Phase 4**
-//       (build-phases.md, "runtime GROQ-published-keys-vs-code net") and OUT OF
+//       against the dataset and a Sanity client; it is tracked separately in the
+//       GitHub issue backlog ("runtime GROQ-published-keys-vs-code net") and OUT OF
 //       SCOPE here. Resolvers already degrade gracefully on a miss (typed NotFound),
 //       so (b) is a lint/observability net, not a crash risk.
 //
-// WHAT THIS SCRIPT CHECKS (the honest, node-safe Phase-2 increment)
+// WHAT THIS SCRIPT CHECKS (the honest, node-safe increment)
 // -----------------------------------------------------------------
 //   1. keys.ts loads and exports the three key arrays (catches a broken/renamed
 //      contract module — the thing everything else keys off).

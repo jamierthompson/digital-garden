@@ -3,7 +3,7 @@
 The non-negotiable constraints every agent honors when shipping UI here. This is a
 **checklist you verify against**, not background reading. It does not re-explain the
 OKLCH engine or the rendering model — for those, read
-[`../architecture-plan.md`](../architecture-plan.md) §3.2 (engine) and §7 (Cache
+[`./architecture.md`](./architecture.md) §3.2 (engine) and §7 (Cache
 Components / PPR) and the decisions they cite. This doc says _what an agent must check_
 and _why it matters here_.
 
@@ -27,8 +27,9 @@ lightness `L` for on-brand / on-surface pairs against the _relevant background_,
   the token it emits. `[D4]`
 - **Read the engine's emitted tokens** (`var(--brand-*)`, focus-ring color `[D7]`) — do
   not invent a foreground color in a CSS Module and hope it clears 4.5:1.
-- **If you must author a static color** (rare — semantic/signal colors `[D8]`, decorative
-  hairlines), it's _your_ job to verify the ratio. Decorative tints via
+- **If you must author a static color** (rare — a decorative hairline, a one-off accent),
+  it's _your_ job to verify the ratio. Status colors are **not** this case — they're
+  engine-derived from the brand hue like the rest of the ramp `[D32]`. Decorative tints via
   `oklch(from …)` are permitted **only** for non-contrast deltas `[D3]`.
 
 ### Targets to check against
@@ -58,7 +59,7 @@ of truth.
 > standard; cite **Lc 75** as a quality target.
 
 APCA primary for text, WCAG 2.x ratios as the compliance fallback — exactly `[D4]`. These
-targets are **proven by the Phase-1 visual contrast harness, owned by
+targets are **proven by the visual contrast harness, owned by
 [`./testing.md`](./testing.md)** (`[D19]`): the yellow/cyan stressers, both light and dark
 schemes, the gamut-map-first ordering, and the "assert the measured number, don't snapshot
 the CSS" rule all live there. **This doc owns the _targets_; testing owns the _harness_.**
@@ -107,10 +108,10 @@ The architecture already buys most of this — don't undo it:
   per-project display face swaps _intentionally_ on navigation (§5) — that's by design, not
   a CLS bug. Reserve space for media; size embeds.
 
-**CWV is verified in Phase 4, not gated early** (`[D17]`, build-phases Phase 4) — but the
-levers above are decided now, so don't regress them in earlier phases. Per task, browser
+**CWV is verified by a dedicated budget pass** (`[D17]`; tracked in the issue backlog), **not
+gated early** — but the levers above are decided now, so don't regress them. Per task, browser
 spot-check the surface you touched for obvious CLS/paint regressions via the Chrome DevTools
-MCP (§5) — lighter than, and distinct from, the Phase-4 budget pass `[D25]`.
+MCP (§5) — lighter than, and distinct from, that budget pass `[D25]`.
 
 ---
 
@@ -130,13 +131,13 @@ the roster.
   Cache Components `[D11]`). Caching bakes the resolved className into the HTML but emits
   **no** `<link rel=preload as=font>` for a face it couldn't statically identify.
 - **Per-project faces are applied, not preloaded:** `.variable` on the `[data-project]`
-  scope, `--logx-font` maps to it; they tolerate `font-display: swap` below the fold.
+  scope, `--<proj>-font` maps to it; they tolerate `font-display: swap` below the fold.
 - **If an above-the-fold project face genuinely must preload,** emit
   `<link rel="preload" as="font" crossorigin>` **manually** — `crossorigin` is required
   for fonts even same-origin.
 - Prefer **variable fonts** (one file, many weights).
 
-**Empirical verification (do this, don't assume) — Phase 0.5 inspection `[D11]`:**
+**Empirical verification (do this, don't assume) `[D11]`:**
 
 ```bash
 pnpm build && pnpm start &        # serve the production build locally
@@ -178,12 +179,12 @@ pnpm start` for production-faithful output), then drive the MCP.
   prerendered shell, not a streamed hole. The browser counterpart to §4's empirical `<head>` check.
 - **Console** — no errors or warnings on the surface you touched.
 
-**This is not the Phase-4 CWV budget pass** `[D17]`. That formal pass — asserting the LCP / INP
-/ CLS budgets in §3 and the perf hardening — stays Phase 4. This per-task check is the lighter
+**This is not the CWV budget pass** `[D17]`. That formal pass — asserting the LCP / INP / CLS
+budgets in §3 and the perf hardening — is its own tracked task. This per-task check is the lighter
 _"did I obviously regress accessibility, layout, or the flash-free theme on the surface I just
 touched"_; the a11y floor (§2) is always-on, so its verification is too. It is an
 **agent-driven manual step, not a CI gate** (CI can't drive a browser) — the same status as
-§4's `<head>` check. Committed automated coverage stays Vitest now / Playwright at Phase 3
+§4's `<head>` check. Committed automated coverage stays Vitest now / Playwright when added
 ([`./testing.md`](./testing.md), `[D18]`/`[D19]`).
 
 ---
@@ -213,7 +214,6 @@ touched"_; the a11y floor (§2) is always-on, so its verification is too. It is 
 
 _Related: [`./security-and-ops.md`](./security-and-ops.md) (secrets, Sanity tokens, Vercel
 ops), [`./definition-of-done.md`](./definition-of-done.md) (the ship gate),
-[`./testing.md`](./testing.md) (the Phase-1 contrast harness). Architecture:
-[`../architecture-plan.md`](../architecture-plan.md) §3.1–3.2, §5, §7 ·
-[`../decisions.md`](../decisions.md) `[D4]` `[D5]` `[D6]` `[D7]` `[D11]` `[D17]` `[D19]` `[D25]` ·
-[`../build-phases.md`](../build-phases.md) Phases 0.5 / 1 / 4._
+[`./testing.md`](./testing.md) (the contrast harness). Architecture:
+[`./architecture.md`](./architecture.md) §3.1–3.2, §5, §7 ·
+[`../decisions/`](../decisions/) `[D4]` `[D5]` `[D6]` `[D7]` `[D11]` `[D17]` `[D19]` `[D25]` `[D32]`._

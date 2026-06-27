@@ -1,8 +1,8 @@
 # Testing
 
 How we test this repo. Lean, meaningful-over-exhaustive, agent-runnable. This is "how we
-test", not "what to test in detail" — the per-phase test list lives in
-[`../build-phases.md`](../build-phases.md) and is locked by [D18]/[D19].
+test", not "what to test in detail" — what a given change must cover lives in its issue's
+acceptance criteria; the co-location and scheduling rules are locked by [D18]/[D19].
 
 > **Stack is current, not remembered.** Vitest 4, React 19.2.4, Next 16.2.9 all diverge
 > from older guides. Verify any framework testing claim against the bundled doc at
@@ -17,11 +17,11 @@ test", not "what to test in detail" — the per-phase test list lives in
 | Runner           | **Vitest 4** (`vitest run` in CI, `vitest` watch locally)                                                                                                 |
 | Component lib    | **React Testing Library 16** + `@testing-library/jest-dom`                                                                                                |
 | DOM env          | **jsdom** (single env today; engine adds a `node` project — see [Dual-env](#dual-env-the-oklch-engine-d14))                                               |
-| E2E              | **Playwright — not yet installed.** Add only at **Phase 3** when routing lands ([D18])                                                                    |
+| E2E              | **Playwright — not installed.** Add when an E2E of the primary flow is warranted ([D18]); a jsdom integration test (Sanity mocked) covers it for now      |
 | Browser checks   | **Chrome DevTools MCP** — agent-driven a11y/CWV/visual verification of rendered surfaces; the ship-gate browser check, **not** committed CI tests ([D25]) |
 | Where tests live | **Co-located** next to the subject (`Foo.test.tsx` beside `Foo.tsx`) ([D18])                                                                              |
 | Coverage target  | **None.** Meaningful coverage, not a percentage                                                                                                           |
-| Async RSCs       | **Don't unit-test** — jsdom can't render them; extract the logic (Phase 1/2) or route to Playwright (Phase 3)                                             |
+| Async RSCs       | **Don't unit-test** — jsdom can't render them; extract the logic and unit-test that, or cover with Playwright (E2E)                                       |
 
 ---
 
@@ -53,10 +53,10 @@ owner's "meaningful coverage, not exhaustive" rule.
   see [Engine contract](#engine-contract-assert-behaviour-not-snapshots)). Highest value, easiest to test.
 - **Sync Server Components and Client Components** — render with RTL, assert what the user
   sees and can interact with.
-- **Resolvers / `keys.ts` lookups / index queries** — Phase 2 ([D18]); assert the typed
+- **Resolvers / `keys.ts` lookups / index queries** ([D18]); assert the typed
   `NotFound` path and visible fallbacks ([D10]).
 - **The bad-input / error path** — `brandColor` garbage → safe fallback, never a throw ([D9]).
-- **One integration/E2E of the primary flow** — Phase 3, Playwright ([D18]/[D19]).
+- **One integration/E2E of the primary flow** ([D18]/[D19]) — a jsdom integration test (Sanity mocked) today; Playwright when added.
 
 **Skip:**
 
@@ -110,8 +110,8 @@ describe("Foo", () => {
   consistency, not correctness. `jest-dom` matchers (`toBeInTheDocument`) come from
   `tests/setup.ts`.
 
-This priority list governs **component tests**. The Phase-1 engine harness asserts numeric
-contrast/color values, not roles — see [Visual contrast harness](#phase-1-visual-contrast-harness-d17).
+This priority list governs **component tests**. The engine harness asserts numeric
+contrast/color values, not roles — see [Visual contrast harness](#visual-contrast-harness-d17).
 
 ---
 
@@ -123,10 +123,7 @@ beside `Foo.tsx`. Next.js explicitly blesses this — the bundled vitest doc use
 router."_ We always co-locate; we do not use `__tests__/`.
 
 - `tests/` holds **only** cross-cutting infra: `tests/setup.ts` today, plus `tests/e2e/`
-  once Playwright lands.
-- The current `tests/unit/page.test.tsx` is the **lone legacy exception** — migrate it to a
-  co-located file in the next phase that touches that surface (0.5 onward — the walking
-  skeleton is the first co-locatable work). Don't add new files under `tests/unit/`.
+  once Playwright lands. Everything else co-locates; don't add a `tests/unit/`.
 - One test file ≈ one commit ([D18]).
 
 ---
@@ -145,12 +142,11 @@ version-matched Next doc is explicit:
 **Rule:** sync component → Vitest + RTL. Async RSC → don't fight jsdom to render it; it
 won't, and the failure is misleading.
 
-**Before Playwright lands (Phases 1–2):** Playwright doesn't arrive until Phase 3, so an
-async RSC written earlier has no E2E to cover it. Don't leave it untested — **extract the
-testable logic** (the GROQ transform, the resolver, the fallback selection) into a pure
-function in `src/lib` or `src/sanity/lib` and unit-test _that_. The async shell stays
-untested until E2E exists. This is the same "test _your_ transform of their output" move
-from [What to test](#what-to-test-vs-skip).
+**Until Playwright lands:** with no E2E suite yet, an async RSC has no browser coverage.
+Don't leave it untested — **extract the testable logic** (the GROQ transform, the resolver,
+the fallback selection) into a pure function in `src/lib` or `src/sanity/lib` and unit-test
+_that_. The async shell stays untested until E2E exists. This is the same "test _your_
+transform of their output" move from [What to test](#what-to-test-vs-skip).
 
 ---
 
@@ -167,68 +163,21 @@ identically server- and client-side. Two guards enforce this, and both are manda
 2. **Dual-environment test run:** the engine suite executes under **both** `environment:
 'node'` and `environment: 'jsdom'`.
 
-The repo's `vitest.config.ts` is single-env (`jsdom`) today. When the engine lands
-(Phase 1), add a **`test.projects`** split so the same glob runs in both envs — `projects`
-is the current API (`workspace` is **deprecated** since Vitest 3.2;
+`vitest.config.ts` wires this with a **`test.projects`** split, so the same glob runs in both
+envs (`projects` is the current API — `workspace` is **deprecated** since Vitest 3.2;
 [vitest.dev/guide/projects](https://vitest.dev/guide/projects)):
 
-```ts
-// vitest.config.ts
-import react from "@vitejs/plugin-react";
-import tsconfigPaths from "vite-tsconfig-paths"; // see alias caveat below
-import { defineConfig } from "vitest/config";
+- A **`jsdom`** project is intentionally broad — it runs **everything**, including the engine
+  glob (which also runs under `node`). It loads `tests/setup.ts` for jest-dom matchers and
+  resolves the `@/*` alias via `resolve.tsconfigPaths: true`. If a node-_only_ test is ever
+  added outside the engine, give jsdom an explicit `exclude` for it or it runs here in the wrong env.
+- A **`node`** project is scoped to the engine glob only (`packages/oklch/**/*.test.ts`), no
+  matcher setup. Engine tests use relative imports, so they need no `@/*` alias.
 
-export default defineConfig({
-  // The bundled Next 16.2.9 doc resolves the @/* alias via the vite-tsconfig-paths
-  // PLUGIN, not a `resolve.tsconfigPaths` flag. The live single-env config uses
-  // `resolve: { tsconfigPaths: true }` — that key is non-standard/unverified against
-  // Vite/Vitest docs. Prefer the plugin form here, and CONFIRM that an aliased import
-  // (e.g. `@/lib/cardSwatches`) actually resolves in BOTH projects before relying on it.
-  plugins: [tsconfigPaths(), react()],
-  test: {
-    projects: [
-      {
-        extends: true, // inherit root plugins
-        test: {
-          name: "jsdom",
-          environment: "jsdom",
-          globals: true,
-          setupFiles: ["./tests/setup.ts"],
-          // INVARIANT: jsdom is intentionally broad — it runs EVERYTHING by default.
-          // The engine glob below is dual-run (jsdom + node); all other tests are
-          // jsdom-only. If you ever need a node-only test OUTSIDE the engine, give
-          // jsdom an explicit `exclude` for it, or it will also run here in the wrong env.
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: "node",
-          environment: "node",
-          globals: true,
-          // node project is scoped to the engine glob ONLY. No jsdom matcher setup
-          // (no setupFiles) — it needs none.
-          include: ["packages/oklch/**/*.test.ts"],
-        },
-      },
-    ],
-  },
-});
-```
-
-Why `projects` over the per-file `// @vitest-environment node` docblock: the docblock runs
-a file in _one_ chosen env, so satisfying "both" would mean duplicating the suite into two
-wrapper files. `projects` runs the **same** glob in both envs with no duplication.
-
-Run just one env while debugging an isomorphism failure:
-
-```bash
-pnpm test --project node    # verify exact flag against vitest.dev when wiring
-```
-
-> Confirm the exact `projects` shape **and the alias mechanism** against
-> [vitest.dev/guide/projects](https://vitest.dev/guide/projects) and the bundled Next doc
-> when you wire it up — this snippet is the intended structure, not yet committed config.
+`projects` beats the per-file `// @vitest-environment node` docblock because the docblock runs a
+file in _one_ env — satisfying "both" would mean duplicating the suite. Run a single env while
+debugging an isomorphism failure with `pnpm test --project node`. The committed config is the
+source of truth — read [`../../vitest.config.ts`](../../vitest.config.ts).
 
 ### Engine contract: assert behaviour, not snapshots
 
@@ -241,21 +190,21 @@ The engine's tests assert the _contract_, hue-by-hue — not a frozen CSS string
 - **Gamut-map first:** contrast is solved on the gamut-mapped color ([D6]).
 - **Never throws:** bad `brandColor` → safe fallback palette, asserted explicitly ([D9]).
   This covers **D9 layer 1** (the defensive engine). The Sanity author-time validation and
-  `unstable_catchError` backstop layers are tested where they live (Phase 2 / Phase 3).
+  `unstable_catchError` backstop layers are tested where they live.
 
 See [`./accessibility-and-performance.md`](./accessibility-and-performance.md) for the
 APCA Lc targets these assertions check against.
 
 ---
 
-## Phase-1 visual contrast harness ([D17])
+## Visual contrast harness ([D17])
 
 The engine's **exit criterion is observable palette quality, not determinism alone** ([D17]).
 [D17] mandates a visual harness over **3–4 brand colors spanning the hue wheel**; we
 _additionally_ pin a **yellow and a cyan** because [D4] (equal ΔL ≠ equal contrast across
 hues) — those are the stressers where the gap bites hardest. The harness renders ramps for
 those colors, **light and dark**, asserting APCA Lc / WCAG ratios on every
-text-on-surface and on-brand pair _after_ gamut-mapping. Phase 1 is not done until this
+text-on-surface and on-brand pair _after_ gamut-mapping. The engine is not done until this
 harness is green. This is where accessibility/contrast assertions live — they fold into the
 engine harness, not a separate a11y suite ([D19]).
 
@@ -268,8 +217,9 @@ to force `getByRole` onto a swatch grid.
 
 ## Playwright — later, not now
 
-Playwright is **not installed**; add it **only at Phase 3** when routing and async RSCs
-appear ([D18]/[D19]). When it lands:
+Playwright is **not installed**; add it when an E2E of the primary flow earns its keep
+([D18]/[D19]) — routing and async RSCs are live, but a mocked jsdom integration test covers
+the flow for now. When it lands:
 
 - One E2E for the **primary user flow** — more valuable than dozens of shallow units.
 - Use locators (`getByRole`) + web-first assertions (`await expect(locator)…`) which
@@ -288,15 +238,15 @@ verification** of a rendered surface — focus/a11y, CLS/paint, flash-free theme
 a committed test**. It's the ship-gate browser check owned by
 [`./accessibility-and-performance.md`](./accessibility-and-performance.md) §5 and gated per task
 in [`./definition-of-done.md`](./definition-of-done.md) §6. It **fills the gap** that jsdom (no
-paint, no async RSCs) and the absent Playwright (Phase 3) leave open for UI built in Phases
-0.5–2, and it does **not** replace Playwright's committed primary-flow E2E.
+paint, no async RSCs) and the absent Playwright leave open for any rendered surface, and it does
+**not** replace a committed primary-flow E2E once Playwright lands.
 
 ---
 
 ## Pitfalls
 
 - **Async RSCs don't render in jsdom** — Vitest 4 still can't; extract the logic and
-  unit-test it (Phases 1–2), or route to Playwright (Phase 3).
+  unit-test it, or route to Playwright (E2E).
 - **`server-only` / `client-only` in the engine break [D14]** — forbidden; the boundary
   lint + dual-env run are the guards, not those packages.
 - **`workspace` is deprecated** — use `test.projects` (Vitest ≥3.2 / 4).
@@ -314,6 +264,6 @@ paint, no async RSCs) and the absent Playwright (Phase 3) leave open for UI buil
 ## Anchors
 
 [D4] · [D5] · [D6] · [D9] · [D10] · [D14] · [D17] · [D18] · [D19] · [D25] · [D26] —
-[`../decisions.md`](../decisions.md). Plan §3.2 (OKLCH engine) —
-[`../architecture-plan.md`](../architecture-plan.md). Phase 1 / Phase 3 —
-[`../build-phases.md`](../build-phases.md). Research: [`./making-of/research/R3-testing.md`](./making-of/research/R3-testing.md).
+[`../decisions/`](../decisions/). System model §3.2 (OKLCH engine) —
+[`./architecture.md`](./architecture.md). Research (frozen):
+[`../archive/handbook-making-of/research/R3-testing.md`](../archive/handbook-making-of/research/R3-testing.md).
