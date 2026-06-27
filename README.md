@@ -126,3 +126,11 @@ a typed reference-by-key resolver maps a Sanity `componentKey` to a literal dyna
 Dependencies point **projects → shared, never back** (lint-enforced). The OKLCH engine
 lives in its own `packages/oklch` workspace package (`@garden/oklch`), so the standalone
 Studio can import it too.
+
+## Contributing & license
+
+This is a personal portfolio, not an open-source project. You're welcome to read the code and
+[open an issue](https://github.com/jamierthompson/digital-garden/issues), but please don't send
+unsolicited pull requests — see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the (solo + AI-agent)
+workflow. The code and content are **source-available, not licensed for reuse** — see
+[`LICENSE`](./LICENSE).

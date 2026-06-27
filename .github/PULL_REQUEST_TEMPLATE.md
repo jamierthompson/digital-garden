@@ -33,11 +33,11 @@ docs/handbook/definition-of-done.md; if they ever disagree, that doc wins.
 The full chain, same order as CI (`.github/workflows/ci.yml`, job `verify`). Green locally = green CI.
 
 ```bash
-pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm format:check && pnpm typecheck && pnpm test && \
+pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm lint:docs && pnpm format:check && pnpm typecheck && pnpm test && \
 pnpm --filter studio typegen && git diff --exit-code sanity.types.ts && pnpm build
 ```
 
-- [ ] `pnpm lint · lint:css · lint:keys · format:check · typecheck · test · build` — all green
+- [ ] `pnpm lint · lint:css · lint:keys · lint:docs · format:check · typecheck · test · build` — all green
 - [ ] `sanity.types.ts` regenerated & committed after **any** Studio schema change `[D23]`
 - [ ] Cache Components: dynamic reads in `<Suspense>` or `'use cache'` `[D11]`
 - [ ] **"Don't reach up":** every unit self-sufficient — generic tokens + props, never a host's
@@ -50,11 +50,19 @@ pnpm --filter studio typegen && git diff --exit-code sanity.types.ts && pnpm bui
 - [ ] Rendered surface? Browser-verified via `chrome-devtools` MCP (focus/tap/CLS/flash/console)
       `[D25]`
 
-### Shared primitive only — the full §8 "don't reach up" litmus
+### Shared primitive only — the full "don't reach up" litmus
 
-<!-- The universal self-sufficiency box is in the list above. This EXTRA box is only for a PR
-     that ships a SHARED primitive (rare; most work is per-project). -->
+<!-- The universal self-sufficiency box is in the list above. This EXTRA checklist is only for a
+     PR that ships a SHARED primitive (rare; most work is per-project and SUPPOSED to be specific).
+     Full litmus: docs/handbook/architecture.md §8. -->
 
-- [ ] Renders on **generic tokens only** (`--brand-*`, `--font-face`, `--space-*`) + its own
-      defaults; never reaches up for a host's look; declared once & composed in; its CSS Module
-      declares its `@layer` (architecture-plan.md §8 / `[D1][D2][D12]`)
+- [ ] Renders correctly on **generic tokens only** (`--brand-*`, `--font-face`, `--space-*`) +
+      its own defaults — no project-specific (`--<proj>-*`) dependency `[D2]`
+- [ ] Every themeable value is a **public token** with an internal default
+- [ ] Assumes no **themeable ambient context** (a parent's brand/feel, a font mounted higher up);
+      reading the global **invariant** tier (spacing, motion) is fine `[D1]`
+- [ ] If shared, it's **declared once and composed in**, never re-instantiated per island
+- [ ] The host themes it **downward**; the unit never reaches up
+- [ ] Its CSS Module **declares its `@layer`** (or stays strictly var-consuming) `[D12]`
+- [ ] If it registers an embed, the key is **namespaced with the project prefix** so a
+      project-local embed can't silently shadow a shared one
