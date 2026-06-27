@@ -15,7 +15,7 @@ through `ProjectScope`, proving each risk in isolation before composing them.
 
 **Critical spine:** guardrails (Ph0) → walking skeleton retires render unknowns (Ph0.5) →
 engine retired against observable output (Ph1) → content model + log-explorer fit-spike (Ph2)
-→ dead-simple first slice proves the machinery (Ph3) → oklch-engine + real migration widen on
+→ dead-simple first slice proves the machinery (Ph3) → oklch-engine widens on
 proven ground (Ph4).
 
 **Parallelism:** Phase 2 (Sanity schema + `keys.ts`) runs alongside Phase 1; resolvers and
@@ -153,20 +153,21 @@ the housekeeping block below._
 
 ## Phase 4 — Widen & harden
 
-_Add the self-validating showcase and the real migration on proven ground; lock boundaries;
-verify performance._
+_Add the self-validating `oklch-engine` showcase on proven ground; lock boundaries; verify
+performance. (The `log-explorer` migration that once also headlined this phase was dropped
+2026-06-27 — see the struck item below.)_
 
 - [ ] **`oklch-engine` as the second slice** — experience is the hue→palette playground that _imports_ the shared engine (never reimplements it); essay embeds the live experience by key; self-themes via the engine it showcases. Doubles as the first "a second project ships without modifying the first" proof (§3.2, §4.3) `[D17]`
-- [ ] **Migrate `log-explorer`** — the migration this rearchitecture exists for, now low-surprise because the Phase-2 fit-spike already mapped its surface (§1, §4) `[D17]`
+- [~] ~~**Migrate `log-explorer`** — the migration this rearchitecture exists for, now low-surprise because the Phase-2 fit-spike already mapped its surface (§1, §4) `[D17]`~~ — **dropped 2026-06-27 (owner's call):** the owner does not want to migrate the `log-explorer` project; the Phase-2 fit-spike stands as the record of what it would have taken.
 - [ ] Performance / CWV pass — _verification_, since boundaries were enforced from Phase 0: per-face preload only (run the empirical `<head>` check `[D11]`), per-page code-splitting, small `/work` payload (§5, §6, §7)
 - [ ] Adopt the §8 "don't reach up" litmus as an advisory PR checklist for shared primitives (the lintable parts already run automatically) (§8) `[D17]`
-- [ ] Build the **semantic-color set** when the first status-bearing UI lands (likely the log-explorer migration) — independently seeded, not brand-derived (§3.2) `[D8]`
+- [ ] Build the **semantic-color set** whenever the first status-bearing UI lands — independently seeded, not brand-derived (§3.2) `[D8]`
 - [ ] **Key-drift CI net:** GROQ all published `componentKey`/`fontKey`/`embedKey` and assert each exists in code (additive safety net, not a schema change) (§4.2) `[D10]`
 - [ ] Let shared primitives and the project-local embed tier accrete only when a second consumer actually appears (§4.1)
 
-**Exit:** boundary lints green; only above-the-fold faces preload; `oklch-engine` and
-`log-explorer` both ship without modifying the dead-simple first slice; no shared primitive or
-local embed tier introduced without a real second consumer.
+**Exit:** boundary lints green; only above-the-fold faces preload; `oklch-engine` ships without
+modifying the dead-simple first slice; no shared primitive or local embed tier introduced without a
+real second consumer.
 
 ---
 
@@ -263,16 +264,17 @@ locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not
 
 - [√] `project.blurb` — hard `rule.max(300).error()` alongside the soft 280-char warning (PR #11) — done (PR #20): both chained, so an editor sees a warning at 280 and a blocking error past 300
 - [√] `siteSettings` — enforce the singleton via Studio Structure and use an explicit `*[_type == "siteSettings"][0]` guard in its query (nothing forces uniqueness today) (PR #11) `[D24]` — done (PR #20): a fixed-`documentId` Structure item (excluded from the default list so editors can't create duplicates) + the `[0]`-guarded `SITE_SETTINGS_QUERY`
-- [√] **Draft-content _rendering_ on the `/work` routes** (carried from PR #20) — **shipped: PR #21 (code) → superseded + completed by PR #31's `defineLive` migration ([D31]); prod-verified.** The PR #21 description below is historical (the `getClient` mechanism it describes is now removed). A shared `sanityFetch(query, params?, cacheProfile?)` was the single content read path, adopted across `/work`, `/work/<slug>`, `layout` siteSettings, and `/notes`. **Divergence from the original sketch (bundled docs win):** the helper reads `(await draftMode()).isEnabled` _inside_ the `use cache` scope, not outside — the version-exact docs (`use-cache.md` §"Draft Mode", `draft-mode.md`) confirm `draftMode()` is the one runtime API readable inside `use cache`, and Cache Components **natively** re-executes + skips the cache while Draft Mode is on, so no separate uncached path is needed. Public visitors keep the prerendered static shell; Preview branches to `getClient(true)` (uncached, drafts perspective, stega on). `generateStaticParams` stays on the published client by design. **Verified:** the published path renders live, the fail-loud token guard throws (unit-tested), no draft→published cache leak. **NOT verified:** a real draft actually rendering — blocked on a Sanity read token (absent locally) **and** a Preview entry point (Sanity Presentation is not wired). `[D11, D16]`
+- [√] **Draft-content _rendering_ on the `/work` routes** (carried from PR #20) — **shipped: PR #21 (code) → superseded + completed by PR #31's `defineLive` migration ([D31]); prod-verified.** The PR #21 description below is historical (the `getClient` mechanism it describes is now removed). A shared `sanityFetch(query, params?, cacheProfile?)` was the single content read path, adopted across `/work`, `/work/<slug>`, `layout` siteSettings, and `/notes`. **Divergence from the original sketch (bundled docs win):** the helper reads `(await draftMode()).isEnabled` _inside_ the `use cache` scope, not outside — the version-exact docs (`use-cache.md` §"Draft Mode", `draft-mode.md`) confirm `draftMode()` is the one runtime API readable inside `use cache`, and Cache Components **natively** re-executes + skips the cache while Draft Mode is on, so no separate uncached path is needed. Public visitors keep the prerendered static shell; Preview branches to `getClient(true)` (uncached, drafts perspective, stega on). `generateStaticParams` stays on the published client by design. **Verified:** the published path renders live, the fail-loud token guard throws (unit-tested), no draft→published cache leak. **NOT verified (at the time):** a real draft actually rendering — blocked on a Sanity read token (absent locally) **and** a Preview entry point. **→ Now VERIFIED 2026-06-27** via the live Presentation walkthrough (see Item C below). `[D11, D16]`
 - [√] **`PROJECT_DETAIL_QUERY` over-fetch** (carried from PR #20) — done 2026-06-24 (PR #21): **rendered, not trimmed** — the project page grew to show the data it already pulled. A `TagList` (chips, header metadata) and a `RelatedNotes` list (see-also section after the experience), both pure var-consuming components that self-guard to null when empty. Titles/tags render as plain text, not links — there are no tag-archive or individual-note routes yet, so linking would dead-end; the notes stay real Sanity references `[D16]` and become links when such a route lands. Query + TypeGen unchanged `[§6]`
 - [√] Draft-mode / Presentation client needs `useCdn: false` + `perspective: "previewDrafts"`, distinct from the publishes-only public client (PR #11) `[D16]` — done 2026-06-24: added `draftClient` (`useCdn:false`, perspective `"drafts"` — `"previewDrafts"` is `DeprecatedPreviewDrafts` in `@sanity/client` v7, so the current spelling is used for the same behaviour) + a `getClient(isDraft)` selector that attaches the server-only `SANITY_API_READ_TOKEN` per request, alongside the published-only public client. Draft Mode enable/disable route handlers (`/api/draft-mode/*`) and a draft-gated `<VisualEditingControls>` ship with it `[D16]`. **Superseded 2026-06-26 (PR #31, [D31]):** `getClient`/`draftClient` are removed — the single read path is now `defineLive` (`src/sanity/lib/live.ts`); the draft-mode enable route keeps the read token via `client.withConfig`.
 - [√] **`proxy.ts` — deferred, not built (decision recorded).** Draft mode needs **no** request-level proxy logic: it runs entirely through Route Handlers that flip the `__prerender_bypass` cookie (`await draftMode().enable()/.disable()`), which Next handles natively. `proxy.ts` is a CDN-deployable redirect/rewrite boundary, is **Node-runtime-only** (setting `runtime` throws — `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md` §Runtime), and the security runbook explicitly says **don't drive draft mode from proxy** (`docs/handbook/security-and-ops.md` §4). Adding an empty/no-op `proxy.ts` would tax every request for nothing, so the Phase-0 deferral stands until there's genuine cross-cutting request logic (auth, geo-rewrite, etc.) to host.
 
-**What's left to close Phase 3 — Phase 3 is NOT done until Item C lands:**
+**Closing Phase 3 — Item C landed 2026-06-27; ✅ PHASE 3 COMPLETE** (close-out session:
+[`sessions/2026-06-27-phase-3-closeout.md`](./sessions/2026-06-27-phase-3-closeout.md)).
 
-- [~] **(Item C) Verify draft-content rendering end-to-end in Preview** — **blocking-route defect
-  DIAGNOSED + FIXED 2026-06-25; full sign-off still OPEN (two items below).** Session record +
-  verbatim debate/QA trail:
+- [√] **(Item C) Verify draft-content rendering end-to-end in Preview** — **DONE 2026-06-27 — the last
+  gating item, now closed.** The blocking-route defect was diagnosed + fixed 2026-06-25; the live
+  Presentation walkthrough is now run and verified (below). Session record + verbatim debate/QA trail:
   [`sessions/2026-06-25-item-c-draft-preview-fix.md`](./sessions/2026-06-25-item-c-draft-preview-fix.md).
   - **Cause (corrected 2026-06-26 by spike — see
     [`sessions/2026-06-26-shell-sourcing-islands/spike-findings.md`](./sessions/2026-06-26-shell-sourcing-islands/spike-findings.md)):**
@@ -293,10 +295,13 @@ locally (no `SANITY_API_READ_TOKEN`, zero notes in the dataset) — flagged, not
   - **Path A flash re-verification: DONE 2026-06-26** — verified flash-free on the live Vercel deploy
     (branded shell in the initial PPR bytes, `x-nextjs-prerender:1`), both before and after the
     defineLive read-path migration → **[D30]** recorded.
-  - **REMAINING for full sign-off (owner-gated):** the **draft-content Presentation walkthrough** across
-    the mock projects — edit a draft, watch it preview live — needs the hosted Studio / an authenticated
-    Presentation session. The draft _path_ is code-verified (QA: perspective branch + no draft→published
-    leak) and the mechanism is deployed (PR #31); only the live UI walkthrough remains.
+  - **Live Presentation walkthrough — DONE 2026-06-27 (owner-driven, agent-driven Chrome):** in the
+    **hosted** Studio's Presentation (previewing the live prod site, Drafts perspective), edited
+    `goldenrod`'s **draft** blurb (appended `[DRAFT PREVIEW TEST]`) and watched the prod iframe
+    **re-render the unpublished draft live**. Counter-checked **no draft→published leak**: a public
+    `curl` of `/work/goldenrod` (no draft cookie) showed the **original** blurb, not the marker. Draft
+    then discarded (dataset back to clean published-only). This is the end-to-end proof the earlier
+    "NOT verified: a real draft actually rendering" gap was waiting on. `[D11, D16, D31]`
     - ~~The themed draft-loading fallback follow-up~~ — **RETIRED 2026-06-26 (Path A, [D30]).**
 
 - [√] **Themed draft-loading fallback — RESOLVED (not built) 2026-06-26 → Path A.** The unthemed
@@ -329,21 +334,29 @@ varied mock projects to exercise everything._
 - [√] **(#3) Publish → production revalidation** — done 2026-06-26 (PR #31, **[D31]**). Signed webhook
   `POST /api/revalidate` → `revalidateTag(tag, { expire: 0 })` for `sanity:<_type>` + `sanity`
   (derived server-side from `_type`, never a payload tag). **Prod-verified:** valid Sanity HMAC →
-  `200 {revalidated, tags}`; tampered/unsigned → 401; GET → 405. **Owner step remaining:** register the
-  webhook in sanity.io/manage (URL `/api/revalidate`, secret `SANITY_REVALIDATE_SECRET` — already in
-  Vercel) so it fires automatically on publish.
-- [~] **(#4) Production preview wiring + Path A Vercel verification** — **partial.** Done 2026-06-26:
+  `200 {revalidated, tags}`; tampered/unsigned → 401; GET → 405. **Owner step — DONE 2026-06-27:** the
+  webhook is **registered + verified** in sanity.io/manage (`POST /api/revalidate`, dataset `production`,
+  triggers Create/Update/Delete, filter `_type in ["project","siteSettings","note"]`, no projection,
+  drafts/versions off, secret `SANITY_REVALIDATE_SECRET`). A real publish drove a **`200 {revalidated:true}`**
+  in the attempt log. (First attempts 401'd — the Secret field had silently not captured the value; the
+  owner re-pasted it. `.env.local` secret == Vercel secret, proven by a signed `@sanity/webhook` probe.)
+- [√] **(#4) Production preview wiring + Path A Vercel verification** — **DONE.** Done 2026-06-26:
   Vercel Production env set (`SANITY_API_READ_TOKEN`, `SANITY_API_BROWSER_TOKEN`,
   `SANITY_REVALIDATE_SECRET`); CORS origins added (prod + `localhost:3000`/`3333`, with credentials);
   browser Viewer token minted; **Path A flash re-verified flash-free on the live deploy** → **[D30]**
-  recorded. **Remaining (owner-gated):** deploy the hosted Studio (`pnpm --filter studio deploy`,
-  first run picks a `*.sanity.studio` host) + set `NEXT_PUBLIC_SANITY_STUDIO_URL` in Vercel.
+  recorded. **Completed 2026-06-27:** hosted Studio deployed to **https://jamiethompson-garden.sanity.studio**
+  (`sanity deploy`; host + appId pinned in `studio/sanity.cli.ts` via **PR #34**; the deploy also pushed
+  the schema to the Content Lake — `sanity deploy` works locally on darwin-x64, unlike `sanity schemas deploy`).
+  `NEXT_PUBLIC_SANITY_STUDIO_URL` set in Vercel (Production+Preview, non-sensitive) + prod redeployed.
+  Presentation wired to preview prod via `SANITY_STUDIO_PREVIEW_URL` (Studio re-deployed); the
+  `*.sanity.studio` CORS origin auto-added as a managed origin.
 - [√] **Mock data** — done 2026-06-26: 3 published projects seeded via the Sanity MCP — `tidepool` (teal,
   space-grotesk, embed + 2 notes), `marginalia` (indigo + `brandColorDark` override, jetbrains-mono,
   no embed/notes), `goldenrod` (yellow contrast-stresser, inter). Vary hue/font/notes/tags; all
   engine-validated (`isFallback: false`); all render themed on prod, both schemes.
 
-- [~] **`[D27]` import-order red-herring experiment — RAN 2026-06-26: does NOT reproduce.** `[D27]`
+- [√] **`[D27]` import-order red-herring experiment — RAN 2026-06-26: does NOT reproduce. RESOLVED
+  2026-06-27 — owner's call: KEEP the hardening as cheap insurance; `[D27]` stands, not superseded.** `[D27]`
   (PR #23) attributes the app-wide `@layer` cascade inversion to **import order** (`next/font` before
   `foundation.css`); `layout.tsx` carries a load-bearing comment + `layout.import-order.test.ts` pins it.
   **Result (main tree, confirmed not a worktree; COLD `.next`; clean production build — the [D27] repro
@@ -352,10 +365,13 @@ varied mock projects to exercise everything._
   cold builds (browser-verified computed style via Chrome DevTools). So in **Next 16.2.9 the import-order
   constraint is a red herring** — either it never was load-bearing, or Turbopack's stylesheet ordering
   was since fixed. _(Honest caveat: `[D27]` was recorded on an earlier Next; this proves the constraint
-  is not load-bearing **now**, not that it was wrong **then**.)_ **Follow-up (owner's call, own branch):**
-  supersede `[D27]` with a new decision and relax the constraint — drop the load-bearing import-order
-  comment, the contorted `Suspense`-import placement, and `layout.import-order.test.ts` — OR keep it as
-  cheap insurance. NOT done unilaterally (immutable decision). Finding recorded in
+  is not load-bearing **now**, not that it was wrong **then**.)_ **Resolution (owner's call, 2026-06-27):
+  KEEP the import-order hardening as cheap insurance** — the constraint isn't hurting anything (it's a
+  one-region import order + a single guard test), and Turbopack chunk-emission order is environment-
+  sensitive enough `[D27, D29]` that retaining the guard costs nothing and forecloses a regression on a
+  future Next/Turbopack. So `[D27]` **stands, not superseded**; the load-bearing comment, the
+  `Suspense`-import placement, and `layout.import-order.test.ts` all **stay**. The non-reproduction
+  finding is preserved as the record (see addendum on `[D27]` in `decisions.md`). Finding:
   [`sessions/2026-06-26-shell-sourcing-islands/spike-findings.md`](./sessions/2026-06-26-shell-sourcing-islands/spike-findings.md). `[D27, D12]`
 - [√] **Wire a Preview entry point** — done 2026-06-25 (PR #24): `presentationTool` + slug-guarded
   `defineLocations` in `studio/sanity.config.ts`, driving the existing draft-mode handlers; localhost
@@ -379,6 +395,21 @@ varied mock projects to exercise everything._
 
 - [√] `palette.ts` — `TOKEN_NAMES` is already typed `readonly BrandTokenName[]`, but the token-set accumulator still used `{} as Record<BrandTokenName, SchemePair>`, so a missing token was **not** a compile error. Done 2026-06-24 (PR #16): rebuilt without the cast so exhaustiveness is type-enforced (verified `TS2322` on a dropped token); output byte-identical
 - [√] The OKLCH visual harness wrote `swatches.html` under both the jsdom and node Vitest projects — done 2026-06-24 (PR #16): scoped to the `node` project via `ctx.task.file.projectName`; exactly one write, assertions still run under both projects
+
+**CI / tooling regressions:**
+
+- [ ] **`Deploy Sanity Schema` workflow (`deploy-schema.yml`) is broken — `sanity schemas deploy` now
+      SIGABRTs on linux-x64 CI too** (surfaced 2026-06-27 when PR #34's `sanity.cli.ts` change was the first
+      schema-path push to trigger it; the run `SIGABRT`s in Rolldown's native binary, exit 1). It **last
+      passed 2026-06-25 19:54** — _after_ the #26 Node-24/dep-refresh, so that's not the cause; the change in
+      between is the **PR #31** lockfile move (next-sanity v13 / live-preview deps). **Not caused by #34** —
+      a native crash isn't triggered by two inert config strings, and it reproduces identically on darwin.
+      **Mitigation in place:** the schema deploys fine via **`sanity deploy`** (the full Studio deploy, which
+      pushes the schema and runs locally on darwin-x64), so the Content Lake is current. **Fix options (own
+      branch, needs CI iteration):** (a) bisect the lockfile to pin the last-good `sanity`/Rolldown and pin it
+      in `studio/`; (b) switch the workflow from `sanity schemas deploy` to `sanity deploy` (deploys the whole
+      Studio, but works); or (c) retire the workflow if `sanity deploy` becomes the standard schema-refresh
+      path. NOT done in the docs-closeout PR (a CI change that can't be verified locally).
 
 **Dependency upgrades — deferred breaking majors (2026-06-25):**
 

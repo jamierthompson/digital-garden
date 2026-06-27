@@ -89,6 +89,7 @@ live shape. Skeleton:
 | 2026-06-25 | [Phase 3: @layer fix + Preview entry point + CI schema deploy](./2026-06-25-phase-3-layer-preview-deploy.md) | PRs #23–#25; Phase 3 still open (Item C)      |
 | 2026-06-26 | [Shell-identity sourcing → Path A (editorial island)](./2026-06-26-shell-sourcing-islands/)                  | Debate + spike; [D30]; no code change         |
 | 2026-06-26 | [Sanity Live preview + publish→prod revalidation](./2026-06-26-sanity-live-preview.md)                       | PR #31; [D31]; #2/#3 done, Item C owner-gated |
+| 2026-06-27 | [Phase 3 close-out: owner-gated wiring + live Item C sign-off](./2026-06-27-phase-3-closeout.md)             | PRs #34–#35; **Phase 3 COMPLETE**             |
 
 _The 2026-06-23 session also produced two co-located **deliverable** docs (evidence, not standalone
 sessions): [phase-0.5 render proofs](./2026-06-23-phase-0.5-render-proofs.md) and the
