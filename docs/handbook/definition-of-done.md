@@ -95,10 +95,9 @@ Reading the global **invariant** tier (spacing, motion, semantics) is fine — t
 not a look. `[D1][D2]`
 
 **The full litmus is the heavier, shared-primitive gate.** When you ship a _shared_ primitive
-(rarer — most work is per-project and _supposed_ to be specific), run the complete checklist in
-[`./architecture.md`](./architecture.md) §8 before merging: generic-tokens-only
-rendering, every themeable value a public token with an internal default, downward theming,
-declared-once-and-composed-in, and its CSS Module declaring its `@layer`. `[D1][D2][D12]`
+(rarer — most work is per-project and _supposed_ to be specific), run the complete 7-item
+checklist in [`./architecture.md`](./architecture.md) §8 before merging — the single source of
+truth for it. `[D1][D2][D12]`
 
 > Same rule at both scopes — never reach up for a _look_. The shared-primitive case just adds
 > the full checklist, because there the failure is silent and cross-cutting.
