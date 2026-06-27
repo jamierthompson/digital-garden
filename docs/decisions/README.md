@@ -1,13 +1,15 @@
 # Decisions Log
 
-ADR-style record of decisions resolved by the architecture audit (see `audit/`).
-Each entry: the decision, the status, why, and which plan section it amends. Status
-legend: **Decided** (resolved by the debate) · **Open** (needs your call before it
-can be locked).
+ADR-style record of binding decisions. Each entry: the decision, the status, why, and which
+system-model section (`§N`) it amends. Status legend: **Decided** (in force) · **Superseded by
+D#** (replaced) · **Open** (needs the owner's call). The process for opening/superseding an entry
+is in [`../handbook/decision-records.md`](../handbook/decision-records.md); the full format and
+copy-paste template live there.
 
-> These amend `architecture-plan.md` / `build-phases.md`. The plan docs are left
-> as-authored; this log is the source of truth for the deltas until the plans are
-> revised.
+> `§N` references point at the system model in
+> [`../handbook/architecture.md`](../handbook/architecture.md); this log is the source of truth
+> where the two disagree. The original entries (D1–D23) came from the pre-build architecture
+> audit, preserved frozen at [`../archive/audit/`](../archive/audit/).
 
 ---
 
@@ -77,7 +79,7 @@ color) and move them to the scoped tier.
 
 ### D8 — Semantic colors are seeded independently, not brand-derived
 
-**Decided (build deferred).** Amends §3.2, tier 1 of D1.
+**Superseded by D32.** Amends §3.2, tier 1 of D1.
 success/error/warning/info are fixed signal colors, not rotations of the brand hue.
 Reserve the slot in the global tier now (one sentence in the plan); build them when
 the first status-bearing UI lands (likely the log-explorer migration, Phase 4).
@@ -312,7 +314,7 @@ first is what stops deferral becoming disorder — a reader always knows where a
 go, so waiting costs nothing in legibility. **What gets harder:** spotting the trigger takes
 judgment, and "I'll need this later" is explicitly _not_ a trigger — the discipline is to wait
 for the _actual_ second use / the _actual_ prop-drill. Codified as a working standard in
-[`handbook/engineering-standards.md`](./handbook/engineering-standards.md) §6 (the rule + its
+[`handbook/engineering-standards.md`](../handbook/engineering-standards.md) §6 (the rule + its
 trigger, per concern).
 
 ### D25 — Rendered surfaces get an agent-driven browser check (Chrome DevTools MCP) before done
@@ -340,9 +342,9 @@ no CLS/paint regression, flash-free theme ([D11]), clean console.
   lands.
 
 Operationalized in
-[`handbook/accessibility-and-performance.md`](./handbook/accessibility-and-performance.md) §5
+[`handbook/accessibility-and-performance.md`](../handbook/accessibility-and-performance.md) §5
 (what to check) and gated per task in
-[`handbook/definition-of-done.md`](./handbook/definition-of-done.md) §6 / §7.
+[`handbook/definition-of-done.md`](../handbook/definition-of-done.md) §6 / §7.
 
 ### D26 — Every session gets an independent, adversarial QA pass before the PR (solo or team)
 
@@ -370,12 +372,12 @@ spawns one QA for its own work; a team session spawns one QA per slice author. F
 - **The QA pass leaves a durable record.** Its outcome — what was tested, what passed, each defect →
   fix → re-check, and the tests QA authored — is captured in the session record's **QA log** (one entry
   per coding agent), so the green gate is never mistaken for the QA evidence. Format:
-  [`sessions/README.md`](./sessions/README.md).
+  [`sessions/README.md`](../sessions/README.md).
 
 Operationalized in
-[`handbook/working-with-agents.md`](./handbook/working-with-agents.md) §6 (the dev↔QA loop), recorded
-in each [`sessions/`](./sessions/) session record's **QA log**, gated per task in
-[`handbook/definition-of-done.md`](./handbook/definition-of-done.md) §6 / §7, and wired into the
+[`handbook/working-with-agents.md`](../handbook/working-with-agents.md) §6 (the dev↔QA loop), recorded
+in each [`sessions/`](../sessions/) session record's **QA log**, gated per task in
+[`handbook/definition-of-done.md`](../handbook/definition-of-done.md) §6 / §7, and wired into the
 `agent-team` coding mode.
 
 ---
@@ -429,8 +431,8 @@ deterministic on a fresh checkout and live in production when D27 was recorded (
 Turbopack chunk-emission order is environment-sensitive enough `[D29]` that the cheap guard (a one-region
 import order + `layout.import-order.test.ts`) is worth keeping as insurance against a future regression.
 **Owner's call (2026-06-27): retain the constraint; D27 stands, not superseded.** The non-reproduction
-finding lives in [`sessions/2026-06-26-shell-sourcing-islands/spike-findings.md`](./sessions/2026-06-26-shell-sourcing-islands/spike-findings.md);
-the retention decision is logged in [`build-phases.md`](./build-phases.md) (Phase-3 close-out block).
+finding lives in [`sessions/2026-06-26-shell-sourcing-islands/spike-findings.md`](../sessions/2026-06-26-shell-sourcing-islands/spike-findings.md);
+the retention decision is logged in `build-phases.md` (Phase-3 close-out block; that doc has since been retired — the work backlog moved to GitHub issues).
 
 ---
 
@@ -483,7 +485,7 @@ The flag breaks the permission model: `acceptEdits` auto-accepts edits only with
 
 ### D30 — Path A: the shell is an editorial Sanity island; the `next dev`-only unbranded flash is accepted
 
-**Decided** (2026-06-26, after a 4-lens agent-team debate + empirical spike; reverses a mid-point "code-config" verdict — see [`sessions/2026-06-26-shell-sourcing-islands/`](./sessions/2026-06-26-shell-sourcing-islands/)). Relates to [D11], [D16].
+**Decided** (2026-06-26, after a 4-lens agent-team debate + empirical spike; reverses a mid-point "code-config" verdict — see [`sessions/2026-06-26-shell-sourcing-islands/`](../sessions/2026-06-26-shell-sourcing-islands/)). Relates to [D11], [D16].
 
 The question circled several sessions: where does the shell's brand/identity come from, and why does the shell "flash" unthemed? A mid-point verdict was to make the shell a synchronous code constant (`shell.config.ts`). The spike refuted both its pillars: (a) the flash is **`next dev`-only** — a production build serves the PPR build-time-resolved themed shell in the initial bytes (zero unbranded frames, draft included); and (b) the shell brand is **editorial content, not a constant** — it lives in `siteSettings`, read async + draft-aware exactly like a project reads its own brand.
 
@@ -503,13 +505,36 @@ Phase 3 shipped a hand-rolled `sanityFetch` (`use cache` + `draftMode()`-inside-
 
 The time-based `cacheProfile` ("hours" for notes) is **dropped**: `defineLive` owns cache lifetime (1y) and freshness is **on-demand via tag revalidation**. Consequence: the **publish→revalidate webhook** (`/api/revalidate`, signed, `revalidateTag(tag, { expire: 0 })`) is now **load-bearing for published cold-cache freshness** — without it (and without a connected `<SanityLive>` EventSource) a cold visitor could be served up-to-1y-stale initial HTML. Acceptable for a personal garden **given the webhook is verified in prod**. Path A [D30] frames the read-path: the shell is an editorial island on the normal draft path, so `<SanityLive>`/`defineLive` only ever handle _content_ — the shell never needs the live path.
 
-**Boundaries:** the webhook registration in Sanity + the hosted Studio deploy are owner-ops, tracked in [`build-phases.md`](./build-phases.md). The shell `siteSettings` read stays on the normal draft path, not the live browser path.
+**Boundaries:** the webhook registration in Sanity + the hosted Studio deploy are owner-ops, tracked in the [GitHub issue backlog](https://github.com/jamierthompson/digital-garden/issues). The shell `siteSettings` read stays on the normal draft path, not the live browser path.
+
+---
+
+### D32 — Status colors are brand-derived per island (supersedes D8)
+
+**Decided (build deferred)** (owner call, 2026-06-27). Amends §3.1, §3.2. Supersedes D8.
+
+D8 ruled that `success`/`error`/`warning`/`info` are **fixed signal colors, seeded
+independently of the brand** — reserved as global `:root` slots. The owner reverses that: **every
+island gets its own status colors, derived from its brand hue by the OKLCH engine** —
+scheme-aware and contrast-solved like the rest of the ramp, delivered per-project through
+`ProjectScope` rather than as one fixed global set.
+
+**Why.** The garden's identity is that each project is a fully self-themed island; a single global
+signal palette would read as foreign inside a strongly-branded scope. Deriving status colors from
+the brand hue keeps them harmonized while the contrast solve (`[D4]`, gamut-mapped first `[D6]`,
+never-throw fallback `[D9]`) keeps them legible in both schemes `[D5]`.
+
+**Consequences.** The engine grows status-token outputs (more solve work per scope, memoizable
+the same way as the rest). The global-tier "semantic-color slot" from D8/D1 is **not** built;
+no new global brand/feel tier appears (consistent with `[D1]`). **Build is still deferred** until
+the first status-bearing UI lands — the _approach_ changed, not the trigger. Open design detail
+for the implementing PR: how far each status hue may rotate toward the brand while staying a
+recognizable signal. Tracked in the
+[GitHub issue backlog](https://github.com/jamierthompson/digital-garden/issues).
 
 ---
 
 ## Open items summary
 
 None. D5 (dark mode in scope from v1) and D11 (Cache Components, component-level
-static/dynamic) were resolved by the user on 2026-06-21. The only remaining
-verification is the empirical font-preload `<head>` check (D11), which is a build-time
-inspection during Phase 0.5, not a decision.
+static/dynamic) were resolved by the user on 2026-06-21.
