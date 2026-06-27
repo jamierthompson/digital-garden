@@ -49,7 +49,7 @@ owner's "meaningful coverage, not exhaustive" rule.
 **Test:**
 
 - **Pure logic & utilities** — `src/lib/**`, especially the **OKLCH engine** (its contract:
-  see [Engine contract](#engine-contract-assert-behaviour-not-snapshots)). Highest value, easiest to test.
+  see [Engine contract](#engine-contract-assert-behavior-not-snapshots)). Highest value, easiest to test.
 - **Sync Server Components and Client Components** — render with RTL, assert what the user
   sees and can interact with.
 - **Resolvers / `keys.ts` lookups / index queries** ([D18]); assert the typed
@@ -60,7 +60,7 @@ owner's "meaningful coverage, not exhaustive" rule.
 **Skip:**
 
 - Coverage-% chasing, trivial getters/setters, boilerplate.
-- Framework internals and third-party library behaviour (don't test that Next routes or
+- Framework internals and third-party library behavior (don't test that Next routes or
   Sanity fetches — test _your_ transform of their output).
 - CSS class names and internal component state — assert rendered output / roles instead.
 - **Engine CSS snapshots** — assert _measured_ numeric contrast/gamut values so a failure
@@ -178,7 +178,7 @@ file in _one_ env — satisfying "both" would mean duplicating the suite. Run a 
 debugging an isomorphism failure with `pnpm test --project node`. The committed config is the
 source of truth — read [`../../vitest.config.ts`](../../vitest.config.ts).
 
-### Engine contract: assert behaviour, not snapshots
+### Engine contract: assert behavior, not snapshots
 
 The engine's tests assert the _contract_, hue-by-hue — not a frozen CSS string:
 
