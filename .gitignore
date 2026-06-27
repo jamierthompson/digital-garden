@@ -37,7 +37,7 @@ yarn-error.log*
 # vercel
 .vercel
 
-# claude code — runtime-owned, personal (not shared)
+# claude code — settings.json is shared (tracked); these are runtime-owned & personal
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 
