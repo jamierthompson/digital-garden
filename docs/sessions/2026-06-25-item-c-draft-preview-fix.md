@@ -14,7 +14,7 @@ Next 16.xx / React 19.xx, Cache Components on.
 
 ## Why
 
-The last open blocker on Phase 3: **Item C** in [`../build-phases.md`](../build-phases.md) — with
+The last open blocker on Phase 3: **Item C** in `build-phases.md` — with
 Sanity Draft Mode ON, the shell root layout threw a Cache-Components **blocking-route** error
 (`Uncached data … was accessed outside of <Suspense>`), so in-product Preview of the site was broken.
 The prior session (PR #21) found the symptom but recorded **no suspected fix on purpose** (to avoid
@@ -96,7 +96,7 @@ to `generateMetadata`.** Decisive reasoning beyond the 2-1: the coupling can onl
 already covers the metadata coupling. The directive is redundant with work we must do anyway, and one
 mechanism is conceptually clearer. **Architect's insight is preserved** as the sanctioned one-line
 **escalation** (apply iff a future Next narrows the auto-rescue rule) — recorded in
-[`../decisions.md`](../decisions.md). The `connection()` marker was dropped entirely (C1 proved it
+[`../decisions/`](../decisions/README.md). The `connection()` marker was dropped entirely (C1 proved it
 unnecessary). Full verbatim trail (round-1 drafts, the C1/C2 experiment findings, round-2
 re-evaluations, synthesis, QA log):
 [`2026-06-25-item-c-draft-preview-debate/`](./2026-06-25-item-c-draft-preview-debate/).
@@ -156,7 +156,7 @@ comments before matching, plus the exactly-one-`<ProjectScope>` guard.
 > only by a strictly isolated `rm -rf .next` + `pnpm build` with **no server running**. This draft bug is
 > trustworthy only from a clean, single-writer `.next`.
 
-**Open / NOT accepted as final (see [`../build-phases.md`](../build-phases.md)):** the unthemed fallback
+**Open / NOT accepted as final (see `build-phases.md`):** the unthemed fallback
 is an **interim**. Requirement #4 ("draft-only fallback must be themed") stands **unchanged** — it is not
 reworded to bless the interim. The themed-fallback follow-up (a distinct-`href`/slug fallback that
 satisfies #1/#2/#4 at once) is logged as open and must not ship without **live-browser production

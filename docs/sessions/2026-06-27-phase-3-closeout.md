@@ -9,7 +9,7 @@ walkthrough) finally run and signed off.
 
 Phase 3's code had been done for days; what remained was **owner-gated** and **environment-side** — the
 things a green build can't prove (registering the Sanity webhook, deploying the hosted Studio, wiring
-Presentation, and actually watching a draft preview live). [`build-phases.md`](../build-phases.md) gated
+Presentation, and actually watching a draft preview live). `build-phases.md` gated
 the whole phase on **Item C** ("verify draft-content rendering end-to-end in Preview"), whose last step
 was an authenticated, hosted-Studio walkthrough. This session ran all of it and closed the phase.
 
@@ -48,9 +48,9 @@ the rest is ops recorded here + in the production checklist.
   original); discarded the draft. Phase 3's last open item is closed.
 - **[D27] retained** — owner's call (2026-06-27): keep the import-order hardening as cheap insurance
   despite the 2026-06-26 non-reproduction finding; D27 stands, not superseded. (Addendum on D27.)
-- **Docs (PR #35, this one):** [`build-phases.md`](../build-phases.md) Phase-3 items flipped to done +
-  "✅ PHASE 3 COMPLETE"; [`decisions.md`](../decisions.md) D27 addendum; [`README.md`](../../README.md)
-  status → "Phases 0–3 complete"; [`production-checklist.md`](../production-checklist.md) gained the two
+- **Docs (PR #35, this one):** `build-phases.md` Phase-3 items flipped to done +
+  "✅ PHASE 3 COMPLETE"; [`decisions/`](../decisions/README.md) D27 addendum; [`README.md`](../../README.md)
+  status → "Phases 0–3 complete"; `production-checklist.md` gained the two
   missing env vars (`SANITY_API_BROWSER_TOKEN`, `SANITY_REVALIDATE_SECRET`) and a **webhook-registration**
   step; this session record + index row.
 

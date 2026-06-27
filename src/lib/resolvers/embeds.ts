@@ -9,7 +9,7 @@
 // composes the two (`{ ...shared, ...projectLocal }`) so a project-local key
 // overrides a shared one.
 //
-// PHASE 3+: like project loaders, embed entries are LITERAL lazy imports per key
+// Like project loaders, embed entries are LITERAL lazy imports per key
 // (`"hue-slider": () => import("@/embeds/HueSlider")`), never templated [D21].
 // Adding an embed also means adding its key to `EMBED_KEYS` in keys.ts — the
 // `satisfies` below then forces a matching loader entry (compile error if not).

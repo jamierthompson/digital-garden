@@ -55,9 +55,10 @@
   --focus-ring-offset: 2px;
   --focus-ring-style: solid;
 
-  /* Semantic-color slots reserved for success/error/warning/info — fixed signal
-     colors, seeded independently (NOT brand-derived), built when the first
-     status-bearing UI lands [D8]. */
+  /* No global semantic-color slots: status colors (success/error/warning/info) are
+     brand-derived per island — engine-emitted into each [data-project] scope,
+     scheme-aware and contrast-solved like the rest of the ramp — not a fixed global
+     set. Built when the first status-bearing UI lands [D32] (supersedes [D8]). */
 }
 
 @layer foundation {

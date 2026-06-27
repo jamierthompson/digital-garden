@@ -2,7 +2,7 @@
 
 A **pure, isomorphic** color engine: `brandColor → contrast-solved, gamut-mapped token
 sets`, baked to literal `oklch()` values server-side. The load-bearing, genuinely hard
-piece of the theming system (architecture-plan §3.2). It knows nothing about React, the
+piece of the theming system (see `docs/handbook/architecture.md` §3.2). It knows nothing about React, the
 DOM, Node, or projects — its isomorphism is lint-enforced (`eslint.config.mjs`) and
 test-enforced (dual-env Vitest), and it must **never** import `next`/`react`/`react-dom`
 or carry `server-only`/`client-only` [D14].

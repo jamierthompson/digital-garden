@@ -432,7 +432,7 @@ Turbopack chunk-emission order is environment-sensitive enough `[D29]` that the 
 import order + `layout.import-order.test.ts`) is worth keeping as insurance against a future regression.
 **Owner's call (2026-06-27): retain the constraint; D27 stands, not superseded.** The non-reproduction
 finding lives in [`sessions/2026-06-26-shell-sourcing-islands/spike-findings.md`](../sessions/2026-06-26-shell-sourcing-islands/spike-findings.md);
-the retention decision is logged in `build-phases.md` (Phase-3 close-out block; that doc has since been retired — the work backlog moved to GitHub issues).
+the retention decision is logged in `build-phases.md` (Phase-3 close-out block).
 
 ---
 

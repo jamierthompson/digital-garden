@@ -18,7 +18,7 @@ and the **handoff to the next team** that picks up the incomplete work — so it
 attempted and how it landed without re-reading a lost context window.
 
 > **This is not the same as the skill-evaluation runs.** The artifacts under
-> [`../handbook/making-of/agent-team-skill/eval-runs/`](../handbook/making-of/agent-team-skill/eval-runs/)
+> [`../archive/handbook-making-of/agent-team-skill/eval-runs/`](../archive/handbook-making-of/agent-team-skill/eval-runs/)
 > are **verbatim agent outputs captured to build and grade the `agent-team` skill itself** — i.e. they
 > were tooling/eval work, not product work. This directory is for sessions that build the
 > **digital garden** (features, content model, theming engine, …). When in doubt: _did the session
@@ -53,7 +53,7 @@ per slice. The lead records each entry **as that slice's loop closes**, not reco
   error/not-found paths — the classes `pnpm test` is structurally blind to.
 - **Tests added** — the co-located cases QA **authored** to lock each break (`[D26]` requires QA
   write them), by path. This is how a one-time break becomes a permanent regression guard.
-- **Deferred** — anything filed to [`../build-phases.md`](../build-phases.md) with its PR# + reason.
+- **Deferred** — anything filed as a [GitHub issue](https://github.com/jamierthompson/digital-garden/issues) with its PR# + reason.
 
 A compact table up top + a short per-defect note below reads best — see
 [`2026-06-24-phase-1-projectscope.md`](./2026-06-24-phase-1-projectscope.md) (§"QA log") for the

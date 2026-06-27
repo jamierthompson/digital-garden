@@ -72,7 +72,7 @@ _enumerated alternatives_, not the head-count. Rules:
 ## The entry format
 
 The required-fields table below is the contract; the [copy-paste template](#copy-paste-template)
-at the bottom renders it. Match the shape already running in `decisions.md`.
+at the bottom renders it. Match the shape already running in `decisions/README.md`.
 
 | Field           | Rule                                                                                                                                                                             |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -84,16 +84,16 @@ at the bottom renders it. Match the shape already running in `decisions.md`.
 | **`[D#]` refs** | Cross-reference related decisions inline.                                                                                                                                        |
 
 **Status vocabulary (closed set — adopt one, don't invent).** This **extends**
-`decisions.md`'s two-item legend (`Decided` / `Open`) by formalizing the
+`decisions/README.md`'s two-item legend (`Decided` / `Open`) by formalizing the
 parenthetical and supersession patterns the log already uses informally:
 
-| Status                                | Meaning                                                                                                          |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `Decided`                             | Resolved and in force.                                                                                           |
-| `Decided (build deferred)`            | Resolved, but implemented later (e.g. [D32] brand-derived status colors, built when status UI lands).            |
-| `Decided (verified against <source>)` | Resolved on a version-dependent fact, checked against a named doc ([D11], [D12], [D23]).                         |
-| `Open`                                | Needs the owner's call before it can be locked. Track it in the **Open items summary** footer of `decisions.md`. |
-| `Superseded by D#`                    | No longer in force; replaced. See below.                                                                         |
+| Status                                | Meaning                                                                                                                 |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `Decided`                             | Resolved and in force.                                                                                                  |
+| `Decided (build deferred)`            | Resolved, but implemented later (e.g. [D32] brand-derived status colors, built when status UI lands).                   |
+| `Decided (verified against <source>)` | Resolved on a version-dependent fact, checked against a named doc ([D11], [D12], [D23]).                                |
+| `Open`                                | Needs the owner's call before it can be locked. Track it in the **Open items summary** footer of `decisions/README.md`. |
+| `Superseded by D#`                    | No longer in force; replaced. See below.                                                                                |
 
 ---
 
@@ -118,7 +118,7 @@ greppable.
 
 ## CI fit
 
-Decision records are prose; **no CI gate polices `decisions.md`.** The only
+Decision records are prose; **no CI gate polices `decisions/README.md`.** The only
 discipline is `pnpm format` keeping the Markdown clean before commit. For the full
 gate chain (and the [D23] TypeGen drift step a schema-locking decision is most
 likely to trip), see [`./definition-of-done.md`](./definition-of-done.md).
