@@ -2,23 +2,24 @@
 //
 // THE PROBLEM
 // -----------
-// The CI gate — the ordered chain of `pnpm` checks that must pass before merge — is
-// written down in THREE places that must agree, or a doc lies:
+// The CI gate — the ordered chain of `pnpm` checks that must pass before merge — is the
+// one copy-paste command in `definition-of-done.md`. Every other doc (AGENTS.md, the
+// handbook) POINTS to it rather than restating it, so only TWO places carry the actual
+// chain and they must agree, or a doc lies:
 //
-//   1. `AGENTS.md` → "## Pre-flight checks (the gate)" — the agent-facing copy-paste chain.
-//   2. `docs/handbook/definition-of-done.md` → "## 1. The one command" — the human bar.
-//   3. `.github/workflows/ci.yml` → the `verify` job's `- run:` steps — the REAL gate.
+//   1. `docs/handbook/definition-of-done.md` → "## 1. The one command" — the canonical copy.
+//   2. `.github/workflows/ci.yml` → the `verify` job's `- run:` steps — the REAL gate.
 //
-// (1) and (2) both promise "same scripts, same order as CI". When someone adds or reorders
-// a gate step in `ci.yml` but forgets a doc (or vice versa), the docs silently mislead —
-// exactly the doc-rot this repo asks everyone to kill on sight (orientation "Golden rules").
-// `pnpm typecheck`/`lint` can't see prose, so without this guard nothing catches the drift.
+// (1) promises "same scripts, same order as CI". When someone adds or reorders a gate step
+// in `ci.yml` but forgets the doc (or vice versa), the doc silently misleads — exactly the
+// doc-rot this repo asks everyone to kill on sight (orientation "Golden rules"). `pnpm
+// typecheck`/`lint` can't see prose, so without this guard nothing catches the drift.
 //
 // WHAT THIS CHECKS
 // ----------------
-// Extract the gate chain from each of the three sources, normalize each to an ordered list
-// of step commands, and assert all three are IDENTICAL (same steps, same order). On a
-// mismatch it prints each source's list and the first divergence, and exits non-zero.
+// Extract the gate chain from each source, normalize each to an ordered list of step
+// commands, and assert both are IDENTICAL (same steps, same order). On a mismatch it prints
+// each source's list and the first divergence, and exits non-zero.
 //
 // `ci.yml` carries setup steps that aren't part of the gate (`actions/checkout`,
 // `pnpm install`, …); those are dropped — only the `pnpm`/`git` gate commands count. This
@@ -98,22 +99,12 @@ function ciRunSteps(yml) {
 
 // --- Load + normalize all three sources -----------------------------------------
 
-const [agentsMd, dodMd, ciYml] = await Promise.all([
-  read("AGENTS.md"),
+const [dodMd, ciYml] = await Promise.all([
   read("docs/handbook/definition-of-done.md"),
   read(".github/workflows/ci.yml"),
 ]);
 
 const sources = {
-  "AGENTS.md (Pre-flight checks)": normalize(
-    splitChain(
-      fencedBlockAfter(
-        agentsMd,
-        /^##\s+Pre-flight checks/,
-        "Pre-flight checks",
-      ),
-    ),
-  ),
   "definition-of-done.md (§1)": normalize(
     splitChain(
       fencedBlockAfter(dodMd, /^##\s+1\.\s+The one command/, "The one command"),

@@ -34,9 +34,8 @@ pnpm test:watch    # vitest — watch mode for local iteration
 
 Tests are gated on every PR into `main` (`.github/workflows/ci.yml`, job `verify`, step
 `pnpm test`). But **`pnpm test` is only the test slice of the PR gate** — run the full
-local chain (lint, `lint:css`, `lint:keys`, `format:check`, typecheck, test, build) from
-[`./definition-of-done.md`](./definition-of-done.md) before pushing, and see
-[`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) for the CI contract.
+local chain (the one command, [`./definition-of-done.md` §1](./definition-of-done.md#1-the-one-command))
+before pushing, and see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) for the CI contract.
 
 ---
 

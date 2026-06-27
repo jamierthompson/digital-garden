@@ -334,7 +334,7 @@ Before you finish a task, self-check:
 - [ ] Is every non-obvious claim in my output anchored to a `[D#]`, a `§N`, or a URL —
       pointing at the source that _actually contains_ it?
 - [ ] Did I keep docs minimal — no restating what CI already enforces?
-- [ ] Green gate: `pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm lint:docs && pnpm format:check && pnpm typecheck && pnpm test && pnpm build` — and, after a Studio schema change, run `pnpm --filter studio typegen` + commit the regenerated `sanity.types.ts` [D23].
+- [ ] Green gate: run the one command ([`./definition-of-done.md` §1](./definition-of-done.md#1-the-one-command)) — it includes the Studio TypeGen drift step, so commit any regenerated `sanity.types.ts` [D23].
 
 See also: [`./orientation.md`](./orientation.md) ·
 [`./engineering-standards.md`](./engineering-standards.md) ·

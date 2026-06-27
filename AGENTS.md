@@ -63,17 +63,13 @@ These silently break *this* stack. Most are lint/CI-enforced; know them so you d
 
 ## Pre-flight checks (the gate)
 
-Run the full chain locally before pushing — same scripts, same order as
-[`.github/workflows/ci.yml`](./.github/workflows/ci.yml) (job `verify`). Green here = green CI.
-
-```bash
-pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm lint:docs && pnpm format:check && pnpm typecheck && pnpm test && \
-pnpm --filter studio typegen && git diff --exit-code sanity.types.ts && pnpm build
-```
+Run the full gate locally before pushing. The one copy-paste command lives in
+[`definition-of-done.md` §1](./docs/handbook/definition-of-done.md#1-the-one-command); CI runs the
+same chain ([`ci.yml`](./.github/workflows/ci.yml), job `verify`), and `pnpm lint:docs` keeps the two
+in sync. Green locally = green CI.
 
 Fix formatting with `pnpm format` (never by hand). After **any** Studio schema change, commit the
-regenerated `sanity.types.ts` (root-anchored) — the easiest gate to trip `[D23]`. The per-task bar
-is [`docs/handbook/definition-of-done.md`](./docs/handbook/definition-of-done.md).
+regenerated `sanity.types.ts` (root-anchored) — the easiest gate to trip `[D23]`.
 
 ## Nested context
 

@@ -138,12 +138,8 @@ anything you present as _finished_ does. (2) **The curated tip before the PR mer
 tip that squash-merges to `main` must be green. The lead re-running the gate is a backstop,
 **not** a substitute for each agent gating its own slice. The single command that mirrors the
 gate in order (CI runs the TypeGen drift step unconditionally — so do you, even on an app-only
-change; see §3.1):
-
-```bash
-pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm lint:docs && pnpm format:check && pnpm typecheck && pnpm test \
-  && pnpm --filter studio typegen && git diff --exit-code sanity.types.ts && pnpm build
-```
+change; see §3.1) is the one command in
+[`definition-of-done.md` §1](./definition-of-done.md#1-the-one-command).
 
 Then review the diff itself:
 
@@ -343,10 +339,9 @@ pnpm --filter studio typegen && git add ./sanity.types.ts
 # lead curates before merge — rebase onto main, optionally squash/reorder
 git fetch origin && git rebase origin/main     # resolve conflicts locally; `git rebase -i` to tidy
 
-# gate the CURATED TIP — same chain, same order as CI (incl. the unconditional TypeGen drift step)
+# gate the CURATED TIP — run the one command (definition-of-done.md §1), same chain/order as CI
 pnpm format
-pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm lint:docs && pnpm format:check && pnpm typecheck && pnpm test \
-  && pnpm --filter studio typegen && git diff --exit-code sanity.types.ts && pnpm build
+# … then the full gate chain …
 
 # ship — PR title/body become the squash-commit subject/body on main (tell the story here)
 git push -u origin feat/<slug>                  # add --force-with-lease after a curating rebase
