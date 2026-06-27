@@ -419,6 +419,19 @@ schemes. It is a one-region import reorder — no reset surgery — restoring [D
 working around it. The rejected symptom-patch (retargeting the reset so this one collision disappears
 while the layers stay inverted) was explicitly **not** taken.
 
+**Addendum (2026-06-27) — re-tested, found non-reproducing, and deliberately RETAINED.** A 2026-06-26
+spike re-ran the original repro (main tree, cold `.next`, clean production build) and found that moving
+`next/font` **above** the global sheets did **not** invert the cascade in Next 16.2.9 — the `.tag` chip
+kept `padding: 4px 12px` in baseline and reordered, warm and cold (browser-verified computed style). So
+the import-order constraint appears to be a **red herring _now_** — either it never was load-bearing, or
+Turbopack's stylesheet ordering was since fixed. **This does not reverse D27.** The original inversion was
+deterministic on a fresh checkout and live in production when D27 was recorded (on an earlier Next), and
+Turbopack chunk-emission order is environment-sensitive enough `[D29]` that the cheap guard (a one-region
+import order + `layout.import-order.test.ts`) is worth keeping as insurance against a future regression.
+**Owner's call (2026-06-27): retain the constraint; D27 stands, not superseded.** The non-reproduction
+finding lives in [`sessions/2026-06-26-shell-sourcing-islands/spike-findings.md`](./sessions/2026-06-26-shell-sourcing-islands/spike-findings.md);
+the retention decision is logged in [`build-phases.md`](./build-phases.md) (Phase-3 close-out block).
+
 ---
 
 ### D28 — Adversarial QA must have no prior context of the work, not merely "not the author"

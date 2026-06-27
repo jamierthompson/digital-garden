@@ -5,7 +5,7 @@ over time. Each project is a self-contained, independently themed module: its ow
 brand color (a perceptual OKLCH palette) and font, composed on a shared invariant
 foundation. Content and brand seeds live in Sanity; the site renders on Next.js.
 
-> Status: **Phases 0–2 complete; Phase 3 complete bar one owner-gated sign-off step.**
+> Status: **Phases 0–3 complete.**
 > Scaffolding + guardrails (Ph0), the walking skeleton (Ph0.5), the OKLCH theming engine + real
 > `ProjectScope` (Ph1), and the Sanity content model with reference-by-key wiring and
 > engine-backed `brandColor` validation (Ph2) are done. **Phase 3** drives one dead-simple
@@ -22,10 +22,12 @@ foundation. Content and brand seeds live in Sanity; the site renders on Next.js.
 > revalidate endpoint (valid HMAC → 200, forged → 401). _(A 2026-06-26 re-test also found the
 > earlier `@layer` import-order cause `[D27]` **does not reproduce** in Next 16.2.9 — likely a red
 > herring; see the [session](./docs/sessions/2026-06-26-shell-sourcing-islands/spike-findings.md).)_
-> **What's left to close Phase 3** (tracked in [`docs/build-phases.md`](./docs/build-phases.md)) is
-> owner-gated: register the Sanity webhook, deploy the hosted Studio, and run the live draft
-> **Presentation walkthrough** across the mock projects. **Then Phase 4** — the OKLCH-engine
-> showcase and the `log-explorer` migration. See [`docs/`](./docs) for the architecture plan,
+> **Phase 3 is now closed** (2026-06-27): the publish→prod revalidation webhook is registered and
+> verified (a real publish drove a `200` in the attempt log), the hosted **Studio is deployed**
+> ([jamiethompson-garden.sanity.studio](https://jamiethompson-garden.sanity.studio)) with Presentation
+> previewing prod, and the live **draft Presentation walkthrough passed** — an unpublished draft rendered
+> in the live preview with no leak to the public page. **Next: Phase 4** — the OKLCH-engine
+> showcase. See [`docs/`](./docs) for the architecture plan,
 > build phases, decision log, per-session records ([`docs/sessions/`](./docs/sessions)), and the
 > [production deploy checklist](./docs/production-checklist.md).
 
