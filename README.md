@@ -69,8 +69,8 @@ Sanity webhook → `/api/revalidate` carrying the same `SANITY_REVALIDATE_SECRET
 pnpm build                   # production build
 pnpm lint                    # ESLint (incl. architectural import boundaries)
 pnpm lint:css                # assert every CSS Module declares its @layer
-pnpm lint:keys                # key-drift guard
-pnpm lint:docs                # assert the gate chain matches across DoD §1 and ci.yml
+pnpm lint:keys               # key-drift guard
+pnpm lint:docs               # assert the gate chain matches across DoD §1 and ci.yml
 pnpm typecheck               # tsc --noEmit
 pnpm test                    # run the test suite once
 pnpm format / format:check   # Prettier write / check
