@@ -158,7 +158,7 @@ The engine's scoped `<style>` declares `@layer brand`. Note: Next's own CSS doc 
 
 ## 5. Import boundaries (ESLint `eslint-plugin-boundaries`)
 
-`eslint.config.mjs` defines three element types over `src/**` and enforces directional dependencies via `pnpm lint` (CI-gated). The directories are stood up empty so the rules can't rot before code arrives. **First match wins**, so specific patterns precede the `shared` catch-all. The table is the _intent_; `eslint.config.mjs` is the source of truth for the exact lint message you'll see when one fails. (The OKLCH engine is no longer a `boundaries` element — it moved to its own workspace package `[D23]`; its isomorphism guard now lives in a dedicated block, see below.)
+`eslint.config.mjs` defines four element types over `src/**` and enforces directional dependencies via `pnpm lint` (CI-gated). The directories are stood up empty so the rules can't rot before code arrives. **First match wins**, so specific patterns precede the `shared` catch-all. The table is the _intent_; `eslint.config.mjs` is the source of truth for the exact lint message you'll see when one fails. (The OKLCH engine is no longer a `boundaries` element — it moved to its own workspace package `[D23]`; its isomorphism guard now lives in a dedicated block, see below.)
 
 | Rule                        | Meaning                                                                                                                          |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
