@@ -53,7 +53,7 @@ Right-sized: discipline, not a security org.
 - **Vet new deps before adding** — prefer well-maintained, widely-used packages. A quick check on [deps.dev](https://deps.dev) is enough; full OpenSSF Scorecard automation is overkill here.
 - **Run `pnpm audit` in any PR that changes `pnpm-lock.yaml`.** Triage only _exploitable_ advisories that reach reachable code; ignore transitive dev-only noise.
 - **Breaking-major upgrades go one-per-branch with the full gate** — never a blind bump. (Open ones are tracked in the issue backlog.)
-- **GitHub Actions are pinned** (`@v4`) in [`../../.github/workflows/ci.yml`](../../.github/workflows/ci.yml) — keep them pinned when editing the workflow.
+- **GitHub Actions are pinned** (`@v5`) in [`../../.github/workflows/ci.yml`](../../.github/workflows/ci.yml) — keep them pinned when editing the workflow.
 
 ---
 
