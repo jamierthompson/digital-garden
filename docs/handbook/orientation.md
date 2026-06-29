@@ -21,7 +21,7 @@ The stack, verified — do not contradict it:
 | Content       | Sanity, a **standalone Studio in `studio/`** (a pnpm workspace package, not a `/studio` route) [D23]; typed GROQ via TypeGen → `sanity.types.ts` |
 | Testing       | Vitest + RTL (see [`./testing.md`](./testing.md))                                                                                                |
 | Lint / format | ESLint + Prettier (rules: [`./engineering-standards.md`](./engineering-standards.md))                                                            |
-| Hosting       | Vercel (full SSR/RSC). Package manager: **pnpm** (workspace: app + `studio/`)                                                                    |
+| Hosting       | Vercel (full SSR/RSC). Package manager: **pnpm** (workspace: app + `studio/` + `packages/oklch`)                                                 |
 
 ---
 

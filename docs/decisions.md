@@ -165,7 +165,7 @@ it's React-version-dependent and not confirmable from the installed Next docs.
 ### D14 — Isomorphic engine enforced by lint boundary + dual-env test
 
 **Decided.** Amends §3.2, Phase 0/1.
-ESLint import boundary on `src/lib/oklch/` forbidding `next/*`, `react`, `react-dom`,
+ESLint import boundary on `packages/oklch/` forbidding `next/*`, `react`, `react-dom`,
 and DOM/Node globals. Dual-environment Vitest run (suite under `environment: 'node'`
 AND `'jsdom'`). **Do not** use `server-only`/`client-only` — those pin the module to
 one side and break the isomorphic requirement.
@@ -283,7 +283,7 @@ fetching / Live Content / Visual Editing only. TypeGen is configured in
 `studio/sanity.cli.ts` to emit `sanity.types.ts` into the app; CI regenerates it
 and `git diff --exit-code`s the result.
 **Supersedes** the "one app, no workspace" framing in §7 — the repo is now a
-two-package pnpm workspace (the Next app at root + `studio/`).
+pnpm workspace (the Next app at root + the `studio/` and `packages/oklch` packages).
 **Implication for D10 / §4.2 (resolve in Phase 2):** the "Studio imports
 `keys.ts`" contract now crosses a package boundary — the standalone Studio cannot
 import the app's `src/*`. Put `keys.ts` in a shared workspace package both consume,
