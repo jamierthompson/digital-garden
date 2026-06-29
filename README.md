@@ -29,12 +29,12 @@ The engineering handbook lives in [`docs/handbook/`](./docs/handbook) (start at
 - **Linting/formatting:** ESLint (`eslint-config-next` + `eslint-plugin-boundaries`)
   - Prettier
 - **Hosting:** [Vercel](https://vercel.com/)
-- **Package manager:** [pnpm](https://pnpm.io/) (workspace: the Next app + the Studio)
+- **Package manager:** [pnpm](https://pnpm.io/) (workspace: the Next app, the Studio, and the `@garden/oklch` engine)
 
 ## Getting started
 
 ```bash
-pnpm install                 # install both workspace packages (app + studio)
+pnpm install                 # install all workspace packages
 cp .env.example .env.local   # then fill in the Sanity values
 pnpm dev                     # Next app at http://localhost:3000
 pnpm --filter studio dev     # Sanity Studio at http://localhost:3333
