@@ -54,7 +54,7 @@ teammate plans in read-only mode and you approve before it writes.
 in CI order:
 
 ```bash
-pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm format:check && pnpm typecheck && pnpm test \
+pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm lint:docs && pnpm format:check && pnpm typecheck && pnpm test \
   && pnpm --filter studio typegen && git diff --exit-code sanity.types.ts && pnpm build
 ```
 

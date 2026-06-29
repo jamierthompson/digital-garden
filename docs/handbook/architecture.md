@@ -510,6 +510,4 @@ Before shipping a **shared** unit (the litmus is for shared primitives, not ever
       project-local embed can't silently shadow a shared one?
 
 The litmus is an **advisory** PR checklist for shared primitives; the parts that can be a lint rule
-(import boundaries, `@layer` declaration) are enforced automatically, not left to human review. It
-is mirrored in the [pull request template](../../.github/PULL_REQUEST_TEMPLATE.md) so it surfaces on
-every PR that touches a shared primitive.
+(import boundaries, `@layer` declaration) are enforced automatically, not left to human review.
