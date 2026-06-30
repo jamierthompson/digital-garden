@@ -50,12 +50,12 @@ re-run from the top, don't cherry-pick steps.
 | Lint          | `pnpm lint`                                                             | ESLint + **import boundaries** + **isomorphism** (`eslint.config.mjs`)                                                                                                       | Read the boundary message — it tells you which rule. Don't suppress; restructure.                                                                                                     |
 | CSS layers    | `pnpm lint:css`                                                         | The **`@layer` trap** — every `*.module.css` rule must be inside `@layer` or the module stays var-consuming (an unlayered module outranks every `@layer` style)              | Wrap rules in `@layer foundation\|brand\|project`. (`scripts/check-css-layers.mjs`)                                                                                                   |
 | Key drift     | `pnpm lint:keys`                                                        | `keys.ts` ↔ resolver drift — well-formed key arrays + the compile-time `satisfies` guards stay wired. (The published-keys GROQ net is tracked in the issue backlog.)         | Read the failure; fix `keys.ts` or restore the dropped `satisfies`. (`scripts/check-key-drift.mjs`)                                                                                   |
-| Doc-gate sync | `pnpm lint:docs`                                                        | The gate chain is identical across its two declarations — this file (§1) and `ci.yml` (`verify`) — so no doc silently lies about the gate                                    | Sync the divergent source; the failure prints each list + the first mismatch. (`scripts/check-doc-gate-sync.mjs`)                                                                     |
+| Doc-gate sync | `pnpm lint:docs`                                                        | The gate chain is identical across its two declarations — this file's one command and `ci.yml` (`verify`) — so no doc silently lies about the gate                                    | Sync the divergent source; the failure prints each list + the first mismatch. (`scripts/check-doc-gate-sync.mjs`)                                                                     |
 | Format        | `pnpm format:check`                                                     | Prettier formatting                                                                                                                                                          | Run `pnpm format` (never hand-format). Re-run the chain.                                                                                                                              |
 | Types         | `pnpm typecheck`                                                        | `tsc --noEmit` — incl. resolvers typed `satisfies Record<Key, …>` (the compile-time half of key-drift defense)                                                               | Fix the type. No `any` — use `unknown` then narrow.                                                                                                                                   |
 | Tests         | `pnpm test`                                                             | `vitest run` — co-located unit/component tests                                                                                                                               | Fix the code or the test. See [testing.md](./testing.md).                                                                                                                             |
 | TypeGen drift | `pnpm --filter studio typegen` + `git diff --exit-code sanity.types.ts` | Generated `sanity.types.ts` matches the Studio schema                                                                                                                       | **Commit the regenerated `sanity.types.ts`.** The easiest gate to trip after a schema change — why it drifts and how to fix is in [git-and-pr-workflow.md](./git-and-pr-workflow.md). |
-| Build         | `pnpm build`                                                            | Turbopack production build; surfaces Cache Components errors that lint/tsc can't (see §3)                                                                                    | Read the build error; usually a missing `<Suspense>` or `'use cache'`.                                                                                                                |
+| Build         | `pnpm build`                                                            | Turbopack production build; surfaces Cache Components errors that lint/tsc can't (see the Cache Components build-failures section)                                                                                    | Read the build error; usually a missing `<Suspense>` or `'use cache'`.                                                                                                                |
 
 ---
 
@@ -96,8 +96,8 @@ not a look.
 
 **The full litmus is the heavier, shared-primitive gate.** When you ship a _shared_ primitive
 (rarer — most work is per-project and _supposed_ to be specific), run the complete 7-item
-checklist in [`./architecture.md`](./architecture.md) §8 before merging — the single source of
-truth for it.
+checklist — architecture.md's "Don't reach up" litmus in [`./architecture.md`](./architecture.md) —
+before merging — the single source of truth for it.
 
 > Same rule at both scopes — never reach up for a _look_. The shared-primitive case just adds
 > the full checklist, because there the failure is silent and cross-cutting.
@@ -129,8 +129,8 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       before calling it done — focus & tap-size (the a11y floor), no CLS/paint regression,
       flash-free theme, clean console. jsdom proves none of this and CI can't drive a browser;
       this is an agent-in-the-loop manual step, not a gate. Skip it only for non-rendering work
-      (lib/logic, schema, config, docs). See
-      [accessibility-and-performance.md](./accessibility-and-performance.md) §5.
+      (lib/logic, schema, config, docs). See the Browser verification section of
+      [accessibility-and-performance.md](./accessibility-and-performance.md).
 - [ ] **Docs updated** if behavior, scripts, or conventions changed — README and any affected
       handbook page. An architecturally significant change is captured in the relevant handbook page:
       the docs are the source of truth, and git history is the audit trail.
@@ -138,13 +138,13 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       _review-done_: before the slice enters the PR, a **fresh** agent with **no prior context** (not
       merely "not the author") tried to break it and wrote the missing cases a product-team QA engineer
       would; the owning author fixed and QA re-checked clean. Staffing scales — solo → one QA; team → one
-      per coding agent. The lead owns this loop (not a CI gate) — see
-      [working-with-agents.md](./working-with-agents.md) §6.2.
-- [ ] **End of a session?** Two writes are mandatory before the squash-merge — refresh the
-      [`README.md`](../../README.md) (any changed scripts, structure, conventions, or status) and capture
-      a durable record of the work in the PR body / session notes, **including its QA log** (what QA
-      tested, what passed, each defect → fix → re-check, tests added; one entry per coding agent). See
-      [working-with-agents.md](./working-with-agents.md) §6.2.
+      per coding agent. The lead owns this loop (not a CI gate) — see the dev↔QA loop in
+      [working-with-agents.md](./working-with-agents.md).
+- [ ] **End of a session?** Refresh the [`README.md`](../../README.md) before the squash-merge
+      (any changed scripts, structure, conventions, or status). The durable what/why of the work is
+      **git history + the PR body** — and the PR body carries the **QA log** (what QA tested, what
+      passed, each defect → fix → re-check, tests added; one entry per coding agent). See the dev↔QA
+      loop in [working-with-agents.md](./working-with-agents.md).
 
 ---
 
@@ -154,8 +154,8 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
 [ ] pnpm lint · lint:css · lint:keys · lint:docs · format:check · typecheck · test · build  — all green
 [ ] sanity.types.ts regenerated & committed (after ANY Studio schema change)
 [ ] Cache Components: dynamic reads in <Suspense> or 'use cache'
-[ ] "Don't reach up": every unit self-sufficient; full litmus for shared prims → architecture §8
-[ ] Concerns separated; types co-located (shared on 2nd use); one file/concern    engineering-standards §6
+[ ] "Don't reach up": every unit self-sufficient; full litmus for shared prims → "Don't reach up" litmus in architecture.md
+[ ] Concerns separated; types co-located (shared on 2nd use); one file/concern    Code organization section of engineering-standards.md
 [ ] Diff reviewed: clean — no debug logs / dead code / unrelated changes / secrets
 [ ] Lockfile committed if deps changed; imports use @/*
 [ ] Tests co-located & meaningful; docs/README updated if needed
@@ -163,7 +163,7 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
 [ ] Independent adversarial QA: fresh, no-prior-context agent tried to break it + wrote missing cases; fixed
 ```
 
-Tick the boxes top to bottom — they aren't independent; the §1 chain short-circuits, so a
+Tick the boxes top to bottom — they aren't independent; the one-command chain short-circuits, so a
 green run means every step before it passed too. If every box is ticked, the work is
 **done** — open the PR. CI re-runs the same chain as the merge gate, so a green local run
 means no surprises. (Requiring `verify` as a merge gate is a GitHub branch-protection

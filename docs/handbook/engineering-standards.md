@@ -17,7 +17,7 @@ Most of what follows is **machine-enforced** (`pnpm lint · lint:css · lint:key
 | **`interface` vs `type`** | `interface` for object shapes meant to be extended/implemented; `type` for unions, intersections, mapped/computed types. Be consistent within a file.                                                                                                                                                                                                                                                                                                                                | Owner standard.                                                                                                                                                                         |
 | **`@/*` alias**           | For app code, import as `@/lib/cardSwatches`, never `../../../lib`. (Cross-package code uses its package name, e.g. `@garden/oklch`.)                                                                                                                                                                                                                                                                                                                                                | Configured in `tsconfig.json` `paths`. Survives file moves; ESLint boundaries match on `src/**`.                                                                                        |
 | **API/external shapes**   | Define explicit types; never lean on implicit inference from external data.                                                                                                                                                                                                                                                                                                                                                                                                          | GROQ results come **typed** via Sanity TypeGen → `sanity.types.ts` (generated — do **not** hand-edit; it's ignored by lint and format, and `git diff --exit-code`-gated in CI). |
-| **Reference-by-key**      | `keys.ts` is the single source of truth — typed resolvers `satisfies Record<Key, …>` so a missing entry is a **compile error**, returning a typed `NotFound`, never a bare lookup. Authored at `src/lib/keys.ts`, dependency- and side-effect-clean; a future move relocates it to a **shared workspace package** the app and standalone Studio both consume (the Studio can't import `src/*`), never duplicated. Establish the pattern early, instantiate it late. | architecture.md §4.2.                                                                                                                                                        |
+| **Reference-by-key**      | `keys.ts` is the single source of truth — typed resolvers `satisfies Record<Key, …>` so a missing entry is a **compile error**, returning a typed `NotFound`, never a bare lookup. Authored at `src/lib/keys.ts`, dependency- and side-effect-clean; a future move relocates it to a **shared workspace package** the app and standalone Studio both consume (the Studio can't import `src/*`), never duplicated. Establish the pattern early, instantiate it late. | architecture.md's CMS ↔ code registry section.                                                                                                                                                        |
 
 `tsc --noEmit` (`pnpm typecheck`) is a CI gate. Run it before pushing.
 
@@ -44,7 +44,7 @@ const load = () => import(`@/projects/${slug}`);
 
 `ssr: false` is **Client-Component-only** — passing it from a Server Component is an error (`…/02-guides/lazy-loading.md`).
 
-**Do NOT put `server-only` / `client-only` on the OKLCH engine.** Those pin a module to one side and break the isomorphism requirement (see §5). This is lint-enforced.
+**Do NOT put `server-only` / `client-only` on the OKLCH engine.** Those pin a module to one side and break the isomorphism requirement (see the Import boundaries section). This is lint-enforced.
 
 > ⚠️ **Async Server Components don't render in jsdom** — Vitest can't unit-test them. Test sync RSCs / Client Components with RTL; cover async RSCs and the primary flow with Playwright (E2E). See [`./testing.md`](./testing.md).
 
@@ -123,7 +123,7 @@ async function Card({ theme }: { theme: string }) {
 
 **No Tailwind. No JSON tokens. No Style Dictionary.** Styling is CSS custom properties + CSS Modules organized with `@layer`.
 
-**Tokens are three layers** (the deep treatment is architecture.md §3.1 — the layer names below are what you need to apply the `@layer` rule):
+**Tokens are three layers** (the deep treatment is architecture.md's Token & theming architecture section — the layer names below are what you need to apply the `@layer` rule):
 
 1. **Foundation** (primitives: spacing, motion, breakpoints, z-index, type-scale) → global `:root` in `src/app/foundation.css`.
 2. **Semantic** (generic role tokens components actually read) → the layer components consume; radius, border weight, shadow, and density live here too — they're just more semantic tokens, not a separate "feel/geometry" tier.
@@ -167,7 +167,7 @@ The engine's scoped `<style>` declares `@layer brand`. Note: Next's own CSS doc 
 
 **The OKLCH engine (`packages/oklch/**`, the `@garden/oklch`workspace package) is isomorphic**— it must run identically in Node and the browser. It lives in its own package precisely so the standalone Studio can import it too; its guard is a dedicated `eslint.config.mjs`block on`packages/oklch/**`(not a`boundaries`element — that plugin is`src/**`-scoped). Two guards:
 
-1. **No framework imports** — `no-restricted-imports` forbids `next`/`next/*`, `react`, `react-dom`/`react-dom/*`, and **`server-only`/`client-only`** (those break it; see §2).
+1. **No framework imports** — `no-restricted-imports` forbids `next`/`next/*`, `react`, `react-dom`/`react-dom/*`, and **`server-only`/`client-only`** (those break it; see the React section).
 2. **No DOM/Node globals** — `no-restricted-globals` forbids `window`/`document`/`process`/`Buffer`/… inside `packages/oklch/**` (full list in `eslint.config.mjs`). Imports can't catch ambient globals, so this rule does.
 
 The contract is also test-enforced: the engine suite runs under **both** `node` and `jsdom` Vitest environments (see [`./testing.md`](./testing.md)).
@@ -184,14 +184,14 @@ House rule: **establish the pattern early, instantiate it late** (the deferral d
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | Pure logic / utilities (no React, no I/O)           | `src/lib/*` (`breakpoints.ts`, `cardSwatches`, resolvers); the OKLCH engine in `packages/oklch` | always — logic stays out of components                                                                                |
 | Data fetching / external I/O (the "services" layer) | `src/sanity/lib/*`                                                                              | a new external source appears. **No generic `services/`** — RSCs fetch directly and `sanity/lib` is the I/O home      |
-| Interaction logic / state (reducers, machines)      | a hook beside the component, or a headless `core/`                                              | a component's logic outgrows its render — extract a `core/` **then**, not by template (architecture.md §4.3) |
+| Interaction logic / state (reducers, machines)      | a hook beside the component, or a headless `core/`                                              | a component's logic outgrows its render — extract a `core/` **then**, not by template (architecture.md's interactive experience section) |
 | Presentation                                        | the component, reading **tokens + props**                                                       | —                                                                                                                     |
 
-**Separation of concerns.** A component renders; it does not _also_ own a reducer, derive data, and fetch. Keep those concerns separable even before you split them — when logic starts to crowd render, lift it into a hook / `core/` and feed the component tokens and props. This is architecture.md §4.3's headless-core idea applied everywhere, not only to an experience.
+**Separation of concerns.** A component renders; it does not _also_ own a reducer, derive data, and fetch. Keep those concerns separable even before you split them — when logic starts to crowd render, lift it into a hook / `core/` and feed the component tokens and props. This is architecture.md's interactive experience section's headless-core idea applied everywhere, not only to an experience.
 
-**State at the lowest common owner.** Client state starts as local `useState` in the leaf Client Component (`'use client'` as low as possible, §2). **Trigger to lift:** the moment you're prop-drilling — threading one value through 2+ components that don't themselves use it — raise it to the lowest common parent, or introduce Context / a small store _at that point_, never pre-emptively. Most "state" here is server data (RSC + cookies + `'use cache'`, §3); a client store is only for genuinely client-only state shared across a subtree.
+**State at the lowest common owner.** Client state starts as local `useState` in the leaf Client Component (`'use client'` as low as possible, the React section). **Trigger to lift:** the moment you're prop-drilling — threading one value through 2+ components that don't themselves use it — raise it to the lowest common parent, or introduce Context / a small store _at that point_, never pre-emptively. Most "state" here is server data (RSC + cookies + `'use cache'`, the Cache Components section); a client store is only for genuinely client-only state shared across a subtree.
 
-**Type placement.** A single-use type stays **in the module's file**. Promote it to a shared `src/types/*` only when a **second** module imports it — the second importer is the trigger. (`sanity.types.ts` and the `keys.ts` contracts are the existing shared shapes; don't hand-edit the generated one, §1.)
+**Type placement.** A single-use type stays **in the module's file**. Promote it to a shared `src/types/*` only when a **second** module imports it — the second importer is the trigger. (`sanity.types.ts` and the `keys.ts` contracts are the existing shared shapes; don't hand-edit the generated one, the TypeScript section.)
 
 **One file, one concern.** One component per file, with its `*.module.css` and `*.test.tsx` co-located beside it (see [`./testing.md`](./testing.md)). Avoid broad **barrel** `index.ts` re-exports — they defeat the per-project code-splitting the literal dynamic imports depend on; the only `index.ts` files are registry entries (a project module's own `src/projects/<slug>/index.ts`).
 
@@ -201,7 +201,7 @@ House rule: **establish the pattern early, instantiate it late** (the deferral d
 
 **No magic values.** Extract named constants for anything meaningful or used in more than one place — `src/lib/breakpoints.ts` is the model.
 
-**Comments — keep them rare.** Write one only when it explains something today's code can't on its own: a non-obvious _why_, a real gotcha, or a `§N` reference that justifies a surprising choice. Don't restate what the code plainly does (a competent reader already sees it), and never leave historical (“used to…”) or aspirational (“…later”) notes — those are rot. Fewer, load-bearing comments read better than many.
+**Comments — keep them rare.** Write one only when it explains something today's code can't on its own: a non-obvious _why_, a real gotcha, or a pointer to the relevant architecture.md section that justifies a surprising choice. Don't restate what the code plainly does (a competent reader already sees it), and never leave historical (“used to…”) or aspirational (“…later”) notes — those are rot. Fewer, load-bearing comments read better than many.
 
 ---
 

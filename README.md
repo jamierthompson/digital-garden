@@ -71,7 +71,7 @@ pnpm build                   # production build
 pnpm lint                    # ESLint (incl. architectural import boundaries)
 pnpm lint:css                # assert every CSS Module declares its @layer
 pnpm lint:keys               # key-drift guard
-pnpm lint:docs               # assert the gate chain matches across DoD §1 and ci.yml
+pnpm lint:docs               # assert the gate chain matches across the DoD gate command and ci.yml
 pnpm typecheck               # tsc --noEmit
 pnpm test                    # run the test suite once
 pnpm format / format:check   # Prettier write / check
@@ -108,7 +108,7 @@ src/
     api/revalidate/     # signed Sanity webhook → revalidateTag (publish→prod)
     rss.xml/            # RSS feed route handler
     foundation.css      # foundation primitives + semantic editorial defaults + @layer order + reset
-  projects/             # self-contained project modules (e.g. first-light/) [§4.1]
+  projects/             # self-contained project modules (e.g. first-light/)
   embeds/               # shared in-essay embed components (key → component)
   components/           # project-scope (keystone), portable-text serializer, shell nav
   fonts/roster.ts       # curated next/font faces, one per key

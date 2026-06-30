@@ -2,9 +2,9 @@
 
 The non-negotiable constraints every agent honors when shipping UI here. This is a
 **checklist you verify against**, not background reading. It does not re-explain the
-OKLCH engine or the rendering model — for those, read
-[`./architecture.md`](./architecture.md) §3.2 (engine) and §7 (Cache
-Components / PPR). This doc says _what an agent must check_ and _why it matters here_.
+OKLCH engine or the rendering model — for those, read the OKLCH engine section and the
+repo & hosting section (Cache Components / PPR) of
+[`./architecture.md`](./architecture.md). This doc says _what an agent must check_ and _why it matters here_.
 
 > Conformance target: **WCAG 2.2 Level AA** (W3C Recommendation, Oct 2023 — the current
 > stable version and the legal baseline in most regions). **APCA / Lc** is the perceptual
@@ -18,7 +18,7 @@ Components / PPR). This doc says _what an agent must check_ and _why it matters 
 The hard part is automated. The engine takes a **contrast target** and binary-searches
 lightness `L` for on-brand / on-surface pairs against the _relevant background_, on the
 **gamut-mapped** color (gamut-map _before_ contrast math), re-solved per scheme
-(light/dark). See §3.2. What this means for you:
+(light/dark). See the OKLCH engine section of [`./architecture.md`](./architecture.md). What this means for you:
 
 - **Never hand-pick a contrast pair or a fixed ΔL offset.** Equal ΔL ≠ equal contrast
   across hues (OKLCH `L` is perceptual lightness, not WCAG luminance or APCA Lc). A fixed
@@ -35,8 +35,8 @@ lightness `L` for on-brand / on-surface pairs against the _relevant background_,
 ### Targets to check against
 
 You **consume** these via tokens — the engine targets them, the harness asserts them. You
-only check a row **by hand** in the rare "you must author a static color" case (§1 bullet
-3). The table exists so the engine's targets and the harness's assertions share one source
+only check a row **by hand** in the rare "you must author a static color" case (the
+third bullet of the Contrast section above). The table exists so the engine's targets and the harness's assertions share one source
 of truth.
 
 | Use                                               | WCAG 2.2 AA (floor, compliance) | APCA Lc (quality target)            |
@@ -76,7 +76,7 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 | 2.5.8 Target Size (new in 2.2)         | Pointer targets ≥ **24×24** CSS px                    | Nav links, `/work` cards, embed controls. Treat 24×24 as a firm floor.                                   |
 
 - **Focus-ring split:** _geometry_ (width, offset, style, the `:focus-visible` policy) is
-  **global foundation** (§3.1); _color_ is the **engine token** (contrast-solved per slot).
+  **global foundation** (the token & theming architecture section of [`./architecture.md`](./architecture.md)); _color_ is the **engine token** (contrast-solved per slot).
   Don't move geometry into a scope or smuggle a focus color into the global reset.
 - **2.5.8 spacing exception** exists (a target under 24px passes if a ≥24px-diameter circle
   centered on it doesn't overlap another target's circle) — but **don't reach for it to
@@ -98,26 +98,26 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 
 The architecture already buys most of this — don't undo it:
 
-- **Keep the `/work` index query essay-free** (§6): it pulls `blurb` / `brandColor` /
+- **Keep the `/work` index query essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `blurb` / `brandColor` /
   `fontKey`, never the essay. Small index payload protects **LCP**. Don't add the essay to
   the card query "for convenience."
-- **Keep the slot's `ProjectScope` in the prerendered shell** (PPR via Cache Components, §7):
+- **Keep the slot's `ProjectScope` in the prerendered shell** (PPR via Cache Components — see the repo & hosting section of [`./architecture.md`](./architecture.md)):
   the slot's theme `<style>` + font class land in the **initial static HTML** (flash-free); the
   essay/notes stream. Don't push the slot scope into a streamed hole.
 - **Don't introduce layout shift.** `next/font`'s size-adjusted fallback gives zero CLS; a
-  per-project display face swaps _intentionally_ on navigation (§5) — that's by design, not
+  per-project display face swaps _intentionally_ on navigation (see the Fonts section of [`./architecture.md`](./architecture.md)) — that's by design, not
   a CLS bug. Reserve space for media; size embeds.
 
 **CWV is verified by a dedicated budget pass** (tracked in the issue backlog), **not
 gated early** — but the levers above are fixed, so don't regress them. Per task, browser
 spot-check the surface you touched for obvious CLS/paint regressions via the Chrome DevTools
-MCP (§5) — lighter than, and distinct from, that budget pass.
+MCP (see the Browser verification section below) — lighter than, and distinct from, that budget pass.
 
 ---
 
 ## 4. Font-preload policy — the load-bearing, counter-intuitive rule
 
-This is the rule agents get wrong from stale instinct. Read [`./architecture.md`](./architecture.md) §5
+This is the rule agents get wrong from stale instinct. Read the Fonts section of [`./architecture.md`](./architecture.md)
 before touching the roster.
 
 - **`preload: false` on every roster face.** The `next/font` default is `true`, so you
@@ -171,22 +171,22 @@ pnpm start` for production-faithful output), then drive the MCP.
 
 - **Accessibility** — keyboard focus ring is **visible** (`:focus-visible`, 2.4.7), focus is
   **not obscured** by the sticky shell nav (2.4.11), tap targets clear **24×24 px** on nav /
-  `/work` cards / embed controls (2.5.8, §2), and a Lighthouse a11y pass surfaces no
+  `/work` cards / embed controls (2.5.8 — the Focus & interaction section above), and a Lighthouse a11y pass surfaces no
   semantics/contrast regression. The engine harness owns the **numeric** contrast proof
-  (§1, [`./testing.md`](./testing.md)); this is the in-browser cross-check on the assembled page.
+  (the Contrast section above, [`./testing.md`](./testing.md)); this is the in-browser cross-check on the assembled page.
 - **Layout & paint** — no unexpected **CLS** on load, and none on the _intentional_ per-project
-  font swap (§3); media has reserved space; embeds are sized.
+  font swap (the Core Web Vitals budgets section above); media has reserved space; embeds are sized.
 - **Flash-free theme** — the scoped theme `<style>` and the font `.variable` class are
   in the **initial HTML** (no FOUC on first paint), confirming `ProjectScope` rendered in the
-  prerendered shell, not a streamed hole. The browser counterpart to §4's empirical `<head>` check.
+  prerendered shell, not a streamed hole. The browser counterpart to the Font-preload policy section's empirical `<head>` check.
 - **Console** — no errors or warnings on the surface you touched.
 
 **This is not the CWV budget pass.** That formal pass — asserting the LCP / INP / CLS
-budgets in §3 and the perf hardening — is its own tracked task. This per-task check is the lighter
+budgets in the Core Web Vitals budgets section and the perf hardening — is its own tracked task. This per-task check is the lighter
 _"did I obviously regress accessibility, layout, or the flash-free theme on the surface I just
-touched"_; the a11y floor (§2) is always-on, so its verification is too. It is an
+touched"_; the a11y floor (the Focus & interaction section) is always-on, so its verification is too. It is an
 **agent-driven manual step, not a CI gate** (CI can't drive a browser) — the same status as
-§4's `<head>` check. Committed automated coverage stays Vitest now / Playwright when added
+the Font-preload policy section's `<head>` check. Committed automated coverage stays Vitest now / Playwright when added
 ([`./testing.md`](./testing.md)).
 
 ---
@@ -206,15 +206,15 @@ touched"_; the a11y floor (§2) is always-on, so its verification is too. It is 
    analysis. Set `preload: false` and verify the `<head>` empirically.
 7. **Sticky nav can obscure focus** (2.4.11); **tap targets ≥ 24×24px** (2.5.8) on
    nav / cards / embed controls.
-8. **Don't bloat the `/work` query** — keep it essay-free to protect LCP (§6).
+8. **Don't bloat the `/work` query** — keep it essay-free to protect LCP (see the Content model section of [`./architecture.md`](./architecture.md)).
 9. **The contrast harness lives in [`./testing.md`](./testing.md)** — this doc owns the
    targets, testing owns the assertions. Don't restate the harness spec here.
 10. **Browser-verify any rendered surface** with the `chrome-devtools` MCP before done — focus
-    visibility, tap-size, CLS, flash-free theme, clean console (§5). jsdom proves none of it.
+    visibility, tap-size, CLS, flash-free theme, clean console (the Browser verification section). jsdom proves none of it.
 
 ---
 
 _Related: [`./security-and-ops.md`](./security-and-ops.md) (secrets, Sanity tokens, Vercel
 ops), [`./definition-of-done.md`](./definition-of-done.md) (the ship gate),
 [`./testing.md`](./testing.md) (the contrast harness). Architecture:
-[`./architecture.md`](./architecture.md) §3.1–3.2, §5, §7._
+[`./architecture.md`](./architecture.md) — the token & theming, OKLCH engine, fonts, and repo & hosting sections._

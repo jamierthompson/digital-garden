@@ -3,7 +3,7 @@
 The **agent-first operating manual** for this repo. It is written for a capable autonomous
 agent (and the solo owner) landing cold: imperative, skimmable, example-driven — _how we
 work here_, not _what the system is_. The system model lives alongside, in
-[`architecture.md`](./architecture.md) (`§N`); the work backlog in
+[`architecture.md`](./architecture.md) (refer to its sections by name); the work backlog in
 [GitHub issues](https://github.com/jamierthompson/digital-garden/issues). These docs are the
 current source of truth — there is no separate decision log; they are edited in place and git
 history is the audit trail. The one rule that overrides instinct everywhere: this is **Next.js 16 /
@@ -15,7 +15,7 @@ framework facts against the bundled docs at `node_modules/next/dist/docs/` befor
 | Doc                                                                      | What it covers                                                                                                                                                                                |
 | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`orientation.md`](./orientation.md)                                     | **Start here.** The map: repo layout, the four-idea mental model, the golden rules that silently break this stack, and a cold-start sequence for any task.                                    |
-| [`architecture.md`](./architecture.md)                                   | **The system model** (cited everywhere as `§N`): the three-layer token model (foundation → semantic → brand), the OKLCH engine, project modules, fonts, the Sanity content model, repo & hosting, the "don't reach up" litmus. |
+| [`architecture.md`](./architecture.md)                                   | **The system model** — the reference for how the system is designed: the three-layer token model (foundation → semantic → brand), the OKLCH engine, project modules, fonts, the Sanity content model, repo & hosting, the "don't reach up" litmus. |
 | [`engineering-standards.md`](./engineering-standards.md)                 | How we write code: TypeScript discipline, Server vs Client Components, Cache Components / `'use cache'` / async request APIs, the CSS `@layer` trap, import boundaries.                       |
 | [`git-and-pr-workflow.md`](./git-and-pr-workflow.md)                     | Branching, Conventional Commits, the local gate that mirrors CI, opening/merging PRs, the Studio TypeGen drift gate.                                                                          |
 | [`definition-of-done.md`](./definition-of-done.md)                       | The single pre-push / pre-merge checklist. If it's green locally, CI is green.                                                                                                                |
@@ -38,5 +38,5 @@ jump to the page your task needs.
 ## How this handbook was built
 
 This handbook was produced with the same multi-agent pattern it documents in
-[`working-with-agents.md`](./working-with-agents.md) §4 — **research → independent drafts →
+[`working-with-agents.md`](./working-with-agents.md) — **research → independent drafts →
 adversarial debate → synthesis**.

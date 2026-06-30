@@ -2,7 +2,7 @@
 
 **Read this first.** It is the map: what lives where, the mental model, the rules you cannot break, and a cold-start sequence for any task. It does **not** re-explain the system — for that, the architecture docs are the source of truth, and this doc points you to the right one.
 
-There is no decision log: **the docs are the current truth, edited in place; git history is the audit trail.** The system model is [`architecture.md`](./architecture.md) (cited as `§N`); this handbook is how we work. Where any doc and the framework disagree, **the bundled Next docs win** (`node_modules/next/dist/docs/`) — your training data is stale on this stack (`middleware` → `proxy`, async request APIs, `export const dynamic` gone; see [Golden rules](#golden-rules-non-negotiable)).
+There is no decision log: **the docs are the current truth, edited in place; git history is the audit trail.** The system model is [`architecture.md`](./architecture.md) (refer to its sections by name); this handbook is how we work. Where any doc and the framework disagree, **the bundled Next docs win** (`node_modules/next/dist/docs/`) — your training data is stale on this stack (`middleware` → `proxy`, async request APIs, `export const dynamic` gone; see [Golden rules](#golden-rules-non-negotiable)).
 
 ---
 
@@ -30,7 +30,7 @@ The stack, verified — do not contradict it:
 ```
 docs/
   handbook/                THIS handbook — how we work (incl. architecture.md, the system model)
-    architecture.md        the system model (§N anchors referenced everywhere)
+    architecture.md        the system model
 AGENTS.md                  lean pointer for agents; @-imports into CLAUDE.md
 README.md                  human-facing overview + scripts
 eslint.config.mjs          the real import-boundary + isomorphism rules
@@ -38,7 +38,7 @@ eslint.config.mjs          the real import-boundary + isomorphism rules
 scripts/
   check-css-layers.mjs     the @layer-declaration lint (pnpm lint:css)
   check-key-drift.mjs      the key-drift guard (pnpm lint:keys)
-  check-doc-gate-sync.mjs  the gate-doc sync guard (pnpm lint:docs; keeps the gate chain ≡ across DoD §1, ci.yml)
+  check-doc-gate-sync.mjs  the gate-doc sync guard (pnpm lint:docs; keeps the gate chain ≡ across the DoD one command, ci.yml)
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
     layout.tsx             root layout (shell nav skeleton, shell fonts preload:true)
@@ -60,13 +60,13 @@ studio/                    standalone Sanity Studio (own package, own ESLint/tsc
 
 Four ideas carry the whole architecture. Internalize the shape; read the cited section **before** you build against it — these one-liners orient you, they do not replace the source.
 
-1. **Modules, not a monolith** (§1, §4). Each project is a self-contained module under `src/projects/<slug>/`; genuinely shared parts live in plain shared `src/` modules. Dependencies point **projects → shared, never back**, and never project → project. This is lint-enforced (see Golden rules).
+1. **Modules, not a monolith** (the Guiding principles and Project modules sections of architecture.md). Each project is a self-contained module under `src/projects/<slug>/`; genuinely shared parts live in plain shared `src/` modules. Dependencies point **projects → shared, never back**, and never project → project. This is lint-enforced (see Golden rules).
 
-2. **Global editorial chrome, slot-scoped brand** (§3.1). Tokens are three layers: **foundation** (primitives at `:root`) → **semantic** (the generic role tokens components read — `--surface`, `--text`, `--primary`, `--font-body`, `--space-*` — mapped from primitives; the editorial look **is** their default mapping at `:root`) → **brand** (a project slot at `[data-project]` re-defines those same semantic tokens with its own values). One editorial system — Newsreader + a black/white/gray neutral ramp — dresses **all page chrome** (nav, headers, prose, backgrounds, the shell). A project's **brand color + font** are **slot-scoped**: they theme only its bounded interactive slot, never the page or the shell. The public token contract is the **semantic** layer; there are **no project-prefixed `--<proj>-*` names** — isolation comes from the `[data-project]` scope, not a prefix, so a shared unit codes against the generic semantic names and the cascade resolves to the nearest slot.
+2. **Global editorial chrome, slot-scoped brand** (the Token & theming architecture section of architecture.md). Tokens are three layers: **foundation** (primitives at `:root`) → **semantic** (the generic role tokens components read — `--surface`, `--text`, `--primary`, `--font-body`, `--space-*` — mapped from primitives; the editorial look **is** their default mapping at `:root`) → **brand** (a project slot at `[data-project]` re-defines those same semantic tokens with its own values). One editorial system — Newsreader + a black/white/gray neutral ramp — dresses **all page chrome** (nav, headers, prose, backgrounds, the shell). A project's **brand color + font** are **slot-scoped**: they theme only its bounded interactive slot, never the page or the shell. The public token contract is the **semantic** layer; there are **no project-prefixed `--<proj>-*` names** — isolation comes from the `[data-project]` scope, not a prefix, so a shared unit codes against the generic semantic names and the cascade resolves to the nearest slot.
 
-3. **The OKLCH engine** (§3.2) — a pure, **isomorphic** `(brandColor, scheme) → tokenSet` in `packages/oklch` (the `@garden/oklch` workspace package, so the Studio can import it too). It bakes literals server-side, is scheme-aware, and is **defensive — never throws**. The load-bearing, genuinely hard piece; one engine, three consumers. Read §3.2 before building against it.
+3. **The OKLCH engine** (the OKLCH engine section of architecture.md) — a pure, **isomorphic** `(brandColor, scheme) → tokenSet` in `packages/oklch` (the `@garden/oklch` workspace package, so the Studio can import it too). It bakes literals server-side, is scheme-aware, and is **defensive — never throws**. The load-bearing, genuinely hard piece; one engine, three consumers. Read the OKLCH engine section before building against it.
 
-4. **Reference-by-key + the `ProjectScope` keystone** (§4.2, §6). Sanity stores **keys** (`componentKey`, `fontKey`, `embedKey`, `brandColor`); code resolves them via typed resolvers (`keys.ts` is the single source of truth). **`ProjectScope`** is the one server component that turns a slot's `brandColor` + `fontKey` into the flash-free scoped styles the slot beneath reads as the slot's brand-valued semantic tokens (`var(--primary)` / `var(--font-body)`) — it wraps the project's bounded slot (the `[data-project]` wrapper), never the page or the shell. Read §6 for its caching contract.
+4. **Reference-by-key + the `ProjectScope` keystone** (the CMS ↔ code registry and Content model sections of architecture.md). Sanity stores **keys** (`componentKey`, `fontKey`, `embedKey`, `brandColor`); code resolves them via typed resolvers (`keys.ts` is the single source of truth). **`ProjectScope`** is the one server component that turns a slot's `brandColor` + `fontKey` into the flash-free scoped styles the slot beneath reads as the slot's brand-valued semantic tokens (`var(--primary)` / `var(--font-body)`) — it wraps the project's bounded slot (the `[data-project]` wrapper), never the page or the shell. Read the Content model section for its caching contract.
 
 ---
 
@@ -74,7 +74,7 @@ Four ideas carry the whole architecture. Internalize the shape; read the cited s
 
 These are the things that silently break this specific stack, or that the owner has standardized. Most are lint/CI-enforced — but know them so you don't fight the tools.
 
-**Use the capabilities you have.** Before hand-rolling or web-searching, check for a skill / subagent / MCP tool that already fits — the ones you need are likely already installed and authed; if not, ask. The discovery method + source-of-truth ladder is [`./working-with-agents.md`](./working-with-agents.md) §1.
+**Use the capabilities you have.** Before hand-rolling or web-searching, check for a skill / subagent / MCP tool that already fits — the ones you need are likely already installed and authed; if not, ask. The discovery method + source-of-truth ladder is the cite-don't-remember rule in [`./working-with-agents.md`](./working-with-agents.md).
 
 **This is not the Next.js in your training data — verify in `node_modules/next/dist/docs/` before writing framework code.** The model-breaking facts (all confirmed against the bundled docs; see [`./architecture.md`](./architecture.md), [`./accessibility-and-performance.md`](./accessibility-and-performance.md), and [`./security-and-ops.md`](./security-and-ops.md)):
 
@@ -93,14 +93,14 @@ These are the things that silently break this specific stack, or that the owner 
 - **TypeScript discipline:** `@/*` alias not deep relative chains; `interface` for extensible object shapes, `type` for unions/intersections; **no `any`** (use `unknown`, then narrow); type params + returns.
 - **Never hardcode secrets** — env vars only; keep `.env.example` current; `.env*` is gitignored. The Sanity **project ID / dataset are public** by design (plain env in `ci.yml`); a Sanity **token is secret**, server-side only, never `NEXT_PUBLIC_*`.
 - **Before committing:** code runs, lint passes, `pnpm format` clean, diff reviewed (no debug logs, no commented-out code, no unrelated changes). The full Definition of Done is [`./definition-of-done.md`](./definition-of-done.md).
-- **Docs are everyone's job — see something, say something.** These docs are the source of truth, so a stale one actively misleads. If you notice _any_ doc that's wrong, outdated, or contradicts the code — even outside your task — fix it in your branch when it's a quick, safe correction, or flag it to the owner when it isn't. Don't walk past a stale path, a dead script reference, or a status claim that isn't true. Keeping a doc current is never "not my task." (Closing a session has its own hard doc requirement — README + session record; see [`./working-with-agents.md`](./working-with-agents.md) §6.2.)
+- **Docs are everyone's job — see something, say something.** These docs are the source of truth, so a stale one actively misleads. If you notice _any_ doc that's wrong, outdated, or contradicts the code — even outside your task — fix it in your branch when it's a quick, safe correction, or flag it to the owner when it isn't. Don't walk past a stale path, a dead script reference, or a status claim that isn't true. Keeping a doc current is never "not my task." (Refreshing the [`README.md`](../../README.md) at session end is a hard requirement; the durable record of the work is git history + the PR body.)
 
 ---
 
 ## Starting a task from cold
 
 1. **Pick up the work.** Open the [GitHub issue tracker](https://github.com/jamierthompson/digital-garden/issues) (or take the issue the owner assigns). Each issue is a self-contained slice with its own acceptance criteria.
-2. **Read the cited sections.** Issues and code cite `§N` (the system model, [`./architecture.md`](./architecture.md)). Open the cited section before writing code — the handbook is the current truth for how the system is designed and how we work.
+2. **Read the cited sections.** Issues and code reference the system model by section name ([`./architecture.md`](./architecture.md)). Open the cited section before writing code — the handbook is the current truth for how the system is designed and how we work.
 3. **Verify framework facts.** If your task touches the framework, open the matching bundled doc — do not trust memory:
 
    | Touching…                         | Bundled doc (under `node_modules/next/dist/docs/`)                                   |
@@ -111,9 +111,9 @@ These are the things that silently break this specific stack, or that the owner 
 
 4. **Branch.** `git checkout -b <type>/<kebab-description>` off `main` (`feat/…` for a `feat:` commit — prefix = commit type). Never work on `main`.
 5. **Build the smallest slice = one commit, completed and gate-green.** Co-locate the test with its subject. Match existing patterns in `src/`. On a team branch you own your slice's quality; the lead curates history (squash/reorder) but doesn't fix your slice for you.
-6. **Run the full gate locally before pushing** — the one command is [`definition-of-done.md` §1](./definition-of-done.md#1-the-one-command) (it mirrors the CI chain in order). Fix formatting with `pnpm format` — never by hand.
+6. **Run the full gate locally before pushing** — the one command is [the one command](./definition-of-done.md#1-the-one-command) (it mirrors the CI chain in order). Fix formatting with `pnpm format` — never by hand.
 7. **If you touched the Studio schema**, the `typegen` step above will have rewritten `sanity.types.ts` — **commit it**. This is the easiest gate to trip: CI regenerates and `git diff --exit-code`s the types unconditionally before `build`, so a stale `sanity.types.ts` fails CI even on app-only changes.
-8. **Independent adversarial QA before the PR.** Gate-green is _developer-done_, not _review-done_: a **fresh** agent with **no prior context of the work** — not merely "not the author" — tries to **break** the slice and writes the missing test cases a product-team QA engineer would; the owning author fixes, QA re-checks. Every session, scaled to staffing (solo → one QA; team → one per coding agent). Mechanics in [`./working-with-agents.md`](./working-with-agents.md) §6.2.
+8. **Independent adversarial QA before the PR.** Gate-green is _developer-done_, not _review-done_: a **fresh** agent with **no prior context of the work** — not merely "not the author" — tries to **break** the slice and writes the missing test cases a product-team QA engineer would; the owning author fixes, QA re-checks. Every session, scaled to staffing (solo → one QA; team → one per coding agent). Mechanics in the dev↔QA loop in [`./working-with-agents.md`](./working-with-agents.md).
 9. **Curate, then open a PR into `main`.** The lead rebases onto `main` and squashes/reorders the branch into a gate-green tip, then opens the PR — one purpose; the description says what/why/testing and **is** the squash-commit story. All tasks done before opening — no checklists with unfinished items. CI green → **squash-merge**; delete the branch after.
 
 ---
@@ -122,14 +122,14 @@ These are the things that silently break this specific stack, or that the owner 
 
 | Your task is about…                                               | Read                                                                       |
 | ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| The system model / what the architecture _is_ / why we chose X    | [`./architecture.md`](./architecture.md) (§N)                              |
+| The system model / what the architecture _is_ / why we chose X    | [`./architecture.md`](./architecture.md) (the system model)                |
 | What to do next / the work backlog                                | [GitHub issues](https://github.com/jamierthompson/digital-garden/issues)   |
 | Code style, TS rules, the `@layer` trap, import boundaries        | [`./engineering-standards.md`](./engineering-standards.md)                 |
 | Branching, commits, PRs, keeping CI green                         | [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)                     |
 | When a task is "done" (the pre-push / pre-merge bar)              | [`./definition-of-done.md`](./definition-of-done.md)                       |
 | Writing tests, dual-env engine tests, co-location, E2E timing     | [`./testing.md`](./testing.md)                                             |
 | How agents collaborate, handoffs, the audit/debate shape          | [`./working-with-agents.md`](./working-with-agents.md)                     |
-| Independent adversarial QA before a PR (solo or team)             | [`./working-with-agents.md`](./working-with-agents.md) §6.2                |
+| Independent adversarial QA before a PR (solo or team)             | [`./working-with-agents.md`](./working-with-agents.md) (the dev↔QA loop)   |
 | Contrast targets (APCA/WCAG), focus rings, fonts, Core Web Vitals | [`./accessibility-and-performance.md`](./accessibility-and-performance.md) |
 | Secrets, Sanity tokens, draft mode, Vercel deploys/rollbacks      | [`./security-and-ops.md`](./security-and-ops.md)                           |
 | Anything about how Next.js 16 / React 19 actually works           | `node_modules/next/dist/docs/` (version-matched)                           |

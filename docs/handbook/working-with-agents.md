@@ -35,7 +35,7 @@ work. The plugins, MCP servers, subagents, and skills you need are **likely alre
 authed** — look before assuming (`ToolSearch`, the skills list, the `Agent` types), and if
 something you need is missing, ask. When a capability matches the task, invoke it **before**
 writing code or searching the web. (Browser-verifying any rendered surface before done is required
-— see [`./accessibility-and-performance.md`](./accessibility-and-performance.md) §5.)
+— see the Browser verification section of [`./accessibility-and-performance.md`](./accessibility-and-performance.md).)
 
 **The source-of-truth ladder** — highest first; never skip straight to memory:
 
@@ -132,7 +132,7 @@ This handbook itself was built with this pattern. The shape:
 
 1. **Research, with citations.** Pin every claim to a primary source — bundled docs, a
    spec URL, or a handbook doc. Verbose fetching/log-crunching happens in isolated subagents that
-   return a **dense, cited digest** (see §5).
+   return a **dense, cited digest** (see the subagent-brief section).
 2. **N independent drafts.** Diverse role-lenses draft _independently, before seeing each
    other's work_ — the audit's five lenses (Architect, FrameworkFit, Theming, ContentModel,
    Sequencing). Diversity is what makes the next step work; identical agents add nothing.
@@ -157,7 +157,8 @@ Subagents in Claude Code start with a **fresh, isolated context** — they do **
 conversation history, your prior file reads, or skills you invoked. The only channel in is
 the delegation prompt; the only channel out is the returned summary
 ([Claude Code — Subagents](https://code.claude.com/docs/en/sub-agents)). This is the #1
-thing agents get wrong about subagents — and it is the mechanic §4 and §6 both rely on, so
+thing agents get wrong about subagents — and it is the mechanic the orchestration and
+clean-handoffs sections both rely on, so
 get it right here.
 
 **Spawn one when** the work is verbose enough to pollute the lead's context (test runs, doc
@@ -181,18 +182,19 @@ fetches, log crunching) or independent enough to parallelize (the audit's per-le
 ## 6. Clean handoffs & continuity
 
 Context doesn't carry across a handoff — the mechanics of self-contained-in / dense-digest-out
-live in §5. This section is what to do _between_ handoffs:
+live in the subagent-brief section. This section is what to do _between_ handoffs:
 
 - **Persist progress summaries to the repo before re-spawning.** Hand off via durable written
-  artifacts — this handbook, the PR body, session notes — never chat scrollback. External memory
-  beats context-window stuffing for long, multi-session efforts
+  artifacts — this handbook, the PR body, the issue tracker — never chat scrollback. A written
+  trail beats context-window stuffing for long, multi-session efforts
   ([Anthropic — Multi-Agent Research](https://www.anthropic.com/engineering/multi-agent-research-system)).
   A prompt that says "continue what we were doing" fails; a pointer to a written summary doesn't.
 - **One task ≈ one commit ≈ one clean handoff.** Small, focused commits are the unit of work —
   and each is a **completed, gate-green slice** an agent stands behind, reviewable, a natural
   seam for the next agent (or the owner) to pick up. The lead curates the branch and squash-merges
-  it, so the story is told once in the PR (see §6.1 and
-  [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §6) — but that's about _history_, not
+  it, so the story is told once in the PR (see the agent-teams section and the
+  Curate/merge/cleanup section of [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)) — but
+  that's about _history_, not
   about lowering the bar on a handoff.
 
 **Every coding session has a lead and an independent, adversarial QA pass — staffing just scales.**
@@ -205,7 +207,8 @@ between developer-done and the PR, whether one Claude or ten do the work:
   agent per coding agent**, each trying to break the slice it reviews before that slice enters the PR.
 
 The split below is written team-first, but **solo is the degenerate case**: lead and author collapse
-into one agent; the slice count is one; the dev↔QA loop (§6.2) is identical and still mandatory. The
+into one agent; the slice count is one; the dev↔QA loop (the lead-runs-the-loop section just below)
+is identical and still mandatory. The
 QA is always **adversarial** and always **fresh with no prior context of the work** — not merely "not
 the agent that wrote the code." ("No prior context" is the stronger bar: it disqualifies a teammate
 that helped design or debate the slice, not just the one that typed it.)
@@ -226,8 +229,8 @@ deliverable." Split the responsibility cleanly:
   branch at `.claude/worktrees/<slug>/` (`git worktree add`) — **not** the ephemeral
   `isolation: "worktree"` spawn flag, which breaks `acceptEdits` scope. Two payoffs: file conflicts
   become structurally impossible (separate checkouts), and because the path is under the repo root
-  (= the teammate's cwd), `acceptEdits` covers every edit with **no permission prompts** — §6.2's
-  "lead clears the path" made mechanical. The lead owns setup/teardown (a `pnpm install` per worktree,
+  (= the teammate's cwd), `acceptEdits` covers every edit with **no permission prompts** — the
+  lead-runs-the-loop section's "lead clears the path" made mechanical. The lead owns setup/teardown (a `pnpm install` per worktree,
   a distinct dev-server port per slice, `git worktree remove` at cleanup); recipe in the `agent-team`
   skill. A worktree isolates _editing_ only — never trust it for _final_ verification.
 - **The team lead curates history, not your slice.** The lead's git magic is about _history_:
@@ -235,12 +238,12 @@ deliverable." Split the responsibility cleanly:
   **squash-merge** and write the PR body (the durable story). The lead does **not** inherit
   responsibility for an unfinished slice — that bounces back to the owning agent.
 - **Shared-branch hygiene:** push curated history with `--force-with-lease` (never plain
-  `--force`) so a teammate's concurrent push isn't clobbered. Full mechanics:
-  [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §6.
+  `--force`) so a teammate's concurrent push isn't clobbered. Full mechanics: the
+  Curate/merge/cleanup section of [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md).
 
 ### 6.2 The lead runs the loop: permissions · adversarial QA · merge-readiness
 
-§6.1 splits _ownership_; this is what the lead actively **runs** during **any** session — solo or team.
+The agent-teams section splits _ownership_; this is what the lead actively **runs** during **any** session — solo or team.
 (On a solo session the lead is also the sole author; the loop is the same, with one slice and one QA.)
 The lead is the session's single point of contact with the owner — **the owner directs the session, not
 each tool call.**
@@ -254,14 +257,14 @@ each tool call.**
   path**, not _the owner approves each call_.
 
 - **Independent, adversarial QA before the PR — run a dev↔QA loop.** A gate-green slice is
-  _developer-done_, not _review-done_ — the §3 self-check and the green gate prove the author's own
+  _developer-done_, not _review-done_ — the AGENTS.md-entry-point self-check and the green gate prove the author's own
   intent, not that the work survives someone trying to break it. **Every** session does this, scaled to
   its staffing: a solo session spawns **one** fresh QA for its own work; a team session spawns **one fresh QA
   per coding agent**. Before a slice enters the PR, the lead spawns a **fresh** QA subagent
   (`pr-review-toolkit:code-reviewer` / `feature-dev:code-reviewer`, or the `/code-review` skill) —
   _fresh_ meaning **no prior context of the work**, not merely **not** the agent that wrote it —
   a teammate that helped design, debate, or diagnose the slice is **disqualified** even though it didn't
-  type the code; an isolated context is the whole point (brief it per §5 on the **requirements + the
+  type the code; an isolated context is the whole point (brief it per the subagent-brief section on the **requirements + the
   diff only**, never the author's reasoning). **QA is adversarial, not a once-over:**
   - **Try to break it — think like a QA engineer on a product team.** Don't just confirm the happy
     path renders. Attack the edges the author optimized past: malformed / boundary / empty / hostile
@@ -284,31 +287,29 @@ each tool call.**
 
 - **Own merge-readiness — CI green, review clean.** "Ready to merge" is the **lead's** call, and
   it means **both**: the CI `verify` gate green on the curated tip
-  ([`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §5) **and** the independent QA review
+  (the CI gate section of [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)) **and** the independent QA review
   (above) clean — every finding either fixed in-branch by the owning agent or filed as a
   follow-up [GitHub issue](https://github.com/jamierthompson/digital-garden/issues) with its PR# and reason. The
   independent review happens **pre-PR** via the QA subagent — there is **no automatic review bot**
   in CI. The repo keeps one on-demand Claude workflow (`@claude` in a PR comment); the lead may
   invoke it for a second opinion and treats anything it surfaces like QA's findings, but it's a
-  tool, not a gate. Only then does the lead curate history (§6.1) and squash-merge.
+  tool, not a gate. Only then does the lead curate history (per the agent-teams section) and squash-merge.
 
-- **Close the session — every session ends with two writes (non-negotiable).** A session is one
+- **Close the session — keep the README current and the PR body complete.** A session is one
   team's (or the solo lead's) sitting: it ends when the team stops — whether it _completed_ the unit
   of work or stopped at a good handoff point (between tasks, so QA can run and a PR can open) for the
-  next team to pick up. At that point, and before any squash-merge, the session produces both, or it
-  isn't done:
+  next team to pick up. Before any squash-merge:
   1. **Update the project [`README.md`](../../README.md)** so it still describes the repo as it now
      is — any changed scripts, structure, conventions, or status. The README is human-facing and
      rots silently; a stale status claim is the smell this rule exists to kill. (The per-task echo
-     of this is the DoD §6 "docs updated" box; this makes it a hard **session-level** requirement,
+     of this is the "docs updated" box in [`./definition-of-done.md`](./definition-of-done.md); this makes it a hard **session-level** requirement,
      not a maybe.)
-  2. **Write the durable session record** — why / shape / outcome / **QA log** / lessons — in the
-     PR body (plus any session notes the work warrants). This is the repo's external memory; a
-     session that did real product work and left no record is invisible to the next session. The
-     **QA log is the durable evidence of the dev↔QA loop**: one entry per coding agent — what QA
-     probed, what passed, each defect → fix → re-check, and the tests QA added. The green gate is
-     not that evidence; the log is. Record each slice's entry **as its loop closes**, not
-     reconstructed at the end. Applies to **solo sessions too**, not just teams.
+  2. **Put the QA log in the PR body** — one entry per coding agent: what QA probed, what passed,
+     each defect → fix → re-check, and the tests QA added. This is the durable evidence of the
+     dev↔QA loop; the green gate is not that evidence, the log is. Record each slice's entry **as
+     its loop closes**, not reconstructed at the end. The durable what/why of the work itself is
+     **git history + the PR body** — there is no separate session record to write. Applies to
+     **solo sessions too**, not just teams.
 
 ## 7. Keeping agents from drifting the architecture — quick gate
 
@@ -323,7 +324,7 @@ Before you finish a task, self-check:
 - [ ] Is every non-obvious claim in my output anchored to a handbook doc, a bundled-doc path, or a
       URL — pointing at the source that _actually contains_ it?
 - [ ] Did I keep docs minimal — no restating what CI already enforces?
-- [ ] Green gate: run the one command ([`./definition-of-done.md` §1](./definition-of-done.md#1-the-one-command)) — it includes the Studio TypeGen drift step, so commit any regenerated `sanity.types.ts`.
+- [ ] Green gate: run [the one command](./definition-of-done.md#1-the-one-command) — it includes the Studio TypeGen drift step, so commit any regenerated `sanity.types.ts`.
 
 See also: [`./orientation.md`](./orientation.md) ·
 [`./engineering-standards.md`](./engineering-standards.md) ·

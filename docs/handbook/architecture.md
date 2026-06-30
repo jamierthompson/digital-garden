@@ -5,8 +5,8 @@ module** — its pages (always the interactive experience, plus whatever else it
 a hero, rich media), the components its essay embeds, and its tokens — composed within the site.
 Hosted on Vercel; essay + brand seeds in Sanity.
 
-This is the **reference for how the system is designed**, cited across the codebase as `§N`
-(e.g. `§3.2`, `§4.1`). This document is the current truth; it is edited in place as the system
+This is the **reference for how the system is designed**; code and the other docs point back to
+its sections by name. This document is the current truth; it is edited in place as the system
 evolves, and git history is the audit trail — there is no separate decision log to reconcile
 against. Where any doc and the framework disagree, **the bundled Next docs win**
 (`node_modules/next/dist/docs/`) — your training data is stale on this stack.
@@ -22,7 +22,7 @@ running code hasn't fully caught up to yet — each tracked by a GitHub issue:
 
 ---
 
-## 1. Guiding principles
+## Guiding principles
 
 These are the through-lines; everything else follows from them.
 
@@ -53,15 +53,15 @@ These are the through-lines; everything else follows from them.
   shippable packages. Slot-scoped theming, downward theming, and the don't-reach-up discipline stay
   only where they earn their keep. The foundation and the semantic defaults are shared globally (and
   carry the global editorial look); only the **brand layer** — a slot's full override of the semantic
-  tokens — is scoped to each project's slot. A small foundation _coordination_ layer is the norm
-  (§3.1), the embed registry starts single-tier (§4.1), and the litmus (§8) applies to shared
-  primitives, not every component. Concentrate the sophistication where it pays — the OKLCH engine
-  (the load-bearing, genuinely hard piece), the content model, performance — and let the rest be
-  boringly simple.
+  tokens — is scoped to each project's slot. A small foundation _coordination_ layer is the norm (see
+  the token & theming architecture below), the embed registry starts single-tier (see project
+  modules), and the don't-reach-up litmus applies to shared primitives, not every component.
+  Concentrate the sophistication where it pays — the OKLCH engine (the load-bearing, genuinely hard
+  piece), the content model, performance — and let the rest be boringly simple.
 
 ---
 
-## 2. Code vs content
+## Code vs content
 
 Two homes:
 
@@ -75,18 +75,20 @@ Two homes:
 Within a project the division is code vs content, but the line isn't a wall. The interactive
 experience and the components are code; the essay is content. The essay is _rich_, though — it
 can embed media and live components (including the demo itself, in place of screenshots) by key —
-per-project or shared, the same reference-by-key move as `componentKey` (§4.1–4.2, §6). The
-experience's logic lives in a headless core when it earns one (§4.3), but that's ordinary code
-organization, not a boundary the site has to maintain.
+per-project or shared, the same reference-by-key move as `componentKey` (see project modules and
+the content model). The experience's logic lives in a headless core when it earns one (see the
+interactive experience section), but that's ordinary code organization, not a boundary the site has
+to maintain.
 
 The shell's top-level pages — home, about, `/now` — are owned by the site rather than any project
-module, and wear the global editorial look like every other page (§3.1).
+module, and wear the global editorial look like every other page (see the token & theming
+architecture).
 
 ---
 
-## 3. Token & theming architecture
+## Token & theming architecture
 
-### 3.1 Three layers: foundation (primitives) → semantic (role tokens) → brand (slot override)
+### Three layers: foundation (primitives) → semantic (role tokens) → brand (slot override)
 
 Tokens are organized in **three layers**, each consuming the one before it:
 
@@ -151,7 +153,7 @@ Key points:
   regardless of specificity or source order. So any component CSS Module that sets real properties
   must wrap its body in `@layer project { … }` (or stay strictly var-_consuming_); the engine's
   scoped `<style>` declares `@layer brand`; the bare `@layer foundation, brand, project;` order
-  statement is emitted in a global sheet loaded first. Lint-enforced (§8).
+  statement is emitted in a global sheet loaded first. Lint-enforced (see the don't-reach-up litmus).
 
 - **Cascade order via `@layer`** (foundation < brand < project) to kill CSS-module insertion-order
   accidents instead of fighting specificity. The global order statement must register before
@@ -161,7 +163,7 @@ Key points:
   conditions, so breakpoints are build-time constants / container queries; custom props can still
   feed JS. Slot-responsive layout uses container queries scoped to the slot.
 
-### 3.2 The OKLCH engine
+### The OKLCH engine
 
 The engine is the load-bearing, genuinely hard piece of the system — not a lightness ramp but a
 small color _system_. It is **both a feature and a project — same logic, two-plus consumers.**
@@ -209,7 +211,8 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 - **Defensive, never throws.** `brandColor` comes from an editor and may be invalid or
   out-of-gamut. The engine parses/clamps/gamut-validates and **returns a safe fallback palette**
   rather than throwing — a bad color is expected data, not an exceptional bug. This pairs with
-  author-time Sanity validation (§6) and a `ProjectScope` backstop (§6, §7).
+  author-time Sanity validation (see the content model) and a `ProjectScope` backstop (the content
+  model and repo & hosting sections).
 
 - Runs **per slot** — once per project slot (seeded by that project's `brandColor`). Multiple themed
   slots can coexist on one page; the page chrome around them stays editorial. **Previews are not
@@ -233,9 +236,9 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 - **Consumer A — the theming feature**: the per-slot theming layer (`ProjectScope`) calls the
   engine on the server to emit each slot's `<style>` block.
 - **Consumer B — the portfolio piece**: `src/projects/oklch-engine/` is an ordinary project module
-  (§4) whose interactive experience is a playground (drag a hue, watch the palette regenerate). The
-  experience **imports the same shared engine** — it never reimplements it, and re-runs the pure
-  function in JS on each slider move (it does not rely on CSS re-derivation).
+  (a project module like any other) whose interactive experience is a playground (drag a hue, watch
+  the palette regenerate). The experience **imports the same shared engine** — it never reimplements
+  it, and re-runs the pure function in JS on each slider move (it does not rely on CSS re-derivation).
 - **Consumer C — preview swatches**: the index (and inline previews) call a
   `cardSwatches(brandColor)` helper that runs the **same engine** and returns just a few stops. The
   card sets them as inline `--c-*` custom properties on otherwise-editorial chrome — no slot scope,
@@ -253,7 +256,7 @@ The anti-pattern to avoid: putting the engine _inside_ a project module and havi
 layer reach up into a portfolio piece for infrastructure — that inverts the dependency direction.
 Shared logic lives in a shared module; the project is a presentation of it.
 
-### 3.3 Downward theming
+### Downward theming
 
 The **project's slot scope is the single downward-theming owner** for brand: it re-defines the
 semantic tokens with the project's brand values (from the OKLCH engine) plus any other semantic
@@ -281,9 +284,9 @@ any _specific_ project's scope. It ships its own defaults and reads generic sema
 
 ---
 
-## 4. Project modules
+## Project modules
 
-### 4.1 Structure
+### Structure
 
 ```
 src/projects/<slug>/
@@ -304,10 +307,10 @@ project may have an essay/rich-media page, a hero, something else, or nothing mo
 page set is decided per project, not fixed by a template. `experience.tsx` is the component; a thin
 page in `pages/` mounts it. A headless `core/` is **not** templated into every module — let it
 emerge only when an experience's logic warrants extraction (same deferral discipline as the
-embed tiers; §4.3). The module owns its page components; thin route files mount them. Code
-lives under `src/projects/<slug>/`; **routes are flat** — `/` is the index of project
-cards, and a root-level `/[slug]` (a dynamic segment that cedes precedence to static segments like
-`/about`, `/now`) mounts a project's pages. There is no `/work` prefix.
+embed tiers; see the interactive experience section). The module owns its page components; thin
+route files mount them. Code lives under `src/projects/<slug>/`; **routes are flat** — `/` is the
+index of project cards, and a root-level `/[slug]` (a dynamic segment that cedes precedence to
+static segments like `/about`, `/now`) mounts a project's pages. There is no `/work` prefix.
 
 **Start single-tier** — one shared `src/lib/resolvers/embeds.ts` until a second project actually reuses a
 widget; introduce the project-local tier only then. Once you do, embeds follow the **same
@@ -321,9 +324,9 @@ reused; both tiers lazy-import.
 Most UI belongs to its project module; lift a primitive into a shared `src/` module only once it's
 genuinely reused across projects — not preemptively. A project may also _consume_ shared logic
 without owning it — the oklch-engine project's experience imports the shared engine rather than
-holding it (§3.2).
+holding it (see the OKLCH engine).
 
-### 4.2 The CMS ↔ code registry
+### The CMS ↔ code registry
 
 ```
 Sanity project doc { componentKey: "<slug>", brandColor, fontKey, copy, maturity, related, featuredRank, tags }
@@ -353,7 +356,7 @@ bundler static analysis). Server Components are auto-split already; the manual l
   buys conditional inclusion, and the real client-bundle savings come from the Client Components
   _inside_ each module.
 
-### 4.3 The interactive experience: logic in a headless core (when it earns one)
+### The interactive experience: logic in a headless core (when it earns one)
 
 Each project's interactive experience is a demo that actually works. As a general engineering
 practice — not for any packaging or reuse goal — its logic _can_ live in a **headless core** (hooks
@@ -364,12 +367,12 @@ logic warrants it.
 
 There's no demo-vs-experience boundary to maintain. The experience owns its own state and renders
 directly. The same interactive experience — or smaller bespoke live components — can be **embedded
-inline in an essay** by key, in place of screenshots (§6), under the same project scope, so it
-themes identically.
+inline in an essay** by key, in place of screenshots (see the content model), under the same project
+scope, so it themes identically.
 
 ---
 
-## 5. Fonts
+## Fonts
 
 **Store-the-key (roster-by-key).** A curated roster of faces is declared in code (each a `next/font`
 export, in a single shared module); Sanity stores a `fontKey` per project and the editor picks from
@@ -392,7 +395,7 @@ Two facts make a large roster cheap:
    injects `<link rel=preload>` for a face it can _statically_ see a route reference. Because the
    roster resolves `fontKey` (a Sanity string) → face at **runtime**, Next cannot target the
    resolved per-project face for preload. This is **not** an SSG-vs-dynamic question (that
-   route-level toggle is gone under Next 16 `cacheComponents`, §7) — it's a
+   route-level toggle is gone under Next 16 `cacheComponents`; see repo & hosting) — it's a
    build-time-static-analyzability question, independent of caching.
 
 So, the policy:
@@ -406,7 +409,8 @@ So, the policy:
 - **Verify empirically:** `pnpm build`, visit `/[slug]`, view-source the `<head>`, count
   `<link rel="preload" as="font">` — confirm the policy holds (expect the editorial face only).
 - **Where the link lands** (initial shell vs streamed hole) is the other axis: keep `ProjectScope`
-  in the prerendered shell (§7) so its `<head>` contributions are in the initial static HTML.
+  in the prerendered shell (see repo & hosting) so its `<head>` contributions are in the initial
+  static HTML.
 
 Mapped onto the layers:
 
@@ -430,7 +434,7 @@ Practical notes:
 
 ---
 
-## 6. Content model (Sanity)
+## Content model (Sanity)
 
 - **Content lives in Sanity; interaction lives in code.** A `project` document holds the essay and
   references a coded module via `componentKey`; the CMS never reimplements interaction.
@@ -444,23 +448,23 @@ Practical notes:
 - **`brandColor` is per-project, typed, and validated.** It's a field on the `project`
   document (the slot seed), stored as a validated string (hex or `oklch()`). Author-time Sanity
   `validation` runs the engine's own color pipeline (parse → gamut-map → confirm in-spec contrast)
-  for editor feedback. Defense-in-depth: the engine itself never throws (§3.2) and `ProjectScope`
-  falls back to a safe default. `siteSettings` holds the site title/description and may seed a
-  homepage slot; it does not brand the chrome.
+  for editor feedback. Defense-in-depth: the engine itself never throws (see the OKLCH engine) and
+  `ProjectScope` falls back to a safe default. `siteSettings` holds the site title/description and
+  may seed a homepage slot; it does not brand the chrome.
 - **`fontKey` is per-project** — a field on the `project` document, chosen from the curated roster
-  (§5). Reference-by-key, exactly like `componentKey` and `brandColor`.
+  (see fonts). Reference-by-key, exactly like `componentKey` and `brandColor`.
 - **No per-scheme color field.** Dark mode is a render-time axis; one `brandColor` generates
   both schemes. A project needing a hand-tuned dark brand gets an _optional_ `brandColorDark`
   override, defaulted from the engine — never a required parallel field. (A seed too light to be the
-  light-mode primary is auto-assigned as the dark brand; see §3.2.)
+  light-mode primary is auto-assigned as the dark brand; see the OKLCH engine.)
 - **Keys are a contract; the Studio never imports implementations.** Each reference-by-key
   pair is split: a tiny `keys.ts` of string constants (imported by the schema to build its dropdown)
   and a separate resolver in the app — `lib/resolvers/components.ts`, `lib/resolvers/fonts.ts`,
   `lib/resolvers/embeds.ts` — which the Studio never imports. This keeps `next/font` and lazy project
   bundles out of the Studio bundle. With the **standalone Studio** this separation is
   structural (different workspace package), so `keys.ts` lives in a shared workspace package both
-  consume rather than being duplicated. See §4.2 for the typed-resolver + fallback discipline that
-  makes the soft foreign key safe.
+  consume rather than being duplicated. See the CMS ↔ code registry for the typed-resolver +
+  fallback discipline that makes the soft foreign key safe.
 - **Embeds: generic `liveEmbed` by default; a typed block only for editorial content.** A
   `liveEmbed` block stores an `embedKey` + a caption — use it whenever the only authored inputs are
   key + caption (the demo and the majority of in-essay embeds; adding one is zero schema change).
@@ -471,14 +475,15 @@ Practical notes:
   registry; neither → it's not an input._
 - **The index query refuses to over-fetch.** The index query pulls `blurb`, `brandColor`, `fontKey`,
   `maturity`, `featuredRank` — **not** the essay. That enforces "a few colors per card" at the data
-  layer (cards feed `cardSwatches`, §3.2 Consumer C) and keeps the index payload small for CWV.
+  layer (cards feed `cardSwatches` — the OKLCH engine's Consumer C) and keeps the index payload small
+  for CWV.
 - **`ProjectScope` is the resolution keystone.** One server component takes a scope's `brandColor` +
   `fontKey` and emits the flash-free scoped `<style>` (engine palette, both schemes via
   `light-dark()`) plus the resolved font's `.variable` class. It wraps a project's **interactive
   slot** (and any homepage slot `siteSettings` seeds), not the page chrome. It is
   **defensive** — engine returns a fallback on bad input, and the component is wrapped in
   `unstable_catchError` (`next/error`) as a backstop, **not** a segment `error.tsx` (which doesn't
-  catch its own layout's throw — §7). It renders in the prerendered shell (§7); the slot's
+  catch its own layout's throw — see repo & hosting). It renders in the prerendered shell; the slot's
   subtree reads the slot's brand-valued semantic tokens (`var(--surface)` / `var(--primary)` / `var(--font-body)`).
 - **Visual editing details.** Disable Sanity **stega** on `brandColor`/`fontKey` — the
   invisible encoding chars break the OKLCH parse and the font-class lookup. `liveEmbed`
@@ -490,14 +495,14 @@ Practical notes:
   `project`; short pieces stay lightweight (chrome + shared components) and pull a demo
   bundle only if one explicitly embeds it.
 - **Site pages** (home, about, `/now`) are shell-owned, not project modules. Their content can live
-  in Sanity, rendered with the global editorial look (§3.1).
+  in Sanity, rendered with the global editorial look (see the token & theming architecture).
 - **TypeGen + `defineQuery`**: typed GROQ; run TypeGen after any schema or query change (a committed
   script + a CI `git diff --exit-code` on the generated types keeps it from rotting); `defineQuery`
   must wrap the query literally (no runtime interpolation).
 
 ---
 
-## 7. Repo & hosting
+## Repo & hosting
 
 - **Stack.** Next.js 16 (App Router, Turbopack default), React 19, Sanity, Vercel. Request APIs are
   async; the renamed `proxy.ts` replaces `middleware.ts` (Node-runtime only — no `edge`). **Styling
@@ -522,15 +527,15 @@ Practical notes:
   `packages/oklch`. The _site_ is still a single app with
   no project sub-packages — project code lives under `src/projects/*`; shared bits live in shared
   `src/` modules. Boundaries are **lint-import rules**: a project can't import another project;
-  shared can't import a project; plus the `packages/oklch/**` isomorphism boundary (§3.2) and the
-  every-CSS-module-declares-its-`@layer` rule (§3.1).
+  shared can't import a project; plus the `packages/oklch/**` isomorphism boundary (see the OKLCH
+  engine) and the every-CSS-module-declares-its-`@layer` rule (see the token & theming architecture).
 - The site runs on **Vercel** with full SSR / RSC. This unlocks server-rendered flash-free per-scope
   OKLCH `<style>` blocks, Sanity draft mode / visual editing, an RSS route handler, a `/now` page,
   and the prerendered-shell-with-streaming model above.
 
 ---
 
-## 8. "Don't reach up" litmus (quick reference)
+## "Don't reach up" litmus (quick reference)
 
 Before shipping a **shared** unit (the litmus is for shared primitives, not every component):
 

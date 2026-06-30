@@ -34,7 +34,7 @@ pnpm test:watch    # vitest — watch mode for local iteration
 
 Tests are gated on every PR into `main` (`.github/workflows/ci.yml`, job `verify`, step
 `pnpm test`). But **`pnpm test` is only the test slice of the PR gate** — run the full
-local chain (the one command, [`./definition-of-done.md` §1](./definition-of-done.md#1-the-one-command))
+local chain ([the one command](./definition-of-done.md#1-the-one-command))
 before pushing, and see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) for the CI contract.
 
 ---
@@ -72,7 +72,7 @@ owner's "meaningful coverage, not exhaustive" rule.
 > and boundary inputs) and proves the break with a failing case before the owning author fixes it.
 > Those cases are normal co-located tests held to the same bar as everything here — meaningful, by
 > role/behavior, no snapshot dumps. The dev↔QA loop lives in
-> [`./working-with-agents.md`](./working-with-agents.md) §6.2.
+> [`./working-with-agents.md`](./working-with-agents.md).
 
 ---
 
@@ -234,9 +234,9 @@ the flow for now. When it lands:
 
 Distinct from everything above: the `chrome-devtools` MCP is **agent-driven, in-loop
 verification** of a rendered surface — focus/a11y, CLS/paint, flash-free theme, console — **not
-a committed test**. It's the ship-gate browser check owned by
-[`./accessibility-and-performance.md`](./accessibility-and-performance.md) §5 and gated per task
-in [`./definition-of-done.md`](./definition-of-done.md) §6. It **fills the gap** that jsdom (no
+a committed test**. It's the ship-gate browser check owned by the browser-verification section of
+[`./accessibility-and-performance.md`](./accessibility-and-performance.md) and gated per task
+in the tests/browser-verification/docs section of [`./definition-of-done.md`](./definition-of-done.md). It **fills the gap** that jsdom (no
 paint, no async RSCs) and the absent Playwright leave open for any rendered surface, and it does
 **not** replace a committed primary-flow E2E once Playwright lands.
 
@@ -262,4 +262,4 @@ paint, no async RSCs) and the absent Playwright leave open for any rendered surf
 
 ## Related
 
-The OKLCH engine in the system model (§3.2) — [`./architecture.md`](./architecture.md).
+The OKLCH engine in the system model — the OKLCH engine section of [`./architecture.md`](./architecture.md).
