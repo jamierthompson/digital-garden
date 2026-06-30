@@ -1,6 +1,6 @@
 # Mode: Research / Architecture Decision
 
-> Read [`../SKILL.md`](../SKILL.md) §0–§1 first. This is the highest-value team pattern and the
+> Read [`../SKILL.md`](../SKILL.md) (Preflight + universal mechanics) first. This is the highest-value team pattern and the
 > most expensive (~15× single-agent tokens — [Anthropic](https://www.anthropic.com/engineering/multi-agent-research-system)).
 > **Reserve it for an architecture-class decision**: one that is hard to reverse, crosses a
 > module/package boundary, locks an external contract (Sanity schema, `keys.ts`, token names), or
@@ -28,7 +28,7 @@ set — adapt to the decision:
 - **Theming / ContentModel / Sequencing** — or whatever domain lenses the decision touches.
 - Always consider an explicit **devil's advocate** lens.
 
-Give each lens the §1 brief: objective, the source-of-truth files **by path**, boundaries, "return
+Give each lens the briefing checklist: objective, the source-of-truth files **by path**, boundaries, "return
 a dense cited digest", model tier (route hard reasoning to a stronger model), and cite-don't-remember.
 
 **3. Adversarial debate.** Have the teammates **challenge, defend, or concede** against each

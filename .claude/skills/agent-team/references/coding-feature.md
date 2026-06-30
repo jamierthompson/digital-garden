@@ -1,6 +1,6 @@
 # Mode: Coding a Cross-Layer / Multi-Module Feature
 
-> Read [`../SKILL.md`](../SKILL.md) §0–§1 first. Use when a feature **spans layers or modules** and
+> Read [`../SKILL.md`](../SKILL.md) (Preflight + universal mechanics) first. Use when a feature **spans layers or modules** and
 > splits cleanly into slices over **distinct file sets** — frontend / data / tests, or several
 > independent project modules. This is the highest-coordination mode: the official guidance says
 > start with research/review before attempting parallel implementation, and the cardinal rule is
@@ -45,7 +45,7 @@ host-global and worktrees don't isolate them. The lead tears each one down (`git
 .claude/worktrees/<slug>`) at cleanup. **Caveat:** a worktree isolates _editing_ only — never
 trust it for _final_ verification; gate on a clean `main`/CI build and the live deploy.
 
-**4. Brief each slice owner** per §1, and make the boundary explicit: **"you own these files in your
+**4. Brief each slice owner** per the briefing checklist, and make the boundary explicit: **"you own these files in your
 worktree; do not edit any others."** Include the binding `[D#]`s for the area, the bundled-doc paths,
 and **cite-don't-remember** (Next 16 / React 19). Consider **plan approval** for risky slices — the
 teammate plans in read-only mode and you approve before it writes.
@@ -66,7 +66,7 @@ that stops teammates marking work complete without testing. See
 **6. One fresh, adversarial QA per slice — before it enters the PR.** Gate-green is
 _developer-done_, not _review-done_. For **every** coding agent, spawn **one fresh QA teammate**
 (`pr-review-toolkit:code-reviewer` / `feature-dev:code-reviewer`) — **never the agent that wrote the
-slice**; the isolated context is the point. Brief it per §1 to **try to break** the slice, not skim
+slice**; the isolated context is the point. Brief it per the briefing checklist to **try to break** the slice, not skim
 it: malformed / boundary / empty / hostile input (garbage `brandColor` → safe fallback, never a
 throw), the error and not-found paths, both color schemes, the focus/interaction floor on any rendered
 surface — and to **write the missing test cases** a product-team QA engineer would, proving each break

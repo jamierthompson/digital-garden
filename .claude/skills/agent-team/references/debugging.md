@@ -1,6 +1,6 @@
 # Mode: Debugging via Competing Hypotheses
 
-> Read [`../SKILL.md`](../SKILL.md) §0–§1 first. Use when a bug's **root cause is unclear** and
+> Read [`../SKILL.md`](../SKILL.md) (Preflight + universal mechanics) first. Use when a bug's **root cause is unclear** and
 > there are several plausible theories. A single agent tends to find one plausible explanation and
 > stop looking (anchoring). Multiple investigators who actively try to **disprove each other** beat
 > that bias — the surviving theory is much more likely to be the real cause.
@@ -8,7 +8,7 @@
 ## Staffing first: is this even a team phase?
 
 Debugging is two phases — **diagnosis**, then **fix** — and they want different tools. Decide per phase
-(SKILL.md §0); don't default the whole job to a team:
+(see SKILL.md's Preflight); don't default the whole job to a team:
 
 - **Diagnosis is read-only.** If the theories are independent enough to investigate in parallel but
   don't really need to _argue_ with each other, parallel **subagents** (the `Agent` tool) returning
@@ -52,7 +52,7 @@ be a single follow-up task; a cross-layer fix → [`coding-feature.md`](coding-f
 
 ## Team setup & cautions
 
-- 3–5 teammates. Brief each per §1 with the symptom, repro, the source-of-truth files **by path**,
+- 3–5 teammates. Brief each per the briefing checklist with the symptom, repro, the source-of-truth files **by path**,
   and **cite-don't-remember** — a wrong memorized Next/React behavior will send an investigator
   down a phantom theory.
 - Investigation is mostly read-only; if a teammate needs to add temporary instrumentation, give it

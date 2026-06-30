@@ -1,6 +1,6 @@
 # Mode: Parallel Code Review
 
-> Read [`../SKILL.md`](../SKILL.md) §0–§1 first. This is the best **first** team to run — clear
+> Read [`../SKILL.md`](../SKILL.md) (Preflight + universal mechanics) first. This is the best **first** team to run — clear
 > boundaries, no parallel writes, low coordination risk. A great way to feel out agent teams.
 
 A single reviewer gravitates toward one class of issue at a time. Splitting the review into
@@ -39,7 +39,7 @@ to inherit their tool-allowlists and prompts:
 | Repo-convention adherence        | the gate + the binding repo rules + handbook (this repo's footguns: every CSS Module declares its `@layer`, the OKLCH engine stays isomorphic, literal dynamic imports only, async request APIs) |
 | Accessibility / performance      | `chrome-devtools:*` / `vercel:performance-optimizer` for rendered surfaces (every rendered surface gets a browser check before "done") |
 
-Brief each per §1: name the diff/PR, the source-of-truth files by path, the binding repo rules, "report
+Brief each per the briefing checklist: name the diff/PR, the source-of-truth files by path, the binding repo rules, "report
 findings as a dense list with file:line + severity + cited rationale", and cite-don't-remember.
 
 **3. Cross-challenge (optional but valuable).** Have reviewers read each other's findings and flag

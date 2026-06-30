@@ -21,7 +21,7 @@ four — pick one.
 
 ---
 
-## 0. Preflight — confirm a team is the right tool, then that it's enabled
+## Preflight — confirm a team is the right tool, then that it's enabled
 
 **First decide: team, subagents, or solo?** A team costs **significantly more tokens** than a
 single session (each teammate is a full Claude instance) and adds coordination overhead. The
@@ -60,7 +60,7 @@ If it's unset, stop and tell the user — spawning will silently do nothing othe
 
 ---
 
-## 1. The universal mechanics (apply to every mode)
+## The universal mechanics (apply to every mode)
 
 These hold no matter which mode you pick. The mode reference adds the mode-specific recipe on top.
 
@@ -124,9 +124,10 @@ a task from being marked complete until the gate is green. Use this to enforce
 
 ---
 
-## 2. Pick the mode
+## Pick the mode
 
-Open the matching reference and follow its recipe. Each reference assumes you've read §0–§1 above.
+Open the matching reference and follow its recipe. Each reference assumes you've read the Preflight
+and universal-mechanics sections above.
 
 | The job in front of you                                                                                                                                                                   | Mode                 | Reference                                                            |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------- |
@@ -136,16 +137,16 @@ Open the matching reference and follow its recipe. Each reference assumes you've
 | **Build** a feature that spans layers/modules, splittable into slices over distinct files                                                                                                 | Coding feature       | [`references/coding-feature.md`](references/coding-feature.md)       |
 
 If the user's ask doesn't fit a mode, the honest answer may be "this doesn't need a team" — say so
-and propose subagents or a single session instead (§0).
+and propose subagents or a single session instead (see Preflight).
 
 ---
 
-## 3. Closing the loop (lead's job at the end)
+## Closing the loop (lead's job at the end)
 
 However the mode ends, you (the lead) finish it:
 
 - **Research / review / debugging** → **synthesize** into one cited artifact. Resolve conflicts
-  explicitly (§1). For an architecture decision, record the resolved call by **editing the relevant
+  explicitly (no fake consensus — see the universal mechanics). For an architecture decision, record the resolved call by **editing the relevant
   living doc in place** — the system model in
   [`architecture.md`](../../../docs/handbook/architecture.md), or the matching handbook doc for a
   process call. There is **no decision log**: the docs are the current truth, edited in place, and
