@@ -108,7 +108,7 @@ is read by a range of agent tools.
 - The repo's root [`AGENTS.md`](../../AGENTS.md) currently holds only the managed
   `<!-- BEGIN:nextjs-agent-rules -->` block. **Never hand-edit inside those markers** —
   `create-next-app` regenerates them. Any house content goes _outside_ the markers.
-- **Nesting: nearest file wins.** In this `app + studio` pnpm workspace, a nested
+- **Nesting: nearest file wins.** In this multi-package pnpm workspace (app + `studio/` + `packages/oklch`), a nested
   `studio/AGENTS.md` (Sanity schema / TypeGen / stega-off-`brandColor` rules) takes
   precedence for agents working in `studio/`.
 - **Keep it lean — bloat actively harms.** Research on agent context files finds that

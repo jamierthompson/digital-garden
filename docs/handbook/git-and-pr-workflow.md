@@ -97,7 +97,7 @@ don't agonize over the wording of commits you know will be combined.
   types; `docs`, `style`, `refactor`, `test`, `chore`, `build`, `ci`, `perf`, and `revert` are
   the other conventional types — use whichever fits. The branch prefix (Branching section) is the same token.
 - **scope** (optional): the package or area, e.g. `feat(studio):`, `chore(ci):`, `fix(oklch):`.
-  Useful in this two-package workspace to signal app-vs-studio. Mind the position:
+  Useful in this three-package workspace to signal app vs. studio vs. oklch. Mind the position:
   `ci` in `chore(ci):` is a _scope_ (in parentheses, after the type), distinct from `ci:` used
   as a _type_ (before the colon) — both are valid Conventional Commits, but they sit in
   different slots.
