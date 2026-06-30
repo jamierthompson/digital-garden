@@ -1,4 +1,4 @@
-// Key-drift guard [D10].
+// Key-drift guard.
 //
 // `src/lib/keys.ts` is the single source of truth for which keys exist (`FONT_KEYS`,
 // `COMPONENT_KEYS`, `EMBED_KEYS`). Sanity stores a key on a project; code resolves it.
@@ -153,7 +153,7 @@ for (const { file, pattern, note } of SATISFIES_GUARDS) {
   if (!pattern.test(stripComments(src))) {
     fail(
       `${file} is missing its compile-time guard — ${note}. ` +
-        `Without it, code<->keys drift is no longer a typecheck error [D10].`,
+        `Without it, code<->keys drift is no longer a typecheck error.`,
     );
   }
 }

@@ -10,9 +10,9 @@ the work, keep them on track, and synthesize/curate the result. This skill is th
 doing that well **in this repo**. It is grounded in:
 
 - The repo's own operating manual: [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md)
-  §4 (research → drafts → debate → synthesis), §5 (briefing), §6/§6.1 (own-a-slice, lead curates).
-- Continuous refinement: every session runs this pattern and records what worked (and what didn't)
-  in [`docs/sessions/`](../../../docs/sessions/), so the practice improves with use.
+  — research → drafts → debate → synthesis, briefing, own-a-slice, lead curates.
+- Continuous refinement: every run of this pattern leaves its record in the PR body and git history,
+  so the practice improves with use.
 - Official guidance: [Agent teams](https://code.claude.com/docs/en/agent-teams) and
   [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
 
@@ -21,7 +21,7 @@ four — pick one.
 
 ---
 
-## 0. Preflight — confirm a team is the right tool, then that it's enabled
+## Preflight — confirm a team is the right tool, then that it's enabled
 
 **First decide: team, subagents, or solo?** A team costs **significantly more tokens** than a
 single session (each teammate is a full Claude instance) and adds coordination overhead. The
@@ -60,7 +60,7 @@ If it's unset, stop and tell the user — spawning will silently do nothing othe
 
 ---
 
-## 1. The universal mechanics (apply to every mode)
+## The universal mechanics (apply to every mode)
 
 These hold no matter which mode you pick. The mode reference adds the mode-specific recipe on top.
 
@@ -73,14 +73,15 @@ These hold no matter which mode you pick. The mode reference adds the mode-speci
   a review, a draft). Too small → coordination overhead exceeds benefit. Too large → teammates run
   too long without check-ins and waste effort.
 
-**Briefing — every spawn prompt must be self-contained** (handbook §5). Teammates start with a
+**Briefing — every spawn prompt must be self-contained** (handbook — `working-with-agents.md`). Teammates start with a
 **fresh, isolated context**: they load `CLAUDE.md`/`AGENTS.md`, skills, and MCP servers, but they
 do **not** see your conversation history or anything you've read. The spawn prompt is the only
 channel in. Every brief includes:
 
 - [ ] **Objective** — one crisp task, not a grab-bag.
 - [ ] **Source-of-truth files by path** — name the bundled docs (`node_modules/next/dist/docs/`),
-      the `[D#]`s, the `§N`s, and the ground-truth files it must open. It can't see what you read.
+      the binding repo rules, the system-model docs (`architecture.md`), and the ground-truth files
+      it must open. It can't see what you read.
 - [ ] **Boundaries** — what's out of scope, what not to touch, which decisions are binding, and
       (critically) **which files this teammate owns** so two teammates never edit the same file.
 - [ ] **Output format** — a **dense, cited digest** (or, for coding, a gate-green slice + summary),
@@ -95,12 +96,12 @@ Theming, …"). You can spawn a teammate **using a subagent definition** (e.g. `
 `Explore`) to reuse a role's tool-allowlist and system prompt — mention the agent type in the
 spawn instruction.
 
-**Own the permission surface — don't make the owner babysit** (handbook §6.2). Set the posture once
+**Own the permission surface — don't make the owner babysit** (handbook — `working-with-agents.md`). Set the posture once
 at spawn, then clear teammates' permission requests yourself; escalate to the owner only for genuinely
 out-of-policy actions. For the **coding mode** this is mostly free: give each teammate an **in-root git
 worktree** at `.claude/worktrees/<slug>/` (never the ephemeral `isolation: "worktree"` flag, which lands
 outside the root) so its edits sit inside cwd scope and `acceptEdits` auto-accepts them with no prompts
-`[D29]` — full recipe in [`references/coding-feature.md`](references/coding-feature.md) step 3.
+— full recipe in [`references/coding-feature.md`](references/coding-feature.md) step 3.
 
 **Two failure modes to design against** (both documented):
 
@@ -123,41 +124,44 @@ a task from being marked complete until the gate is green. Use this to enforce
 
 ---
 
-## 2. Pick the mode
+## Pick the mode
 
-Open the matching reference and follow its recipe. Each reference assumes you've read §0–§1 above.
+Open the matching reference and follow its recipe. Each reference assumes you've read the Preflight
+and universal-mechanics sections above.
 
-| The job in front of you                                                                                                                                                                   | Mode                 | Reference                                                            |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------- |
-| A hard-to-reverse **architecture / design decision** — crosses a module boundary, locks an external contract (Sanity schema, `keys.ts`, token names), or contradicts the plan or a `[D#]` | Research / decision  | [`references/research-decision.md`](references/research-decision.md) |
-| **Review** a diff / PR / branch across independent quality lenses                                                                                                                         | Parallel review      | [`references/code-review.md`](references/code-review.md)             |
-| **Debug** something with an unclear root cause — several plausible theories                                                                                                               | Competing hypotheses | [`references/debugging.md`](references/debugging.md)                 |
-| **Build** a feature that spans layers/modules, splittable into slices over distinct files                                                                                                 | Coding feature       | [`references/coding-feature.md`](references/coding-feature.md)       |
+| The job in front of you                                                                                                                                                                              | Mode                 | Reference                                                            |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------- |
+| A hard-to-reverse **architecture / design decision** — crosses a module boundary, locks an external contract (Sanity schema, `keys.ts`, token names), or contradicts the plan or a binding repo rule | Research / decision  | [`references/research-decision.md`](references/research-decision.md) |
+| **Review** a diff / PR / branch across independent quality lenses                                                                                                                                    | Parallel review      | [`references/code-review.md`](references/code-review.md)             |
+| **Debug** something with an unclear root cause — several plausible theories                                                                                                                          | Competing hypotheses | [`references/debugging.md`](references/debugging.md)                 |
+| **Build** a feature that spans layers/modules, splittable into slices over distinct files                                                                                                            | Coding feature       | [`references/coding-feature.md`](references/coding-feature.md)       |
 
 If the user's ask doesn't fit a mode, the honest answer may be "this doesn't need a team" — say so
-and propose subagents or a single session instead (§0).
+and propose subagents or a single session instead (see Preflight).
 
 ---
 
-## 3. Closing the loop (lead's job at the end)
+## Closing the loop (lead's job at the end)
 
 However the mode ends, you (the lead) finish it:
 
 - **Research / review / debugging** → **synthesize** into one cited artifact. Resolve conflicts
-  explicitly (§1). For an architecture decision, record the resolved calls as a **new `[D#]`** in
-  [`docs/decisions.md`](../../../docs/decisions.md) (records are mutable — edit in place; git holds the
-  history `[D33]`; supersede only when inline contrast helps). Persist the trail to the repo as a dated **`docs/sessions/YYYY-MM-DD-<slug>`** record — one
-  `.md` file, or a folder for a multi-file trail (convention + example in
-  [`docs/sessions/README.md`](../../../docs/sessions/README.md)) — so the next session has external
-  memory, not a lost context window.
+  explicitly (no fake consensus — see the universal mechanics). For an architecture decision, record the resolved call by **editing the relevant
+  living doc in place** — the system model in
+  [`architecture.md`](../../../docs/handbook/architecture.md), or the matching handbook doc for a
+  process call. There is **no decision log**: the docs are the current truth, edited in place, and
+  git history is the audit trail. Capture the synthesis — and the debate that produced it — in the
+  **PR body** so the durable record lives in git history + the PR, giving the next session external
+  memory rather than a lost context window.
 - **Coding** → each teammate hands off a **complete, gate-green slice** over its own files. Before a
-  slice enters the PR, run **one fresh, adversarial QA per coding agent** (`[D26]`) — a fresh
-  reviewer, never the author, that **tries to break** the slice and writes the missing test cases
+  slice enters the PR, run **one fresh, adversarial QA per coding agent** — a fresh reviewer with **no
+  prior context of the work** (not merely "not the author" — a teammate that helped design or debate
+  the slice is disqualified), that **tries to break** the slice and writes the missing test cases
   (edge / error / boundary / malformed input, both schemes); the owning agent fixes, QA re-checks
   (the dev↔QA loop — same shape solo, just one author→one QA). Then **you curate history** (rebase
   onto `main`, squash fix-ups, reorder, drop false starts) and **squash-merge** with a deliberate PR
   body. Never commit to `main`. Full mechanics:
-  [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md) §6.2 (QA loop)
-  and [`docs/handbook/git-and-pr-workflow.md`](../../../docs/handbook/git-and-pr-workflow.md) §6 (curate/merge).
+  [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md) (QA loop)
+  and [`docs/handbook/git-and-pr-workflow.md`](../../../docs/handbook/git-and-pr-workflow.md) (curate/merge).
 - **Shut down** teammates by name when done; the team's directories clean up automatically when the
   session ends.

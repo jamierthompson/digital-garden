@@ -5,7 +5,7 @@ import { apiVersion, dataset, projectId } from "./env";
 import { stegaFilter, studioUrl } from "./stega";
 
 /**
- * The Sanity Live Content read path. [D16, D11]
+ * The Sanity Live Content read path.
  *
  * `defineLive` returns `{ sanityFetch, SanityLive }`: `sanityFetch` performs the
  * Content Lake read (published vs. drafts, the per-request token, and stega), and
@@ -36,7 +36,7 @@ import { stegaFilter, studioUrl } from "./stega";
  * stega `studioUrl` + exclusion `filter`. `@sanity/client`'s `withConfig` MERGES
  * `stega` (it only overrides `enabled` for a boolean), so `defineLive`'s internal
  * `withConfig({ stega: false })` keeps our `studioUrl` + `filter` intact and a
- * per-fetch `stega: true` re-enables encoding with the [D16] exclusions still applied.
+ * per-fetch `stega: true` re-enables encoding with the exclusions still applied.
  * No token is baked in — `serverToken` below is attached per request, server-side only.
  */
 const liveClient = createClient({
@@ -52,7 +52,7 @@ export const { sanityFetch: liveFetch, SanityLive } = defineLive({
   // Server-only secret. Authorizes the drafts perspective + stega; `defineLive`
   // attaches it per request only when the perspective is non-published or stega is on,
   // never on the public CDN path. Read here in a server-only module, never bundled.
-  // [security-and-ops §3]
+  // (see security-and-ops.md)
   serverToken: process.env.SANITY_API_READ_TOKEN,
   // Browser-exposed (via the SanityLive EventSource) ONLY when live-previewing drafts
   // outside the Presentation Tool. Must be a dedicated minimal *Viewer*-scope token —

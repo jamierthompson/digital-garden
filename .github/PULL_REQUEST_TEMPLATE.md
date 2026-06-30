@@ -16,8 +16,9 @@ confirm the gate + adversarial QA passed.
 <!-- The DoD gate (lint … build), plus anything manual: deploy preview, the browser check on a
      rendered surface, the adversarial QA pass + its QA-log entry. -->
 
-## Decisions touched
+## Rules or docs touched
 
-<!-- Any [D#] this obeys, implements, or changes. "None" is valid. -->
+<!-- Any handbook rule this implements or changes, and any doc you edited in place (the docs are the
+     current source of truth — there is no separate decision log). "None" is valid. -->
 
 -

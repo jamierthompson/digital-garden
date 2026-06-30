@@ -36,11 +36,11 @@ describe("ProjectScope (engine-driven)", () => {
       .getByText("module content")
       .closest("[data-project]");
     expect(wrapper).toHaveAttribute("data-project", "oklch-engine");
-    // The resolved roster face's `.variable` className is on the wrapper [D11].
+    // The resolved roster face's `.variable` className is on the wrapper.
     expect(wrapper).toHaveClass(FONT_FACES["jetbrains-mono"].variable);
   });
 
-  it("hoists the theme <style> with precedence == the brand @layer [D13]", () => {
+  it("hoists the theme <style> with precedence == the brand @layer", () => {
     render(
       <ProjectScope seed={VALID_SEED}>
         <p>themed</p>
@@ -54,7 +54,7 @@ describe("ProjectScope (engine-driven)", () => {
     expect(style?.textContent).toContain(`@layer ${BRAND_LAYER} {`);
   });
 
-  it("degrades to the fallback scope for an unknown slug (never throws) [D9]", () => {
+  it("degrades to the fallback scope for an unknown slug (never throws)", () => {
     expect(() =>
       render(
         <ProjectScope
@@ -71,7 +71,7 @@ describe("ProjectScope (engine-driven)", () => {
 
   it("renders without a font class when the fontKey falls back to the shell face", () => {
     // An unknown fontKey resolves to the shell mono face, which has no roster `.variable`
-    // class — so the wrapper carries no (empty) className attribute [D11].
+    // class — so the wrapper carries no (empty) className attribute.
     render(
       <ProjectScope
         seed={{ slug: "oklch-engine", brandColor: "#0099ff", fontKey: "nope" }}
@@ -84,7 +84,7 @@ describe("ProjectScope (engine-driven)", () => {
     expect(wrapper).not.toHaveAttribute("class");
   });
 
-  it("never throws on garbage input and still renders children [D9]", () => {
+  it("never throws on garbage input and still renders children", () => {
     expect(() =>
       render(
         // `seed` is typed `unknown`, so a hostile primitive is a valid prop here —

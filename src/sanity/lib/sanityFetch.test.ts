@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * `sanityFetch` is the single content read path. Its jobs under test:
  *  - map Draft Mode → the right perspective/stega for `liveFetch` (`./live`);
  *  - fail LOUD when Draft Mode is on but the server token is missing (never a silent
- *    published fallback) [security-and-ops §3];
+ *    published fallback) (see security-and-ops.md);
  *  - return `liveFetch`'s `.data` unwrapped (call sites keep their typed result);
  *  - emit the coarse tag contract (`sanity` + `sanity:<_type>`).
  *

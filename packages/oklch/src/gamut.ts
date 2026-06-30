@@ -1,14 +1,14 @@
 /**
- * Gamut mapping — applied BEFORE contrast math [D6] so contrast is solved against the
+ * Gamut mapping — applied BEFORE contrast math so contrast is solved against the
  * color the screen actually shows.
  *
  * Realization choice: the CSS Color 4 "MINDE" algorithm — binary-search chroma
  * reduction toward the gamut boundary, keeping L and H, with a small ΔEOK check and a
  * final clip (https://www.w3.org/TR/css-color-4/#binsearch). This is exactly what a
  * browser does when it renders an out-of-gamut `oklch()` literal, so by mapping with
- * the same algorithm server-side and baking the mapped literal [D3], what we solve
+ * the same algorithm server-side and baking the mapped literal, what we solve
  * contrast on is what the browser paints. It is cusp-aware in effect (chroma reduces
- * toward the per-hue boundary) — the concrete, browser-faithful form of [D6]'s
+ * toward the per-hue boundary) — the concrete, browser-faithful form of an
  * "Ottosson-style chroma reduction toward the boundary."
  */
 

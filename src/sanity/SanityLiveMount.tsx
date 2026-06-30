@@ -3,7 +3,7 @@ import { draftMode } from "next/headers";
 import { SanityLive } from "@/sanity/lib/live";
 
 /**
- * Mounts `<SanityLive>` once, near the root. [D11, D16]
+ * Mounts `<SanityLive>` once, near the root.
  *
  * `<SanityLive>` opens the browser EventSource that pushes Content Lake change events
  * so pages revalidate live (published changes for every visitor; draft changes too
@@ -16,7 +16,7 @@ import { SanityLive } from "@/sanity/lib/live";
  * why this is its own tiny async server component: it resolves `draftMode()` the same
  * way the sibling `<VisualEditingControls>` does, keeping that request-API read OUT of
  * the synchronous `RootLayout` root (which must not become request-blocking — the
- * `[D11, D16]` Suspense invariant in `layout.tsx`). This is NOT Visual Editing — it
+ * Suspense invariant in `layout.tsx`). This is NOT Visual Editing — it
  * mounts no overlay — so it does not double up with `<VisualEditingControls>`.
  */
 export default async function SanityLiveMount() {

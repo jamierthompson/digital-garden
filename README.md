@@ -1,21 +1,22 @@
 # Digital Garden
 
 A personal portfolio and digital garden — a place to grow notes, ideas, and work
-over time. Each project is a self-contained, independently themed module: its own
-brand color (a perceptual OKLCH palette) and font, composed on a shared
-foundation. Content and brand seeds live in Sanity; the site renders on Next.js.
+over time. The whole site shares one editorial look — Newsreader and a
+black/white/gray neutral ramp — across all page chrome. Each project's brand
+color (a perceptual OKLCH palette) and font theme only its own bounded
+interactive slot, on that shared foundation. Content and brand seeds live in
+Sanity; the site renders on Next.js.
 
 > **Status:** the shared foundation, the OKLCH theming engine (`@garden/oklch`), the Sanity
-> content model, and mock projects are **live on Vercel** — with the themed
+> content model, and mock projects are **live on Vercel** — with the editorial
 > garden shell, an RSS feed, and Sanity draft mode + live preview wired to publish→production
 > revalidation. Remaining work is tracked in
 > [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
 The engineering handbook lives in [`docs/handbook/`](./docs/handbook) (start at
 [`orientation.md`](./docs/handbook/orientation.md)); the system model is
-[`docs/handbook/architecture.md`](./docs/handbook/architecture.md); binding decisions are in
-[`docs/decisions.md`](./docs/decisions.md); per-session build/QA records in
-[`docs/sessions/`](./docs/sessions).
+[`docs/handbook/architecture.md`](./docs/handbook/architecture.md). The docs are the current
+source of truth — edited in place, with git history as the audit trail.
 
 ## Tech stack
 
@@ -70,7 +71,7 @@ pnpm build                   # production build
 pnpm lint                    # ESLint (incl. architectural import boundaries)
 pnpm lint:css                # assert every CSS Module declares its @layer
 pnpm lint:keys               # key-drift guard
-pnpm lint:docs               # assert the gate chain matches across DoD §1 and ci.yml
+pnpm lint:docs               # assert the gate chain matches across the DoD gate command and ci.yml
 pnpm typecheck               # tsc --noEmit
 pnpm test                    # run the test suite once
 pnpm format / format:check   # Prettier write / check
@@ -81,12 +82,16 @@ CI runs all of the above (plus a TypeGen drift check) on every PR.
 
 ## Styling approach
 
-- **Foundation** (`src/app/foundation.css`, global `:root`) — spacing,
-  type scale, motion, z-index, focus-ring geometry, the reset. Loaded first, and it
-  declares the `@layer foundation, brand, project;` order.
-- **Brand + font** (per-project scope, engine-driven) — the OKLCH color ramp and the
-  resolved font face, baked flash-free by `ProjectScope` from the `@garden/oklch` engine.
-- **Feel/geometry** (per-project scope override) — radius, border weight, etc.
+- **Foundation** (`src/app/foundation.css`, global `:root`) — the raw primitives + the reset:
+  the neutral ramp, Newsreader, spacing, type scale, motion, z-index, focus-ring geometry,
+  breakpoint constants. Loaded first, and it declares the `@layer foundation, brand, project;` order.
+- **Semantic** (global `:root`) — the generic role tokens components read (`--surface`, `--text`,
+  `--primary`, `--font-body`, `--space-*`, …), mapped from the primitives. Their editorial default
+  mapping **is** the site's global look; this layer is the public token contract.
+- **Brand** (project-slot scope, engine-driven) — a full scoped override of the semantic tokens for
+  one slot (color, font, and anything else it differs on), baked flash-free by `ProjectScope` from
+  the `@garden/oklch` engine. No project-prefixed token names — the `[data-project]` scope provides
+  isolation, so components everywhere read the same generic semantic names.
 
 Every CSS Module wraps its rules in an `@layer` (lint-enforced), because Next does
 not auto-layer modules and an unlayered one would silently outrank layered styles.
@@ -96,14 +101,14 @@ not auto-layer modules and an unlayered one would silently outrank layered style
 ```
 src/
   app/                  # App Router: routes, layouts, global styles
-    layout.tsx          # root layout — themed garden shell (ProjectScope slug="garden") + nav
-    page.tsx            # home; about/ now/ notes/ — themed shell pages
-    work/               # /work index (swatch cards) + /work/[slug] project route (+ states)
+    layout.tsx          # root layout — editorial shell (ProjectScope slug="garden") + nav
+    page.tsx            # home (index of project cards); about/ now/ — editorial chrome pages
+    [slug]/             # flat root-level project route (+ not-found/loading states)
     api/draft-mode/     # draft-mode enable/disable route handlers
     api/revalidate/     # signed Sanity webhook → revalidateTag (publish→prod)
     rss.xml/            # RSS feed route handler
-    foundation.css      # foundation :root tier + @layer order + reset
-  projects/             # self-contained project modules (e.g. first-light/) [§4.1]
+    foundation.css      # foundation primitives + semantic editorial defaults + @layer order + reset
+  projects/             # self-contained project modules (e.g. first-light/)
   embeds/               # shared in-essay embed components (key → component)
   components/           # project-scope (keystone), portable-text serializer, shell nav
   fonts/roster.ts       # curated next/font faces, one per key
@@ -115,12 +120,12 @@ studio/                 # standalone Sanity Studio (pnpm workspace package)
 scripts/                # CI guardrail scripts (@layer lint, key-drift, doc-gate-sync)
 sanity.types.ts         # generated by Sanity TypeGen
 tests/                  # shared Vitest setup/infra; suites co-locate beside their subject
-docs/                   # handbook (incl. architecture.md), decisions.md, sessions/
+docs/                   # handbook (incl. architecture.md, the system model)
 ```
 
 Each project under `src/projects/<slug>/` is a self-contained module — its pages, its
-interactive experience, scoped tokens. A thin route file under `app/work/` mounts it, and
-a typed reference-by-key resolver maps a Sanity `componentKey` to a literal dynamic import.
+interactive experience, scoped tokens. A thin route file at the flat root-level `/[slug]` mounts
+it, and a typed reference-by-key resolver maps a Sanity `componentKey` to a literal dynamic import.
 Dependencies point **projects → shared, never back** (lint-enforced). The OKLCH engine
 lives in its own `packages/oklch` workspace package (`@garden/oklch`), so the standalone
 Studio can import it too.

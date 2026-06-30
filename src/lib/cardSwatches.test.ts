@@ -20,13 +20,13 @@ describe("cardSwatches — valid brandColor", () => {
     expect(Object.keys(swatches).sort()).toEqual([...KEYS].sort());
   });
 
-  it("bakes every stop as a light-dark() of oklch() literals [D3, D5]", () => {
+  it("bakes every stop as a light-dark() of oklch() literals", () => {
     for (const key of KEYS) {
       expect(swatches[key]).toMatch(LIGHT_DARK);
     }
   });
 
-  it("returns plain inline-style data — no <style>, selector, or class [§3.2]", () => {
+  it("returns plain inline-style data — no <style>, selector, or class", () => {
     for (const key of KEYS) {
       const value = swatches[key];
       expect(value).not.toContain("<style");
@@ -47,7 +47,7 @@ describe("cardSwatches — valid brandColor", () => {
   });
 });
 
-describe("cardSwatches — defensive & total [D9]", () => {
+describe("cardSwatches — defensive & total", () => {
   // Bad / missing / hostile inputs all flow through the engine's fallback palette.
   const hostile: [string, unknown][] = [
     ["null", null],

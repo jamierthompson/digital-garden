@@ -1,10 +1,10 @@
 /**
- * Low-level surface: build a perceptual lightness ramp for a hue [§3.2].
+ * Low-level surface: build a perceptual lightness ramp for a hue.
  *
  * Part of the engine's exported low-level API (alongside the conversions, gamut map,
  * and contrast functions) so Consumer B (the playground) and any consumer that wants
  * raw stops — rather than the high-level solved token set — can step lightness and
- * read measured contrast directly. Every stop is gamut-mapped [D6]. Pure, never throws.
+ * read measured contrast directly. Every stop is gamut-mapped. Pure, never throws.
  */
 
 import { gamutMap } from "./gamut";
@@ -24,7 +24,7 @@ export interface RampOptions {
 
 /**
  * Even lightness ramp across [minL, maxL] at a fixed hue, each stop gamut-mapped to the
- * target gamut so chroma never exceeds what the screen shows [D6]. Deterministic.
+ * target gamut so chroma never exceeds what the screen shows. Deterministic.
  */
 export function buildLightnessRamp(
   hue: number,

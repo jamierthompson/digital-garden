@@ -17,7 +17,7 @@ describe("key contracts", () => {
   });
 
   it("registers the first-slice keys (first-light / sunrise-meter)", () => {
-    // The dead-simple first project [D17] populates the registries. Each holds
+    // The dead-simple first project populates the registries. Each holds
     // exactly its one slice key, unique within the array.
     expect(COMPONENT_KEYS).toContain("first-light");
     expect(EMBED_KEYS).toContain("sunrise-meter");

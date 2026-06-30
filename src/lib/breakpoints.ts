@@ -1,6 +1,6 @@
 /**
  * Breakpoints as build-time constants, not `:root` custom properties — CSS variables
- * are invalid inside `@media` conditions [D22]. These feed JS (matchMedia, etc.);
+ * are invalid inside `@media` conditions. These feed JS (matchMedia, etc.);
  * CSS uses container queries or the matching literal px values.
  */
 export const breakpoints = {

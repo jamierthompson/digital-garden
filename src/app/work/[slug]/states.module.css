@@ -1,5 +1,5 @@
 /* /work/<slug> state boundaries (not-found / error / loading). @layer project — declares its
-   layer per [D12]. Render OUTSIDE a project scope (a not-found/error replaces the themed
+   layer (an unlayered module outranks every layered rule). Render OUTSIDE a project scope (a not-found/error replaces the themed
    subtree), so var-consuming from foundation tokens only (--space-*, --text-*), never --brand-*. */
 @layer project {
   .state {

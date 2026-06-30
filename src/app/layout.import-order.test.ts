@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * Guards the load-bearing import order in `layout.tsx` [D27, D12].
+ * Guards the load-bearing global-CSS import order in `layout.tsx` (foundation.css imported first).
  *
  * The global stylesheets (`foundation.css`, which declares
  * `@layer foundation, brand, project;`) MUST be imported before `next/font` and the
@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest";
  * the imports — or enables an import-sorter that does — this fails loudly in the gate
  * rather than silently reintroducing the inversion.
  */
-describe("layout.tsx global-CSS import order [D27, D12]", () => {
+describe("layout.tsx global-CSS import order", () => {
   // Resolve from the repo root (vitest's cwd) — jsdom gives `import.meta.url` an
   // http: scheme, so a file-URL resolution can't be used here.
   const source = readFileSync(

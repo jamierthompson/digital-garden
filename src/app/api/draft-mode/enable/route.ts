@@ -3,7 +3,7 @@ import { defineEnableDraftMode } from "next-sanity/draft-mode";
 import { client } from "@/sanity/lib/client";
 
 /**
- * Draft Mode ENABLE route. [D16]
+ * Draft Mode ENABLE route.
  *
  * `defineEnableDraftMode` (next-sanity) wires the GET handler that Sanity
  * Presentation calls via `previewUrl.previewMode.enable`: it validates the
@@ -18,7 +18,7 @@ import { client } from "@/sanity/lib/client";
  * handshake — it is NOT baked into any exported client. The draft READS happen
  * through `sanityFetch` → `liveFetch`/`defineLive` (drafts perspective, token
  * attached server-side per request); this route only flips the cookie.
- * [security-and-ops §3]
+ * (see security-and-ops.md)
  */
 export const { GET } = defineEnableDraftMode({
   client: client.withConfig({ token: process.env.SANITY_API_READ_TOKEN }),

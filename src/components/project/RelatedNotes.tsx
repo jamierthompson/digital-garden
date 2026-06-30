@@ -11,9 +11,9 @@ interface RelatedNotesProps {
 }
 
 /**
- * The project's "Related notes" list. [§6, D16]
+ * The project's "Related notes" list.
  *
- * A pure, synchronous, var-consuming component (§8, [D2]) that renders **nothing** when
+ * A pure, synchronous, var-consuming component that renders **nothing** when
  * there are no related notes, so the page shows no empty "Related" heading.
  *
  * Titles render as plain text, not links: there is no `/notes/<slug>` route, so a link

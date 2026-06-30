@@ -21,9 +21,9 @@ const VALID_SEED = {
   fontKey: "jetbrains-mono",
 } as const;
 
-// The defensive-resolution contract `[D9]`: `resolveScope` must degrade every bad input to
+// The defensive-resolution contract: `resolveScope` must degrade every bad input to
 // a safe fallback and NEVER throw.
-describe("resolveScope — defensive, never throws [D9]", () => {
+describe("resolveScope — defensive, never throws", () => {
   it("resolves a valid seed to engine tokens + the keyed slug + resolved font", () => {
     const scope = resolveScope(VALID_SEED);
     expect(scope.slug).toBe("oklch-engine");
@@ -66,7 +66,7 @@ describe("resolveScope — defensive, never throws [D9]", () => {
     expect(scope.font.cssVariable).toMatch(/^--font-/);
   });
 
-  it("collapses a bad/garbage brandColor to the engine fallback palette (never throws) [D9]", () => {
+  it("collapses a bad/garbage brandColor to the engine fallback palette (never throws)", () => {
     for (const brandColor of ["not-a-color", "", "{}", "url(evil)"]) {
       const scope = resolveScope({
         slug: "oklch-engine",
@@ -77,7 +77,7 @@ describe("resolveScope — defensive, never throws [D9]", () => {
     }
   });
 
-  it("falls back to the shell mono face on an unknown/non-string fontKey [D11]", () => {
+  it("falls back to the shell mono face on an unknown/non-string fontKey", () => {
     const unknown = resolveScope({
       slug: "oklch-engine",
       brandColor: "#0099ff",
@@ -111,12 +111,12 @@ describe("resolveScope — defensive, never throws [D9]", () => {
 describe("scopedStyleCss", () => {
   const css = scopedStyleCss(resolveScope(VALID_SEED));
 
-  it("wraps the scoped block in @layer brand [D12, D13]", () => {
+  it("wraps the scoped block in @layer brand", () => {
     expect(css).toMatch(/^@layer brand \{/);
     expect(css).toContain('[data-project="oklch-engine"]');
   });
 
-  it("emits baked --brand-* light-dark() literals + the color-scheme [D3, D5]", () => {
+  it("emits baked --brand-* light-dark() literals + the color-scheme", () => {
     expect(css).toContain("color-scheme: light dark;");
     expect(css).toMatch(
       /--brand-accent: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
@@ -124,11 +124,11 @@ describe("scopedStyleCss", () => {
     expect(css).toContain("--brand-focus-ring:");
   });
 
-  it("aliases --focus-ring-color to the engine focus-ring token [D7]", () => {
+  it("aliases --focus-ring-color to the engine focus-ring token", () => {
     expect(css).toContain("--focus-ring-color: var(--brand-focus-ring);");
   });
 
-  it("maps --font-face to the resolved roster face + fallback stack [D11]", () => {
+  it("maps --font-face to the resolved roster face + fallback stack", () => {
     const { cssVariable } = FONT_FACES["jetbrains-mono"];
     expect(css).toContain(
       `--font-face: var(${cssVariable}), ui-monospace, monospace;`,

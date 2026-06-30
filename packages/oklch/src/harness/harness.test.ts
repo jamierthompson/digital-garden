@@ -1,9 +1,9 @@
 /**
- * Visual contrast harness — the engine's real exit criterion [D17].
+ * Visual contrast harness — the engine's real exit criterion.
  *
  * Proves PALETTE QUALITY, not just determinism: for 5 hue-spanning brand colors (incl.
- * the yellow & cyan stressers [D4]), in BOTH schemes [D5], every text-on-surface and
- * on-brand pair clears its APCA Lc + WCAG target AFTER gamut mapping [D6]. Assert the
+ * the yellow & cyan stressers), in BOTH schemes, every text-on-surface and
+ * on-brand pair clears its APCA Lc + WCAG target AFTER gamut mapping. Assert the
  * MEASURED number, never a CSS snapshot (testing.md). The companion `swatches.html`
  * artifact (regenerated below) is the eyeball check; run instructions in README.md.
  */
@@ -97,7 +97,7 @@ const CHECKS: PairCheck[] = [
   },
 ];
 
-describe("visual contrast harness [D17]", () => {
+describe("visual contrast harness", () => {
   for (const sample of BRAND_SAMPLES) {
     for (const scheme of SCHEMES) {
       describe(`${sample.name} — ${scheme}`, () => {

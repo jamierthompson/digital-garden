@@ -80,7 +80,7 @@ const [dodMd, ciYml] = await Promise.all([
 ]);
 
 const sources = {
-  "definition-of-done.md (§1)": normalize(
+  'definition-of-done.md → "The one command"': normalize(
     splitChain(
       fencedBlockAfter(dodMd, /^##\s+1\.\s+The one command/, "The one command"),
     ),

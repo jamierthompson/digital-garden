@@ -3,10 +3,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import { parseBody } from "next-sanity/webhook";
 
 /**
- * Sanity publish → production revalidation webhook. [D11, D31]
+ * Sanity publish → production revalidation webhook.
  *
  * Published content is fetched under `use cache` + `cacheLife("max")`
- * (`src/sanity/lib/sanityFetch.ts`) [D11], so a PUBLISHED change does NOT appear on the
+ * (`src/sanity/lib/sanityFetch.ts`), so a PUBLISHED change does NOT appear on the
  * Vercel production deploy until a redeploy. This route expires the matching cache tag so
  * the change appears on the next request instead.
  *

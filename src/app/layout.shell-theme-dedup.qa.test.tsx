@@ -18,7 +18,7 @@ import ProjectScope from "@/components/project-scope/ProjectScope";
 
 /**
  * QA regression suite for the **Item C draft-preview fix** (layout.tsx `<Suspense>` +
- * `ShellTheme`). Added by adversarial QA [D26].
+ * `ShellTheme`). Added as a regression case from adversarial QA review.
  *
  * THE DEFECT QA caught (on the real stack — `pnpm build` + a production `next start` browser
  * check, and `next dev` under the draft cookie): the original fix gave the Suspense FALLBACK its
@@ -26,7 +26,7 @@ import ProjectScope from "@/components/project-scope/ProjectScope";
  * slug="garden">`, so BOTH emitted `<style href="project-theme-garden">`. React 19 de-dupes
  * hoisted styles by href and keeps the FIRST committed — the fallback (rendered first during
  * prerender) — so the published static `/` and draft Preview both applied the ENGINE FALLBACK
- * palette (hue 264 / mono), never the real or draft-edited brand. That violated [D11] and [D16].
+ * palette (hue 264 / mono), never the real or draft-edited brand.
  *
  * THE FIX (author): the fallback is now `ShellThemeFallback`, which renders NO `<ProjectScope>`,
  * so only the real `ShellTheme` emits `project-theme-garden` and the real brand wins. The
@@ -49,7 +49,7 @@ function gardenStyles(): string[] {
   ].map((s) => s.textContent ?? "");
 }
 
-describe("shell theme — why the Suspense fallback must not render ProjectScope [Item C / D11 / D16]", () => {
+describe("shell theme — why the Suspense fallback must not render ProjectScope [Item C]", () => {
   it("two same-slug ProjectScopes collide → React 19 de-dupes hoisted styles to a single tag", () => {
     // The mechanism behind the defect: the fallback's <style> and the real ShellTheme's <style>
     // share `href="project-theme-garden"`, so React keeps only ONE — and it's the first committed

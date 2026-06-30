@@ -1,7 +1,7 @@
 import { defineQuery } from "next-sanity";
 
 /**
- * `/work` index query. [§6]
+ * `/work` index query.
  *
  * Pulls only what a card needs — `blurb`, `brandColor`, `fontKey` (plus id /
  * title / slug for the link) — and deliberately NOT the `essay`. This enforces
@@ -25,14 +25,14 @@ export const WORK_INDEX_QUERY = defineQuery(`
 `);
 
 /**
- * `/work/<slug>` project-detail query. [§6, D17]
+ * `/work/<slug>` project-detail query.
  *
  * The full project document for one slug — UNLIKE the index query, it DOES pull the
  * `essay` (the detail route renders it through the Portable Text serializer) plus the
  * theming seeds (`brandColor`, `brandColorDark`, `fontKey`, `componentKey`) that drive
  * `ProjectScope` and module resolution, and the surrounding `title` / `blurb` / `notes` /
  * `tags`. `[0]` collapses the filtered set to a single document (or `null` when the slug
- * is unpublished/unknown) so the route can `notFound()` on a miss [D10, D19].
+ * is unpublished/unknown) so the route can `notFound()` on a miss.
  *
  * `$slug` is a GROQ parameter — the caller passes `{ slug }` to `.fetch`, never string
  * interpolation, so a hostile slug can't inject into the query. Typed by TypeGen as
@@ -55,7 +55,7 @@ export const PROJECT_DETAIL_QUERY = defineQuery(`
 `);
 
 /**
- * `siteSettings` singleton query. [§6]
+ * `siteSettings` singleton query.
  *
  * `siteSettings` is intended as a singleton (one document, enforced via Studio Structure
  * in a separate slice). `[0]` guards that intent at the query layer: it returns the single

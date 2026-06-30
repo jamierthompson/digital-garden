@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { inGamut } from "./gamut";
 import { buildLightnessRamp } from "./ramp";
 
-/** Brand-ish hues spanning the wheel, incl. the yellow/cyan stressers [D4]. */
+/** Brand-ish hues spanning the wheel, incl. the yellow/cyan stressers. */
 const HUES = [29, 110, 145, 195, 260, 330];
 
 describe("buildLightnessRamp", () => {
@@ -41,7 +41,7 @@ describe("buildLightnessRamp", () => {
     }
   });
 
-  it("gamut-maps every stop into sRGB, even at high chroma [D6]", () => {
+  it("gamut-maps every stop into sRGB, even at high chroma", () => {
     for (const H of HUES) {
       const ramp = buildLightnessRamp(H, { steps: 11, chroma: 0.4 });
       for (const stop of ramp) {

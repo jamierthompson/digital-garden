@@ -1,9 +1,9 @@
 /**
- * Pure generator for the visual contrast harness artifact [D17].
+ * Pure generator for the visual contrast harness artifact.
  *
  * Builds a self-contained HTML document of swatch cards — one row per brand color, a
  * light and a dark panel each — using the engine's BAKED `oklch()` literals so a real
- * browser paints exactly what the engine solved [D3]. Every text-on-surface and
+ * browser paints exactly what the engine solved. Every text-on-surface and
  * on-brand pair is labeled with its MEASURED APCA Lc and WCAG ratio (assert the number,
  * don't snapshot the CSS — testing.md). Pure & isomorphic: no DOM, no Node, no I/O —
  * it returns a string; the test writes it to disk.
@@ -19,7 +19,7 @@ export interface BrandSample {
   brandColor: string;
 }
 
-/** The default hue-spanning set — includes the yellow & cyan stressers [D4]. */
+/** The default hue-spanning set — includes the yellow & cyan stressers. */
 export const BRAND_SAMPLES: readonly BrandSample[] = [
   { name: "Crimson", brandColor: "#e11d48" },
   { name: "Amber (yellow stresser)", brandColor: "#eab308" },

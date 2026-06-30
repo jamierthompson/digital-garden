@@ -3,16 +3,16 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
 import {isBrandColorString} from '../shared/colorValidation'
 
 /**
- * A portfolio / digital-garden project. [§6]
+ * A portfolio / digital-garden project.
  *
  * Holds the essay and references a coded module by key; the CMS never
  * reimplements interaction. Theming seeds (brandColor / fontKey) are
  * reference-by-key values consumed by code, NOT prose — see the stega
- * exclusions in src/sanity/lib/client.ts. [D9, D10, D16]
+ * exclusions in src/sanity/lib/client.ts.
  *
  * NOTE: `componentKey` / `fontKey` are plain string fields here on purpose —
  * the standalone Studio bundle must not import app code (keys.ts / next/font /
- * lazy project bundles) [§6, D23]. A dropdown wired to the shared keys.ts
+ * lazy project bundles). A dropdown wired to the shared keys.ts
  * contract is a later slice owned by the resolver work.
  */
 export const project = defineType({
@@ -45,13 +45,13 @@ export const project = defineType({
           .error('Blurb exceeds the 300-character hard cap — the card layout cannot absorb the overflow.'),
     }),
 
-    // Theming seeds: reference-by-key, consumed by code, stega-excluded [D16].
+    // Theming seeds: reference-by-key, consumed by code, stega-excluded.
     defineField({
       name: 'brandColor',
       title: 'Brand color',
       type: 'string',
       description:
-        'Per-project island seed for the OKLCH engine — hex or oklch(). One value generates BOTH light & dark ramps. [D5]',
+        'Per-project island seed for the OKLCH engine — hex or oklch(). One value generates BOTH light & dark ramps.',
       validation: (rule) => rule.required().custom(isBrandColorString),
     }),
     defineField({
@@ -59,7 +59,7 @@ export const project = defineType({
       title: 'Brand color (dark override)',
       type: 'string',
       description:
-        'OPTIONAL hand-tuned dark-scheme seed. Leave empty to let the engine derive dark from brandColor — never a required parallel field. [D5]',
+        'OPTIONAL hand-tuned dark-scheme seed. Leave empty to let the engine derive dark from brandColor — never a required parallel field.',
       validation: (rule) => rule.custom(isBrandColorString),
     }),
     defineField({
@@ -84,14 +84,14 @@ export const project = defineType({
       title: 'Essay',
       type: 'portableText',
       description:
-        'The project write-up. Embed live components with the Live embed block (default); pick images with Figure. [D15]',
+        'The project write-up. Embed live components with the Live embed block (default); pick images with Figure.',
     }),
     defineField({
       name: 'notes',
       title: 'Related notes',
       type: 'array',
       description:
-        'Links to digital-garden notes via real references (not slug strings) so references() resolves and integrity is datastore-enforced. [D16]',
+        'Links to digital-garden notes via real references (not slug strings) so references() resolves and integrity is datastore-enforced.',
       of: [defineArrayMember({type: 'reference', to: [{type: 'note'}]})],
     }),
     defineField({

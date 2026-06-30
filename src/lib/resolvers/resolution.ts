@@ -1,4 +1,4 @@
-// The typed resolution result shared by every key resolver [D10, §4.2].
+// The typed resolution result shared by every key resolver.
 //
 // Keys are a contract with NO referential integrity: a key saved in Sanity may
 // have had its code renamed or deleted. So a resolver never does a bare

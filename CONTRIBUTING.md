@@ -23,14 +23,14 @@ start at [`orientation.md`](./docs/handbook/orientation.md); the agent-facing en
 
 - **Never commit to `main`** — branch first (`feat/…`, `fix/…`, `chore/…`); a merge to `main`
   is a production deploy on Vercel.
-- **The gate must be green** before a PR — the chain in
-  [`docs/handbook/definition-of-done.md`](./docs/handbook/definition-of-done.md) §1, which CI
+- **The gate must be green** before a PR — the one command in
+  [`docs/handbook/definition-of-done.md`](./docs/handbook/definition-of-done.md), which CI
   re-runs on every PR.
-- **Every slice clears independent, adversarial QA** before it merges (the dev↔QA loop;
-  [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md) §6.2).
+- **Every slice clears independent, adversarial QA** before it merges — the dev↔QA loop in
+  [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md).
 - **PRs squash-merge**, so the PR description is the durable history — see
   [`docs/handbook/git-and-pr-workflow.md`](./docs/handbook/git-and-pr-workflow.md).
 
-Binding architectural decisions live in [`docs/decisions.md`](./docs/decisions.md) (cited as `[D#]`)
-and the system model in [`docs/handbook/architecture.md`](./docs/handbook/architecture.md)
-(cited as `§N`).
+The system model lives in [`docs/handbook/architecture.md`](./docs/handbook/architecture.md) (refer
+to its sections by name). There is **no separate decision log** — the docs are the current source of
+truth, edited in place, and git history is the audit trail.

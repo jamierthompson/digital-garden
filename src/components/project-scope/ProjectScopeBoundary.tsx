@@ -3,10 +3,10 @@
 import { unstable_catchError } from "next/error";
 import type { ReactNode } from "react";
 
-// The last-resort backstop around `ProjectScope` `[D9]`. `unstable_catchError`
+// The last-resort backstop around `ProjectScope`. `unstable_catchError`
 // (`next/error`) builds a component-level error boundary — the correct containment here
 // because a segment `error.tsx` does NOT catch a throw from its own layout, and
-// `ProjectScope` wraps content at layout level (§7). The fallback must be a Client
+// `ProjectScope` wraps content at layout level. The fallback must be a Client
 // Component, hence `'use client'`.
 //
 // The PRIMARY defense is the never-throwing `resolveScope`; this only catches an unforeseen

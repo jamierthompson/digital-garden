@@ -8,9 +8,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # AGENTS.md — Digital Garden
 
-> A personal portfolio + digital garden: each project is a self-contained, independently
-> themed module (its own OKLCH brand color + font) composed on a shared foundation.
-> Next.js 16 / React 19 on Vercel; content in Sanity.
+> A personal portfolio + digital garden: one editorial foundation (Newsreader + a neutral
+> ramp) themes all page chrome, while each project's OKLCH brand color + font theme only its
+> own bounded interactive slot. Next.js 16 / React 19 on Vercel; content in Sanity.
 
 This file is the agent-facing entry point per the [AGENTS.md convention](https://agents.md/)
 (an open, Linux Foundation–governed format — Markdown, no required fields, **nearest file
@@ -19,9 +19,10 @@ wins**). It complements `README.md` (humans); this is for **you, the agent**. Ke
 
 **This is a short index — the non-negotiable guardrails inline, everything else by pointer.** The
 full operating manual is [`docs/handbook/`](./docs/handbook/) — **start at [`orientation.md`](./docs/handbook/orientation.md)**.
-Binding decisions are in [`docs/decisions.md`](./docs/decisions.md) (cite as `[D#]`); the system
-model is [`docs/handbook/architecture.md`](./docs/handbook/architecture.md) (cite as `§N`); the
-work backlog is [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
+The system model is [`docs/handbook/architecture.md`](./docs/handbook/architecture.md) (refer to
+its sections by name); the work backlog is [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
+The docs are the current source of truth — there is no separate decision log; they are edited in
+place and git history is the audit trail.
 
 ## The one rule that overrides your memory
 
@@ -29,11 +30,12 @@ work backlog is [GitHub issues](https://github.com/jamierthompson/digital-garden
 in `package.json`); your training data is wrong here often enough to be dangerous.
 
 - **Capabilities** → before hand-rolling, prefer an installed skill / subagent / MCP tool — the
-  ones you need are likely already there and authed; if not, ask. Full ladder: [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md) §1.
+  ones you need are likely already there and authed; if not, ask. Full ladder: the cite-don't-remember section of [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md).
 - **Framework behavior** → read the version-exact bundled docs at `node_modules/next/dist/docs/`
   before writing framework code.
-- **Project decisions** → [`docs/decisions.md`](./docs/decisions.md), cited as `[D#]`.
-  **System model** → [`docs/handbook/architecture.md`](./docs/handbook/architecture.md), cited as `§N`.
+- **Project rules & system model** → the handbook docs, above all
+  [`docs/handbook/architecture.md`](./docs/handbook/architecture.md) (refer to its sections by
+  name). They are the current truth, edited in place; git history is the audit trail.
 - **External standards** (Conventional Commits, WCAG/APCA, this AGENTS.md convention) → cite the
   standard with a URL. **Cite the source that actually contains the fact** — accuracy over confidence.
 
@@ -45,18 +47,18 @@ These silently break *this* stack. Most are lint/CI-enforced; know them so you d
   deploy on Vercel. Each agent ships a **complete, gate-green slice** it owns; the lead curates
   history (rebase/squash/reorder) and **squash-merges** — the story is told once in the
   PR body. Gate green at every slice handoff and on the curated tip; delete the branch.
-- **Every slice clears independent, adversarial QA before the PR** `[D26]`. Gate-green is
+- **Every slice clears independent, adversarial QA before the PR.** Gate-green is
   _developer-done_, not _review-done_: a **fresh** agent with **no prior context of the work** (not
-  merely "not the author" `[D28]`) **tries to break** the
+  merely "not the author") **tries to break** the
   slice and writes the missing test cases a product-team QA engineer would, the owning author fixes,
   QA re-checks. This holds on **every** session — solo (lead is also author → one QA) or team (one QA per
-  coding agent). The lead owns the loop (see [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md) §6.2).
+  coding agent). The lead owns the loop (see the dev↔QA loop in [`docs/handbook/working-with-agents.md`](./docs/handbook/working-with-agents.md)).
 - **Every CSS Module declares its `@layer`** (`foundation|brand|project`) or stays strictly
-  var-consuming. An unlayered module outranks **every** `@layer` style — the "@layer trap" `[D12]`.
+  var-consuming. An unlayered module outranks **every** `@layer` style — the "@layer trap".
   Enforced by `pnpm lint:css`.
-- **The OKLCH engine stays isomorphic** — never add `server-only` / `client-only` to the engine package (`packages/oklch/`, imported as `@garden/oklch`) `[D14]`.
+- **The OKLCH engine stays isomorphic** — never add `server-only` / `client-only` to the engine package (`packages/oklch/`, imported as `@garden/oklch`).
 - **Literal dynamic imports only:** `() => import("@/projects/<slug>")` per key — never a templated
-  `import(\`…/${slug}\`)` (defeats bundler static analysis) `[D21]`.
+  `import(\`…/${slug}\`)` (defeats bundler static analysis).
 - **pnpm only** — never npm/yarn; `pnpm dlx`, not `npx`. Commit `pnpm-lock.yaml` on dep changes.
 - **Request APIs are async** (`cookies()`/`headers()`/`params`/`searchParams` are `await`-able);
   `export const dynamic` is removed under Cache Components; `middleware.ts` is `proxy.ts`. Verify in the bundled docs.
@@ -64,12 +66,12 @@ These silently break *this* stack. Most are lint/CI-enforced; know them so you d
 ## Pre-flight checks (the gate)
 
 Run the full gate locally before pushing. The one copy-paste command lives in
-[`definition-of-done.md` §1](./docs/handbook/definition-of-done.md#1-the-one-command); CI runs the
+[the one command in `definition-of-done.md`](./docs/handbook/definition-of-done.md#1-the-one-command); CI runs the
 same chain ([`ci.yml`](./.github/workflows/ci.yml), job `verify`), and `pnpm lint:docs` keeps the two
 in sync. Green locally = green CI.
 
 Fix formatting with `pnpm format` (never by hand). After **any** Studio schema change, commit the
-regenerated `sanity.types.ts` (root-anchored) — the easiest gate to trip `[D23]`.
+regenerated `sanity.types.ts` (root-anchored) — the easiest gate to trip.
 
 ## Nested context
 

@@ -1,7 +1,7 @@
 import {defineArrayMember, defineType} from 'sanity'
 
 /**
- * Reusable rich-text (Portable Text) body. [§6, D15]
+ * Reusable rich-text (Portable Text) body.
  *
  * Standard text blocks + the generic `liveEmbed` (the default embed) + the
  * typed editorial `figure` block. Shared by `project.essay` and `note.body`

@@ -1,4 +1,4 @@
-/* Live-embed wrapper. @layer project — declares its layer per [D12]; var-consuming only (themed by the surrounding project scope, §8). */
+/* Live-embed wrapper. @layer project — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by the surrounding project scope). */
 @layer project {
   .embed {
     margin: var(--space-6) 0;

@@ -3,7 +3,7 @@ import { createClient } from "next-sanity";
 import { apiVersion, dataset, projectId } from "./env";
 
 /**
- * The PUBLIC client — published content only, fully cacheable, no token. [D16]
+ * The PUBLIC client — published content only, fully cacheable, no token.
  *
  * `useCdn: true` serves from Sanity's CDN (published docs, no token). Stega is
  * `enabled: false`: this client never carries a token and never powers Visual
@@ -18,7 +18,7 @@ import { apiVersion, dataset, projectId } from "./env";
  *
  * Live/draft content reads go through `sanityFetch` (`./sanityFetch.ts`), which is
  * backed by `defineLive` (`./live.ts`) — that owns the published-vs-drafts branch,
- * the per-request token, and stega. [security-and-ops §3]
+ * the per-request token, and stega. (see security-and-ops.md)
  */
 export const client = createClient({
   projectId,

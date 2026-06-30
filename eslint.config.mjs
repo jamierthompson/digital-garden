@@ -6,7 +6,7 @@ import prettier from "eslint-config-prettier";
 
 // Globals forbidden inside the OKLCH engine so it stays isomorphic — no DOM, no
 // Node runtime. Framework imports (next/react) are caught by boundaries/external;
-// these catch ambient global usage that imports can't [D14].
+// these catch ambient global usage that imports can't.
 const NON_ISOMORPHIC_GLOBALS = [
   "window",
   "document",
@@ -59,7 +59,7 @@ const eslintConfig = defineConfig([
           capture: ["slug"],
         },
         // The resolver registry is the ONE sanctioned shared→project importer:
-        // §4.2 / [D21] mandate that a `componentKey` resolves to a literal
+        // the contract mandates that a `componentKey` resolves to a literal
         // `() => import("@/projects/<slug>")` right here. Modeling the registry as its
         // own element — matched before the `shared` catch-all, since first match wins —
         // lets it import `project` modules while the `shared`→`project` ban below still
@@ -103,7 +103,7 @@ const eslintConfig = defineConfig([
     },
   },
   // The OKLCH engine is its own workspace package (@garden/oklch) so the standalone
-  // Studio can import it too [D23]. The isomorphism guard [D14] applies: no framework
+  // Studio can import it too. The isomorphism guard applies: no framework
   // imports, no DOM/Node runtime globals. `boundaries` is scoped to `src/**` and can't
   // reach here, so the framework-import ban is enforced via no-restricted-imports below.
   {

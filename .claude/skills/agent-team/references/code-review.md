@@ -1,6 +1,6 @@
 # Mode: Parallel Code Review
 
-> Read [`../SKILL.md`](../SKILL.md) §0–§1 first. This is the best **first** team to run — clear
+> Read [`../SKILL.md`](../SKILL.md) (Preflight + universal mechanics) first. This is the best **first** team to run — clear
 > boundaries, no parallel writes, low coordination risk. A great way to feel out agent teams.
 
 A single reviewer gravitates toward one class of issue at a time. Splitting the review into
@@ -12,7 +12,7 @@ teammates can challenge each other's findings (the team advantage over subagents
 >
 > - **`pr-review-toolkit:review-pr`** — a skill that _already orchestrates_ the specialized review
 >   agents. It covers the bulk of a multi-lens PR review out of the box. A team beats it only when you
->   want lenses pinned to the user's exact named concerns, each grounded in _this repo's_ `[D#]`s/gate,
+>   want lenses pinned to the user's exact named concerns, each grounded in _this repo's_ rules/gate,
 >   plus live cross-examination between reviewers.
 > - **`/code-review`** — a fast single-pass review of the working diff at an effort level. Right when
 >   the user wants speed over breadth.
@@ -30,16 +30,16 @@ thing through different filters.
 repo's existing review agents where they fit — spawn teammates **using those subagent definitions**
 to inherit their tool-allowlists and prompts:
 
-| Lens                             | Reuse this agent type / focus                                                                                                            |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Correctness / bugs / logic       | `pr-review-toolkit:code-reviewer` or `feature-dev:code-reviewer`                                                                         |
-| Silent failures / error handling | `pr-review-toolkit:silent-failure-hunter`                                                                                                |
-| Test coverage                    | `pr-review-toolkit:pr-test-analyzer`                                                                                                     |
-| Type design                      | `pr-review-toolkit:type-design-analyzer`                                                                                                 |
-| Repo-convention adherence        | the gate + `[D#]`s + handbook (this repo's footguns: `@layer` [D12], isomorphic engine [D14], literal imports [D21], async request APIs) |
-| Accessibility / performance      | `chrome-devtools:*` / `vercel:performance-optimizer` for rendered surfaces ([D25])                                                       |
+| Lens                             | Reuse this agent type / focus                                                                                                                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Correctness / bugs / logic       | `pr-review-toolkit:code-reviewer` or `feature-dev:code-reviewer`                                                                                                                                 |
+| Silent failures / error handling | `pr-review-toolkit:silent-failure-hunter`                                                                                                                                                        |
+| Test coverage                    | `pr-review-toolkit:pr-test-analyzer`                                                                                                                                                             |
+| Type design                      | `pr-review-toolkit:type-design-analyzer`                                                                                                                                                         |
+| Repo-convention adherence        | the gate + the binding repo rules + handbook (this repo's footguns: every CSS Module declares its `@layer`, the OKLCH engine stays isomorphic, literal dynamic imports only, async request APIs) |
+| Accessibility / performance      | `chrome-devtools:*` / `vercel:performance-optimizer` for rendered surfaces (every rendered surface gets a browser check before "done")                                                           |
 
-Brief each per §1: name the diff/PR, the source-of-truth files by path, the binding `[D#]`s, "report
+Brief each per the briefing checklist: name the diff/PR, the source-of-truth files by path, the binding repo rules, "report
 findings as a dense list with file:line + severity + cited rationale", and cite-don't-remember.
 
 **3. Cross-challenge (optional but valuable).** Have reviewers read each other's findings and flag

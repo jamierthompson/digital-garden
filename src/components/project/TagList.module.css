@@ -1,4 +1,4 @@
-/* Project tag chips. @layer project — declares its layer per [D12]; var-consuming only, themed by --brand-* (§8, [D2]). */
+/* Project tag chips. @layer project — declares its layer (unlayered modules outrank every layered rule); var-consuming only, themed by --brand-*. */
 @layer project {
   .tags {
     margin-top: var(--space-4);

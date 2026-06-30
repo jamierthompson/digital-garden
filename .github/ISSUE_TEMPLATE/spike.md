@@ -19,8 +19,8 @@ labels: "type:spike"
 ## Done when
 
 - [ ] The question is answered, verified against the code / bundled docs (not memory).
-- [ ] Anything architecturally significant is recorded as a new `[D#]` in `docs/decisions.md`
-      (reconcile with `docs/handbook/architecture.md`, don't duplicate).
+- [ ] Anything architecturally significant is captured in the relevant handbook doc (e.g.
+      `docs/handbook/architecture.md`), edited in place — there is no separate decision log.
 - [ ] Findings written up (see Outcome).
 
 ## Out of scope
@@ -32,6 +32,6 @@ labels: "type:spike"
 
 <!-- Fill on close: -->
 
-- **Findings:** `docs/sessions/<date>-<slug>/spike-findings.md`
-- **Decision:** `[D#]` (if any)
+- **Findings:** summarized in this issue (and in the implementing PR's description).
+- **Decision:** captured in the relevant handbook doc, edited in place (if any).
 - **Follow-up issues:** #…
