@@ -479,8 +479,9 @@ Practical notes:
   `ProjectScope`. A caught error would also render _unthemed_, the wrong response to a data-quality
   problem — hence "validate + fall back," not "let it throw and catch."
 - **One Next.js app for the site; the Sanity Studio is a separate workspace package** `[D23]`. The
-  repo is a two-member pnpm workspace: the Next app at the root and a **standalone Sanity Studio in
-  `studio/`** (Vite-based, auto-updating, TypeGen watch mode). The _site_ is still a single app with
+  repo is a three-member pnpm workspace: the Next app at the root, a **standalone Sanity Studio in
+  `studio/`** (Vite-based, auto-updating, TypeGen watch mode), and the **`@garden/oklch` engine in
+  `packages/oklch/`**. The _site_ is still a single app with
   no project sub-packages — project code lives under `src/projects/*`; shared bits live in shared
   `src/` modules. Boundaries are **lint-import rules**: a project can't import another project;
   shared can't import a project; plus the `packages/oklch/**` isomorphism boundary (§3.2) and the
