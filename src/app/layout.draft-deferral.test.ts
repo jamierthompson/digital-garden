@@ -13,7 +13,6 @@ import { describe, expect, it } from "vitest";
  * `<Suspense>` is what lets the async `ShellTheme` read defer. Remove the boundary and the body
  * read trips `Uncached data … outside of <Suspense>` — verified: it surfaces live in `next dev`
  * (a production build prerendered the cached read, so prod tolerates it, but the shape is wrong).
- * See docs/sessions/2026-06-26-shell-sourcing-islands/spike-findings.md.
  *
  * NOTE: `generateMetadata` ALSO reads `siteSettings`, but it does NOT depend on this boundary —
  * its read is `use cache` (cached at build, dynamic under draft) and is independently legal;

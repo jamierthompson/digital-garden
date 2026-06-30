@@ -22,8 +22,9 @@ pnpm --filter studio typegen   # regenerate types — writes ./sanity.types.ts a
 ```
 
 After any schema change, run `typegen` and commit the regenerated **root** `sanity.types.ts` — the
-gate checks it for drift `[D23]`.
+gate checks it for drift.
 
 Project-wide conventions live in the root [`AGENTS.md`](../AGENTS.md) and
-[`docs/handbook/`](../docs/handbook/); Sanity-specific decisions are in
-[`docs/decisions.md`](../docs/decisions.md) (cite as `[D#]`).
+[`docs/handbook/`](../docs/handbook/); the Sanity content model and its rules are in
+[`docs/handbook/architecture.md`](../docs/handbook/architecture.md). The docs are the current source
+of truth, edited in place — there is no separate decision log.
