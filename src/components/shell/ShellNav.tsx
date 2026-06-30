@@ -3,7 +3,7 @@ import Link from "next/link";
 import styles from "./ShellNav.module.css";
 
 /**
- * The shell's primary navigation. [§2]
+ * The shell's primary navigation.
  *
  * A pure, synchronous, var-consuming component: it reads `var(--brand-*)` / `var(--font-face)`
  * from whatever scope it renders under (the shell island's `[data-project]` scope in the root

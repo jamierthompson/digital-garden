@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 /**
  * The shell /now page (after nownownow.com). Static, themed content under the shell
- * island's scope (§3.1).
+ * island's scope.
  */
 export default function NowPage() {
   return (

@@ -1,9 +1,9 @@
 import {defineField, defineType} from 'sanity'
 
 /**
- * Inline figure — a typed editorial block. [D15]
+ * Inline figure — a typed editorial block.
  *
- * This is the case D15 reserves a typed block for: genuine editorial *content*
+ * This is the case a typed block is reserved for: genuine editorial *content*
  * the editor authors and curates — they pick an image asset and write its alt
  * text + caption. Contrast with the generic `liveEmbed` (just key + caption),
  * which is the default for everything that is merely a key reference.

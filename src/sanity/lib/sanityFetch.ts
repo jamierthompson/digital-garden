@@ -1,6 +1,6 @@
 // Build-time guard: this module holds the server-only token-selection logic, so it must
 // never reach a client bundle. A stray `"use client"` import would fail the build here
-// instead of silently shipping the draft-read path to the browser. [security-and-ops §3]
+// instead of silently shipping the draft-read path to the browser. (see security-and-ops.md)
 import "server-only";
 
 import { draftMode } from "next/headers";
@@ -9,7 +9,7 @@ import type { ClientReturn, QueryParams } from "next-sanity";
 import { liveFetch } from "./live";
 
 /**
- * The single read path for Sanity content in Server Components. [D11, D16]
+ * The single read path for Sanity content in Server Components.
  *
  * A thin `use cache` adapter over `defineLive`'s fetcher (`liveFetch`, `./live.ts`),
  * so every route calls `sanityFetch(QUERY, params?)` and gets back the TypeGen'd result
@@ -21,10 +21,10 @@ import { liveFetch } from "./live";
  * How the two paths resolve:
  * - Public request → Draft Mode OFF → `perspective: "published"`, `stega: false`. The
  *   read is CDN-backed and lands in the prerendered static shell (PPR), so the shell
- *   brand is flash-free in the initial bytes [D11]. `defineLive` sets a long
+ *   brand is flash-free in the initial bytes. `defineLive` sets a long
  *   `cacheLife` (on-demand tag revalidation is the freshness mechanism, not a timer).
  * - Draft Mode ON → `perspective: "drafts"`, `stega: true`. Next re-executes every
- *   cached function on every request and saves nothing (use-cache.md §"Draft Mode"),
+ *   cached function on every request and saves nothing (use-cache.md),
  *   so `liveFetch` serves fresh drafts with the server-only token attached by
  *   `defineLive`. No un-caching code needed here; the framework guarantees it.
  *
@@ -33,7 +33,7 @@ import { liveFetch } from "./live";
  * throw). Reading it arms the native draft-bypass above AND lets us hand `liveFetch`
  * an explicit `perspective`/`stega` — required because under Cache Components
  * `defineLive`'s fetcher reads no request APIs itself (see `./live.ts`). We map
- * Draft Mode to the binary published/drafts perspective [D16]; the Presentation
+ * Draft Mode to the binary published/drafts perspective; the Presentation
  * preview-perspective cookie is intentionally not consulted here (reading `cookies()`
  * inside `use cache` is illegal, and Path A keeps the draft path binary).
  *
@@ -52,11 +52,11 @@ export async function sanityFetch<const Q extends string>(
   // Fail loud, not silent: draft mode without the server token would otherwise let
   // `defineLive` quietly fall back to published content, and the author would preview
   // stale data with no signal. Guard here so the published path never pays for it.
-  // [security-and-ops §3]
+  // (see security-and-ops.md)
   if (isEnabled && !process.env.SANITY_API_READ_TOKEN) {
     throw new Error(
       "Draft mode is enabled but SANITY_API_READ_TOKEN is not set. " +
-        "Set the server-only read token (see .env.example / security-and-ops §3).",
+        "Set the server-only read token (see .env.example / security-and-ops.md).",
     );
   }
 

@@ -1,10 +1,10 @@
 // Pure, defensive resolution of a project "scope seed" → a baked, scoped CSS theme.
 //
 // It resolves a `brandColor` through the OKLCH engine (`buildTokenSet` → dual-scheme, `light-dark()`,
-// baked literals [D3, D5]) and a `fontKey` through the font roster (`resolveFontKey`),
+// baked literals) and a `fontKey` through the font roster (`resolveFontKey`),
 // then serializes everything into one `@layer brand { [data-project="…"] { … } }` block.
 //
-// The defensive contract the stub established is preserved exactly [D9]: `resolveScope`
+// The defensive contract the stub established is preserved exactly: `resolveScope`
 // is TOTAL and NEVER throws. A bad/missing `brandColor` collapses to the engine's own
 // fallback palette (`buildTokenSet` returns `meta.isFallback`); a bad/unknown `fontKey`
 // collapses to the shell mono face via `resolveFontKey`'s `NotFound` branch; and the slug
@@ -31,9 +31,9 @@ export interface ResolvedScope {
    * inject into the emitted CSS.
    */
   readonly slug: string;
-  /** The engine's dual-scheme, baked token set for this scope's `brandColor` [D3, D5]. */
+  /** The engine's dual-scheme, baked token set for this scope's `brandColor`. */
   readonly tokenSet: TokenSet;
-  /** The resolved roster face — its `.variable` class mounts on the scope wrapper [D11]. */
+  /** The resolved roster face — its `.variable` class mounts on the scope wrapper. */
   readonly font: FontFace;
 }
 
@@ -41,26 +41,26 @@ export interface ResolvedScope {
 export interface ScopeSeed {
   /** Vetted against `KNOWN_SLUGS`; an unknown slug collapses to `FALLBACK_SLUG`. */
   readonly slug: string;
-  /** Any color string (hex / `rgb()` / `oklch()`); unparseable → engine fallback [D9]. */
+  /** Any color string (hex / `rgb()` / `oklch()`); unparseable → engine fallback. */
   readonly brandColor: string;
-  /** A roster `fontKey`; unknown → shell mono fallback via `resolveFontKey` [D11]. */
+  /** A roster `fontKey`; unknown → shell mono fallback via `resolveFontKey`. */
   readonly fontKey: string;
 }
 
 export const FALLBACK_SLUG = "fallback";
 
 /**
- * The cascade layer the scoped theme is emitted into [D12] AND the React `precedence` the
- * `<style>` is hoisted with [D13] — ONE value, used on both sides. These two are halves of
+ * The cascade layer the scoped theme is emitted into AND the React `precedence` the
+ * `<style>` is hoisted with — ONE value, used on both sides. These two are halves of
  * one mechanism: the cascade slots the rule by `@layer` name while React orders the hoisted
  * `<style>` by precedence. Single-sourcing the literal here makes the invariant mechanical
  * rather than vigilance-dependent — `scopedStyleCss` builds `@layer ${BRAND_LAYER}` and
- * `ProjectScope` sets `precedence={BRAND_LAYER}`, so they cannot silently desync [D13].
+ * `ProjectScope` sets `precedence={BRAND_LAYER}`, so they cannot silently desync.
  */
 export const BRAND_LAYER = "brand";
 
 /**
- * The shell mono face, reused when a `fontKey` does not resolve [D11]. This is an
+ * The shell mono face, reused when a `fontKey` does not resolve. This is an
  * already-loaded shell variable (root layout), NOT a new `next/font` import, so the
  * `preload:false` roster policy is untouched. Shaped as a `FontFace` so the serializer
  * treats it uniformly: it has no roster `.variable` class to mount (the shell var is
@@ -75,12 +75,12 @@ const SHELL_MONO_FACE: FontFace = {
 const FONT_STACK = "ui-monospace, monospace";
 
 // The slugs that may key a scope — DRIVEN from the registry. A project's slug equals its
-// `componentKey` in our model (§4.2), so `COMPONENT_KEYS` is the source of truth for which
+// `componentKey` in our model, so `COMPONENT_KEYS` is the source of truth for which
 // project slugs exist; `"garden"` is the shell island's slug; `"oklch-engine"` is asserted on
 // by the scope tests. An unknown slug still collapses to `FALLBACK_SLUG`, which is what keeps a
 // hostile slug out of the emitted selector — the set is always vetted constants, never raw input.
 // Deriving from `COMPONENT_KEYS` means a new project is accepted automatically the moment it
-// registers its key [D10].
+// registers its key.
 const KNOWN_SLUGS: ReadonlySet<string> = new Set<string>([
   ...COMPONENT_KEYS,
   "garden",
@@ -97,7 +97,7 @@ function vetSlug(slug: unknown): string {
 /**
  * Resolve an arbitrary, untrusted seed into a safe `ResolvedScope`.
  * Total function: every input — `null`, a number, a hostile object, a garbage
- * `brandColor`, an unknown `fontKey` — maps to a valid scope. It never throws [D9].
+ * `brandColor`, an unknown `fontKey` — maps to a valid scope. It never throws.
  */
 export function resolveScope(seed: unknown): ResolvedScope {
   try {
@@ -108,11 +108,11 @@ export function resolveScope(seed: unknown): ResolvedScope {
     };
 
     // `buildTokenSet` is itself defensive: unparseable input yields the fallback palette
-    // and sets `meta.isFallback`, never throwing [D3, D9]. Passing through `unknown` is
+    // and sets `meta.isFallback`, never throwing. Passing through `unknown` is
     // fine — it parses defensively internally.
     const tokenSet = buildTokenSet(obj.brandColor);
 
-    // Unknown / non-string fontKey → NotFound → shell mono fallback [D11].
+    // Unknown / non-string fontKey → NotFound → shell mono fallback.
     const fontKey = obj.fontKey;
     const resolution =
       typeof fontKey === "string"
@@ -124,7 +124,7 @@ export function resolveScope(seed: unknown): ResolvedScope {
   } catch {
     // Belt-and-suspenders: the logic above can't throw (a `slug` getter that throws is
     // caught here), but the catch makes the never-throw contract structural rather than a
-    // thing a future edit can break [D9].
+    // thing a future edit can break.
     return {
       slug: FALLBACK_SLUG,
       tokenSet: buildTokenSet(undefined),
@@ -135,10 +135,10 @@ export function resolveScope(seed: unknown): ResolvedScope {
 
 /**
  * Serialize a resolved scope into the scoped `<style>` body — ONE coherent rule wrapped in
- * `@layer brand` [D12]. The wrapper is hand-assembled here (rather than via `tokenSetToCss`)
- * so the engine's `--brand-*` declarations, the `--focus-ring-color` alias [D7], and the
+ * `@layer brand`. The wrapper is hand-assembled here (rather than via `tokenSetToCss`)
+ * so the engine's `--brand-*` declarations, the `--focus-ring-color` alias, and the
  * `--font-face` mapping all live in the SAME selector block. The `@layer ${BRAND_LAYER}`
- * wrapper here pairs with `ProjectScope`'s `precedence={BRAND_LAYER}` — see `BRAND_LAYER` [D13].
+ * wrapper here pairs with `ProjectScope`'s `precedence={BRAND_LAYER}` — see `BRAND_LAYER`.
  */
 export function scopedStyleCss(scope: ResolvedScope): string {
   // Engine declarations: `color-scheme: light dark;` + each `--brand-*: light-dark(…)`.
@@ -147,11 +147,11 @@ export function scopedStyleCss(scope: ResolvedScope): string {
     .map((line) => `    ${line}`)
     .join("\n");
 
-  // Alias the engine's focus-ring token into the var foundation's `:focus-visible` reads [D7].
+  // Alias the engine's focus-ring token into the var foundation's `:focus-visible` reads.
   const focusRing = "    --focus-ring-color: var(--brand-focus-ring);";
 
   // Map the resolved roster face into `--font-face`; the `.variable` class on the wrapper
-  // brings `var(<cssVariable>)` into scope, and the stack is the fallback [D11].
+  // brings `var(<cssVariable>)` into scope, and the stack is the fallback.
   const fontFace = `    --font-face: var(${scope.font.cssVariable}), ${FONT_STACK};`;
 
   const body = [brandDecls, focusRing, fontFace].join("\n");

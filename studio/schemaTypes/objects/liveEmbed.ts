@@ -1,7 +1,7 @@
 import {defineField, defineType} from 'sanity'
 
 /**
- * Generic live-embed block — the DEFAULT in-essay embed. [D15]
+ * Generic live-embed block — the DEFAULT in-essay embed.
  *
  * Stores only an `embedKey` (resolved to a coded component in app code) plus an
  * editor-authored `caption`. Use this whenever the only authored inputs are
@@ -10,7 +10,7 @@ import {defineField, defineType} from 'sanity'
  * structured *content*. NEVER model code-level config (variants, initial
  * state) here — default it in the registry, or split into two registered keys.
  *
- * [D16] Presentation click-to-edit targets the caption / embedKey fields, NOT
+ * Presentation click-to-edit targets the caption / embedKey fields, NOT
  * the rendered interactive region. `embedKey` is stega-excluded in the client
  * (src/sanity/lib/client.ts) because it is resolved against code by key and
  * invisible stega chars would break the lookup.

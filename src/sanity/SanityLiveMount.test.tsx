@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * `SanityLiveMount` exists to keep `<SanityLive>`'s `includeDrafts` (required under
- * `strict`) driven by Draft Mode WITHOUT a request-API read at the sync RootLayout root
- * [D11, D16]. Async server components aren't jsdom-renderable [D25], so we invoke it
+ * `strict`) driven by Draft Mode WITHOUT a request-API read at the sync RootLayout root.
+ * Async server components aren't jsdom-renderable, so we invoke it
  * directly and inspect the element it returns — the contract is just "pass draftMode's
  * isEnabled through to SanityLive".
  *

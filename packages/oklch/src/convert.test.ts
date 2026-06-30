@@ -81,7 +81,7 @@ describe("parseColor", () => {
     expect(pct!.L).toBeCloseTo(0.7, 6);
   });
 
-  it("returns null for unparseable input (caller uses the fallback) [D9]", () => {
+  it("returns null for unparseable input (caller uses the fallback)", () => {
     expect(parseColor("not a color")).toBeNull();
     expect(parseColor("")).toBeNull();
     expect(parseColor("   ")).toBeNull();

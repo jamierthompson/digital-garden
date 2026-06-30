@@ -13,21 +13,21 @@ interface ProjectScopeProps {
  * flash-free scoped theme:
  *
  * 1. Emits the scoped `<style>`: the OKLCH engine's baked `--brand-*` `light-dark()`
- *    literals `[D3, D5]`, the `--focus-ring-color` alias `[D7]`, and the resolved font's
- *    `--font-face` mapping — all in one block declared `@layer brand` `[D12]`.
+ *    literals, the `--focus-ring-color` alias, and the resolved font's
+ *    `--font-face` mapping — all in one block declared `@layer brand`.
  * 2. Wraps its subtree in `[data-project="<slug>"]`, mounting the resolved roster face's
- *    `.variable` className so `var(--font-face)` has its variable in scope `[D11]`.
+ *    `.variable` className so `var(--font-face)` has its variable in scope.
  *
- * Flash-free mechanics `[D13]`: the `<style>` uses React 19's `precedence` + a slug `href`.
+ * Flash-free mechanics: the `<style>` uses React 19's `precedence` + a slug `href`.
  * React hoists it into `<head>`, de-dupes by `href`, and orders by precedence — so even when
  * the route streams, the theme is in the initial shell HTML **before** the body paints (no
  * FOUC). The `precedence` and the `@layer` wrapper from `scopedStyleCss` both read the single
- * `BRAND_LAYER` const so they cannot desync — see `scopeSeed.ts` `[D13]`.
+ * `BRAND_LAYER` const so they cannot desync — see `scopeSeed.ts`.
  *
- * Defensive by construction `[D9]`: `resolveScope` never throws — it collapses any bad seed
+ * Defensive by construction: `resolveScope` never throws — it collapses any bad seed
  * to a safe fallback palette + shell font. It is ALSO wrapped at the route in
  * `unstable_catchError` (see `ProjectScopeBoundary`) as the last-resort backstop: `error.tsx`
- * can't catch a layout-level throw, so a component boundary is the correct containment `[D9]`.
+ * can't catch a layout-level throw, so a component boundary is the correct containment.
  *
  * Synchronous on purpose: it awaits nothing, so it prerenders into the static shell with no
  * `use cache` needed (`node_modules/next/dist/docs/01-app/01-getting-started/08-caching.md`),
@@ -38,7 +38,7 @@ export default function ProjectScope({ seed, children }: ProjectScopeProps) {
   return (
     <>
       {/* `precedence` and the `@layer` in `scopedStyleCss` read the SAME `BRAND_LAYER`
-          const, so hoist order and cascade layer cannot desync [D13]. */}
+          const, so hoist order and cascade layer cannot desync. */}
       <style href={`project-theme-${scope.slug}`} precedence={BRAND_LAYER}>
         {scopedStyleCss(scope)}
       </style>

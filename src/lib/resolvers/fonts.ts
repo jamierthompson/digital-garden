@@ -1,4 +1,4 @@
-// fontKey resolver [D10, §4.2, §5]. Resolves a Sanity `fontKey` to its roster
+// fontKey resolver. Resolves a Sanity `fontKey` to its roster
 // face, returning a typed `NotFound` for an unknown key rather than throwing.
 
 import { FONT_FACES, type FontFace } from "@/fonts/roster";

@@ -1,4 +1,4 @@
-/* Missing-embed placeholder. @layer project — declares its layer per [D12]; var-consuming only (themed by the surrounding project scope, §8). */
+/* Missing-embed placeholder. @layer project — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by the surrounding project scope). */
 @layer project {
   .missing {
     margin: var(--space-5) 0;

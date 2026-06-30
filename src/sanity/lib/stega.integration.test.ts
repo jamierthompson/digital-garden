@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { STEGA_EXCLUDED_FIELDS, stegaFilter } from "./stega";
 
 /**
- * END-TO-END stega proof for the [D16] landmine, complementary to the unit tests in
+ * END-TO-END stega proof for the landmine, complementary to the unit tests in
  * `stega.test.ts`.
  *
  * `stega.test.ts` proves our `stegaFilter` *returns* `false` for the code-consumed
@@ -25,7 +25,7 @@ import { STEGA_EXCLUDED_FIELDS, stegaFilter } from "./stega";
  *
  * A value "carries stega" iff stripping stega chars changes it (`vercelStegaCleanAll`).
  */
-describe("stega encoding honors the [D16] exclusions end-to-end", () => {
+describe("stega encoding honors the exclusions end-to-end", () => {
   // One prose field (`title`) + every excluded field, each a distinct document path.
   const prose = { title: "First Light" };
   const excluded = Object.fromEntries(

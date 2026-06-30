@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The pure, isomorphic OKLCH theming engine [D14] — shared by the Next app and the Sanity Studio.",
+  "description": "The pure, isomorphic OKLCH theming engine — shared by the Next app and the Sanity Studio.",
   "exports": {
     ".": "./src/index.ts"
   }

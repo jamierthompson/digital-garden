@@ -2,7 +2,7 @@
 
 How we test this repo. Lean, meaningful-over-exhaustive, agent-runnable. This is "how we
 test", not "what to test in detail" — what a given change must cover lives in its issue's
-acceptance criteria; the co-location and scheduling rules are locked by [D18]/[D19].
+acceptance criteria; the co-location and scheduling rules are owned by this doc.
 
 > **Stack is current, not remembered.** Vitest 4, React 19, Next.js 16 all diverge
 > from older guides. Verify any framework testing claim against the bundled doc at
@@ -16,10 +16,10 @@ acceptance criteria; the co-location and scheduling rules are locked by [D18]/[D
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Runner           | **Vitest 4** (`vitest run` in CI, `vitest` watch locally)                                                                                                 |
 | Component lib    | **React Testing Library 16** + `@testing-library/jest-dom`                                                                                                |
-| DOM env          | **jsdom** (single env today; engine adds a `node` project — see [Dual-env](#dual-env-the-oklch-engine-d14))                                               |
-| E2E              | **Playwright — not installed.** Add when an E2E of the primary flow is warranted ([D18]); a jsdom integration test (Sanity mocked) covers it for now      |
-| Browser checks   | **Chrome DevTools MCP** — agent-driven a11y/CWV/visual verification of rendered surfaces; the ship-gate browser check, **not** committed CI tests ([D25]) |
-| Where tests live | **Co-located** next to the subject (`Foo.test.tsx` beside `Foo.tsx`) ([D18])                                                                              |
+| DOM env          | **jsdom** (single env today; engine adds a `node` project — see [Dual-env](#dual-env-the-oklch-engine))                                                   |
+| E2E              | **Playwright — not installed.** Add when an E2E of the primary flow is warranted; a jsdom integration test (Sanity mocked) covers it for now              |
+| Browser checks   | **Chrome DevTools MCP** — agent-driven a11y/CWV/visual verification of rendered surfaces; the ship-gate browser check, **not** committed CI tests         |
+| Where tests live | **Co-located** next to the subject (`Foo.test.tsx` beside `Foo.tsx`)                                                                                      |
 | Coverage target  | **None.** Meaningful coverage, not a percentage                                                                                                           |
 | Async RSCs       | **Don't unit-test** — jsdom can't render them; extract the logic and unit-test that, or cover with Playwright (E2E)                                       |
 
@@ -34,7 +34,7 @@ pnpm test:watch    # vitest — watch mode for local iteration
 
 Tests are gated on every PR into `main` (`.github/workflows/ci.yml`, job `verify`, step
 `pnpm test`). But **`pnpm test` is only the test slice of the PR gate** — run the full
-local chain (the one command, [`./definition-of-done.md` §1](./definition-of-done.md#1-the-one-command))
+local chain ([the one command](./definition-of-done.md#1-the-one-command))
 before pushing, and see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) for the CI contract.
 
 ---
@@ -52,10 +52,10 @@ owner's "meaningful coverage, not exhaustive" rule.
   see [Engine contract](#engine-contract-assert-behavior-not-snapshots)). Highest value, easiest to test.
 - **Sync Server Components and Client Components** — render with RTL, assert what the user
   sees and can interact with.
-- **Resolvers / `keys.ts` lookups / index queries** ([D18]); assert the typed
-  `NotFound` path and visible fallbacks ([D10]).
-- **The bad-input / error path** — `brandColor` garbage → safe fallback, never a throw ([D9]).
-- **One integration/E2E of the primary flow** ([D18]/[D19]) — a jsdom integration test (Sanity mocked) today; Playwright when added.
+- **Resolvers / `keys.ts` lookups / index queries**; assert the typed
+  `NotFound` path and visible fallbacks.
+- **The bad-input / error path** — `brandColor` garbage → safe fallback, never a throw.
+- **One integration/E2E of the primary flow** — a jsdom integration test (Sanity mocked) today; Playwright when added.
 
 **Skip:**
 
@@ -66,13 +66,13 @@ owner's "meaningful coverage, not exhaustive" rule.
 - **Engine CSS snapshots** — assert _measured_ numeric contrast/gamut values so a failure
   means the right thing (see below).
 
-> **Adversarial QA authors tests too.** The independent pre-PR QA pass `[D26]` isn't only a
+> **Adversarial QA authors tests too.** The independent pre-PR QA pass isn't only a
 > read-through — it **writes the breaking test cases the author optimized past** (malformed
-> `brandColor` → fallback never throws `[D9]`, the not-found / error path, both schemes, the empty
+> `brandColor` → fallback never throws, the not-found / error path, both schemes, the empty
 > and boundary inputs) and proves the break with a failing case before the owning author fixes it.
 > Those cases are normal co-located tests held to the same bar as everything here — meaningful, by
 > role/behavior, no snapshot dumps. The dev↔QA loop lives in
-> [`./working-with-agents.md`](./working-with-agents.md) §6.2.
+> [`./working-with-agents.md`](./working-with-agents.md).
 
 ---
 
@@ -110,11 +110,11 @@ describe("Foo", () => {
   `tests/setup.ts`.
 
 This priority list governs **component tests**. The engine harness asserts numeric
-contrast/color values, not roles — see [Visual contrast harness](#visual-contrast-harness-d17).
+contrast/color values, not roles — see [Visual contrast harness](#visual-contrast-harness).
 
 ---
 
-## Co-location ([D18])
+## Co-location
 
 Put the test next to its subject: `module.test.ts` beside `module.ts`, `Foo.test.tsx`
 beside `Foo.tsx`. Next.js explicitly blesses this — the bundled vitest doc uses the common
@@ -123,7 +123,7 @@ router."_ We always co-locate; we do not use `__tests__/`.
 
 - `tests/` holds **only** cross-cutting infra: `tests/setup.ts` today, plus `tests/e2e/`
   once Playwright lands. Everything else co-locates; don't add a `tests/unit/`.
-- One test file ≈ one commit ([D18]).
+- One test file ≈ one commit.
 
 ---
 
@@ -149,16 +149,16 @@ transform of their output" move from [What to test](#what-to-test-vs-skip).
 
 ---
 
-## Dual-env: the OKLCH engine ([D14])
+## Dual-env: the OKLCH engine
 
-`packages/oklch/**` (the `@garden/oklch` package [D23]) is **isomorphic** — it must run
+`packages/oklch/**` (the `@garden/oklch` package) is **isomorphic** — it must run
 identically server- and client-side. Two guards enforce this, and both are mandatory:
 
 1. **Isomorphism lint** (`pnpm lint`): a dedicated `eslint.config.mjs` block on
    `packages/oklch/**` (`no-restricted-imports` + `no-restricted-globals`) forbids the engine
    from importing `next`/`next/*`, `react`, `react-dom`, or touching DOM/Node globals. **Never** add
    `server-only` / `client-only` to engine files — they pin the module to one side and
-   break isomorphism ([D14]).
+   break isomorphism.
 2. **Dual-environment test run:** the engine suite executes under **both** `environment:
 'node'` and `environment: 'jsdom'`.
 
@@ -182,13 +182,13 @@ source of truth — read [`../../vitest.config.ts`](../../vitest.config.ts).
 
 The engine's tests assert the _contract_, hue-by-hue — not a frozen CSS string:
 
-- **Determinism:** same `(brandColor, scheme)` → same `tokenSet`, every run ([D5]).
+- **Determinism:** same `(brandColor, scheme)` → same `tokenSet`, every run.
 - **Contrast in both schemes:** APCA Lc for text (WCAG 2.x ratio as the compliance
-  fallback), asserted in **light and dark** ([D4]/[D5]). OKLCH `L` is **not** contrast — a
-  fixed ΔL is not a fixed ratio across hues, so assert the **measured** ratio per hue ([D4]).
-- **Gamut-map first:** contrast is solved on the gamut-mapped color ([D6]).
-- **Never throws:** bad `brandColor` → safe fallback palette, asserted explicitly ([D9]).
-  This covers **D9 layer 1** (the defensive engine). The Sanity author-time validation and
+  fallback), asserted in **light and dark**. OKLCH `L` is **not** contrast — a
+  fixed ΔL is not a fixed ratio across hues, so assert the **measured** ratio per hue.
+- **Gamut-map first:** contrast is solved on the gamut-mapped color.
+- **Never throws:** bad `brandColor` → safe fallback palette, asserted explicitly.
+  This covers the **defensive engine layer**. The Sanity author-time validation and
   `unstable_catchError` backstop layers are tested where they live.
 
 See [`./accessibility-and-performance.md`](./accessibility-and-performance.md) for the
@@ -196,16 +196,16 @@ APCA Lc targets these assertions check against.
 
 ---
 
-## Visual contrast harness ([D17])
+## Visual contrast harness
 
-The engine's **exit criterion is observable palette quality, not determinism alone** ([D17]).
-[D17] mandates a visual harness over **3–4 brand colors spanning the hue wheel**; we
-_additionally_ pin a **yellow and a cyan** because [D4] (equal ΔL ≠ equal contrast across
-hues) — those are the stressers where the gap bites hardest. The harness renders ramps for
+The engine's **exit criterion is observable palette quality, not determinism alone**: a
+visual harness runs over **3–4 brand colors spanning the hue wheel**, and we _additionally_
+pin a **yellow and a cyan** because equal ΔL ≠ equal contrast across hues — those are the
+stressers where the gap bites hardest. The harness renders ramps for
 those colors, **light and dark**, asserting APCA Lc / WCAG ratios on every
 text-on-surface and on-brand pair _after_ gamut-mapping. The engine is not done until this
 harness is green. This is where accessibility/contrast assertions live — they fold into the
-engine harness, not a separate a11y suite ([D19]).
+engine harness, not a separate a11y suite.
 
 The harness asserts **computed color/contrast values** (read from the engine output or the
 rendered styles directly) — **not** via RTL semantic queries. The
@@ -217,7 +217,7 @@ to force `getByRole` onto a swatch grid.
 ## Playwright — later, not now
 
 Playwright is **not installed**; add it when an E2E of the primary flow earns its keep
-([D18]/[D19]) — routing and async RSCs are live, but a mocked jsdom integration test covers
+— routing and async RSCs are live, but a mocked jsdom integration test covers
 the flow for now. When it lands:
 
 - One E2E for the **primary user flow** — more valuable than dozens of shallow units.
@@ -230,13 +230,13 @@ the flow for now. When it lands:
 
 ---
 
-## Browser verification (Chrome DevTools MCP) — adjacent to the suite `[D25]`
+## Browser verification (Chrome DevTools MCP) — adjacent to the suite
 
 Distinct from everything above: the `chrome-devtools` MCP is **agent-driven, in-loop
 verification** of a rendered surface — focus/a11y, CLS/paint, flash-free theme, console — **not
-a committed test**. It's the ship-gate browser check owned by
-[`./accessibility-and-performance.md`](./accessibility-and-performance.md) §5 and gated per task
-in [`./definition-of-done.md`](./definition-of-done.md) §6. It **fills the gap** that jsdom (no
+a committed test**. It's the ship-gate browser check owned by the browser-verification section of
+[`./accessibility-and-performance.md`](./accessibility-and-performance.md) and gated per task
+in the tests/browser-verification/docs section of [`./definition-of-done.md`](./definition-of-done.md). It **fills the gap** that jsdom (no
 paint, no async RSCs) and the absent Playwright leave open for any rendered surface, and it does
 **not** replace a committed primary-flow E2E once Playwright lands.
 
@@ -246,13 +246,13 @@ paint, no async RSCs) and the absent Playwright leave open for any rendered surf
 
 - **Async RSCs don't render in jsdom** — Vitest 4 still can't; extract the logic and
   unit-test it, or route to Playwright (E2E).
-- **`server-only` / `client-only` in the engine break [D14]** — forbidden; the boundary
+- **`server-only` / `client-only` in the engine break isomorphism** — forbidden; the boundary
   lint + dual-env run are the guards, not those packages.
 - **`workspace` is deprecated** — use `test.projects` (Vitest ≥3.2 / 4).
 - **The `@/*` alias** resolves via native `resolve: { tsconfigPaths: true }` (Vite 7+; the older
   `vite-tsconfig-paths` plugin is redundant now). Confirm aliases resolve in **both** projects
   before relying on them.
-- **OKLCH `L` ≠ contrast** ([D4]) — assert _measured_ ratios per hue; that's why yellow and
+- **OKLCH `L` ≠ contrast** — assert _measured_ ratios per hue; that's why yellow and
   cyan are mandatory stressers in the harness.
 - **Don't snapshot engine CSS** — assert numeric contrast/gamut so tests fail for the right
   reason.
@@ -260,8 +260,6 @@ paint, no async RSCs) and the absent Playwright leave open for any rendered surf
 
 ---
 
-## Anchors
+## Related
 
-[D4] · [D5] · [D6] · [D9] · [D10] · [D14] · [D17] · [D18] · [D19] · [D25] · [D26] —
-[`../decisions.md`](../decisions.md). System model §3.2 (OKLCH engine) —
-[`./architecture.md`](./architecture.md).
+The OKLCH engine in the system model — the OKLCH engine section of [`./architecture.md`](./architecture.md).

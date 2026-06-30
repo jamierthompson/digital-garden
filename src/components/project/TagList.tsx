@@ -6,9 +6,9 @@ interface TagListProps {
 }
 
 /**
- * The project's tag chips. [§6]
+ * The project's tag chips.
  *
- * A pure, synchronous, var-consuming component (§8, [D2]). Renders **nothing** when there
+ * A pure, synchronous, var-consuming component. Renders **nothing** when there
  * are no tags, so the page shows no empty metadata region. Tags are presentational
  * metadata, not links — there are no tag-archive routes, so linking would dead-end.
  */

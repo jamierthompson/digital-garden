@@ -8,9 +8,9 @@ import { sanityFetch } from "@/sanity/lib/sanityFetch";
 
 import styles from "./page.module.css";
 
-// The `/work` index: a grid of project cards (§4.1). Each card self-themes from its own
+// The `/work` index: a grid of project cards. Each card self-themes from its own
 // `brandColor` via `cardSwatches` — engine Consumer C, which bakes a few inline `--c-*`
-// `light-dark()` literals with NO project scope, no `<style>`, no island [D9, §3.2]. The
+// `light-dark()` literals with NO project scope, no `<style>`, no island. The
 // card reads those `--c-*` from its own `style={…}`, so a dozen differently-branded cards
 // coexist on one page without a dozen scopes.
 
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 export default async function WorkIndexPage() {
   // `sanityFetch` caches the published read into the static shell and transparently
-  // serves fresh drafts under Draft Mode (§6, [D11]). The index query refuses to
+  // serves fresh drafts under Draft Mode. The index query refuses to
   // over-fetch (essay excluded), keeping the payload small for CWV.
   const projects = await sanityFetch(WORK_INDEX_QUERY);
 

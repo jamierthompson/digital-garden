@@ -7,13 +7,13 @@ interface FigureValue {
 }
 
 /**
- * The typed `figure` editorial block (§6, [D15, D24]).
+ * The typed `figure` editorial block.
  *
  * The essay schema allows a `figure` (editor-picked image, required alt + optional caption),
  * so the serializer must handle the type to stay total — a `figure` must not crash the
  * render. Rather than stand up a Sanity image-URL builder before any project needs one (the
- * "name the destination, instantiate late" discipline [D24]), this renders the authored alt
- * + caption as a labelled placeholder. Var-consuming, themed by the surrounding scope (§8).
+ * "name the destination, instantiate late" discipline), this renders the authored alt
+ * + caption as a labelled placeholder. Var-consuming, themed by the surrounding scope.
  */
 export default function EssayFigure({ value }: { value: FigureValue }) {
   const label = value.alt ?? value.caption ?? "Figure";

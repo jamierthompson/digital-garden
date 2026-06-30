@@ -9,7 +9,7 @@ name: Deploy Sanity Schema
 # deploy` SIGABRTs in Rolldown's native binary on linux-x64 CI and darwin-x64, so schema
 # is refreshed via `sanity deploy` instead. Fixing/retiring this is tracked in
 # https://github.com/jamierthompson/digital-garden/issues/43.
-# (See docs/handbook/security-and-ops.md §5.)
+# (See docs/handbook/security-and-ops.md.)
 
 on:
   # Manual trigger — covers the first deploy and any ad-hoc redeploy.

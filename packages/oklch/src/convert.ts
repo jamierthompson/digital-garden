@@ -1,7 +1,7 @@
 /**
  * Color-space conversions and string parsing/formatting.
  *
- * Hand-rolled (no dependency) to stay provably isomorphic [D14] and dependency-light.
+ * Hand-rolled (no dependency) to stay provably isomorphic and dependency-light.
  * OKLab matrices are Björn Ottosson's reference values
  * (https://bottosson.github.io/posts/oklab/); the sRGB⇄XYZ⇄Display-P3 matrices are
  * the CSS Color 4 reference values (https://www.w3.org/TR/css-color-4/#color-conversion-code).
@@ -130,7 +130,7 @@ function channel(token: string): number {
 /**
  * Parse a color string into OKLCH. Supports `#rgb`, `#rrggbb(aa)`, `rgb()/rgba()`,
  * and `oklch(L C H)` (L as 0–1 or `%`). Returns `null` on anything it can't parse —
- * the caller turns that into the safe fallback palette [D9]. NEVER throws.
+ * the caller turns that into the safe fallback palette. NEVER throws.
  */
 export function parseColor(input: unknown): OkLCH | null {
   if (typeof input !== "string") return null;
@@ -201,7 +201,7 @@ function fmt(n: number, places: number): string {
   return parseFloat(n.toFixed(places)).toString();
 }
 
-/** Format an OKLCH as a literal `oklch(L C H)` string for baking into CSS [D3]. */
+/** Format an OKLCH as a literal `oklch(L C H)` string for baking into CSS. */
 export function formatOklch({ L, C, H }: OkLCH): string {
   return `oklch(${fmt(L, 4)} ${fmt(C, 4)} ${fmt(H, 2)})`;
 }

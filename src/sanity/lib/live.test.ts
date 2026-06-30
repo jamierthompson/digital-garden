@@ -2,9 +2,9 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 /**
  * `live.ts` wires `defineLive`. We do NOT exercise the library's fetch machinery here
- * (that's Next/Cache-Components runtime, not jsdom [D25]); we assert OUR wiring is
+ * (that's Next/Cache-Components runtime, not jsdom); we assert OUR wiring is
  * correct, because every read inherits it:
- *  - the base client carries the stega `studioUrl` + the [D16] exclusion filter (so
+ *  - the base client carries the stega `studioUrl` + the exclusion filter (so
  *    drafts get click-to-edit while code-consumed fields stay clean), and NO token;
  *  - `serverToken`/`browserToken` come from the right env vars (server vs. browser);
  *  - `strict: true` (forces explicit perspective/stega/includeDrafts — see live.ts).
@@ -59,7 +59,7 @@ afterAll(() => {
   }
 });
 
-describe("defineLive wiring [D16]", () => {
+describe("defineLive wiring", () => {
   it("passes the server-only read token as serverToken", () => {
     expect(config.serverToken).toBe(SERVER_TOKEN);
   });
@@ -73,7 +73,7 @@ describe("defineLive wiring [D16]", () => {
   });
 });
 
-describe("the Live base client [D16]", () => {
+describe("the Live base client", () => {
   it("carries the stega studioUrl so draft encoding can link back to the Studio", () => {
     expect(config.client.config().stega?.studioUrl).toBe(STUDIO_URL);
   });

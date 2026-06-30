@@ -1,10 +1,10 @@
-// embedKey resolver [D10, D15, §4.1, §6]. Resolves an `embedKey` (from a
+// embedKey resolver. Resolves an `embedKey` (from a
 // Portable Text `liveEmbed` block) to its embed component loader, returning a
 // typed `NotFound` for an unknown key — the caller renders a "missing embed"
 // placeholder in the serializer rather than crashing the essay.
 //
 // Single-tier registry by design: a project-local tier is added only when a
-// second project reuses a widget [D24, §4.1].
+// second project reuses a widget.
 
 import { type EmbedKey } from "@/lib/keys";
 
@@ -14,8 +14,8 @@ import { found, notFound, type Resolution } from "./resolution";
 export type EmbedLoader = () => Promise<unknown>;
 
 // `satisfies Record<EmbedKey, EmbedLoader>` makes a missing loader a compile
-// error the moment a key is added to `EMBED_KEYS` [D10]. Each value is a LITERAL
-// lazy import per key [D21] — never templated.
+// error the moment a key is added to `EMBED_KEYS`. Each value is a LITERAL
+// lazy import per key — never templated (a templated import defeats bundler static analysis).
 const EMBED_LOADERS = {
   "sunrise-meter": () => import("@/embeds/SunriseMeter"),
 } satisfies Record<EmbedKey, EmbedLoader>;

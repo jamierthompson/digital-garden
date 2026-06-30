@@ -1,7 +1,7 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
-// The OKLCH engine is isomorphic [D14]: its suite runs under BOTH `node` and `jsdom`
+// The OKLCH engine is isomorphic: its suite runs under BOTH `node` and `jsdom`
 // to prove identical behavior server- and client-side. `test.projects` runs the SAME
 // glob in both envs with no duplication (`workspace` is deprecated since Vitest 3.2).
 // Engine tests use relative imports, so they need no @/* alias; the jsdom project keeps
@@ -31,9 +31,9 @@ export default defineConfig({
           name: "node",
           environment: "node",
           globals: true,
-          // Scoped to the engine — the dual-env half of the isomorphism guard [D14]. No
+          // Scoped to the engine — the dual-env half of the isomorphism guard. No
           // setupFiles: the engine suite needs no jsdom matchers. The engine is its own
-          // workspace package [D23] but runs from root so both env halves stay in one place.
+          // workspace package but runs from root so both env halves stay in one place.
           include: ["packages/oklch/**/*.test.ts"],
         },
       },

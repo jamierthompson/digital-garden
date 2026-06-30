@@ -7,7 +7,7 @@ import {
 } from "./queries";
 
 /**
- * The /work index query's contract is "refuse to over-fetch" (§6): it must pull
+ * The /work index query's contract is "refuse to over-fetch": it must pull
  * the card fields and must NOT pull the essay. Asserting the query string keeps
  * the data-layer guard honest without rendering an async RSC (untestable in
  * jsdom — testing.md). A failure here means the index payload regressed.
@@ -33,7 +33,7 @@ describe("WORK_INDEX_QUERY", () => {
 /**
  * The detail query (`/work/<slug>`) is the inverse of the index: it DOES pull the essay
  * and the theming seeds, fetches by `$slug` parameter (never interpolation), and `[0]`s to
- * a single doc so the route can `notFound()` on a miss [D17, D19].
+ * a single doc so the route can `notFound()` on a miss.
  */
 describe("PROJECT_DETAIL_QUERY", () => {
   it("filters by the $slug parameter and collapses to one document", () => {
@@ -66,7 +66,7 @@ describe("PROJECT_DETAIL_QUERY", () => {
 
 /**
  * The settings query guards the singleton intent at the data layer: `[0]` returns one
- * document (or null), so the shell never assumes an array (§6).
+ * document (or null), so the shell never assumes an array.
  */
 describe("SITE_SETTINGS_QUERY", () => {
   it("guards the singleton with a [0] index", () => {

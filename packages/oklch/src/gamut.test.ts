@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { gamutMap, inGamut } from "./gamut";
 import type { Gamut, OkLCH } from "./types";
 
-/** Brand-ish hues spanning the wheel, incl. the yellow/cyan stressers [D4]. */
+/** Brand-ish hues spanning the wheel, incl. the yellow/cyan stressers. */
 const HUES = [29, 110, 145, 195, 260, 330];
 
 describe("gamutMap", () => {
@@ -12,7 +12,7 @@ describe("gamutMap", () => {
     const out = gamutMap({ L: 0.6, C: 0.4, H }, "srgb");
     expect(inGamut(out, "srgb")).toBe(true);
     expect(out.C).toBeLessThan(0.4);
-    expect(out.L).toBeCloseTo(0.6, 2); // L is held; only chroma reduces [D6]
+    expect(out.L).toBeCloseTo(0.6, 2); // L is held; only chroma reduces
   });
 
   it.each(HUES)("maps an over-saturated hue %i into P3 gamut", (H) => {

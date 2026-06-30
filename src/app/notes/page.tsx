@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NotesPage() {
-  // Notes prerender into the static shell and serve fresh drafts under Draft Mode [§6, D11].
+  // Notes prerender into the static shell and serve fresh drafts under Draft Mode.
   // `defineLive` owns cache lifetime and the publish webhook flushes `sanity:note` on
   // publish, so no time-based revalidate window is needed.
   const notes = await sanityFetch(NOTES_INDEX_QUERY);

@@ -1,12 +1,12 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
 /**
- * A digital-garden note. [§6]
+ * A digital-garden note.
  *
  * Lightweight rich-text note. Inter-note backlinks are modelled as REAL
  * Sanity `reference` fields (not free-text slugs) so `references()` resolves
  * and link integrity is datastore-enforced — string keys would reintroduce
- * key-drift. [D16]
+ * key-drift.
  */
 export const note = defineType({
   name: 'note',
@@ -35,7 +35,7 @@ export const note = defineType({
       title: 'Related notes',
       type: 'array',
       description:
-        'Backlinks to other notes via real references (not slug strings) so references() resolves. [D16]',
+        'Backlinks to other notes via real references (not slug strings) so references() resolves.',
       of: [defineArrayMember({type: 'reference', to: [{type: 'note'}]})],
     }),
     defineField({

@@ -3,7 +3,7 @@
  *
  * Runs the script as a child process and asserts on exit code + output — never imports it
  * (the script calls process.exit). Happy path proves the real repo's two live sources
- * (DoD §1, ci.yml) are in sync; drift detection runs the real script against throwaway
+ * (definition-of-done.md, ci.yml) are in sync; drift detection runs the real script against throwaway
  * fixture trees and asserts exit 1 on divergence.
  */
 

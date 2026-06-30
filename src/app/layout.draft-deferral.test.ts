@@ -5,11 +5,10 @@ import { describe, expect, it } from "vitest";
 
 /**
  * Guards the load-bearing `<Suspense>` boundary in `layout.tsx` that defers the shell's async
- * body read under Draft Mode + Cache Components [D11, D16, D27].
+ * body read under Draft Mode + Cache Components.
  *
  * `ShellTheme` awaits `sanityFetch(SITE_SETTINGS_QUERY)`. Under Cache Components, Draft Mode
- * bypasses `use cache`, so that read re-executes uncached per request (use-cache.md §"Draft
- * Mode") — request-time data in the body. Cache Components forbids uncached data accessed during
+ * bypasses `use cache`, so that read re-executes uncached per request (use-cache.md) — request-time data in the body. Cache Components forbids uncached data accessed during
  * prerender unless it sits behind `<Suspense>` (caching.md "blocking-route"); the body
  * `<Suspense>` is what lets the async `ShellTheme` read defer. Remove the boundary and the body
  * read trips `Uncached data … outside of <Suspense>` — verified: it surfaces live in `next dev`
@@ -27,9 +26,9 @@ import { describe, expect, it } from "vitest";
  *
  * The body-read failure only manifests at RUNTIME (in `next dev`, or under the draft cookie) —
  * `pnpm build` prerenders the published path and stays green, and an async-RSC draft render is
- * not jsdom-testable [D25]. These are the cheap CI tripwires for the SOURCE invariants.
+ * not jsdom-testable. These are the cheap CI tripwires for the SOURCE invariants.
  */
-describe("layout.tsx draft-mode deferral boundary [D11, D16]", () => {
+describe("layout.tsx draft-mode deferral boundary", () => {
   const source = readFileSync(
     resolve(process.cwd(), "src/app/layout.tsx"),
     "utf8",

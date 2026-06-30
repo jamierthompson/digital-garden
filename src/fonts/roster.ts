@@ -1,14 +1,13 @@
-// The per-project font roster [D11, §5]. A curated `next/font` face per `FontKey`,
+// The per-project font roster. A curated `next/font` face per `FontKey`,
 // declared once here and resolved by key against the Sanity `fontKey` (see
 // `src/lib/resolvers/fonts.ts`). The project scope mounts the resolved face's
-// `.variable` className on its `[data-project]` wrapper and maps `--font-face` to it
-// (§3.1, §3.3).
+// `.variable` className on its `[data-project]` wrapper and maps `--font-face` to it.
 //
 // next/font must be called at module scope, so the roster is a fixed code-side set —
-// an editor picks from it, never a free-text name [§5]. Declaration ≠ download (a face
+// an editor picks from it, never a free-text name. Declaration ≠ download (a face
 // is only fetched when text renders it), so a large roster is cheap.
 //
-// POLICY (do not change without revisiting [D11]):
+// POLICY (do not change without revisiting the font preload rationale):
 //   • `preload: false` on EVERY face — the default is `true`. Only the 1–2 shell faces
 //     (root layout) preload; `fontKey` is a runtime index next/font can't statically
 //     target anyway, so an above-the-fold face is preloaded via a manual
@@ -39,7 +38,7 @@ export interface FontFace {
 // values must be explicitly written literals" — SWC font plugin, Next 16.2.9). So each
 // loader's `variable:` repeats the SAME string as its `*_VAR` const, and `roster.test.ts`
 // asserts the two agree. DO NOT "DRY this up" by passing the const into the loader — that
-// re-breaks the build [D11].
+// re-breaks the build.
 const INTER_VAR = "--font-inter";
 const NEWSREADER_VAR = "--font-newsreader";
 const FRAUNCES_VAR = "--font-fraunces";
@@ -83,7 +82,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 /**
  * `FontKey → FontFace`. `satisfies Record<FontKey, FontFace>` makes a missing
- * face a **compile error** the moment a key is added to `FONT_KEYS` [D10]. The
+ * face a **compile error** the moment a key is added to `FONT_KEYS`. The
  * resolver (`src/lib/resolvers/fonts.ts`) adds the runtime `NotFound` path for an
  * unknown string coming from Sanity.
  */

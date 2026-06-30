@@ -4,14 +4,14 @@ import { useEffect } from "react";
 
 import styles from "./states.module.css";
 
-// The page-level error boundary for `/work/<slug>` [D19]. Error boundaries MUST be Client
+// The page-level error boundary for `/work/<slug>`. Error boundaries MUST be Client
 // Components (`node_modules/.../03-file-conventions/error.md`). Next 16's props are `error`
 // and `unstable_retry` (NOT the older `reset`) — verified against the bundled docs.
 //
 // This catches an unexpected throw from the PAGE'S OWN render (e.g. a Sanity fetch failure),
 // NOT a throw from the route's layout/scope — a segment `error.tsx` cannot catch its own
 // layout's throw, which is exactly why `ProjectScope` is wrapped in `unstable_catchError`
-// instead [D9]. The defensive engine means the common theming path never reaches here.
+// instead. The defensive engine means the common theming path never reaches here.
 export default function WorkError({
   error,
   unstable_retry,

@@ -1,4 +1,4 @@
-/* Essay figure placeholder. @layer project — declares its layer per [D12]; var-consuming only (themed by the surrounding project scope, §8). */
+/* Essay figure placeholder. @layer project — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by the surrounding project scope). */
 @layer project {
   .figure {
     margin: var(--space-6) 0;

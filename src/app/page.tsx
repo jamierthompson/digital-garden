@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 /**
  * The shell home page. Renders under the shell island's `[data-project]` scope from
  * the root layout, so it reads `var(--brand-*)` / `var(--font-face)` directly — no
- * theme of its own (§3.1). Deliberately small: a hero plus a few wayfinding links.
+ * theme of its own. Deliberately small: a hero plus a few wayfinding links.
  */
 export default function Home() {
   return (
