@@ -10,7 +10,7 @@ the work, keep them on track, and synthesize/curate the result. This skill is th
 doing that well **in this repo**. It is grounded in:
 
 - The repo's own operating manual: [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md)
-  §4 (research → drafts → debate → synthesis), §5 (briefing), §6/§6.1 (own-a-slice, lead curates).
+  — research → drafts → debate → synthesis, briefing, own-a-slice, lead curates.
 - Continuous refinement: every session runs this pattern and records what worked (and what didn't)
   in [`docs/sessions/`](../../../docs/sessions/), so the practice improves with use.
 - Official guidance: [Agent teams](https://code.claude.com/docs/en/agent-teams) and
@@ -73,14 +73,15 @@ These hold no matter which mode you pick. The mode reference adds the mode-speci
   a review, a draft). Too small → coordination overhead exceeds benefit. Too large → teammates run
   too long without check-ins and waste effort.
 
-**Briefing — every spawn prompt must be self-contained** (handbook §5). Teammates start with a
+**Briefing — every spawn prompt must be self-contained** (handbook — `working-with-agents.md`). Teammates start with a
 **fresh, isolated context**: they load `CLAUDE.md`/`AGENTS.md`, skills, and MCP servers, but they
 do **not** see your conversation history or anything you've read. The spawn prompt is the only
 channel in. Every brief includes:
 
 - [ ] **Objective** — one crisp task, not a grab-bag.
 - [ ] **Source-of-truth files by path** — name the bundled docs (`node_modules/next/dist/docs/`),
-      the `[D#]`s, the `§N`s, and the ground-truth files it must open. It can't see what you read.
+      the binding repo rules, the system-model docs (`architecture.md`), and the ground-truth files
+      it must open. It can't see what you read.
 - [ ] **Boundaries** — what's out of scope, what not to touch, which decisions are binding, and
       (critically) **which files this teammate owns** so two teammates never edit the same file.
 - [ ] **Output format** — a **dense, cited digest** (or, for coding, a gate-green slice + summary),
@@ -95,12 +96,12 @@ Theming, …"). You can spawn a teammate **using a subagent definition** (e.g. `
 `Explore`) to reuse a role's tool-allowlist and system prompt — mention the agent type in the
 spawn instruction.
 
-**Own the permission surface — don't make the owner babysit** (handbook §6.2). Set the posture once
+**Own the permission surface — don't make the owner babysit** (handbook — `working-with-agents.md`). Set the posture once
 at spawn, then clear teammates' permission requests yourself; escalate to the owner only for genuinely
 out-of-policy actions. For the **coding mode** this is mostly free: give each teammate an **in-root git
 worktree** at `.claude/worktrees/<slug>/` (never the ephemeral `isolation: "worktree"` flag, which lands
 outside the root) so its edits sit inside cwd scope and `acceptEdits` auto-accepts them with no prompts
-`[D29]` — full recipe in [`references/coding-feature.md`](references/coding-feature.md) step 3.
+— full recipe in [`references/coding-feature.md`](references/coding-feature.md) step 3.
 
 **Two failure modes to design against** (both documented):
 
@@ -144,20 +145,23 @@ and propose subagents or a single session instead (§0).
 However the mode ends, you (the lead) finish it:
 
 - **Research / review / debugging** → **synthesize** into one cited artifact. Resolve conflicts
-  explicitly (§1). For an architecture decision, record the resolved calls as a **new `[D#]`** in
-  [`docs/decisions.md`](../../../docs/decisions.md) (records are mutable — edit in place; git holds the
-  history `[D33]`; supersede only when inline contrast helps). Persist the trail to the repo as a dated **`docs/sessions/YYYY-MM-DD-<slug>`** record — one
+  explicitly (§1). For an architecture decision, record the resolved call by **editing the relevant
+  living doc in place** — the system model in
+  [`architecture.md`](../../../docs/handbook/architecture.md), or the matching handbook doc for a
+  process call. There is **no decision log**: the docs are the current truth, edited in place, and
+  git history is the audit trail. Persist the trail to the repo as a dated **`docs/sessions/YYYY-MM-DD-<slug>`** record — one
   `.md` file, or a folder for a multi-file trail (convention + example in
   [`docs/sessions/README.md`](../../../docs/sessions/README.md)) — so the next session has external
   memory, not a lost context window.
 - **Coding** → each teammate hands off a **complete, gate-green slice** over its own files. Before a
-  slice enters the PR, run **one fresh, adversarial QA per coding agent** (`[D26]`) — a fresh
-  reviewer, never the author, that **tries to break** the slice and writes the missing test cases
+  slice enters the PR, run **one fresh, adversarial QA per coding agent** — a fresh reviewer with **no
+  prior context of the work** (not merely "not the author" — a teammate that helped design or debate
+  the slice is disqualified), that **tries to break** the slice and writes the missing test cases
   (edge / error / boundary / malformed input, both schemes); the owning agent fixes, QA re-checks
   (the dev↔QA loop — same shape solo, just one author→one QA). Then **you curate history** (rebase
   onto `main`, squash fix-ups, reorder, drop false starts) and **squash-merge** with a deliberate PR
   body. Never commit to `main`. Full mechanics:
-  [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md) §6.2 (QA loop)
-  and [`docs/handbook/git-and-pr-workflow.md`](../../../docs/handbook/git-and-pr-workflow.md) §6 (curate/merge).
+  [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md) (QA loop)
+  and [`docs/handbook/git-and-pr-workflow.md`](../../../docs/handbook/git-and-pr-workflow.md) (curate/merge).
 - **Shut down** teammates by name when done; the team's directories clean up automatically when the
   session ends.

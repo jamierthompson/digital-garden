@@ -36,10 +36,10 @@ to inherit their tool-allowlists and prompts:
 | Silent failures / error handling | `pr-review-toolkit:silent-failure-hunter`                                                                                                |
 | Test coverage                    | `pr-review-toolkit:pr-test-analyzer`                                                                                                     |
 | Type design                      | `pr-review-toolkit:type-design-analyzer`                                                                                                 |
-| Repo-convention adherence        | the gate + `[D#]`s + handbook (this repo's footguns: `@layer` [D12], isomorphic engine [D14], literal imports [D21], async request APIs) |
-| Accessibility / performance      | `chrome-devtools:*` / `vercel:performance-optimizer` for rendered surfaces ([D25])                                                       |
+| Repo-convention adherence        | the gate + the binding repo rules + handbook (this repo's footguns: every CSS Module declares its `@layer`, the OKLCH engine stays isomorphic, literal dynamic imports only, async request APIs) |
+| Accessibility / performance      | `chrome-devtools:*` / `vercel:performance-optimizer` for rendered surfaces (every rendered surface gets a browser check before "done") |
 
-Brief each per §1: name the diff/PR, the source-of-truth files by path, the binding `[D#]`s, "report
+Brief each per §1: name the diff/PR, the source-of-truth files by path, the binding repo rules, "report
 findings as a dense list with file:line + severity + cited rationale", and cite-don't-remember.
 
 **3. Cross-challenge (optional but valuable).** Have reviewers read each other's findings and flag

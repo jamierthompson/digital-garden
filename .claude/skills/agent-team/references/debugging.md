@@ -33,9 +33,9 @@ root-cause theory to investigate. If you can't name distinct theories up front, 
 research pass first (or ask the team to propose theories, then assign). Example split for a Next 16
 / React 19 surface:
 
-- Caching / `'use cache'` boundary or stale `cacheTag` ([D11], `08-caching.md`)
+- Caching / `'use cache'` boundary or stale `cacheTag` (`08-caching.md`)
 - Async request API misuse (`cookies()`/`params` not awaited)
-- `@layer` cascade / unlayered CSS Module silently winning ([D12])
+- `@layer` cascade / unlayered CSS Module silently winning (an unlayered module outranks every layered style)
 - Hydration / Server-vs-Client component boundary
 - Data layer (GROQ / TypeGen drift / reference-by-key resolver returning `NotFound`)
 
