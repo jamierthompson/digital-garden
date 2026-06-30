@@ -92,11 +92,11 @@ architecture).
 
 Tokens are organized in **three layers**, each consuming the one before it:
 
-| Layer          | Lives at                                                | Contents                                                                                                                                                                                                                                              |
-| -------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Foundation** | global `:root`                                          | the raw primitives + the reset: the neutral B/W/gray ramp, the Newsreader face, the spacing ramp, motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.                       |
-| **Semantic**   | global `:root` (the editorial default mapping)          | the **generic role tokens components read** — `--surface`, `--text`, `--primary`, `--font-body`, `--space-block`, `--radius-card`, `--motion-fast`, etc. — mapped from the primitives. The editorial look **is** this default mapping at `:root`.     |
-| **Brand**      | the project's interactive slot (`[data-project]`)       | a **full scoped override** of the semantic layer for one slot — color, font, spacing, type-scale, motion, radius, border, shadow, density — driven by the OKLCH engine from the slot's `brandColor` (incl. focus-ring _color_ and status colors). |
+| Layer          | Lives at                                          | Contents                                                                                                                                                                                                                                          |
+| -------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Foundation** | global `:root`                                    | the raw primitives + the reset: the neutral B/W/gray ramp, the Newsreader face, the spacing ramp, motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.                    |
+| **Semantic**   | global `:root` (the editorial default mapping)    | the **generic role tokens components read** — `--surface`, `--text`, `--primary`, `--font-body`, `--space-block`, `--radius-card`, `--motion-fast`, etc. — mapped from the primitives. The editorial look **is** this default mapping at `:root`. |
+| **Brand**      | the project's interactive slot (`[data-project]`) | a **full scoped override** of the semantic layer for one slot — color, font, spacing, type-scale, motion, radius, border, shadow, density — driven by the OKLCH engine from the slot's `brandColor` (incl. focus-ring _color_ and status colors). |
 
 The model is layered, not partitioned: the **semantic layer is the contract** components code
 against, and a project slot simply re-defines those same semantic tokens with its own values. There
@@ -352,7 +352,7 @@ src/projects/<slug>/   its pages (experience + any essay/hero/other) + embeddabl
   backlog — not a schema decision.)
 - **Lazy-load each module** via a **literal** dynamic import per key
   (`() => import("@/projects/<slug>")`, never a templated `import(\`…/${slug}\`)`, which defeats
-bundler static analysis). Server Components are auto-split already; the manual lazy import
+  bundler static analysis). Server Components are auto-split already; the manual lazy import
   buys conditional inclusion, and the real client-bundle savings come from the Client Components
   _inside_ each module.
 

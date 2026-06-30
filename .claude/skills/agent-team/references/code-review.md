@@ -30,14 +30,14 @@ thing through different filters.
 repo's existing review agents where they fit — spawn teammates **using those subagent definitions**
 to inherit their tool-allowlists and prompts:
 
-| Lens                             | Reuse this agent type / focus                                                                                                            |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Correctness / bugs / logic       | `pr-review-toolkit:code-reviewer` or `feature-dev:code-reviewer`                                                                         |
-| Silent failures / error handling | `pr-review-toolkit:silent-failure-hunter`                                                                                                |
-| Test coverage                    | `pr-review-toolkit:pr-test-analyzer`                                                                                                     |
-| Type design                      | `pr-review-toolkit:type-design-analyzer`                                                                                                 |
+| Lens                             | Reuse this agent type / focus                                                                                                                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Correctness / bugs / logic       | `pr-review-toolkit:code-reviewer` or `feature-dev:code-reviewer`                                                                                                                                 |
+| Silent failures / error handling | `pr-review-toolkit:silent-failure-hunter`                                                                                                                                                        |
+| Test coverage                    | `pr-review-toolkit:pr-test-analyzer`                                                                                                                                                             |
+| Type design                      | `pr-review-toolkit:type-design-analyzer`                                                                                                                                                         |
 | Repo-convention adherence        | the gate + the binding repo rules + handbook (this repo's footguns: every CSS Module declares its `@layer`, the OKLCH engine stays isomorphic, literal dynamic imports only, async request APIs) |
-| Accessibility / performance      | `chrome-devtools:*` / `vercel:performance-optimizer` for rendered surfaces (every rendered surface gets a browser check before "done") |
+| Accessibility / performance      | `chrome-devtools:*` / `vercel:performance-optimizer` for rendered surfaces (every rendered surface gets a browser check before "done")                                                           |
 
 Brief each per the briefing checklist: name the diff/PR, the source-of-truth files by path, the binding repo rules, "report
 findings as a dense list with file:line + severity + cited rationale", and cite-don't-remember.

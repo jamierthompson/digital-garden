@@ -12,16 +12,16 @@ A personal portfolio + digital garden. Each **project is a self-contained module
 
 The stack, verified — do not contradict it:
 
-| Concern       | Choice                                                                                                                                           |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Framework     | Next.js **16**, App Router, Turbopack, **Cache Components on app-wide**                                                                          |
-| UI library    | React **19**                                                                                                                                     |
-| Language      | TypeScript                                                                                                                                       |
-| Styling       | CSS custom properties + CSS Modules, organized with `@layer`. **No Tailwind, no JSON tokens, no Style Dictionary**                               |
-| Content       | Sanity, a **standalone Studio in `studio/`** (a pnpm workspace package, not a `/studio` route); typed GROQ via TypeGen → `sanity.types.ts`       |
-| Testing       | Vitest + RTL (see [`./testing.md`](./testing.md))                                                                                                |
-| Lint / format | ESLint + Prettier (rules: [`./engineering-standards.md`](./engineering-standards.md))                                                            |
-| Hosting       | Vercel (full SSR/RSC). Package manager: **pnpm** (workspace: app + `studio/` + `packages/oklch`)                                                 |
+| Concern       | Choice                                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Framework     | Next.js **16**, App Router, Turbopack, **Cache Components on app-wide**                                                                    |
+| UI library    | React **19**                                                                                                                               |
+| Language      | TypeScript                                                                                                                                 |
+| Styling       | CSS custom properties + CSS Modules, organized with `@layer`. **No Tailwind, no JSON tokens, no Style Dictionary**                         |
+| Content       | Sanity, a **standalone Studio in `studio/`** (a pnpm workspace package, not a `/studio` route); typed GROQ via TypeGen → `sanity.types.ts` |
+| Testing       | Vitest + RTL (see [`./testing.md`](./testing.md))                                                                                          |
+| Lint / format | ESLint + Prettier (rules: [`./engineering-standards.md`](./engineering-standards.md))                                                      |
+| Hosting       | Vercel (full SSR/RSC). Package manager: **pnpm** (workspace: app + `studio/` + `packages/oklch`)                                           |
 
 ---
 

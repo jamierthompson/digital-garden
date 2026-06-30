@@ -38,7 +38,7 @@ server-emitted `<style>`. Verify against the docs above and the real code, not t
 
 4. **Editorial chrome is global; brand is slot-scoped.** The editorial foundation (Newsreader + the
    neutral ramp) themes **all** page chrome — the shell, home, about, `/now`, and the project page
-   *around* the slot. A project's **brand color + font** scope **only** to its bounded interactive slot
+   _around_ the slot. A project's **brand color + font** scope **only** to its bounded interactive slot
    (`[data-project]` / the `<Experience/>`). Flag brand color or a project font bleeding onto page
    chrome, or editorial chrome being overridden inside a slot's scope for no reason.
 

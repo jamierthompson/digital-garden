@@ -30,9 +30,9 @@ training data.
    flag any new import that would trip it. Tests must run dual-env (node + jsdom); a new code path that
    only one environment exercises is a gap.
 
-2. **Gamut-map *before* contrast math.** OKLCH chroma routinely exceeds sRGB and even P3. The engine
+2. **Gamut-map _before_ contrast math.** OKLCH chroma routinely exceeds sRGB and even P3. The engine
    must map the color into the chosen target gamut (P3 vs sRGB, **chosen explicitly**, not implied)
-   *before* computing contrast, so the contrast solve runs against the color that will actually render.
+   _before_ computing contrast, so the contrast solve runs against the color that will actually render.
    Flag contrast math done on an un-mapped (potentially out-of-gamut) color.
 
 3. **Contrast is solved, not stepped.** On-brand / on-surface pairs come from binary-searching `L`

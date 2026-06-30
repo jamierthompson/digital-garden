@@ -12,16 +12,16 @@ acceptance criteria; the co-location and scheduling rules are owned by this doc.
 
 ## TL;DR
 
-| Question         | Answer                                                                                                                                                    |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Runner           | **Vitest 4** (`vitest run` in CI, `vitest` watch locally)                                                                                                 |
-| Component lib    | **React Testing Library 16** + `@testing-library/jest-dom`                                                                                                |
-| DOM env          | **jsdom** (single env today; engine adds a `node` project — see [Dual-env](#dual-env-the-oklch-engine))                                                   |
-| E2E              | **Playwright — not installed.** Add when an E2E of the primary flow is warranted; a jsdom integration test (Sanity mocked) covers it for now              |
-| Browser checks   | **Chrome DevTools MCP** — agent-driven a11y/CWV/visual verification of rendered surfaces; the ship-gate browser check, **not** committed CI tests         |
-| Where tests live | **Co-located** next to the subject (`Foo.test.tsx` beside `Foo.tsx`)                                                                                      |
-| Coverage target  | **None.** Meaningful coverage, not a percentage                                                                                                           |
-| Async RSCs       | **Don't unit-test** — jsdom can't render them; extract the logic and unit-test that, or cover with Playwright (E2E)                                       |
+| Question         | Answer                                                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runner           | **Vitest 4** (`vitest run` in CI, `vitest` watch locally)                                                                                         |
+| Component lib    | **React Testing Library 16** + `@testing-library/jest-dom`                                                                                        |
+| DOM env          | **jsdom** (single env today; engine adds a `node` project — see [Dual-env](#dual-env-the-oklch-engine))                                           |
+| E2E              | **Playwright — not installed.** Add when an E2E of the primary flow is warranted; a jsdom integration test (Sanity mocked) covers it for now      |
+| Browser checks   | **Chrome DevTools MCP** — agent-driven a11y/CWV/visual verification of rendered surfaces; the ship-gate browser check, **not** committed CI tests |
+| Where tests live | **Co-located** next to the subject (`Foo.test.tsx` beside `Foo.tsx`)                                                                              |
+| Coverage target  | **None.** Meaningful coverage, not a percentage                                                                                                   |
+| Async RSCs       | **Don't unit-test** — jsdom can't render them; extract the logic and unit-test that, or cover with Playwright (E2E)                               |
 
 ---
 
