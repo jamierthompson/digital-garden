@@ -24,7 +24,7 @@ lightness `L` for on-brand / on-surface pairs against the _relevant background_,
   across hues (OKLCH `L` is perceptual lightness, not WCAG luminance or APCA Lc). A fixed
   step that passes for blue fails for yellow/cyan. Feed the engine a brand color; consume
   the token it emits.
-- **Read the engine's emitted tokens** (`var(--brand-*)`, focus-ring color) — do
+- **Read the engine-mapped semantic tokens** (`var(--primary)`, focus-ring color) — do
   not invent a foreground color in a CSS Module and hope it clears 4.5:1.
 - **If you must author a static color** (rare — a decorative hairline, a one-off accent),
   it's _your_ job to verify the ratio. Status colors are **not** this case — they're
@@ -73,7 +73,7 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 | 2.4.7 Focus Visible                    | Keyboard focus must be visible                        | Use `:focus-visible`, never bare `:focus`. **Never `outline: none`** without an equivalent visible ring. |
 | 1.4.11 Non-Text Contrast               | Focus ring ≥ 3:1 vs adjacent colors                   | Ring color is engine-emitted per slot surface — consume it; don't recolor it ad hoc.                     |
 | 2.4.11 Focus Not Obscured (new in 2.2) | Focused element not fully hidden by sticky/overlay UI | Sticky shell nav / any sticky header must not cover the focused element.                                 |
-| 2.5.8 Target Size (new in 2.2)         | Pointer targets ≥ **24×24** CSS px                    | Nav links, `/work` cards, embed controls. Treat 24×24 as a firm floor.                                   |
+| 2.5.8 Target Size (new in 2.2)         | Pointer targets ≥ **24×24** CSS px                    | Nav links, index (`/`) cards, embed controls. Treat 24×24 as a firm floor.                               |
 
 - **Focus-ring split:** _geometry_ (width, offset, style, the `:focus-visible` policy) is
   **global foundation** (the token & theming architecture section of [`./architecture.md`](./architecture.md)); _color_ is the **engine token** (contrast-solved per slot).
@@ -98,7 +98,7 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 
 The architecture already buys most of this — don't undo it:
 
-- **Keep the `/work` index query essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `blurb` / `brandColor` /
+- **Keep the index (`/`) query essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `blurb` / `brandColor` /
   `fontKey`, never the essay. Small index payload protects **LCP**. Don't add the essay to
   the card query "for convenience."
 - **Keep the slot's `ProjectScope` in the prerendered shell** (PPR via Cache Components — see the repo & hosting section of [`./architecture.md`](./architecture.md)):
@@ -171,7 +171,7 @@ pnpm start` for production-faithful output), then drive the MCP.
 
 - **Accessibility** — keyboard focus ring is **visible** (`:focus-visible`, 2.4.7), focus is
   **not obscured** by the sticky shell nav (2.4.11), tap targets clear **24×24 px** on nav /
-  `/work` cards / embed controls (2.5.8 — the Focus & interaction section above), and a Lighthouse a11y pass surfaces no
+  index (`/`) cards / embed controls (2.5.8 — the Focus & interaction section above), and a Lighthouse a11y pass surfaces no
   semantics/contrast regression. The engine harness owns the **numeric** contrast proof
   (the Contrast section above, [`./testing.md`](./testing.md)); this is the in-browser cross-check on the assembled page.
 - **Layout & paint** — no unexpected **CLS** on load, and none on the _intentional_ per-project
@@ -206,7 +206,7 @@ the Font-preload policy section's `<head>` check. Committed automated coverage s
    analysis. Set `preload: false` and verify the `<head>` empirically.
 7. **Sticky nav can obscure focus** (2.4.11); **tap targets ≥ 24×24px** (2.5.8) on
    nav / cards / embed controls.
-8. **Don't bloat the `/work` query** — keep it essay-free to protect LCP (see the Content model section of [`./architecture.md`](./architecture.md)).
+8. **Don't bloat the index (`/`) query** — keep it essay-free to protect LCP (see the Content model section of [`./architecture.md`](./architecture.md)).
 9. **The contrast harness lives in [`./testing.md`](./testing.md)** — this doc owns the
    targets, testing owns the assertions. Don't restate the harness spec here.
 10. **Browser-verify any rendered surface** with the `chrome-devtools` MCP before done — focus

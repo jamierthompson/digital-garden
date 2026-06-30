@@ -129,7 +129,7 @@ async function Card({ theme }: { theme: string }) {
 2. **Semantic** (generic role tokens components actually read) → the layer components consume; radius, border weight, shadow, and density live here too — they're just more semantic tokens, not a separate "feel/geometry" tier.
 3. **Brand** → a project **slot**'s full scoped override of the semantic layer — engine-scoped to the `[data-project]` wrapper, emitted by the OKLCH engine; page chrome stays on the global editorial foundation.
 
-Components read **generic semantic tokens** — `--brand-*`, `--font-face`, `--space-*`. There are **no `--<proj>-*` per-project prefixed token names**: the `[data-project]` scope provides the isolation, so a slot overrides the same generic names the rest of the app reads.
+Components read **generic semantic tokens** — `--surface`, `--text`, `--primary`, `--font-body`, `--space-*`. There are **no `--<proj>-*` per-project prefixed token names**: the `[data-project]` scope provides the isolation, so a slot overrides the same generic names the rest of the app reads.
 
 ### The `@layer` trap — read this
 
@@ -197,7 +197,7 @@ House rule: **establish the pattern early, instantiate it late** (the deferral d
 
 **`app/` is routing only.** Route files (`page` / `layout` / `loading` / `error`) stay thin and **mount** components from `src/`; business logic never lives in `app/` ([`./orientation.md`](./orientation.md)).
 
-**Naming.** Components and their files PascalCase (`ProjectScope.tsx`); non-component modules camelCase (`breakpoints.ts`, `roster.ts`); slugs, routes, CSS-module selectors and custom properties kebab-case (`--brand-*`); types/interfaces PascalCase. Match the surrounding file when unsure.
+**Naming.** Components and their files PascalCase (`ProjectScope.tsx`); non-component modules camelCase (`breakpoints.ts`, `roster.ts`); slugs, routes, CSS-module selectors and custom properties kebab-case (`--font-body`); types/interfaces PascalCase. Match the surrounding file when unsure.
 
 **No magic values.** Extract named constants for anything meaningful or used in more than one place — `src/lib/breakpoints.ts` is the model.
 

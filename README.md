@@ -8,7 +8,7 @@ interactive slot, on that shared foundation. Content and brand seeds live in
 Sanity; the site renders on Next.js.
 
 > **Status:** the shared foundation, the OKLCH theming engine (`@garden/oklch`), the Sanity
-> content model, and mock projects are **live on Vercel** — with the editorial
+> content model, and the first project are **live on Vercel** — with the editorial
 > garden shell, an RSS feed, and Sanity draft mode + live preview wired to publish→production
 > revalidation. Remaining work is tracked in
 > [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
@@ -103,7 +103,7 @@ src/
   app/                  # App Router: routes, layouts, global styles
     layout.tsx          # root layout — editorial shell (ProjectScope slug="garden") + nav
     page.tsx            # home (index of project cards); about/ now/ — editorial chrome pages
-    [slug]/             # flat root-level project route (+ not-found/loading states)
+    [slug]/             # flat root-level project route (+ not-found/loading states) — target shape, #60 (today: work/[slug]/)
     api/draft-mode/     # draft-mode enable/disable route handlers
     api/revalidate/     # signed Sanity webhook → revalidateTag (publish→prod)
     rss.xml/            # RSS feed route handler
