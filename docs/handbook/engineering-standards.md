@@ -111,7 +111,7 @@ async function Card({ theme }: { theme: string }) {
 }
 ```
 
-**This is the load-bearing pattern for theming** `[D11]`: render `ProjectScope` inside the prerendered shell, `'use cache'` it keyed on `brandColor`/`fontKey` with `cacheLife('max')` and no request APIs in that boundary — so the scoped theme `<style>` and the font `.variable` class land in the **initial static HTML** (flash-free).
+**This is the load-bearing pattern for theming** `[D11]`: render the slot's `ProjectScope` inside the prerendered shell, `'use cache'` it keyed on `brandColor`/`fontKey` with `cacheLife('max')` and no request APIs in that boundary — so the slot's theme `<style>` and the font `.variable` class land in the **initial static HTML** (flash-free).
 
 **Routing fact that bites:** `middleware.ts` is renamed **`proxy.ts`**, **Node runtime only** — setting `runtime` throws (`…/03-file-conventions/proxy.md`).
 
@@ -126,7 +126,7 @@ async function Card({ theme }: { theme: string }) {
 **Tokens are three-tiered** (see `[D1]`/§3.1 for the full model — the tier names below are what you need to apply the `@layer` rule):
 
 1. **Foundation** (spacing, motion, breakpoints, z-index, type-scale) → global `:root` in `src/app/foundation.css`.
-2. **Brand ramp + font** → engine-scoped per `[data-project]` (emitted by the OKLCH engine).
+2. **Brand ramp + font** → engine-scoped to the project **slot** — the `[data-project]` wrapper — emitted by the OKLCH engine; page chrome stays on the global editorial foundation tier `[D30]`.
 3. **Feel/geometry** (radius, border weight, shadow, density) → small scoped override set, defaults inherited from tier 1.
 
 Consume tokens by their **generic public names** — `--brand-*`, `--font-face`, `--space-*` `[D2]`. A project-prefixed `--<proj>-*` is a project-internal alias only; a shared cross-project embed must not depend on a project prefix.
@@ -150,7 +150,7 @@ The engine's scoped `<style>` declares `@layer brand`. Note: Next's own CSS doc 
 | Rule                                 | Detail                                                                                                                                                                                        | Source                                                                                 |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | **Breakpoints are not `:root` vars** | CSS variables are invalid inside `@media` conditions. Use container queries or the literal px in CSS; `src/lib/breakpoints.ts` holds the constants that feed JS (`matchMedia`).               | `[D22]`                                                                                |
-| **Focus ring**                       | Geometry (width/offset/style, `:focus-visible` policy) is global in `foundation.css`; ring **color** is an engine token per island. Use `:focus-visible`, never bare `outline: none`.         | `[D7]`, see [`./accessibility-and-performance.md`](./accessibility-and-performance.md) |
+| **Focus ring**                       | Geometry (width/offset/style, `:focus-visible` policy) is global in `foundation.css`; ring **color** is an engine token per slot. Use `:focus-visible`, never bare `outline: none`.           | `[D7]`, see [`./accessibility-and-performance.md`](./accessibility-and-performance.md) |
 | **Streamed `<style>`**               | Plain inline `<style>` is fine when `ProjectScope` renders above any Suspense (the common case). Use React 19 `<style href={\`theme-${slug}\`} precedence>`only if`ProjectScope` can suspend. | `[D13]`                                                                                |
 | **Stega off `brandColor`/`fontKey`** | Sanity stega injects invisible chars that break the OKLCH parse and font lookup — disable it on those fields.                                                                                 | `[D16]`                                                                                |
 

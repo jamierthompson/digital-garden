@@ -71,14 +71,13 @@ _enumerated alternatives_, not the head-count. Rules:
 The required-fields table below is the contract; the [copy-paste template](#copy-paste-template)
 at the bottom renders it. Match the shape already running in `decisions.md`.
 
-| Field           | Rule                                                                                                                                                           |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Number**      | Next monotonic `D#`. **Never reused, never renumbered.** Find the current max with `grep -oE '^### D[0-9]+' ../decisions.md \| tail -1`.                       |
-| **Title**       | Imperative noun phrase — the decision, not the topic ("Bake `oklch()` literals server-side", not "Color baking").                                              |
-| **Status**      | From the closed vocabulary below — not free text.                                                                                                              |
-| **`Amends §N`** | The plan section(s) this changes. A decision that touches the plan **must** cite the section; this is what keeps the log and the plan from silently diverging. |
-| **Why**         | The reasoning. Add `(user call, <date>)` when the owner makes the final call; add `(verified against <path>)` for version-dependent facts.                     |
-| **`[D#]` refs** | Cross-reference related decisions inline.                                                                                                                      |
+| Field           | Rule                                                                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Number**      | Next monotonic `D#`. **Never reused, never renumbered.** Find the current max with `grep -oE '^### D[0-9]+' ../decisions.md \| tail -1`.   |
+| **Title**       | Imperative noun phrase — the decision, not the topic ("Bake `oklch()` literals server-side", not "Color baking").                          |
+| **Status**      | From the closed vocabulary below — not free text.                                                                                          |
+| **Why**         | The reasoning. Add `(user call, <date>)` when the owner makes the final call; add `(verified against <path>)` for version-dependent facts. |
+| **`[D#]` refs** | Cross-reference related decisions inline.                                                                                                  |
 
 **Status vocabulary (closed set — adopt one, don't invent).** This expands
 `decisions.md`'s legend (`Decided` / `Superseded by D#` / `Open`) with the
@@ -131,7 +130,7 @@ likely to trip), see [`./definition-of-done.md`](./definition-of-done.md).
 - Bar = **architecturally significant** ([gate above](#when-to-open-a-decision-vs-just-proceed)). No trivia.
 - **Edit in place** — git holds the history `[D33]`; supersede only when inline contrast helps.
 - **Don't over-template** — one paragraph fits most calls; full MADR is ceremony this repo skips.
-- **Keep the anchors** — every plan-touching decision cites `Amends §N`; cross-link siblings as `[D#]`.
+- **Propagate, don't point** — when a decision changes something, edit the affected doc(s) in place and update every reference, so each reads as current truth (git holds the history `[D33]`). `[D#]` is a plain see-also, not a relationship marker the reader must resolve.
 - **Don't trust memory on framework facts** — cite the bundled-doc path ([D11]/[D12]/[D23] precedent).
 - **Status from the closed vocabulary** — never free text.
 
@@ -142,7 +141,7 @@ likely to trip), see [`./definition-of-done.md`](./definition-of-done.md).
 ```markdown
 ### D<n> — <imperative decision title>
 
-**Decided** (user call, YYYY-MM-DD). Amends §N.
+**Decided** (user call, YYYY-MM-DD).
 <The forces at play. For a contested call: the considered options with honest
 pros/cons, then the call. For an obvious call: one paragraph. State the
 consequences — what gets easier AND harder. Cross-reference [D#] siblings.
@@ -158,14 +157,14 @@ and add the pointer to the old one's status line (keep its body intact):
 ```markdown
 ### D<new> — <new decision that replaces an old one>
 
-**Decided** (user call, YYYY-MM-DD). Amends §N. Supersedes D<old>.
+**Decided** (user call, YYYY-MM-DD). Supersedes D<old>.
 <Why the earlier call no longer holds and what replaces it. [D#] refs.>
 ```
 
 ```markdown
 ### D<old> — <the superseded decision's original title>
 
-**Decided.** Superseded by D<new>. Amends §N.
+**Decided.** Superseded by D<new>.
 <...original body kept intact...>
 ```
 
@@ -184,6 +183,6 @@ keep the heading/anchor and replace the body with a one-line pointer, as D8 does
 
 - [`../decisions.md`](../decisions.md) — the live log + Open items footer.
 - [`../sessions/`](../sessions/) — worked five-lens → debate → synthesis trails in-tree (the example to borrow from).
-- [`./working-with-agents.md`](./working-with-agents.md) — how agents cite `[D#]` / `§N` and hand off cleanly.
+- [`./working-with-agents.md`](./working-with-agents.md) — how agents cite `[D#]` and hand off cleanly.
 - [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) — committing a decision (a `docs:` change, its own commit).
 - [`./definition-of-done.md`](./definition-of-done.md) — the full CI gate chain.

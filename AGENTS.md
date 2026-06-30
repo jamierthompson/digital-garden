@@ -8,9 +8,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # AGENTS.md — Digital Garden
 
-> A personal portfolio + digital garden: each project is a self-contained, independently
-> themed module (its own OKLCH brand color + font) composed on a shared foundation.
-> Next.js 16 / React 19 on Vercel; content in Sanity.
+> A personal portfolio + digital garden: one editorial foundation (Newsreader + a neutral
+> ramp) themes all page chrome, while each project's OKLCH brand color + font theme only its
+> own bounded interactive slot. Next.js 16 / React 19 on Vercel; content in Sanity.
 
 This file is the agent-facing entry point per the [AGENTS.md convention](https://agents.md/)
 (an open, Linux Foundation–governed format — Markdown, no required fields, **nearest file

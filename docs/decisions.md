@@ -1,42 +1,51 @@
 # Decisions Log
 
-ADR-style record of binding decisions. Each entry: the decision, the status, why, and which
-system-model section (`§N`) it amends. Status legend: **Decided** (in force) · **Superseded by
-D#** (replaced) · **Open** (needs the owner's call). Records are **mutable** — edited in place, with
-git as the audit trail `[D33]`. The process for opening or editing an entry is in
-[`handbook/decision-records.md`](handbook/decision-records.md); the full format and copy-paste
-template live there.
-
-> `§N` references point at the system model in
-> [`handbook/architecture.md`](handbook/architecture.md); this log is the source of truth
-> where the two disagree. The original entries (D1–D23) came from the pre-build architecture audit.
+ADR-style record of binding decisions. Each entry: the decision, the status, and why. Status
+legend: **Decided** (in force) · **Superseded by D#** (replaced) · **Open** (needs the owner's
+call). Records are **mutable** — edited in place, with git as the audit trail `[D33]`. The process
+for opening or editing an entry is in [`handbook/decision-records.md`](handbook/decision-records.md);
+the full format and copy-paste template live there.
 
 ---
 
-### D1 — Token model is three tiers, not "complete self-described islands"
+### D1 — Token model: foundation → semantic → brand (three layers)
 
-**Decided.** Amends §3.1, §1, §8.
-Foundation (spacing, motion, breakpoints, z-index, type-scale ratios) lives at global `:root`. Brand ramp + font are engine-scoped per
-`[data-project]`. Feel/geometry (radius, border weight, shadow, density) is a small
-scoped override set with defaults inherited from the global tier.
-**Why:** only brand, font, and feel actually vary across ~5 projects; re-declaring a
-complete foundation per island is cost without benefit and bloats each `<style>`
-flush. Rewrite §3.1's rule to "no global **brand/feel** values; foundation
-is global."
+**Decided.**
+Three layers — the standard scoped-semantic-theming model (Radix Themes, shadcn/ui, Material 3,
+Spectrum):
 
-_Updated 2026-06-27 `[D33]`: dropped semantic colors from the foundation tier — status colors are
-brand-derived per island per `[D32]`._
+- **Foundation (primitives)** — raw, context-free values at global `:root`: the editorial palette,
+  the full spacing / type-scale / radius / motion scales, z-index, the reset. No meaning yet.
+- **Semantic (the contract)** — generic role tokens components read (e.g. `--surface`, `--text`,
+  `--primary`, `--font-body`, `--space-block`, `--radius-card`, `--motion-fast`), mapped from
+  primitives. The site's **editorial look is the global default mapping** of these at `:root`.
+- **Brand (per-project theme)** — a project's slot (`[data-project="<slug>"]`) **re-defines the
+  semantic tokens** with its own values. It can override the **entire** semantic layer — color,
+  font, spacing, type-scale, motion, radius, border, shadow, density — so the slot's components are
+  completely re-skinned while the page chrome around it stays editorial `[D30]`.
 
-### D2 — Public token contract is the generic layer; `--logx-*` is an internal alias
+There is **no separate "feel/geometry" tier**: radius/border/shadow/density are just more semantic
+tokens a slot may override. **Brand is a full scoped override of the semantic layer, not a fixed
+subset of categories.**
 
-**Decided.** Amends §3.1, §3.3, §5, §6.
-Shared cross-project units read only generic names (`--brand-*`, `--font-face`,
-`--space-*`). `--logx-*` is project-internal, mapped from the generic layer. A shared
-embed can't know a project prefix and must not depend on one.
+**Why:** components code against semantic names, so they are project-agnostic and fully reusable —
+the same component renders under the editorial theme or any project's. A slot re-skins purely by
+overriding those names in its scope; the page's editorial defaults are untouched.
+
+### D2 — Public contract is the semantic layer; no project-prefixed token names
+
+**Decided.**
+Every component — shared and project — reads the **generic semantic** token names (e.g. `--surface`,
+`--text`, `--space-*`, `--radius-*`, `--font-*`). There are **no project-prefixed token names**: the
+**scope** (`[data-project="<slug>"]`) provides isolation, so two projects reuse the same names and
+the cascade resolves to the nearest scope — how Radix / shadcn / Material / Spectrum isolate themes.
+A project's engine-generated ramp (from its `brandColor` seed) lives as **slot-scoped primitives with
+generic names** (`--ramp-1…12`), with the semantic tokens mapped to them inside the scope. A shared
+unit depends only on semantic names, never a project's internals.
 
 ### D3 — Bake `oklch()` literals server-side (resolve the trilemma)
 
-**Decided.** Amends §1, §3.2, §3.3.
+**Decided.**
 The engine emits contrast-solved, gamut-mapped literal values server-side.
 Relative-color CSS (`oklch(from …)`) is permitted only for decorative, non-contrast
 deltas. Live per-token CSS override is explicitly **not** a goal — no consumer needs
@@ -45,7 +54,7 @@ only; drop the "generalizes to the whole system / live re-derivation" claim.
 
 ### D4 — Contrast is solved, not stepped
 
-**Decided.** Amends §3.2.
+**Decided.**
 The engine takes a contrast target (APCA Lc for text, WCAG 2.x as compliance
 fallback) and binary-searches L for on-brand/on-surface pairs against the relevant
 background, evaluated on the **gamut-mapped** color. Fixed lightness offsets are not
@@ -53,7 +62,7 @@ acceptable — equal ΔL ≠ equal contrast across hues.
 
 ### D5 — Dark mode is in scope from v1; engine signature is `(brandColor, scheme) → tokenSet`
 
-**Decided** (user call, 2026-06-21). Amends §3.2, §6, Phase 1.
+**Decided** (user call, 2026-06-21).
 The engine is scheme-aware from the start: `(brandColor, scheme) → tokenSet`. A
 single `brandColor` per project generates **both** light and dark ramps — dark is
 not "invert L" but reduced chroma + shifted surface L with on-color contrast
@@ -65,28 +74,34 @@ content. A project needing a hand-tuned dark brand gets an _optional_ `brandColo
 override, defaulted from the engine — never a required parallel field. The Phase-1
 visual harness (D17) asserts contrast in **both** schemes.
 
+**Seed-lightness auto-direction.** A single seed represents one mode. The engine detects when a seed
+is too light to serve as the light-mode primary (it would fail the contrast floor as a primary on a
+light surface) and assigns it as the **dark-mode brand**, deriving the light-mode brand from it (the
+prototype's `buildDir: 'light' | 'dark'`). The exact lightness threshold is an implementation detail
+for the OKLCH build slice; the never-throw fallback `[D9]` applies.
+
 ### D6 — Gamut-map before contrast math
 
-**Decided.** Amends §3.2.
+**Decided.**
 Cusp-aware (Ottosson-style) chroma reduction toward the gamut boundary happens before
 contrast is computed. Pick the target gamut (P3 vs sRGB) explicitly.
 
 ### D7 — Focus-ring color is an engine token; geometry stays global
 
-**Decided.** Amends §3.1.
+**Decided.**
 Geometry (width, offset, style, `:focus-visible` policy) is global coordination. Ring
-_color_ is contrast-solved per island surface and emitted by the engine. Audit the
+_color_ is contrast-solved per slot surface and emitted by the engine. Audit the
 global reset for other smuggled "looks" (`::selection`, `accent-color`, default link
 color) and move them to the scoped tier.
 
 ### D8 — Semantic colors are seeded independently, not brand-derived
 
 **Superseded by [D32].** Body removed; the original rationale lives in git history `[D33]`. D32
-(status colors are brand-derived per island) is what holds.
+(status colors are brand-derived per slot) is what holds.
 
 ### D9 — `brandColor` gets a three-layer defense
 
-**Decided.** Amends §3.2, §6, §7.
+**Decided.**
 (1) Defensive engine: parse/clamp/gamut-validate, return a fallback palette, **never
 throw**. (2) Author-time Sanity `validation` using the engine's own color pipeline.
 (3) `unstable_catchError` (`next/error`) wrapping `ProjectScope` as the backstop —
@@ -95,7 +110,7 @@ treatment for `siteSettings` brand and `cardSwatches`.
 
 ### D10 — Reference-by-key drift: typed resolvers + fallbacks now, CI check later
 
-**Decided.** Amends §4.2, §6, Phase 2/4.
+**Decided.**
 Blocking before Phase 2 locks: `keys.ts` is the single source of truth; resolvers
 typed `satisfies Record<Key,…>` (missing entry = compile error); resolvers return a
 typed `NotFound`, never a bare lookup; render seams show visible fallbacks
@@ -105,8 +120,7 @@ asserting each exists in code; key renames as `sanity migration` scripts.
 
 ### D11 — Fonts: `preload:false` default; preload is a component-level / static-analyzability question, NOT route-level SSG
 
-**Decided** (user call, 2026-06-21; verified against installed Next 16 docs). Amends
-§5, §6, §7.
+**Decided** (user call, 2026-06-21; verified against installed Next 16 docs).
 The original "is `/work/<slug>` SSG or dynamic" frame is **obsolete under Next 16
 `cacheComponents`**. Static vs dynamic is no longer a route-level toggle
 (`export const dynamic` / `force-static` are removed; all routes are dynamic-by-default
@@ -130,8 +144,8 @@ holes**. Two independent axes follow, which must not be conflated:
   targeted `<link rel=preload as=font>` for a face it couldn't statically identify.
 
 **Baseline (unchanged):** `preload:false` on all roster faces; `preload:true` only on the
-1–2 shell faces in the root layout; resolved per-project face applied via `.variable` on
-the scope; `--logx-font` maps to it. If a specific above-the-fold project face must
+1–2 editorial faces in the root layout; resolved per-project face applied via `.variable` on
+the slot scope, which the semantic font token reads. If a specific above-the-fold project face must
 preload, emit the `<link rel="preload" as="font" crossorigin>` manually. Verify with the
 empirical `<head>` check (`pnpm build` → count `<link rel="preload" as="font">` on
 `/work/<slug>`).
@@ -145,8 +159,7 @@ supersedes the casual reading of §7's `use cache` note (see FrameworkFit ⑤).
 
 ### D12 — Every CSS Module declares its `@layer` (lint-enforced)
 
-**Decided** (verified against `node_modules/next/dist/docs/.../11-css.md`). Amends
-§3.1.
+**Decided** (verified against `node_modules/next/dist/docs/.../11-css.md`).
 Next does not auto-layer CSS Modules; an unlayered module silently outranks every
 `@layer project` style. Lint-enforce that each CSS Module wraps its body in the
 appropriate `@layer` (or stays strictly var-consuming). Declare `@layer foundation,
@@ -155,7 +168,7 @@ declares `@layer brand`.
 
 ### D13 — Streamed `<style>` uses `precedence` + slug `href` only when suspended
 
-**Decided.** Amends §3.2, §7.
+**Decided.**
 If `ProjectScope` renders in the initial shell above any Suspense (the common case),
 plain inline `<style dangerouslySetInnerHTML>` is already flush-before-paint — fine.
 Use React 19 `<style href={`theme-${slug}`} precedence>` only if ProjectScope can be
@@ -164,7 +177,7 @@ it's React-version-dependent and not confirmable from the installed Next docs.
 
 ### D14 — Isomorphic engine enforced by lint boundary + dual-env test
 
-**Decided.** Amends §3.2, Phase 0/1.
+**Decided.**
 ESLint import boundary on `packages/oklch/` forbidding `next/*`, `react`, `react-dom`,
 and DOM/Node globals. Dual-environment Vitest run (suite under `environment: 'node'`
 AND `'jsdom'`). **Do not** use `server-only`/`client-only` — those pin the module to
@@ -172,7 +185,7 @@ one side and break the isomorphic requirement.
 
 ### D15 — Embed schema: generic `liveEmbed` default; typed block only for editorial content
 
-**Decided.** Amends §6.
+**Decided.**
 Use generic `liveEmbed` (`embedKey` + caption) when the only authored inputs are key
 
 - caption (the majority — zero schema change to add a widget). Give a widget its own
@@ -184,7 +197,7 @@ Use generic `liveEmbed` (`embedKey` + caption) when the only authored inputs are
 
 ### D16 — Sanity visual-editing details
 
-**Decided.** Amends §6, §7.
+**Decided.**
 Disable stega on `brandColor`/`fontKey` (invisible encoding chars break the OKLCH
 parse and font lookup). `liveEmbed` click-to-edit targets the caption/`embedKey`
 field, not the interactive region. Model inter-note backlinks as real Sanity
@@ -194,7 +207,7 @@ early.
 
 ### D17 — Sequence by risk-retirement: add Phase 0.5; dead-simple project is the first slice, oklch-engine second
 
-**Decided.** Amends the build plan throughout. (Final converged sequence per
+**Decided.** (Final converged sequence per
 Sequencing's closing artifact, reconciling its earlier mischaracterization with what
 Architect actually conceded.)
 
@@ -217,7 +230,7 @@ Architect actually conceded.)
 - **Phase 3 — first real slice = a dead-simple project** (a trivial real portfolio
   entry: static essay, one brand color, one tiny embed) — proves the vertical machinery
   against real data with nothing hard riding on it: module skeleton → routing → shell
-  island → home/about/`now` (separate commits) → RSS → draft mode → `generateMetadata`.
+  chrome → home/about/`now` → RSS → draft mode → `generateMetadata`.
   `not-found.tsx` via `notFound()` for an unresolved slug; the ProjectScope/layout throw
   is contained by the defensive engine + `unstable_catchError` (D9), not by
   `error.tsx`. One integration/E2E test.
@@ -235,21 +248,21 @@ Architect actually conceded.)
 
 ### D18 — Testing is co-located with its subject in every phase
 
-**Decided.** Amends the build plan (was unscheduled).
+**Decided.**
 Vitest + RTL are already in the repo (commit `3401f2d`). Engine unit + isomorphism +
 contrast tests in Phase 1; resolver/cardSwatches/index-query tests in Phase 2; one
 integration/E2E of the primary flow in Phase 3. One test file ≈ one commit.
 
 ### D19 — Cross-cutting concerns get scheduled where they belong
 
-**Decided.** Amends the build plan (was unscheduled).
+**Decided.**
 CI in Phase 0; `error.tsx`/`not-found.tsx`/`loading.tsx` and `generateMetadata` (SEO/OG)
 in Phase 3 where routing appears; accessibility/contrast assertions folded into Phase
 1's engine harness.
 
 ### D20 — `core/` and shared primitives emerge on genuine second use
 
-**Decided.** Amends §4.1, §4.3.
+**Decided.**
 Don't pre-carve a headless `core/` into every module template — let it emerge when an
 experience's logic warrants extraction, the same deferral discipline applied to the
 project-local embed tier and shared primitives. Clarify §4.1's `experience.tsx` vs
@@ -257,7 +270,7 @@ project-local embed tier and shared primitives. Clarify §4.1's `experience.tsx`
 
 ### D21 — RSC code-splitting framing corrected
 
-**Decided.** Amends §4.2.
+**Decided.**
 Server Components are auto-split already; the manual lazy `import()` buys conditional
 inclusion, and the real client-bundle savings come from Client Components inside each
 module (`next/dynamic`/`React.lazy`). Registry values must be **literal**
@@ -266,14 +279,15 @@ bundler static analysis.
 
 ### D22 — Breakpoints are not `:root` custom properties
 
-**Decided.** Amends §3.1.
+**Decided.**
 CSS variables are invalid inside `@media` conditions. Use container queries /
-build-time constants for breakpoints; custom props can still feed JS.
+build-time constants for breakpoints; custom props can still feed JS. A slot needing
+different responsive behavior uses **container queries scoped to the slot**.
 
 ### D23 — Sanity Studio is standalone (a workspace package), not embedded
 
 **Decided** (2026-06-21; verified against the official Sanity agent-toolkit, not
-model memory). Amends §6, §7, Phase 0.
+model memory).
 The Studio is a **standalone Vite app in `studio/`** — a pnpm workspace package —
 not embedded in the Next app at a `/studio` route. Rationale (official guidance):
 Vite dev/build is 10–30× faster than compiling the Studio through Next; standalone
@@ -291,7 +305,7 @@ rather than duplicating it.
 
 ### D24 — Establish the pattern early, instantiate it late (the deferral discipline)
 
-**Decided** (user call, 2026-06-22). Amends §1, §4. Generalizes [D20].
+**Decided** (user call, 2026-06-22). Generalizes [D20].
 The repo's standing structural rule, lifted from a per-case habit to a first-class standard:
 **name where each kind of code _will_ live, but don't stand up the structure until a concrete
 trigger earns it.** [D20] applied this to `core/` and shared primitives; this generalizes it so
@@ -319,7 +333,7 @@ trigger, per concern).
 
 ### D25 — Rendered surfaces get an agent-driven browser check (Chrome DevTools MCP) before done
 
-**Decided** (user call, 2026-06-22). Amends the build plan (Phase 0.5+). Complements [D17],
+**Decided** (user call, 2026-06-22). Complements [D17],
 [D18], [D19].
 `pnpm test` runs in **jsdom** — it doesn't paint, can't render async RSCs, and measures nothing
 about focus visibility, tap-target size, layout shift, or paint timing. So build-green +
@@ -348,7 +362,7 @@ Operationalized in
 
 ### D26 — Every session gets an independent, adversarial QA pass before the PR (solo or team)
 
-**Decided** (user call, 2026-06-25). Amends `handbook/working-with-agents.md` §6; complements [D25].
+**Decided** (user call, 2026-06-25). Complements [D25].
 A gate-green slice is _developer-done_, not _review-done_ — `pnpm test` plus the author's own
 self-check prove the author's intent, not that the work survives someone trying to break it.
 Standing requirement, **independent of staffing**: before any slice enters a PR, a **fresh** agent —
@@ -483,15 +497,21 @@ The flag breaks the permission model: `acceptEdits` auto-accepts edits only with
 
 ---
 
-### D30 — Path A: the shell is an editorial Sanity island; the `next dev`-only unbranded flash is accepted
+### D30 — Editorial chrome is global; brand theming is slot-scoped
 
-**Decided** (2026-06-26, after a 4-lens agent-team debate + empirical spike; reverses a mid-point "code-config" verdict — see [`sessions/2026-06-26-shell-sourcing-islands/`](sessions/2026-06-26-shell-sourcing-islands/)). Relates to [D11], [D16].
+**Decided** (owner call, 2026-06-30). Relates to [D1], [D5], [D11], [D32].
 
-The question circled several sessions: where does the shell's brand/identity come from, and why does the shell "flash" unthemed? A mid-point verdict was to make the shell a synchronous code constant (`shell.config.ts`). The spike refuted both its pillars: (a) the flash is **`next dev`-only** — a production build serves the PPR build-time-resolved themed shell in the initial bytes (zero unbranded frames, draft included); and (b) the shell brand is **editorial content, not a constant** — it lives in `siteSettings`, read async + draft-aware exactly like a project reads its own brand.
+The whole site uses one editorial system — **Newsreader + a black/white/gray neutral ramp** — declared at the global foundation tier `[D1]` and applied to every page's chrome: nav, headers, prose, backgrounds. A project's brand color + font are **slot-scoped**: they theme the project's **bounded component slot** (the interactive artifact / `<Experience />`) and nothing around it.
 
-**Decision:** the shell is an **editorial Sanity island, symmetric with each project island**. Brand / font / title / description stay in `siteSettings`, read through the normal async draft-aware path; **no** synchronous-config refactor, **no** `shell.config.ts`, `siteSettings` is **not** dissolved. The unbranded fallback frame is a **dev-only** artifact and is **accepted** — symmetric with every project's unthemed `loading.tsx`. The `<Suspense>` boundary + **unthemed** `ShellThemeFallback` in `layout.tsx` stay load-bearing (a themed fallback collides with the real shell on `<style href>` de-dup — the Item C regression QA caught). **Verified flash-free on the live Vercel deploy** (2026-06-26, both before and after the defineLive read-path migration): branded shell in the initial PPR bytes, `x-nextjs-prerender:1`.
+**Why.** This is how brand and design-system sites are built — chrome typography and structural color stay fixed and on-brand; only embedded, coded artifacts carry their own treatment. It keeps the editorial calm, makes the accessibility story trivial (chrome is neutral-on-neutral), and matches the content model: an editor cannot restyle prose — the slot's font/color belong to the project's **coded module**, not a content field.
 
-**Boundaries:** "theme the fallback" is **retired** (it was never the problem). Abandoned directions: the `spike/zero-flash-shell` themed-fallback branch and the synchronous-shell / `shell.config.ts` design.
+**The slot theme contract.** `ProjectScope` (the `[data-project]` seam) emits the project's **full role palette from one seed** — brand + neutral + `success`/`warning`/`danger` + accents, scheme-aware and contrast-solved `[D5][D32]` — scoped to the slot. A full, compliant token set per slot is the point of the OKLCH engine: one seed in, an entire themeable slot out.
+
+**The shell.** The shell chrome reads the global editorial tier. `siteSettings` holds title/description and may seed a _slot_ on the homepage; it does not drive the chrome with a brand color. The flash-free mechanics (`<Suspense>`, the `<style href>` de-dup) `[D11]` apply wherever a themed slot must paint in the initial bytes.
+
+**Chrome accents.** A project's brand color may appear as a **decorative** accent in chrome (its index-card SVG mark, a hairline, a link on its own page) — never load-bearing for legibility. Body text and meaningful contrast stay on the neutral ramp.
+
+**Build status (2026-06-30):** page-level scoping is the current code in `layout.tsx` and `work/[slug]/page.tsx`; the theming-inversion slice moves brand scoping down to the slot.
 
 ---
 
@@ -503,39 +523,43 @@ Phase 3 shipped a hand-rolled `sanityFetch` (`use cache` + `draftMode()`-inside-
 
 **Decision:** the single content read path is **`defineLive`** (`src/sanity/lib/live.ts`), resolved from `next-sanity/live`, `strict: true`, with `serverToken` = `SANITY_API_READ_TOKEN` and a dedicated minimum-scope **Viewer** `browserToken` = `SANITY_API_BROWSER_TOKEN` (browser-exposed via the SanityLive EventSource, so never the read token). `getClient`/`draftClient` are removed. **Tag contract:** every fetch carries `sanity` + `sanity:<_type>`; `sanityFetch.ts` carries an `import "server-only"` guard. Stega field-exclusions `[D16]` are single-sourced in `src/sanity/lib/stega.ts`.
 
-The time-based `cacheProfile` ("hours" for notes) is **dropped**: `defineLive` owns cache lifetime (1y) and freshness is **on-demand via tag revalidation**. Consequence: the **publish→revalidate webhook** (`/api/revalidate`, signed, `revalidateTag(tag, { expire: 0 })`) is now **load-bearing for published cold-cache freshness** — without it (and without a connected `<SanityLive>` EventSource) a cold visitor could be served up-to-1y-stale initial HTML. Acceptable for a personal garden **given the webhook is verified in prod**. Path A [D30] frames the read-path: the shell is an editorial island on the normal draft path, so `<SanityLive>`/`defineLive` only ever handle _content_ — the shell never needs the live path.
+The time-based `cacheProfile` ("hours" for notes) is **dropped**: `defineLive` owns cache lifetime (1y) and freshness is **on-demand via tag revalidation**. Consequence: the **publish→revalidate webhook** (`/api/revalidate`, signed, `revalidateTag(tag, { expire: 0 })`) is now **load-bearing for published cold-cache freshness** — without it (and without a connected `<SanityLive>` EventSource) a cold visitor could be served up-to-1y-stale initial HTML. Acceptable for a personal garden **given the webhook is verified in prod**. [D30] frames the read-path: the shell reads its `siteSettings` content on the normal draft path (not the live browser path), so `<SanityLive>`/`defineLive` only ever handle _content_ — the shell never needs the live path.
 
 **Boundaries:** the webhook registration in Sanity + the hosted Studio deploy are owner-ops, tracked in the [GitHub issue backlog](https://github.com/jamierthompson/digital-garden/issues). The shell `siteSettings` read stays on the normal draft path, not the live browser path.
 
 ---
 
-### D32 — Status colors are brand-derived per island (supersedes D8)
+### D32 — Status colors are brand-derived per slot (supersedes D8)
 
-**Decided (build deferred)** (owner call, 2026-06-27). Amends §3.1, §3.2. Supersedes D8.
+**Decided (build deferred)** (owner call, 2026-06-27). Supersedes D8.
 
 D8 ruled that `success`/`error`/`warning`/`info` are **fixed signal colors, seeded
 independently of the brand** — reserved as global `:root` slots. The owner reverses that: **every
-island gets its own status colors, derived from its brand hue by the OKLCH engine** —
-scheme-aware and contrast-solved like the rest of the ramp, delivered per-project through
+project slot gets its own status colors, derived from its brand hue by the OKLCH engine** —
+scheme-aware and contrast-solved like the rest of the ramp, delivered through the slot's
 `ProjectScope` rather than as one fixed global set.
 
-**Why.** The garden's identity is that each project is a fully self-themed island; a single global
-signal palette would read as foreign inside a strongly-branded scope. Deriving status colors from
-the brand hue keeps them harmonized while the contrast solve (`[D4]`, gamut-mapped first `[D6]`,
-never-throw fallback `[D9]`) keeps them legible in both schemes `[D5]`.
+**Why.** Each project's interactive slot is its own strongly-branded scope; a single global signal
+palette would read as foreign inside it. Deriving status colors from the brand hue keeps them
+harmonized while the contrast solve (`[D4]`, gamut-mapped first `[D6]`, never-throw fallback `[D9]`)
+keeps them legible in both schemes `[D5]`.
 
 **Consequences.** The engine grows status-token outputs (more solve work per scope, memoizable
-the same way as the rest). The global-tier "semantic-color slot" from D8/D1 is **not** built;
-no new global brand/feel tier appears (consistent with `[D1]`). **Build is still deferred** until
+the same way as the rest). The fixed global status-color slot from D8 is **not** built; status colors are
+per-slot semantic tokens, not a new global tier (consistent with `[D1]`). **Build is still deferred** until
 the first status-bearing UI lands — the _approach_ changed, not the trigger. Open design detail
 for the implementing PR: how far each status hue may rotate toward the brand while staying a
 recognizable signal. Tracked in the
 [GitHub issue backlog](https://github.com/jamierthompson/digital-garden/issues).
 
+Status-from-brand resolves **inside the project slot**: the "a global signal palette reads as foreign
+inside a strongly-branded scope" rationale applies to the slot, since page chrome is global editorial
+`[D30]`.
+
 ### D33 — Decision records are mutable; git is the audit trail (retires the supersede-only norm)
 
-**Decided** (owner call, 2026-06-27). Amends the decision-records process
-([`handbook/decision-records.md`](handbook/decision-records.md)).
+**Decided** (owner call, 2026-06-27); see
+[`handbook/decision-records.md`](handbook/decision-records.md).
 
 Earlier practice treated every accepted decision as **immutable**: when the thinking changed you
 appended a _superseding_ `D#` and never edited the original (classic ADR discipline — Nygard/Fowler).
@@ -555,6 +579,54 @@ case). A material edit may carry a dated `_Updated YYYY-MM-DD:_` note for inline
 is the record. Existing superseded pairs are left as-is. This decision is the first edit under the
 new norm: in the same change, D8 was tombstoned into D32 and D1's stale semantic-color line was
 corrected.
+
+---
+
+### D34 — One content type (`project`); scope and maturity are independent axes
+
+**Decided** (owner call, 2026-06-30). Applies the `[D24]` deferral discipline.
+
+The site has **one document type — `project`**. A note and a project share this same type; the
+difference is **scope, not schema** — a note is shorter and single-topic. Interconnected notes
+sometimes grow into a new project while the notes themselves remain, which is why backlinks are
+Day-1 `[D35]`. Fields a large piece needs (essay, component, moodboard) are **optional**, not a
+parallel schema.
+
+**Maturity field.** Every piece carries a maturity indicator with three stages, surfaced as
+**sketch → prototype → shipped** (rough → working → stable; "sketch" covers a one-image visual note).
+The field stores **stable values**; the labels are display titles, **re-wordable anytime with zero
+migration**. Maturity is the honesty badge + permission-to-publish-rough, and is **orthogonal to both
+curation** (the front-door `featuredRank`) **and scope** — a note moves through the stages and stays a
+note.
+
+**Naming.** The schema `_type` stays `project`; the **display label is decoupled** from it (UI text
+is free; the `_type` is the migration-costed thing). A second content type is **deferred** until a
+_shipped_ piece proves the fields genuinely diverge `[D24]` — "I'll need it later" is not the trigger.
+
+### D35 — Backlinks are Day-1, not deferred
+
+**Decided** (owner call, 2026-06-30). Relates to [D10], [D16], [D34].
+
+The association graph ships **with the first schema pass**. A `project` carries a **`related`**
+reference array targeting other `project` docs (self-referencing, since there is one type `[D34]`),
+and the read path resolves **incoming** backlinks via GROQ **`references()`** — so an edge authored
+once shows on **both** ends for free. Backlinks are the connective tissue of the portfolio spine (a
+piece links the pieces it builds on, and those edges trace the thesis), so they are **load-bearing
+Day-1 functionality**, on the build list rather than the `[D24]` deferral list.
+
+### D36 — Flat routes: `/[slug]`, no `/work` prefix
+
+**Decided** (owner call, 2026-06-30).
+
+A project lives at a **flat, root-level slug** (`/oklch-playground`), with no `/work` prefix. The
+route is a single root-level dynamic segment that **cedes precedence to static segments** (`/about`,
+`/now`, …) — fine in Next (static segments beat the dynamic segment), with a deliberate **not-found
+story** for unknown slugs designed when the segment lands. Rationale: more garden-coherent, more
+shareable, and it treats each project as a first-class destination — consistent with the
+self-themed-slot architecture `[D30]`.
+
+**Build status (2026-06-30):** the route is `app/work/[slug]/`; the route-flattening slice moves it
+to a root-level segment.
 
 ---
 

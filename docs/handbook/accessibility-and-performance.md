@@ -71,7 +71,7 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 | SC                                     | Rule                                                  | What to check                                                                                            |
 | -------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | 2.4.7 Focus Visible                    | Keyboard focus must be visible                        | Use `:focus-visible`, never bare `:focus`. **Never `outline: none`** without an equivalent visible ring. |
-| 1.4.11 Non-Text Contrast               | Focus ring ≥ 3:1 vs adjacent colors                   | Ring color is engine-emitted per island surface `[D7]` — consume it; don't recolor it ad hoc.            |
+| 1.4.11 Non-Text Contrast               | Focus ring ≥ 3:1 vs adjacent colors                   | Ring color is engine-emitted per slot surface `[D7]` — consume it; don't recolor it ad hoc.              |
 | 2.4.11 Focus Not Obscured (new in 2.2) | Focused element not fully hidden by sticky/overlay UI | Sticky shell nav / any sticky header must not cover the focused element.                                 |
 | 2.5.8 Target Size (new in 2.2)         | Pointer targets ≥ **24×24** CSS px                    | Nav links, `/work` cards, embed controls. Treat 24×24 as a firm floor.                                   |
 
@@ -101,9 +101,9 @@ The architecture already buys most of this — don't undo it:
 - **Keep the `/work` index query essay-free** (§6): it pulls `blurb` / `brandColor` /
   `fontKey`, never the essay. Small index payload protects **LCP**. Don't add the essay to
   the card query "for convenience."
-- **Keep `ProjectScope` in the prerendered shell** (PPR via Cache Components `[D11]`, §7):
-  themed `<style>` + font class land in the **initial static HTML** (flash-free); the
-  essay/notes stream. Don't push the scope into a streamed hole.
+- **Keep the slot's `ProjectScope` in the prerendered shell** (PPR via Cache Components `[D11]`, §7):
+  the slot's theme `<style>` + font class land in the **initial static HTML** (flash-free); the
+  essay/notes stream. Don't push the slot scope into a streamed hole.
 - **Don't introduce layout shift.** `next/font`'s size-adjusted fallback gives zero CLS; a
   per-project display face swaps _intentionally_ on navigation (§5) — that's by design, not
   a CLS bug. Reserve space for media; size embeds.

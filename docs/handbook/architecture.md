@@ -10,6 +10,17 @@ This is the **reference for how the system is designed**, cited across the codeb
 cited as `[D#]`; **where this doc and the decisions log ever disagree, the decisions log wins.**
 Token prefixes like `--<proj>-*` below are per-project placeholders.
 
+**Build status (2026-06-30).** Some material below describes **decided** state the running code (or
+this doc) hasn't caught up to yet — each tracked by an issue:
+
+- slot-scoped theming under a global editorial chrome `[D30]` → #58;
+- a single `project` type with a `maturity` field `[D34]` + Day-1 backlinks `[D35]` → #59;
+- flat `/[slug]` routes `[D36]` → #60;
+- the foundation → semantic → brand token model `[D1, D2]` → code in #57.
+
+**Caveat:** §3.1 below still shows the **old** token tiers (foundation / brand+font / feel) — its
+prose has not been reconciled to `[D1]`/`[D2]` yet. That reconciliation is **#63**.
+
 ---
 
 ## 1. Guiding principles
@@ -22,11 +33,13 @@ These are the through-lines; everything else follows from them.
   engine, the odd reused primitive) live in plain shared modules. No fused bundle; no premature
   abstraction either.
 
-- **Composition over inheritance.** Each project (and the site shell itself) is an independent
-  _themed island_ with its own **brand color and font**, composed on top of a shared foundation.
-  Projects are not variations of one global _brand_; they are self-assembled from shared parts.
-  "Shared" is a build-time authoring convenience for the foundation tier and a runtime parent only
-  for genuinely shared plumbing `[D1]`.
+- **Composition over inheritance.** Every page wears one global editorial look — Newsreader + a
+  neutral black/white/gray ramp — at the shared foundation tier. Each project carries its **own brand
+  color and font** scoped to its **interactive slot** (the `<Experience/>` / `[data-project]`
+  wrapper) — self-themed _within_ the page, not across it `[D30]`. Projects are not
+  variations of one global _brand_; they are self-assembled from shared parts. "Shared" is a
+  build-time authoring convenience for the foundation tier and a runtime parent only for genuinely
+  shared plumbing `[D1]`.
 
 - **Self-sufficient contracts; theme downward; never reach up _for a look_.** Every unit — a
   token group, a component, a project module — ships its own defaults and is themed by whatever
@@ -39,9 +52,10 @@ These are the through-lines; everything else follows from them.
   runtime re-derivation of an engine's computed ramp `[D3]`.
 
 - **Right-sized, not maximal.** This is one app with a handful of projects, not a set of
-  shippable packages. Keep the island model, downward theming, and the don't-reach-up discipline
-  where they earn their keep. The foundation is shared globally and only **brand + font + feel**
-  are scoped per island `[D1]`; a small foundation _coordination_ layer is the norm (§3.1), the
+  shippable packages. Slot-scoped theming, downward theming, and the don't-reach-up discipline stay
+  only where they earn their keep. The foundation is shared globally (and carries the global
+  editorial look), and only **brand + font + feel** are scoped to each project's slot `[D1, D30]`; a
+  small foundation _coordination_ layer is the norm (§3.1), the
   embed registry starts single-tier (§4.1), and the litmus (§8) applies to shared primitives, not
   every component. Concentrate the sophistication where it pays — the OKLCH engine (the
   load-bearing, genuinely hard piece), the content model, performance — and let the rest be
@@ -56,8 +70,9 @@ Two homes:
 - **The Next app** — all code: each project's pages, its interactive experience (a working
   demo), and the components its essay embeds. Each project is a self-contained module under
   `src/projects/<slug>/`; shared parts live in plain shared modules.
-- **Sanity** — content & brand seeds: essay (rich text with embeds), notes, tags, per-project
-  `brandColor`, `fontKey`, and the `componentKey` reference.
+- **Sanity** — content & brand seeds: one `project` document type `[D34]` — essay (rich text with
+  embeds), tags, a `maturity` stage, `related` backlinks `[D35]`, an optional `featuredRank`,
+  per-project `brandColor`, `fontKey`, and the `componentKey` reference.
 
 Within a project the division is code vs content, but the line isn't a wall. The interactive
 experience and the components are code; the essay is content. The essay is _rich_, though — it
@@ -66,8 +81,8 @@ per-project or shared, the same reference-by-key move as `componentKey` (§4.1�
 experience's logic lives in a headless core when it earns one (§4.3), but that's ordinary code
 organization, not a boundary the site has to maintain.
 
-The shell is itself an island (§3.1) with its own top-level pages — home, about, `/now` — themed
-the same island way, but owned by the site rather than any project module.
+The shell's top-level pages — home, about, `/now` — are owned by the site rather than any project
+module, and wear the global editorial look like every other page (§3.1).
 
 ---
 
@@ -77,33 +92,35 @@ the same island way, but owned by the site rather than any project module.
 
 What actually varies per project is **brand color, font, and the feel/geometry set** — not
 spacing, type-scale ratios, motion, or breakpoints, which are house style. So the system is three
-tiers, not "a complete self-described foundation per island":
+tiers:
 
-| Tier                | Lives at                                   | Contents                                                                                                                                                |
-| ------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Foundation**      | global `:root`                             | spacing ramp, motion curves/durations, breakpoints, z-index scale, type-scale ratios, focus-ring **geometry**, the reset                                |
-| **Brand + font**    | `[data-project]` scope, engine-driven      | the OKLCH color ramp (incl. focus-ring _color_ and brand-derived status colors), + the resolved font face — always scoped, always flash-free            |
-| **Feel / geometry** | `[data-project]` scope, small override set | corner radius, border weight, shadow softness, density — defaults inherited from the foundation tier, overridden only where a project genuinely differs |
+| Tier                | Lives at                                                         | Contents                                                                                                                                                                                                                |
+| ------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Foundation**      | global `:root`                                                   | the global editorial look (Newsreader + the neutral B/W/gray ramp, chrome colors/backgrounds), spacing ramp, motion curves/durations, breakpoints, z-index scale, type-scale ratios, focus-ring **geometry**, the reset |
+| **Brand + font**    | the project's interactive slot (`[data-project]`), engine-driven | the OKLCH color ramp (incl. focus-ring _color_ and brand-derived status colors), + the resolved font face — scoped to the slot, flash-free                                                                              |
+| **Feel / geometry** | the slot (`[data-project]`), small override set                  | corner radius, border weight, shadow softness, density — defaults inherited from the foundation tier, overridden only where a project genuinely differs                                                                 |
 
-A project's pages and the components they embed live in the same scope and read **one per-project
-token namespace** — e.g. `--<proj>-*` — for the brand/feel tier, on top of the global foundation
-tier.
+A project's page chrome (title, prose, nav) reads the **global editorial tier**. Its **interactive
+slot** and the components embedded inside it read **one per-project token namespace** — e.g.
+`--<proj>-*` — for the brand/feel tier, on top of the global foundation tier `[D30]`.
 
 ```
-global :root  (the foundation tier — shared plumbing AND shared looks-that-don't-vary)
+global :root  (the foundation tier — the editorial look + shared plumbing)
+   ├─ EDITORIAL LOOK: Newsreader · neutral B/W/gray ramp · chrome colors/backgrounds
    ├─ spacing ramp · motion curves · breakpoints · z-index · type-scale ratios
    ├─ focus-ring GEOMETRY · reset
    └─ @layer foundation, brand, project;   ← bare order statement, loaded first [D12]
-          │ composed by ↓
-[data-project="garden"]   ← the site shell is just another island (home, about, /now)
-[data-project="<slug>"]   each declares ONLY its brand + font + any feel overrides
+          │ every page's chrome (nav · headers · prose) reads this tier ↓
+   home · about · /now · the project page AROUND the slot   — all editorial, no brand [D30]
+          │ and inside a project page, one bounded slot is themed ↓
+[data-project="<slug>"]   the project's interactive slot — declares ONLY its brand + font + feel
    ├─ brand tokens   ◄── OKLCH engine ◄── this project's brandColor (from Sanity)
    ├─ status colors  ◄── derived from the brand hue by the engine [D32]
    ├─ font           ◄── resolved face's .variable class [D11]
    ├─ feel overrides (radius/border/shadow/density) — only where it differs
    └─ --<proj>-*     internal alias mapped from the generic --brand-* / --font-face [D2]
-          │ themes downward ↓
-   the project's pages + embeds   read var(--brand-*) / var(--font-face) / var(--space-*)
+          │ themes downward, within the slot ↓
+   the slot's experience + embeds   read var(--brand-*) / var(--font-face) / var(--space-*)
           └─ [data-experience-surface]  optional scoped reset for an interactive surface
 ```
 
@@ -119,8 +136,9 @@ Key points:
   "nothing themeable at `:root`" — it is "nothing that carries a project's _brand or feel_ at
   `:root`." Spacing/motion/breakpoints/type-ratios are themeable-in-principle but
   invariant-in-practice, so they live globally and a scope may _override_ a feel token via normal
-  cascade (still downward theming). The brand ramp always lives in the scope, because it genuinely
-  varies and must be flash-free per island.
+  cascade (still downward theming). The **global editorial look** (Newsreader + the neutral ramp) is
+  also a foundation-tier global — house style, not a project's brand `[D30]`. The brand ramp always
+  lives in the slot scope, because it genuinely varies and must be flash-free per slot.
 
 - **Every CSS Module must declare its `@layer`** `[D12]`. Next does **not** auto-assign CSS
   Modules to a cascade layer, and an _unlayered_ module's plain declarations outrank **every**
@@ -154,7 +172,8 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   per project generates **both** light and dark ramps — dark is reduced chroma + shifted surface L
   with on-color contrast re-solved, not "invert L." The scoped `<style>` emits both via CSS
   `light-dark()` so a single block carries both schemes and switching is pure CSS, respecting
-  `prefers-color-scheme`.
+  `prefers-color-scheme`. A seed too light to serve as the light-mode primary is auto-assigned as
+  the **dark-mode** brand, with the light-mode brand derived from it.
 
 - **Contrast is solved, not stepped** `[D4]`. OKLCH `L` is perceptual lightness, _not_ WCAG
   relative luminance or APCA Lc — a fixed ΔL passes for a blue brand and fails for yellow/cyan at
@@ -177,20 +196,20 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   color) — those belong in the scoped tier.
 
 - **Status colors are brand-derived** `[D32]`. `success`/`error`/`warning`/
-  `info` are generated by the engine from each island's brand hue — scheme-aware and
-  contrast-solved like the rest of the ramp — so every project carries status colors harmonized
-  with its brand, not a single fixed global signal set. Build is deferred until the first
-  status-bearing UI lands; see the GitHub issue tracker.
+  `info` are generated by the engine from each slot's brand hue — scheme-aware and contrast-solved
+  like the rest of the ramp — so every project slot carries status colors harmonized with its brand,
+  not a single fixed global signal set. Build is deferred until the first status-bearing UI lands;
+  see the GitHub issue tracker.
 
 - **Defensive, never throws** `[D9]`. `brandColor` comes from an editor and may be invalid or
   out-of-gamut. The engine parses/clamps/gamut-validates and **returns a safe fallback palette**
   rather than throwing — a bad color is expected data, not an exceptional bug. This pairs with
   author-time Sanity validation (§6) and a `ProjectScope` backstop (§6, §7).
 
-- Runs **per scope** — once per project (seeded by that project's `brandColor`) and once for the
-  shell. Multiple themed islands can coexist on one page. **Previews are not islands**: a `/work`
-  card or note preview needs a few colors, not a namespace, so it derives them from the same engine
-  (Consumer C) and skips the scoped `<style>` block.
+- Runs **per slot** — once per project slot (seeded by that project's `brandColor`). Multiple themed
+  slots can coexist on one page; the page chrome around them stays editorial. **Previews are not
+  slots**: an index card or inline preview needs a few colors, not a namespace, so it derives them
+  from the same engine (Consumer C) and skips the scoped `<style>` block.
 
 - Emitted as a **server-rendered scoped `<style>` block** (`[data-project="x"] { … }`), declared
   `@layer brand`. On Vercel this is genuinely **flash-free for color**: the `brandColor` is known
@@ -205,21 +224,21 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 
 **Three consumers, one engine:**
 
-- **Consumer A — the theming feature**: the per-scope theming layer (`ProjectScope`) calls the
-  engine on the server to emit each island's `<style>` block.
+- **Consumer A — the theming feature**: the per-slot theming layer (`ProjectScope`) calls the
+  engine on the server to emit each slot's `<style>` block.
 - **Consumer B — the portfolio piece**: `src/projects/oklch-engine/` is an ordinary project module
   (§4) whose interactive experience is a playground (drag a hue, watch the palette regenerate). The
   experience **imports the same shared engine** — it never reimplements it, and re-runs the pure
   function in JS on each slider move (it does not rely on CSS re-derivation).
-- **Consumer C — preview swatches**: the `/work` index (and note previews) call a
+- **Consumer C — preview swatches**: the index (and inline previews) call a
   `cardSwatches(brandColor)` helper that runs the **same engine** and returns just a few stops. The
-  card sets them as inline `--c-*` custom properties and uses the shell font — no island, no
-  `<style>` block, no full namespace. It goes through the same parse/validate path as everything
+  card sets them as inline `--c-*` custom properties on otherwise-editorial chrome — no slot scope,
+  no `<style>` block, no full namespace. It goes through the same parse/validate path as everything
   else.
 
 Two deliberate consequences:
 
-- **It themes itself, on purpose.** The oklch-engine project is a themed island like any other, so
+- **It themes itself, on purpose.** The oklch-engine project's slot is themed like any other, so
   its own brand tokens are generated by the engine it showcases. No circular dependency in code
   (the project depends on the engine; the engine depends on nothing).
 - **Keep it isomorphic** (enforced — see above).
@@ -230,11 +249,11 @@ Shared logic lives in a shared module; the project is a presentation of it.
 
 ### 3.3 Downward theming
 
-The **project scope is the single downward-theming owner** for brand + feel: it declares the
+The **project's slot scope is the single downward-theming owner** for brand + feel: it declares the
 project's brand tokens (from the OKLCH engine) plus any feel overrides, and themes everything
-beneath it — every page and every embedded component — by passing those values _down_. They all
-read the same scoped tokens; the project scope is the authority. The foundation tier sits above,
-shared.
+beneath it — the slot's interactive experience and the components it embeds — by passing those
+values _down_. They all read the same scoped tokens; the slot scope is the authority. The page
+chrome around the slot reads the global editorial tier; the foundation tier sits above, shared.
 
 The directional rule:
 
@@ -249,7 +268,7 @@ sets and a component reads). You never override a _mid-chain derived_ token and 
 derivatives to recompute — the engine baked them. The `var(--public, var(--_internal-default))`
 pattern is for composition-time downward theming of primitives, not live ramp re-derivation.
 
-Self-sufficiency still applies _within_ the island: a shared primitive must not assume tokens from
+Self-sufficiency still applies _within_ the slot: a shared primitive must not assume tokens from
 any _specific_ project's scope. It ships its own defaults and reads generic names (`--brand-*`,
 `--font-face`), so it works composed into any project (or none).
 
@@ -279,8 +298,9 @@ page set is decided per project, not fixed by a template. `experience.tsx` is th
 page in `pages/` mounts it `[D20]`. A headless `core/` is **not** templated into every module —
 let it emerge only when an experience's logic warrants extraction (same deferral discipline as the
 embed tiers) `[D20, §4.3]`. The module owns its page components; thin route files mount them. Code
-lives under `src/projects/<slug>/`; **routes live under `/work`** — `/work` is the index of project
-cards, `/work/<slug>` mounts a project's pages.
+lives under `src/projects/<slug>/`; **routes are flat** `[D36]` — `/` is the index of project
+cards, and a root-level `/<slug>` (a dynamic segment that cedes precedence to static segments like
+`/about`, `/now`) mounts a project's pages.
 
 **Start single-tier** — one shared `src/lib/resolvers/embeds.ts` until a second project actually reuses a
 widget; introduce the project-local tier only then `[D24]`. Once you do, embeds follow the **same
@@ -299,7 +319,7 @@ holding it (§3.2).
 ### 4.2 The CMS ↔ code registry
 
 ```
-Sanity project doc { componentKey: "<slug>", brandColor, fontKey, copy, notes, tags }
+Sanity project doc { componentKey: "<slug>", brandColor, fontKey, copy, maturity, related, featuredRank, tags }
         │
         ▼
 src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the project module
@@ -346,8 +366,9 @@ themes identically.
 
 **Store-the-key (roster-by-key).** A curated roster of faces is declared in code (each a `next/font`
 export, in a single shared module); Sanity stores a `fontKey` per project and the editor picks from
-a dropdown; the project scope applies the face that key resolves to, via that face's **`.variable`
-class** on the `[data-project]` wrapper, with `--<proj>-font` mapping to it `[D11]`. This keeps
+a dropdown; the project's **slot scope** applies the face that key resolves to, via that face's
+**`.variable` class** on the `[data-project]` wrapper, with `--<proj>-font` mapping to it; page
+chrome stays on the editorial face `[D11, D30]`. This keeps
 `next/font`'s self-hosting, subsetting, and zero-CLS sizing while putting a project's type choice on
 its document alongside its brand color.
 
@@ -370,22 +391,23 @@ Two facts make a large roster cheap:
 So, the policy:
 
 - **`preload: false` on every roster face** by default (the default is `true`, so this must be set
-  explicitly). Only the **1–2 shell faces** get `preload: true`, in the root layout, where they
+  explicitly). Only the **1–2 editorial faces** get `preload: true`, in the root layout, where they
   preload on every route.
-- **Per-project faces are applied, not preloaded.** A project's display face below the fold of an
-  essay (behind a `/work` card click) tolerates `font-display: swap`. If a specific above-the-fold
-  project face genuinely must preload, emit the `<link rel="preload" as="font" crossorigin>`
-  manually.
-- **Verify empirically:** `pnpm build`, visit `/work/<slug>`, view-source the `<head>`, count
-  `<link rel="preload" as="font">` — confirm the policy holds (expect the shell faces only).
+- **Per-project faces are applied, not preloaded.** A project's slot face (behind a `/<slug>` click)
+  tolerates `font-display: swap`. If a specific above-the-fold project face genuinely must preload,
+  emit the `<link rel="preload" as="font" crossorigin>` manually.
+- **Verify empirically:** `pnpm build`, visit `/<slug>`, view-source the `<head>`, count
+  `<link rel="preload" as="font">` — confirm the policy holds (expect the editorial face only).
 - **Where the link lands** (initial shell vs streamed hole) is the other axis: keep `ProjectScope`
   in the prerendered shell (§7) so its `<head>` contributions are in the initial static HTML.
 
-Mapped onto the islands:
+Mapped onto the layers:
 
-- **Shell fonts** (the garden's own identity) → root layout, `preload: true`. Keep to 1–2 faces.
+- **The editorial face** (the site's global identity — Newsreader) → root layout, `preload: true`.
+  Every page's chrome uses it. Keep to 1–2 faces.
 - **Per-project fonts** → resolved from the project doc's `fontKey` against the code-side roster,
-  applied at its `[data-project]` scope via `.variable`.
+  applied at the project's `[data-project]` **slot** scope via `.variable` — they theme the slot,
+  not the page `[D30]`.
 - **Shared fonts** → the roster _is_ the single declaration point, so a face two projects use is
   declared **once** and resolved by both.
 - **Experience & embed fonts** → neither declares its own `next/font`; each reads `--<proj>-font`,
@@ -396,8 +418,8 @@ Practical notes:
 - Prefer **variable fonts** (one file, many weights/optical sizes).
 - The site is **flash-free for _theming_** (color arrives inline with the markup); fonts are
   **zero-CLS with an intentional `swap`** — next/font's size-adjusted fallback kills layout shift but
-  a per-project display face will visibly swap on navigation, by design. Decide `swap` vs `optional`
-  per face.
+  a per-project slot face will visibly swap as its slot mounts, by design. Decide `swap` vs
+  `optional` per face.
 
 ---
 
@@ -405,19 +427,25 @@ Practical notes:
 
 - **Content lives in Sanity; interaction lives in code.** A `project` document holds the essay and
   references a coded module via `componentKey`; the CMS never reimplements interaction.
+- **One document type — `project`** `[D34]`. A "note" and a "project" share this type; the
+  difference is scope (a note is shorter, single-topic), not schema. A **`maturity`** field (sketch →
+  prototype → shipped) is the honesty badge, independent of scope and of curation (`featuredRank`).
+  The display label is decoupled from the `_type`; a second type is deferred until a shipped piece
+  proves divergent fields `[D24]`.
 - **The essay is rich content (portable text), not plain text.** Alongside text it carries typed
   embed blocks — media and live components referenced by key and resolved in code.
 - **`brandColor` is per-project, typed, and validated** `[D9]`. It's a field on the `project`
-  document (the per-project island seed), stored as a validated string (hex or `oklch()`).
-  Author-time Sanity `validation` runs the engine's own color pipeline (parse → gamut-map → confirm
-  in-spec contrast) for editor feedback. Defense-in-depth: the engine itself never throws (§3.2) and
-  `ProjectScope` falls back to a safe default. `siteSettings` holds the shell's brand, same
-  treatment. Each is fed to the OKLCH engine at its own scope.
+  document (the slot seed), stored as a validated string (hex or `oklch()`). Author-time Sanity
+  `validation` runs the engine's own color pipeline (parse → gamut-map → confirm in-spec contrast)
+  for editor feedback. Defense-in-depth: the engine itself never throws (§3.2) and `ProjectScope`
+  falls back to a safe default. `siteSettings` holds the site title/description and may seed a
+  homepage slot; it does not brand the chrome `[D30]`.
 - **`fontKey` is per-project** — a field on the `project` document, chosen from the curated roster
   (§5). Reference-by-key, exactly like `componentKey` and `brandColor`.
 - **No per-scheme color field** `[D5]`. Dark mode is a render-time axis; one `brandColor` generates
   both schemes. A project needing a hand-tuned dark brand gets an _optional_ `brandColorDark`
-  override, defaulted from the engine — never a required parallel field.
+  override, defaulted from the engine — never a required parallel field. (A seed too light to be the
+  light-mode primary is auto-assigned as the dark brand; see §3.2.)
 - **Keys are a contract; the Studio never imports implementations** `[D10]`. Each reference-by-key
   pair is split: a tiny `keys.ts` of string constants (imported by the schema to build its dropdown)
   and a separate resolver in the app — `lib/resolvers/components.ts`, `lib/resolvers/fonts.ts`,
@@ -434,25 +462,28 @@ Practical notes:
   sizes, initial state) as a block or an untyped `props` blob — default it in the registry, or split
   into two registered keys. Litmus: _editor writes/curates it → typed block; developer decides it →
   registry; neither → it's not an input._
-- **The index query refuses to over-fetch.** The `/work` query pulls `blurb`, `brandColor`,
-  `fontKey` — **not** the essay. That enforces "a few colors per card" at the data layer (cards feed
-  `cardSwatches`, §3.2 Consumer C) and keeps the index payload small for CWV.
+- **The index query refuses to over-fetch.** The index query pulls `blurb`, `brandColor`, `fontKey`,
+  `maturity`, `featuredRank` — **not** the essay. That enforces "a few colors per card" at the data
+  layer (cards feed `cardSwatches`, §3.2 Consumer C) and keeps the index payload small for CWV.
 - **`ProjectScope` is the resolution keystone.** One server component takes a scope's `brandColor` +
   `fontKey` and emits the flash-free scoped `<style>` (engine palette, both schemes via
-  `light-dark()`) plus the resolved font's `.variable` class. It is **defensive** — engine returns a
-  fallback on bad input, and the component is wrapped in `unstable_catchError` (`next/error`) as a
-  backstop, **not** a segment `error.tsx` (which doesn't catch its own layout's throw — §7) `[D9]`.
-  The shell uses it with `slug="garden"`. It renders in the prerendered shell (§7). Everything
-  beneath reads `var(--brand-*)` / `var(--font-face)`.
+  `light-dark()`) plus the resolved font's `.variable` class. It wraps a project's **interactive
+  slot** (and any homepage slot `siteSettings` seeds), not the page chrome `[D30]`. It is
+  **defensive** — engine returns a fallback on bad input, and the component is wrapped in
+  `unstable_catchError` (`next/error`) as a backstop, **not** a segment `error.tsx` (which doesn't
+  catch its own layout's throw — §7) `[D9]`. It renders in the prerendered shell (§7); the slot's
+  subtree reads `var(--brand-*)` / `var(--font-face)`.
 - **Visual editing details** `[D16]`. Disable Sanity **stega** on `brandColor`/`fontKey` — the
   invisible encoding chars break the OKLCH parse and the font-class lookup. `liveEmbed`
   click-to-edit targets the caption/`embedKey` field, not the interactive region.
-- **Notes / digital garden**: backlinks via `references()` — but model inter-note links as **real
-  Sanity `reference` fields** (not free-text slugs), or `references()` finds nothing and you
-  reintroduce key-drift `[D16]`. Note pages stay lightweight (shell + shared components) and pull a
-  project demo bundle only if a note explicitly embeds one.
+- **Backlinks are Day-1** `[D35]`. A `project` carries a `related` reference array targeting other
+  `project` docs — **real Sanity `reference` fields**, not free-text slugs (or `references()` finds
+  nothing and you reintroduce key-drift `[D16]`) — and the read path resolves **incoming** backlinks
+  via GROQ `references()`, so an edge authored once shows on both ends. A note is a shorter-scope
+  `project` `[D34]`; short pieces stay lightweight (chrome + shared components) and pull a demo
+  bundle only if one explicitly embeds it.
 - **Site pages** (home, about, `/now`) are shell-owned, not project modules. Their content can live
-  in Sanity, rendered under the shell island's scope (§3.1).
+  in Sanity, rendered with the global editorial look (§3.1).
 - **TypeGen + `defineQuery`**: typed GROQ; run TypeGen after any schema or query change (a committed
   script + a CI `git diff --exit-code` on the generated types keeps it from rotting); `defineQuery`
   must wrap the query literally (no runtime interpolation).
@@ -468,9 +499,9 @@ Practical notes:
 - **Cache Components enabled app-wide** `[D11]`. `export const dynamic`/`force-static` are gone — all
   routes are dynamic-by-default with PPR baked in, and static-vs-dynamic is a **component-level**
   concern (`use cache` + where request-time APIs are touched). A route is a **prerendered shell with
-  dynamic holes**. `ProjectScope` renders in the prerendered shell so the scoped theme `<style>` and
-  the resolved font class are in the **initial static HTML** (flash-free, no streamed delay), while
-  the essay/notes stream. This is an app-wide rendering model (request APIs need Suspense or
+  dynamic holes**. `ProjectScope` (wrapping a project's slot) renders into the prerendered shell so the scoped theme
+  `<style>` and the resolved font class are in the **initial static HTML** (flash-free, no streamed
+  delay), while the essay streams. This is an app-wide rendering model (request APIs need Suspense or
   arg-passing; `<Activity>`-based state preservation across nav).
 - **Error containment is a defensive-engine job, not an error boundary** `[D9]`. A throw in a Server
   Component bubbles to the nearest _parent_ boundary, and a segment's own `error.tsx` does **not**
@@ -501,7 +532,7 @@ Before shipping a **shared** unit (the litmus is for shared primitives, not ever
 - [ ] Does it avoid assuming any **themeable ambient context** (a parent's _brand or feel_ value, a
       font mounted higher up)? Reading the global **foundation** tier (spacing, motion) is fine —
       that's plumbing, not a look. `[D1]`
-- [ ] If shared, is it **declared once and composed in**, never re-instantiated per island?
+- [ ] If shared, is it **declared once and composed in**, never re-instantiated per slot?
 - [ ] Does the host theme it **downward** (set the tokens it consumes) rather than the unit reaching
       up?
 - [ ] If it has a CSS Module, does that module **declare its `@layer`** (or stay strictly

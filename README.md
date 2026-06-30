@@ -1,12 +1,14 @@
 # Digital Garden
 
 A personal portfolio and digital garden — a place to grow notes, ideas, and work
-over time. Each project is a self-contained, independently themed module: its own
-brand color (a perceptual OKLCH palette) and font, composed on a shared
-foundation. Content and brand seeds live in Sanity; the site renders on Next.js.
+over time. The whole site shares one editorial look — Newsreader and a
+black/white/gray neutral ramp — across all page chrome. Each project's brand
+color (a perceptual OKLCH palette) and font theme only its own bounded
+interactive slot, on that shared foundation. Content and brand seeds live in
+Sanity; the site renders on Next.js.
 
 > **Status:** the shared foundation, the OKLCH theming engine (`@garden/oklch`), the Sanity
-> content model, and mock projects are **live on Vercel** — with the themed
+> content model, and mock projects are **live on Vercel** — with the editorial
 > garden shell, an RSS feed, and Sanity draft mode + live preview wired to publish→production
 > revalidation. Remaining work is tracked in
 > [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
@@ -84,8 +86,9 @@ CI runs all of the above (plus a TypeGen drift check) on every PR.
 - **Foundation** (`src/app/foundation.css`, global `:root`) — spacing,
   type scale, motion, z-index, focus-ring geometry, the reset. Loaded first, and it
   declares the `@layer foundation, brand, project;` order.
-- **Brand + font** (per-project scope, engine-driven) — the OKLCH color ramp and the
-  resolved font face, baked flash-free by `ProjectScope` from the `@garden/oklch` engine.
+- **Brand + font** (project-slot scope, engine-driven) — the OKLCH color ramp and the
+  resolved font face, scoped to a project's bounded interactive slot and baked flash-free
+  by `ProjectScope` from the `@garden/oklch` engine.
 - **Feel/geometry** (per-project scope override) — radius, border weight, etc.
 
 Every CSS Module wraps its rules in an `@layer` (lint-enforced), because Next does
@@ -96,8 +99,8 @@ not auto-layer modules and an unlayered one would silently outrank layered style
 ```
 src/
   app/                  # App Router: routes, layouts, global styles
-    layout.tsx          # root layout — themed garden shell (ProjectScope slug="garden") + nav
-    page.tsx            # home; about/ now/ notes/ — themed shell pages
+    layout.tsx          # root layout — editorial shell (ProjectScope slug="garden") + nav
+    page.tsx            # home; about/ now/ notes/ — editorial chrome pages
     work/               # /work index (swatch cards) + /work/[slug] project route (+ states)
     api/draft-mode/     # draft-mode enable/disable route handlers
     api/revalidate/     # signed Sanity webhook → revalidateTag (publish→prod)
