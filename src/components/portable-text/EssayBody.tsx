@@ -12,10 +12,10 @@ import EssayFigure from "./EssayFigure";
 type Essay = NonNullable<NonNullable<PROJECT_DETAIL_QUERY_RESULT>["essay"]>;
 
 /**
- * The Portable Text serializer for a project essay (§6, [D15, D19]). Renders the essay's
+ * The Portable Text serializer for a project essay. Renders the essay's
  * blocks plus the two authored embed kinds — `liveEmbed` → `EmbedBlock` (resolves the
- * `embedKey`, falls back to a visible placeholder on a miss [D10]) and `figure` →
- * `EssayFigure` [D15]; standard text blocks use the library defaults. The serializer is the
+ * `embedKey`, falls back to a visible placeholder on a miss) and `figure` →
+ * `EssayFigure`; standard text blocks use the library defaults. The serializer is the
  * ONE place the essay meets code, so the embed-resolution seam lives here, not in the route.
  */
 const components: PortableTextComponents = {

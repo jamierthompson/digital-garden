@@ -10,11 +10,10 @@ import { escapeXml } from "./escapeXml";
  *
  * A Route Handler that returns non-UI content — the bundled docs put RSS at
  * exactly this path (`app/rss.xml/route.ts`,
- * node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md
- * §Non-UI Responses). It reuses the existing published-only `WORK_INDEX_QUERY`
+ * node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md). It reuses the existing published-only `WORK_INDEX_QUERY`
  * via the PUBLIC client — RSS is public content, so drafts must never leak here.
  *
- * Cache Components is on app-wide [D11], so this is dynamic by default. The feed
+ * Cache Components is on app-wide, so this is dynamic by default. The feed
  * changes only when projects are published, so the data read is wrapped in a
  * `use cache` function with `cacheLife("hours")` — efficient without serving stale
  * feeds for long.

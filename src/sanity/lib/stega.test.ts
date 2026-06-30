@@ -7,13 +7,13 @@ import {
 } from "./stega";
 
 /**
- * The stega exclusion set is a correctness landmine, not cosmetics [D16]: the five
+ * The stega exclusion set is a correctness landmine, not cosmetics: the five
  * code-consumed fields are parsed by the OKLCH engine or resolved by key, and stega's
  * invisible chars break both. This is single-sourced here precisely so the published
  * client and the Live base client can never drift — so the test pins the exact set and
  * the filter's two branches.
  */
-describe("stega exclusions [D16]", () => {
+describe("stega exclusions", () => {
   it("excludes exactly the five code-consumed fields", () => {
     expect([...STEGA_EXCLUDED_FIELDS].sort()).toEqual(
       [

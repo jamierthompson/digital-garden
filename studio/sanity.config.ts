@@ -9,7 +9,7 @@ import {schemaTypes} from './schemaTypes'
  * Singleton document types — excluded from the default document-type list so
  * editors cannot create duplicates. Each gets a fixed documentId via
  * S.document().documentId(...), which is the canonical Sanity v6 singleton
- * pattern. [D24]
+ * pattern.
  */
 const SINGLETONS = ['siteSettings']
 
@@ -88,7 +88,7 @@ export default defineConfig({
   plugins: [
     structureTool({structure}),
     /**
-     * Presentation tool — the in-product Preview entry point. [D16] Loads the front-end
+     * Presentation tool — the in-product Preview entry point. Loads the front-end
      * (`previewUrl.initial`) in an iframe and toggles Draft Mode via the app's route
      * handlers (src/app/api/draft-mode/*); the enable handler validates Presentation's
      * signed secret via next-sanity's `defineEnableDraftMode` (wrapping

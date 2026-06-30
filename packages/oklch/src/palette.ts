@@ -2,14 +2,14 @@
  * The high-level engine: `brandColor` → contrast-solved, gamut-mapped token sets.
  *
  * Two wrappers over the low-level surface (convert/gamut/contrast):
- *   • `resolveTheme(brandColor, scheme, opts)` → one scheme's tokens [D5 signature]
+ *   • `resolveTheme(brandColor, scheme, opts)` → one scheme's tokens
  *     (Consumer B playground, Consumer C `cardSwatches` — they want one scheme).
  *   • `buildTokenSet(brandColor, opts)` → both schemes zipped into `light-dark()` pairs
- *     (Consumer A `ProjectScope`, which emits a single block carrying both schemes [D5]).
+ *     (Consumer A `ProjectScope`, which emits a single block carrying both schemes).
  *
- * Order of operations is fixed by decision: parse defensively [D9] → per-scheme seed
- * (dark = reduced chroma [D5]) → gamut-map [D6] → solve contrast on the mapped color [D4].
- * The engine bakes literals and NEVER throws — bad input yields the fallback palette [D3, D9].
+ * Order of operations is fixed: parse defensively → per-scheme seed
+ * (dark = reduced chroma) → gamut-map → solve contrast on the mapped color.
+ * The engine bakes literals and NEVER throws — bad input yields the fallback palette.
  */
 
 import { gamutMap } from "./gamut";
@@ -32,19 +32,19 @@ import type {
 } from "./types";
 
 export interface EngineOptions {
-  /** Target display gamut [D6]. Defaults to `srgb` (safe everywhere — see types). */
+  /** Target display gamut. Defaults to `srgb` (safe everywhere — see types). */
   gamut?: Gamut;
 }
 
 /**
- * Fallback brand seed for unparseable input [D9] — a calm slate-blue, in sRGB gamut,
+ * Fallback brand seed for unparseable input — a calm slate-blue, in sRGB gamut,
  * chosen so every solved token comfortably clears its target. Deterministic.
  */
 const FALLBACK_SEED: OkLCH = { L: 0.55, C: 0.11, H: 264 };
 
-// Contrast targets mirror accessibility-and-performance.md §1 table.
+// Contrast targets mirror accessibility-and-performance.md table.
 const TARGET = {
-  /** Body text: WCAG 4.5 floor, APCA Lc 75 quality target [D4]. */
+  /** Body text: WCAG 4.5 floor, APCA Lc 75 quality target. */
   bodyText: { wcag: 4.5, apca: 75 } satisfies ContrastTarget,
   /** Muted/secondary text: still small-text AA (4.5), lower APCA tier (Lc 60). */
   mutedText: { wcag: 4.5, apca: 60 } satisfies ContrastTarget,
@@ -54,14 +54,15 @@ const TARGET = {
    *  mid-tone fill cannot host Lc-75 body text in either polarity, so the on-brand
    *  label target is the non-body tier; the accent fill is co-solved to host it. */
   onAccent: { wcag: 4.5, apca: 60 } satisfies ContrastTarget,
-  /** Accent fill, borders, focus ring: non-text 3:1 (1.4.11), Lc 45 spot-readable [D7]. */
+  /** Accent fill, borders, focus ring: non-text 3:1 (1.4.11), Lc 45 spot-readable. The
+   *  focus-ring color is an engine token (contrast-solved per slot); ring geometry stays global. */
   ui: { wcag: 3, apca: 45 } satisfies ContrastTarget,
   /** Subtle borders: non-text 3:1 floor. */
   border: { wcag: 3, apca: 30 } satisfies ContrastTarget,
 } as const;
 
 // Surfaces are near-neutral with a whisper of brand tint. Dark surfaces use reduced
-// chroma [D5]. Text/accent/border/ring are SOLVED against these, never stepped [D4].
+// chroma. Text/accent/border/ring are SOLVED against these, never stepped.
 
 interface SchemeConfig {
   /** Page background lightness. */
@@ -72,7 +73,7 @@ interface SchemeConfig {
   surface2L: number;
   /** Max chroma carried into the near-neutral surfaces (brand tint cap). */
   surfaceChromaCap: number;
-  /** Chroma multiplier applied to the brand seed for this scheme (dark dampens) [D5]. */
+  /** Chroma multiplier applied to the brand seed for this scheme (dark dampens). */
   seedChroma: number;
   /** Chroma used for near-neutral body/muted text (small brand tint). */
   textChroma: number;
@@ -92,7 +93,7 @@ const SCHEMES: Record<Scheme, SchemeConfig> = {
     surfaceL: 0.215,
     surface2L: 0.26,
     surfaceChromaCap: 0.014,
-    seedChroma: 0.82, // reduced chroma in dark [D5]
+    seedChroma: 0.82, // reduced chroma in dark
     textChroma: 0.014,
   },
 };
@@ -105,7 +106,7 @@ function surface(L: number, hue: number, chroma: number, gamut: Gamut): OkLCH {
 /**
  * Co-solve the accent FILL and the text that sits ON it. A mid-tone fill can host no
  * high-Lc text in either polarity, so we scan the brand hue across lightness for the
- * fill that (a) stays visible on the worst-case surface (≥3:1 + Lc 45, non-text [D4])
+ * fill that (a) stays visible on the worst-case surface (≥3:1 + Lc 45, non-text)
  * and (b) lets a near-white OR near-black label clear the on-accent target — preferring
  * the MOST chromatic (most brand-faithful) such fill. Deterministic, always returns a
  * usable pair (a deep/bright saturated fill always hosts a high-contrast label).
@@ -156,7 +157,7 @@ function solveAccent(
   }
 
   if (best) return { accent: best.accent, onAccent: best.onAccent };
-  // Should be unreachable, but never return undefined — defensive [D9].
+  // Should be unreachable, but never return undefined — defensive.
   if (fallback) return { accent: fallback.accent, onAccent: fallback.onAccent };
   const accent = gamutMap(
     { L: surfaceBg.L >= 0.5 ? 0.45 : 0.7, C: seed.C, H: hue },
@@ -174,7 +175,7 @@ function solveAccent(
 
 /**
  * Resolve every brand token for ONE scheme. The literal `(brandColor, scheme) → tokenSet`
- * of the architecture signature [D5]. Pure, deterministic, never throws [D3, D9].
+ * of the architecture signature. Pure, deterministic, never throws.
  */
 export function resolveTheme(
   brandColor: unknown,
@@ -187,7 +188,7 @@ export function resolveTheme(
   const base = parsed ?? FALLBACK_SEED;
   const cfg = SCHEMES[scheme];
 
-  // Per-scheme seed: hold L/H, dampen chroma in dark, then gamut-map [D6].
+  // Per-scheme seed: hold L/H, dampen chroma in dark, then gamut-map.
   const seed = gamutMap(
     { L: base.L, C: base.C * cfg.seedChroma, H: base.H },
     gamut,
@@ -311,8 +312,8 @@ function mapTokens<T>(
 
 /**
  * Build the dual-scheme token set for `ProjectScope` (Consumer A): resolves both
- * schemes and zips each token into a `{ light, dark }` pair for `light-dark()` [D5].
- * Pure, deterministic, never throws [D3, D9].
+ * schemes and zips each token into a `{ light, dark }` pair for `light-dark()`.
+ * Pure, deterministic, never throws.
  */
 export function buildTokenSet(
   brandColor: unknown,

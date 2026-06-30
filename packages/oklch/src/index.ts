@@ -1,15 +1,15 @@
 /**
- * The OKLCH theming engine — pure, isomorphic [D14] public surface.
+ * The OKLCH theming engine — pure, isomorphic public surface.
  *
- * Two layers, per §3.2:
+ * Two layers:
  *   • HIGH-LEVEL: `resolveTheme(brandColor, scheme)` and `buildTokenSet(brandColor)` —
- *     contrast-solved [D4], gamut-mapped [D6], baked-literal [D3], never-throwing [D9]
- *     token sets. `buildTokenSet` zips both schemes for `light-dark()` output [D5].
+ *     contrast-solved, gamut-mapped, baked-literal, never-throwing token sets.
+ *     `buildTokenSet` zips both schemes for `light-dark()` output.
  *   • LOW-LEVEL: color conversions, gamut mapping, contrast (APCA Lc + WCAG ratio),
  *     the contrast solver, and lightness ramps — for the playground / card swatches.
  *
  * NEVER add `server-only`/`client-only` here, never import `next`/`react`/`react-dom`,
- * never touch DOM/Node globals — lint-enforced [D14].
+ * never touch DOM/Node globals — lint-enforced.
  */
 
 export { resolveTheme, buildTokenSet, type EngineOptions } from "./palette";

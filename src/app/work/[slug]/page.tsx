@@ -17,12 +17,12 @@ import styles from "./page.module.css";
 
 // Thin route (`app/` is routing only — it mounts components from `src/`). The
 // composition: real Sanity-driven theming, from the doc down:
-//   ProjectScopeBoundary (unstable_catchError backstop, client)        [D9]
+//   ProjectScopeBoundary (unstable_catchError backstop, client)
 //     └ ProjectScope (real engine theme from the doc's brandColor/fontKey)
 //         └ <article> the project's essay (PT serializer) + its experience module
 //
-// The keystone stays defensive: the scope never throws on a bad brandColor/fontKey [D9].
-// The route's OWN failure modes are explicit `notFound()` calls [D10, D19]: an unpublished/
+// The keystone stays defensive: the scope never throws on a bad brandColor/fontKey.
+// The route's OWN failure modes are explicit `notFound()` calls: an unpublished/
 // unknown slug, or a `componentKey` that no longer resolves in code.
 
 interface WorkPageProps {
@@ -70,13 +70,13 @@ export default async function WorkPage({ params }: WorkPageProps) {
   const { slug } = await params;
   const project = await sanityFetch(PROJECT_DETAIL_QUERY, { slug });
 
-  // Unpublished / unknown slug → the not-found boundary [D10, D19].
+  // Unpublished / unknown slug → the not-found boundary.
   if (!project) {
     notFound();
   }
 
   // Resolve the coded module by key. A `componentKey` that no longer resolves (renamed/
-  // deleted module) degrades to not-found, never a crash [D10].
+  // deleted module) degrades to not-found, never a crash.
   const resolution = project.componentKey
     ? resolveComponentKey(project.componentKey)
     : null;
@@ -105,7 +105,7 @@ export default async function WorkPage({ params }: WorkPageProps) {
               ) : null}
               {/* Tags + related notes render the detail query's `tags`/`notes[]->`
                   projection (each self-guards to null when empty), so the query no
-                  longer over-fetches fields nothing renders [§6]. */}
+                  longer over-fetches fields nothing renders. */}
               <TagList tags={project.tags} />
             </header>
             {project.essay ? <EssayBody value={project.essay} /> : null}

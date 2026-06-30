@@ -1,10 +1,10 @@
 /**
  * Contrast — APCA Lc (perceptual quality target) and WCAG 2.x ratio (compliance
- * floor), plus the binary-search solver that hits a target by moving L [D4].
+ * floor), plus the binary-search solver that hits a target by moving L.
  *
  * OKLCH `L` is perceptual lightness, NOT contrast — a fixed ΔL passes for blue and
- * fails for yellow/cyan at the same step [D4]. So the engine never steps L by a fixed
- * offset; it solves L against the *relevant background*, on the gamut-mapped color [D6].
+ * fails for yellow/cyan at the same step. So the engine never steps L by a fixed
+ * offset; it solves L against the *relevant background*, on the gamut-mapped color.
  *
  * APCA constants: APCA-W3 0.1.9 / SA98G (https://github.com/Myndex/apca-w3,
  * https://github.com/Myndex/SAPC-APCA). WCAG ratio: WCAG 2.x 1.4.3 relative luminance.
@@ -108,9 +108,9 @@ export function apcaLc(text: OkLCH, bg: OkLCH): number {
 }
 
 export interface ContrastTarget {
-  /** WCAG 2.x ratio floor (compliance) — e.g. 4.5 body, 3 large/UI [D4]. */
+  /** WCAG 2.x ratio floor (compliance) — e.g. 4.5 body, 3 large/UI. */
   wcag: number;
-  /** APCA Lc magnitude target (quality) — e.g. 75 body, 60 muted, 30 UI [D4]. */
+  /** APCA Lc magnitude target (quality) — e.g. 75 body, 60 muted, 30 UI. */
   apca: number;
 }
 
@@ -138,7 +138,7 @@ function meets(fg: OkLCH, bg: OkLCH, target: ContrastTarget): boolean {
  * extreme is feasible, so black/white is always reachable — the solver therefore
  * always returns a color that meets the target (it cannot fail for a reachable target).
  *
- * Pure, deterministic, never throws [D3, D9].
+ * Pure, deterministic, never throws.
  */
 export function solveForeground(opts: SolveOptions): OkLCH {
   const { bg, hue, target, gamut } = opts;

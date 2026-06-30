@@ -1,8 +1,9 @@
-/* Foundation tier (global, house-style, non-themeable) — [D1].
+/* Foundation tier (global, house-style, non-themeable) — the base of the three-layer token
+   model (foundation primitives → semantic role tokens → brand scoped override).
    Loaded before every other sheet so the cascade-layer order is established first. */
 
 /* Cascade order: foundation < brand < project. Declaring it up front means later
-   sheets slot into named layers instead of fighting source order / specificity [D12].
+   sheets slot into named layers instead of fighting source order / specificity.
    Every CSS Module must opt into one of these layers (or stay var-consuming). */
 @layer foundation, brand, project;
 
@@ -48,7 +49,7 @@
   --z-popover: 500;
   --z-toast: 600;
 
-  /* Focus-ring geometry only — color is an engine token, scoped per island [D7] */
+  /* Focus-ring geometry only — color is an engine token (contrast-solved per slot), scoped per island */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
   --focus-ring-style: solid;
@@ -56,7 +57,7 @@
   /* No global semantic-color slots: status colors (success/error/warning/info) are
      brand-derived per island — engine-emitted into each [data-project] scope,
      scheme-aware and contrast-solved like the rest of the ramp — not a fixed global
-     set. Built when the first status-bearing UI lands [D32]. */
+     set. Built when the first status-bearing UI lands. */
 }
 
 @layer foundation {

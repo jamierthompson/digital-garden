@@ -1,19 +1,19 @@
 import type { StegaConfig } from "@sanity/client/stega";
 
 /**
- * The SINGLE source for stega (Content Source Map) configuration. [D16]
+ * The single source of truth for stega (Content Source Map) field-exclusions.
  *
  * Both the published `client` (`./client.ts`) and the Live Content base client
  * (`./live.ts`, passed to `defineLive`) import the exclusion filter from here, so
  * the code-consumed-field denylist can never drift between them — the whole point
- * of [D16]. `defineLive` flips stega `enabled` per request (off for published,
+ * of single-sourcing it here. `defineLive` flips stega `enabled` per request (off for published,
  * on for drafts), but the *filter* and *studioUrl* it carries come from whichever
  * client it was given, so they must be identical wherever stega can switch on.
  */
 
 /**
  * Fields whose string values are consumed by CODE, not rendered as prose, so they
- * must never carry stega's invisible zero-width characters. [D16]
+ * must never carry stega's invisible zero-width characters.
  *
  * - `brandColor` / `brandColorDark` are parsed by the OKLCH engine; stega chars
  *   break the color parse.
@@ -41,7 +41,7 @@ export const STEGA_EXCLUDED_FIELDS = new Set([
  * link target is its own origin — overridable per environment via the public
  * `NEXT_PUBLIC_SANITY_STUDIO_URL` var, defaulting to a local `/studio` path for dev.
  * It is public (it ships in encoded preview strings), so the `NEXT_PUBLIC_` prefix is
- * correct here. [security-and-ops §1]
+ * correct here. (see security-and-ops.md)
  */
 export const studioUrl = process.env.NEXT_PUBLIC_SANITY_STUDIO_URL || "/studio";
 

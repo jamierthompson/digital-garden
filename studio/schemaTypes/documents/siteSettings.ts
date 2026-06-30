@@ -3,12 +3,12 @@ import {defineField, defineType} from 'sanity'
 import {isBrandColorString} from '../shared/colorValidation'
 
 /**
- * Shell / digital-garden settings. [§6]
+ * Shell / digital-garden settings.
  *
  * Holds the shell island's brand seed (ProjectScope slug="garden") and shell
  * identity. Enforced as a singleton via Studio Structure (structureTool config in
  * sanity.config.ts). Same brand treatment as
- * a project: stega-excluded seed, engine-validated, defensively rendered. [D9]
+ * a project: stega-excluded seed, engine-validated, defensively rendered.
  */
 export const siteSettings = defineType({
   name: 'siteSettings',
@@ -32,7 +32,7 @@ export const siteSettings = defineType({
       title: 'Shell brand color',
       type: 'string',
       description:
-        'Brand seed for the shell island — hex or oklch(). Same engine treatment as a project; one value drives both schemes. [D5, D9]',
+        'Brand seed for the shell island — hex or oklch(). Same engine treatment as a project; one value drives both schemes.',
       validation: (rule) => rule.required().custom(isBrandColorString),
     }),
     defineField({
@@ -40,7 +40,7 @@ export const siteSettings = defineType({
       title: 'Shell brand color (dark override)',
       type: 'string',
       description:
-        'Optional hand-tuned dark-scheme shell brand. The engine derives dark from brandColor when empty. [D5]',
+        'Optional hand-tuned dark-scheme shell brand. The engine derives dark from brandColor when empty.',
       validation: (rule) => rule.custom(isBrandColorString),
     }),
     defineField({

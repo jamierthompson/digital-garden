@@ -1,4 +1,4 @@
-/* /work/<slug> project page. @layer project — declares its layer per [D12]; var-consuming only, themed by --brand-* (§8, [D2]). */
+/* /work/<slug> project page. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only, themed by generic --brand-* tokens. */
 @layer project {
   .module {
     max-width: 48rem;

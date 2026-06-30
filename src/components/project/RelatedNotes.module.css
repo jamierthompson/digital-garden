@@ -1,4 +1,4 @@
-/* Project "Related notes" list. @layer project — declares its layer per [D12]; var-consuming only, themed by --brand-* (§8, [D2]). */
+/* Project "Related notes" list. @layer project — declares its layer (unlayered modules outrank every layered rule); var-consuming only, themed by --brand-*. */
 @layer project {
   .related {
     margin-top: var(--space-7);

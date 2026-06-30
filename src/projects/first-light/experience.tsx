@@ -1,11 +1,11 @@
 import styles from "./experience.module.css";
 
 /**
- * The `first-light` interactive experience — the one constant a project module always has
- * (§4.1); a thin page mounts it [D20]. A pure presentational Server Component reading only
+ * The `first-light` interactive experience — the one constant a project module always has;
+ * a thin page mounts it. A pure presentational Server Component reading only
  * generic scoped tokens, so it themes off whatever scope composes it downward and never
- * reaches up for a look (§8). No headless `core/` — don't carve one until logic earns it,
- * and a static panel does not [D20, D24].
+ * reaches up for a look. No headless `core/` — don't carve one until logic earns it,
+ * and a static panel does not (instantiate on genuine need, not before).
  */
 export default function FirstLightExperience() {
   return (

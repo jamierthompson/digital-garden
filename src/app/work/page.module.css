@@ -1,4 +1,4 @@
-/* /work index. @layer project — declares its layer per [D12]; var-consuming only. Cards read
+/* /work index. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only. Cards read
    inline --c-* swatches `cardSwatches` spreads onto each card's `style={…}` (engine Consumer C,
    no scope) plus foundation tokens; the page frame is shell-neutral, only cards carry color. */
 @layer project {

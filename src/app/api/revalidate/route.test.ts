@@ -141,7 +141,7 @@ describe("POST /api/revalidate", () => {
     expect(revalidateTagSpy).not.toHaveBeenCalled();
   });
 
-  // Adversarial QA additions [D26]: the cases above cover the happy path + each rejection
+  // Adversarial QA additions: the cases above cover the happy path + each rejection
   // branch where `body` is null; these attack the branches a non-null payload opens — a
   // present-but-typeless body, a falsy `_type`, attacker-supplied tag fields, secret leakage.
 

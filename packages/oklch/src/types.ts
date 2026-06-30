@@ -1,9 +1,9 @@
 /**
  * Shared types for the OKLCH theming engine.
  *
- * The engine is PURE and ISOMORPHIC [D14]: no `next/*`, no `react`, no DOM/Node
+ * The engine is PURE and ISOMORPHIC: no `next/*`, no `react`, no DOM/Node
  * globals, and never `server-only`/`client-only`. These types describe colors and
- * the token set it bakes server-side as literal `oklch()` values [D3].
+ * the token set it bakes server-side as literal `oklch()` values.
  */
 
 /** A color in the OKLab cylindrical space (Björn Ottosson, 2020). */
@@ -30,18 +30,18 @@ export interface RGB {
   b: number;
 }
 
-/** Render-time color scheme axis — one `brandColor` generates both [D5]. */
+/** Render-time color scheme axis — one `brandColor` generates both. */
 export type Scheme = "light" | "dark";
 
 /**
- * Target display gamut for mapping before contrast math [D6]. `srgb` is the safe
+ * Target display gamut for mapping before contrast math. `srgb` is the safe
  * default: a literal mapped into sRGB renders identically on every display and its
  * solved contrast holds on the lowest-common-denominator screen. `p3` is available
  * explicitly for wide-gamut brand colors when the consumer opts in.
  */
 export type Gamut = "srgb" | "p3";
 
-/** The generic, public token names the engine emits [D2]. */
+/** The generic, public token names the engine emits. */
 export type BrandTokenName =
   | "bg"
   | "surface"
@@ -54,30 +54,30 @@ export type BrandTokenName =
   | "on-accent"
   | "focus-ring";
 
-/** One token resolved per scheme — both baked into a `light-dark()` literal [D5]. */
+/** One token resolved per scheme — both baked into a `light-dark()` literal. */
 export interface SchemePair {
   light: OkLCH;
   dark: OkLCH;
 }
 
-/** Every brand token resolved for a SINGLE scheme (Consumers B & C) [§3.2]. */
+/** Every brand token resolved for a SINGLE scheme (Consumers B & C). */
 export type SchemeTokens = Record<BrandTokenName, OkLCH>;
 
-/** Per-scheme engine result — the literal `(brandColor, scheme) → tokenSet` shape [D5]. */
+/** Per-scheme engine result — the literal `(brandColor, scheme) → tokenSet` shape. */
 export interface SchemeResult {
   tokens: SchemeTokens;
   /** The parsed, gamut-mapped (and per-scheme chroma-adjusted) brand seed. */
   seed: OkLCH;
   /** Target gamut the colors were mapped into. */
   gamut: Gamut;
-  /** True when the input failed to parse and the fallback palette was used [D9]. */
+  /** True when the input failed to parse and the fallback palette was used. */
   isFallback: boolean;
 }
 
 /**
  * The high-level engine output: every brand token, resolved for both schemes,
  * gamut-mapped and contrast-solved. `meta.isFallback` is true when `brandColor`
- * could not be parsed and the safe fallback palette was used [D9].
+ * could not be parsed and the safe fallback palette was used.
  */
 export interface TokenSet {
   tokens: Record<BrandTokenName, SchemePair>;
@@ -86,7 +86,7 @@ export interface TokenSet {
     seed: SchemePair;
     /** Target gamut the literals were mapped into. */
     gamut: Gamut;
-    /** True when the input failed to parse and the fallback palette was used [D9]. */
+    /** True when the input failed to parse and the fallback palette was used. */
     isFallback: boolean;
   };
 }

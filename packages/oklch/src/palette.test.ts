@@ -31,7 +31,7 @@ describe("resolveTheme", () => {
     },
   );
 
-  it("is deterministic — same input → identical output [D5]", () => {
+  it("is deterministic — same input → identical output", () => {
     expect(resolveTheme("#e11d48", "light")).toEqual(
       resolveTheme("#e11d48", "light"),
     );
@@ -45,7 +45,7 @@ describe("resolveTheme", () => {
     expect(resolveTheme("#3b82f6", "dark").tokens.bg.L).toBeLessThan(0.3);
   });
 
-  it("dampens chroma in dark vs light for the seed [D5]", () => {
+  it("dampens chroma in dark vs light for the seed", () => {
     const light = resolveTheme("#e11d48", "light");
     const dark = resolveTheme("#e11d48", "dark");
     expect(dark.seed.C).toBeLessThan(light.seed.C);
@@ -60,7 +60,7 @@ describe("resolveTheme", () => {
     }
   });
 
-  describe("defensive fallback [D9]", () => {
+  describe("defensive fallback", () => {
     it("never throws on garbage input and flags the fallback", () => {
       const bad: unknown[] = [
         "",
@@ -95,7 +95,7 @@ describe("resolveTheme", () => {
 });
 
 describe("buildTokenSet", () => {
-  it("zips both schemes into light/dark pairs for every token [D5]", () => {
+  it("zips both schemes into light/dark pairs for every token", () => {
     const set = buildTokenSet("#3b82f6");
     for (const name of TOKEN_NAMES) {
       expect(set.tokens[name].light, name).toBeDefined();
@@ -113,20 +113,20 @@ describe("buildTokenSet", () => {
     expect(set.tokens.accent.dark).toEqual(dark.tokens.accent);
   });
 
-  it("flags the fallback through to meta on bad input [D9]", () => {
+  it("flags the fallback through to meta on bad input", () => {
     expect(buildTokenSet("not-a-color").meta.isFallback).toBe(true);
   });
 });
 
 // The Studio's author-time `brandColor` validation (studio/schemaTypes/shared/
 // colorValidation.ts) is a thin wrapper over THIS call: it accepts a value iff
-// `buildTokenSet(value).meta.isFallback === false` [D9, D23]. The Studio has no test
+// `buildTokenSet(value).meta.isFallback === false`. The Studio has no test
 // runner of its own and shouldn't grow one for ~3 lines of glue; the contract that
 // actually matters — "what does the engine consider usable?" — is engine behavior, so
 // it's pinned here, where the runner already exists. This is the validation oracle:
 // `isFallback === false` ⇔ Studio accepts. If this boundary ever moves, author-time
 // validation moves with it — which is the point.
-describe("brandColor validation contract (the Studio's isFallback oracle) [D9, D23]", () => {
+describe("brandColor validation contract (the Studio's isFallback oracle)", () => {
   // Inputs an editor would type that the engine CAN theme with → Studio accepts.
   it.each([
     "#4f46e5", // 6-digit hex (the documented example)

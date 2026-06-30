@@ -3,13 +3,13 @@ import Link from "next/link";
 import { VisualEditing } from "next-sanity/visual-editing";
 
 /**
- * Draft-mode-gated Visual Editing controls. [D16]
+ * Draft-mode-gated Visual Editing controls.
  *
  * A server component that renders NOTHING for ordinary public visitors and, only
  * when Draft Mode is active, mounts:
  * - `<VisualEditing />` (next-sanity) — the click-to-edit overlay that reads the
  *   stega-encoded source map the draft client emits and deep-links each editable
- *   string back to the Studio. Per [D16], click-to-edit is scoped at the data
+ *   string back to the Studio. Click-to-edit is scoped at the data
  *   layer: `brandColor`/`fontKey`/etc. are stega-excluded in `client.ts`, so the
  *   overlay only targets prose/caption fields, never the code-consumed ones.
  * - an "Exit preview" link to the disable route, with `prefetch={false}` so a

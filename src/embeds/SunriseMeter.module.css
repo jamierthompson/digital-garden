@@ -1,4 +1,4 @@
-/* Sunrise-meter embed. @layer project — declares its layer per [D12]; var-consuming only, themed by generic --brand-* (a shared embed never reads a project-prefixed alias, [D2]). */
+/* Sunrise-meter embed. @layer project — every CSS Module declares its layer; var-consuming only, themed by generic --brand-* (a shared embed never reads a project-prefixed alias). */
 @layer project {
   .meter {
     margin: var(--space-5) 0;

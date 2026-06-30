@@ -1,5 +1,5 @@
 /**
- * Co-located test for the key-drift guard (scripts/check-key-drift.mjs) [D10].
+ * Co-located test for the key-drift guard (scripts/check-key-drift.mjs).
  *
  * Runs the script as a child process and asserts on exit code + output — never imports it
  * (importing would pull in `next/font` via the resolver/roster modules). Runs under the

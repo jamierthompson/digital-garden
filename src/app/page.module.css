@@ -1,4 +1,4 @@
-/* Home page. @layer project — declares its layer per [D12]; var-consuming only (shell brand/font tokens, §3.1). */
+/* Home page. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only (shell brand/font tokens). */
 @layer project {
   .main {
     display: flex;

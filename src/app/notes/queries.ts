@@ -1,7 +1,7 @@
 import { defineQuery } from "next-sanity";
 
 /**
- * Notes index query (shell-owned). [§6, D16]
+ * Notes index query (shell-owned).
  *
  * Pulls only what the lightweight notes list needs — `title`, `slug`, and a
  * `relatedCount` for a backlink hint — deliberately NOT the `body`. Notes stay

@@ -1,7 +1,7 @@
 // Fails if any CSS Module (*.module.css) has a style rule outside an `@layer`
 // block. Next does not auto-layer CSS Modules, so an unlayered module silently
 // outranks every @layer style regardless of specificity — wrap module rules in
-// the appropriate @layer (foundation | brand | project) [D12].
+// the appropriate @layer (foundation | brand | project).
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -39,7 +39,7 @@ for (const file of findModuleCss(SRC)) {
 }
 
 if (violations.length) {
-  console.error("CSS Modules with rules outside an @layer block [D12]:\n");
+  console.error("CSS Modules with rules outside an @layer block:\n");
   for (const v of violations) console.error(`  ${v}`);
   console.error(
     `\n${violations.length} violation(s). Wrap rules in @layer (foundation | brand | project).`,

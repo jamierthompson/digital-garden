@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 /**
- * The public client is a correctness boundary, not a style choice [D16]: it must stay
+ * The public client is a correctness boundary, not a style choice: it must stay
  * published-only and CDN-backed (no drafts ever leak to public renders) and emit clean
  * strings (stega disabled — it never carries a token or powers Visual Editing).
  * `.config()` reflects what `createClient` was actually given, so we assert the wiring

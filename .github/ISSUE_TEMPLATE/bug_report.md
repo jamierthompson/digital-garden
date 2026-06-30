@@ -22,4 +22,4 @@ labels: "type:bug"
 ## Context
 
 <!-- Route/page, browser, color scheme (light/dark), and anything from the console.
-     A clean repro on a production build beats a worktree (see [D27]). -->
+     A clean repro on a production build beats a worktree. -->

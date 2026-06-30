@@ -1,4 +1,4 @@
-/* first-light experience. @layer project — declares its layer per [D12]; var-consuming only, themed by --brand-* (§8, [D2]). */
+/* first-light experience. @layer project — every CSS Module declares its layer; var-consuming only, themed by generic --brand-*. */
 @layer project {
   .experience {
     margin-top: var(--space-7);

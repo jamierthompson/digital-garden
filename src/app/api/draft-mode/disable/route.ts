@@ -2,7 +2,7 @@ import { draftMode } from "next/headers";
 import { redirect } from "next/navigation";
 
 /**
- * Draft Mode DISABLE route. [D16]
+ * Draft Mode DISABLE route.
  *
  * Deletes the `__prerender_bypass` cookie so the visitor returns to ordinary
  * published rendering. `draftMode()` is an async Request API under Next 16 — it

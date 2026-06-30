@@ -20,10 +20,10 @@ import { resolveEmbedKey } from "@/lib/resolvers/embeds";
 import { isNotFound } from "@/lib/resolvers/resolution";
 
 // Integration test of the primary flow — Sanity document → themed route → essay
-// embed — with the Sanity fetch MOCKED so no network touches Vitest [D18]. It exercises the
+// embed — with the Sanity fetch MOCKED so no network touches Vitest. It exercises the
 // SYNCHRONOUS seams of the flow (scope resolution, scope render, key resolution, the
 // missing-embed fallback); the async-RSC page render itself is jsdom-untestable and is the
-// Chrome DevTools MCP browser check's job [D25] / Playwright's (testing.md "Async RSCs").
+// Chrome DevTools MCP browser check's job / Playwright's (testing.md "Async RSCs").
 //
 // The fixture is the real published `first-light` doc shape (id a8a749e9…), so the test
 // tracks what actually ships, not an invented shape.
@@ -112,14 +112,14 @@ describe("/work/[slug] primary flow (Sanity mocked)", () => {
     expect(screen.getByLabelText(/Dawn progress/i)).toBeInTheDocument();
   });
 
-  it("shows the missing-embed placeholder for an unresolved embed key (no crash) [D10]", async () => {
+  it("shows the missing-embed placeholder for an unresolved embed key (no crash)", async () => {
     const ui = await EmbedBlock({ embedKey: "ghost-widget" });
     render(ui);
     expect(screen.getByText(/Embed unavailable/i)).toBeInTheDocument();
     expect(screen.getByText(/ghost-widget/)).toBeInTheDocument();
   });
 
-  it("flags an unknown slug / componentKey as not-found (the route's notFound trigger) [D19]", () => {
+  it("flags an unknown slug / componentKey as not-found (the route's notFound trigger)", () => {
     // An unpublished slug → null doc → route calls notFound(); a renamed componentKey →
     // NotFound from the resolver → route calls notFound(). Both are the typed-miss path.
     const unknownComponent = resolveComponentKey("deleted-module");
