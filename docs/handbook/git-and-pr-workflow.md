@@ -6,8 +6,8 @@ is a concrete command.
 
 > **Source of truth.** The merge gate is `.github/workflows/ci.yml` (job `verify`). The
 > scripts it runs are in `package.json`. This doc tells you how to stay green; it does
-> not redefine the gate. Decisions are anchored as `[D#]` ([../decisions.md](../decisions.md))
-> and system-model sections as `§N` ([./architecture.md](./architecture.md)).
+> not redefine the gate. System-model sections are anchored as `§N`
+> ([./architecture.md](./architecture.md)).
 
 Related handbook pages: [./definition-of-done.md](./definition-of-done.md) (the per-task
 done checklist), [./engineering-standards.md](./engineering-standards.md) (code conventions),
@@ -38,8 +38,8 @@ coherent slice ≈ one PR. **Never commit to `main`.**
 **Never commit directly to `main`.** Always branch first. On Vercel a merge to `main` is a
 **production deploy**, so `main` must stay green and shippable at all times.
 
-Keep branches **short** — but here that's a _consequence_, not a quota. `[D17]` sequences
-the build into commit-sized steps (one task ≈ one commit, one slice ≈ one PR), so a
+Keep branches **short** — but here that's a _consequence_, not a quota. The build is
+sequenced into commit-sized steps (one task ≈ one commit, one slice ≈ one PR), so a
 correctly-scoped branch is short by construction. The reason it matters on _this_ repo:
 merge = production deploy, so a long-lived branch is a long gap between prod-shippable
 states. Sync `main` into your branch right before you merge (see §6) — that's the freshness
@@ -78,7 +78,7 @@ Examples: `feat/add-project-scope`, `fix/font-preload-head-link`, `chore/setup-c
 
 Spec: [conventionalcommits.org/en/v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
 Keep commits **small and focused** — one logical change each, and each a **completed, gate-green
-slice** you stand behind ([D17] sequences the build into commit-sized steps). The lead curates
+slice** you stand behind (the build is sequenced into commit-sized steps). The lead curates
 the branch and the PR **squash-merges**, so the durable story is the **squash-commit / PR body**,
 written once at the end (see §6). The squash subject must be Conventional-Commits-shaped (it lands
 on `main`); branch-commit subjects should be too, but since the lead may squash or reword them,
@@ -96,7 +96,7 @@ don't agonize over the wording of commits you know will be combined.
   types; `docs`, `style`, `refactor`, `test`, `chore`, `build`, `ci`, `perf`, and `revert` are
   the other conventional types — use whichever fits. The branch prefix (§1) is the same token.
 - **scope** (optional): the package or area, e.g. `feat(studio):`, `chore(ci):`, `fix(oklch):`.
-  Useful in this two-package workspace ([D23]) to signal app-vs-studio. Mind the position:
+  Useful in this two-package workspace to signal app-vs-studio. Mind the position:
   `ci` in `chore(ci):` is a _scope_ (in parentheses, after the type), distinct from `ci:` used
   as a _type_ (before the colon) — both are valid Conventional Commits, but they sit in
   different slots.
@@ -154,7 +154,7 @@ Then review the diff itself:
 - [ ] **Changed the Studio schema?** Regenerate and commit the types (see below) — the single
       easiest gate to forget.
 
-### The Studio TypeGen gate [D23]
+### The Studio TypeGen gate
 
 The Studio (`studio/`) is a separate workspace package; CI regenerates `sanity.types.ts` from
 its schema and fails on **any** drift (`git diff --exit-code sanity.types.ts`, run from the
@@ -168,7 +168,7 @@ git add ./sanity.types.ts           # root-anchored path — the file is NOT in 
 > **Why the path matters.** `studio/sanity.cli.ts` declares `generates: '../sanity.types.ts'`,
 > so TypeGen writes to the **repo root**. If you are `cd`'d into `studio/` and run a bare
 > `git add sanity.types.ts`, it resolves to `studio/sanity.types.ts` — which doesn't exist —
-> and silently no-ops. The stale root file then trips the very [D23] gate you thought you
+> and silently no-ops. The stale root file then trips the very TypeGen gate you thought you
 > handled. Always stage `./sanity.types.ts` from the repo root.
 
 A non-empty `git diff sanity.types.ts` after a schema change is **expected** — commit it in
@@ -207,7 +207,7 @@ deliberately.
   `git log` and find only this. A short, ordered "what landed" list earns its place here.
 - **No checklists with unfinished items.** All tasks are done before the PR opens — the PR is a
   finished unit of work, not a progress tracker.
-- **Passed independent, adversarial QA `[D26]`.** Every slice — solo or team — clears a **fresh** QA
+- **Passed independent, adversarial QA.** Every slice — solo or team — clears a **fresh** QA
   subagent (the dev↔QA loop) before it enters the PR: QA tries to break the slice and writes the
   missing cases, the owning author fixes, QA re-checks. Staffing scales — solo → one QA; team → one
   per coding agent. Mechanics in [./working-with-agents.md](./working-with-agents.md) §6.2.
@@ -218,7 +218,7 @@ See [./definition-of-done.md](./definition-of-done.md) for what "done" means bef
 
 ## 5. The CI gate
 
-CI is the merge gate ([D17]/[D19] — an enforce-from-the-start guardrail). It runs on every `pull_request`
+CI is the merge gate — an enforce-from-the-start guardrail. It runs on every `pull_request`
 targeting `main`. **The workflow file is the source of truth** —
 [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml), single job **`verify`**,
 `ubuntu-latest`, Node 22, pnpm, `pnpm install --frozen-lockfile`.
@@ -227,18 +227,18 @@ Steps run **in this order**; each maps to a local command you should have alread
 
 | #   | CI step                                                                 | Local equivalent                         | Guards                                                                                                                                                                                        |
 | --- | ----------------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `pnpm lint`                                                             | `pnpm lint`                              | ESLint: `eslint-config-next` + import boundaries ([D14] isomorphic engine, [D21] literal imports)                                                                                             |
-| 2   | `pnpm lint:css`                                                         | `pnpm lint:css`                          | `scripts/check-css-layers.mjs` — every CSS Module declares its `@layer` ([D12], the "@layer trap")                                                                                            |
-| 3   | `pnpm lint:keys`                                                        | `pnpm lint:keys`                         | `scripts/check-key-drift.mjs` — key-drift guard ([D10]): runtime well-formedness + a comment-stripped `satisfies` tripwire. (The published-keys-vs-code net is tracked in the issue backlog.) |
+| 1   | `pnpm lint`                                                             | `pnpm lint`                              | ESLint: `eslint-config-next` + import boundaries (isomorphic OKLCH engine, literal dynamic imports)                                                                                           |
+| 2   | `pnpm lint:css`                                                         | `pnpm lint:css`                          | `scripts/check-css-layers.mjs` — every CSS Module declares its `@layer` (the "@layer trap")                                                                                                  |
+| 3   | `pnpm lint:keys`                                                        | `pnpm lint:keys`                         | `scripts/check-key-drift.mjs` — key-drift guard: runtime well-formedness + a comment-stripped `satisfies` tripwire. (The published-keys-vs-code net is tracked in the issue backlog.)         |
 | 4   | `pnpm lint:docs`                                                        | `pnpm lint:docs`                         | `scripts/check-doc-gate-sync.mjs` — the gate chain stays identical across DoD §1 and `ci.yml`                                                                                                 |
 | 5   | `pnpm format:check`                                                     | `pnpm format` then commit                | Prettier formatting                                                                                                                                                                           |
 | 6   | `pnpm typecheck`                                                        | `pnpm typecheck`                         | `tsc --noEmit`                                                                                                                                                                                |
-| 7   | `pnpm test`                                                             | `pnpm test`                              | Vitest ([D18])                                                                                                                                                                                |
-| 8   | `pnpm --filter studio typegen` + `git diff --exit-code sanity.types.ts` | regenerate + `git add ./sanity.types.ts` | Sanity TypeGen drift ([D23])                                                                                                                                                                  |
+| 7   | `pnpm test`                                                             | `pnpm test`                              | Vitest                                                                                                                                                                                        |
+| 8   | `pnpm --filter studio typegen` + `git diff --exit-code sanity.types.ts` | regenerate + `git add ./sanity.types.ts` | Sanity TypeGen drift                                                                                                                                                                          |
 | 9   | `pnpm build`                                                            | `pnpm build`                             | Next 16 / Turbopack production build                                                                                                                                                          |
 
 > The Sanity project ID and dataset are set as **plain env** in the workflow, not secrets —
-> they ship to the browser by design ([D16] / [./security-and-ops.md](./security-and-ops.md)).
+> they ship to the browser by design (see [./security-and-ops.md](./security-and-ops.md)).
 > A Sanity **token** would be a secret and must never appear here or in `NEXT_PUBLIC_*`.
 
 **If CI is red:** read the failing step, run that one command locally, fix, re-push. Don't push
@@ -269,7 +269,7 @@ This is the team lead's step. Two parts: **curate the branch** (the "git magic")
 **squash-merge** it. Do it only when the work is complete and the PR is **ready to merge** —
 which is the lead's explicit call (on a solo session the lead is also the author) and means **both**:
 the CI `verify` gate green on the curated tip (§5) **and** the independent, adversarial pre-PR QA
-pass clean `[D26]`, with every finding
+pass clean, with every finding
 either fixed in-branch by the owning agent or filed as a follow-up in the
 [GitHub issue tracker](https://github.com/jamierthompson/digital-garden/issues) with a reason (see
 [./working-with-agents.md](./working-with-agents.md) §6.2 for the dev↔QA loop).

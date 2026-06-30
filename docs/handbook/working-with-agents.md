@@ -6,10 +6,10 @@
 > theater, only what helps an agent land cold and ship clean code.
 >
 > Sources of truth this doc points at — open them, don't summarize from memory:
-> framework facts → `node_modules/next/dist/docs/`; decisions → [`../decisions.md`](../decisions.md) (`[D#]`);
-> system model → [`./architecture.md`](./architecture.md) (`§N`); the work backlog →
-> [GitHub issues](https://github.com/jamierthompson/digital-garden/issues). Worked examples of this
-> process live under [`../sessions/`](../sessions/).
+> framework facts → `node_modules/next/dist/docs/`; the system model →
+> [`./architecture.md`](./architecture.md); the rest of the handbook for everything else — those
+> docs are the current truth, edited in place. The work backlog →
+> [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
 ---
 
@@ -23,10 +23,11 @@ framework code.**
 - **Framework behavior** → bundled docs at `node_modules/next/dist/docs/` (`01-app`,
   `02-pages`, `03-architecture`, …). They ship with the installed version, so they are
   correct where memory is not. The root [`AGENTS.md`](../../AGENTS.md) says the same.
-- **Project decisions** → [`../decisions.md`](../decisions.md). Cite as `[D#]`.
-- **System model** → [`./architecture.md`](./architecture.md). Cite as `§N`.
-- **External standards** (Conventional Commits, WCAG/APCA, the `AGENTS.md` convention, ADR
-  practice, Core Web Vitals) → state them **as that standard**, with a URL. Accuracy over confidence.
+- **Project rules & system model** → the handbook docs ([`./architecture.md`](./architecture.md)
+  and the rest). They are the current truth, edited in place; `git` history is the audit trail.
+  There is no decision log.
+- **External standards** (Conventional Commits, WCAG/APCA, the `AGENTS.md` convention, Core Web
+  Vitals) → state them **as that standard**, with a URL. Accuracy over confidence.
 
 **Capabilities before knowledge — use the tools you have, don't hand-roll.** Before you
 research or build, prefer a specialized capability already in your session over reinventing the
@@ -34,13 +35,13 @@ work. The plugins, MCP servers, subagents, and skills you need are **likely alre
 authed** — look before assuming (`ToolSearch`, the skills list, the `Agent` types), and if
 something you need is missing, ask. When a capability matches the task, invoke it **before**
 writing code or searching the web. (Browser-verifying any rendered surface before done is required
-— see [`./accessibility-and-performance.md`](./accessibility-and-performance.md) §5 `[D25]`.)
+— see [`./accessibility-and-performance.md`](./accessibility-and-performance.md) §5.)
 
 **The source-of-truth ladder** — highest first; never skip straight to memory:
 
 1. **A specialized capability** — a skill / subagent / MCP tool purpose-built for the task.
 2. **Version-exact local sources** — the bundled Next docs (`node_modules/next/dist/docs/`),
-   `[D#]`, `§N`, and the repo's own config / ground-truth files.
+   the handbook docs, and the repo's own config / ground-truth files.
 3. **Official web sources, cited by URL** — the framework's or standard's own docs.
 4. **Never raw training memory** for anything version- or fact-specific — it is the single
    most likely thing to be wrong on this stack.
@@ -59,44 +60,42 @@ grep -rli 'use cache' node_modules/next/dist/docs/
 
 **Verify-before-write checklist.** Before writing framework code, confirm each of these.
 The right column marks whether the rule lives in a **Next doc** (open the path) or is
-**spec/bundler behavior the repo lints for** (the authority is the decision + the lint
-script — the bundled docs do _not_ state it):
+**spec/bundler behavior the repo lints for** (the authority is the lint script — the bundled
+docs do _not_ state it):
 
 | Footgun                          | Reality (Next 16 / React 19)                                                                                                                                                                    | Authority                                                                                                             |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | Request APIs sync                | `cookies()`/`headers()`/`draftMode()`/`params`/`searchParams` are **async** (`await`)                                                                                                           | Next doc: `03-api-reference/04-functions/cookies.md`, `01-getting-started/05-server-and-client-components.md`         |
-| `export const dynamic`           | **Removed _under_ `cacheComponents`** (enabled app-wide here — [D11]). Replaced by `'use cache'` + `cacheLife`; pages are dynamic-by-default. PPR = prerendered shell + dynamic holes           | Next doc: `…/03-file-conventions/02-route-segment-config/index.md` (removal note), `01-getting-started/08-caching.md` |
+| `export const dynamic`           | **Removed _under_ `cacheComponents`** (enabled app-wide here). Replaced by `'use cache'` + `cacheLife`; pages are dynamic-by-default. PPR = prerendered shell + dynamic holes                      | Next doc: `…/03-file-conventions/02-route-segment-config/index.md` (removal note), `01-getting-started/08-caching.md` |
 | `'use cache'` reads request APIs | **Cannot** — read request APIs **outside**, pass as args (args = cache key)                                                                                                                     | Next doc: `01-directives/use-cache.md`                                                                                |
 | `middleware.ts`                  | Renamed **`proxy.ts`**, Node runtime only (setting `runtime` throws)                                                                                                                            | Next doc: `…/03-file-conventions/proxy.md`                                                                            |
-| CSS Modules auto-layered         | They are **not**. An unlayered module's plain rules outrank **every** `@layer` style. This is CSS-cascade spec + Next's no-auto-layer behavior — **not stated in any Next doc**                 | Spec/lint: [D12] + `scripts/check-css-layers.mjs` (`pnpm lint:css`)                                                   |
-| Templated dynamic import         | Use **literal** `() => import("@/projects/<slug>")` — a templated `import(\`…/${slug}\`)`defeats bundler static analysis. **Not stated in`lazy-loading.md`\*\* (it only shows literal examples) | Spec/lint: [D21] + bundler static-analysis behavior                                                                   |
+| CSS Modules auto-layered         | They are **not**. An unlayered module's plain rules outrank **every** `@layer` style. This is CSS-cascade spec + Next's no-auto-layer behavior — **not stated in any Next doc**                 | Spec/lint: `scripts/check-css-layers.mjs` (`pnpm lint:css`)                                                           |
+| Templated dynamic import         | Use **literal** `() => import("@/projects/<slug>")` — a templated `import(\`…/${slug}\`)`defeats bundler static analysis. **Not stated in`lazy-loading.md`\*\* (it only shows literal examples) | Spec/lint: bundler static-analysis behavior                                                                           |
 
-When in doubt, the rule is the same as the audit's: **cite the source that actually
-contains the fact** — a bundled-doc path for documented Next behavior, or `[D#]` + the
-lint script for spec/bundler behavior. Don't send the next agent to a doc that doesn't
-hold the claim. Verification precedents in the log ([D11], [D12], [D23]) pin version facts
-to a source rather than to memory.
+When in doubt, the rule is the same: **cite the source that actually contains the fact** — a
+bundled-doc path for documented Next behavior, or the lint script for spec/bundler behavior.
+Don't send the next agent to a doc that doesn't hold the claim.
 
-## 2. Anchor everything to the decisions — don't drift the architecture
+## 2. Don't drift the architecture — the handbook docs are current truth
 
-The fastest way an agent wrecks this repo is by quietly re-litigating a settled call.
-Decisions ([D1]–[Dxx]) are **binding**. Before you write code that touches
-theming, content modeling, caching, fonts, or routing, find the relevant `[D#]` and obey it.
+The fastest way an agent wrecks this repo is by quietly re-litigating a settled call. The
+handbook docs ([`./architecture.md`](./architecture.md) and the rest) record the binding rules.
+Before you write code that touches theming, content modeling, caching, fonts, or routing, find
+the relevant rule and obey it.
 
-- **If your instinct contradicts a `[D#]`, you are probably running on stale memory — stop.**
-  Re-read the decision and the source it cites. Example traps: reaching for
-  `export const dynamic` (gone under `cacheComponents` — [D11]); adding `server-only` to the
-  OKLCH engine (breaks isomorphism — [D14]); writing an unlayered CSS Module (silently beats
-  layered styles — [D12]); a templated `import(\`…/${slug}\`)` ([D21]).
-- **Decision records are mutable; git is the audit trail** `[D33]`. Edit a decided record in place
-  so the register reads as current truth — `git log -p docs/decisions.md` holds the history.
-  This is a deliberate departure from classic ADR immutability (Nygard/Fowler); supersession stays
-  available but optional. See [`./decision-records.md`](./decision-records.md) for when and how.
+- **If your instinct contradicts a documented rule, you are probably running on stale memory — stop.**
+  Re-read the rule and the source it cites. Example traps: reaching for
+  `export const dynamic` (gone under `cacheComponents`); adding `server-only` to the
+  OKLCH engine (breaks isomorphism); writing an unlayered CSS Module (silently beats
+  layered styles); a templated `import(\`…/${slug}\`)`.
+- **The docs are current truth — edit them in place; git is the audit trail.** When a rule
+  changes, edit the doc that owns it so it reads as current truth — `git log -p` holds the
+  history. There is no separate decision log to keep in sync and no record to mark superseded.
 - **Security and performance are agents' documented blind spots** — agents over-index on
   "make it work" and under-test the non-functional edges (research on agent context files
   flags these as the most common gaps; [arXiv 2511.12884](https://arxiv.org/html/2511.12884v1)).
-  Hold the line on the `brandColor` 500-risk three-layer defense ([D9]) and the font-preload
-  policy ([D11]) even when they feel like overhead. See
+  Hold the line on the `brandColor` 500-risk three-layer defense and the font-preload
+  policy even when they feel like overhead. See
   [`./accessibility-and-performance.md`](./accessibility-and-performance.md) and
   [`./security-and-ops.md`](./security-and-ops.md).
 
@@ -109,8 +108,8 @@ is read by a range of agent tools.
 - The repo's root [`AGENTS.md`](../../AGENTS.md) currently holds only the managed
   `<!-- BEGIN:nextjs-agent-rules -->` block. **Never hand-edit inside those markers** —
   `create-next-app` regenerates them. Any house content goes _outside_ the markers.
-- **Nesting: nearest file wins.** In this `app + studio` pnpm workspace [D23], a nested
-  `studio/AGENTS.md` (Sanity schema / TypeGen / stega-off-`brandColor` rules [D16]) takes
+- **Nesting: nearest file wins.** In this `app + studio` pnpm workspace, a nested
+  `studio/AGENTS.md` (Sanity schema / TypeGen / stega-off-`brandColor` rules) takes
   precedence for agents working in `studio/`.
 - **Keep it lean — bloat actively harms.** Research on agent context files finds that
   padding them (e.g. LLM-generated boilerplate) _reduced_ task success and raised cost
@@ -125,23 +124,24 @@ is read by a range of agent tools.
 **Default to single-agent work.** Reach for the five-lens pattern below **only** for an
 architecture-class decision — one that is hard to reverse, crosses a module/package
 boundary, locks an external contract (Sanity schema, `keys.ts`, token names), or
-contradicts the plan or a `[D#]`. It runs ~15× the token cost of single-agent work
+contradicts the plan or a documented rule. It runs ~15× the token cost of single-agent work
 ([Anthropic — Multi-Agent Research](https://www.anthropic.com/engineering/multi-agent-research-system)),
 so reserve it.
 
 This handbook itself was built with this pattern. The shape:
 
 1. **Research, with citations.** Pin every claim to a primary source — bundled docs, a
-   spec URL, or a `[D#]`. Verbose fetching/log-crunching happens in isolated subagents that
-   return a **dense, cited digest** (see §5, and the worked trails under [`../sessions/`](../sessions/)).
+   spec URL, or a handbook doc. Verbose fetching/log-crunching happens in isolated subagents that
+   return a **dense, cited digest** (see §5).
 2. **N independent drafts.** Diverse role-lenses draft _independently, before seeing each
    other's work_ — the audit's five lenses (Architect, FrameworkFit, Theming, ContentModel,
    Sequencing). Diversity is what makes the next step work; identical agents add nothing.
 3. **Adversarial debate (devil's advocate).** Each lens challenges, defends, or **concedes**
    against the others. Critiques must be **fact-grounded** (cite a doc/decision), not vibes —
    this is where the plan actually moves.
-4. **Cited synthesis.** Consolidate into a verdict and record the resolved calls as `[D#]`
-   in [`../decisions.md`](../decisions.md).
+4. **Cited synthesis.** Consolidate into a verdict and fold the resolved calls into the
+   handbook docs ([`./architecture.md`](./architecture.md) and the rest), edited in place — that
+   is where a settled call lives.
 
 **Two pitfalls to encode (both documented failure modes):**
 
@@ -168,8 +168,8 @@ fetches, log crunching) or independent enough to parallelize (the audit's per-le
 
 - [ ] **Objective** — one crisp task, not a grab-bag.
 - [ ] **Source-of-truth files by path** — the agent can't see what you've read. Name the
-      bundled docs, the `[D#]`s, the `§N`s, and the ground-truth files it must open.
-- [ ] **Boundaries** — what's out of scope, what not to touch, which decisions are binding.
+      bundled docs, the relevant handbook docs, and the ground-truth files it must open.
+- [ ] **Boundaries** — what's out of scope, what not to touch, which rules are binding.
 - [ ] **Output format** — return a **dense digest**, not raw output (cited, skimmable).
 - [ ] **Model tier** — name it if the subtask needs stronger reasoning vs. a cheap fetch, so
       the cost/quality trade-off is explicit rather than left to default.
@@ -183,9 +183,9 @@ fetches, log crunching) or independent enough to parallelize (the audit's per-le
 Context doesn't carry across a handoff — the mechanics of self-contained-in / dense-digest-out
 live in §5. This section is what to do _between_ handoffs:
 
-- **Persist progress summaries to the repo before re-spawning.** External memory (the docs
-  themselves — this handbook, the decisions log, the session records) beats context-window
-  stuffing for long, multi-session efforts
+- **Persist progress summaries to the repo before re-spawning.** Hand off via durable written
+  artifacts — this handbook, the PR body, session notes — never chat scrollback. External memory
+  beats context-window stuffing for long, multi-session efforts
   ([Anthropic — Multi-Agent Research](https://www.anthropic.com/engineering/multi-agent-research-system)).
   A prompt that says "continue what we were doing" fails; a pointer to a written summary doesn't.
 - **One task ≈ one commit ≈ one clean handoff.** Small, focused commits are the unit of work —
@@ -195,8 +195,8 @@ live in §5. This section is what to do _between_ handoffs:
   [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) §6) — but that's about _history_, not
   about lowering the bar on a handoff.
 
-**Every coding session has a lead and an independent, adversarial QA pass — staffing just scales
-([D26]).** A run is never "write code, open a PR." It always has a **lead** and a **fresh QA** step
+**Every coding session has a lead and an independent, adversarial QA pass — staffing just scales.**
+A run is never "write code, open a PR." It always has a **lead** and a **fresh QA** step
 between developer-done and the PR, whether one Claude or ten do the work:
 
 - **Solo session** — one Claude **is** the lead and the sole author. It does the work, then spawns **one
@@ -207,7 +207,8 @@ between developer-done and the PR, whether one Claude or ten do the work:
 The split below is written team-first, but **solo is the degenerate case**: lead and author collapse
 into one agent; the slice count is one; the dev↔QA loop (§6.2) is identical and still mandatory. The
 QA is always **adversarial** and always **fresh with no prior context of the work** — not merely "not
-the agent that wrote the code" `[D28]`.
+the agent that wrote the code." ("No prior context" is the stronger bar: it disqualifies a teammate
+that helped design or debate the slice, not just the one that typed it.)
 
 ### 6.1 Agent teams: each agent owns a slice; the lead curates history
 
@@ -221,14 +222,14 @@ deliverable." Split the responsibility cleanly:
   gate-green**, and own its quality. A task is "done" only when it passes the gate — quality can
   be hook-enforced (`TaskCompleted` / `TeammateIdle` exit code 2 keeps a teammate working). Broken
   WIP is **not** something you hand off; local checkpoints are your own business.
-- **Isolate each slice in an in-root worktree `[D29]`.** Give every teammate its own checkout +
+- **Isolate each slice in an in-root worktree.** Give every teammate its own checkout +
   branch at `.claude/worktrees/<slug>/` (`git worktree add`) — **not** the ephemeral
-  `isolation: "worktree"` spawn flag. Two payoffs: file conflicts become structurally impossible
-  (separate checkouts), and because the path is under the repo root (= the teammate's cwd),
-  `acceptEdits` covers every edit with **no permission prompts** — §6.2's "lead clears the path"
-  made mechanical. The lead owns setup/teardown (a `pnpm install` per worktree, a distinct dev-server
-  port per slice, `git worktree remove` at cleanup); recipe in the `agent-team` skill. A worktree
-  isolates _editing_ only — never trust it for _final_ verification (`[D27]`'s trap).
+  `isolation: "worktree"` spawn flag, which breaks `acceptEdits` scope. Two payoffs: file conflicts
+  become structurally impossible (separate checkouts), and because the path is under the repo root
+  (= the teammate's cwd), `acceptEdits` covers every edit with **no permission prompts** — §6.2's
+  "lead clears the path" made mechanical. The lead owns setup/teardown (a `pnpm install` per worktree,
+  a distinct dev-server port per slice, `git worktree remove` at cleanup); recipe in the `agent-team`
+  skill. A worktree isolates _editing_ only — never trust it for _final_ verification.
 - **The team lead curates history, not your slice.** The lead's git magic is about _history_:
   rebase onto latest `main`, squash an agent's fix-ups, reorder slices, drop a false start, then
   **squash-merge** and write the PR body (the durable story). The lead does **not** inherit
@@ -248,28 +249,28 @@ each tool call.**
   posture once at spawn (the `agent-team` skill's preflight covers the spawn-time mechanic),
   then resolve teammates' permission requests on the session's behalf: batch them and
   decide. Escalate to the owner only for genuinely out-of-policy actions — something
-  destructive or outward-facing, anything a `[D#]` forbids, anything that spends real money or
+  destructive or outward-facing, anything a documented rule forbids, anything that spends real money or
   touches production — with a one-line _what + why_. The default is **the lead clears the
   path**, not _the owner approves each call_.
 
-- **Independent, adversarial QA before the PR — run a dev↔QA loop ([D26]).** A gate-green slice is
+- **Independent, adversarial QA before the PR — run a dev↔QA loop.** A gate-green slice is
   _developer-done_, not _review-done_ — the §3 self-check and the green gate prove the author's own
   intent, not that the work survives someone trying to break it. **Every** session does this, scaled to
   its staffing: a solo session spawns **one** fresh QA for its own work; a team session spawns **one fresh QA
   per coding agent**. Before a slice enters the PR, the lead spawns a **fresh** QA subagent
   (`pr-review-toolkit:code-reviewer` / `feature-dev:code-reviewer`, or the `/code-review` skill) —
-  _fresh_ meaning **no prior context of the work**, not merely **not** the agent that wrote it `[D28]` —
+  _fresh_ meaning **no prior context of the work**, not merely **not** the agent that wrote it —
   a teammate that helped design, debate, or diagnose the slice is **disqualified** even though it didn't
   type the code; an isolated context is the whole point (brief it per §5 on the **requirements + the
   diff only**, never the author's reasoning). **QA is adversarial, not a once-over:**
   - **Try to break it — think like a QA engineer on a product team.** Don't just confirm the happy
     path renders. Attack the edges the author optimized past: malformed / boundary / empty / hostile
-    input (a garbage `brandColor` → safe fallback, never a throw [D9]), the error and not-found
+    input (a garbage `brandColor` → safe fallback, never a throw), the error and not-found
     paths, both color schemes, the interaction/focus floor on any rendered surface. **Write the
     missing test cases** the author didn't — co-located, meaningful (see [`./testing.md`](./testing.md)) —
     and prove the break with a failing case before it's fixed. (This is exactly what worked well in
     practice — QA agents that hunted for breaks, rather than skimming the diff, caught the real
-    defects.) Keep critiques **fact-grounded** — cite a `[D#]`, a bundled doc, or a failing test, not
+    defects.) Keep critiques **fact-grounded** — cite a handbook rule, a bundled doc, or a failing test, not
     vibes.
   - **The reviewer reviews; the author fixes — don't collapse the two.** Findings go back to
     the **owning agent** (on a solo session, that's the lead wearing its author hat — but the QA pass is
@@ -301,30 +302,29 @@ each tool call.**
      rots silently; a stale status claim is the smell this rule exists to kill. (The per-task echo
      of this is the DoD §6 "docs updated" box; this makes it a hard **session-level** requirement,
      not a maybe.)
-  2. **Write the session record** in [`../sessions/`](../sessions) (`YYYY-MM-DD-<slug>.md`) — why / shape /
-     outcome / **QA log** / lessons, per [`../sessions/README.md`](../sessions/README.md) — and add its
-     row to that index. This is the repo's external memory; a session that did real product work and
-     left no record is invisible to the next session. The **QA log is the durable evidence of the
-     dev↔QA loop** (`[D26]`): one entry per coding agent — what QA probed, what passed, each defect
-     → fix → re-check, and the tests QA added. The green gate is not that evidence; the log is.
-     Record each slice's entry **as its loop closes**, not reconstructed at the end. Applies to
-     **solo sessions too**, not just teams.
+  2. **Write the durable session record** — why / shape / outcome / **QA log** / lessons — in the
+     PR body (plus any session notes the work warrants). This is the repo's external memory; a
+     session that did real product work and left no record is invisible to the next session. The
+     **QA log is the durable evidence of the dev↔QA loop**: one entry per coding agent — what QA
+     probed, what passed, each defect → fix → re-check, and the tests QA added. The green gate is
+     not that evidence; the log is. Record each slice's entry **as its loop closes**, not
+     reconstructed at the end. Applies to **solo sessions too**, not just teams.
 
 ## 7. Keeping agents from drifting the architecture — quick gate
 
 Before you finish a task, self-check:
 
 - [ ] Did I touch theming / caching / fonts / content-model / routing? → I found and obeyed
-      the relevant `[D#]`.
+      the relevant documented rule.
 - [ ] Did I write framework code? → I verified it against `node_modules/next/dist/docs/`
-      (or, for spec/bundler rules, against `[D#]` + the lint script), not memory.
-- [ ] Did I contradict a decision? → I stopped and **updated the record** (owner's call) rather than
-      silently diverging from it ([`./decision-records.md`](./decision-records.md)).
-- [ ] Is every non-obvious claim in my output anchored to a `[D#]`, a `§N`, or a URL —
-      pointing at the source that _actually contains_ it?
+      (or, for spec/bundler rules, against the lint script), not memory.
+- [ ] Did I contradict a documented rule? → I stopped and **updated the doc in place** (owner's call)
+      rather than silently diverging from it.
+- [ ] Is every non-obvious claim in my output anchored to a handbook doc, a bundled-doc path, or a
+      URL — pointing at the source that _actually contains_ it?
 - [ ] Did I keep docs minimal — no restating what CI already enforces?
-- [ ] Green gate: run the one command ([`./definition-of-done.md` §1](./definition-of-done.md#1-the-one-command)) — it includes the Studio TypeGen drift step, so commit any regenerated `sanity.types.ts` [D23].
+- [ ] Green gate: run the one command ([`./definition-of-done.md` §1](./definition-of-done.md#1-the-one-command)) — it includes the Studio TypeGen drift step, so commit any regenerated `sanity.types.ts`.
 
 See also: [`./orientation.md`](./orientation.md) ·
 [`./engineering-standards.md`](./engineering-standards.md) ·
-[`./decision-records.md`](./decision-records.md).
+[`./architecture.md`](./architecture.md).

@@ -4,8 +4,7 @@ The non-negotiable constraints every agent honors when shipping UI here. This is
 **checklist you verify against**, not background reading. It does not re-explain the
 OKLCH engine or the rendering model — for those, read
 [`./architecture.md`](./architecture.md) §3.2 (engine) and §7 (Cache
-Components / PPR) and the decisions they cite. This doc says _what an agent must check_
-and _why it matters here_.
+Components / PPR). This doc says _what an agent must check_ and _why it matters here_.
 
 > Conformance target: **WCAG 2.2 Level AA** (W3C Recommendation, Oct 2023 — the current
 > stable version and the legal baseline in most regions). **APCA / Lc** is the perceptual
@@ -14,23 +13,24 @@ and _why it matters here_.
 
 ---
 
-## 1. Contrast — solved by the engine, not stepped by you `[D4]`
+## 1. Contrast — solved by the engine, not stepped by you
 
 The hard part is automated. The engine takes a **contrast target** and binary-searches
 lightness `L` for on-brand / on-surface pairs against the _relevant background_, on the
-**gamut-mapped** color (`[D6]`: gamut-map _before_ contrast math), re-solved per scheme
-(`[D5]`). See §3.2. What this means for you:
+**gamut-mapped** color (gamut-map _before_ contrast math), re-solved per scheme
+(light/dark). See §3.2. What this means for you:
 
 - **Never hand-pick a contrast pair or a fixed ΔL offset.** Equal ΔL ≠ equal contrast
   across hues (OKLCH `L` is perceptual lightness, not WCAG luminance or APCA Lc). A fixed
   step that passes for blue fails for yellow/cyan. Feed the engine a brand color; consume
-  the token it emits. `[D4]`
-- **Read the engine's emitted tokens** (`var(--brand-*)`, focus-ring color `[D7]`) — do
+  the token it emits.
+- **Read the engine's emitted tokens** (`var(--brand-*)`, focus-ring color) — do
   not invent a foreground color in a CSS Module and hope it clears 4.5:1.
 - **If you must author a static color** (rare — a decorative hairline, a one-off accent),
   it's _your_ job to verify the ratio. Status colors are **not** this case — they're
-  engine-derived from the brand hue like the rest of the ramp `[D32]`. Decorative tints via
-  `oklch(from …)` are permitted **only** for non-contrast deltas `[D3]`.
+  engine-derived from the brand hue per slot (scheme-aware and contrast-solved), like the
+  rest of the ramp, not a fixed global status palette. Decorative tints via
+  `oklch(from …)` are permitted **only** for non-contrast deltas.
 
 ### Targets to check against
 
@@ -58,26 +58,26 @@ of truth.
 > Readability Criterion / "Bronze" tiers, the candidate for WCAG 3. Cite **4.5:1** as a
 > standard; cite **Lc 75** as a quality target.
 
-APCA primary for text, WCAG 2.x ratios as the compliance fallback — exactly `[D4]`. These
+APCA primary for text, WCAG 2.x ratios as the compliance fallback. These
 targets are **proven by the visual contrast harness, owned by
-[`./testing.md`](./testing.md)** (`[D19]`): the yellow/cyan stressers, both light and dark
+[`./testing.md`](./testing.md)**: the yellow/cyan stressers, both light and dark
 schemes, the gamut-map-first ordering, and the "assert the measured number, don't snapshot
 the CSS" rule all live there. **This doc owns the _targets_; testing owns the _harness_.**
 
 ---
 
-## 2. Focus & interaction (WCAG 2.2 AA) `[D7]`
+## 2. Focus & interaction (WCAG 2.2 AA)
 
 | SC                                     | Rule                                                  | What to check                                                                                            |
 | -------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | 2.4.7 Focus Visible                    | Keyboard focus must be visible                        | Use `:focus-visible`, never bare `:focus`. **Never `outline: none`** without an equivalent visible ring. |
-| 1.4.11 Non-Text Contrast               | Focus ring ≥ 3:1 vs adjacent colors                   | Ring color is engine-emitted per slot surface `[D7]` — consume it; don't recolor it ad hoc.              |
+| 1.4.11 Non-Text Contrast               | Focus ring ≥ 3:1 vs adjacent colors                   | Ring color is engine-emitted per slot surface — consume it; don't recolor it ad hoc.                     |
 | 2.4.11 Focus Not Obscured (new in 2.2) | Focused element not fully hidden by sticky/overlay UI | Sticky shell nav / any sticky header must not cover the focused element.                                 |
 | 2.5.8 Target Size (new in 2.2)         | Pointer targets ≥ **24×24** CSS px                    | Nav links, `/work` cards, embed controls. Treat 24×24 as a firm floor.                                   |
 
 - **Focus-ring split:** _geometry_ (width, offset, style, the `:focus-visible` policy) is
-  **global foundation** (§3.1); _color_ is the **engine token** `[D7]`. Don't move geometry
-  into a scope or smuggle a focus color into the global reset.
+  **global foundation** (§3.1); _color_ is the **engine token** (contrast-solved per slot).
+  Don't move geometry into a scope or smuggle a focus color into the global reset.
 - **2.5.8 spacing exception** exists (a target under 24px passes if a ≥24px-diameter circle
   centered on it doesn't overlap another target's circle) — but **don't reach for it to
   dodge the floor**. Default to 24×24; use the exception only with a deliberate reason.
@@ -101,24 +101,24 @@ The architecture already buys most of this — don't undo it:
 - **Keep the `/work` index query essay-free** (§6): it pulls `blurb` / `brandColor` /
   `fontKey`, never the essay. Small index payload protects **LCP**. Don't add the essay to
   the card query "for convenience."
-- **Keep the slot's `ProjectScope` in the prerendered shell** (PPR via Cache Components `[D11]`, §7):
+- **Keep the slot's `ProjectScope` in the prerendered shell** (PPR via Cache Components, §7):
   the slot's theme `<style>` + font class land in the **initial static HTML** (flash-free); the
   essay/notes stream. Don't push the slot scope into a streamed hole.
 - **Don't introduce layout shift.** `next/font`'s size-adjusted fallback gives zero CLS; a
   per-project display face swaps _intentionally_ on navigation (§5) — that's by design, not
   a CLS bug. Reserve space for media; size embeds.
 
-**CWV is verified by a dedicated budget pass** (`[D17]`; tracked in the issue backlog), **not
-gated early** — but the levers above are decided now, so don't regress them. Per task, browser
+**CWV is verified by a dedicated budget pass** (tracked in the issue backlog), **not
+gated early** — but the levers above are fixed, so don't regress them. Per task, browser
 spot-check the surface you touched for obvious CLS/paint regressions via the Chrome DevTools
-MCP (§5) — lighter than, and distinct from, that budget pass `[D25]`.
+MCP (§5) — lighter than, and distinct from, that budget pass.
 
 ---
 
-## 4. Font-preload policy `[D11]` §5 — the load-bearing, counter-intuitive rule
+## 4. Font-preload policy — the load-bearing, counter-intuitive rule
 
-This is the rule agents get wrong from stale instinct. Read §5 and `[D11]` before touching
-the roster.
+This is the rule agents get wrong from stale instinct. Read [`./architecture.md`](./architecture.md) §5
+before touching the roster.
 
 - **`preload: false` on every roster face.** The `next/font` default is `true`, so you
   must set `false` **explicitly** on each face in `src/fonts/roster.ts`.
@@ -127,22 +127,24 @@ the roster.
 - **Why per-project faces can't be preloaded:** `next/font` preload injection is a
   **build-time static transform** keyed to a _statically referenced_ font object.
   `roster[fontKey].variable` is a **runtime index** Next can't target. This is a
-  _static-analyzability_ question — **not** SSG-vs-dynamic (that route toggle is gone under
-  Cache Components `[D11]`). Caching bakes the resolved className into the HTML but emits
-  **no** `<link rel=preload as=font>` for a face it couldn't statically identify.
+  _static-analyzability_ question — **not** SSG-vs-dynamic. Under Cache Components the
+  static-vs-dynamic boundary is component-level (`use cache` placement), not a route toggle.
+  Caching bakes the resolved className into the HTML but emits **no**
+  `<link rel=preload as=font>` for a face it couldn't statically identify.
 - **Per-project faces are applied, not preloaded:** `.variable` on the `[data-project]`
-  scope, `--<proj>-font` maps to it; they tolerate `font-display: swap` below the fold.
+  scope, where the slot's generic `--font-body` maps to it; they tolerate `font-display: swap`
+  below the fold.
 - **If an above-the-fold project face genuinely must preload,** emit
   `<link rel="preload" as="font" crossorigin>` **manually** — `crossorigin` is required
   for fonts even same-origin.
 - Prefer **variable fonts** (one file, many weights).
 
-**Empirical verification (do this, don't assume) `[D11]`:**
+**Empirical verification (do this, don't assume):**
 
 ```bash
 pnpm build && pnpm start &        # serve the production build locally
 sleep 3                           # let the server come up
-curl -s http://localhost:3000/work/<slug> \
+curl -s http://localhost:3000/<slug> \
   | grep -o '<link rel="preload"[^>]*as="font"[^>]*>'
 # Expect ONLY your 1–2 shell faces (match the filenames from src/fonts/roster.ts).
 # A resolved per-project face in this output = the policy is defeated → investigate.
@@ -154,7 +156,7 @@ shouldn't be.
 
 ---
 
-## 5. Browser verification via the Chrome DevTools MCP — required for rendered surfaces `[D25]`
+## 5. Browser verification via the Chrome DevTools MCP — required for rendered surfaces
 
 Unit tests run in **jsdom**: it doesn't paint, can't render async RSCs
 ([`./testing.md`](./testing.md)), and measures nothing about focus visibility, tap-target size,
@@ -174,26 +176,26 @@ pnpm start` for production-faithful output), then drive the MCP.
   (§1, [`./testing.md`](./testing.md)); this is the in-browser cross-check on the assembled page.
 - **Layout & paint** — no unexpected **CLS** on load, and none on the _intentional_ per-project
   font swap (§3); media has reserved space; embeds are sized.
-- **Flash-free theme** `[D11]` — the scoped theme `<style>` and the font `.variable` class are
+- **Flash-free theme** — the scoped theme `<style>` and the font `.variable` class are
   in the **initial HTML** (no FOUC on first paint), confirming `ProjectScope` rendered in the
   prerendered shell, not a streamed hole. The browser counterpart to §4's empirical `<head>` check.
 - **Console** — no errors or warnings on the surface you touched.
 
-**This is not the CWV budget pass** `[D17]`. That formal pass — asserting the LCP / INP / CLS
+**This is not the CWV budget pass.** That formal pass — asserting the LCP / INP / CLS
 budgets in §3 and the perf hardening — is its own tracked task. This per-task check is the lighter
 _"did I obviously regress accessibility, layout, or the flash-free theme on the surface I just
 touched"_; the a11y floor (§2) is always-on, so its verification is too. It is an
 **agent-driven manual step, not a CI gate** (CI can't drive a browser) — the same status as
 §4's `<head>` check. Committed automated coverage stays Vitest now / Playwright when added
-([`./testing.md`](./testing.md), `[D18]`/`[D19]`).
+([`./testing.md`](./testing.md)).
 
 ---
 
 ## Agent quick-list (the traps)
 
-1. **Don't hand-pick contrast.** Feed the engine; consume its tokens. Fixed ΔL is banned `[D4]`.
-2. **Contrast is solved on the gamut-mapped color** (`[D6]` before `[D4]`) and **re-solved
-   per scheme** (`[D5]`) — never one ratio reused across light/dark.
+1. **Don't hand-pick contrast.** Feed the engine; consume its tokens. Fixed ΔL is banned.
+2. **Contrast is solved on the gamut-mapped color** (gamut-map before contrast math) and
+   **re-solved per scheme** (light/dark) — never one ratio reused across schemes.
 3. **Large text is measured in _points_** — 18pt (≈24px) / 14pt bold (≈18.66px). 18px body
    text needs the full **4.5:1**, not 3:1.
 4. **APCA is not legal cover** — ship WCAG 2.2 AA as the floor, use Lc as the quality target.
@@ -201,19 +203,18 @@ touched"_; the a11y floor (§2) is always-on, so its verification is too. It is 
 5. **`outline: none` without a visible replacement fails 2.4.7** — always pair with a
    `:focus-visible` ring ≥ 3:1.
 6. **Don't expect per-project fonts to preload** — runtime `fontKey` defeats static
-   analysis `[D11]`. Set `preload: false` and verify the `<head>` empirically.
+   analysis. Set `preload: false` and verify the `<head>` empirically.
 7. **Sticky nav can obscure focus** (2.4.11); **tap targets ≥ 24×24px** (2.5.8) on
    nav / cards / embed controls.
 8. **Don't bloat the `/work` query** — keep it essay-free to protect LCP (§6).
 9. **The contrast harness lives in [`./testing.md`](./testing.md)** — this doc owns the
    targets, testing owns the assertions. Don't restate the harness spec here.
 10. **Browser-verify any rendered surface** with the `chrome-devtools` MCP before done — focus
-    visibility, tap-size, CLS, flash-free theme, clean console (§5). jsdom proves none of it `[D25]`.
+    visibility, tap-size, CLS, flash-free theme, clean console (§5). jsdom proves none of it.
 
 ---
 
 _Related: [`./security-and-ops.md`](./security-and-ops.md) (secrets, Sanity tokens, Vercel
 ops), [`./definition-of-done.md`](./definition-of-done.md) (the ship gate),
 [`./testing.md`](./testing.md) (the contrast harness). Architecture:
-[`./architecture.md`](./architecture.md) §3.1–3.2, §5, §7 ·
-[`../decisions.md`](../decisions.md) `[D4]` `[D5]` `[D6]` `[D7]` `[D11]` `[D17]` `[D19]` `[D25]` `[D32]`._
+[`./architecture.md`](./architecture.md) §3.1–3.2, §5, §7._
