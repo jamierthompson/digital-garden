@@ -46,7 +46,7 @@ host-global and worktrees don't isolate them. The lead tears each one down (`git
 trust it for _final_ verification; gate on a clean `main`/CI build and the live deploy.
 
 **4. Brief each slice owner** per the briefing checklist, and make the boundary explicit: **"you own these files in your
-worktree; do not edit any others."** Include the binding `[D#]`s for the area, the bundled-doc paths,
+worktree; do not edit any others."** Include the binding rules for the area, the bundled-doc paths,
 and **cite-don't-remember** (Next 16 / React 19). Consider **plan approval** for risky slices — the
 teammate plans in read-only mode and you approve before it writes.
 
@@ -74,8 +74,7 @@ with a failing case first. Findings go back to the **owning** agent to fix; QA r
 clean. In-scope findings are fixed before the PR; defer only genuinely-separable later work (file it
 as a [GitHub issue](https://github.com/jamierthompson/digital-garden/issues) with PR# + reason). **Record each slice's
 QA outcome** — what was probed, verdict, each defect → fix → re-check, tests QA added — in the
-session record's **QA log** as the loop closes (format in
-[`docs/sessions/README.md`](../../../../docs/sessions/README.md)), not reconstructed at the end. This loop is
+**PR body** as the loop closes, not reconstructed at the end. This loop is
 **not team-only** — a solo session does exactly one author→one QA; here you just run one per coding agent.
 Full mechanics: [`docs/handbook/working-with-agents.md`](../../../../docs/handbook/working-with-agents.md).
 

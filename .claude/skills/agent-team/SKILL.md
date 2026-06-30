@@ -11,8 +11,8 @@ doing that well **in this repo**. It is grounded in:
 
 - The repo's own operating manual: [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md)
   — research → drafts → debate → synthesis, briefing, own-a-slice, lead curates.
-- Continuous refinement: every session runs this pattern and records what worked (and what didn't)
-  in [`docs/sessions/`](../../../docs/sessions/), so the practice improves with use.
+- Continuous refinement: every run of this pattern leaves its record in the PR body and git history,
+  so the practice improves with use.
 - Official guidance: [Agent teams](https://code.claude.com/docs/en/agent-teams) and
   [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
 
@@ -131,7 +131,7 @@ and universal-mechanics sections above.
 
 | The job in front of you                                                                                                                                                                   | Mode                 | Reference                                                            |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------- |
-| A hard-to-reverse **architecture / design decision** — crosses a module boundary, locks an external contract (Sanity schema, `keys.ts`, token names), or contradicts the plan or a `[D#]` | Research / decision  | [`references/research-decision.md`](references/research-decision.md) |
+| A hard-to-reverse **architecture / design decision** — crosses a module boundary, locks an external contract (Sanity schema, `keys.ts`, token names), or contradicts the plan or a binding repo rule | Research / decision  | [`references/research-decision.md`](references/research-decision.md) |
 | **Review** a diff / PR / branch across independent quality lenses                                                                                                                         | Parallel review      | [`references/code-review.md`](references/code-review.md)             |
 | **Debug** something with an unclear root cause — several plausible theories                                                                                                               | Competing hypotheses | [`references/debugging.md`](references/debugging.md)                 |
 | **Build** a feature that spans layers/modules, splittable into slices over distinct files                                                                                                 | Coding feature       | [`references/coding-feature.md`](references/coding-feature.md)       |
@@ -150,10 +150,9 @@ However the mode ends, you (the lead) finish it:
   living doc in place** — the system model in
   [`architecture.md`](../../../docs/handbook/architecture.md), or the matching handbook doc for a
   process call. There is **no decision log**: the docs are the current truth, edited in place, and
-  git history is the audit trail. Persist the trail to the repo as a dated **`docs/sessions/YYYY-MM-DD-<slug>`** record — one
-  `.md` file, or a folder for a multi-file trail (convention + example in
-  [`docs/sessions/README.md`](../../../docs/sessions/README.md)) — so the next session has external
-  memory, not a lost context window.
+  git history is the audit trail. Capture the synthesis — and the debate that produced it — in the
+  **PR body** so the durable record lives in git history + the PR, giving the next session external
+  memory rather than a lost context window.
 - **Coding** → each teammate hands off a **complete, gate-green slice** over its own files. Before a
   slice enters the PR, run **one fresh, adversarial QA per coding agent** — a fresh reviewer with **no
   prior context of the work** (not merely "not the author" — a teammate that helped design or debate

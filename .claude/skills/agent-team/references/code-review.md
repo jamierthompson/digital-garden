@@ -12,7 +12,7 @@ teammates can challenge each other's findings (the team advantage over subagents
 >
 > - **`pr-review-toolkit:review-pr`** — a skill that _already orchestrates_ the specialized review
 >   agents. It covers the bulk of a multi-lens PR review out of the box. A team beats it only when you
->   want lenses pinned to the user's exact named concerns, each grounded in _this repo's_ `[D#]`s/gate,
+>   want lenses pinned to the user's exact named concerns, each grounded in _this repo's_ rules/gate,
 >   plus live cross-examination between reviewers.
 > - **`/code-review`** — a fast single-pass review of the working diff at an effort level. Right when
 >   the user wants speed over breadth.
