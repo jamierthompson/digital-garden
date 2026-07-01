@@ -11,13 +11,22 @@ describe("ShellNav", () => {
     ).toBeInTheDocument();
   });
 
-  it("links to home, work, about, now, and notes", () => {
+  it("links to home (the logo), the Index, Now, and About", () => {
     render(<ShellNav />);
     const hrefs = screen
       .getAllByRole("link")
       .map((a) => a.getAttribute("href"));
     expect(hrefs).toEqual(
-      expect.arrayContaining(["/", "/work", "/about", "/now", "/notes"]),
+      expect.arrayContaining(["/", "/browse", "/now", "/about"]),
     );
+  });
+
+  it("no longer exposes the folded /work and /notes indexes", () => {
+    render(<ShellNav />);
+    const hrefs = screen
+      .getAllByRole("link")
+      .map((a) => a.getAttribute("href"));
+    expect(hrefs).not.toContain("/work");
+    expect(hrefs).not.toContain("/notes");
   });
 });

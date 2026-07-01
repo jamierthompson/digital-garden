@@ -250,16 +250,6 @@ export type AllSanitySchemaTypes =
   | SanityImageAsset
   | Geopoint;
 
-// Source: ../src/app/notes/queries.ts
-// Variable: NOTES_INDEX_QUERY
-// Query: *[_type == "entry" && kind == "note" && defined(slug.current)] | order(title asc) {    _id,    title,    "slug": slug.current,    "relatedCount": count(related)  }
-export type NOTES_INDEX_QUERY_RESULT = Array<{
-  _id: string;
-  title: string | null;
-  slug: string | null;
-  relatedCount: number | null;
-}>;
-
 // Source: ../src/sanity/lib/queries.ts
 // Variable: WORK_INDEX_QUERY
 // Query: *[_type == "entry" && kind == "project" && defined(slug.current)] | order(_createdAt desc) {    _id,    title,    "slug": slug.current,    kind,    stage,    featuredRank,    blurb,    brandColor,    fontKey  }
@@ -315,6 +305,20 @@ export type PROJECT_DETAIL_QUERY_RESULT = {
 } | null;
 
 // Source: ../src/sanity/lib/queries.ts
+// Variable: INDEX_QUERY
+// Query: *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    blurb,    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])  }
+export type INDEX_QUERY_RESULT = Array<{
+  _id: string;
+  title: string | null;
+  slug: string | null;
+  kind: "essay" | "note" | "now" | "project" | null;
+  stage: "prototype" | "shipped" | "sketch" | null;
+  iterated: string | null;
+  blurb: string | null;
+  linkCount: number | null;
+}>;
+
+// Source: ../src/sanity/lib/queries.ts
 // Variable: SITE_SETTINGS_QUERY
 // Query: *[_type == "siteSettings"][0] {    _id,    title,    description,    brandColor,    brandColorDark,    fontKey  }
 export type SITE_SETTINGS_QUERY_RESULT = {
@@ -330,10 +334,10 @@ export type SITE_SETTINGS_QUERY_RESULT = {
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_type == "entry" && kind == "note" && defined(slug.current)] | order(title asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    "relatedCount": count(related)\n  }\n': NOTES_INDEX_QUERY_RESULT;
     '\n  *[_type == "entry" && kind == "project" && defined(slug.current)] | order(_createdAt desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    featuredRank,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': WORK_INDEX_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current)]{ "slug": slug.current }\n': ENTRY_SLUGS_QUERY_RESULT;
     '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    blurb,\n    brandColor,\n    brandColorDark,\n    fontKey,\n    componentKey,\n    body,\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind },\n    tags\n  }\n': PROJECT_DETAIL_QUERY_RESULT;
+    '\n  *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    blurb,\n    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])\n  }\n': INDEX_QUERY_RESULT;
     '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description,\n    brandColor,\n    brandColorDark,\n    fontKey\n  }\n': SITE_SETTINGS_QUERY_RESULT;
   }
 }

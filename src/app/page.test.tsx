@@ -21,7 +21,7 @@ describe("Home page", () => {
       .getAllByRole("link")
       .map((a) => a.getAttribute("href"));
     expect(hrefs).toEqual(
-      expect.arrayContaining(["/work", "/notes", "/about", "/now"]),
+      expect.arrayContaining(["/browse", "/about", "/now"]),
     );
   });
 });

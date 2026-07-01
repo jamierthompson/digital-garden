@@ -1,0 +1,105 @@
+/* Index route. @layer project — declares its layer (an unlayered module outranks every
+   layered rule); var-consuming only (global editorial semantic tokens, no per-entry brand). */
+@layer project {
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-5);
+  }
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .title {
+    font-size: var(--text-3xl);
+    line-height: var(--leading-tight);
+    color: var(--text);
+  }
+
+  .intro {
+    max-width: 60ch;
+    color: var(--text-muted);
+    font-size: var(--text-lg);
+  }
+
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .sectionHeading {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    list-style: none;
+    padding: 0;
+  }
+
+  .item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .itemHead {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .itemLink {
+    font-size: var(--text-xl);
+    line-height: var(--leading-tight);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  a.itemLink:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  .stage {
+    font-size: var(--text-sm);
+    text-transform: capitalize;
+    color: var(--text-muted);
+    padding: 0.1em 0.6em;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+
+  .blurb {
+    max-width: 68ch;
+    color: var(--text-muted);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+  }
+
+  .meta {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+
+  .empty {
+    color: var(--text-muted);
+    font-size: var(--text-lg);
+  }
+}

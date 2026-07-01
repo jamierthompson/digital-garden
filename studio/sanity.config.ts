@@ -40,9 +40,8 @@ const PREVIEW_URL = process.env.SANITY_STUDIO_PREVIEW_URL || 'http://localhost:3
  * Document locations power the "Used on" panel and Structure↔Presentation
  * navigation: they map a document to the front-end route(s) where it appears.
  *
- * - `entry` → its flat detail page (`/<slug>`) + the index it's listed on, branched by
- *   `kind`. Transitional (the folded Index arrives later in #60): a `note` lists on
- *   `/notes`; every other kind lists on the `/work` index.
+ * - `entry` → its flat detail page (`/<slug>`) + the browsable Index (`/browse`) it's listed
+ *   on. Every kind now folds into the one Index.
  * - `siteSettings` is global (used on every page), so it shows a message instead
  *   of links.
  */
@@ -58,10 +57,7 @@ const locations = {
       const detail = slug
         ? [{title: doc?.title || 'Untitled entry', href: `/${slug}`}]
         : []
-      if (doc?.kind === 'note') {
-        return {locations: [...detail, {title: 'Notes', href: '/notes'}]}
-      }
-      return {locations: [...detail, {title: 'Work index', href: '/work'}]}
+      return {locations: [...detail, {title: 'Index', href: '/browse'}]}
     },
   }),
   siteSettings: defineLocations({

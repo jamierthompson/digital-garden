@@ -26,16 +26,10 @@ export default function Home() {
         </p>
       </section>
       <nav className={styles.wayfinding} aria-label="Sections">
-        <Link href="/work" className={styles.card}>
-          <span className={styles.cardTitle}>Work</span>
+        <Link href="/browse" className={styles.card}>
+          <span className={styles.cardTitle}>Index</span>
           <span className={styles.cardBlurb}>
-            Projects, each its own brand and font.
-          </span>
-        </Link>
-        <Link href="/notes" className={styles.card}>
-          <span className={styles.cardTitle}>Notes</span>
-          <span className={styles.cardBlurb}>
-            Working notes and the things they link to.
+            Everything in the garden — projects, essays, and notes.
           </span>
         </Link>
         <Link href="/about" className={styles.card}>

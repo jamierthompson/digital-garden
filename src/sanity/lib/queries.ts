@@ -1,18 +1,14 @@
 import { defineQuery } from "next-sanity";
 
 /**
- * `/work` index query (project-kind entries).
+ * Project feed query (RSS) — project-kind entries.
  *
- * Pulls only what a card needs — `blurb`, `brandColor`, `fontKey`, plus the `kind` /
- * `stage` / `featuredRank` facets (and id / title / slug for the link) — and deliberately
- * NOT the `body`. This enforces "a few colors per card" at the data layer: `brandColor`
- * feeds `cardSwatches` (engine Consumer C), and omitting the body keeps the index payload
- * small for CWV. The over-fetch guard is asserted in queries.test.ts.
- *
- * Filters to `kind == "project"` — the current `/work` index lists projects (the flat
- * `/[slug]` + browsable Index restructure is #60). Typed by Sanity TypeGen as
- * `WORK_INDEX_QUERYResult` in the root `sanity.types.ts`. `defineQuery` must wrap the
- * literal — no runtime interpolation — so TypeGen can statically pick it up.
+ * Pulls only what the feed needs — `blurb`, plus the `kind` / `stage` / `featuredRank`
+ * facets (and id / title / slug for the link) — and deliberately NOT the `body`, keeping the
+ * read small. Filters to `kind == "project"`: the RSS feed is the portfolio's project stream.
+ * (The old `/work` index this once fed folded into `/browse`; only `rss.xml` reads it now.)
+ * The over-fetch guard is asserted in queries.test.ts. Typed by Sanity TypeGen as
+ * `WORK_INDEX_QUERYResult`. `defineQuery` must wrap the literal — no runtime interpolation.
  */
 export const WORK_INDEX_QUERY = defineQuery(`
   *[_type == "entry" && kind == "project" && defined(slug.current)] | order(_createdAt desc) {
@@ -74,6 +70,30 @@ export const PROJECT_DETAIL_QUERY = defineQuery(`
     related[]->{ _id, title, "slug": slug.current, kind },
     "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind },
     tags
+  }
+`);
+
+/**
+ * Index query (`/browse`, every kind) — the browsable list that folds the old `/work` and
+ * `/notes` indexes into one editorial surface.
+ *
+ * Pulls every published entry with the facets the Index reads — `kind` + `stage` (the group
+ * headings + maturity badge) and a `linkCount` (outgoing `related` + incoming `references()`,
+ * the backlink hint) — plus `title` / `slug` / `blurb` for the row. Deliberately NOT the
+ * `body` or theming seeds: the Index wears the global editorial look (no per-row brand), so it
+ * needs neither the rich text nor `brandColor`/`fontKey`. Ordered by `kind`, then freshest
+ * first (`iterated`, falling back to `_createdAt`). Typed as `INDEX_QUERYResult`.
+ */
+export const INDEX_QUERY = defineQuery(`
+  *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {
+    _id,
+    title,
+    "slug": slug.current,
+    kind,
+    stage,
+    iterated,
+    blurb,
+    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])
   }
 `);
 
