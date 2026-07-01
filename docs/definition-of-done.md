@@ -140,7 +140,7 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       would; the owning author fixed and QA re-checked clean. Staffing scales — solo → one QA; team → one
       per coding agent. The lead owns this loop (not a CI gate) — see the dev↔QA loop in
       [working-with-agents.md](./working-with-agents.md).
-- [ ] **End of a session?** Refresh the [`README.md`](../../README.md) before the squash-merge
+- [ ] **End of a session?** Refresh the [`README.md`](../README.md) before the squash-merge
       (any changed scripts, structure, conventions, or status). The durable what/why of the work is
       **git history + the PR body** — and the PR body carries the **QA log** (what QA tested, what
       passed, each defect → fix → re-check, tests added; one entry per coding agent). See the dev↔QA

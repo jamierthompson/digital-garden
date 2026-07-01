@@ -22,7 +22,7 @@ framework code.**
 
 - **Framework behavior** → bundled docs at `node_modules/next/dist/docs/` (`01-app`,
   `02-pages`, `03-architecture`, …). They ship with the installed version, so they are
-  correct where memory is not. The root [`AGENTS.md`](../../AGENTS.md) says the same.
+  correct where memory is not. The root [`AGENTS.md`](../AGENTS.md) says the same.
 - **Project rules & system model** → the handbook docs ([`./architecture.md`](./architecture.md)
   and the rest). They are the current truth, edited in place; `git` history is the audit trail.
   There is no decision log.
@@ -105,7 +105,7 @@ the relevant rule and obey it.
 agents." It **complements** the README (README = humans; `AGENTS.md` = agent context) and
 is read by a range of agent tools.
 
-- The repo's root [`AGENTS.md`](../../AGENTS.md) currently holds only the managed
+- The repo's root [`AGENTS.md`](../AGENTS.md) currently holds only the managed
   `<!-- BEGIN:nextjs-agent-rules -->` block. **Never hand-edit inside those markers** —
   `create-next-app` regenerates them. Any house content goes _outside_ the markers.
 - **Nesting: nearest file wins.** In this multi-package pnpm workspace (app + `studio/` + `packages/oklch`), a nested
@@ -299,7 +299,7 @@ each tool call.**
   team's (or the solo lead's) sitting: it ends when the team stops — whether it _completed_ the unit
   of work or stopped at a good handoff point (between tasks, so QA can run and a PR can open) for the
   next team to pick up. Before any squash-merge:
-  1. **Update the project [`README.md`](../../README.md)** so it still describes the repo as it now
+  1. **Update the project [`README.md`](../README.md)** so it still describes the repo as it now
      is — any changed scripts, structure, conventions, or status. The README is human-facing and
      rots silently; a stale status claim is the smell this rule exists to kill. (The per-task echo
      of this is the "docs updated" box in [`./definition-of-done.md`](./definition-of-done.md); this makes it a hard **session-level** requirement,

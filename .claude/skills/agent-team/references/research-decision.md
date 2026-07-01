@@ -41,7 +41,7 @@ actually moves. A critique is only valid if it cites the source that _actually c
   won and why. It's healthy for some critiques to be **rejected on verification** — the handbook
   synthesis rejected two; that's the pattern working.
 - **Record the resolved call by editing the relevant living doc in place** — the system model in
-  [`architecture.md`](../../../../docs/handbook/architecture.md), or the matching handbook doc for a
+  [`architecture.md`](../../../../docs/architecture.md), or the matching handbook doc for a
   process call. There is **no decision log**: the docs are the current truth, edited in place, and git
   history is the audit trail.
 - **Persist the trail in the PR body** — the drafts, the debate, and the resolved synthesis — so the

@@ -20,7 +20,7 @@ labels: "type:spike"
 
 - [ ] The question is answered, verified against the code / bundled docs (not memory).
 - [ ] Anything architecturally significant is captured in the relevant handbook doc (e.g.
-      `docs/handbook/architecture.md`), edited in place — there is no separate decision log.
+      `docs/architecture.md`), edited in place — there is no separate decision log.
 - [ ] Findings written up (see Outcome).
 
 ## Out of scope

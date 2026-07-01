@@ -1,7 +1,7 @@
 <!--
 This PR SQUASH-MERGES — the title (Conventional-Commit-shaped) becomes the commit subject and this
 body becomes the commit body on `main`. So this description IS the durable story; tell it well.
-Curate the branch and clear the Definition of Done before merge — the rules live in docs/handbook/
+Curate the branch and clear the Definition of Done before merge — the rules live in docs/
 (git-and-pr-workflow, definition-of-done). Don't restate them here; just tell what changed and
 confirm the gate + adversarial QA passed.
 -->

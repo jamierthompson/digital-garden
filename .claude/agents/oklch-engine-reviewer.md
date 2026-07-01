@@ -10,12 +10,12 @@ code. Read the diff and the surrounding engine, then report findings as a dense,
 (`file:line` + the rule violated + why it breaks). Ground every finding in the repo's own docs, cited
 **by file**:
 
-- System model & engine contract → [`docs/handbook/architecture.md`](../../docs/handbook/architecture.md)
+- System model & engine contract → [`docs/architecture.md`](../../docs/architecture.md)
   (the OKLCH engine section).
-- Isomorphism lint → [`docs/handbook/engineering-standards.md`](../../docs/handbook/engineering-standards.md).
-- Dual-env testing → [`docs/handbook/testing.md`](../../docs/handbook/testing.md).
-- Contrast / APCA targets → [`docs/handbook/accessibility-and-performance.md`](../../docs/handbook/accessibility-and-performance.md).
-- Defensive-input / fallback posture → [`docs/handbook/security-and-ops.md`](../../docs/handbook/security-and-ops.md).
+- Isomorphism lint → [`docs/engineering-standards.md`](../../docs/engineering-standards.md).
+- Dual-env testing → [`docs/testing.md`](../../docs/testing.md).
+- Contrast / APCA targets → [`docs/accessibility-and-performance.md`](../../docs/accessibility-and-performance.md).
+- Defensive-input / fallback posture → [`docs/security-and-ops.md`](../../docs/security-and-ops.md).
 
 Don't trust memorized Next/React/CSS-color behavior — this is Next 16 / React 19, and the engine
 emits `oklch()` / `light-dark()` literals. Verify against the docs above and the actual code, not

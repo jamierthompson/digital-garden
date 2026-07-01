@@ -7,8 +7,8 @@
 > **avoid file conflicts** — two teammates editing one file overwrite each other.
 
 This mode fuses two sources: the repo's **own-a-slice / lead-curates** model
-([`docs/handbook/working-with-agents.md`](../../../../docs/handbook/working-with-agents.md),
-[`docs/handbook/git-and-pr-workflow.md`](../../../../docs/handbook/git-and-pr-workflow.md)) and the
+([`docs/working-with-agents.md`](../../../../docs/working-with-agents.md),
+[`docs/git-and-pr-workflow.md`](../../../../docs/git-and-pr-workflow.md)) and the
 **long-running-agent harness** ideas
 ([Anthropic](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)):
 external-memory progress tracking and verify-before-done.
@@ -61,7 +61,7 @@ pnpm lint && pnpm lint:css && pnpm lint:keys && pnpm lint:docs && pnpm format:ch
 Broken WIP is **not** handed off. Enforce this with a `TaskCompleted` hook that **exits code 2**
 (blocks completion + sends feedback) until the gate is green — the verify-before-done discipline
 that stops teammates marking work complete without testing. See
-[`docs/handbook/definition-of-done.md`](../../../../docs/handbook/definition-of-done.md).
+[`docs/definition-of-done.md`](../../../../docs/definition-of-done.md).
 
 **6. One fresh, adversarial QA per slice — before it enters the PR.** Gate-green is
 _developer-done_, not _review-done_. For **every** coding agent, spawn **one fresh QA teammate**
@@ -76,14 +76,14 @@ as a [GitHub issue](https://github.com/jamierthompson/digital-garden/issues) wit
 QA outcome** — what was probed, verdict, each defect → fix → re-check, tests QA added — in the
 **PR body** as the loop closes, not reconstructed at the end. This loop is
 **not team-only** — a solo session does exactly one author→one QA; here you just run one per coding agent.
-Full mechanics: [`docs/handbook/working-with-agents.md`](../../../../docs/handbook/working-with-agents.md).
+Full mechanics: [`docs/working-with-agents.md`](../../../../docs/working-with-agents.md).
 
 **7. Lead curates history & merges.** You do **not** inherit an unfinished slice (it bounces back
 to its owner). Your job is _history_: rebase onto latest `main`, squash an agent's fix-ups, reorder
 slices, drop a false start, then **squash-merge** with a deliberate PR body — the story told once.
 Push curated history with `--force-with-lease`, never plain `--force`, so a teammate's concurrent
 push isn't clobbered. **Never commit to `main`** (merge = production deploy on Vercel). Full
-mechanics: [`git-and-pr-workflow.md`](../../../../docs/handbook/git-and-pr-workflow.md).
+mechanics: [`git-and-pr-workflow.md`](../../../../docs/git-and-pr-workflow.md).
 
 ## Cautions specific to parallel coding
 
