@@ -512,11 +512,19 @@ describe("baked literals clear the TRUE contrast floor (#79)", () => {
   // Round-trip a token through the exact bake path (formatOklch → parseColor) to measure
   // what actually ships, not the precise solver output.
   const bake = (c: OkLCH): OkLCH => parseColor(formatOklch(c))!;
+  // A generated hue × L × chroma sweep, NOT a handful of fixed seeds — the accent fill /
+  // on-accent path solves on a discrete-L scan whose floor-hugging edge only shows under a
+  // real sweep (a fixed-seed list silently misses it). Plus QA's exact accent-path edge
+  // seeds and the fallback.
   const SEEDS: unknown[] = [
-    "#3b82f6",
-    "oklch(0.85 0.2 290)", // the info/light worst case QA found
-    "#e11d48",
-    "#faf3c0", // too-light → dark-native
+    ...[0, 45, 90, 130, 150, 200, 238, 278, 320].flatMap((H) =>
+      [0.4, 0.6, 0.82].flatMap((L) =>
+        [0.15, 0.28].map((C) => `oklch(${L} ${C} ${H})`),
+      ),
+    ),
+    "oklch(0.6 0.28 150)", // QA B1 edge: baked on-accent hit 4.4998 pre-fix
+    "oklch(0.75 0.28 204)",
+    "oklch(0.7 0.2 238)",
     "garbage", // → fallback
   ];
   const GAMUTS = ["srgb", "p3"] as const;

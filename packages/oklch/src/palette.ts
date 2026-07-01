@@ -25,6 +25,7 @@ import {
   apcaLc,
   contrastWCAG,
   solveForeground,
+  withSolveMargin,
   type ContrastTarget,
 } from "./contrast";
 import type {
@@ -174,7 +175,10 @@ function solveAccent(
   gamut: Gamut,
 ): { accent: OkLCH; onAccent: OkLCH } {
   const hue = seed.H;
-  const target = TARGET.onAccent;
+  // Solve to a hair above the floors (#79) so the 4-dp-rounded baked fill + label still
+  // clear their true floors — this scan bakes literals just like `solveForeground`.
+  const target = withSolveMargin(TARGET.onAccent);
+  const ui = withSolveMargin(TARGET.ui);
   const labels = [
     gamutMap({ L: 0.99, C: 0, H: hue }, gamut), // near-white
     gamutMap({ L: 0.1, C: 0, H: hue }, gamut), // near-black
@@ -191,8 +195,8 @@ function solveAccent(
   for (let L = 0.3; L <= 0.8 + 1e-9; L += 0.01) {
     const accent = gamutMap({ L, C: seed.C, H: hue }, gamut);
     // The fill must read as a UI element against the surface (non-text 3:1 / Lc 45).
-    if (contrastWCAG(accent, surfaceBg) < TARGET.ui.wcag) continue;
-    if (apcaLc(accent, surfaceBg) < TARGET.ui.apca) continue;
+    if (contrastWCAG(accent, surfaceBg) < ui.wcag) continue;
+    if (apcaLc(accent, surfaceBg) < ui.apca) continue;
 
     for (const label of labels) {
       const lc = apcaLc(label, accent);
@@ -245,7 +249,9 @@ function solveNativeAccent(
   gamut: Gamut,
 ): { accent: OkLCH; onAccent: OkLCH } | null {
   const hue = seed.H;
-  const target = TARGET.onAccent;
+  // Solve to a hair above the floors (#79) so the rounded baked fill + label still clear.
+  const target = withSolveMargin(TARGET.onAccent);
+  const ui = withSolveMargin(TARGET.ui);
   const labels = [
     gamutMap({ L: 0.99, C: 0, H: hue }, gamut), // near-white
     gamutMap({ L: 0.1, C: 0, H: hue }, gamut), // near-black
@@ -261,8 +267,8 @@ function solveNativeAccent(
     const accent = gamutMap({ L, C: seed.C, H: hue }, gamut);
     // The fill must still read as a UI element against the worst-case surface.
     const readsOnSurface =
-      contrastWCAG(accent, surfaceBg) >= TARGET.ui.wcag &&
-      apcaLc(accent, surfaceBg) >= TARGET.ui.apca;
+      contrastWCAG(accent, surfaceBg) >= ui.wcag &&
+      apcaLc(accent, surfaceBg) >= ui.apca;
     if (readsOnSurface) {
       for (const label of labels) {
         if (
