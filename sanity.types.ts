@@ -319,6 +319,20 @@ export type INDEX_QUERY_RESULT = Array<{
 }>;
 
 // Source: ../src/sanity/lib/queries.ts
+// Variable: FEATURED_QUERY
+// Query: *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {    _id,    title,    "slug": slug.current,    kind,    stage,    blurb,    brandColor,    fontKey  }
+export type FEATURED_QUERY_RESULT = Array<{
+  _id: string;
+  title: string | null;
+  slug: string | null;
+  kind: "essay" | "note" | "now" | "project" | null;
+  stage: "prototype" | "shipped" | "sketch" | null;
+  blurb: string | null;
+  brandColor: string | null;
+  fontKey: string | null;
+}>;
+
+// Source: ../src/sanity/lib/queries.ts
 // Variable: SITE_SETTINGS_QUERY
 // Query: *[_type == "siteSettings"][0] {    _id,    title,    description,    brandColor,    brandColorDark,    fontKey  }
 export type SITE_SETTINGS_QUERY_RESULT = {
@@ -338,6 +352,7 @@ declare module "@sanity/client" {
     '\n  *[_type == "entry" && defined(slug.current)]{ "slug": slug.current }\n': ENTRY_SLUGS_QUERY_RESULT;
     '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    blurb,\n    brandColor,\n    brandColorDark,\n    fontKey,\n    componentKey,\n    body,\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind },\n    tags\n  }\n': PROJECT_DETAIL_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    blurb,\n    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])\n  }\n': INDEX_QUERY_RESULT;
+    '\n  *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': FEATURED_QUERY_RESULT;
     '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description,\n    brandColor,\n    brandColorDark,\n    fontKey\n  }\n': SITE_SETTINGS_QUERY_RESULT;
   }
 }

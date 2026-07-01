@@ -21,10 +21,10 @@ or carry `server-only`/`client-only`.
 ```ts
 import { resolveTheme, buildTokenSet, tokenSetToCss } from "@garden/oklch";
 
-// One scheme → flat token map (Consumer B playground, Consumer C cardSwatches):
+// One scheme → flat token map (the oklch-engine playground, cardSwatches):
 const { tokens, seed, isFallback } = resolveTheme("#3b82f6", "light");
 
-// Both schemes zipped for ProjectScope's light-dark() <style> (Consumer A):
+// Both schemes zipped for ProjectScope's light-dark() <style>:
 const set = buildTokenSet("#3b82f6"); // { gamut: "p3" } to opt into wide gamut
 const css = tokenSetToCss(set, '[data-project="garden"]'); // wrapped in @layer brand
 ```

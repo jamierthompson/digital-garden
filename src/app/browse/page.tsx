@@ -60,7 +60,10 @@ export default async function IndexPage() {
                   <li key={entry._id} className={styles.item}>
                     <div className={styles.itemHead}>
                       {entry.slug ? (
-                        <Link href={`/${entry.slug}`} className={styles.itemLink}>
+                        <Link
+                          href={`/${entry.slug}`}
+                          className={styles.itemLink}
+                        >
                           {entry.title ?? "Untitled entry"}
                         </Link>
                       ) : (
@@ -78,7 +81,9 @@ export default async function IndexPage() {
                       <p className={styles.blurb}>{entry.blurb}</p>
                     ) : null}
                     {(entry.linkCount ?? 0) > 0 ? (
-                      <span className={styles.meta}>{entry.linkCount} linked</span>
+                      <span className={styles.meta}>
+                        {entry.linkCount} linked
+                      </span>
                     ) : null}
                   </li>
                 ))}

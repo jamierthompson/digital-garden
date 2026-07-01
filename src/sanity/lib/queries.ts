@@ -98,6 +98,28 @@ export const INDEX_QUERY = defineQuery(`
 `);
 
 /**
+ * Featured query (`/`, curated front door) — entries with a `featuredRank`, any `kind`.
+ *
+ * The hurried evaluator's reading path: the curated subset an editor promoted (`featuredRank`
+ * is set), ordered by rank (lower = earlier). Pulls the card fields — `blurb` + the theming
+ * seeds `brandColor` / `fontKey` — because the featured cards ARE branded: each re-binds its
+ * own engine-solved palette inline via `cardSwatches`. Deliberately NOT
+ * the `body`, keeping the front-door payload small for LCP. Typed as `FEATURED_QUERYResult`.
+ */
+export const FEATURED_QUERY = defineQuery(`
+  *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {
+    _id,
+    title,
+    "slug": slug.current,
+    kind,
+    stage,
+    blurb,
+    brandColor,
+    fontKey
+  }
+`);
+
+/**
  * `siteSettings` singleton query.
  *
  * `siteSettings` is intended as a singleton (one document, enforced via Studio Structure

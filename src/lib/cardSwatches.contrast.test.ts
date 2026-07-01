@@ -5,9 +5,9 @@ import { contrastWCAG, parseColor } from "@garden/oklch";
 import { cardSwatches } from "./cardSwatches";
 
 /**
- * Engine contrast STRESS-TEST, via the `/work` card consumer.
+ * Engine contrast STRESS-TEST, via the featured-home card consumer.
  *
- * The `/work` grid exists to exercise the engine: a card's SURFACE and TEXT are both
+ * The featured-home grid exists to exercise the engine: a card's SURFACE and TEXT are both
  * engine-derived from its `brandColor`, so the ratio between them IS the solver's output.
  * This suite feeds `cardSwatches` a battery of edge-case brand colors — the hard paths the
  * solver must survive (too-light, yellow/cyan where a uniform ΔL fails, high-chroma /

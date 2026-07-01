@@ -214,7 +214,7 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 - Runs **per slot** — once per project slot (seeded by that project's `brandColor`). Multiple themed
   slots can coexist on one page; the page chrome around them stays editorial. **Previews are not
   slots**: an index card or inline preview needs a few colors, not a namespace, so it derives them
-  from the same engine (Consumer C) and skips the scoped `<style>` block.
+  from the same engine (via `cardSwatches`) and skips the scoped `<style>` block.
 
 - Emitted as a **server-rendered scoped `<style>` block** (`[data-project="x"] { … }`), declared
   `@layer brand`. On Vercel this is genuinely **flash-free for color**: the `brandColor` is known
@@ -228,19 +228,19 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   `--font-body`, …); the engine emits the ramp primitives, the scope does the role mapping — not the
   engine.
 
-**Three consumers, one engine:**
+**Three call sites, one engine:**
 
-- **Consumer A — the theming feature**: the per-slot theming layer (`ProjectScope`) calls the
-  engine on the server to emit each slot's `<style>` block.
-- **Consumer B — the portfolio piece**: `src/projects/oklch-engine/` is an ordinary project module
-  (a project module like any other) whose interactive experience is a playground (drag a hue, watch
-  the palette regenerate). The experience **imports the same shared engine** — it never reimplements
-  it, and re-runs the pure function in JS on each slider move (it does not rely on CSS re-derivation).
-- **Consumer C — preview swatches**: the index (and inline previews) call a
-  `cardSwatches(brandColor)` helper that runs the **same engine** and returns just a few stops. The
-  card sets them as inline `--c-*` custom properties on otherwise-editorial chrome — no slot scope,
-  no `<style>` block, no full override. It goes through the same parse/validate path as everything
-  else.
+- **Slot theming (`ProjectScope`)**: the per-slot theming layer calls the engine on the server to
+  emit each slot's `<style>` block.
+- **The portfolio piece (`src/projects/oklch-engine/`)**: an ordinary project module (like any other)
+  whose interactive experience is a playground (drag a hue, watch the palette regenerate). The
+  experience **imports the same shared engine** — it never reimplements it, and re-runs the pure
+  function in JS on each slider move (it does not rely on CSS re-derivation).
+- **Preview swatches (`cardSwatches`)**: the featured-home cards (and inline previews) call a
+  `cardSwatches(brandColor)` helper that runs the **same engine** and returns just a few stops, spread
+  inline as **generic semantic-token overrides** (`--surface`/`--text`/`--border`/`--accent`, no
+  prefix) on an otherwise-editorial frame — no slot scope, no `<style>` block. It goes through the
+  same parse/validate path as everything else.
 
 Two deliberate consequences:
 
@@ -489,7 +489,7 @@ Practical notes:
   registry; neither → it's not an input._
 - **The index query refuses to over-fetch.** The card query pulls `blurb`, `brandColor`, `fontKey`,
   `kind`, `stage`, `featuredRank` — **not** the body. That enforces "a few colors per card" at the data
-  layer (cards feed `cardSwatches` — the OKLCH engine's Consumer C) and keeps the index payload small
+  layer (cards feed `cardSwatches`) and keeps the index payload small
   for CWV.
 - **`ProjectScope` is the resolution keystone.** One server component takes a scope's `brandColor` +
   `fontKey` and emits the flash-free scoped `<style>` (engine palette, both schemes via
@@ -510,10 +510,13 @@ Practical notes:
   components) and pulls a demo bundle only if it explicitly embeds one.
 - **Two reading paths over one content graph.** The **featured home** (`/`) is a curated front door —
   the entries with a `featuredRank`, of _any_ `kind`, ordered by rank — for a hurried evaluator. The
-  **Index** is the full browsable list of every entry, filtered by `kind` and `stage` and wired with
-  backlinks, for the wanderer. The portfolio is a _view_ of the graph (a saved `featuredRank != null`
-  filter), not a separate section. Both, plus `/about` and `/now`, are shell-owned and wear the global
-  editorial look (see the token & theming architecture).
+  **Index** (at `/browse`) is the full browsable list of every entry, filtered by `kind` and `stage`
+  and wired with backlinks, for the wanderer. The portfolio is a _view_ of the graph (a saved
+  `featuredRank != null` filter), not a separate section. The **shell frame** of both — plus `/about`
+  and `/now` — is editorial ink (see the token & theming architecture). Their _content_ differs by
+  intent: the Index is a uniform editorial list, but the **featured home's cards are branded slots** —
+  each re-binds its own engine-solved palette inline via `cardSwatches`, because a
+  card is a bounded slot, not chrome. So brand still lives only in slots, never in the frame.
 - **TypeGen + `defineQuery`**: typed GROQ; run TypeGen after any schema or query change (a committed
   script + a CI `git diff --exit-code` on the generated types keeps it from rotting); `defineQuery`
   must wrap the query literally (no runtime interpolation).
