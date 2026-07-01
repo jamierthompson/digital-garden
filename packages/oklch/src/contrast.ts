@@ -130,6 +130,19 @@ function meets(fg: OkLCH, bg: OkLCH, target: ContrastTarget): boolean {
   return contrastWCAG(fg, bg) >= target.wcag && apcaLc(fg, bg) >= target.apca;
 }
 
+// The solver lands on the least-extreme L that *just* meets its target — with zero margin
+// the pre-round value sits exactly on the floor, and `formatOklch`'s 4-dp rounding can then
+// nudge the *shipped* literal a hair under it. Solve to a hair ABOVE the floor so the baked
+// value still clears the true floor. `meets()` stays the true floor for validation/tests.
+// The bump (≈0.2% WCAG / +0.5 Lc) dwarfs the ≤0.0002 rounding error yet is imperceptible.
+export const SOLVE_MARGIN = { wcag: 1.002, apca: 0.5 } as const;
+export function withSolveMargin(target: ContrastTarget): ContrastTarget {
+  return {
+    wcag: target.wcag * SOLVE_MARGIN.wcag,
+    apca: target.apca + SOLVE_MARGIN.apca,
+  };
+}
+
 /**
  * Solve a foreground OKLCH that meets the contrast target against `bg`, holding the
  * given hue and preferring the given chroma. Moves L *away* from the background
@@ -141,7 +154,9 @@ function meets(fg: OkLCH, bg: OkLCH, target: ContrastTarget): boolean {
  * Pure, deterministic, never throws.
  */
 export function solveForeground(opts: SolveOptions): OkLCH {
-  const { bg, hue, target, gamut } = opts;
+  const { bg, hue, gamut } = opts;
+  // Solve to a hair above the floor so the 4-dp-rounded baked literal still clears it (#79).
+  const target = withSolveMargin(opts.target);
   // Direction: light backgrounds want darker text, dark backgrounds want lighter text.
   const goDarker = bg.L >= 0.5;
 
