@@ -380,6 +380,52 @@ describe("status colors", () => {
       expect(a.tokens[name], name).toEqual(b.tokens[name]);
     }
   });
+
+  // Locks the accessibility promise the docs make ("any brand, both schemes, both gamuts"):
+  // a dense hue × L × chroma sweep in sRGB AND P3, measured with the real contrast fns.
+  it("every status color clears its floor across a hue/L/chroma sweep (sRGB + P3)", () => {
+    const gamuts = ["srgb", "p3"] as const;
+    const Hs = [0, 27, 80, 145, 250, 330];
+    const Ls = [0.1, 0.5, 0.9];
+    const Cs = [0, 0.15, 0.35];
+    for (const gamut of gamuts)
+      for (const H of Hs)
+        for (const L of Ls)
+          for (const C of Cs)
+            for (const scheme of SCHEMES) {
+              const { tokens } = resolveTheme(`oklch(${L} ${C} ${H})`, scheme, {
+                gamut,
+              });
+              const surface2 = tokens["surface-2"];
+              for (const name of STATUS_TOKENS) {
+                const c = tokens[name];
+                const where = `${name}/${scheme}/${gamut}/H${H}L${L}C${C}`;
+                expect(inGamut(c, gamut), where).toBe(true);
+                expect(
+                  contrastWCAG(c, surface2),
+                  `${where} WCAG`,
+                ).toBeGreaterThanOrEqual(STATUS_FLOOR.wcag);
+                expect(
+                  apcaLc(c, surface2),
+                  `${where} APCA`,
+                ).toBeGreaterThanOrEqual(STATUS_FLOOR.apca);
+              }
+            }
+  });
+
+  // Documents the intended design: because the hue is fixed-canonical and surface-2's brand
+  // tint is capped tiny, status colors are near brand-invariant — two wildly different brands
+  // land within a hair. Guards against an accidental brand-hue leak into the status solve.
+  it("status colors are near brand-invariant (fixed canonical hue, only the surface-tint whisper varies)", () => {
+    const a = resolveTheme("#e11d48", "light").tokens; // crimson brand
+    const b = resolveTheme("#06b6d4", "light").tokens; // cyan brand
+    for (const name of STATUS_TOKENS) {
+      // L barely moves and the hue stays within a sub-2° wobble (from gamut-mapping against
+      // the brand-tinted surface) — the canonical anchor dominates, no brand-hue leak.
+      expect(Math.abs(a[name].L - b[name].L), `${name} L`).toBeLessThan(0.02);
+      expect(Math.abs(a[name].H - b[name].H), `${name} H`).toBeLessThan(2);
+    }
+  });
 });
 
 describe("buildTokenSet", () => {
