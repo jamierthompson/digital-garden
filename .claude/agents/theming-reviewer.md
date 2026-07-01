@@ -9,10 +9,10 @@ against the theming rules — you do not rewrite code. Read the diff and the CSS
 around it, then report a dense, severity-ranked finding list (`file:line` + rule + why it breaks).
 Ground every finding in the repo's own docs, cited **by file**:
 
-- Token model, theming, downward theming → [`docs/handbook/architecture.md`](../../docs/handbook/architecture.md).
-- The `@layer` trap & CSS-Module rules → [`docs/handbook/engineering-standards.md`](../../docs/handbook/engineering-standards.md).
-- Flash-free / streamed-style / CWV → [`docs/handbook/accessibility-and-performance.md`](../../docs/handbook/accessibility-and-performance.md).
-- The global-chrome / slot-scoped split at a glance → [`docs/handbook/orientation.md`](../../docs/handbook/orientation.md).
+- Token model, theming, downward theming → [`docs/architecture.md`](../../docs/architecture.md).
+- The `@layer` trap & CSS-Module rules → [`docs/engineering-standards.md`](../../docs/engineering-standards.md).
+- Flash-free / streamed-style / CWV → [`docs/accessibility-and-performance.md`](../../docs/accessibility-and-performance.md).
+- The global-chrome / slot-scoped split at a glance → [`docs/orientation.md`](../../docs/orientation.md).
 
 Don't trust memorized CSS-cascade or React behavior — this is Next 16 / React 19, CSS `@layer`, and
 server-emitted `<style>`. Verify against the docs above and the real code, not training data.

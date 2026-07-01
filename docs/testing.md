@@ -176,7 +176,7 @@ envs (`projects` is the current API — `workspace` is **deprecated** since Vite
 `projects` beats the per-file `// @vitest-environment node` docblock because the docblock runs a
 file in _one_ env — satisfying "both" would mean duplicating the suite. Run a single env while
 debugging an isomorphism failure with `pnpm test --project node`. The committed config is the
-source of truth — read [`../../vitest.config.ts`](../../vitest.config.ts).
+source of truth — read [`../../vitest.config.ts`](../vitest.config.ts).
 
 ### Engine contract: assert behavior, not snapshots
 

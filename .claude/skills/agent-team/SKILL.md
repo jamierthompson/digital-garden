@@ -9,7 +9,7 @@ You are about to act as the **team lead**: spawn coordinating Claude Code teamma
 the work, keep them on track, and synthesize/curate the result. This skill is the playbook for
 doing that well **in this repo**. It is grounded in:
 
-- The repo's own operating manual: [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md)
+- The repo's own operating manual: [`docs/working-with-agents.md`](../../../docs/working-with-agents.md)
   — research → drafts → debate → synthesis, briefing, own-a-slice, lead curates.
 - Continuous refinement: every run of this pattern leaves its record in the PR body and git history,
   so the practice improves with use.
@@ -120,7 +120,7 @@ restore in-process teammates (re-spawn if needed).
 **Quality gates via hooks (optional but powerful).** `TeammateIdle`, `TaskCreated`, and
 `TaskCompleted` hooks can **exit code 2 to send feedback and keep a teammate working** — e.g. block
 a task from being marked complete until the gate is green. Use this to enforce
-[`definition-of-done.md`](../../../docs/handbook/definition-of-done.md) on coding slices.
+[`definition-of-done.md`](../../../docs/definition-of-done.md) on coding slices.
 
 ---
 
@@ -148,7 +148,7 @@ However the mode ends, you (the lead) finish it:
 - **Research / review / debugging** → **synthesize** into one cited artifact. Resolve conflicts
   explicitly (no fake consensus — see the universal mechanics). For an architecture decision, record the resolved call by **editing the relevant
   living doc in place** — the system model in
-  [`architecture.md`](../../../docs/handbook/architecture.md), or the matching handbook doc for a
+  [`architecture.md`](../../../docs/architecture.md), or the matching handbook doc for a
   process call. There is **no decision log**: the docs are the current truth, edited in place, and
   git history is the audit trail. Capture the synthesis — and the debate that produced it — in the
   **PR body** so the durable record lives in git history + the PR, giving the next session external
@@ -159,9 +159,9 @@ However the mode ends, you (the lead) finish it:
   the slice is disqualified), that **tries to break** the slice and writes the missing test cases
   (edge / error / boundary / malformed input, both schemes); the owning agent fixes, QA re-checks
   (the dev↔QA loop — same shape solo, just one author→one QA). Then **you curate history** (rebase
-  onto `main`, squash fix-ups, reorder, drop false starts) and **squash-merge** with a deliberate PR
-  body. Never commit to `main`. Full mechanics:
-  [`docs/handbook/working-with-agents.md`](../../../docs/handbook/working-with-agents.md) (QA loop)
-  and [`docs/handbook/git-and-pr-workflow.md`](../../../docs/handbook/git-and-pr-workflow.md) (curate/merge).
+  onto `main`, squash fix-ups, reorder, drop false starts) and **merge-commit** it (the default) —
+  the branch's commits survive on `main` alongside the PR body. Never commit to `main`. Full mechanics:
+  [`docs/working-with-agents.md`](../../../docs/working-with-agents.md) (QA loop)
+  and [`docs/git-and-pr-workflow.md`](../../../docs/git-and-pr-workflow.md) (curate/merge).
 - **Shut down** teammates by name when done; the team's directories clean up automatically when the
   session ends.

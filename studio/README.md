@@ -25,6 +25,6 @@ After any schema change, run `typegen` and commit the regenerated **root** `sani
 gate checks it for drift.
 
 Project-wide conventions live in the root [`AGENTS.md`](../AGENTS.md) and
-[`docs/handbook/`](../docs/handbook/); the Sanity content model and its rules are in
-[`docs/handbook/architecture.md`](../docs/handbook/architecture.md). The docs are the current source
+[`docs/`](../docs/); the Sanity content model and its rules are in
+[`docs/architecture.md`](../docs/architecture.md). The docs are the current source
 of truth, edited in place — there is no separate decision log.

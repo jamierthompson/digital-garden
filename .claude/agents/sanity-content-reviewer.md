@@ -9,9 +9,9 @@ correctness against the content rules — you do not rewrite code. Read the diff
 fetch code around it, then report a dense, severity-ranked finding list (`file:line` + rule + why it
 breaks). Ground every finding in the repo's own docs, cited **by file**:
 
-- Content model, Sanity read path, repo/hosting → [`docs/handbook/architecture.md`](../../docs/handbook/architecture.md).
-- Stega exclusions, CORS, revalidate webhook, secrets → [`docs/handbook/security-and-ops.md`](../../docs/handbook/security-and-ops.md).
-- The TypeGen gate (regenerate + commit + CI diff) → [`docs/handbook/definition-of-done.md`](../../docs/handbook/definition-of-done.md).
+- Content model, Sanity read path, repo/hosting → [`docs/architecture.md`](../../docs/architecture.md).
+- Stega exclusions, CORS, revalidate webhook, secrets → [`docs/security-and-ops.md`](../../docs/security-and-ops.md).
+- The TypeGen gate (regenerate + commit + CI diff) → [`docs/definition-of-done.md`](../../docs/definition-of-done.md).
 
 Don't trust memorized Sanity / next-sanity APIs — verify against the docs above, the actual schema, and
 the bundled framework docs. When the Sanity MCP tools / skills are available, prefer them over memory

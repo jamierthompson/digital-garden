@@ -13,9 +13,9 @@ Sanity; the site renders on Next.js.
 > revalidation. Remaining work is tracked in
 > [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
-The engineering handbook lives in [`docs/handbook/`](./docs/handbook) (start at
-[`orientation.md`](./docs/handbook/orientation.md)); the system model is
-[`docs/handbook/architecture.md`](./docs/handbook/architecture.md). The docs are the current
+The engineering docs live in [`docs/`](./docs/) (start at
+[`orientation.md`](./docs/orientation.md)); the system model is
+[`docs/architecture.md`](./docs/architecture.md). The docs are the current
 source of truth — edited in place, with git history as the audit trail.
 
 ## Tech stack

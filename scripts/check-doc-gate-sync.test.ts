@@ -57,7 +57,7 @@ describe("check-doc-gate-sync.mjs — drift detection (fixtures)", () => {
       writeFileSync(full, body);
     };
     write("scripts/check-doc-gate-sync.mjs", readFileSync(SCRIPT, "utf8"));
-    write("docs/handbook/definition-of-done.md", files.dod);
+    write("docs/definition-of-done.md", files.dod);
     write(".github/workflows/ci.yml", files.ci);
     return join(base, "scripts/check-doc-gate-sync.mjs");
   }

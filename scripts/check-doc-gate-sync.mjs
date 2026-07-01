@@ -1,7 +1,7 @@
 // Gate-doc sync guard (`pnpm lint:docs`).
 //
 // The CI gate chain lives in two places that must agree, or a doc lies:
-//   1. `docs/handbook/definition-of-done.md` → "## 1. The one command" — the canonical copy.
+//   1. `docs/definition-of-done.md` → "## 1. The one command" — the canonical copy.
 //   2. `.github/workflows/ci.yml` → the `verify` job's `- run:` steps — the REAL gate.
 // (1) promises "same scripts, same order as CI"; every other doc points to it rather than
 // restating it. `pnpm typecheck`/`lint` can't see prose, so nothing else catches the drift.
@@ -75,7 +75,7 @@ function ciRunSteps(yml) {
 }
 
 const [dodMd, ciYml] = await Promise.all([
-  read("docs/handbook/definition-of-done.md"),
+  read("docs/definition-of-done.md"),
   read(".github/workflows/ci.yml"),
 ]);
 

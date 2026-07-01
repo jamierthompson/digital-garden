@@ -20,4 +20,4 @@ labels: ""
 
 ## Refs
 
-<!-- Relevant handbook docs (docs/handbook/, e.g. architecture.md), if any. -->
+<!-- Relevant handbook docs (docs/, e.g. architecture.md), if any. -->

@@ -2,7 +2,7 @@
 
 Reusable subagent definitions for the **domain-review lenses this repo uses again and again**. Each is
 a read-only reviewer grounded in this repo's own rules — the OKLCH engine, the token/theming system,
-and the Sanity content model — citing the handbook ([`docs/handbook/`](../../docs/handbook/)) **by
+and the Sanity content model — citing the handbook ([`docs/`](../../docs/)) **by
 file**, never by a decision number.
 
 Spawn one with the `Agent` tool (`subagent_type: "<name>"`) or name it in an agent-team brief to inherit

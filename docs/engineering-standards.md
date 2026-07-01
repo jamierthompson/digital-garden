@@ -2,7 +2,7 @@
 
 The coding conventions an agent applies in this repo. This is _how we write code_, not _what the system is_ — for the system model read [`./architecture.md`](./architecture.md).
 
-**One rule above all others — the framework is not the one you remember.** This is Next.js **16** + React **19** with Cache Components enabled app-wide. Request APIs are async, `middleware.ts` is gone, `export const dynamic` is removed. Before you write any framework code, **read the version-matched doc** in `node_modules/next/dist/docs/` ([`../../AGENTS.md`](../../AGENTS.md) says the same). Don't code from training-data memory — it is stale here.
+**One rule above all others — the framework is not the one you remember.** This is Next.js **16** + React **19** with Cache Components enabled app-wide. Request APIs are async, `middleware.ts` is gone, `export const dynamic` is removed. Before you write any framework code, **read the version-matched doc** in `node_modules/next/dist/docs/` ([`../../AGENTS.md`](../AGENTS.md) says the same). Don't code from training-data memory — it is stale here.
 
 Most of what follows is **machine-enforced** (`pnpm lint · lint:css · lint:keys · lint:docs · format:check · typecheck · test`, all gated in CI — see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) and [`./definition-of-done.md`](./definition-of-done.md)). Where a rule has a checker, this doc tells you the _intent_ so you stop fighting the tool.
 
