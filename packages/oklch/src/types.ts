@@ -52,7 +52,13 @@ export type BrandTokenName =
   | "accent"
   | "accent-text"
   | "on-accent"
-  | "focus-ring";
+  | "focus-ring"
+  // Status signal colors — accessible foregrounds at FIXED canonical hues (not
+  // brand-derived), harmonized with the slot only through the shared treatment.
+  | "success"
+  | "error"
+  | "warning"
+  | "info";
 
 /** One token resolved per scheme — both baked into a `light-dark()` literal. */
 export interface SchemePair {

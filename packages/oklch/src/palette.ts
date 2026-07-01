@@ -68,6 +68,24 @@ const TARGET = {
   border: { wcag: 3, apca: 30 } satisfies ContrastTarget,
 } as const;
 
+// Status signal colors. The hues are FIXED canonical anchors — NOT derived from the brand
+// — because a status color's job is to signal meaning at a glance, and that depends on
+// recognizability (error=red is a usability requirement, not a stylistic choice). What
+// harmonizes them with the brand is the TREATMENT, not the hue: each is contrast-solved and
+// gamut-mapped against the slot's worst-case surface, per scheme, exactly like the brand
+// ramp. (Mirrors the owner's prototype: danger 27 · success 150 · warning 80.)
+const STATUS_HUE = {
+  success: 150, // green
+  error: 27, // red
+  warning: 80, // amber/yellow
+  info: 250, // blue
+} as const;
+
+// One chroma for every status role; the solver (chroma back-off) and gamut-map handle the
+// per-hue reality, so e.g. warning/yellow correctly solves DARK on a light surface — that
+// is the point of solving per hue rather than stepping a uniform ΔL.
+const STATUS_CHROMA = 0.15;
+
 // Surfaces are near-neutral with a whisper of brand tint. Dark surfaces use reduced
 // chroma. Text/accent/border/ring are SOLVED against these, never stepped.
 
@@ -363,6 +381,38 @@ export function resolveTheme(
       target: TARGET.ui,
       gamut,
     }),
+    // Status signal colors — accessible colored foregrounds (status text / icon / border)
+    // solved like `accent-text`: at each FIXED canonical hue, against the worst-case
+    // surface, per scheme. They never touch `brandColor`, so they are emitted on the
+    // fallback path too. `solveForeground` gamut-maps before contrast.
+    success: solveForeground({
+      bg: fgBg,
+      hue: STATUS_HUE.success,
+      chroma: STATUS_CHROMA,
+      target: TARGET.accentText,
+      gamut,
+    }),
+    error: solveForeground({
+      bg: fgBg,
+      hue: STATUS_HUE.error,
+      chroma: STATUS_CHROMA,
+      target: TARGET.accentText,
+      gamut,
+    }),
+    warning: solveForeground({
+      bg: fgBg,
+      hue: STATUS_HUE.warning,
+      chroma: STATUS_CHROMA,
+      target: TARGET.accentText,
+      gamut,
+    }),
+    info: solveForeground({
+      bg: fgBg,
+      hue: STATUS_HUE.info,
+      chroma: STATUS_CHROMA,
+      target: TARGET.accentText,
+      gamut,
+    }),
   };
 
   return { tokens, seed, gamut, isFallback, direction };
@@ -382,6 +432,10 @@ const TOKEN_NAMES = [
   "accent-text",
   "on-accent",
   "focus-ring",
+  "success",
+  "error",
+  "warning",
+  "info",
 ] as const satisfies readonly BrandTokenName[];
 
 // Compile-time exhaustiveness guard: if any `BrandTokenName` is absent from
