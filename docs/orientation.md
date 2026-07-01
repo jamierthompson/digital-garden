@@ -28,9 +28,8 @@ The stack, verified — do not contradict it:
 ## Repo map — what lives where
 
 ```
-docs/
-  handbook/                THIS handbook — how we work (incl. architecture.md, the system model)
-    architecture.md        the system model
+docs/                      THIS handbook — how we work (process docs + the system model)
+  architecture.md          the system model
 AGENTS.md                  lean pointer for agents; @-imports into CLAUDE.md
 README.md                  human-facing overview + scripts
 eslint.config.mjs          the real import-boundary + isomorphism rules
@@ -42,7 +41,7 @@ scripts/
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
     layout.tsx             root layout (shell nav skeleton, shell fonts preload:true)
-    foundation.css         foundation primitives + semantic editorial defaults + the @layer foundation, brand, project order
+    foundation.css         foundation primitives + semantic editorial defaults + the @layer foundation, semantic, brand, project order
   lib/                     resolvers, keys, cardSwatches, breakpoints (build-time, NOT :root vars)
   projects/<slug>/         self-contained project modules (registry-resolved, literal imports)
   embeds/                  shared cross-project embed components (componentKey/embedKey resolved in lib/resolvers/)

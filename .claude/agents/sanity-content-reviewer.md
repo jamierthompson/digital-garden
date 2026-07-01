@@ -1,6 +1,6 @@
 ---
 name: sanity-content-reviewer
-description: Reviews Sanity schema, stega, TypeGen, and content-model work — the single `project` type with a `maturity` field and Day-1 backlinks, stega excluded on `brandColor`/`fontKey`, the single `defineLive` read path, and regenerated-and-committed `sanity.types.ts`. Use proactively after editing anything under `studio/`, GROQ queries, the shared `keys.ts`, or content-fetching code.
+description: Reviews Sanity schema, stega, TypeGen, and content-model work — the single `entry` type with a `kind` discriminator (note · essay · project · now), `stage`/`iterated`, and Day-1 backlinks, stega excluded on `brandColor`/`fontKey`, the single `defineLive` read path, and regenerated-and-committed `sanity.types.ts`. Use proactively after editing anything under `studio/`, GROQ queries, the shared `keys.ts`, or content-fetching code.
 tools: Read, Grep, Glob
 ---
 
@@ -19,19 +19,25 @@ for schema and GROQ specifics.
 
 ## What to check
 
-1. **One `project` document type.** A note vs a project is a difference of **scope, not schema** — both
-   are the single `project` type. A second document type is **deferred** until a shipped piece actually
-   proves the schemas diverge. Flag a new top-level document type added speculatively, or a "note" type
-   split out without that proof.
+1. **One `entry` document type; a `kind` field discriminates.** Notes, essays, projects, and now-updates
+   are the same shape (a themed page with interactive slot(s) + prose), so they are the single `entry`
+   type discriminated by a **`kind`** field (`note` · `essay` · `project` · `now`) — NOT separate document
+   types, and NOT a discriminator-less merge (the required `kind` is what lets the Index filter by type).
+   Flag: a second top-level document type added speculatively; a note/essay/project/now split into
+   separate document types; or a collapse to one type without a `kind` discriminator.
 
-2. **`maturity` field.** A `project` carries a `maturity` stage (sketch → prototype → shipped). Stable
-   stored values; display labels may be re-worded. Flag maturity modeled as a free-text string, a
-   boolean, or stored values that would break existing content if re-labeled.
+2. **`stage` + `iterated`.** An `entry` carries a **`stage`** (sketch → prototype → shipped — stable
+   stored values, labels re-wordable; not applicable to a `now` update). **`iterated`** is an _authored_
+   "last worked on" date, distinct from Sanity's automatic `_updatedAt`. Flag `stage` modeled as
+   free-text/boolean, stored values that would break existing content if re-labeled, or `iterated`
+   conflated with `_updatedAt`.
 
-3. **Day-1 backlinks via real references.** A `project` carries a `related` **reference array**;
-   incoming backlinks resolve via GROQ `references()` (the edge is authored once and shows both ends).
-   Backlinks must be real `reference` fields — never strings or slugs. Flag a backlink stored as a
-   string/slug, or a one-directional link that can't resolve the incoming side.
+3. **Day-1 backlinks via real references.** An `entry` carries a `related` **self-referencing** array
+   (`entry` → `entry`); incoming backlinks resolve via GROQ `references()` (the edge is authored once and
+   shows both ends, cross-kind). Backlinks must be real `reference` fields — never strings or slugs.
+   `brandColor` / `componentKey` are **conditionally required when `kind == "project"`** and optional for
+   the other kinds. Flag a backlink stored as a string/slug, a one-directional link that can't resolve
+   the incoming side, or brand/component made unconditionally required (breaks note/essay/now authoring).
 
 4. **Stega off `brandColor` and `fontKey`.** These feed the engine and are used as **keys**, not
    display copy — stega encoding must be excluded on them (an invisible-character payload would corrupt

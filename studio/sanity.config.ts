@@ -40,37 +40,32 @@ const PREVIEW_URL = process.env.SANITY_STUDIO_PREVIEW_URL || 'http://localhost:3
  * Document locations power the "Used on" panel and Structure↔Presentation
  * navigation: they map a document to the front-end route(s) where it appears.
  *
- * - `project` → its own detail page at `/work/<slug>` (src/app/work/[slug]/page.tsx),
- *   plus the `/work` index it's listed on.
- * - `note` → the `/notes` index (there is no per-note route today; notes render
- *   inline on that list — src/app/notes/page.tsx).
+ * - `entry` → its detail page + the index it's listed on, branched by `kind`.
+ *   Transitional routing (flat `/[slug]` + the Index arrive in #60): a `note`
+ *   lists on `/notes`; every other kind gets its `/work/<slug>` detail page plus
+ *   the `/work` index.
  * - `siteSettings` is global (used on every page), so it shows a message instead
  *   of links.
  */
 const locations = {
-  project: defineLocations({
-    select: {title: 'title', slug: 'slug.current'},
+  entry: defineLocations({
+    select: {title: 'title', slug: 'slug.current', kind: 'kind'},
     resolve: (doc) => {
-      // The "Used on" panel resolves locations for DRAFTS too, where a
-      // just-created project may have a title but no slug yet (slug.required()
-      // is publish-time validation, not a draft-resolve guarantee). Only emit
-      // the /work/<slug> detail link when a non-empty slug exists — otherwise
-      // it would point at /work/undefined or /work/ (both 404). The /work index
-      // link is always valid.
+      // The "Used on" panel resolves locations for DRAFTS too, where a just-created
+      // entry may have a title but no slug yet (slug.required() is publish-time
+      // validation, not a draft-resolve guarantee). Only emit the /work/<slug> detail
+      // link when a non-empty slug exists — otherwise it points at /work/undefined (404).
       const slug = doc?.slug
+      if (doc?.kind === 'note') {
+        return {locations: [{title: doc?.title || 'Notes', href: '/notes'}]}
+      }
       return {
         locations: [
-          ...(slug ? [{title: doc?.title || 'Untitled project', href: `/work/${slug}`}] : []),
+          ...(slug ? [{title: doc?.title || 'Untitled entry', href: `/work/${slug}`}] : []),
           {title: 'Work index', href: '/work'},
         ],
       }
     },
-  }),
-  note: defineLocations({
-    select: {title: 'title'},
-    resolve: (doc) => ({
-      locations: [{title: doc?.title || 'Notes', href: '/notes'}],
-    }),
   }),
   siteSettings: defineLocations({
     message: 'Used on every page (site-wide settings).',

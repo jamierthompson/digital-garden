@@ -65,36 +65,6 @@ export type PortableText = Array<
     } & Figure)
 >;
 
-export type NoteReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "note";
-};
-
-export type Note = {
-  _id: string;
-  _type: "note";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: string;
-  slug?: Slug;
-  body?: PortableText;
-  related?: Array<
-    {
-      _key: string;
-    } & NoteReference
-  >;
-  tags?: Array<string>;
-};
-
-export type Slug = {
-  _type: "slug";
-  current?: string;
-  source?: string;
-};
-
 export type SiteSettings = {
   _id: string;
   _type: "siteSettings";
@@ -108,24 +78,35 @@ export type SiteSettings = {
   fontKey?: string;
 };
 
-export type Project = {
+export type EntryReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "entry";
+};
+
+export type Entry = {
   _id: string;
-  _type: "project";
+  _type: "entry";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  kind?: "note" | "essay" | "project" | "now";
   title?: string;
   slug?: Slug;
+  stage?: "sketch" | "prototype" | "shipped";
+  iterated?: string;
+  featuredRank?: number;
   blurb?: string;
   brandColor?: string;
   brandColorDark?: string;
   fontKey?: string;
   componentKey?: string;
-  essay?: PortableText;
-  notes?: Array<
+  body?: PortableText;
+  related?: Array<
     {
       _key: string;
-    } & NoteReference
+    } & EntryReference
   >;
   tags?: Array<string>;
 };
@@ -144,6 +125,12 @@ export type SanityImageHotspot = {
   y?: number;
   height?: number;
   width?: number;
+};
+
+export type Slug = {
+  _type: "slug";
+  current?: string;
+  source?: string;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -248,13 +235,12 @@ export type AllSanitySchemaTypes =
   | Figure
   | LiveEmbed
   | PortableText
-  | NoteReference
-  | Note
-  | Slug
   | SiteSettings
-  | Project
+  | EntryReference
+  | Entry
   | SanityImageCrop
   | SanityImageHotspot
+  | Slug
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
@@ -266,7 +252,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../src/app/notes/queries.ts
 // Variable: NOTES_INDEX_QUERY
-// Query: *[_type == "note" && defined(slug.current)] | order(title asc) {    _id,    title,    "slug": slug.current,    "relatedCount": count(related)  }
+// Query: *[_type == "entry" && kind == "note" && defined(slug.current)] | order(title asc) {    _id,    title,    "slug": slug.current,    "relatedCount": count(related)  }
 export type NOTES_INDEX_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
@@ -276,11 +262,14 @@ export type NOTES_INDEX_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: WORK_INDEX_QUERY
-// Query: *[_type == "project" && defined(slug.current)] | order(_createdAt desc) {    _id,    title,    "slug": slug.current,    blurb,    brandColor,    fontKey  }
+// Query: *[_type == "entry" && kind == "project" && defined(slug.current)] | order(_createdAt desc) {    _id,    title,    "slug": slug.current,    kind,    stage,    featuredRank,    blurb,    brandColor,    fontKey  }
 export type WORK_INDEX_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
   slug: string | null;
+  kind: "essay" | "note" | "now" | "project" | null;
+  stage: "prototype" | "shipped" | "sketch" | null;
+  featuredRank: number | null;
   blurb: string | null;
   brandColor: string | null;
   fontKey: string | null;
@@ -288,22 +277,33 @@ export type WORK_INDEX_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: PROJECT_DETAIL_QUERY
-// Query: *[_type == "project" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    blurb,    brandColor,    brandColorDark,    fontKey,    componentKey,    essay,    notes[]->{ _id, title, "slug": slug.current },    tags  }
+// Query: *[_type == "entry" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    featuredRank,    blurb,    brandColor,    brandColorDark,    fontKey,    componentKey,    body,    related[]->{ _id, title, "slug": slug.current, kind },    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind },    tags  }
 export type PROJECT_DETAIL_QUERY_RESULT = {
   _id: string;
   title: string | null;
   slug: string | null;
+  kind: "essay" | "note" | "now" | "project" | null;
+  stage: "prototype" | "shipped" | "sketch" | null;
+  iterated: string | null;
+  featuredRank: number | null;
   blurb: string | null;
   brandColor: string | null;
   brandColorDark: string | null;
   fontKey: string | null;
   componentKey: string | null;
-  essay: PortableText | null;
-  notes: Array<{
+  body: PortableText | null;
+  related: Array<{
     _id: string;
     title: string | null;
     slug: string | null;
+    kind: "essay" | "note" | "now" | "project" | null;
   }> | null;
+  backlinks: Array<{
+    _id: string;
+    title: string | null;
+    slug: string | null;
+    kind: "essay" | "note" | "now" | "project" | null;
+  }>;
   tags: Array<string> | null;
 } | null;
 
@@ -323,9 +323,9 @@ export type SITE_SETTINGS_QUERY_RESULT = {
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_type == "note" && defined(slug.current)] | order(title asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    "relatedCount": count(related)\n  }\n': NOTES_INDEX_QUERY_RESULT;
-    '\n  *[_type == "project" && defined(slug.current)] | order(_createdAt desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': WORK_INDEX_QUERY_RESULT;
-    '\n  *[_type == "project" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    blurb,\n    brandColor,\n    brandColorDark,\n    fontKey,\n    componentKey,\n    essay,\n    notes[]->{ _id, title, "slug": slug.current },\n    tags\n  }\n': PROJECT_DETAIL_QUERY_RESULT;
+    '\n  *[_type == "entry" && kind == "note" && defined(slug.current)] | order(title asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    "relatedCount": count(related)\n  }\n': NOTES_INDEX_QUERY_RESULT;
+    '\n  *[_type == "entry" && kind == "project" && defined(slug.current)] | order(_createdAt desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    featuredRank,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': WORK_INDEX_QUERY_RESULT;
+    '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    blurb,\n    brandColor,\n    brandColorDark,\n    fontKey,\n    componentKey,\n    body,\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind },\n    tags\n  }\n': PROJECT_DETAIL_QUERY_RESULT;
     '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description,\n    brandColor,\n    brandColorDark,\n    fontKey\n  }\n': SITE_SETTINGS_QUERY_RESULT;
   }
 }

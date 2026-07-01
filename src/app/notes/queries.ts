@@ -12,7 +12,7 @@ import { defineQuery } from "next-sanity";
  * statically type it as `NOTES_INDEX_QUERY_RESULT` in the root `sanity.types.ts`.
  */
 export const NOTES_INDEX_QUERY = defineQuery(`
-  *[_type == "note" && defined(slug.current)] | order(title asc) {
+  *[_type == "entry" && kind == "note" && defined(slug.current)] | order(title asc) {
     _id,
     title,
     "slug": slug.current,

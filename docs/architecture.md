@@ -11,12 +11,15 @@ evolves, and git history is the audit trail — there is no separate decision lo
 against. Where any doc and the framework disagree, **the bundled Next docs win**
 (`node_modules/next/dist/docs/`) — your training data is stale on this stack.
 
-**Build status (2026-06-30).** The shared foundation, the OKLCH engine, the Sanity content model,
+**Build status (2026-07-01).** The shared foundation, the OKLCH engine, the Sanity content model,
 and the first project are live. Some material below describes the **designed** state that the
-running code hasn't fully caught up to yet — each tracked by a GitHub issue:
+running code hasn't fully caught up to yet — each tracked by a GitHub issue. Until these land the
+code still names the content type `project`, has no `kind` field, and routes under `/work`:
 
-- a single `project` type with a `maturity` field + Day-1 backlinks → #59;
-- flat `/[slug]` routes → #60.
+- one `entry` document type with a `kind` discriminator (note · essay · project · now), `stage`,
+  an authored `iterated` date, self-referencing `related` backlinks, and `featuredRank` → #59;
+- flat root-level `/[slug]` routes, a featured front door at `/`, and the browsable **Index** → #60;
+- seed entries proving the engine across brands → #65.
 
 ---
 
@@ -66,9 +69,11 @@ Two homes:
 - **The Next app** — all code: each project's pages, its interactive experience (a working
   demo), and the components its essay embeds. Each project is a self-contained module under
   `src/projects/<slug>/`; shared parts live in plain shared modules.
-- **Sanity** — content & brand seeds: one `project` document type — essay (rich text with
-  embeds), tags, a `maturity` stage, `related` backlinks, an optional `featuredRank`,
-  per-project `brandColor`, `fontKey`, and the `componentKey` reference.
+- **Sanity** — content & brand seeds: one `entry` document type covering every content kind — a
+  `kind` discriminator (note · essay · project · now), a Portable Text body (rich text with embeds), tags,
+  a `stage` (sketch → prototype → shipped), an authored `iterated` date, self-referencing `related`
+  backlinks, an optional `featuredRank`, and the per-entry `brandColor` / `fontKey` / `componentKey`
+  reference-by-key seeds.
 
 Within a project the division is code vs content, but the line isn't a wall. The interactive
 experience and the components are code; the essay is content. The essay is _rich_, though — it
@@ -78,9 +83,9 @@ the content model). The experience's logic lives in a headless core when it earn
 interactive experience section), but that's ordinary code organization, not a boundary the site has
 to maintain.
 
-The shell's top-level pages — home, about, `/now` — are owned by the site rather than any project
-module, and wear the global editorial look like every other page (see the token & theming
-architecture).
+The shell's top-level pages — the featured home, the browsable Index, about, `/now` — are owned by
+the site rather than any entry, and wear the global editorial look like every other page (see the
+token & theming architecture).
 
 ---
 
@@ -311,8 +316,11 @@ page in `pages/` mounts it. A headless `core/` is **not** templated into every m
 emerge only when an experience's logic warrants extraction (same deferral discipline as the
 embed tiers; see the interactive experience section). The module owns its page components; thin
 route files mount them. Code lives under `src/projects/<slug>/`; **routes are flat** — `/` is the
-index of project cards, and a root-level `/[slug]` (a dynamic segment that cedes precedence to
-static segments like `/about`, `/now`) mounts a project's pages. There is no `/work` prefix.
+**featured** front door, a browsable **Index** lists every entry, and a root-level `/[slug]` (a
+dynamic segment that cedes precedence to static segments like `/about`, `/now`, and the Index) mounts
+any entry's pages. Every entry — note, essay, or project — lives at a **flat top-level slug**
+(`/some-note`, not `/notes/some-note`), so its URL stays stable even if its `kind` changes. There is
+no `/work` prefix.
 
 **Start single-tier** — one shared `src/lib/resolvers/embeds.ts` until a second project actually reuses a
 widget; introduce the project-local tier only then. Once you do, embeds follow the **same
@@ -331,7 +339,7 @@ holding it (see the OKLCH engine).
 ### The CMS ↔ code registry
 
 ```
-Sanity project doc { componentKey: "<slug>", brandColor, fontKey, copy, maturity, related, featuredRank, tags }
+Sanity entry doc { kind, componentKey: "<slug>", brandColor, fontKey, body, stage, iterated, related, featuredRank, tags }
         │
         ▼
 src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the project module
@@ -438,13 +446,25 @@ Practical notes:
 
 ## Content model (Sanity)
 
-- **Content lives in Sanity; interaction lives in code.** A `project` document holds the essay and
+- **Content lives in Sanity; interaction lives in code.** An `entry` document holds the content and
   references a coded module via `componentKey`; the CMS never reimplements interaction.
-- **One document type — `project`.** A "note" and a "project" share this type; the
-  difference is scope (a note is shorter, single-topic), not schema. A **`maturity`** field (sketch →
-  prototype → shipped — stable stored values, labels re-wordable in the UI) is the honesty badge,
-  independent of scope and of curation (`featuredRank`). The display label is decoupled from the
-  `_type`; a second type is deferred until a shipped piece proves divergent fields.
+- **One document type — `entry`; a `kind` field discriminates.** Notes, essays, projects, and
+  now-updates are the same shape — a themed page with one or more interactive slots plus prose — so they
+  are **one document type**, not several separate types and not a schema-merge that erased the
+  distinction. A **`kind`** field (`note` · `essay` · `project` · `now`) carries the distinction as
+  _data_: it drives the Index's type filter and the on-card label, so the difference is legible without
+  being a `_type` split. The kinds differ by **scope and emphasis, not fields** — a _note_ is a small,
+  often single-component piece (and doubles as a shareable social post); an _essay_ is writing-led with
+  interactions slotted in; a _project_ is an interactive experience with more slots; a _now_ is a dated
+  "now" update (à la a `/now` stream) that can mix into the Index (the Sanity-driven `/now` + Index
+  wiring is #60). `brandColor` and `componentKey` are **conditionally required for a `project`** and
+  optional for the other kinds; `stage` does not apply to a `now`. A second document type is deferred
+  until a kind genuinely proves divergent fields.
+- **`stage` is maturity; `iterated` is freshness.** **`stage`** (sketch → prototype → shipped —
+  stable stored values, labels re-wordable in the UI) is the honesty badge on every entry, independent
+  of scope (`kind`) and of curation (`featuredRank`). **`iterated`** is an _authored_ "last worked on"
+  date — not Sanity's automatic `_updatedAt` — an intentional signal that the portfolio is living and
+  tended.
 - **The essay is rich content (portable text), not plain text.** Alongside text it carries typed
   embed blocks — media and live components referenced by key and resolved in code.
 - **`brandColor` is per-project, typed, and validated.** It's a field on the `project`
@@ -475,8 +495,8 @@ Practical notes:
   sizes, initial state) as a block or an untyped `props` blob — default it in the registry, or split
   into two registered keys. Litmus: _editor writes/curates it → typed block; developer decides it →
   registry; neither → it's not an input._
-- **The index query refuses to over-fetch.** The index query pulls `blurb`, `brandColor`, `fontKey`,
-  `maturity`, `featuredRank` — **not** the essay. That enforces "a few colors per card" at the data
+- **The index query refuses to over-fetch.** The card query pulls `blurb`, `brandColor`, `fontKey`,
+  `kind`, `stage`, `featuredRank` — **not** the body. That enforces "a few colors per card" at the data
   layer (cards feed `cardSwatches` — the OKLCH engine's Consumer C) and keeps the index payload small
   for CWV.
 - **`ProjectScope` is the resolution keystone.** One server component takes a scope's `brandColor` +
@@ -490,14 +510,18 @@ Practical notes:
 - **Visual editing details.** Disable Sanity **stega** on `brandColor`/`fontKey` — the
   invisible encoding chars break the OKLCH parse and the font-class lookup. `liveEmbed`
   click-to-edit targets the caption/`embedKey` field, not the interactive region.
-- **Backlinks are Day-1.** A `project` carries a `related` reference array targeting other
-  `project` docs — **real Sanity `reference` fields**, not free-text slugs (or `references()` finds
-  nothing and you reintroduce key-drift) — and the read path resolves **incoming** backlinks
-  via GROQ `references()`, so an edge authored once shows on both ends. A note is a shorter-scope
-  `project`; short pieces stay lightweight (chrome + shared components) and pull a demo
-  bundle only if one explicitly embeds it.
-- **Site pages** (home, about, `/now`) are shell-owned, not project modules. Their content can live
-  in Sanity, rendered with the global editorial look (see the token & theming architecture).
+- **Backlinks are Day-1.** An `entry` carries a `related` **self-referencing** array (`entry` →
+  `entry`) — **real Sanity `reference` fields**, not free-text slugs (or `references()` finds nothing
+  and you reintroduce key-drift) — and the read path resolves **incoming** backlinks via GROQ
+  `references()`, so an edge authored once shows on both ends. Because there is one type, the graph is
+  cross-kind for free: a project links a note links an essay. A note stays lightweight (chrome + shared
+  components) and pulls a demo bundle only if it explicitly embeds one.
+- **Two reading paths over one content graph.** The **featured home** (`/`) is a curated front door —
+  the entries with a `featuredRank`, of _any_ `kind`, ordered by rank — for a hurried evaluator. The
+  **Index** is the full browsable list of every entry, filtered by `kind` and `stage` and wired with
+  backlinks, for the wanderer. The portfolio is a _view_ of the graph (a saved `featuredRank != null`
+  filter), not a separate section. Both, plus `/about` and `/now`, are shell-owned and wear the global
+  editorial look (see the token & theming architecture).
 - **TypeGen + `defineQuery`**: typed GROQ; run TypeGen after any schema or query change (a committed
   script + a CI `git diff --exit-code` on the generated types keeps it from rotting); `defineQuery`
   must wrap the query literally (no runtime interpolation).

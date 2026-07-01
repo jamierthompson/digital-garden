@@ -8,15 +8,15 @@ import EmbedBlock from "./EmbedBlock";
 import EssayFigure from "./EssayFigure";
 
 // Lifted off the typed detail query so serializer and query can't drift. `NonNullable`
-// drops the `essay: … | null` arm — the caller only renders this when an essay exists.
-type Essay = NonNullable<NonNullable<PROJECT_DETAIL_QUERY_RESULT>["essay"]>;
+// drops the `body: … | null` arm — the caller only renders this when a body exists.
+type Body = NonNullable<NonNullable<PROJECT_DETAIL_QUERY_RESULT>["body"]>;
 
 /**
- * The Portable Text serializer for a project essay. Renders the essay's
+ * The Portable Text serializer for an entry's body. Renders the body's
  * blocks plus the two authored embed kinds — `liveEmbed` → `EmbedBlock` (resolves the
  * `embedKey`, falls back to a visible placeholder on a miss) and `figure` →
  * `EssayFigure`; standard text blocks use the library defaults. The serializer is the
- * ONE place the essay meets code, so the embed-resolution seam lives here, not in the route.
+ * ONE place the body meets code, so the embed-resolution seam lives here, not in the route.
  */
 const components: PortableTextComponents = {
   types: {
@@ -27,6 +27,6 @@ const components: PortableTextComponents = {
   },
 };
 
-export default function EssayBody({ value }: { value: Essay }) {
+export default function EssayBody({ value }: { value: Body }) {
   return <PortableText value={value} components={components} />;
 }

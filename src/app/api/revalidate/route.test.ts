@@ -42,7 +42,7 @@ describe("POST /api/revalidate", () => {
   it("revalidates `sanity:<_type>` + the `sanity` catch-all on a valid signature", async () => {
     parseBodySpy.mockResolvedValue({
       isValidSignature: true,
-      body: { _type: "project", _id: "p1", slug: "first-light" },
+      body: { _type: "entry", _id: "e1", slug: "first-light" },
     });
 
     const res = await POST(fakeReq);
@@ -50,12 +50,12 @@ describe("POST /api/revalidate", () => {
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
       revalidated: true,
-      tags: ["sanity:project", "sanity"],
+      tags: ["sanity:entry", "sanity"],
     });
     // Immediate expiration (`{ expire: 0 }`) — the published change must show on the next
     // request, not stale-while-revalidate. Specific tag first, then the catch-all.
     expect(revalidateTagSpy.mock.calls).toEqual([
-      ["sanity:project", { expire: 0 }],
+      ["sanity:entry", { expire: 0 }],
       ["sanity", { expire: 0 }],
     ]);
   });
@@ -78,7 +78,7 @@ describe("POST /api/revalidate", () => {
   it("passes the secret AND the Content-Lake-wait flag to parseBody", async () => {
     parseBodySpy.mockResolvedValue({
       isValidSignature: true,
-      body: { _type: "note" },
+      body: { _type: "entry" },
     });
 
     await POST(fakeReq);
@@ -89,7 +89,7 @@ describe("POST /api/revalidate", () => {
   it("returns 401 and does NOT revalidate on a bad signature", async () => {
     parseBodySpy.mockResolvedValue({
       isValidSignature: false,
-      body: { _type: "project" },
+      body: { _type: "entry" },
     });
 
     const res = await POST(fakeReq);
@@ -182,8 +182,8 @@ describe("POST /api/revalidate", () => {
     parseBodySpy.mockResolvedValue({
       isValidSignature: true,
       body: {
-        _type: "project",
-        _id: "p1",
+        _type: "entry",
+        _id: "e1",
         tags: ["sanity:siteSettings", "evil"],
         tag: "admin",
       } as never,
@@ -194,11 +194,11 @@ describe("POST /api/revalidate", () => {
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
       revalidated: true,
-      tags: ["sanity:project", "sanity"],
+      tags: ["sanity:entry", "sanity"],
     });
     // Exactly the two server-derived tags — nothing the attacker named.
     expect(revalidateTagSpy.mock.calls).toEqual([
-      ["sanity:project", { expire: 0 }],
+      ["sanity:entry", { expire: 0 }],
       ["sanity", { expire: 0 }],
     ]);
     const revalidatedTags = revalidateTagSpy.mock.calls.map(([tag]) => tag);
@@ -212,7 +212,7 @@ describe("POST /api/revalidate", () => {
     // response. (The 500-on-unset path can't leak it — there's no secret then.)
     parseBodySpy.mockResolvedValue({
       isValidSignature: true,
-      body: { _type: "project" },
+      body: { _type: "entry" },
     });
 
     const res = await POST(fakeReq);

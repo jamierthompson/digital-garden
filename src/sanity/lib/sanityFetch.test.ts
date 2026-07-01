@@ -26,7 +26,7 @@ vi.mock("./live", () => ({ liveFetch: liveFetchSpy, SanityLive: () => null }));
 
 import { coarseTags, sanityFetch } from "./sanityFetch";
 
-const QUERY = '*[_type == "project"]';
+const QUERY = '*[_type == "entry"]';
 const TOKEN_VAR = "SANITY_API_READ_TOKEN";
 let savedToken: string | undefined;
 
@@ -107,7 +107,7 @@ describe("sanityFetch", () => {
     await sanityFetch(QUERY);
 
     expect(liveFetchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ tags: ["sanity", "sanity:project"] }),
+      expect.objectContaining({ tags: ["sanity", "sanity:entry"] }),
     );
   });
 });
@@ -118,18 +118,21 @@ describe("coarseTags — the tag contract the publish webhook depends on", () =>
   });
 
   it.each([
-    ['*[_type == "project"]{ _id }', "sanity:project"],
+    ['*[_type == "entry"]{ _id }', "sanity:entry"],
     ['*[_type == "siteSettings"][0]', "sanity:siteSettings"],
-    ['*[_type == "note" && defined(slug.current)]', "sanity:note"],
-    ["*[_type=='project']", "sanity:project"], // tolerant of single quotes / no spaces
+    [
+      '*[_type == "entry" && kind == "note" && defined(slug.current)]',
+      "sanity:entry",
+    ],
+    ["*[_type=='entry']", "sanity:entry"], // tolerant of single quotes / no spaces
   ])("derives %s → %s (plus the bare tag)", (query, expectedTypeTag) => {
     expect(coarseTags(query)).toEqual(["sanity", expectedTypeTag]);
   });
 
   it("dedupes when a type appears more than once", () => {
-    expect(coarseTags('*[_type == "project" || _type == "project"]')).toEqual([
+    expect(coarseTags('*[_type == "entry" || _type == "entry"]')).toEqual([
       "sanity",
-      "sanity:project",
+      "sanity:entry",
     ]);
   });
 });
