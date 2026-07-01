@@ -52,7 +52,7 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Digital Garden — Work</title>
+    <title>Jamie Thompson — Projects</title>
     <link>${escapeXml(SITE_URL)}</link>
     <description>Projects from the digital garden.</description>
 ${items}

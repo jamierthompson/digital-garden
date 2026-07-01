@@ -14,7 +14,7 @@ export default function ShellNav() {
     <header className={styles.header}>
       <nav className={styles.nav} aria-label="Primary">
         <Link href="/" className={styles.brand}>
-          Digital Garden
+          Jamie Thompson
         </Link>
         {/* Home is the logo (→ `/`), so it is not a separate nav item. The two reading
             paths + the shell pages: Index (browse everything) · Now · About. */}

@@ -102,8 +102,10 @@ not auto-layer modules and an unlayered one would silently outrank layered style
 src/
   app/                  # App Router: routes, layouts, global styles
     layout.tsx          # root layout — editorial shell (ProjectScope slug="garden") + nav
-    page.tsx            # home (index of project cards); about/ now/ — editorial chrome pages
-    [slug]/             # flat root-level project route (+ not-found/loading states)
+    page.tsx            # home — the featured front door (branded cards of featuredRank entries)
+    browse/             # the Index — one browsable list of every entry (folds the old work + notes)
+    now/                # the /now stream (Sanity-driven, kind == "now"); about/ — editorial pages
+    [slug]/             # flat root-level entry route, any kind (+ not-found/loading states)
     api/draft-mode/     # draft-mode enable/disable route handlers
     api/revalidate/     # signed Sanity webhook → revalidateTag (publish→prod)
     rss.xml/            # RSS feed route handler
