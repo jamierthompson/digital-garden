@@ -7,13 +7,20 @@
  *   • `buildTokenSet(brandColor, opts)` → both schemes zipped into `light-dark()` pairs
  *     (Consumer A `ProjectScope`, which emits a single block carrying both schemes).
  *
- * Order of operations is fixed: parse defensively → per-scheme seed
- * (dark = reduced chroma) → gamut-map → solve contrast on the mapped color.
- * The engine bakes literals and NEVER throws — bad input yields the fallback palette.
+ * Order of operations is fixed: parse defensively → detect the seed's native scheme
+ * (auto-direction) → per-scheme seed (dark = reduced chroma) → gamut-map → solve contrast
+ * on the mapped color. The engine bakes literals and NEVER throws — bad input yields the
+ * fallback palette.
+ *
+ * Seed-lightness auto-direction: a single seed represents ONE mode. The engine detects
+ * whether the seed is usable as a light-mode primary (clears the UI contrast floor as an
+ * accent on a light surface) — if so its native scheme is `light`, otherwise `dark`. In
+ * the native scheme the accent is anchored to the seed's own lightness (brand-faithful);
+ * in the other scheme it is derived by scanning lightness for a legible accent.
  */
 
 import { gamutMap } from "./gamut";
-import { parseColor } from "./convert";
+import { clamp01, parseColor } from "./convert";
 import {
   apcaLc,
   contrastWCAG,
@@ -104,6 +111,38 @@ function surface(L: number, hue: number, chroma: number, gamut: Gamut): OkLCH {
 }
 
 /**
+ * Detect the seed's NATIVE scheme from the seed alone (independent of the scheme being
+ * resolved, so both scheme calls agree). The seed is `light`-native when — at its own
+ * L/C/H, gamut-mapped, using the LIGHT per-scheme seed (`seedChroma` = 1, so base chroma)
+ * — it clears the UI contrast floor (`TARGET.ui`) as an accent fill against the light
+ * scheme's WORST-CASE surface (`surface-2` light, built exactly as `resolveTheme` builds
+ * it). If it clears it can serve as a light-mode primary → `light`; if it is too light to
+ * read on a light surface → `dark` (the seed is the dark-mode brand, light-mode derived).
+ * Deterministic; reuses the same contrast/gamut primitives as the solve. Never throws.
+ */
+function detectDirection(base: OkLCH, gamut: Gamut): Scheme {
+  const cfg = SCHEMES.light;
+  // Mirror resolveTheme's light path: per-scheme seed, then the worst-case surface.
+  const seed = gamutMap(
+    { L: base.L, C: base.C * cfg.seedChroma, H: base.H },
+    gamut,
+  );
+  const hue = seed.H;
+  const surface2 = surface(
+    cfg.surface2L,
+    hue,
+    Math.min(seed.C, cfg.surfaceChromaCap * 1.4),
+    gamut,
+  );
+  // The candidate light-mode primary is the accent anchored at the seed's own lightness.
+  const accent = gamutMap({ L: seed.L, C: seed.C, H: hue }, gamut);
+  const clearsUi =
+    contrastWCAG(accent, surface2) >= TARGET.ui.wcag &&
+    apcaLc(accent, surface2) >= TARGET.ui.apca;
+  return clearsUi ? "light" : "dark";
+}
+
+/**
  * Co-solve the accent FILL and the text that sits ON it. A mid-tone fill can host no
  * high-Lc text in either polarity, so we scan the brand hue across lightness for the
  * fill that (a) stays visible on the worst-case surface (≥3:1 + Lc 45, non-text)
@@ -174,8 +213,60 @@ function solveAccent(
 }
 
 /**
+ * NATIVE-scheme accent — FAITHFUL to the seed's own lightness. Anchor the fill at
+ * `seed.L` (the per-scheme dampened `seed.C`), verify it still reads as a UI element on
+ * the worst-case surface, and host a legible near-white/near-black on-accent label. When
+ * a mid-lightness `seed.L` can host no label, nudge L minimally toward the nearer extreme
+ * (away from mid) — staying as close to `seed.L` as possible — until a label clears while
+ * the UI floor still holds. Returns `null` if nothing works (so the caller falls back to
+ * the derived scan); this should not happen for a genuinely native seed. Never throws.
+ */
+function solveNativeAccent(
+  seed: OkLCH,
+  surfaceBg: OkLCH,
+  gamut: Gamut,
+): { accent: OkLCH; onAccent: OkLCH } | null {
+  const hue = seed.H;
+  const target = TARGET.onAccent;
+  const labels = [
+    gamutMap({ L: 0.99, C: 0, H: hue }, gamut), // near-white
+    gamutMap({ L: 0.1, C: 0, H: hue }, gamut), // near-black
+  ];
+  // Nudge toward the pole OPPOSITE the surface — darker on a light surface, lighter on a
+  // dark one — so the fill keeps contrast against its worst-case surface (the constraint
+  // that actually binds) while a near-white/near-black label gains contrast on it. This
+  // mirrors solveForeground's polarity (contrast.ts). delta 0 = fully faithful to seed.L.
+  const sign = surfaceBg.L >= 0.5 ? -1 : 1;
+
+  for (let delta = 0; delta <= 0.5 + 1e-9; delta += 0.01) {
+    const L = clamp01(seed.L + sign * delta);
+    const accent = gamutMap({ L, C: seed.C, H: hue }, gamut);
+    // The fill must still read as a UI element against the worst-case surface.
+    const readsOnSurface =
+      contrastWCAG(accent, surfaceBg) >= TARGET.ui.wcag &&
+      apcaLc(accent, surfaceBg) >= TARGET.ui.apca;
+    if (readsOnSurface) {
+      for (const label of labels) {
+        if (
+          contrastWCAG(label, accent) >= target.wcag &&
+          apcaLc(label, accent) >= target.apca
+        ) {
+          return { accent, onAccent: label };
+        }
+      }
+    }
+    // Once L pins to an extreme, further deltas can't move it — stop scanning.
+    if (L <= 0 || L >= 1) break;
+  }
+
+  return null;
+}
+
+/**
  * Resolve every brand token for ONE scheme. The literal `(brandColor, scheme) → tokenSet`
- * of the architecture signature. Pure, deterministic, never throws.
+ * of the architecture signature. Also reports the seed's native `direction` (detected from
+ * the seed alone, so both scheme calls agree): the accent honors `seed.L` when this scheme
+ * IS the native direction, and is derived otherwise. Pure, deterministic, never throws.
  */
 export function resolveTheme(
   brandColor: unknown,
@@ -187,6 +278,10 @@ export function resolveTheme(
   const isFallback = parsed === null;
   const base = parsed ?? FALLBACK_SEED;
   const cfg = SCHEMES[scheme];
+
+  // Auto-direction: the seed's native scheme, detected from the seed alone so both
+  // scheme calls agree. Drives whether this scheme's accent is faithful or derived.
+  const direction = detectDirection(base, gamut);
 
   // Per-scheme seed: hold L/H, dampen chroma in dark, then gamut-map.
   const seed = gamutMap(
@@ -220,7 +315,12 @@ export function resolveTheme(
   // not just the page background.
   const fgBg = surface2;
 
-  const { accent, onAccent } = solveAccent(seed, fgBg, gamut);
+  // Native scheme → faithful to seed.L (fall back to the derived scan if no faithful
+  // accent hosts a label). Off scheme → derive the brand from the seed by scanning.
+  const { accent, onAccent } =
+    scheme === direction
+      ? (solveNativeAccent(seed, fgBg, gamut) ?? solveAccent(seed, fgBg, gamut))
+      : solveAccent(seed, fgBg, gamut);
 
   const tokens: SchemeTokens = {
     bg,
@@ -265,7 +365,7 @@ export function resolveTheme(
     }),
   };
 
-  return { tokens, seed, gamut, isFallback };
+  return { tokens, seed, gamut, isFallback, direction };
 }
 
 // The canonical token order. `satisfies readonly BrandTokenName[]` rejects an
@@ -335,6 +435,8 @@ export function buildTokenSet(
       seed: { light: light.seed, dark: dark.seed },
       gamut: light.gamut,
       isFallback: light.isFallback,
+      // Detected from the seed alone, so both scheme results agree — pick either.
+      direction: light.direction,
     },
   };
 }
