@@ -108,4 +108,33 @@ describe("check-doc-links.mjs — breakage detection (fixtures)", () => {
     expect(stdout).toMatch(/doc-links: OK/);
     expect(status).toBe(0);
   });
+
+  it("still checks a broken link after a stray/odd backtick (no runaway blanking)", () => {
+    const f = fixture({
+      "a.md":
+        "# A\n\nThe C `printf` call and a lone backtick: `\n\n[gone](./nope.md)\n\nlater `code` span\n",
+    });
+    const { status, stderr } = run([f["a.md"]]);
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/target file does not exist/);
+  });
+
+  it("resolves a percent-encoded path to a file whose name has a space", () => {
+    const f = fixture({
+      "a.md": "# A\n\n[x](./my%20file.md)\n",
+      "my file.md": "# hi\n",
+    });
+    const { status, stdout } = run([f["a.md"], f["my file.md"]]);
+    expect(stdout).toMatch(/doc-links: OK/);
+    expect(status).toBe(0);
+  });
+
+  it("resolves a `-1` anchor to the second of two duplicate headings", () => {
+    const f = fixture({
+      "a.md": "# A\n\n## Dup\n\n## Dup\n\n[second](#dup-1)\n",
+    });
+    const { status, stdout } = run([f["a.md"]]);
+    expect(stdout).toMatch(/doc-links: OK/);
+    expect(status).toBe(0);
+  });
 });

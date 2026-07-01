@@ -14,6 +14,13 @@
 //
 // Enumeration is `git ls-files` by default; pass explicit file paths as argv to
 // check a subset (used by the co-located test to run against fixture trees).
+//
+// Known limitations (intentional — this is a lightweight guard, not a CommonMark
+// parser): only inline `[text](target)` / `![alt](target)` links are parsed —
+// reference-style (`[t][ref]`), HTML `<a href>`/`<img src>`, and angle-bracket/
+// autolink destinations are not. Top-level 4-space indented code blocks and Setext
+// (`===`/`---` underline) headings are not recognized. The tracked docs use none of
+// these today; extend the parser here if that changes.
 
 import { readFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
@@ -68,8 +75,11 @@ function blankFences(md) {
 
 // Fences AND inline code spans blanked — so a `[x](y)` shown inside example code
 // is not mistaken for a real link. Used for the link scan, not heading slugs.
+// The inline pattern is newline-bounded (`[^\`\n]*`): an unbalanced/stray backtick
+// swallows only to end-of-line, never across paragraphs — otherwise a lone backtick
+// would silently blank a whole region and hide any real (broken) link inside it.
 function blankCode(md) {
-  return blankFences(md).replace(/`+[^`]*`+/g, (m) => " ".repeat(m.length));
+  return blankFences(md).replace(/`+[^`\n]*`+/g, (m) => " ".repeat(m.length));
 }
 
 // Strip inline markdown from heading text so the slug matches GitHub's: images
@@ -96,6 +106,16 @@ function headingSlugs(md) {
 }
 
 const isExternal = (t) => /^(https?:|mailto:|tel:|data:|\/\/)/i.test(t);
+
+// GitHub percent-decodes link paths (`./my%20file.md` → `./my file.md`); decode
+// before resolving on disk. Fall back to the raw path if it isn't valid encoding.
+function safeDecode(p) {
+  try {
+    return decodeURIComponent(p);
+  } catch {
+    return p;
+  }
+}
 
 // `[text](target)` and `![alt](target)` — target is the first non-space,
 // non-paren run (an optional "title" and trailing `)` are left off).
@@ -140,7 +160,10 @@ async function main() {
       const line = lineOf(scan, m.index);
       const [pathPart, anchor] = splitAnchor(target);
 
-      // Pure same-file anchor: `#section`.
+      // Pure same-file anchor: `#section`. Anchor comparison is case-sensitive
+      // against github-slugger's lowercase output — GitHub emits a lowercase id, so
+      // `#Mixed-Case` genuinely does not resolve. Intentional; relaxing it to
+      // case-insensitive would turn a real broken anchor into a silent pass.
       if (pathPart === "") {
         if (anchor === "") continue; // bare `#` — top of page
         const slugs = await slugsFor(file);
@@ -155,9 +178,10 @@ async function main() {
       }
 
       // Relative link to a file/dir (leading `/` → repo-root-relative).
-      const abs = pathPart.startsWith("/")
-        ? resolve(root, `.${pathPart}`)
-        : resolve(dir, pathPart);
+      const decoded = safeDecode(pathPart);
+      const abs = decoded.startsWith("/")
+        ? resolve(root, `.${decoded}`)
+        : resolve(dir, decoded);
       if (!existsSync(abs)) {
         errors.push({
           file,
