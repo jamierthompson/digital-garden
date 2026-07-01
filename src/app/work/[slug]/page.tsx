@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import EssayBody from "@/components/portable-text/EssayBody";
 import ProjectScope from "@/components/project-scope/ProjectScope";
 import ProjectScopeBoundary from "@/components/project-scope/ProjectScopeBoundary";
-import RelatedNotes from "@/components/project/RelatedNotes";
+import RelatedEntries from "@/components/project/RelatedEntries";
 import TagList from "@/components/project/TagList";
 import { resolveComponentKey } from "@/lib/resolvers/components";
 import { isNotFound } from "@/lib/resolvers/resolution";
@@ -23,7 +23,7 @@ import styles from "./page.module.css";
 //     ├ ProjectScopeBoundary (unstable_catchError backstop, client)
 //     │   └ ProjectScope (real engine theme from the doc's brandColor/fontKey)
 //     │       └ <Experience/> — the bounded, brand-themed interactive island
-//     └ <RelatedNotes> — editorial
+//     └ <RelatedEntries> — editorial (outgoing `related` + incoming backlinks)
 //
 // The keystone stays defensive: the scope never throws on a bad brandColor/fontKey.
 // The route's OWN failure modes are explicit `notFound()` calls: an unpublished/
@@ -99,12 +99,12 @@ export default async function WorkPage({ params }: WorkPageProps) {
           {project.blurb ? (
             <p className={styles.blurb}>{project.blurb}</p>
           ) : null}
-          {/* Tags + related notes render the detail query's `tags`/`notes[]->`
-              projection (each self-guards to null when empty), so the query no
-              longer over-fetches fields nothing renders. */}
+          {/* Tags + related entries render the detail query's `tags` / `related[]->`
+              + `backlinks` projections (each self-guards to null when empty), so the
+              query no longer over-fetches fields nothing renders. */}
           <TagList tags={project.tags} />
         </header>
-        {project.essay ? <EssayBody value={project.essay} /> : null}
+        {project.body ? <EssayBody value={project.body} /> : null}
       </article>
       {/* Brand is scoped to the interactive slot ONLY — the engine theme wraps
           <Experience/>, not the editorial article/related-notes around it. */}
@@ -119,7 +119,11 @@ export default async function WorkPage({ params }: WorkPageProps) {
           <Experience />
         </ProjectScope>
       </ProjectScopeBoundary>
-      <RelatedNotes notes={project.notes} />
+      <RelatedEntries
+        currentId={project._id}
+        related={project.related}
+        backlinks={project.backlinks}
+      />
     </main>
   );
 }

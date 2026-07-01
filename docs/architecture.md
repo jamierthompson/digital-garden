@@ -16,7 +16,7 @@ and the first project are live. Some material below describes the **designed** s
 running code hasn't fully caught up to yet — each tracked by a GitHub issue. Until these land the
 code still names the content type `project`, has no `kind` field, and routes under `/work`:
 
-- one `entry` document type with a `kind` discriminator (note · essay · project), `stage`,
+- one `entry` document type with a `kind` discriminator (note · essay · project · now), `stage`,
   an authored `iterated` date, self-referencing `related` backlinks, and `featuredRank` → #59;
 - flat root-level `/[slug]` routes, a featured front door at `/`, and the browsable **Index** → #60;
 - seed entries proving the engine across brands → #65.
@@ -70,7 +70,7 @@ Two homes:
   demo), and the components its essay embeds. Each project is a self-contained module under
   `src/projects/<slug>/`; shared parts live in plain shared modules.
 - **Sanity** — content & brand seeds: one `entry` document type covering every content kind — a
-  `kind` discriminator (note · essay · project), a Portable Text body (rich text with embeds), tags,
+  `kind` discriminator (note · essay · project · now), a Portable Text body (rich text with embeds), tags,
   a `stage` (sketch → prototype → shipped), an authored `iterated` date, self-referencing `related`
   backlinks, an optional `featuredRank`, and the per-entry `brandColor` / `fontKey` / `componentKey`
   reference-by-key seeds.
@@ -448,16 +448,18 @@ Practical notes:
 
 - **Content lives in Sanity; interaction lives in code.** An `entry` document holds the content and
   references a coded module via `componentKey`; the CMS never reimplements interaction.
-- **One document type — `entry`; a `kind` field discriminates.** Notes, essays, and projects are the
-  same shape — a themed page with one or more interactive slots plus prose — so they are **one
-  document type**, not three separate types and not a schema-merge that erased the distinction. A
-  **`kind`** field (`note` · `essay` · `project`) carries the distinction as _data_: it drives the
-  Index's type filter and the on-card label, so the difference is legible without being a `_type`
-  split. The kinds differ by **scope and emphasis, not fields** — a _note_ is a small, often
-  single-component piece (and doubles as a shareable social post); an _essay_ is writing-led with
-  interactions slotted in; a _project_ is an interactive experience with more slots. `brandColor` and
-  `componentKey` are **conditionally required for a `project`** and optional for a note. A second
-  document type is deferred until a kind genuinely proves divergent fields.
+- **One document type — `entry`; a `kind` field discriminates.** Notes, essays, projects, and
+  now-updates are the same shape — a themed page with one or more interactive slots plus prose — so they
+  are **one document type**, not several separate types and not a schema-merge that erased the
+  distinction. A **`kind`** field (`note` · `essay` · `project` · `now`) carries the distinction as
+  _data_: it drives the Index's type filter and the on-card label, so the difference is legible without
+  being a `_type` split. The kinds differ by **scope and emphasis, not fields** — a _note_ is a small,
+  often single-component piece (and doubles as a shareable social post); an _essay_ is writing-led with
+  interactions slotted in; a _project_ is an interactive experience with more slots; a _now_ is a dated
+  "now" update (à la a `/now` stream) that can mix into the Index (the Sanity-driven `/now` + Index
+  wiring is #60). `brandColor` and `componentKey` are **conditionally required for a `project`** and
+  optional for the other kinds; `stage` does not apply to a `now`. A second document type is deferred
+  until a kind genuinely proves divergent fields.
 - **`stage` is maturity; `iterated` is freshness.** **`stage`** (sketch → prototype → shipped —
   stable stored values, labels re-wordable in the UI) is the honesty badge on every entry, independent
   of scope (`kind`) and of curation (`featuredRank`). **`iterated`** is an _authored_ "last worked on"

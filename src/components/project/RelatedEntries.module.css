@@ -1,4 +1,4 @@
-/* Project "Related notes" list. @layer project — declares its layer (unlayered modules outrank every layered rule); var-consuming only; reads the generic semantic tokens. */
+/* Entry "Related" list. @layer project — declares its layer (unlayered modules outrank every layered rule); var-consuming only; reads the generic semantic tokens. */
 @layer project {
   .related {
     margin-top: var(--space-7);
@@ -19,5 +19,11 @@
   .item {
     margin-top: var(--space-2);
     color: var(--text);
+  }
+
+  .link {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
   }
 }

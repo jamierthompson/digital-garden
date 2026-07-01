@@ -35,7 +35,7 @@ describe("stega encoding honors the exclusions end-to-end", () => {
 
   const fields = Object.keys(result);
   const sourceMap = {
-    documents: [{ _id: "proj-1", _type: "project" }],
+    documents: [{ _id: "entry-1", _type: "entry" }],
     paths: fields.map((f) => `$['${f}']`),
     mappings: Object.fromEntries(
       fields.map((f, i) => [
