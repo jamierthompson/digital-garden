@@ -11,17 +11,19 @@ describe("tokenSetToDeclarations", () => {
     expect(decls).toContain("color-scheme: light dark;");
   });
 
-  it("emits the generic --brand-* public contract", () => {
-    expect(decls).toContain("--brand-bg:");
-    expect(decls).toContain("--brand-accent:");
-    expect(decls).toContain("--brand-focus-ring:");
+  it("emits the generic semantic public contract (bare --, no --brand- prefix)", () => {
+    expect(decls).toContain("--bg:");
+    expect(decls).toContain("--accent:");
+    expect(decls).toContain("--focus-ring:");
+    // The prefix-drop is real — no legacy `--brand-` namespace leaks out.
+    expect(decls).not.toContain("--brand-");
     // No project-internal alias leaks out of the engine.
     expect(decls).not.toContain("--logx-");
   });
 
   it("bakes literal oklch() values inside light-dark()", () => {
     expect(decls).toMatch(
-      /--brand-bg: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
+      /--bg: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
     );
   });
 });
@@ -34,6 +36,6 @@ describe("tokenSetToCss", () => {
     );
     expect(css).toContain("@layer brand {");
     expect(css).toContain('[data-project="garden"] {');
-    expect(css).toContain("--brand-text:");
+    expect(css).toContain("--text:");
   });
 });

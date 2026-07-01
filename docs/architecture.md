@@ -17,8 +17,7 @@ running code hasn't fully caught up to yet — each tracked by a GitHub issue:
 
 - slot-scoped theming under a global editorial chrome → #58;
 - a single `project` type with a `maturity` field + Day-1 backlinks → #59;
-- flat `/[slug]` routes → #60;
-- the foundation → semantic → brand token model → #57.
+- flat `/[slug]` routes → #60.
 
 ---
 

@@ -19,17 +19,17 @@
     font-family: var(--font-face);
     font-size: var(--text-3xl);
     line-height: var(--leading-tight);
-    color: var(--brand-text, var(--foreground));
+    color: var(--text, var(--foreground));
   }
 
   .intro {
     font-size: var(--text-lg);
-    color: var(--brand-text-muted, var(--foreground));
+    color: var(--text-muted, var(--foreground));
   }
 
   .empty {
     font-size: var(--text-base);
-    color: var(--brand-text-muted, var(--foreground));
+    color: var(--text-muted, var(--foreground));
   }
 
   .list {
@@ -45,18 +45,18 @@
     justify-content: space-between;
     gap: var(--space-4);
     padding-bottom: var(--space-3);
-    border-bottom: 1px solid var(--brand-border, var(--foreground));
+    border-bottom: 1px solid var(--border, var(--foreground));
   }
 
   .noteTitle {
     font-family: var(--font-face);
     font-size: var(--text-lg);
-    color: var(--brand-text, var(--foreground));
+    color: var(--text, var(--foreground));
   }
 
   .meta {
     font-size: var(--text-sm);
-    color: var(--brand-text-muted, var(--foreground));
+    color: var(--text-muted, var(--foreground));
     white-space: nowrap;
   }
 }

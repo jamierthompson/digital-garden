@@ -116,16 +116,18 @@ describe("scopedStyleCss", () => {
     expect(css).toContain('[data-project="oklch-engine"]');
   });
 
-  it("emits baked --brand-* light-dark() literals + the color-scheme", () => {
+  it("emits baked semantic-token light-dark() literals + the color-scheme", () => {
     expect(css).toContain("color-scheme: light dark;");
     expect(css).toMatch(
-      /--brand-accent: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
+      /--accent: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
     );
-    expect(css).toContain("--brand-focus-ring:");
+    expect(css).toContain("--focus-ring:");
+    // The prefix-drop reaches the slot too — no legacy `--brand-` namespace is emitted.
+    expect(css).not.toContain("--brand-");
   });
 
-  it("aliases --focus-ring-color to the engine focus-ring token", () => {
-    expect(css).toContain("--focus-ring-color: var(--brand-focus-ring);");
+  it("aliases --focus-ring-color to the semantic focus-ring token", () => {
+    expect(css).toContain("--focus-ring-color: var(--focus-ring);");
   });
 
   it("maps --font-face to the resolved roster face + fallback stack", () => {

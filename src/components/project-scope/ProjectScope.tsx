@@ -12,9 +12,11 @@ interface ProjectScopeProps {
  * The keystone. A **synchronous** server component that turns a scope seed into a
  * flash-free scoped theme:
  *
- * 1. Emits the scoped `<style>`: the OKLCH engine's baked `--brand-*` `light-dark()`
- *    literals, the `--focus-ring-color` alias, and the resolved font's
- *    `--font-face` mapping — all in one block declared `@layer brand`.
+ * 1. Emits the scoped `<style>`: the OKLCH engine's baked semantic-token `light-dark()`
+ *    literals (`--surface`, `--accent`, … `--success`), the `--focus-ring-color` alias, and
+ *    the resolved font's `--font-face` mapping — all in one block declared `@layer brand`.
+ *    The slot re-binds the generic semantic tokens for this island, overriding the global
+ *    editorial defaults from `@layer semantic`.
  * 2. Wraps its subtree in `[data-project="<slug>"]`, mounting the resolved roster face's
  *    `.variable` className so `var(--font-face)` has its variable in scope.
  *

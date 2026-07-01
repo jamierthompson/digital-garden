@@ -19,12 +19,12 @@
     font-family: var(--font-face);
     font-size: var(--text-3xl);
     line-height: var(--leading-tight);
-    color: var(--brand-text, var(--foreground));
+    color: var(--text, var(--foreground));
   }
 
   .updated {
     font-size: var(--text-sm);
-    color: var(--brand-text-muted, var(--foreground));
+    color: var(--text-muted, var(--foreground));
   }
 
   .list {
@@ -34,7 +34,7 @@
     padding-left: var(--space-5);
     font-size: var(--text-lg);
     line-height: var(--leading-loose);
-    color: var(--brand-text-muted, var(--foreground));
+    color: var(--text-muted, var(--foreground));
   }
 
   .item {
@@ -43,11 +43,11 @@
 
   .footnote {
     font-size: var(--text-base);
-    color: var(--brand-text-muted, var(--foreground));
+    color: var(--text-muted, var(--foreground));
   }
 
   .link {
-    color: var(--brand-accent-text, var(--brand-accent, var(--foreground)));
+    color: var(--accent-text, var(--accent, var(--foreground)));
     text-decoration: underline;
     text-underline-offset: 0.15em;
   }

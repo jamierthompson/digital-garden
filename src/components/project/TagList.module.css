@@ -1,4 +1,4 @@
-/* Project tag chips. @layer project — declares its layer (unlayered modules outrank every layered rule); var-consuming only, themed by --brand-*. */
+/* Project tag chips. @layer project — declares its layer (unlayered modules outrank every layered rule); var-consuming only; reads the generic semantic tokens. */
 @layer project {
   .tags {
     margin-top: var(--space-4);
@@ -17,8 +17,8 @@
     padding: var(--space-1) var(--space-3);
     border-radius: 1rem;
     font-size: var(--text-sm);
-    /* The engine co-solves --brand-on-accent to sit on the --brand-accent fill. */
-    background: var(--brand-accent);
-    color: var(--brand-on-accent);
+    /* The engine co-solves --on-accent to sit on the --accent fill. */
+    background: var(--accent);
+    color: var(--on-accent);
   }
 }

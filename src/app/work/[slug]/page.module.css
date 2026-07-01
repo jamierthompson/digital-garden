@@ -1,12 +1,12 @@
-/* /work/<slug> project page. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only, themed by generic --brand-* tokens. */
+/* /work/<slug> project page. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only; reads the generic semantic tokens (editorial by default; the brand slot re-binds them for the <Experience/> island). */
 @layer project {
   .module {
     max-width: 48rem;
     margin: 0 auto;
     padding: var(--space-7) var(--space-6);
     font-family: var(--font-face);
-    color: var(--brand-text);
-    background: var(--brand-surface);
+    color: var(--text);
+    background: var(--surface);
   }
 
   .header {
@@ -16,14 +16,14 @@
   .title {
     font-size: var(--text-3xl);
     line-height: var(--leading-tight);
-    color: var(--brand-accent-text);
+    color: var(--accent-text);
   }
 
   .blurb {
     margin-top: var(--space-3);
     font-size: var(--text-lg);
     max-width: 52ch;
-    color: color-mix(in oklab, var(--brand-text) 80%, transparent);
+    color: color-mix(in oklab, var(--text) 80%, transparent);
   }
 
   .article {
@@ -33,7 +33,7 @@
 
   .article :is(h2, h3) {
     margin-top: var(--space-6);
-    color: var(--brand-accent-text);
+    color: var(--accent-text);
   }
 
   .article p {

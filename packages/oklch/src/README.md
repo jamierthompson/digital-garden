@@ -29,8 +29,9 @@ const set = buildTokenSet("#3b82f6"); // { gamut: "p3" } to opt into wide gamut
 const css = tokenSetToCss(set, '[data-project="garden"]'); // wrapped in @layer brand
 ```
 
-Tokens (generic `--brand-*` contract): `bg`, `surface`, `surface-2`, `text`,
-`text-muted`, `border`, `accent`, `accent-text`, `on-accent`, `focus-ring`.
+Tokens (generic semantic contract, emitted as bare `--<name>`): `bg`, `surface`,
+`surface-2`, `text`, `text-muted`, `border`, `accent`, `accent-text`, `on-accent`,
+`focus-ring`, plus the status signals `success`, `error`, `warning`, `info`.
 
 **Low-level surface** is also exported: `contrastWCAG`, `contrastAPCA`/`apcaLc`,
 `solveForeground`, `gamutMap`/`inGamut`, `buildLightnessRamp`, and the color
@@ -38,9 +39,10 @@ conversions/parsers.
 
 ### Notes for ProjectScope / cardSwatches consumers
 
-- The engine emits **generic** `--brand-*` only; mapping to a project alias (`--logx-*`)
-  and to `--focus-ring-color` (foundation's `:focus-visible` reads that) is the **scope's**
-  job, not the engine's. Suggested: `--focus-ring-color: var(--brand-focus-ring)`.
+- The engine emits the **generic semantic** names only (bare `--surface`, `--accent`, …);
+  mapping to a project alias (`--logx-*`) and to `--focus-ring-color` (foundation's
+  `:focus-visible` reads that) is the **scope's** job, not the engine's. Suggested:
+  `--focus-ring-color: var(--focus-ring)`.
 - `tokenSetToCss` already emits `color-scheme: light dark;` so `light-dark()` resolves and
   follows `prefers-color-scheme`. Use `tokenSetToDeclarations` if you control placement.
 - `resolveTheme(...).isFallback` / `buildTokenSet(...).meta.isFallback` is `true` when the

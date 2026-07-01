@@ -1,6 +1,6 @@
 /* /work/<slug> state boundaries (not-found / error / loading). @layer project — declares its
    layer (an unlayered module outranks every layered rule). Render OUTSIDE a project scope (a not-found/error replaces the themed
-   subtree), so var-consuming from foundation tokens only (--space-*, --text-*), never --brand-*. */
+   subtree), so var-consuming from foundation scales only (--space-*, the --text-* type scale), never the themed semantic tokens. */
 @layer project {
   .state {
     max-width: 40rem;

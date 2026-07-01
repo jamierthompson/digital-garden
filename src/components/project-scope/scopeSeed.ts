@@ -136,19 +136,22 @@ export function resolveScope(seed: unknown): ResolvedScope {
 /**
  * Serialize a resolved scope into the scoped `<style>` body — ONE coherent rule wrapped in
  * `@layer brand`. The wrapper is hand-assembled here (rather than via `tokenSetToCss`)
- * so the engine's `--brand-*` declarations, the `--focus-ring-color` alias, and the
- * `--font-face` mapping all live in the SAME selector block. The `@layer ${BRAND_LAYER}`
+ * so the engine's semantic-token declarations, the `--focus-ring-color` alias, and the
+ * `--font-face` mapping all live in the SAME selector block. The slot re-binds the generic
+ * semantic tokens (`--surface`, `--accent`, … `--success`) with the brand's solved values,
+ * overriding the global editorial defaults for this island only. The `@layer ${BRAND_LAYER}`
  * wrapper here pairs with `ProjectScope`'s `precedence={BRAND_LAYER}` — see `BRAND_LAYER`.
  */
 export function scopedStyleCss(scope: ResolvedScope): string {
-  // Engine declarations: `color-scheme: light dark;` + each `--brand-*: light-dark(…)`.
+  // Engine declarations: `color-scheme: light dark;` + each `--<name>: light-dark(…)`
+  // (the generic semantic role tokens, incl. the #66 status tokens).
   const brandDecls = tokenSetToDeclarations(scope.tokenSet)
     .split("\n")
     .map((line) => `    ${line}`)
     .join("\n");
 
   // Alias the engine's focus-ring token into the var foundation's `:focus-visible` reads.
-  const focusRing = "    --focus-ring-color: var(--brand-focus-ring);";
+  const focusRing = "    --focus-ring-color: var(--focus-ring);";
 
   // Map the resolved roster face into `--font-face`; the `.variable` class on the wrapper
   // brings `var(<cssVariable>)` into scope, and the stack is the fallback.

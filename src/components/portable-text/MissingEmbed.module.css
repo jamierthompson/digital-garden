@@ -3,20 +3,20 @@
   .missing {
     margin: var(--space-5) 0;
     padding: var(--space-4);
-    border: 1px dashed color-mix(in oklab, var(--brand-text) 40%, transparent);
+    border: 1px dashed color-mix(in oklab, var(--text) 40%, transparent);
     border-radius: 0.5rem;
-    background: color-mix(in oklab, var(--brand-text) 4%, transparent);
+    background: color-mix(in oklab, var(--text) 4%, transparent);
   }
 
   .label {
     font-size: var(--text-sm);
     font-weight: 600;
-    color: var(--brand-text);
+    color: var(--text);
   }
 
   .detail {
     margin-top: var(--space-2);
     font-size: var(--text-sm);
-    color: color-mix(in oklab, var(--brand-text) 70%, transparent);
+    color: color-mix(in oklab, var(--text) 70%, transparent);
   }
 }
