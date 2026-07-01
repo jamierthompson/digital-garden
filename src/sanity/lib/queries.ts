@@ -120,6 +120,25 @@ export const FEATURED_QUERY = defineQuery(`
 `);
 
 /**
+ * Now query (`/now`) — the dated "now" stream (`kind == "now"`).
+ *
+ * A reverse-chronological stream of `now` updates (à la nownownow.com), newest first by the
+ * authored `iterated` date (falling back to `_createdAt`). Pulls `title` / `slug` / `blurb`
+ * for the stream entry and `iterated` for the date stamp — NOT the `body` (each update links
+ * to its own flat `/[slug]` for the full text). Now-updates also fold into the Index's "Now"
+ * section via `INDEX_QUERY`. Typed as `NOW_QUERYResult`.
+ */
+export const NOW_QUERY = defineQuery(`
+  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {
+    _id,
+    title,
+    "slug": slug.current,
+    iterated,
+    blurb
+  }
+`);
+
+/**
  * `siteSettings` singleton query.
  *
  * `siteSettings` is intended as a singleton (one document, enforced via Studio Structure

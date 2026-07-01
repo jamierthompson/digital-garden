@@ -448,8 +448,8 @@ Practical notes:
   being a `_type` split. The kinds differ by **scope and emphasis, not fields** — a _note_ is a small,
   often single-component piece (and doubles as a shareable social post); an _essay_ is writing-led with
   interactions slotted in; a _project_ is an interactive experience with more slots; a _now_ is a dated
-  "now" update (à la a `/now` stream) that can mix into the Index (the Sanity-driven `/now` + Index
-  wiring is #60). `brandColor` and `componentKey` are **conditionally required for a `project`** and
+  "now" update that drives the reverse-chronological `/now` stream and also mixes into the Index.
+  `brandColor` and `componentKey` are **conditionally required for a `project`** and
   optional for the other kinds; `stage` does not apply to a `now`. A second document type is deferred
   until a kind genuinely proves divergent fields.
 - **`stage` is maturity; `iterated` is freshness.** **`stage`** (sketch → prototype → shipped —
