@@ -1,7 +1,8 @@
-/* /work index. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only.
-   Cards read the global editorial semantic tokens for chrome (surface/border/text) plus the
-   single decorative `--c-accent` swatch `cardSwatches` spreads onto each card's `style={…}`
-   (engine Consumer C, no scope) — the brand color is a decorative accent bar only; card text is editorial. */
+/* /work index. @layer project — declares its layer (an unlayered module outranks every layered
+   rule); var-consuming only. Each card re-binds the generic semantic tokens inline via
+   `cardSwatches` (engine Consumer C) spread onto its `style={…}`, so the card's SURFACE, TEXT,
+   BORDER and ACCENT are all engine-solved from its own brandColor — the grid is a live contrast
+   stress-test (surface↔text is the solved pair). A card is a scoped project slot, not chrome. */
 @layer project {
   .page {
     max-width: 64rem;
@@ -29,12 +30,11 @@
   }
 
   .card {
-    /* Editorial chrome (guaranteed-accessible on the shared grid); the brand color is a
-       purely decorative accent bar on top — non-text, so no contrast obligation. */
+    /* All four reads resolve to the card's own engine-solved brand values (cardSwatches
+       overrides `--surface`/`--text`/`--border`/`--accent` inline for this card's subtree). */
     border: 1px solid var(--border);
-    /* The decorative brand-accent bar: 3px top; its COLOR comes from the card's inline
-       `borderTopColor` (cardSwatches), so no project-prefixed custom-property token. */
-    border-top-width: 3px;
+    /* Brand accent bar: a thicker top edge in the brand accent. */
+    border-top: 3px solid var(--accent);
     border-radius: 0.75rem;
     background: var(--surface);
     color: var(--text);
@@ -49,12 +49,13 @@
   }
 
   .cardLink:focus-visible {
-    outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring);
+    outline: var(--focus-ring-width) var(--focus-ring-style) var(--accent);
     outline-offset: var(--focus-ring-offset);
   }
 
   .cardTitle {
     font-size: var(--text-lg);
+    /* The solved text token on the solved surface — the AA pair under test. */
     color: var(--text);
   }
 

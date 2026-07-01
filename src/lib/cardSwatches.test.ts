@@ -5,32 +5,47 @@ import { cardSwatches } from "./cardSwatches";
 /** A baked `light-dark(oklch(…), oklch(…))` literal — no runtime color math. */
 const LIGHT_DARK = /^light-dark\(oklch\([^)]+\), oklch\([^)]+\)\)$/;
 
+/** The generic semantic tokens a card re-binds — the #57 no-prefix contract. */
+const KEYS = ["--surface", "--text", "--border", "--accent"] as const;
+
 describe("cardSwatches — valid brandColor", () => {
   const style = cardSwatches("#3b82f6");
 
-  it("emits exactly a `borderTopColor` — a real CSS property, no custom-property token", () => {
-    expect(Object.keys(style)).toEqual(["borderTopColor"]);
-    // No project-prefixed `--*` token leaks out (the #57 no-prefix contract).
-    expect(Object.keys(style).some((k) => k.startsWith("--"))).toBe(false);
+  it("emits exactly the four generic semantic-token overrides", () => {
+    expect(Object.keys(style).sort()).toEqual([...KEYS].sort());
   });
 
-  it("bakes the accent as a light-dark() of oklch() literals", () => {
-    expect(style.borderTopColor).toMatch(LIGHT_DARK);
+  it("uses only generic semantic names — no project-prefixed token leaks (#57)", () => {
+    // Every key is a bare semantic role name; none is namespaced (`--c-*`, `--brand-*`, `--<proj>-*`).
+    for (const key of Object.keys(style)) {
+      expect(key).toMatch(/^--(?:surface|text|border|accent)$/);
+    }
+  });
+
+  it("bakes every token as a light-dark() of oklch() literals", () => {
+    for (const key of KEYS) {
+      expect(style[key]).toMatch(LIGHT_DARK);
+    }
   });
 
   it("returns plain inline-style data — no <style>, selector, or class", () => {
-    const value = style.borderTopColor;
-    expect(value).not.toContain("<style");
-    expect(value).not.toContain("@layer");
-    expect(value).not.toContain("{");
-    expect(value).not.toContain("}");
-    expect(value).not.toContain("[data-");
+    for (const value of Object.values(style)) {
+      expect(value).not.toContain("<style");
+      expect(value).not.toContain("@layer");
+      expect(value).not.toContain("{");
+      expect(value).not.toContain("}");
+      expect(value).not.toContain("[data-");
+    }
   });
 
-  it("tracks the brand color — a different brand yields a different accent", () => {
-    expect(cardSwatches("#3b82f6").borderTopColor).not.toBe(
-      cardSwatches("#ef4444").borderTopColor,
-    );
+  it("tracks the brand color — a different brand yields a different palette", () => {
+    const other = cardSwatches("#ef4444");
+    // At least the accent must differ; in practice surface/text/border shift too.
+    expect(style["--accent"]).not.toBe(other["--accent"]);
+  });
+
+  it("surface and text are distinct — the solved contrast pair, not one flat color", () => {
+    expect(style["--surface"]).not.toBe(style["--text"]);
   });
 
   it("accepts the engine gamut option without throwing", () => {
@@ -57,20 +72,20 @@ describe("cardSwatches — defensive & total", () => {
     expect(() => cardSwatches(input)).not.toThrow();
   });
 
-  it.each(hostile)(
-    "returns a valid decorative accent for %s",
-    (_label, input) => {
-      expect(cardSwatches(input).borderTopColor).toMatch(LIGHT_DARK);
-    },
-  );
+  it.each(hostile)("returns a full valid palette for %s", (_label, input) => {
+    const style = cardSwatches(input);
+    for (const key of KEYS) {
+      expect(style[key]).toMatch(LIGHT_DARK);
+    }
+  });
 
-  it("a hostile string cannot inject markup into the value", () => {
-    const value = cardSwatches(
-      '#fff"}</style><script>alert(1)</script>',
-    ).borderTopColor;
-    expect(value).toMatch(LIGHT_DARK);
-    expect(value).not.toContain("<");
-    expect(value).not.toContain("script");
+  it("a hostile string cannot inject markup into any value", () => {
+    const style = cardSwatches('#fff"}</style><script>alert(1)</script>');
+    for (const value of Object.values(style)) {
+      expect(value).toMatch(LIGHT_DARK);
+      expect(value).not.toContain("<");
+      expect(value).not.toContain("script");
+    }
   });
 
   it("falls back deterministically — same bad input yields the same style", () => {
