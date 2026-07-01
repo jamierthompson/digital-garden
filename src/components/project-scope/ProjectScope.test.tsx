@@ -54,7 +54,9 @@ describe("ProjectScope (engine-driven)", () => {
     expect(style?.textContent).toContain(`@layer ${BRAND_LAYER} {`);
   });
 
-  it("degrades to the fallback scope for an unknown slug (never throws)", () => {
+  it("keeps a safe unregistered slug as its own scope (never throws)", () => {
+    // A project without a component module still gets its OWN sanitized scope — not a shared
+    // `fallback` — so two such projects can't cross-contaminate each other's theme.
     expect(() =>
       render(
         <ProjectScope
@@ -66,6 +68,19 @@ describe("ProjectScope (engine-driven)", () => {
     ).not.toThrow();
     expect(
       screen.getByText("still rendered").closest("[data-project]"),
+    ).toHaveAttribute("data-project", "nope");
+  });
+
+  it("degrades to the constant fallback scope only for an empty/garbage slug", () => {
+    render(
+      <ProjectScope
+        seed={{ slug: "   ", brandColor: "#0099ff", fontKey: "inter" }}
+      >
+        <p>fallback scope</p>
+      </ProjectScope>,
+    );
+    expect(
+      screen.getByText("fallback scope").closest("[data-project]"),
     ).toHaveAttribute("data-project", "fallback");
   });
 

@@ -18,17 +18,15 @@ import {
   type TokenSet,
 } from "@garden/oklch";
 import { resolveFontKey } from "@/lib/resolvers/fonts";
-import { COMPONENT_KEYS } from "@/lib/keys";
 import type { FontFace } from "@/fonts/roster";
 
 /** A resolved scope: the vetted slug it is keyed on + everything needed to emit its theme. */
 export interface ResolvedScope {
   /**
-   * The selector key. Always one of the known slugs or `FALLBACK_SLUG` — never raw user
-   * input. This is load-bearing: because an unknown slug collapses to the constant
-   * `FALLBACK_SLUG`, the slug we interpolate into the `[data-project="…"]` selector and
-   * the `data-project` attribute is ALWAYS a vetted constant, so a hostile slug can never
-   * inject into the emitted CSS.
+   * The selector key: the project's slug, sanitized to `[a-z0-9-]` (never raw user input),
+   * so it is both **injection-safe** (can't break out of `[data-project="…"]`) and **unique
+   * per project** (distinct projects get distinct scopes + `<style>` hrefs — see `vetSlug`).
+   * Genuinely empty / non-string input falls back to the constant `FALLBACK_SLUG`.
    */
   readonly slug: string;
   /** The engine's dual-scheme, baked token set for this scope's `brandColor`. */
@@ -39,7 +37,7 @@ export interface ResolvedScope {
 
 /** The shape the route hands in. Kept loose; `resolveScope` treats input as `unknown`. */
 export interface ScopeSeed {
-  /** Vetted against `KNOWN_SLUGS`; an unknown slug collapses to `FALLBACK_SLUG`. */
+  /** Sanitized to a CSS-safe `[a-z0-9-]` token per project; empty/non-string → `FALLBACK_SLUG`. */
   readonly slug: string;
   /** Any color string (hex / `rgb()` / `oklch()`); unparseable → engine fallback. */
   readonly brandColor: string;
@@ -74,24 +72,24 @@ const SHELL_MONO_FACE: FontFace = {
 /** The font fallback stack appended after the resolved face's CSS variable. */
 const FONT_STACK = "ui-monospace, monospace";
 
-// The slugs that may key a scope — DRIVEN from the registry. A project's slug equals its
-// `componentKey` in our model, so `COMPONENT_KEYS` is the source of truth for which
-// project slugs exist; `"oklch-engine"` is asserted on by the scope tests. (There is no shell
-// slug any more — editorial chrome is global and unscoped; brand scopes wrap project slots
-// only.) An unknown slug still collapses to `FALLBACK_SLUG`, which is what keeps a hostile slug
-// out of the emitted selector — the set is always vetted constants, never raw input. Deriving
-// from `COMPONENT_KEYS` means a new project is accepted automatically the moment it registers
-// its key.
-const KNOWN_SLUGS: ReadonlySet<string> = new Set<string>([
-  ...COMPONENT_KEYS,
-  "oklch-engine",
-]);
-
-/** Vet an untrusted slug down to a known constant — never returns raw input. */
+// Sanitize an untrusted slug into a CSS-selector-safe token: lowercased and stripped to
+// `[a-z0-9-]`, so it can never break out of the `[data-project="…"]` selector or the
+// `<style>` href — a hostile `"]}body{…}` sanitizes to inert characters, no injection.
+//
+// We SANITIZE the slug rather than collapse every unrecognized one to a single constant.
+// Collapsing (the old behavior) made every project without a registered component module —
+// e.g. the seed brands goldenrod / marginalia / tidepool — share the SAME
+// `[data-project="fallback"]` scope AND the SAME `<style href="project-theme-fallback">`.
+// React 19 de-dupes hoisted styles by `href` and keeps the FIRST committed, so navigating
+// between two such projects cross-contaminated them (the second showed the first's theme).
+// A real project slug is already `[a-z0-9-]`, so it passes through unchanged and stays
+// UNIQUE per project; only genuinely empty / non-string input falls back to the constant.
+// (Note: this is decoupled from `COMPONENT_KEYS` — which module renders in the slot is a
+// separate resolution; a project can carry a brand theme before it has a component module.)
 function vetSlug(slug: unknown): string {
-  return typeof slug === "string" && KNOWN_SLUGS.has(slug)
-    ? slug
-    : FALLBACK_SLUG;
+  if (typeof slug !== "string") return FALLBACK_SLUG;
+  const safe = slug.toLowerCase().replace(/[^a-z0-9-]/g, "");
+  return safe.length > 0 ? safe : FALLBACK_SLUG;
 }
 
 /**
