@@ -2,62 +2,130 @@
    model (foundation primitives → semantic role tokens → brand scoped override).
    Loaded before every other sheet so the cascade-layer order is established first. */
 
-/* Cascade order: foundation < brand < project. Declaring it up front means later
-   sheets slot into named layers instead of fighting source order / specificity.
+/* Cascade order: foundation < semantic < brand < project. Declaring it up front means
+   later sheets slot into named layers instead of fighting source order / specificity.
+   - foundation: raw primitives (scales + the editorial neutral palette) + resets.
+   - semantic:   the generic role-token contract components read (`--surface`, `--text`,
+                 `--accent`, … `--success`), bound to the GLOBAL EDITORIAL default here.
+   - brand:      a `[data-project]` slot re-binds those same semantic tokens with the
+                 OKLCH engine's solved brand values (baked `light-dark()` literals).
+   - project:    a project module's own var-consuming rules.
    Every CSS Module must opt into one of these layers (or stay var-consuming). */
-@layer foundation, brand, project;
+@layer foundation, semantic, brand, project;
 
-:root {
-  /* Spacing ramp (rem-based, 0.25rem step) */
-  --space-0: 0;
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-7: 3rem;
-  --space-8: 4rem;
-  --space-9: 6rem;
-  --space-10: 8rem;
+/* Primitives live INSIDE @layer foundation — an unlayered :root would out-rank every
+   layered re-declaration (the "@layer trap"); keeping them layered means a future layered
+   token can override a primitive predictably. */
+@layer foundation {
+  :root {
+    /* Spacing ramp (rem-based, 0.25rem step) */
+    --space-0: 0;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 3rem;
+    --space-8: 4rem;
+    --space-9: 6rem;
+    --space-10: 8rem;
 
-  /* Type scale (modular, 1.25 major third on a 1rem base) */
-  --type-ratio: 1.25;
-  --text-sm: 0.8rem;
-  --text-base: 1rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.5625rem;
-  --text-2xl: 1.9531rem;
-  --text-3xl: 2.4414rem;
-  --text-4xl: 3.0518rem;
-  --leading-tight: 1.2;
-  --leading-normal: 1.5;
-  --leading-loose: 1.75;
+    /* Type scale (modular, 1.25 major third on a 1rem base) */
+    --type-ratio: 1.25;
+    --text-sm: 0.8rem;
+    --text-base: 1rem;
+    --text-lg: 1.25rem;
+    --text-xl: 1.5625rem;
+    --text-2xl: 1.9531rem;
+    --text-3xl: 2.4414rem;
+    --text-4xl: 3.0518rem;
+    --leading-tight: 1.2;
+    --leading-normal: 1.5;
+    --leading-loose: 1.75;
 
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --duration-fast: 120ms;
-  --duration-base: 200ms;
-  --duration-slow: 320ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 320ms;
 
-  --z-base: 0;
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-overlay: 300;
-  --z-modal: 400;
-  --z-popover: 500;
-  --z-toast: 600;
+    --z-base: 0;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-overlay: 300;
+    --z-modal: 400;
+    --z-popover: 500;
+    --z-toast: 600;
 
-  /* Focus-ring geometry only — color is an engine token (contrast-solved per slot), scoped per island */
-  --focus-ring-width: 2px;
-  --focus-ring-offset: 2px;
-  --focus-ring-style: solid;
+    /* Focus-ring geometry only — the ring COLOR is a semantic token (`--focus-ring-color`,
+     bound in @layer semantic below and re-bound per slot in @layer brand). */
+    --focus-ring-width: 2px;
+    --focus-ring-offset: 2px;
+    --focus-ring-style: solid;
 
-  /* No global semantic-color slots: status colors (success/error/warning/info) are
-     brand-derived per island — engine-emitted into each [data-project] scope,
-     scheme-aware and contrast-solved like the rest of the ramp — not a fixed global
-     set. Built when the first status-bearing UI lands. */
+    /* Editorial neutral palette — the foundation primitives the semantic layer maps the
+     global chrome from. A black/white/gray ramp (the "no brand color" editorial default);
+     values track the widely-used neutral scale so the ramp reads as house-style, not bespoke. */
+    --neutral-0: #ffffff;
+    --neutral-50: #fafafa;
+    --neutral-100: #f5f5f5;
+    --neutral-200: #e5e5e5;
+    --neutral-300: #d4d4d4;
+    --neutral-400: #a3a3a3;
+    --neutral-500: #737373;
+    --neutral-600: #525252;
+    --neutral-700: #404040;
+    --neutral-800: #262626;
+    --neutral-900: #171717;
+    --neutral-950: #0a0a0a;
+  }
+}
+
+/* Semantic tier — the generic role-token contract every component reads. Bound here to the
+   GLOBAL EDITORIAL default (neutral chrome, no brand hue); a `[data-project]` slot re-binds
+   these SAME names in @layer brand with the engine's solved brand values. `light-dark()`
+   makes each role scheme-aware, following `color-scheme` (globals.css sets `light dark`). */
+@layer semantic {
+  :root {
+    color-scheme: light dark;
+
+    /* Neutral surfaces + ink */
+    --bg: light-dark(var(--neutral-0), var(--neutral-950));
+    --surface: light-dark(var(--neutral-0), var(--neutral-900));
+    --surface-2: light-dark(var(--neutral-100), var(--neutral-800));
+    --text: light-dark(var(--neutral-900), var(--neutral-100));
+    --text-muted: light-dark(var(--neutral-600), var(--neutral-400));
+    --border: light-dark(var(--neutral-200), var(--neutral-700));
+
+    /* Editorial "accent" is ink — the chrome carries no brand hue; a project slot supplies
+       the only accent color, scoped to its interactive island. */
+    --accent: light-dark(var(--neutral-900), var(--neutral-100));
+    --accent-text: light-dark(var(--neutral-900), var(--neutral-100));
+    --on-accent: light-dark(var(--neutral-0), var(--neutral-950));
+    --focus-ring: light-dark(var(--neutral-900), var(--neutral-100));
+
+    /* Status signal colors at fixed, recognizable hues (green/red/amber/blue). These are the
+       editorial defaults for chrome; inside a slot the engine's brand-harmonized,
+       contrast-solved status tokens (#66) re-bind these same names. Light values are
+       700-weight on white, dark values 400-weight on near-black — each clears WCAG 2.2 AA
+       text on its scheme's surface (guarded by foundation.contrast.test.ts). Known gap:
+       these hand-authored defaults meet the legal floor but not the APCA Lc-60 quality
+       tier in dark (the engine-solved slot tokens do) — revisit when editorial status UI
+       ships / with the Palette Studio (#78). No status-bearing chrome renders them yet. */
+    --success: light-dark(#15803d, #4ade80);
+    --error: light-dark(#b91c1c, #f87171);
+    --warning: light-dark(#b45309, #fbbf24);
+    --info: light-dark(#1d4ed8, #60a5fa);
+
+    /* Alias the foundation `:focus-visible` reads (see @layer foundation). */
+    --focus-ring-color: var(--focus-ring);
+
+    /* The editorial shell font — Newsreader (mounted on <html> by the root layout), with a
+       serif system fallback. A project slot overrides `--font-face` with its own roster face. */
+    --font-face: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  }
 }
 
 @layer foundation {

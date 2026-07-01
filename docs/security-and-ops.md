@@ -121,7 +121,7 @@ What must be true for a **production deploy to actually work** — the env- and 
 
 **Required content (in the `production` dataset):**
 
-- [ ] A **`siteSettings` singleton** (`_id: "siteSettings"`) — it drives the shell brand/font; a missing one degrades to the engine fallback, never an error.
+- [ ] A **`siteSettings` singleton** (`_id: "siteSettings"`) — it supplies the site title/description (`generateMetadata`); a missing one degrades to safe defaults, never an error. It no longer brands the chrome — editorial chrome is global, brand is scoped to each project's slot.
 - [ ] At least one **published `project`** per flat `/[slug]` route.
 
 ### Every deploy

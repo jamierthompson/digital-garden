@@ -86,10 +86,10 @@ describe("/work/[slug] primary flow (Sanity mocked)", () => {
     const wrapper = container.querySelector("[data-project]");
     expect(wrapper).toHaveAttribute("data-project", "first-light");
     // React 19 hoists the `<style precedence>` into <head> (see ProjectScope.test.tsx); the
-    // scoped block carries baked --brand-* literals selected on THIS island.
+    // scoped block re-binds the generic semantic tokens with baked literals on THIS island.
     const style = document.head.querySelector("style[data-precedence]");
     expect(style?.textContent).toContain('[data-project="first-light"]');
-    expect(style?.textContent).toContain("--brand-");
+    expect(style?.textContent).toContain("--accent: light-dark(");
   });
 
   it("resolves the essay's embed key to a loader, and the module key to its module", () => {

@@ -1,4 +1,4 @@
-/* Sunrise-meter embed. @layer project — every CSS Module declares its layer; var-consuming only, themed by generic --brand-* (a shared embed never reads a project-prefixed alias). */
+/* Sunrise-meter embed. @layer project — every CSS Module declares its layer; var-consuming only; reads the generic semantic tokens (a shared embed never reads a project-prefixed alias). */
 @layer project {
   .meter {
     margin: var(--space-5) 0;
@@ -8,18 +8,18 @@
     block-size: var(--space-4);
     inline-size: 100%;
     border-radius: 999px;
-    background: color-mix(in oklab, var(--brand-accent) 18%, transparent);
+    background: color-mix(in oklab, var(--accent) 18%, transparent);
     overflow: hidden;
   }
 
   .fill {
     block-size: 100%;
-    background: var(--brand-accent);
+    background: var(--accent);
   }
 
   .caption {
     margin-top: var(--space-2);
-    color: color-mix(in oklab, var(--brand-text) 70%, transparent);
+    color: color-mix(in oklab, var(--text) 70%, transparent);
     font-size: var(--text-sm);
   }
 }

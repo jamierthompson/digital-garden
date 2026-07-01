@@ -1,6 +1,8 @@
-/* /work index. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only. Cards read
-   inline --c-* swatches `cardSwatches` spreads onto each card's `style={…}` (engine Consumer C,
-   no scope) plus foundation tokens; the page frame is shell-neutral, only cards carry color. */
+/* /work index. @layer project — declares its layer (an unlayered module outranks every layered
+   rule); var-consuming only. Each card re-binds the generic semantic tokens inline via
+   `cardSwatches` (engine Consumer C) spread onto its `style={…}`, so the card's SURFACE, TEXT,
+   BORDER and ACCENT are all engine-solved from its own brandColor — the grid is a live contrast
+   stress-test (surface↔text is the solved pair). A card is a scoped project slot, not chrome. */
 @layer project {
   .page {
     max-width: 64rem;
@@ -28,10 +30,14 @@
   }
 
   .card {
-    border: 1px solid var(--c-border);
+    /* All four reads resolve to the card's own engine-solved brand values (cardSwatches
+       overrides `--surface`/`--text`/`--border`/`--accent` inline for this card's subtree). */
+    border: 1px solid var(--border);
+    /* Brand accent bar: a thicker top edge in the brand accent. */
+    border-top: 3px solid var(--accent);
     border-radius: 0.75rem;
-    background: var(--c-surface);
-    color: var(--c-text);
+    background: var(--surface);
+    color: var(--text);
   }
 
   .cardLink {
@@ -43,13 +49,14 @@
   }
 
   .cardLink:focus-visible {
-    outline: var(--focus-ring-width) var(--focus-ring-style) var(--c-accent);
+    outline: var(--focus-ring-width) var(--focus-ring-style) var(--accent);
     outline-offset: var(--focus-ring-offset);
   }
 
   .cardTitle {
     font-size: var(--text-lg);
-    color: var(--c-accent);
+    /* The solved text token on the solved surface — the AA pair under test. */
+    color: var(--text);
   }
 
   .cardBlurb {

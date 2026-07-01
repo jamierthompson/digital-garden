@@ -2,24 +2,31 @@
  * Serialize a TokenSet to baked CSS — literal `oklch()` values inside `light-dark()`,
  * wrapped in `@layer brand`.
  *
- * The engine emits the GENERIC public token contract (`--brand-*`); mapping those
- * into a project-internal `--logx-*` alias is the project scope's job, not the engine's
- *. `ProjectScope` (owned elsewhere) drops these declarations into its scoped
- * `<style>`; this serializer is the convenience that produces them.
+ * The engine emits the GENERIC SEMANTIC token contract (`--surface`, `--accent`,
+ * `--text`, … `--success`) — the same role names the foundation layer defines as the
+ * global editorial default; a slot's `@layer brand` block re-binds them with the brand's
+ * solved values. Mapping those into a project-internal `--logx-*` alias is the project
+ * scope's job, not the engine's. `ProjectScope` (owned elsewhere) drops these
+ * declarations into its scoped `<style>`; this serializer is the convenience that
+ * produces them.
  */
 
 import { formatOklch } from "./convert";
 import type { BrandTokenName, SchemePair, TokenSet } from "./types";
 
-/** Public custom-property prefix — the generic cross-project contract. */
-const PREFIX = "--brand-";
+/**
+ * Public custom-property prefix. The engine's token names ARE the generic semantic role
+ * names, so the prefix is bare `--` (`--surface`, `--accent`, …) — no `--brand-`/project
+ * namespace, because the `[data-project]` scope provides the isolation.
+ */
+const PREFIX = "--";
 
 /** `light-dark(<light literal>, <dark literal>)` for one token pair. */
 function lightDark(pair: SchemePair): string {
   return `light-dark(${formatOklch(pair.light)}, ${formatOklch(pair.dark)})`;
 }
 
-/** `--brand-<name>` for a token. */
+/** `--<name>` for a token (the generic semantic custom property). */
 function customProperty(name: BrandTokenName): string {
   return `${PREFIX}${name}`;
 }

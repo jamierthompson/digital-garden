@@ -1,7 +1,7 @@
-/* Shell navigation. @layer project — declares its layer (unlayered modules outrank every layered rule); var-consuming only (shell brand/font tokens). */
+/* Shell navigation. @layer project — declares its layer (unlayered modules outrank every layered rule); var-consuming only. Reads the global editorial semantic tokens (the shell is never brand-scoped). */
 @layer project {
   .header {
-    border-bottom: 1px solid var(--brand-border, var(--foreground));
+    border-bottom: 1px solid var(--border);
   }
 
   .nav {
@@ -15,13 +15,10 @@
   }
 
   .brand {
-    /* Fall back to the shell mono face (the safe-fallback degrade) when no scope sets `--font-face`
-       — e.g. the draft-Preview loading frame, whose ShellThemeFallback renders no ProjectScope.
-       Matches the `var(--brand-*, var(--foreground))` fallbacks on the other properties here. */
-    font-family: var(--font-face, var(--font-geist-mono));
+    font-family: var(--font-face);
     font-weight: 600;
     font-size: var(--text-lg);
-    color: var(--brand-text, var(--foreground));
+    color: var(--text);
     text-decoration: none;
   }
 
@@ -32,12 +29,12 @@
   }
 
   .link {
-    color: var(--brand-text-muted, var(--foreground));
+    color: var(--text-muted);
     text-decoration: none;
     transition: color var(--duration-fast) var(--ease-standard);
   }
 
   .link:hover {
-    color: var(--brand-text, var(--foreground));
+    color: var(--text);
   }
 }

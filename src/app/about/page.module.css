@@ -13,7 +13,7 @@
     font-family: var(--font-face);
     font-size: var(--text-3xl);
     line-height: var(--leading-tight);
-    color: var(--brand-text, var(--foreground));
+    color: var(--text);
   }
 
   .prose {
@@ -22,11 +22,11 @@
     gap: var(--space-4);
     font-size: var(--text-lg);
     line-height: var(--leading-loose);
-    color: var(--brand-text-muted, var(--foreground));
+    color: var(--text-muted);
   }
 
   .emphasis {
-    color: var(--brand-text, var(--foreground));
+    color: var(--text);
     font-weight: 600;
   }
 }

@@ -1,34 +1,35 @@
 import { describe, expect, it } from "vitest";
 
-import { cardSwatches, type CardSwatchVar } from "./cardSwatches";
-
-/** The full `--c-*` contract the helper promises. Keep in sync with STOPS. */
-const KEYS: CardSwatchVar[] = [
-  "--c-surface",
-  "--c-border",
-  "--c-text",
-  "--c-accent",
-];
+import { cardSwatches } from "./cardSwatches";
 
 /** A baked `light-dark(oklch(…), oklch(…))` literal — no runtime color math. */
 const LIGHT_DARK = /^light-dark\(oklch\([^)]+\), oklch\([^)]+\)\)$/;
 
-describe("cardSwatches — valid brandColor", () => {
-  const swatches = cardSwatches("#3b82f6");
+/** The generic semantic tokens a card re-binds — the #57 no-prefix contract. */
+const KEYS = ["--surface", "--text", "--border", "--accent"] as const;
 
-  it("emits exactly the curated --c-* stops and nothing else", () => {
-    expect(Object.keys(swatches).sort()).toEqual([...KEYS].sort());
+describe("cardSwatches — valid brandColor", () => {
+  const style = cardSwatches("#3b82f6");
+
+  it("emits exactly the four generic semantic-token overrides", () => {
+    expect(Object.keys(style).sort()).toEqual([...KEYS].sort());
   });
 
-  it("bakes every stop as a light-dark() of oklch() literals", () => {
+  it("uses only generic semantic names — no project-prefixed token leaks (#57)", () => {
+    // Every key is a bare semantic role name; none is namespaced (`--c-*`, `--brand-*`, `--<proj>-*`).
+    for (const key of Object.keys(style)) {
+      expect(key).toMatch(/^--(?:surface|text|border|accent)$/);
+    }
+  });
+
+  it("bakes every token as a light-dark() of oklch() literals", () => {
     for (const key of KEYS) {
-      expect(swatches[key]).toMatch(LIGHT_DARK);
+      expect(style[key]).toMatch(LIGHT_DARK);
     }
   });
 
   it("returns plain inline-style data — no <style>, selector, or class", () => {
-    for (const key of KEYS) {
-      const value = swatches[key];
+    for (const value of Object.values(style)) {
       expect(value).not.toContain("<style");
       expect(value).not.toContain("@layer");
       expect(value).not.toContain("{");
@@ -37,9 +38,14 @@ describe("cardSwatches — valid brandColor", () => {
     }
   });
 
-  it("derives distinct colors per stop (not a single flat value)", () => {
-    const values = new Set(KEYS.map((k) => swatches[k]));
-    expect(values.size).toBeGreaterThan(1);
+  it("tracks the brand color — a different brand yields a different palette", () => {
+    const other = cardSwatches("#ef4444");
+    // At least the accent must differ; in practice surface/text/border shift too.
+    expect(style["--accent"]).not.toBe(other["--accent"]);
+  });
+
+  it("surface and text are distinct — the solved contrast pair, not one flat color", () => {
+    expect(style["--surface"]).not.toBe(style["--text"]);
   });
 
   it("accepts the engine gamut option without throwing", () => {
@@ -66,27 +72,23 @@ describe("cardSwatches — defensive & total", () => {
     expect(() => cardSwatches(input)).not.toThrow();
   });
 
-  it.each(hostile)(
-    "returns a valid full swatch object for %s",
-    (_label, input) => {
-      const swatches = cardSwatches(input);
-      expect(Object.keys(swatches).sort()).toEqual([...KEYS].sort());
-      for (const key of KEYS) {
-        expect(swatches[key]).toMatch(LIGHT_DARK);
-      }
-    },
-  );
-
-  it("a hostile string cannot inject markup into any value", () => {
-    const swatches = cardSwatches('#fff"}</style><script>alert(1)</script>');
+  it.each(hostile)("returns a full valid palette for %s", (_label, input) => {
+    const style = cardSwatches(input);
     for (const key of KEYS) {
-      expect(swatches[key]).toMatch(LIGHT_DARK);
-      expect(swatches[key]).not.toContain("<");
-      expect(swatches[key]).not.toContain("script");
+      expect(style[key]).toMatch(LIGHT_DARK);
     }
   });
 
-  it("falls back deterministically — same bad input yields the same swatches", () => {
+  it("a hostile string cannot inject markup into any value", () => {
+    const style = cardSwatches('#fff"}</style><script>alert(1)</script>');
+    for (const value of Object.values(style)) {
+      expect(value).toMatch(LIGHT_DARK);
+      expect(value).not.toContain("<");
+      expect(value).not.toContain("script");
+    }
+  });
+
+  it("falls back deterministically — same bad input yields the same style", () => {
     expect(cardSwatches(null)).toEqual(cardSwatches(undefined));
   });
 });

@@ -12,7 +12,12 @@ vi.mock("next/font/google", () => ({
 
 import { FONT_FACES } from "@/fonts/roster";
 
-import { FALLBACK_SLUG, resolveScope, scopedStyleCss } from "./scopeSeed";
+import {
+  FALLBACK_SLUG,
+  hashCss,
+  resolveScope,
+  scopedStyleCss,
+} from "./scopeSeed";
 
 // Mirrors the shape the route passes ProjectScope from a Sanity document.
 const VALID_SEED = {
@@ -39,13 +44,9 @@ describe("resolveScope — defensive, never throws", () => {
     ["null", null],
     ["a number", 42],
     ["a string", "oklch-engine"], // a bare string is not the seed shape
-    [
-      "an unknown slug",
-      { slug: "does-not-exist", ...{ brandColor: "#09f", fontKey: "inter" } },
-    ],
     ["a non-string slug", { slug: 123 }],
     ["an empty object", {}],
-    ["a hostile CSS-injection slug", { slug: '"]}html{display:none}' }],
+    ["a whitespace-only slug", { slug: "   " }], // sanitizes to empty → fallback
     [
       "a getter that throws",
       {
@@ -93,9 +94,9 @@ describe("resolveScope — defensive, never throws", () => {
     expect(nonString.font.cssVariable).toBe("--font-geist-mono");
   });
 
-  it("never interpolates an untrusted slug into the emitted CSS selector", () => {
-    // The hostile slug collapses to the constant fallback slug, so the payload cannot
-    // reach the `[data-project="…"]` selector.
+  it("sanitizes a hostile slug so it can never inject into the emitted CSS selector", () => {
+    // The hostile slug is stripped to `[a-z0-9-]` (inert chars), so no bracket/brace/quote
+    // survives to break out of the `[data-project="…"]` selector.
     const css = scopedStyleCss(
       resolveScope({
         slug: '"]}body{color:red}',
@@ -103,8 +104,31 @@ describe("resolveScope — defensive, never throws", () => {
         fontKey: "inter",
       }),
     );
-    expect(css).toContain(`[data-project="${FALLBACK_SLUG}"]`);
+    expect(css).toContain('[data-project="bodycolorred"]');
+    expect(css).not.toContain("]}");
     expect(css).not.toContain("body{color:red}");
+  });
+
+  it("keeps a distinct sanitized slug per project so scopes can't collide (theme-bleed guard)", () => {
+    // Regression guard: two seed projects without a component module both used to collapse to
+    // `FALLBACK_SLUG`, sharing one `[data-project]` scope + `<style href="project-theme-…">`.
+    // React 19 de-dupes hoisted styles by href and keeps the first, so navigating between them
+    // cross-contaminated the theme. Distinct slugs → distinct scopes + hrefs → no bleed.
+    const gold = resolveScope({
+      slug: "goldenrod",
+      brandColor: "#d4a017",
+      fontKey: "inter",
+    });
+    const marg = resolveScope({
+      slug: "marginalia",
+      brandColor: "#1a1a2e",
+      fontKey: "inter",
+    });
+    expect(gold.slug).toBe("goldenrod");
+    expect(marg.slug).toBe("marginalia");
+    expect(gold.slug).not.toBe(marg.slug);
+    expect(scopedStyleCss(gold)).toContain('[data-project="goldenrod"]');
+    expect(scopedStyleCss(marg)).toContain('[data-project="marginalia"]');
   });
 });
 
@@ -116,16 +140,18 @@ describe("scopedStyleCss", () => {
     expect(css).toContain('[data-project="oklch-engine"]');
   });
 
-  it("emits baked --brand-* light-dark() literals + the color-scheme", () => {
+  it("emits baked semantic-token light-dark() literals + the color-scheme", () => {
     expect(css).toContain("color-scheme: light dark;");
     expect(css).toMatch(
-      /--brand-accent: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
+      /--accent: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
     );
-    expect(css).toContain("--brand-focus-ring:");
+    expect(css).toContain("--focus-ring:");
+    // The prefix-drop reaches the slot too — no legacy `--brand-` namespace is emitted.
+    expect(css).not.toContain("--brand-");
   });
 
-  it("aliases --focus-ring-color to the engine focus-ring token", () => {
-    expect(css).toContain("--focus-ring-color: var(--brand-focus-ring);");
+  it("aliases --focus-ring-color to the semantic focus-ring token", () => {
+    expect(css).toContain("--focus-ring-color: var(--focus-ring);");
   });
 
   it("maps --font-face to the resolved roster face + fallback stack", () => {
@@ -133,5 +159,26 @@ describe("scopedStyleCss", () => {
     expect(css).toContain(
       `--font-face: var(${cssVariable}), ui-monospace, monospace;`,
     );
+  });
+});
+
+describe("hashCss (content-keyed style href)", () => {
+  it("is deterministic and content-sensitive", () => {
+    expect(hashCss("theme-a")).toBe(hashCss("theme-a"));
+    expect(hashCss("theme-a")).not.toBe(hashCss("theme-b"));
+  });
+
+  it("changes when a scope's brand changes, so the hoisted <style> href refreshes", () => {
+    const a = scopedStyleCss(
+      resolveScope({ slug: "x", brandColor: "#d4a017", fontKey: "inter" }),
+    );
+    const b = scopedStyleCss(
+      resolveScope({ slug: "x", brandColor: "#1a1a2e", fontKey: "inter" }),
+    );
+    expect(hashCss(a)).not.toBe(hashCss(b));
+  });
+
+  it("emits a URL/attribute-safe token (base36)", () => {
+    expect(hashCss('anything at all { } [] " ')).toMatch(/^[a-z0-9]+$/);
   });
 });

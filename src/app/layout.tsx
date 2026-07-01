@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 // LOAD-BEARING IMPORT ORDER — do not reorder, and do not enable an import-sorter.
-// These global sheets establish the cascade-layer order (`@layer foundation, brand, project;`
-// in foundation.css) and MUST be imported before `next/font` and every component below.
+// These global sheets establish the cascade-layer order (`@layer foundation, semantic, brand,
+// project;` in foundation.css) and MUST be imported before `next/font` and every component below.
 // Turbopack anchors the route's FIRST emitted stylesheet to whatever is imported first; if a
 // `next/font`/component chunk lands first it registers `@layer project` as the LOWEST layer, so
 // the foundation reset out-ranks every project rule and zeroes their padding/margin. Pinned by
@@ -10,22 +10,23 @@ import type { Metadata } from "next";
 import "./foundation.css";
 import "./globals.css";
 
-// Binding import (no CSS side-effect) → does not move the Turbopack stylesheet anchor pinned
-// above, so it sits safely after the global sheets.
-import { Suspense } from "react";
+// Binding imports (no CSS side-effect that moves the Turbopack stylesheet anchor pinned above),
+// so they sit safely after the global sheets.
 import { Geist, Geist_Mono } from "next/font/google";
 
-import ProjectScope from "@/components/project-scope/ProjectScope";
-import ProjectScopeBoundary from "@/components/project-scope/ProjectScopeBoundary";
 import ShellNav from "@/components/shell/ShellNav";
+import { FONT_FACES } from "@/fonts/roster";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
 import SanityLiveMount from "@/sanity/SanityLiveMount";
 import VisualEditingControls from "@/sanity/VisualEditingControls";
 
-// The shell's own faces — the only fonts preloaded on every route.
-// Per-project (and shell-brand) faces load on demand via the font roster with
-// preload: false; the resolved shell face's `.variable` is mounted by ProjectScope.
+// The shell's own faces. Geist Sans/Mono are the system sans + mono (mono is the
+// scope's shell-font fallback). Newsreader is the GLOBAL EDITORIAL body font — the
+// semantic `--font-face` default (foundation.css) maps to `var(--font-newsreader)`, so
+// mounting its roster `.variable` on <html> brings that variable into scope for all chrome.
+// Newsreader loads via the roster (preload: false); its size-adjusted fallback keeps CLS at
+// zero. A project slot overrides `--font-face` with its own roster face.
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -58,75 +59,24 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// Extracted into its own async component so the `siteSettings` read can live behind the
-// `<Suspense>` boundary in `RootLayout` below.
-async function ShellTheme({ children }: { children: React.ReactNode }) {
-  // `sanityFetch` caches the published shell brand into the static HTML (the flash-free theme
-  // has to be in the initial bytes) and serves fresh `siteSettings` drafts under Draft
-  // Mode. Same cache key as `generateMetadata`'s call, so the read is deduped to one fetch.
-  const settings = await sanityFetch(SITE_SETTINGS_QUERY);
-
-  // Feed the shell scope its brand seed. ProjectScope/resolveScope is TOTAL and never throws:
-  // a missing `siteSettings`, a bad `brandColor`, or an unknown `fontKey` each degrade to
-  // the engine fallback palette + shell mono face. `slug="garden"` keys the shell island.
-  const scopeSeed = {
-    slug: "garden",
-    brandColor: settings?.brandColor ?? "",
-    fontKey: settings?.fontKey ?? "",
-  };
-
-  return (
-    <ProjectScopeBoundary>
-      <ProjectScope seed={scopeSeed}>
-        <ShellNav />
-        {children}
-      </ProjectScope>
-    </ProjectScopeBoundary>
-  );
-}
-
-// The Suspense fallback. It deliberately renders NO `<ProjectScope>`: the real `ShellTheme` and a
-// themed fallback would BOTH emit `<style href="project-theme-garden">`, and React 19 de-dupes
-// hoisted stylesheets by href keeping the FIRST committed — the fallback. So a themed fallback
-// would silently theme the whole shell with the engine fallback palette on both the static build
-// and draft Preview. Unthemed-but-structural (boundary + nav + content) keeps the layout stable;
-// brand vars resolve when `ShellTheme` streams in. MUST stay free of `<ProjectScope>` (pinned by
-// layout.shell-theme-dedup.qa.test.tsx).
-function ShellThemeFallback({ children }: { children: React.ReactNode }) {
-  return (
-    <ProjectScopeBoundary>
-      <ShellNav />
-      {children}
-    </ProjectScopeBoundary>
-  );
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Editorial chrome is GLOBAL: the shell reads the semantic layer's editorial defaults
+  // (foundation.css) — no `siteSettings`-seeded brand scope wraps the shell any more. A
+  // project's brand color + font are scoped to its own interactive slot (see
+  // `work/[slug]/page.tsx`), never the shell. `siteSettings` still feeds `generateMetadata`
+  // (title/description); it no longer themes the chrome.
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} ${FONT_FACES.newsreader.variable}`}
+    >
       <body>
-        {/* LOAD-BEARING <Suspense> — do NOT remove, and do NOT render `<ProjectScope>` in the
-            fallback (see `ShellThemeFallback`).
-            `ShellTheme` awaits `sanityFetch(SITE_SETTINGS_QUERY)`. Under Cache Components, Draft
-            Mode bypasses `use cache`, so that read re-executes uncached per request (use-cache.md).
-            This boundary is what lets it defer: the published cached read completes
-            at prerender (served statically); the draft read suspends and streams behind the
-            fallback. Remove the boundary and the async body read trips `Uncached data … outside of
-            <Suspense>` (the blocking-route error).
-            NOTE: this does NOT license `generateMetadata` — that read is `use cache` and
-            independently legal. If you remove this boundary while `ShellTheme` is async, `next dev`
-            logs a blocking-route error whose stack points at `generateMetadata`; that's the
-            un-deferred async body making the route blocking, not metadata. Restore the boundary;
-            don't "fix" metadata. */}
-        <Suspense
-          fallback={<ShellThemeFallback>{children}</ShellThemeFallback>}
-        >
-          <ShellTheme>{children}</ShellTheme>
-        </Suspense>
+        <ShellNav />
+        {children}
         {/* Opens the Sanity Live EventSource so pages revalidate on content changes. Renders for
             every visitor (published live updates); streams drafts only with a browser token. Its
             own async island so the draftMode() read stays out of the sync RootLayout root. */}

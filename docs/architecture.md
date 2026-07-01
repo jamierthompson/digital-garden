@@ -15,10 +15,8 @@ against. Where any doc and the framework disagree, **the bundled Next docs win**
 and the first project are live. Some material below describes the **designed** state that the
 running code hasn't fully caught up to yet — each tracked by a GitHub issue:
 
-- slot-scoped theming under a global editorial chrome → #58;
 - a single `project` type with a `maturity` field + Day-1 backlinks → #59;
-- flat `/[slug]` routes → #60;
-- the foundation → semantic → brand token model → #57.
+- flat `/[slug]` routes → #60.
 
 ---
 
@@ -118,7 +116,7 @@ global :root  (foundation primitives + the semantic editorial defaults)
    │              · type-scale ratios · breakpoint constants · z-index · focus-ring GEOMETRY · reset
    ├─ SEMANTIC (editorial default mapping): --surface · --text · --primary · --font-body
    │              · --space-block · --radius-card · --motion-fast · …  ← the generic contract
-   └─ @layer foundation, brand, project;   ← bare order statement, loaded first
+   └─ @layer foundation, semantic, brand, project;   ← bare order statement, loaded first
           │ every page's chrome (nav · headers · prose) reads the semantic tokens at their defaults ↓
    home · about · /now · the project page AROUND the slot   — all editorial, no brand
           │ and inside a project page, one bounded slot re-defines the semantic tokens ↓
@@ -152,10 +150,11 @@ Key points:
   cascade layer, and an _unlayered_ module's plain declarations outrank **every** `@layer` style
   regardless of specificity or source order. So any component CSS Module that sets real properties
   must wrap its body in `@layer project { … }` (or stay strictly var-_consuming_); the engine's
-  scoped `<style>` declares `@layer brand`; the bare `@layer foundation, brand, project;` order
-  statement is emitted in a global sheet loaded first. Lint-enforced (see the don't-reach-up litmus).
+  scoped `<style>` declares `@layer brand`; the bare `@layer foundation, semantic, brand, project;`
+  order statement is emitted in a global sheet loaded first. Lint-enforced (see the don't-reach-up
+  litmus).
 
-- **Cascade order via `@layer`** (foundation < brand < project) to kill CSS-module insertion-order
+- **Cascade order via `@layer`** (foundation < semantic < brand < project) to kill CSS-module insertion-order
   accidents instead of fighting specificity. The global order statement must register before
   `next/font` — pinned by import order in the root layout.
 

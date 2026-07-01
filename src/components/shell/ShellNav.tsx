@@ -5,9 +5,9 @@ import styles from "./ShellNav.module.css";
 /**
  * The shell's primary navigation.
  *
- * A pure, synchronous, var-consuming component: it reads `var(--brand-*)` / `var(--font-face)`
- * from whatever scope it renders under (the shell island's `[data-project]` scope in the root
- * layout), so it carries no theme of its own.
+ * A pure, synchronous, var-consuming component: it reads the global editorial semantic tokens
+ * (`var(--text)`, `var(--border)`, `var(--font-face)`) from `:root`. The shell is never
+ * brand-scoped — editorial chrome is global; a project's brand is scoped to its own slot.
  */
 export default function ShellNav() {
   return (

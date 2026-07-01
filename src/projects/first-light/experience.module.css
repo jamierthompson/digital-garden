@@ -1,22 +1,18 @@
-/* first-light experience. @layer project — every CSS Module declares its layer; var-consuming only, themed by generic --brand-*. */
+/* first-light experience. @layer project — every CSS Module declares its layer; var-consuming only; reads the generic semantic tokens (brand-scoped within its island). */
 @layer project {
   .experience {
     margin-top: var(--space-7);
     padding: var(--space-6);
     border-radius: 0.75rem;
-    background: color-mix(
-      in oklab,
-      var(--brand-accent) 8%,
-      var(--brand-surface)
-    );
+    background: color-mix(in oklab, var(--accent) 8%, var(--surface));
     font-family: var(--font-face);
-    color: var(--brand-text);
+    color: var(--text);
   }
 
   .heading {
     font-size: var(--text-xl);
     line-height: var(--leading-tight);
-    color: var(--brand-accent);
+    color: var(--accent);
   }
 
   .body {

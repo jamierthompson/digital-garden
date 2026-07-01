@@ -18,17 +18,17 @@ import {
   type TokenSet,
 } from "@garden/oklch";
 import { resolveFontKey } from "@/lib/resolvers/fonts";
-import { COMPONENT_KEYS } from "@/lib/keys";
 import type { FontFace } from "@/fonts/roster";
 
 /** A resolved scope: the vetted slug it is keyed on + everything needed to emit its theme. */
 export interface ResolvedScope {
   /**
-   * The selector key. Always one of the known slugs or `FALLBACK_SLUG` — never raw user
-   * input. This is load-bearing: because an unknown slug collapses to the constant
-   * `FALLBACK_SLUG`, the slug we interpolate into the `[data-project="…"]` selector and
-   * the `data-project` attribute is ALWAYS a vetted constant, so a hostile slug can never
-   * inject into the emitted CSS.
+   * The selector key: the project's slug, sanitized to `[a-z0-9-]` (never raw user input) so
+   * it is **injection-safe** — it can't break out of `[data-project="…"]`. UNIQUENESS per
+   * project is guaranteed upstream by the Sanity `slug` schema (charset `^[a-z0-9-]+$` +
+   * `isUnique`), so on valid data `vetSlug` is a no-op; the theme `<style>` href additionally
+   * carries a content hash (`hashCss`) so distinct themes never share a hoisted style and a
+   * brand edit refreshes it. Genuinely empty / non-string input falls back to `FALLBACK_SLUG`.
    */
   readonly slug: string;
   /** The engine's dual-scheme, baked token set for this scope's `brandColor`. */
@@ -39,7 +39,7 @@ export interface ResolvedScope {
 
 /** The shape the route hands in. Kept loose; `resolveScope` treats input as `unknown`. */
 export interface ScopeSeed {
-  /** Vetted against `KNOWN_SLUGS`; an unknown slug collapses to `FALLBACK_SLUG`. */
+  /** Sanitized to a CSS-safe `[a-z0-9-]` token per project; empty/non-string → `FALLBACK_SLUG`. */
   readonly slug: string;
   /** Any color string (hex / `rgb()` / `oklch()`); unparseable → engine fallback. */
   readonly brandColor: string;
@@ -74,24 +74,40 @@ const SHELL_MONO_FACE: FontFace = {
 /** The font fallback stack appended after the resolved face's CSS variable. */
 const FONT_STACK = "ui-monospace, monospace";
 
-// The slugs that may key a scope — DRIVEN from the registry. A project's slug equals its
-// `componentKey` in our model, so `COMPONENT_KEYS` is the source of truth for which
-// project slugs exist; `"garden"` is the shell island's slug; `"oklch-engine"` is asserted on
-// by the scope tests. An unknown slug still collapses to `FALLBACK_SLUG`, which is what keeps a
-// hostile slug out of the emitted selector — the set is always vetted constants, never raw input.
-// Deriving from `COMPONENT_KEYS` means a new project is accepted automatically the moment it
-// registers its key.
-const KNOWN_SLUGS: ReadonlySet<string> = new Set<string>([
-  ...COMPONENT_KEYS,
-  "garden",
-  "oklch-engine",
-]);
-
-/** Vet an untrusted slug down to a known constant — never returns raw input. */
+// Sanitize an untrusted slug into a CSS-selector-safe token: lowercased and stripped to
+// `[a-z0-9-]`, so it can never break out of the `[data-project="…"]` selector or the
+// `<style>` href — a hostile `"]}body{…}` sanitizes to inert characters, no injection.
+//
+// We SANITIZE the slug rather than collapse every unrecognized one to a single constant.
+// Collapsing (the old behavior) made every project without a registered component module —
+// e.g. the seed brands goldenrod / marginalia / tidepool — share the SAME
+// `[data-project="fallback"]` scope AND the SAME `<style href="project-theme-fallback">`.
+// React 19 de-dupes hoisted styles by `href` and keeps the FIRST committed, so navigating
+// between two such projects cross-contaminated them (the second showed the first's theme).
+// A real project slug is already `[a-z0-9-]`, so it passes through unchanged and stays
+// UNIQUE per project; only genuinely empty / non-string input falls back to the constant.
+// (Note: this is decoupled from `COMPONENT_KEYS` — which module renders in the slot is a
+// separate resolution; a project can carry a brand theme before it has a component module.)
 function vetSlug(slug: unknown): string {
-  return typeof slug === "string" && KNOWN_SLUGS.has(slug)
-    ? slug
-    : FALLBACK_SLUG;
+  if (typeof slug !== "string") return FALLBACK_SLUG;
+  const safe = slug.toLowerCase().replace(/[^a-z0-9-]/g, "");
+  return safe.length > 0 ? safe : FALLBACK_SLUG;
+}
+
+/**
+ * A small, deterministic, ISOMORPHIC string hash (FNV-1a → base36). Used to key the theme
+ * `<style>` href on its CONTENT: distinct themes get distinct hrefs, and a same-slug re-render
+ * with an edited brand gets a NEW href so React 19 inserts the fresh `<style>` instead of
+ * keeping the stale first-committed one (the Sanity live-preview edit loop). No crypto/Node
+ * deps — the engine and this module stay isomorphic.
+ */
+export function hashCss(css: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < css.length; i++) {
+    h ^= css.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
 }
 
 /**
@@ -136,19 +152,22 @@ export function resolveScope(seed: unknown): ResolvedScope {
 /**
  * Serialize a resolved scope into the scoped `<style>` body — ONE coherent rule wrapped in
  * `@layer brand`. The wrapper is hand-assembled here (rather than via `tokenSetToCss`)
- * so the engine's `--brand-*` declarations, the `--focus-ring-color` alias, and the
- * `--font-face` mapping all live in the SAME selector block. The `@layer ${BRAND_LAYER}`
+ * so the engine's semantic-token declarations, the `--focus-ring-color` alias, and the
+ * `--font-face` mapping all live in the SAME selector block. The slot re-binds the generic
+ * semantic tokens (`--surface`, `--accent`, … `--success`) with the brand's solved values,
+ * overriding the global editorial defaults for this island only. The `@layer ${BRAND_LAYER}`
  * wrapper here pairs with `ProjectScope`'s `precedence={BRAND_LAYER}` — see `BRAND_LAYER`.
  */
 export function scopedStyleCss(scope: ResolvedScope): string {
-  // Engine declarations: `color-scheme: light dark;` + each `--brand-*: light-dark(…)`.
+  // Engine declarations: `color-scheme: light dark;` + each `--<name>: light-dark(…)`
+  // (the generic semantic role tokens, incl. the #66 status tokens).
   const brandDecls = tokenSetToDeclarations(scope.tokenSet)
     .split("\n")
     .map((line) => `    ${line}`)
     .join("\n");
 
   // Alias the engine's focus-ring token into the var foundation's `:focus-visible` reads.
-  const focusRing = "    --focus-ring-color: var(--brand-focus-ring);";
+  const focusRing = "    --focus-ring-color: var(--focus-ring);";
 
   // Map the resolved roster face into `--font-face`; the `.variable` class on the wrapper
   // brings `var(<cssVariable>)` into scope, and the stack is the fallback.

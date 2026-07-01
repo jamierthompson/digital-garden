@@ -20,13 +20,13 @@
     font-family: var(--font-face);
     font-size: var(--text-4xl);
     line-height: var(--leading-tight);
-    color: var(--brand-text, var(--foreground));
+    color: var(--text);
   }
 
   .tagline {
     max-width: 38rem;
     font-size: var(--text-lg);
-    color: var(--brand-text-muted, var(--foreground));
+    color: var(--text-muted);
   }
 
   .wayfinding {
@@ -40,9 +40,9 @@
     flex-direction: column;
     gap: var(--space-2);
     padding: var(--space-5);
-    border: 1px solid var(--brand-border, var(--foreground));
+    border: 1px solid var(--border);
     border-radius: var(--space-2);
-    background: var(--brand-surface, transparent);
+    background: var(--surface);
     text-decoration: none;
     transition:
       border-color var(--duration-fast) var(--ease-standard),
@@ -50,19 +50,19 @@
   }
 
   .card:hover {
-    border-color: var(--brand-accent, var(--foreground));
-    background: var(--brand-surface-2, transparent);
+    border-color: var(--accent);
+    background: var(--surface-2);
   }
 
   .cardTitle {
     font-family: var(--font-face);
     font-weight: 600;
     font-size: var(--text-lg);
-    color: var(--brand-text, var(--foreground));
+    color: var(--text);
   }
 
   .cardBlurb {
     font-size: var(--text-sm);
-    color: var(--brand-text-muted, var(--foreground));
+    color: var(--text-muted);
   }
 }

@@ -1,14 +1,14 @@
-/* Project "Related notes" list. @layer project — declares its layer (unlayered modules outrank every layered rule); var-consuming only, themed by --brand-*. */
+/* Project "Related notes" list. @layer project — declares its layer (unlayered modules outrank every layered rule); var-consuming only; reads the generic semantic tokens. */
 @layer project {
   .related {
     margin-top: var(--space-7);
-    border-top: 1px solid var(--brand-border, var(--brand-text));
+    border-top: 1px solid var(--border, var(--text));
     padding-top: var(--space-5);
   }
 
   .heading {
     font-size: var(--text-lg);
-    color: var(--brand-accent-text);
+    color: var(--accent-text);
   }
 
   .list {
@@ -18,6 +18,6 @@
 
   .item {
     margin-top: var(--space-2);
-    color: var(--brand-text);
+    color: var(--text);
   }
 }

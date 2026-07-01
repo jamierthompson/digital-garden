@@ -54,7 +54,9 @@ describe("ProjectScope (engine-driven)", () => {
     expect(style?.textContent).toContain(`@layer ${BRAND_LAYER} {`);
   });
 
-  it("degrades to the fallback scope for an unknown slug (never throws)", () => {
+  it("keeps a safe unregistered slug as its own scope (never throws)", () => {
+    // A project without a component module still gets its OWN sanitized scope — not a shared
+    // `fallback` — so two such projects can't cross-contaminate each other's theme.
     expect(() =>
       render(
         <ProjectScope
@@ -66,6 +68,19 @@ describe("ProjectScope (engine-driven)", () => {
     ).not.toThrow();
     expect(
       screen.getByText("still rendered").closest("[data-project]"),
+    ).toHaveAttribute("data-project", "nope");
+  });
+
+  it("degrades to the constant fallback scope only for an empty/garbage slug", () => {
+    render(
+      <ProjectScope
+        seed={{ slug: "   ", brandColor: "#0099ff", fontKey: "inter" }}
+      >
+        <p>fallback scope</p>
+      </ProjectScope>,
+    );
+    expect(
+      screen.getByText("fallback scope").closest("[data-project]"),
     ).toHaveAttribute("data-project", "fallback");
   });
 
@@ -97,5 +112,68 @@ describe("ProjectScope (engine-driven)", () => {
     expect(
       screen.getByText("survived").closest("[data-project]"),
     ).toHaveAttribute("data-project", "fallback");
+  });
+
+  // Theme text for a given scope slug, from the hoisted <style>s (queried by scope selector
+  // so results don't bleed across tests via React's head-hoisting).
+  const themesFor = (slug: string): string[] =>
+    [...document.head.querySelectorAll("style[data-precedence]")]
+      .map((s) => s.textContent ?? "")
+      .filter((t) => t.includes(`[data-project="${slug}"]`));
+
+  it("hoists TWO distinct theme <style>s for two distinct projects (no href collision)", () => {
+    // DOM-level guard of the React-19 href de-dup mechanism (restores the coverage the
+    // deleted shell-theme-dedup test held): distinct projects must NOT share one hoisted
+    // theme, or the second slot renders the first's brand.
+    render(
+      <>
+        <ProjectScope
+          seed={{
+            slug: "alpha",
+            brandColor: "oklch(0.62 0.21 264)",
+            fontKey: "inter",
+          }}
+        >
+          <p>a</p>
+        </ProjectScope>
+        <ProjectScope
+          seed={{
+            slug: "beta",
+            brandColor: "oklch(0.62 0.13 30)",
+            fontKey: "fraunces",
+          }}
+        >
+          <p>b</p>
+        </ProjectScope>
+      </>,
+    );
+    expect(themesFor("alpha")).toHaveLength(1);
+    expect(themesFor("beta")).toHaveLength(1);
+    expect(themesFor("alpha")[0]).not.toBe(themesFor("beta")[0]);
+  });
+
+  it("refreshes the hoisted theme when the same slug re-renders with an edited brand (live preview)", () => {
+    // The content-hashed href means a same-slug brand edit gets a NEW href, so React inserts
+    // the fresh <style> instead of keeping the stale first-committed one.
+    const seed = (brandColor: string, fontKey: string) => ({
+      slug: "editme",
+      brandColor,
+      fontKey,
+    });
+    const { rerender } = render(
+      <ProjectScope seed={seed("oklch(0.62 0.21 264)", "inter")}>
+        <p>v1</p>
+      </ProjectScope>,
+    );
+    const before = themesFor("editme");
+    expect(before.length).toBeGreaterThanOrEqual(1);
+
+    rerender(
+      <ProjectScope seed={seed("oklch(0.62 0.13 30)", "fraunces")}>
+        <p>v2</p>
+      </ProjectScope>,
+    );
+    // A theme carrying the NEW brand now exists and differs from the original — not stale.
+    expect(themesFor("editme").some((t) => !before.includes(t))).toBe(true);
   });
 });

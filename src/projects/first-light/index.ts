@@ -4,13 +4,13 @@
 // static analysis). The resolver returns a typed `NotFound` for an unknown key, so a
 // content→code key drift degrades to `not-found.tsx` rather than crashing.
 //
-// Importing `tokens.css` here loads the project's `--logx-*` alias seam whenever the module
-// loads, scoped to `[data-project="first-light"]`. Dependencies point project → shared,
-// never back, and never project → project (lint-enforced).
+// The project consumes the GENERIC semantic tokens (`--accent`, `--surface`, `--text`,
+// `--font-face`) that `ProjectScope` re-binds on the `[data-project]` ancestor — no
+// project-prefixed alias layer (#57: no `--<proj>-*` token names). Dependencies point
+// project → shared, never back, and never project → project (lint-enforced).
 
 import type { ProjectModule } from "@/projects/types";
 
-import "./tokens.css";
 import FirstLightExperience from "./experience";
 
 /** The `first-light` registry entry — satisfies the shared `ProjectModule` contract. */
