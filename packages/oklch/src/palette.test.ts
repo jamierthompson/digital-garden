@@ -17,6 +17,10 @@ const TOKEN_NAMES: BrandTokenName[] = [
   "accent-text",
   "on-accent",
   "focus-ring",
+  "success",
+  "error",
+  "warning",
+  "info",
 ];
 
 const SCHEMES: Scheme[] = ["light", "dark"];
@@ -284,6 +288,143 @@ describe("seed-lightness auto-direction", () => {
     const b = resolveTheme("oklch(0.58 0.15 260)", "light");
     expect(a.direction).toBe(b.direction);
     expect(Math.abs(a.tokens.accent.L - b.tokens.accent.L)).toBeLessThan(0.1);
+  });
+});
+
+describe("status colors", () => {
+  const STATUS_TOKENS: BrandTokenName[] = [
+    "success",
+    "error",
+    "warning",
+    "info",
+  ];
+  // Status colors are accessible signal FOREGROUNDS solved at the accent-text tier, so
+  // they clear WCAG 4.5 + APCA Lc 60 against the worst-case surface (surface-2) — the same
+  // floor `accent-text` clears. Measured with the REAL contrast fns, both schemes.
+  const STATUS_FLOOR = { wcag: 4.5, apca: 60 } as const;
+
+  it.each(SCHEMES)(
+    "emits all four status tokens, finite + in gamut, for the %s scheme",
+    (scheme) => {
+      const { tokens } = resolveTheme("#3b82f6", scheme);
+      for (const name of STATUS_TOKENS) {
+        const c = tokens[name];
+        expect(c, name).toBeDefined();
+        expect(
+          Number.isFinite(c.L) && Number.isFinite(c.C) && Number.isFinite(c.H),
+          name,
+        ).toBe(true);
+        expect(inGamut(c, "srgb"), name).toBe(true);
+      }
+    },
+  );
+
+  // The per-hue solve is the whole point: a fixed ΔL that passes for red fails for yellow.
+  // Prove EACH canonical hue clears the floor — warning (yellow) + success (green) + info
+  // (cyan-ish blue) are the stressers — across hue-spanning brand seeds AND the fallback,
+  // in BOTH schemes. Status colors don't depend on the brand hue, so a garbage seed (which
+  // routes through the fallback surface) must still emit accessible status colors.
+  const SEEDS: unknown[] = [
+    "#e11d48", // crimson
+    "#eab308", // amber brand
+    "#16a34a", // emerald brand
+    "#06b6d4", // cyan brand
+    "#7c3aed", // violet
+    "garbage", // → fallback palette
+    null,
+    42,
+  ];
+
+  it.each(SCHEMES)(
+    "every status color clears its floor on surface-2 across brands + fallback (%s)",
+    (scheme) => {
+      for (const seed of SEEDS) {
+        const { tokens } = resolveTheme(seed, scheme);
+        const surface2 = tokens["surface-2"];
+        for (const name of STATUS_TOKENS) {
+          const c = tokens[name];
+          const where = `${name}/${scheme}/${String(seed)}`;
+          expect(inGamut(c, "srgb"), where).toBe(true);
+          expect(
+            contrastWCAG(c, surface2),
+            `${where} WCAG`,
+          ).toBeGreaterThanOrEqual(STATUS_FLOOR.wcag);
+          expect(apcaLc(c, surface2), `${where} APCA`).toBeGreaterThanOrEqual(
+            STATUS_FLOOR.apca,
+          );
+        }
+      }
+    },
+  );
+
+  it("garbage brandColor → isFallback true AND all four status colors present + accessible", () => {
+    const result = resolveTheme("not-a-color", "light");
+    expect(result.isFallback).toBe(true);
+    const surface2 = result.tokens["surface-2"];
+    for (const name of STATUS_TOKENS) {
+      const c = result.tokens[name];
+      expect(c, name).toBeDefined();
+      expect(contrastWCAG(c, surface2), name).toBeGreaterThanOrEqual(
+        STATUS_FLOOR.wcag,
+      );
+      expect(apcaLc(c, surface2), name).toBeGreaterThanOrEqual(
+        STATUS_FLOOR.apca,
+      );
+    }
+  });
+
+  it("is deterministic — same input → identical status colors", () => {
+    const a = resolveTheme("#3b82f6", "dark");
+    const b = resolveTheme("#3b82f6", "dark");
+    for (const name of STATUS_TOKENS) {
+      expect(a.tokens[name], name).toEqual(b.tokens[name]);
+    }
+  });
+
+  // Locks the accessibility promise the docs make ("any brand, both schemes, both gamuts"):
+  // a dense hue × L × chroma sweep in sRGB AND P3, measured with the real contrast fns.
+  it("every status color clears its floor across a hue/L/chroma sweep (sRGB + P3)", () => {
+    const gamuts = ["srgb", "p3"] as const;
+    const Hs = [0, 27, 80, 145, 250, 330];
+    const Ls = [0.1, 0.5, 0.9];
+    const Cs = [0, 0.15, 0.35];
+    for (const gamut of gamuts)
+      for (const H of Hs)
+        for (const L of Ls)
+          for (const C of Cs)
+            for (const scheme of SCHEMES) {
+              const { tokens } = resolveTheme(`oklch(${L} ${C} ${H})`, scheme, {
+                gamut,
+              });
+              const surface2 = tokens["surface-2"];
+              for (const name of STATUS_TOKENS) {
+                const c = tokens[name];
+                const where = `${name}/${scheme}/${gamut}/H${H}L${L}C${C}`;
+                expect(inGamut(c, gamut), where).toBe(true);
+                expect(
+                  contrastWCAG(c, surface2),
+                  `${where} WCAG`,
+                ).toBeGreaterThanOrEqual(STATUS_FLOOR.wcag);
+                expect(
+                  apcaLc(c, surface2),
+                  `${where} APCA`,
+                ).toBeGreaterThanOrEqual(STATUS_FLOOR.apca);
+              }
+            }
+  });
+
+  // Documents the intended design: because the hue is fixed-canonical and surface-2's brand
+  // tint is capped tiny, status colors are near brand-invariant — two wildly different brands
+  // land within a hair. Guards against an accidental brand-hue leak into the status solve.
+  it("status colors are near brand-invariant (fixed canonical hue, only the surface-tint whisper varies)", () => {
+    const a = resolveTheme("#e11d48", "light").tokens; // crimson brand
+    const b = resolveTheme("#06b6d4", "light").tokens; // cyan brand
+    for (const name of STATUS_TOKENS) {
+      // L barely moves and the hue stays within a sub-2° wobble (from gamut-mapping against
+      // the brand-tinted surface) — the canonical anchor dominates, no brand-hue leak.
+      expect(Math.abs(a[name].L - b[name].L), `${name} L`).toBeLessThan(0.02);
+      expect(Math.abs(a[name].H - b[name].H), `${name} H`).toBeLessThan(2);
+    }
   });
 });
 

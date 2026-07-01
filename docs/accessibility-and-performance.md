@@ -27,9 +27,9 @@ lightness `L` for on-brand / on-surface pairs against the _relevant background_,
 - **Read the engine's emitted tokens** (`var(--brand-*)`, focus-ring color) — do
   not invent a foreground color in a CSS Module and hope it clears 4.5:1.
 - **If you must author a static color** (rare — a decorative hairline, a one-off accent),
-  it's _your_ job to verify the ratio. Status colors are **not** this case — they're
-  engine-derived from the brand hue per slot (scheme-aware and contrast-solved), like the
-  rest of the ramp, not a fixed global status palette. Decorative tints via
+  it's _your_ job to verify the ratio. Status colors are **not** this case — the engine
+  emits them at fixed **canonical hues**, contrast-solved per slot and scheme (like the
+  rest of the ramp), not a fixed global status palette. Decorative tints via
   `oklch(from …)` are permitted **only** for non-contrast deltas.
 
 ### Targets to check against
