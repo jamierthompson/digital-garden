@@ -11,16 +11,6 @@ evolves, and git history is the audit trail — there is no separate decision lo
 against. Where any doc and the framework disagree, **the bundled Next docs win**
 (`node_modules/next/dist/docs/`) — your training data is stale on this stack.
 
-**Build status (2026-07-01).** The shared foundation, the OKLCH engine, the Sanity content model,
-and the first project are live. Some material below describes the **designed** state that the
-running code hasn't fully caught up to yet — each tracked by a GitHub issue. Until these land the
-code still names the content type `project`, has no `kind` field, and routes under `/work`:
-
-- one `entry` document type with a `kind` discriminator (note · essay · project · now), `stage`,
-  an authored `iterated` date, self-referencing `related` backlinks, and `featuredRank` → #59;
-- flat root-level `/[slug]` routes, a featured front door at `/`, and the browsable **Index** → #60;
-- seed entries proving the engine across brands → #65.
-
 ---
 
 ## Guiding principles
@@ -316,11 +306,13 @@ page in `pages/` mounts it. A headless `core/` is **not** templated into every m
 emerge only when an experience's logic warrants extraction (same deferral discipline as the
 embed tiers; see the interactive experience section). The module owns its page components; thin
 route files mount them. Code lives under `src/projects/<slug>/`; **routes are flat** — `/` is the
-**featured** front door, a browsable **Index** lists every entry, and a root-level `/[slug]` (a
-dynamic segment that cedes precedence to static segments like `/about`, `/now`, and the Index) mounts
-any entry's pages. Every entry — note, essay, or project — lives at a **flat top-level slug**
-(`/some-note`, not `/notes/some-note`), so its URL stays stable even if its `kind` changes. There is
-no `/work` prefix.
+**featured** front door, a browsable **Index** (nav-labelled "Index") lists every entry at
+**`/browse`**, and a root-level `/[slug]` (a dynamic segment that cedes precedence to the static
+segments `/browse`, `/about`, `/now`) mounts any entry's pages. Every entry — note, essay, or
+project — lives at a **flat top-level slug** (`/some-note`, not `/notes/some-note`), so its URL stays
+stable even if its `kind` changes. There is no `/work` prefix. The browse route is `/browse`, **not
+`/index`**: Next.js reserves `index` for the root segment's prerender output (`app/index.html`), so a
+route literally named `index` silently serves the home page.
 
 **Start single-tier** — one shared `src/lib/resolvers/embeds.ts` until a second project actually reuses a
 widget; introduce the project-local tier only then. Once you do, embeds follow the **same
