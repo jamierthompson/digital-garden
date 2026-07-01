@@ -32,7 +32,9 @@
     /* Editorial chrome (guaranteed-accessible on the shared grid); the brand color is a
        purely decorative accent bar on top — non-text, so no contrast obligation. */
     border: 1px solid var(--border);
-    border-top: 3px solid var(--c-accent);
+    /* The decorative brand-accent bar: 3px top; its COLOR comes from the card's inline
+       `borderTopColor` (cardSwatches), so no project-prefixed custom-property token. */
+    border-top-width: 3px;
     border-radius: 0.75rem;
     background: var(--surface);
     color: var(--text);

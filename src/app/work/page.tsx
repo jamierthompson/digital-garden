@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import type { CSSProperties } from "react";
 import Link from "next/link";
 
 import { cardSwatches } from "@/lib/cardSwatches";
@@ -9,10 +8,11 @@ import { sanityFetch } from "@/sanity/lib/sanityFetch";
 import styles from "./page.module.css";
 
 // The `/work` index: a grid of editorial-chrome cards. Each card carries a single decorative
-// brand accent from its own `brandColor` via `cardSwatches` — engine Consumer C, which bakes one
-// inline `--c-accent` `light-dark()` literal with NO project scope, no `<style>`, no island. The
-// card reads it from its own `style={…}`, so a dozen differently-accented cards coexist on one
-// page without a dozen scopes; the card's surface/border/text stay editorial (accessible).
+// brand accent from its own `brandColor` via `cardSwatches` — engine Consumer C, which bakes a
+// `light-dark()` `borderTopColor` inline (a real CSS property, NOT a project-prefixed
+// custom-property token), with no project scope, no `<style>`, no island. So a dozen
+// differently-accented cards coexist on one page without a dozen scopes; the card's
+// surface/border/text stay editorial (accessible).
 
 export const metadata: Metadata = {
   title: "Work",
@@ -36,11 +36,9 @@ export default async function WorkIndexPage() {
             <li
               key={project._id}
               className={styles.card}
-              // `cardSwatches` returns a bag of `--c-*` custom properties; cast to
-              // `CSSProperties` so they spread onto inline `style` (React types custom
-              // props via an index signature a `Record<--c-*, string>` doesn't structurally
-              // match on its own).
-              style={cardSwatches(project.brandColor) as CSSProperties}
+              // `cardSwatches` returns a plain `{ borderTopColor }` style — a real CSS
+              // property, so it spreads straight onto inline `style` (no cast, no token).
+              style={cardSwatches(project.brandColor)}
             >
               <Link href={`/work/${project.slug}`} className={styles.cardLink}>
                 <h2 className={styles.cardTitle}>{project.title}</h2>

@@ -1,40 +1,35 @@
 import { describe, expect, it } from "vitest";
 
-import { cardSwatches, type CardSwatchVar } from "./cardSwatches";
-
-/** The full `--c-*` contract the helper promises. Keep in sync with STOPS. */
-const KEYS: CardSwatchVar[] = ["--c-accent"];
+import { cardSwatches } from "./cardSwatches";
 
 /** A baked `light-dark(oklch(…), oklch(…))` literal — no runtime color math. */
 const LIGHT_DARK = /^light-dark\(oklch\([^)]+\), oklch\([^)]+\)\)$/;
 
 describe("cardSwatches — valid brandColor", () => {
-  const swatches = cardSwatches("#3b82f6");
+  const style = cardSwatches("#3b82f6");
 
-  it("emits exactly the decorative --c-accent stop and nothing else", () => {
-    expect(Object.keys(swatches).sort()).toEqual([...KEYS].sort());
+  it("emits exactly a `borderTopColor` — a real CSS property, no custom-property token", () => {
+    expect(Object.keys(style)).toEqual(["borderTopColor"]);
+    // No project-prefixed `--*` token leaks out (the #57 no-prefix contract).
+    expect(Object.keys(style).some((k) => k.startsWith("--"))).toBe(false);
   });
 
   it("bakes the accent as a light-dark() of oklch() literals", () => {
-    for (const key of KEYS) {
-      expect(swatches[key]).toMatch(LIGHT_DARK);
-    }
+    expect(style.borderTopColor).toMatch(LIGHT_DARK);
   });
 
   it("returns plain inline-style data — no <style>, selector, or class", () => {
-    for (const key of KEYS) {
-      const value = swatches[key];
-      expect(value).not.toContain("<style");
-      expect(value).not.toContain("@layer");
-      expect(value).not.toContain("{");
-      expect(value).not.toContain("}");
-      expect(value).not.toContain("[data-");
-    }
+    const value = style.borderTopColor;
+    expect(value).not.toContain("<style");
+    expect(value).not.toContain("@layer");
+    expect(value).not.toContain("{");
+    expect(value).not.toContain("}");
+    expect(value).not.toContain("[data-");
   });
 
   it("tracks the brand color — a different brand yields a different accent", () => {
-    expect(cardSwatches("#3b82f6")["--c-accent"]).not.toBe(
-      cardSwatches("#ef4444")["--c-accent"],
+    expect(cardSwatches("#3b82f6").borderTopColor).not.toBe(
+      cardSwatches("#ef4444").borderTopColor,
     );
   });
 
@@ -63,26 +58,22 @@ describe("cardSwatches — defensive & total", () => {
   });
 
   it.each(hostile)(
-    "returns a valid full swatch object for %s",
+    "returns a valid decorative accent for %s",
     (_label, input) => {
-      const swatches = cardSwatches(input);
-      expect(Object.keys(swatches).sort()).toEqual([...KEYS].sort());
-      for (const key of KEYS) {
-        expect(swatches[key]).toMatch(LIGHT_DARK);
-      }
+      expect(cardSwatches(input).borderTopColor).toMatch(LIGHT_DARK);
     },
   );
 
-  it("a hostile string cannot inject markup into any value", () => {
-    const swatches = cardSwatches('#fff"}</style><script>alert(1)</script>');
-    for (const key of KEYS) {
-      expect(swatches[key]).toMatch(LIGHT_DARK);
-      expect(swatches[key]).not.toContain("<");
-      expect(swatches[key]).not.toContain("script");
-    }
+  it("a hostile string cannot inject markup into the value", () => {
+    const value = cardSwatches(
+      '#fff"}</style><script>alert(1)</script>',
+    ).borderTopColor;
+    expect(value).toMatch(LIGHT_DARK);
+    expect(value).not.toContain("<");
+    expect(value).not.toContain("script");
   });
 
-  it("falls back deterministically — same bad input yields the same swatches", () => {
+  it("falls back deterministically — same bad input yields the same style", () => {
     expect(cardSwatches(null)).toEqual(cardSwatches(undefined));
   });
 });
