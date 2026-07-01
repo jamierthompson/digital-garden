@@ -38,6 +38,15 @@ describe("WORK_INDEX_QUERY", () => {
   it("never pulls the body (the over-fetch guard)", () => {
     expect(WORK_INDEX_QUERY).not.toContain("body");
   });
+
+  it("never resolves the backlink graph on a card (the graph is detail-only)", () => {
+    // A card must not drag the outgoing `related[]->` deref or the incoming
+    // `references()` subquery — that graph resolution is the detail query's job and
+    // would blow up the index payload / query cost for every card.
+    expect(WORK_INDEX_QUERY).not.toContain("related");
+    expect(WORK_INDEX_QUERY).not.toContain("backlinks");
+    expect(WORK_INDEX_QUERY).not.toContain("references(");
+  });
 });
 
 /**
@@ -72,6 +81,22 @@ describe("PROJECT_DETAIL_QUERY", () => {
     }
     // Incoming backlinks resolve via references() against this document's id.
     expect(PROJECT_DETAIL_QUERY).toContain("references(^._id)");
+  });
+
+  it("scopes the incoming backlinks to an aliased entry subquery, not a stray root filter", () => {
+    // `backlinks` must be a nested projection aliased on the document — an array of
+    // OTHER entries that reference it — not a `references()` predicate applied to the
+    // matched doc itself. Assert the alias, the entry-typed subquery, and that both the
+    // outgoing edge and the incoming edge carry the `kind` needed for the card label.
+    expect(PROJECT_DETAIL_QUERY).toContain('"backlinks": *[_type == "entry"');
+    expect(PROJECT_DETAIL_QUERY).toContain("related[]->{");
+    // Both graph directions project a resolvable slug (never the raw reference) + kind.
+    expect(PROJECT_DETAIL_QUERY).toMatch(
+      /related\[\]->\{[^}]*"slug": slug\.current[^}]*kind/,
+    );
+    expect(PROJECT_DETAIL_QUERY).toMatch(
+      /"backlinks":[^}]*"slug": slug\.current[^}]*kind/,
+    );
   });
 
   it("uses a query parameter, never string interpolation (injection guard)", () => {
