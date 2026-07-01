@@ -77,7 +77,8 @@ export interface SchemeResult {
    * Detected from the seed alone (scheme-independent), so both `resolveTheme(c,"light")`
    * and `resolveTheme(c,"dark")` report the same value: `"light"` when the seed can serve
    * as a light-mode primary (clears the UI floor on a light surface), else `"dark"`. In
-   * the native scheme the accent is faithful to `seed.L`; in the other it is derived.
+   * the native scheme the accent is anchored at `seed.L` (nudged only minimally, if needed,
+   * to host a legible on-accent label); in the other scheme it is derived.
    */
   direction: Scheme;
 }

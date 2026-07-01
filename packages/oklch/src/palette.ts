@@ -232,9 +232,11 @@ function solveNativeAccent(
     gamutMap({ L: 0.99, C: 0, H: hue }, gamut), // near-white
     gamutMap({ L: 0.1, C: 0, H: hue }, gamut), // near-black
   ];
-  // Move away from mid-lightness (toward the nearer extreme): that both keeps the fill
-  // reading on the surface and strengthens one label polarity. delta 0 = fully faithful.
-  const sign = seed.L >= 0.5 ? 1 : -1;
+  // Nudge toward the pole OPPOSITE the surface — darker on a light surface, lighter on a
+  // dark one — so the fill keeps contrast against its worst-case surface (the constraint
+  // that actually binds) while a near-white/near-black label gains contrast on it. This
+  // mirrors solveForeground's polarity (contrast.ts). delta 0 = fully faithful to seed.L.
+  const sign = surfaceBg.L >= 0.5 ? -1 : 1;
 
   for (let delta = 0; delta <= 0.5 + 1e-9; delta += 0.01) {
     const L = clamp01(seed.L + sign * delta);

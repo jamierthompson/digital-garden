@@ -267,6 +267,24 @@ describe("seed-lightness auto-direction", () => {
     expect(base).not.toBeNull();
     expect(base?.L).toBeGreaterThan(0.9);
   });
+
+  it("honors seed.L in the native scheme for a light-native upper-mid seed", () => {
+    // The (~0.5, ~0.63] light-native band is where the nudge must go TOWARD the surface's
+    // opposite pole (darker, here) to stay faithful — not away-from-mid. direction "light"
+    // is a promise the accent is anchored near seed.L, not dropped to the derived scan.
+    const r = resolveTheme("oklch(0.60 0.15 260)", "light");
+    expect(r.direction).toBe("light");
+    expect(Math.abs(r.tokens.accent.L - r.seed.L)).toBeLessThanOrEqual(0.1);
+  });
+
+  it("has no jarring accent-L discontinuity within one direction", () => {
+    // A 0.02 step in seed L, both sides light-native, must not swing accent.L by ~0.19 —
+    // the symptom of the native path silently falling through to the derived scan.
+    const a = resolveTheme("oklch(0.56 0.15 260)", "light");
+    const b = resolveTheme("oklch(0.58 0.15 260)", "light");
+    expect(a.direction).toBe(b.direction);
+    expect(Math.abs(a.tokens.accent.L - b.tokens.accent.L)).toBeLessThan(0.1);
+  });
 });
 
 describe("buildTokenSet", () => {
