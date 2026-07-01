@@ -104,8 +104,11 @@
     /* Status signal colors at fixed, recognizable hues (green/red/amber/blue). These are the
        editorial defaults for chrome; inside a slot the engine's brand-harmonized,
        contrast-solved status tokens (#66) re-bind these same names. Light values are
-       700-weight on white, dark values 400-weight on near-black — each clears AA text on
-       its scheme's surface. */
+       700-weight on white, dark values 400-weight on near-black — each clears WCAG 2.2 AA
+       text on its scheme's surface (guarded by foundation.contrast.test.ts). Known gap:
+       these hand-authored defaults meet the legal floor but not the APCA Lc-60 quality
+       tier in dark (the engine-solved slot tokens do) — revisit when editorial status UI
+       ships / with the Palette Studio (#78). No status-bearing chrome renders them yet. */
     --success: light-dark(#15803d, #4ade80);
     --error: light-dark(#b91c1c, #f87171);
     --warning: light-dark(#b45309, #fbbf24);
