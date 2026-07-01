@@ -21,6 +21,7 @@ export type ProjectLoader = () => Promise<unknown>;
 // the shared→project ban still holds everywhere else — no per-line disable needed.
 const PROJECT_LOADERS = {
   "first-light": () => import("@/projects/first-light"),
+  "engine-board": () => import("@/projects/engine-board"),
 } satisfies Record<ComponentKey, ProjectLoader>;
 
 // Two variables, two jobs. `PROJECT_LOADERS` keeps its literal type so `satisfies`
