@@ -72,6 +72,14 @@ export interface SchemeResult {
   gamut: Gamut;
   /** True when the input failed to parse and the fallback palette was used. */
   isFallback: boolean;
+  /**
+   * The seed's NATIVE scheme — the one whose accent honors the seed's own lightness.
+   * Detected from the seed alone (scheme-independent), so both `resolveTheme(c,"light")`
+   * and `resolveTheme(c,"dark")` report the same value: `"light"` when the seed can serve
+   * as a light-mode primary (clears the UI floor on a light surface), else `"dark"`. In
+   * the native scheme the accent is faithful to `seed.L`; in the other it is derived.
+   */
+  direction: Scheme;
 }
 
 /**
@@ -88,5 +96,11 @@ export interface TokenSet {
     gamut: Gamut;
     /** True when the input failed to parse and the fallback palette was used. */
     isFallback: boolean;
+    /**
+     * The seed's native scheme — the one whose accent honors the seed's own lightness
+     * (`"light"` for a seed usable as a light-mode primary, else `"dark"`). Detected from
+     * the seed alone, so it is a single value for the set, not a per-scheme pair.
+     */
+    direction: Scheme;
   };
 }
