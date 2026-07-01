@@ -11,6 +11,15 @@ describe("resolveComponentKey", () => {
     expect(typeof result.value).toBe("function");
   });
 
+  it("resolves the shared engine-board key to a module with an Experience", async () => {
+    // engine-board is the seed brands' shared componentKey (#65) — not unique per project.
+    const result = resolveComponentKey("engine-board");
+    expect(isNotFound(result)).toBe(false);
+    if (isNotFound(result)) throw new Error("expected a resolved loader");
+    const mod = (await result.value()) as { default: { Experience: unknown } };
+    expect(typeof mod.default.Experience).toBe("function");
+  });
+
   it("returns a typed NotFound for an unregistered key", () => {
     const result = resolveComponentKey("log-explorer");
     expect(isNotFound(result)).toBe(true);

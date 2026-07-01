@@ -32,9 +32,12 @@ export type FontKey = (typeof FONT_KEYS)[number];
  * here when it lands; the `satisfies Record<ComponentKey, …>` on `PROJECT_LOADERS`
  * then forces a matching loader entry (compile error if missing).
  *   • `first-light` — the dead-simple first project module.
+ *   • `engine-board` — the static engine-output board every seed brand points at (#65);
+ *     one key, many projects (componentKey is not unique per project).
  */
 export const COMPONENT_KEYS = [
   "first-light",
+  "engine-board",
 ] as const satisfies readonly string[];
 export type ComponentKey = (typeof COMPONENT_KEYS)[number];
 
