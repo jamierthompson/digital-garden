@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { buildTokenSet, resolveTheme } from "./palette";
 import { inGamut } from "./gamut";
 import { apcaLc, contrastWCAG } from "./contrast";
-import { parseColor } from "./convert";
-import type { BrandTokenName, Scheme, SchemeResult } from "./types";
+import { formatOklch, parseColor } from "./convert";
+import type { BrandTokenName, OkLCH, Scheme, SchemeResult } from "./types";
 
 const TOKEN_NAMES: BrandTokenName[] = [
   "bg",
@@ -484,5 +484,60 @@ describe("brandColor validation contract (the Studio's isFallback oracle)", () =
     "   ", // whitespace only
   ])("rejects %j (engine falls back)", (input) => {
     expect(buildTokenSet(input).meta.isFallback).toBe(true);
+  });
+});
+
+describe("baked literals clear the TRUE contrast floor (#79)", () => {
+  // Each solved foreground token, the worst-case background it is solved against, and the
+  // TRUE floor (no margin) it must clear. The engine solves with a small margin
+  // (`withSolveMargin`, contrast.ts) so the 4-dp-rounded SHIPPED literal — not just the
+  // pre-round math — still clears these floors. Surfaces (bg/surface/surface-2) are
+  // near-neutral fills, not contrast-solved, so they have no floor of their own.
+  const CONTRACT: Record<
+    string,
+    { bg: BrandTokenName; wcag: number; apca: number }
+  > = {
+    text: { bg: "surface-2", wcag: 4.5, apca: 75 },
+    "text-muted": { bg: "surface-2", wcag: 4.5, apca: 60 },
+    border: { bg: "surface-2", wcag: 3, apca: 30 },
+    "accent-text": { bg: "surface-2", wcag: 4.5, apca: 60 },
+    "focus-ring": { bg: "surface-2", wcag: 3, apca: 45 },
+    accent: { bg: "surface-2", wcag: 3, apca: 45 }, // fill reads as UI on the surface
+    "on-accent": { bg: "accent", wcag: 4.5, apca: 60 }, // label on the fill
+    success: { bg: "surface-2", wcag: 4.5, apca: 60 },
+    error: { bg: "surface-2", wcag: 4.5, apca: 60 },
+    warning: { bg: "surface-2", wcag: 4.5, apca: 60 },
+    info: { bg: "surface-2", wcag: 4.5, apca: 60 },
+  };
+  // Round-trip a token through the exact bake path (formatOklch → parseColor) to measure
+  // what actually ships, not the precise solver output.
+  const bake = (c: OkLCH): OkLCH => parseColor(formatOklch(c))!;
+  const SEEDS: unknown[] = [
+    "#3b82f6",
+    "oklch(0.85 0.2 290)", // the info/light worst case QA found
+    "#e11d48",
+    "#faf3c0", // too-light → dark-native
+    "garbage", // → fallback
+  ];
+  const GAMUTS = ["srgb", "p3"] as const;
+
+  it("every solved foreground token clears its true floor as the BAKED (rounded) literal", () => {
+    for (const gamut of GAMUTS)
+      for (const scheme of SCHEMES)
+        for (const seed of SEEDS) {
+          const { tokens } = resolveTheme(seed, scheme, { gamut });
+          for (const [name, c] of Object.entries(CONTRACT)) {
+            const fg = bake(tokens[name as BrandTokenName]);
+            const bg = bake(tokens[c.bg]);
+            const where = `${name}/${scheme}/${gamut}/${String(seed)}`;
+            expect(
+              contrastWCAG(fg, bg),
+              `${where} WCAG`,
+            ).toBeGreaterThanOrEqual(c.wcag);
+            expect(apcaLc(fg, bg), `${where} APCA`).toBeGreaterThanOrEqual(
+              c.apca,
+            );
+          }
+        }
   });
 });
