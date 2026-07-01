@@ -191,8 +191,8 @@ live in the subagent-brief section. This section is what to do _between_ handoff
   A prompt that says "continue what we were doing" fails; a pointer to a written summary doesn't.
 - **One task ≈ one commit ≈ one clean handoff.** Small, focused commits are the unit of work —
   and each is a **completed, gate-green slice** an agent stands behind, reviewable, a natural
-  seam for the next agent (or the owner) to pick up. The lead curates the branch and squash-merges
-  it, so the story is told once in the PR (see the agent-teams section and the
+  seam for the next agent (or the owner) to pick up. The lead curates the branch and merge-commits
+  it (the default), so the branch's commits and the PR body tell the story together (see the agent-teams section and the
   Curate/merge/cleanup section of [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)) — but
   that's about _history_, not
   about lowering the bar on a handoff.
@@ -235,7 +235,8 @@ deliverable." Split the responsibility cleanly:
   skill. A worktree isolates _editing_ only — never trust it for _final_ verification.
 - **The team lead curates history, not your slice.** The lead's git magic is about _history_:
   rebase onto latest `main`, squash an agent's fix-ups, reorder slices, drop a false start, then
-  **squash-merge** and write the PR body (the durable story). The lead does **not** inherit
+  **merge-commit** (the default) and write the PR body — the narrative that lands alongside the
+  branch's commits. The lead does **not** inherit
   responsibility for an unfinished slice — that bounces back to the owning agent.
 - **Shared-branch hygiene:** push curated history with `--force-with-lease` (never plain
   `--force`) so a teammate's concurrent push isn't clobbered. Full mechanics: the
@@ -293,12 +294,12 @@ each tool call.**
   independent review happens **pre-PR** via the QA subagent — there is **no automatic review bot**
   in CI. The repo keeps one on-demand Claude workflow (`@claude` in a PR comment); the lead may
   invoke it for a second opinion and treats anything it surfaces like QA's findings, but it's a
-  tool, not a gate. Only then does the lead curate history (per the agent-teams section) and squash-merge.
+  tool, not a gate. Only then does the lead curate history (per the agent-teams section) and merge (merge-commit by default).
 
 - **Close the session — keep the README current and the PR body complete.** A session is one
   team's (or the solo lead's) sitting: it ends when the team stops — whether it _completed_ the unit
   of work or stopped at a good handoff point (between tasks, so QA can run and a PR can open) for the
-  next team to pick up. Before any squash-merge:
+  next team to pick up. Before any merge:
   1. **Update the project [`README.md`](../README.md)** so it still describes the repo as it now
      is — any changed scripts, structure, conventions, or status. The README is human-facing and
      rots silently; a stale status claim is the smell this rule exists to kill. (The per-task echo

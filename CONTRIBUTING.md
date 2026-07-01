@@ -28,8 +28,8 @@ start at [`orientation.md`](./docs/orientation.md); the agent-facing entry point
   re-runs on every PR.
 - **Every slice clears independent, adversarial QA** before it merges — the dev↔QA loop in
   [`docs/working-with-agents.md`](./docs/working-with-agents.md).
-- **PRs squash-merge**, so the PR description is the durable history — see
-  [`docs/git-and-pr-workflow.md`](./docs/git-and-pr-workflow.md).
+- **PRs merge-commit by default**, so the branch's commits and the PR description together are the
+  durable history — see [`docs/git-and-pr-workflow.md`](./docs/git-and-pr-workflow.md).
 
 The system model lives in [`docs/architecture.md`](./docs/architecture.md) (refer
 to its sections by name). There is **no separate decision log** — the docs are the current source of

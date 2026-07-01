@@ -45,8 +45,9 @@ These silently break *this* stack. Most are lint/CI-enforced; know them so you d
 
 - **Never commit to `main`.** Branch first (`feat/…`, `fix/…`, `chore/…`); merge = production
   deploy on Vercel. Each agent ships a **complete, gate-green slice** it owns; the lead curates
-  history (rebase/squash/reorder) and **squash-merges** — the story is told once in the
-  PR body. Gate green at every slice handoff and on the curated tip; delete the branch.
+  history (rebase onto `main`; optionally squash/reorder a messy branch) and **merge-commits** it
+  (the default) — the branch's commits survive on `main` alongside the PR body. Gate green at every
+  slice handoff and on the curated tip; delete the branch.
 - **Every slice clears independent, adversarial QA before the PR.** Gate-green is
   _developer-done_, not _review-done_: a **fresh** agent with **no prior context of the work** (not
   merely "not the author") **tries to break** the

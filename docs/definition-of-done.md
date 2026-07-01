@@ -6,7 +6,7 @@
 > **On an agent-team branch:** this gate binds at **every slice handoff** — each agent owns its
 > slice and a task is "done" only when this chain is green (it can be hook-enforced via
 > `TaskCompleted`) — **and** on the **curated tip before the PR merges**. The lead curating history
-> (squash/reorder) before merge is about tidying _history_, not a license to hand off broken work;
+> before merge is about tidying _history_, not a license to hand off broken work;
 > the lead re-running the gate on the final tip is a backstop, not a substitute for each agent
 > gating its own slice.
 
@@ -140,7 +140,7 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
       would; the owning author fixed and QA re-checked clean. Staffing scales — solo → one QA; team → one
       per coding agent. The lead owns this loop (not a CI gate) — see the dev↔QA loop in
       [working-with-agents.md](./working-with-agents.md).
-- [ ] **End of a session?** Refresh the [`README.md`](../README.md) before the squash-merge
+- [ ] **End of a session?** Refresh the [`README.md`](../README.md) before the merge
       (any changed scripts, structure, conventions, or status). The durable what/why of the work is
       **git history + the PR body** — and the PR body carries the **QA log** (what QA tested, what
       passed, each defect → fix → re-check, tests added; one entry per coding agent). See the dev↔QA

@@ -127,7 +127,7 @@ What must be true for a **production deploy to actually work** — the env- and 
 ### Every deploy
 
 - [ ] **Full gate green locally** before pushing — the CI `verify` chain (AGENTS.md "Pre-flight checks" / [the one command](./definition-of-done.md#1-the-one-command)). CI re-runs it as the guard before prod.
-- [ ] Reach `main` **only via squash-merge of a reviewed PR** — never commit to `main` (merge deploys to prod). (the Opening-a-PR step; see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md))
+- [ ] Reach `main` **only via a merged reviewed PR** (merge-commit by default) — never commit to `main` (merge deploys to prod). (the Opening-a-PR step; see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md))
 - [ ] After any **Studio schema change**: commit the regenerated root `sanity.types.ts` (CI diff-checks it) and redeploy the schema (`sanity deploy`).
 
 ---
