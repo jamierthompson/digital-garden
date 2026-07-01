@@ -159,8 +159,8 @@ However the mode ends, you (the lead) finish it:
   the slice is disqualified), that **tries to break** the slice and writes the missing test cases
   (edge / error / boundary / malformed input, both schemes); the owning agent fixes, QA re-checks
   (the dev↔QA loop — same shape solo, just one author→one QA). Then **you curate history** (rebase
-  onto `main`, squash fix-ups, reorder, drop false starts) and **squash-merge** with a deliberate PR
-  body. Never commit to `main`. Full mechanics:
+  onto `main`, squash fix-ups, reorder, drop false starts) and **merge-commit** it (the default) —
+  the branch's commits survive on `main` alongside the PR body. Never commit to `main`. Full mechanics:
   [`docs/working-with-agents.md`](../../../docs/working-with-agents.md) (QA loop)
   and [`docs/git-and-pr-workflow.md`](../../../docs/git-and-pr-workflow.md) (curate/merge).
 - **Shut down** teammates by name when done; the team's directories clean up automatically when the

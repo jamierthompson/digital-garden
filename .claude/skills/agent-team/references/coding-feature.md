@@ -13,7 +13,7 @@ This mode fuses two sources: the repo's **own-a-slice / lead-curates** model
 ([Anthropic](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)):
 external-memory progress tracking and verify-before-done.
 
-## The shape: split by files → each owns a gate-green slice → lead curates → squash-merge
+## The shape: split by files → each owns a gate-green slice → lead curates → merge-commit
 
 **1. Decompose into file-disjoint slices.** Break the feature so **each teammate owns a different
 set of files** (the official "avoid file conflicts" rule, and the handbook's "distinct set of
@@ -80,7 +80,8 @@ Full mechanics: [`docs/working-with-agents.md`](../../../../docs/working-with-ag
 
 **7. Lead curates history & merges.** You do **not** inherit an unfinished slice (it bounces back
 to its owner). Your job is _history_: rebase onto latest `main`, squash an agent's fix-ups, reorder
-slices, drop a false start, then **squash-merge** with a deliberate PR body — the story told once.
+slices, drop a false start, then **merge-commit** (the default) with a deliberate PR body — the
+branch's commits and the body tell the story together.
 Push curated history with `--force-with-lease`, never plain `--force`, so a teammate's concurrent
 push isn't clobbered. **Never commit to `main`** (merge = production deploy on Vercel). Full
 mechanics: [`git-and-pr-workflow.md`](../../../../docs/git-and-pr-workflow.md).
