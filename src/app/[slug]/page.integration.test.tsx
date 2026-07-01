@@ -54,7 +54,7 @@ vi.mock("@/sanity/lib/client", () => ({
   client: { fetch: vi.fn(async () => FIRST_LIGHT) },
 }));
 
-describe("/work/[slug] primary flow (Sanity mocked)", () => {
+describe("/[slug] primary flow (Sanity mocked)", () => {
   it("drives a real, non-fallback themed scope from the doc's brandColor + slug", () => {
     // The route hands ProjectScope { slug, brandColor, fontKey } from the doc. The slug
     // must resolve to its OWN scope (not collapse to `fallback`) now that KNOWN_SLUGS is

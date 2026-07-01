@@ -30,8 +30,8 @@ interface RelatedEntriesProps {
  * - a **duplicate** (an entry that both references this one and is referenced back) is
  *   de-duped by `_id`.
  *
- * Titles link to the entry's detail route (`/work/<slug>` today; the flat `/[slug]` move is
- * #60). An entry with no resolvable slug renders as plain text, never a dead link.
+ * Titles link to the entry's flat detail route (`/<slug>`). An entry with no resolvable slug
+ * renders as plain text, never a dead link.
  */
 export default function RelatedEntries({
   currentId,
@@ -59,7 +59,7 @@ export default function RelatedEntries({
         {entries.map((entry) => (
           <li key={entry._id} className={styles.item}>
             {entry.slug ? (
-              <Link href={`/work/${entry.slug}`} className={styles.link}>
+              <Link href={`/${entry.slug}`} className={styles.link}>
                 {entry.title ?? "Untitled entry"}
               </Link>
             ) : (

@@ -29,7 +29,18 @@ export const WORK_INDEX_QUERY = defineQuery(`
 `);
 
 /**
- * `/work/<slug>` entry-detail query.
+ * All published entry slugs — any `kind`.
+ *
+ * Feeds `generateStaticParams` for the flat `/[slug]` route: every entry now has a
+ * root-level detail page, so the build prerenders the whole published set (un-enumerated
+ * slugs still render on-demand under PPR). Deliberately minimal — just the slug.
+ */
+export const ENTRY_SLUGS_QUERY = defineQuery(`
+  *[_type == "entry" && defined(slug.current)]{ "slug": slug.current }
+`);
+
+/**
+ * Entry-detail query (`/[slug]`, any `kind`).
  *
  * The full entry document for one slug — UNLIKE the index query, it DOES pull the `body`
  * (the detail route renders it through the Portable Text serializer) plus the theming seeds

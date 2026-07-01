@@ -45,7 +45,7 @@ export default async function WorkIndexPage() {
               // doesn't structurally match on its own.
               style={cardSwatches(project.brandColor) as CSSProperties}
             >
-              <Link href={`/work/${project.slug}`} className={styles.cardLink}>
+              <Link href={`/${project.slug}`} className={styles.cardLink}>
                 <h2 className={styles.cardTitle}>{project.title}</h2>
                 {project.blurb ? (
                   <p className={styles.cardBlurb}>{project.blurb}</p>

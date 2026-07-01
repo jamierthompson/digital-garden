@@ -40,7 +40,7 @@ describe("RelatedEntries", () => {
     ).toBeInTheDocument();
     const links = screen.getAllByRole("link");
     expect(links.map((l) => l.textContent)).toEqual(["On gardens", "On OKLCH"]);
-    expect(links[0]).toHaveAttribute("href", "/work/on-gardens");
+    expect(links[0]).toHaveAttribute("href", "/on-gardens");
   });
 
   it("excludes a self-reference by _id", () => {
@@ -129,7 +129,7 @@ describe("RelatedEntries", () => {
       "From related",
       "Backlink only",
     ]);
-    expect(links[0]).toHaveAttribute("href", "/work/from-related");
+    expect(links[0]).toHaveAttribute("href", "/from-related");
     expect(screen.queryByText("From backlink")).not.toBeInTheDocument();
   });
 

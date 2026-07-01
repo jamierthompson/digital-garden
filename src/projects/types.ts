@@ -2,7 +2,7 @@
 //
 // A `componentKey` resolves (via `src/lib/resolvers/components.ts`, a LITERAL dynamic
 // import per key) to a project module; this is the contract that module's default
-// export satisfies, so a thin `/work/[slug]` route can mount its pages without knowing the
+// export satisfies, so a thin `/[slug]` route can mount its pages without knowing the
 // concrete project. `Experience` is the only required member — a project adds its
 // own page components as it needs them.
 //
