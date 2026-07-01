@@ -1,6 +1,7 @@
-/* /work index. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only. Cards read
-   inline --c-* swatches `cardSwatches` spreads onto each card's `style={…}` (engine Consumer C,
-   no scope) plus foundation tokens; the page frame is shell-neutral, only cards carry color. */
+/* /work index. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only.
+   Cards read the global editorial semantic tokens for chrome (surface/border/text) plus the
+   single decorative `--c-accent` swatch `cardSwatches` spreads onto each card's `style={…}`
+   (engine Consumer C, no scope) — the brand color is a decorative accent bar only; card text is editorial. */
 @layer project {
   .page {
     max-width: 64rem;
@@ -28,10 +29,13 @@
   }
 
   .card {
-    border: 1px solid var(--c-border);
+    /* Editorial chrome (guaranteed-accessible on the shared grid); the brand color is a
+       purely decorative accent bar on top — non-text, so no contrast obligation. */
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--c-accent);
     border-radius: 0.75rem;
-    background: var(--c-surface);
-    color: var(--c-text);
+    background: var(--surface);
+    color: var(--text);
   }
 
   .cardLink {
@@ -43,13 +47,13 @@
   }
 
   .cardLink:focus-visible {
-    outline: var(--focus-ring-width) var(--focus-ring-style) var(--c-accent);
+    outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring);
     outline-offset: var(--focus-ring-offset);
   }
 
   .cardTitle {
     font-size: var(--text-lg);
-    color: var(--c-accent);
+    color: var(--text);
   }
 
   .cardBlurb {

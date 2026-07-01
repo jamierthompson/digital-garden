@@ -15,8 +15,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * The shell About page. Static, themed prose rendered under the shell island's
- * scope — reads `var(--brand-*)` / `var(--font-face)`, no theme of its own.
+ * The shell About page. Static editorial prose — reads the global semantic tokens
+ * (`var(--text)`, `var(--font-face)`, …) from `:root`, no brand scope of its own.
  */
 export default function AboutPage() {
   return (

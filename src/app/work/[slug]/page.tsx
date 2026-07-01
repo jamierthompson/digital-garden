@@ -16,10 +16,14 @@ import { sanityFetch } from "@/sanity/lib/sanityFetch";
 import styles from "./page.module.css";
 
 // Thin route (`app/` is routing only — it mounts components from `src/`). The
-// composition: real Sanity-driven theming, from the doc down:
-//   ProjectScopeBoundary (unstable_catchError backstop, client)
-//     └ ProjectScope (real engine theme from the doc's brandColor/fontKey)
-//         └ <article> the project's essay (PT serializer) + its experience module
+// composition: EDITORIAL page chrome (article prose, tags, related notes) reads the global
+// semantic tier; the doc's brand color + font are scoped to the interactive slot ONLY:
+//   <main> editorial chrome
+//     ├ <article> the project's essay (PT serializer) + tags — editorial
+//     ├ ProjectScopeBoundary (unstable_catchError backstop, client)
+//     │   └ ProjectScope (real engine theme from the doc's brandColor/fontKey)
+//     │       └ <Experience/> — the bounded, brand-themed interactive island
+//     └ <RelatedNotes> — editorial
 //
 // The keystone stays defensive: the scope never throws on a bad brandColor/fontKey.
 // The route's OWN failure modes are explicit `notFound()` calls: an unpublished/
@@ -88,32 +92,34 @@ export default async function WorkPage({ params }: WorkPageProps) {
   const { Experience } = mod.default;
 
   return (
-    <ProjectScopeBoundary>
-      <ProjectScope
-        seed={{
-          slug,
-          brandColor: project.brandColor ?? "",
-          fontKey: project.fontKey ?? "",
-        }}
-      >
-        <main className={styles.module}>
-          <article className={styles.article}>
-            <header className={styles.header}>
-              <h1 className={styles.title}>{project.title}</h1>
-              {project.blurb ? (
-                <p className={styles.blurb}>{project.blurb}</p>
-              ) : null}
-              {/* Tags + related notes render the detail query's `tags`/`notes[]->`
-                  projection (each self-guards to null when empty), so the query no
-                  longer over-fetches fields nothing renders. */}
-              <TagList tags={project.tags} />
-            </header>
-            {project.essay ? <EssayBody value={project.essay} /> : null}
-          </article>
+    <main className={styles.module}>
+      <article className={styles.article}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>{project.title}</h1>
+          {project.blurb ? (
+            <p className={styles.blurb}>{project.blurb}</p>
+          ) : null}
+          {/* Tags + related notes render the detail query's `tags`/`notes[]->`
+              projection (each self-guards to null when empty), so the query no
+              longer over-fetches fields nothing renders. */}
+          <TagList tags={project.tags} />
+        </header>
+        {project.essay ? <EssayBody value={project.essay} /> : null}
+      </article>
+      {/* Brand is scoped to the interactive slot ONLY — the engine theme wraps
+          <Experience/>, not the editorial article/related-notes around it. */}
+      <ProjectScopeBoundary>
+        <ProjectScope
+          seed={{
+            slug,
+            brandColor: project.brandColor ?? "",
+            fontKey: project.fontKey ?? "",
+          }}
+        >
           <Experience />
-          <RelatedNotes notes={project.notes} />
-        </main>
-      </ProjectScope>
-    </ProjectScopeBoundary>
+        </ProjectScope>
+      </ProjectScopeBoundary>
+      <RelatedNotes notes={project.notes} />
+    </main>
   );
 }

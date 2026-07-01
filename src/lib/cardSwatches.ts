@@ -1,21 +1,22 @@
 /**
  * `cardSwatches(brandColor)` — engine Consumer C.
  *
- * Derives a small bag of inline CSS custom properties (`--c-*`) from a project's
+ * Derives a single inline CSS custom property (`--c-accent`) from a project's
  * `brandColor` for the `/work` index cards — no project scope, no `<style>` tag, no
  * class. A CONSUMER of the OKLCH engine, not part of it, so it lives in `src/lib/`
  * rather than inside the `@garden/oklch` package.
  *
  * Total and defensive: delegates to `buildTokenSet`, which on bad/missing/hostile
  * input returns the safe fallback palette — so this NEVER throws and always returns a
- * valid swatch object. Values are BAKED `light-dark(<light oklch()>, <dark oklch()>)`
- * literals (as in the engine's `css.ts`), so a card reads correctly in both schemes
+ * valid swatch object. The value is a BAKED `light-dark(<light oklch()>, <dark oklch()>)`
+ * literal (as in the engine's `css.ts`), so a card reads correctly in both schemes
  * with zero runtime color math in the browser.
  *
- * The four stops are the minimum a self-themed card needs to stand apart on the shared
- * `/work` grid: `--c-surface` (tinted background), `--c-border` (contrast-solved
- * hairline), `--c-text` (AA-clearing label text), `--c-accent` (brand pop). They map
- * 1:1 onto engine tokens, so the colors match what the full project scope would use.
+ * DECORATIVE ONLY. Under the editorial-chrome inversion (#58) a card's surface, border,
+ * and text are EDITORIAL (the global semantic tokens) — guaranteed-accessible on the shared
+ * grid. The brand color survives as a single decorative accent (a non-text swatch/bar), so
+ * differently-branded cards still read apart without staking card text on a color solved
+ * against a brand surface it no longer sits on.
  */
 
 import {
@@ -26,25 +27,18 @@ import {
   type SchemePair,
 } from "@garden/oklch";
 
-/** The card swatch custom-property names — the `--c-*` inline contract. */
-export type CardSwatchVar =
-  | "--c-surface"
-  | "--c-border"
-  | "--c-text"
-  | "--c-accent";
+/** The card swatch custom-property name — the `--c-*` inline contract. */
+export type CardSwatchVar = "--c-accent";
 
 /** Inline-style-ready object: spread straight onto a card's `style={…}`. */
 export type CardSwatches = Record<CardSwatchVar, string>;
 
 /**
- * The curated subset of engine tokens we expose as card swatches, mapped to their
- * `--c-*` names. `satisfies` ties each entry to a real `BrandTokenName`, so a token
- * rename in the engine is a compile error here rather than a silent miss.
+ * The engine token we expose as the card's decorative accent, mapped to its `--c-*`
+ * name. `satisfies` ties the entry to a real `BrandTokenName`, so a token rename in the
+ * engine is a compile error here rather than a silent miss.
  */
 const STOPS = {
-  "--c-surface": "surface",
-  "--c-border": "border",
-  "--c-text": "text",
   "--c-accent": "accent",
 } satisfies Record<CardSwatchVar, BrandTokenName>;
 

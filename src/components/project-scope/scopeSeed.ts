@@ -76,14 +76,14 @@ const FONT_STACK = "ui-monospace, monospace";
 
 // The slugs that may key a scope — DRIVEN from the registry. A project's slug equals its
 // `componentKey` in our model, so `COMPONENT_KEYS` is the source of truth for which
-// project slugs exist; `"garden"` is the shell island's slug; `"oklch-engine"` is asserted on
-// by the scope tests. An unknown slug still collapses to `FALLBACK_SLUG`, which is what keeps a
-// hostile slug out of the emitted selector — the set is always vetted constants, never raw input.
-// Deriving from `COMPONENT_KEYS` means a new project is accepted automatically the moment it
-// registers its key.
+// project slugs exist; `"oklch-engine"` is asserted on by the scope tests. (There is no shell
+// slug any more — editorial chrome is global and unscoped; brand scopes wrap project slots
+// only.) An unknown slug still collapses to `FALLBACK_SLUG`, which is what keeps a hostile slug
+// out of the emitted selector — the set is always vetted constants, never raw input. Deriving
+// from `COMPONENT_KEYS` means a new project is accepted automatically the moment it registers
+// its key.
 const KNOWN_SLUGS: ReadonlySet<string> = new Set<string>([
   ...COMPONENT_KEYS,
-  "garden",
   "oklch-engine",
 ]);
 

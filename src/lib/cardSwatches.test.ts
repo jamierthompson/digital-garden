@@ -3,12 +3,7 @@ import { describe, expect, it } from "vitest";
 import { cardSwatches, type CardSwatchVar } from "./cardSwatches";
 
 /** The full `--c-*` contract the helper promises. Keep in sync with STOPS. */
-const KEYS: CardSwatchVar[] = [
-  "--c-surface",
-  "--c-border",
-  "--c-text",
-  "--c-accent",
-];
+const KEYS: CardSwatchVar[] = ["--c-accent"];
 
 /** A baked `light-dark(oklch(…), oklch(…))` literal — no runtime color math. */
 const LIGHT_DARK = /^light-dark\(oklch\([^)]+\), oklch\([^)]+\)\)$/;
@@ -16,11 +11,11 @@ const LIGHT_DARK = /^light-dark\(oklch\([^)]+\), oklch\([^)]+\)\)$/;
 describe("cardSwatches — valid brandColor", () => {
   const swatches = cardSwatches("#3b82f6");
 
-  it("emits exactly the curated --c-* stops and nothing else", () => {
+  it("emits exactly the decorative --c-accent stop and nothing else", () => {
     expect(Object.keys(swatches).sort()).toEqual([...KEYS].sort());
   });
 
-  it("bakes every stop as a light-dark() of oklch() literals", () => {
+  it("bakes the accent as a light-dark() of oklch() literals", () => {
     for (const key of KEYS) {
       expect(swatches[key]).toMatch(LIGHT_DARK);
     }
@@ -37,9 +32,10 @@ describe("cardSwatches — valid brandColor", () => {
     }
   });
 
-  it("derives distinct colors per stop (not a single flat value)", () => {
-    const values = new Set(KEYS.map((k) => swatches[k]));
-    expect(values.size).toBeGreaterThan(1);
+  it("tracks the brand color — a different brand yields a different accent", () => {
+    expect(cardSwatches("#3b82f6")["--c-accent"]).not.toBe(
+      cardSwatches("#ef4444")["--c-accent"],
+    );
   });
 
   it("accepts the engine gamut option without throwing", () => {

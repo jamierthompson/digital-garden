@@ -8,11 +8,11 @@ import { sanityFetch } from "@/sanity/lib/sanityFetch";
 
 import styles from "./page.module.css";
 
-// The `/work` index: a grid of project cards. Each card self-themes from its own
-// `brandColor` via `cardSwatches` — engine Consumer C, which bakes a few inline `--c-*`
-// `light-dark()` literals with NO project scope, no `<style>`, no island. The
-// card reads those `--c-*` from its own `style={…}`, so a dozen differently-branded cards
-// coexist on one page without a dozen scopes.
+// The `/work` index: a grid of editorial-chrome cards. Each card carries a single decorative
+// brand accent from its own `brandColor` via `cardSwatches` — engine Consumer C, which bakes one
+// inline `--c-accent` `light-dark()` literal with NO project scope, no `<style>`, no island. The
+// card reads it from its own `style={…}`, so a dozen differently-accented cards coexist on one
+// page without a dozen scopes; the card's surface/border/text stay editorial (accessible).
 
 export const metadata: Metadata = {
   title: "Work",

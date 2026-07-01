@@ -24,7 +24,7 @@ lightness `L` for on-brand / on-surface pairs against the _relevant background_,
   across hues (OKLCH `L` is perceptual lightness, not WCAG luminance or APCA Lc). A fixed
   step that passes for blue fails for yellow/cyan. Feed the engine a brand color; consume
   the token it emits.
-- **Read the engine's emitted tokens** (`var(--brand-*)`, focus-ring color) — do
+- **Read the engine's emitted tokens** (`var(--accent)`, `var(--accent-text)`, focus-ring color) — do
   not invent a foreground color in a CSS Module and hope it clears 4.5:1.
 - **If you must author a static color** (rare — a decorative hairline, a one-off accent),
   it's _your_ job to verify the ratio. Status colors are **not** this case — the engine
