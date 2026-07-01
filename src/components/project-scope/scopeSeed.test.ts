@@ -12,7 +12,12 @@ vi.mock("next/font/google", () => ({
 
 import { FONT_FACES } from "@/fonts/roster";
 
-import { FALLBACK_SLUG, resolveScope, scopedStyleCss } from "./scopeSeed";
+import {
+  FALLBACK_SLUG,
+  hashCss,
+  resolveScope,
+  scopedStyleCss,
+} from "./scopeSeed";
 
 // Mirrors the shape the route passes ProjectScope from a Sanity document.
 const VALID_SEED = {
@@ -154,5 +159,26 @@ describe("scopedStyleCss", () => {
     expect(css).toContain(
       `--font-face: var(${cssVariable}), ui-monospace, monospace;`,
     );
+  });
+});
+
+describe("hashCss (content-keyed style href)", () => {
+  it("is deterministic and content-sensitive", () => {
+    expect(hashCss("theme-a")).toBe(hashCss("theme-a"));
+    expect(hashCss("theme-a")).not.toBe(hashCss("theme-b"));
+  });
+
+  it("changes when a scope's brand changes, so the hoisted <style> href refreshes", () => {
+    const a = scopedStyleCss(
+      resolveScope({ slug: "x", brandColor: "#d4a017", fontKey: "inter" }),
+    );
+    const b = scopedStyleCss(
+      resolveScope({ slug: "x", brandColor: "#1a1a2e", fontKey: "inter" }),
+    );
+    expect(hashCss(a)).not.toBe(hashCss(b));
+  });
+
+  it("emits a URL/attribute-safe token (base36)", () => {
+    expect(hashCss('anything at all { } [] " ')).toMatch(/^[a-z0-9]+$/);
   });
 });

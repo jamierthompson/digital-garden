@@ -28,8 +28,30 @@ export const project = defineType({
     defineField({
       name: 'slug',
       type: 'slug',
-      options: {source: 'title', maxLength: 96},
-      validation: (rule) => rule.required(),
+      // The slug keys the theme scope selector `[data-project="<slug>"]` AND the hoisted
+      // `<style>` href, so it MUST be CSS-safe and unique per project — a stray `.` / `_` /
+      // unicode / duplicate would collide two projects onto one theme (React de-dupes styles
+      // by href). Slugify to `[a-z0-9-]`, validate the charset, and rely on the `slug` type's
+      // `isUnique` (uniqueness across the document type is the default).
+      options: {
+        source: 'title',
+        maxLength: 96,
+        slugify: (input) =>
+          input
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-+|-+$)/g, '')
+            .slice(0, 96),
+      },
+      validation: (rule) =>
+        rule
+          .required()
+          .custom((slug) =>
+            !slug?.current
+              ? 'Required'
+              : /^[a-z0-9-]+$/.test(slug.current) ||
+                'Use only lowercase letters, numbers, and hyphens — the slug keys the project theme scope.',
+          ),
     }),
     defineField({
       name: 'blurb',

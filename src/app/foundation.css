@@ -13,69 +13,74 @@
    Every CSS Module must opt into one of these layers (or stay var-consuming). */
 @layer foundation, semantic, brand, project;
 
-:root {
-  /* Spacing ramp (rem-based, 0.25rem step) */
-  --space-0: 0;
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-7: 3rem;
-  --space-8: 4rem;
-  --space-9: 6rem;
-  --space-10: 8rem;
+/* Primitives live INSIDE @layer foundation — an unlayered :root would out-rank every
+   layered re-declaration (the "@layer trap"); keeping them layered means a future layered
+   token can override a primitive predictably. */
+@layer foundation {
+  :root {
+    /* Spacing ramp (rem-based, 0.25rem step) */
+    --space-0: 0;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 3rem;
+    --space-8: 4rem;
+    --space-9: 6rem;
+    --space-10: 8rem;
 
-  /* Type scale (modular, 1.25 major third on a 1rem base) */
-  --type-ratio: 1.25;
-  --text-sm: 0.8rem;
-  --text-base: 1rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.5625rem;
-  --text-2xl: 1.9531rem;
-  --text-3xl: 2.4414rem;
-  --text-4xl: 3.0518rem;
-  --leading-tight: 1.2;
-  --leading-normal: 1.5;
-  --leading-loose: 1.75;
+    /* Type scale (modular, 1.25 major third on a 1rem base) */
+    --type-ratio: 1.25;
+    --text-sm: 0.8rem;
+    --text-base: 1rem;
+    --text-lg: 1.25rem;
+    --text-xl: 1.5625rem;
+    --text-2xl: 1.9531rem;
+    --text-3xl: 2.4414rem;
+    --text-4xl: 3.0518rem;
+    --leading-tight: 1.2;
+    --leading-normal: 1.5;
+    --leading-loose: 1.75;
 
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --duration-fast: 120ms;
-  --duration-base: 200ms;
-  --duration-slow: 320ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 320ms;
 
-  --z-base: 0;
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-overlay: 300;
-  --z-modal: 400;
-  --z-popover: 500;
-  --z-toast: 600;
+    --z-base: 0;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-overlay: 300;
+    --z-modal: 400;
+    --z-popover: 500;
+    --z-toast: 600;
 
-  /* Focus-ring geometry only — the ring COLOR is a semantic token (`--focus-ring-color`,
+    /* Focus-ring geometry only — the ring COLOR is a semantic token (`--focus-ring-color`,
      bound in @layer semantic below and re-bound per slot in @layer brand). */
-  --focus-ring-width: 2px;
-  --focus-ring-offset: 2px;
-  --focus-ring-style: solid;
+    --focus-ring-width: 2px;
+    --focus-ring-offset: 2px;
+    --focus-ring-style: solid;
 
-  /* Editorial neutral palette — the foundation primitives the semantic layer maps the
+    /* Editorial neutral palette — the foundation primitives the semantic layer maps the
      global chrome from. A black/white/gray ramp (the "no brand color" editorial default);
      values track the widely-used neutral scale so the ramp reads as house-style, not bespoke. */
-  --neutral-0: #ffffff;
-  --neutral-50: #fafafa;
-  --neutral-100: #f5f5f5;
-  --neutral-200: #e5e5e5;
-  --neutral-300: #d4d4d4;
-  --neutral-400: #a3a3a3;
-  --neutral-500: #737373;
-  --neutral-600: #525252;
-  --neutral-700: #404040;
-  --neutral-800: #262626;
-  --neutral-900: #171717;
-  --neutral-950: #0a0a0a;
+    --neutral-0: #ffffff;
+    --neutral-50: #fafafa;
+    --neutral-100: #f5f5f5;
+    --neutral-200: #e5e5e5;
+    --neutral-300: #d4d4d4;
+    --neutral-400: #a3a3a3;
+    --neutral-500: #737373;
+    --neutral-600: #525252;
+    --neutral-700: #404040;
+    --neutral-800: #262626;
+    --neutral-900: #171717;
+    --neutral-950: #0a0a0a;
+  }
 }
 
 /* Semantic tier — the generic role-token contract every component reads. Bound here to the

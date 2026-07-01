@@ -23,10 +23,12 @@ import type { FontFace } from "@/fonts/roster";
 /** A resolved scope: the vetted slug it is keyed on + everything needed to emit its theme. */
 export interface ResolvedScope {
   /**
-   * The selector key: the project's slug, sanitized to `[a-z0-9-]` (never raw user input),
-   * so it is both **injection-safe** (can't break out of `[data-project="…"]`) and **unique
-   * per project** (distinct projects get distinct scopes + `<style>` hrefs — see `vetSlug`).
-   * Genuinely empty / non-string input falls back to the constant `FALLBACK_SLUG`.
+   * The selector key: the project's slug, sanitized to `[a-z0-9-]` (never raw user input) so
+   * it is **injection-safe** — it can't break out of `[data-project="…"]`. UNIQUENESS per
+   * project is guaranteed upstream by the Sanity `slug` schema (charset `^[a-z0-9-]+$` +
+   * `isUnique`), so on valid data `vetSlug` is a no-op; the theme `<style>` href additionally
+   * carries a content hash (`hashCss`) so distinct themes never share a hoisted style and a
+   * brand edit refreshes it. Genuinely empty / non-string input falls back to `FALLBACK_SLUG`.
    */
   readonly slug: string;
   /** The engine's dual-scheme, baked token set for this scope's `brandColor`. */
@@ -90,6 +92,22 @@ function vetSlug(slug: unknown): string {
   if (typeof slug !== "string") return FALLBACK_SLUG;
   const safe = slug.toLowerCase().replace(/[^a-z0-9-]/g, "");
   return safe.length > 0 ? safe : FALLBACK_SLUG;
+}
+
+/**
+ * A small, deterministic, ISOMORPHIC string hash (FNV-1a → base36). Used to key the theme
+ * `<style>` href on its CONTENT: distinct themes get distinct hrefs, and a same-slug re-render
+ * with an edited brand gets a NEW href so React 19 inserts the fresh `<style>` instead of
+ * keeping the stale first-committed one (the Sanity live-preview edit loop). No crypto/Node
+ * deps — the engine and this module stay isomorphic.
+ */
+export function hashCss(css: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < css.length; i++) {
+    h ^= css.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
 }
 
 /**

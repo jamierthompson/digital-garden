@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 
-import { BRAND_LAYER, resolveScope, scopedStyleCss } from "./scopeSeed";
+import {
+  BRAND_LAYER,
+  hashCss,
+  resolveScope,
+  scopedStyleCss,
+} from "./scopeSeed";
 
 interface ProjectScopeProps {
   /** Untrusted scope seed (e.g. `{ slug }` from route params). Resolved defensively. */
@@ -37,12 +42,18 @@ interface ProjectScopeProps {
  */
 export default function ProjectScope({ seed, children }: ProjectScopeProps) {
   const scope = resolveScope(seed);
+  const css = scopedStyleCss(scope);
+  // Key the hoisted <style> on the slug AND a hash of its CONTENT. React 19 de-dupes hoisted
+  // styles by `href`: the content hash means distinct themes never share one <style> (no
+  // cross-slot bleed), and a SAME-slug re-render with an edited brand gets a new href so the
+  // preview shows the fresh theme instead of the stale first-committed one.
+  const href = `project-theme-${scope.slug}-${hashCss(css)}`;
   return (
     <>
       {/* `precedence` and the `@layer` in `scopedStyleCss` read the SAME `BRAND_LAYER`
           const, so hoist order and cascade layer cannot desync. */}
-      <style href={`project-theme-${scope.slug}`} precedence={BRAND_LAYER}>
-        {scopedStyleCss(scope)}
+      <style href={href} precedence={BRAND_LAYER}>
+        {css}
       </style>
       {/* Shell-mono fallback has no roster class (its variable is already on `<html>`), so
           `className` is omitted to avoid an empty class attribute. */}
