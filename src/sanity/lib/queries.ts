@@ -74,7 +74,9 @@ export const PROJECT_DETAIL_QUERY = defineQuery(`
 
 /**
  * Index query (`/browse`, every kind) — the browsable list that folds the old `/work` and
- * `/notes` indexes into one editorial surface.
+ * `/notes` indexes into one editorial surface. (The Index route excludes `note`-kind entries
+ * from its rendered sections; this query still returns them — the exclusion is a presentation
+ * filter in the page, not a query change.)
  *
  * Pulls every published entry with the facets the Index reads — `kind` + `stage` (the group
  * headings + maturity badge) and a `linkCount` (outgoing `related` + incoming `references()`,
