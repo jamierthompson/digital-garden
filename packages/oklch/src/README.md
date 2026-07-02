@@ -21,7 +21,7 @@ or carry `server-only`/`client-only`.
 ```ts
 import { resolveTheme, buildTokenSet, tokenSetToCss } from "@garden/oklch";
 
-// One scheme → flat token map (the oklch-engine playground, cardSwatches):
+// One scheme → flat token map (cardSwatches; the interactive studio, #70):
 const { tokens, seed, isFallback } = resolveTheme("#3b82f6", "light");
 
 // Both schemes zipped for ProjectScope's light-dark() <style>:

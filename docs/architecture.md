@@ -85,11 +85,11 @@ token & theming architecture).
 
 Tokens are organized in **three layers**, each consuming the one before it:
 
-| Layer          | Lives at                                          | Contents                                                                                                                                                                                                                                          |
-| -------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Foundation** | global `:root`                                    | the raw primitives + the reset: the neutral B/W/gray ramp, the Newsreader face, the spacing ramp, motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.                    |
-| **Semantic**   | global `:root` (the editorial default mapping)    | the **generic role tokens components read** — `--surface`, `--text`, `--accent`, `--font-face`, `--space-block`, `--radius-card`, `--motion-fast`, etc. — mapped from the primitives. The editorial look **is** this default mapping at `:root`.  |
-| **Brand**      | the project's interactive slot (`[data-project]`) | a **full scoped override** of the semantic layer for one slot — color, font, spacing, type-scale, motion, radius, border, shadow, density — driven by the OKLCH engine from the slot's `brandColor` (incl. focus-ring _color_ and status colors). |
+| Layer          | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                 |
+| -------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Foundation** | global `:root`                                    | the raw primitives + the reset: the neutral B/W/gray ramp, the Newsreader face, the spacing ramp, motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.                                                                           |
+| **Semantic**   | global `:root` (the editorial default mapping)    | the **generic role tokens components read** — `--surface`, `--text`, `--text-muted`, `--accent`, `--font-face`, the status roles (`--success` … `--info`), etc. — mapped from the primitives. The editorial look **is** this default mapping at `:root`.                                                 |
+| **Brand**      | the project's interactive slot (`[data-project]`) | a **scoped override** of the semantic layer for one slot — the engine's contrast-solved color tokens (incl. focus-ring _color_ and status colors), driven by the slot's `brandColor`, plus `--font-face` from its `fontKey`. Open-ended by design: a slot may override any semantic token it differs on. |
 
 The model is layered, not partitioned: the **semantic layer is the contract** components code
 against, and a project slot simply re-defines those same semantic tokens with its own values. There
@@ -102,25 +102,25 @@ defaults**. Its **interactive slot** and the components embedded inside it read 
 semantic tokens**, but resolved to the slot's brand values because the `[data-project]` scope
 re-defines them. Components never read a project-prefixed name — there are **no `--<proj>-*`
 tokens**. Two projects on one page reuse the identical generic token names; the cascade resolves
-each to the nearest `[data-project]` scope. A slot's engine ramp lives as slot-scoped primitives
-with generic names (`--ramp-1..12`), which the slot's semantic tokens are mapped from.
+each to the nearest `[data-project]` scope. The engine solves the slot's semantic-token values
+directly; a slot-scoped ramp-primitive tier (`--ramp-1..12`) for the semantic tokens to be mapped
+from is deferred to the Palette Studio (#78).
 
 ```
 global :root  (foundation primitives + the semantic editorial defaults)
    ├─ FOUNDATION: neutral B/W/gray ramp · Newsreader · spacing ramp · motion curves
    │              · type-scale ratios · breakpoint constants · z-index · focus-ring GEOMETRY · reset
    ├─ SEMANTIC (editorial default mapping): --surface · --text · --accent · --font-face
-   │              · --space-block · --radius-card · --motion-fast · …  ← the generic contract
+   │              · --text-muted · --border · --success · …  ← the generic contract
    └─ @layer foundation, semantic, brand, project;   ← bare order statement, loaded first
           │ every page's chrome (nav · headers · prose) reads the semantic tokens at their defaults ↓
    home · about · /now · the project page AROUND the slot   — all editorial, no brand
           │ and inside a project page, one bounded slot re-defines the semantic tokens ↓
-[data-project="<slug>"]   the project's interactive slot — a FULL semantic override
-   ├─ --ramp-1..12   ◄── OKLCH engine ◄── this project's brandColor (from Sanity)
-   ├─ --surface / --text / --accent / … re-mapped from the slot ramp (brand values)
+[data-project="<slug>"]   the project's interactive slot — re-binds the generic semantic tokens
+   ├─ --surface / --text / --accent / …  ◄── OKLCH engine ◄── this project's brandColor (from Sanity)
    ├─ status colors  ◄── canonical hue (success/warning/error/info), brand-*treated* by the engine
    ├─ --font-face    ◄── resolved face's .variable class
-   └─ radius / border / shadow / density / motion — overridden only where the slot differs
+   └─ any other semantic token — overridden only where the slot differs
           │ themes downward, within the slot ↓
    the slot's experience + embeds   read the SAME generic semantic tokens (--surface, --accent, --font-face, …)
           └─ [data-experience-surface]  optional scoped reset for an interactive surface
@@ -189,8 +189,8 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 
 - **Bakes literal `oklch()` values server-side.** The engine emits resolved, gamut-mapped,
   contrast-solved literals — not relative-color CSS. Live per-token CSS override is explicitly
-  **not** a goal: no consumer needs the cascade to re-derive a mid-chain token (the playground and
-  card swatches re-run the pure function in JS). Relative-color (`oklch(from …)`) is permitted only
+  **not** a goal: no consumer needs the cascade to re-derive a mid-chain token (card swatches
+  re-run the pure function in JS; so will the interactive studio, #70). Relative-color (`oklch(from …)`) is permitted only
   for decorative, non-contrast deltas. This is also what makes server-side validation possible.
 
 - **Focus-ring _color_ is an engine token**; only its geometry is part of the global foundation. The
@@ -224,28 +224,34 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   boundary blocks on it before paint; if it renders in the shell above any Suspense (the common
   case), plain inline is already flush-before-paint.
 
-- The **slot scope re-maps** the generated ramp into the semantic tokens (`--surface`, `--accent`,
-  `--font-face`, …); the engine emits the ramp primitives, the scope does the role mapping — not the
-  engine.
+- The engine emits the **semantic role tokens directly** (`--surface`, `--accent`, …) as
+  contrast-solved literals; the slot scope adds the `--focus-ring-color` alias and the
+  `--font-face` mapping in the same block. A ramp-primitive tier (engine emits `--ramp-1..12`,
+  the scope does the role mapping) is deferred to the Palette Studio (#78).
 
 **Three call sites, one engine:**
 
 - **Slot theming (`ProjectScope`)**: the per-slot theming layer calls the engine on the server to
   emit each slot's `<style>` block.
-- **The portfolio piece (`src/projects/oklch-engine/`)**: an ordinary project module (like any other)
-  whose interactive experience is a playground (drag a hue, watch the palette regenerate). The
-  experience **imports the same shared engine** — it never reimplements it, and re-runs the pure
-  function in JS on each slider move (it does not rely on CSS re-derivation).
+- **Author-time validation (`studio/schemaTypes/shared/colorValidation.ts`)**: the Studio's
+  `brandColor` validation runs the same `buildTokenSet` pipeline (parse → gamut-map →
+  contrast-solve) for editor feedback (see the content model).
 - **Preview swatches (`cardSwatches`)**: the featured-home cards (and inline previews) call a
   `cardSwatches(brandColor)` helper that runs the **same engine** and returns just a few stops, spread
   inline as **generic semantic-token overrides** (`--surface`/`--text`/`--border`/`--accent`, no
   prefix) on an otherwise-editorial frame — no slot scope, no `<style>` block. It goes through the
   same parse/validate path as everything else.
 
+The **interactive OKLCH studio** — a project module whose experience re-runs the pure engine in JS
+on each control change (drag a hue, watch the palette regenerate) — is tracked in #70. Today's
+`engine-board` project renders the slot's baked tokens by consuming the scope's CSS variables; it
+does not call the engine at runtime.
+
 Two deliberate consequences:
 
-- **It themes itself, on purpose.** The oklch-engine project's slot is themed like any other, so
-  its own brand tokens are generated by the engine it showcases. No circular dependency in code
+- **It themes itself, on purpose.** An engine-showcase project's slot (`engine-board` today, the
+  studio #70 next) is themed like any other, so its own brand tokens are generated by the engine it
+  showcases. No circular dependency in code
   (the project depends on the engine; the engine depends on nothing).
 - **Keep it isomorphic** (enforced — see above).
 
@@ -325,8 +331,8 @@ reused; both tiers lazy-import.
 
 Most UI belongs to its project module; lift a primitive into a shared `src/` module only once it's
 genuinely reused across projects — not preemptively. A project may also _consume_ shared logic
-without owning it — the oklch-engine project's experience imports the shared engine rather than
-holding it (see the OKLCH engine).
+without owning it — the `engine-board` project showcases the shared engine's output rather than
+holding the engine (see the OKLCH engine).
 
 ### The CMS ↔ code registry
 

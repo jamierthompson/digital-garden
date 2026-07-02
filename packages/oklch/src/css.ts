@@ -5,8 +5,8 @@
  * The engine emits the GENERIC SEMANTIC token contract (`--surface`, `--accent`,
  * `--text`, … `--success`) — the same role names the foundation layer defines as the
  * global editorial default; a slot's `@layer brand` block re-binds them with the brand's
- * solved values. Mapping those into a project-internal `--logx-*` alias is the project
- * scope's job, not the engine's. `ProjectScope` (owned elsewhere) drops these
+ * solved values. Adding the `--focus-ring-color` alias and the `--font-face` mapping is
+ * the project scope's job, not the engine's. `ProjectScope` (owned elsewhere) drops these
  * declarations into its scoped `<style>`; this serializer is the convenience that
  * produces them.
  */

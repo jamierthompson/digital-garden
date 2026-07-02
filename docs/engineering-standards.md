@@ -37,7 +37,7 @@ Default is **Server Component**. Reach for a Client Component (`'use client'`) o
 
 ```ts
 // ✅ statically analyzable — bundler can split per slug
-const load = () => import("@/projects/oklch-engine");
+const load = () => import("@/projects/engine-board");
 // ❌ templated — defeats static analysis, breaks the split
 const load = () => import(`@/projects/${slug}`);
 ```
