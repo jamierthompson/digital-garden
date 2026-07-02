@@ -75,7 +75,6 @@ describe("PROJECT_DETAIL_QUERY", () => {
       "title",
       "related",
       "backlinks",
-      "tags",
     ]) {
       expect(PROJECT_DETAIL_QUERY).toContain(field);
     }

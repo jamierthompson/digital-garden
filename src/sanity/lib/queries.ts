@@ -42,7 +42,7 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  * (the detail route renders it through the Portable Text serializer) plus the theming seeds
  * (`brandColor`, `brandColorDark`, `fontKey`, `componentKey`) that drive `ProjectScope` and
  * module resolution, the facets (`kind`, `stage`, `iterated`, `featuredRank`), and the
- * surrounding `title` / `blurb` / `tags`. Backlinks resolve both directions: `related[]->`
+ * surrounding `title` / `blurb`. Backlinks resolve both directions: `related[]->`
  * is the outgoing edge; `backlinks` is the INCOMING edge (every entry that references this
  * one) via GROQ `references()`, so an edge authored once shows on both ends. `[0]` collapses
  * the filtered set to a single document (or `null` when the slug is unpublished/unknown) so
@@ -68,8 +68,7 @@ export const PROJECT_DETAIL_QUERY = defineQuery(`
     componentKey,
     body,
     related[]->{ _id, title, "slug": slug.current, kind },
-    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind },
-    tags
+    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }
   }
 `);
 

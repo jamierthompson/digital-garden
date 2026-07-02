@@ -108,7 +108,6 @@ export type Entry = {
       _key: string;
     } & EntryReference
   >;
-  tags?: Array<string>;
 };
 
 export type SanityImageCrop = {
@@ -274,7 +273,7 @@ export type ENTRY_SLUGS_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: PROJECT_DETAIL_QUERY
-// Query: *[_type == "entry" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    featuredRank,    blurb,    brandColor,    brandColorDark,    fontKey,    componentKey,    body,    related[]->{ _id, title, "slug": slug.current, kind },    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind },    tags  }
+// Query: *[_type == "entry" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    featuredRank,    blurb,    brandColor,    brandColorDark,    fontKey,    componentKey,    body,    related[]->{ _id, title, "slug": slug.current, kind },    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }  }
 export type PROJECT_DETAIL_QUERY_RESULT = {
   _id: string;
   title: string | null;
@@ -301,7 +300,6 @@ export type PROJECT_DETAIL_QUERY_RESULT = {
     slug: string | null;
     kind: "essay" | "note" | "now" | "project" | null;
   }>;
-  tags: Array<string> | null;
 } | null;
 
 // Source: ../src/sanity/lib/queries.ts
@@ -361,7 +359,7 @@ declare module "@sanity/client" {
   interface SanityQueries {
     '\n  *[_type == "entry" && kind == "project" && defined(slug.current)] | order(_createdAt desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    featuredRank,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': WORK_INDEX_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current)]{ "slug": slug.current }\n': ENTRY_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    blurb,\n    brandColor,\n    brandColorDark,\n    fontKey,\n    componentKey,\n    body,\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind },\n    tags\n  }\n': PROJECT_DETAIL_QUERY_RESULT;
+    '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    blurb,\n    brandColor,\n    brandColorDark,\n    fontKey,\n    componentKey,\n    body,\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }\n  }\n': PROJECT_DETAIL_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    blurb,\n    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])\n  }\n': INDEX_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': FEATURED_QUERY_RESULT;
     '\n  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    iterated,\n    blurb\n  }\n': NOW_QUERY_RESULT;

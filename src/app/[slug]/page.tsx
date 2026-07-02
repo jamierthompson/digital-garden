@@ -5,7 +5,6 @@ import EssayBody from "@/components/portable-text/EssayBody";
 import ProjectScope from "@/components/project-scope/ProjectScope";
 import ProjectScopeBoundary from "@/components/project-scope/ProjectScopeBoundary";
 import RelatedEntries from "@/components/project/RelatedEntries";
-import TagList from "@/components/project/TagList";
 import { resolveComponentKey } from "@/lib/resolvers/components";
 import { isNotFound } from "@/lib/resolvers/resolution";
 import type { ProjectModule } from "@/projects/types";
@@ -18,10 +17,10 @@ import styles from "./page.module.css";
 // The flat entry route: every `entry` — any `kind` — lives at a root-level `/[slug]` (this
 // dynamic segment cedes precedence to the static routes `/browse`, `/now`, `/about`). Thin
 // route (`app/` is routing only — it mounts components from `src/`). The composition:
-// EDITORIAL page chrome (article prose, tags, related entries) reads the global semantic
+// EDITORIAL page chrome (article prose, related entries) reads the global semantic
 // tier; a project's brand color + font are scoped to its interactive slot ONLY:
 //   <main> editorial chrome
-//     ├ <article> the entry's essay (PT serializer) + tags — editorial
+//     ├ <article> the entry's essay (PT serializer) — editorial
 //     ├ ProjectScopeBoundary + ProjectScope + <Experience/> — the brand-themed slot,
 //     │   rendered ONLY for a project with a resolvable module
 //     └ <RelatedEntries> — editorial (outgoing `related` + incoming backlinks)
@@ -111,9 +110,6 @@ export default async function EntryPage({ params }: EntryPageProps) {
         <header className={styles.header}>
           <h1 className={styles.title}>{entry.title}</h1>
           {entry.blurb ? <p className={styles.blurb}>{entry.blurb}</p> : null}
-          {/* Tags + related entries render the detail query's `tags` / `related[]->`
-              + `backlinks` projections (each self-guards to null when empty). */}
-          <TagList tags={entry.tags} />
         </header>
         {entry.body ? <EssayBody value={entry.body} /> : null}
       </article>
