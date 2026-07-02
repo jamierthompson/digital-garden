@@ -88,7 +88,7 @@ Tokens are organized in **three layers**, each consuming the one before it:
 | Layer          | Lives at                                          | Contents                                                                                                                                                                                                                                          |
 | -------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Foundation** | global `:root`                                    | the raw primitives + the reset: the neutral B/W/gray ramp, the Newsreader face, the spacing ramp, motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.                    |
-| **Semantic**   | global `:root` (the editorial default mapping)    | the **generic role tokens components read** — `--surface`, `--text`, `--primary`, `--font-body`, `--space-block`, `--radius-card`, `--motion-fast`, etc. — mapped from the primitives. The editorial look **is** this default mapping at `:root`. |
+| **Semantic**   | global `:root` (the editorial default mapping)    | the **generic role tokens components read** — `--surface`, `--text`, `--accent`, `--font-face`, `--space-block`, `--radius-card`, `--motion-fast`, etc. — mapped from the primitives. The editorial look **is** this default mapping at `:root`.  |
 | **Brand**      | the project's interactive slot (`[data-project]`) | a **full scoped override** of the semantic layer for one slot — color, font, spacing, type-scale, motion, radius, border, shadow, density — driven by the OKLCH engine from the slot's `brandColor` (incl. focus-ring _color_ and status colors). |
 
 The model is layered, not partitioned: the **semantic layer is the contract** components code
@@ -109,7 +109,7 @@ with generic names (`--ramp-1..12`), which the slot's semantic tokens are mapped
 global :root  (foundation primitives + the semantic editorial defaults)
    ├─ FOUNDATION: neutral B/W/gray ramp · Newsreader · spacing ramp · motion curves
    │              · type-scale ratios · breakpoint constants · z-index · focus-ring GEOMETRY · reset
-   ├─ SEMANTIC (editorial default mapping): --surface · --text · --primary · --font-body
+   ├─ SEMANTIC (editorial default mapping): --surface · --text · --accent · --font-face
    │              · --space-block · --radius-card · --motion-fast · …  ← the generic contract
    └─ @layer foundation, semantic, brand, project;   ← bare order statement, loaded first
           │ every page's chrome (nav · headers · prose) reads the semantic tokens at their defaults ↓
@@ -117,19 +117,19 @@ global :root  (foundation primitives + the semantic editorial defaults)
           │ and inside a project page, one bounded slot re-defines the semantic tokens ↓
 [data-project="<slug>"]   the project's interactive slot — a FULL semantic override
    ├─ --ramp-1..12   ◄── OKLCH engine ◄── this project's brandColor (from Sanity)
-   ├─ --surface / --text / --primary / … re-mapped from the slot ramp (brand values)
+   ├─ --surface / --text / --accent / … re-mapped from the slot ramp (brand values)
    ├─ status colors  ◄── canonical hue (success/warning/error/info), brand-*treated* by the engine
-   ├─ --font-body    ◄── resolved face's .variable class
+   ├─ --font-face    ◄── resolved face's .variable class
    └─ radius / border / shadow / density / motion — overridden only where the slot differs
           │ themes downward, within the slot ↓
-   the slot's experience + embeds   read the SAME generic semantic tokens (--surface, --primary, --font-body, …)
+   the slot's experience + embeds   read the SAME generic semantic tokens (--surface, --accent, --font-face, …)
           └─ [data-experience-surface]  optional scoped reset for an interactive surface
 ```
 
 Key points:
 
 - **The public token contract is the SEMANTIC layer.** Shared, cross-project units read the
-  generic role tokens (`--surface`, `--text`, `--primary`, `--font-body`, `--space-*`) — never a
+  generic role tokens (`--surface`, `--text`, `--accent`, `--font-face`, `--space-*`) — never a
   project-prefixed name, because a shared embed cannot know which project hosts it. Isolation comes
   from **scope, not prefix**: the `[data-project]` boundary re-defines the same generic tokens, and
   the cascade resolves a component to the nearest scope.
@@ -224,8 +224,8 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   boundary blocks on it before paint; if it renders in the shell above any Suspense (the common
   case), plain inline is already flush-before-paint.
 
-- The **slot scope re-maps** the generated ramp into the semantic tokens (`--surface`, `--primary`,
-  `--font-body`, …); the engine emits the ramp primitives, the scope does the role mapping — not the
+- The **slot scope re-maps** the generated ramp into the semantic tokens (`--surface`, `--accent`,
+  `--font-face`, …); the engine emits the ramp primitives, the scope does the role mapping — not the
   engine.
 
 **Three call sites, one engine:**
@@ -270,14 +270,14 @@ The directional rule:
   not a look.
 
 The override surface is precise: you override the **seed** (re-run the engine, server-side, per
-scope) **or** a **leaf consumable token** (`--primary`, `--font-body` — a literal a host sets and a
+scope) **or** a **leaf consumable token** (`--accent`, `--font-face` — a literal a host sets and a
 component reads). You never override a _mid-chain derived_ token and expect its derivatives to
 recompute — the engine baked them. The `var(--public, var(--_internal-default))` pattern is for
 composition-time downward theming of primitives, not live ramp re-derivation.
 
 Self-sufficiency still applies _within_ the slot: a shared primitive must not assume tokens from
 any _specific_ project's scope. It ships its own defaults and reads generic semantic names
-(`--surface`, `--primary`, `--font-body`), so it works composed into any project (or none).
+(`--surface`, `--accent`, `--font-face`), so it works composed into any project (or none).
 
 ---
 
@@ -319,7 +319,7 @@ widget; introduce the project-local tier only then. Once you do, embeds follow t
 per-project-plus-shared shape as tokens and fonts**. For a given project the resolver composes the
 two (`{ ...shared, ...projectLocal }`) so a project-local key **overrides** a shared one of the same
 name — the downward-override spirit of `var(--public-override, var(--_internal-default))`. A
-_shared_ embed themes off the **generic semantic tokens** (`--surface`, `--primary`, `--font-body`),
+_shared_ embed themes off the **generic semantic tokens** (`--surface`, `--accent`, `--font-face`),
 never anything project-specific. Promote a widget into the shared registry only once it's genuinely
 reused; both tiers lazy-import.
 
@@ -379,7 +379,7 @@ scope, so it themes identically.
 **Store-the-key (roster-by-key).** A curated roster of faces is declared in code (each a `next/font`
 export, in a single shared module); Sanity stores a `fontKey` per project and the editor picks from
 a dropdown; the project's **slot scope** applies the face that key resolves to, via that face's
-**`.variable` class** on the `[data-project]` wrapper, with the slot's `--font-body` mapping to it;
+**`.variable` class** on the `[data-project]` wrapper, with the slot's `--font-face` mapping to it;
 page chrome stays on the editorial face. This keeps
 `next/font`'s self-hosting, subsetting, and zero-CLS sizing while putting a project's type choice on
 its document alongside its brand color.
@@ -424,7 +424,7 @@ Mapped onto the layers:
 - **Shared fonts** → the roster _is_ the single declaration point, so a face two projects use is
   declared **once** and resolved by both.
 - **Experience & embed fonts** → neither declares its own `next/font`; each reads the generic
-  `--font-body` token, which the slot fills from the resolved face.
+  `--font-face` token, which the slot fills from the resolved face.
 
 Practical notes:
 
@@ -459,13 +459,13 @@ Practical notes:
   tended.
 - **The essay is rich content (portable text), not plain text.** Alongside text it carries typed
   embed blocks — media and live components referenced by key and resolved in code.
-- **`brandColor` is per-project, typed, and validated.** It's a field on the `project`
+- **`brandColor` is per-project, typed, and validated.** It's a field on the `entry`
   document (the slot seed), stored as a validated string (hex or `oklch()`). Author-time Sanity
   `validation` runs the engine's own color pipeline (parse → gamut-map → confirm in-spec contrast)
   for editor feedback. Defense-in-depth: the engine itself never throws (see the OKLCH engine) and
   `ProjectScope` falls back to a safe default. `siteSettings` holds the site title/description and
   may seed a homepage slot; it does not brand the chrome.
-- **`fontKey` is per-project** — a field on the `project` document, chosen from the curated roster
+- **`fontKey` is per-project** — a field on the `entry` document, chosen from the curated roster
   (see fonts). Reference-by-key, exactly like `componentKey` and `brandColor`.
 - **No per-scheme color field.** Dark mode is a render-time axis; one `brandColor` generates
   both schemes. A project needing a hand-tuned dark brand gets an _optional_ `brandColorDark`
@@ -498,7 +498,7 @@ Practical notes:
   **defensive** — engine returns a fallback on bad input, and the component is wrapped in
   `unstable_catchError` (`next/error`) as a backstop, **not** a segment `error.tsx` (which doesn't
   catch its own layout's throw — see repo & hosting). It renders in the prerendered shell; the slot's
-  subtree reads the slot's brand-valued semantic tokens (`var(--surface)` / `var(--primary)` / `var(--font-body)`).
+  subtree reads the slot's brand-valued semantic tokens (`var(--surface)` / `var(--accent)` / `var(--font-face)`).
 - **Visual editing details.** Disable Sanity **stega** on `brandColor`/`fontKey` — the
   invisible encoding chars break the OKLCH parse and the font-class lookup. `liveEmbed`
   click-to-edit targets the caption/`embedKey` field, not the interactive region.
@@ -561,7 +561,7 @@ Practical notes:
 Before shipping a **shared** unit (the litmus is for shared primitives, not every component):
 
 - [ ] Does it render correctly reading only **generic semantic tokens** (`--surface`, `--text`,
-      `--primary`, `--font-body`, `--space-*`) plus its own defaults — with no dependency on any
+      `--accent`, `--font-face`, `--space-*`) plus its own defaults — with no dependency on any
       project-specific token name?
 - [ ] Is every themeable value exposed as a **public token** with an internal default?
 - [ ] Does it avoid assuming any **themeable ambient context** (a parent's _brand_ value, a
