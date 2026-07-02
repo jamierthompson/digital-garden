@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
+import VisuallyHidden from "@/components/ui/VisuallyHidden";
 import { cardSwatches } from "@/lib/cardSwatches";
 import { FEATURED_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
@@ -29,19 +30,19 @@ export default async function Home() {
   return (
     <main className={styles.main}>
       <section className={styles.hero}>
-        <h1 className={styles.title}>Jamie Thompson</h1>
-        <p className={styles.tagline}>
-          A personal portfolio and digital garden — each project a
-          self-contained, independently themed island, composed on one shared
-          foundation.
-        </p>
+        <h1 className={styles.title}>
+          Notes, essays, and things I&rsquo;m building in the open.
+        </h1>
       </section>
 
       {featured.length > 0 ? (
         <section className={styles.featured} aria-labelledby="featured-heading">
-          <h2 id="featured-heading" className={styles.sectionHeading}>
+          {/* The visual design (mockup 4a) omits a "Featured" label — the plates follow the
+              hero directly. The heading is kept but visually hidden so the section still has an
+              accessible name and the document outline stays intact. */}
+          <VisuallyHidden as="h2" id="featured-heading">
             Featured
-          </h2>
+          </VisuallyHidden>
           <ul className={styles.grid}>
             {featured.map((entry) => (
               <li
@@ -73,12 +74,6 @@ export default async function Home() {
           </ul>
         </section>
       ) : null}
-
-      <nav className={styles.wayfinding} aria-label="More">
-        <Link href="/browse" className={styles.browseLink}>
-          Browse everything →
-        </Link>
-      </nav>
     </main>
   );
 }

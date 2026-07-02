@@ -8,7 +8,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-9);
-    max-width: 64rem;
+    max-width: var(--width-content);
     margin: 0 auto;
     padding: var(--space-9) var(--space-5);
   }
@@ -17,11 +17,12 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-    max-width: 60ch;
   }
 
-  /* Home heading — the name in the journal display face (the garden tagline is now the global
-     masthead band above the nav). */
+  /* Home heading — the garden's invitation headline in the journal display face. Not the
+     name: the masthead band above the nav carries the byline, so the h1 states what the
+     garden IS (notes/essays/work-in-the-open) rather than spending the page's primary
+     heading on a duplicate byline. */
   .title {
     font-family: var(--font-display);
     font-size: var(--text-4xl);
@@ -29,27 +30,15 @@
     line-height: var(--leading-tight);
     letter-spacing: -0.02em;
     color: var(--text);
-  }
-
-  .tagline {
-    font-size: var(--text-lg);
-    line-height: var(--leading-normal);
-    color: var(--text-muted);
-    max-width: 46ch;
+    /* Balance the headline across its lines rather than leaving a stray short last line —
+       the hero spans the full content frame, so this settles to a tidy two lines. */
+    text-wrap: balance;
   }
 
   .featured {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-  }
-
-  .sectionHeading {
-    font-size: var(--text-sm);
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--text-muted);
   }
 
   .grid {
@@ -87,19 +76,5 @@
     font-size: var(--text-base);
     line-height: var(--leading-normal);
     color: var(--text);
-  }
-
-  .wayfinding {
-    display: flex;
-  }
-
-  .browseLink {
-    font-size: var(--text-lg);
-    color: var(--accent);
-    text-decoration: none;
-  }
-
-  .browseLink:hover {
-    text-decoration: underline;
   }
 }

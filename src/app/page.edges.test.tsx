@@ -37,14 +37,12 @@ describe("Home (/) — edges & boundaries", () => {
   it("omits the Featured section entirely when nothing is promoted", async () => {
     fetchMock.mockResolvedValueOnce([]);
     render(await Home());
-    // Hero + wayfinding survive; no empty "Featured" heading.
+    // The hero survives; no "Featured" section heading (visually-hidden or not) when empty.
+    // (The onward "browse everything →" link now lives in the global SiteFooter, not Home.)
     expect(
-      screen.getByRole("heading", { level: 1, name: /jamie thompson/i }),
+      screen.getByRole("heading", { level: 1, name: /building in the open/i }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /featured/i })).toBeNull();
-    expect(
-      screen.getByRole("link", { name: /browse everything/i }),
-    ).toHaveAttribute("href", "/browse");
   });
 
   it("brands a featured entry with a NULL brandColor without throwing (fallback swatches)", async () => {

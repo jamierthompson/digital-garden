@@ -21,9 +21,9 @@ interface NavItem {
 const NAV_ITEMS: readonly NavItem[] = [
   { href: "/", label: "featured" },
   { href: "/browse", label: "index" },
-  { href: "/now", label: "now" },
-  { href: "/about", label: "about" },
   { href: "/system", label: "system" },
+  { href: "/about", label: "about" },
+  { href: "/now", label: "now" },
 ];
 
 function isActive(pathname: string, href: string): boolean {

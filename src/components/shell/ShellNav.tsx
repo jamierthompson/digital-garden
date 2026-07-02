@@ -15,12 +15,21 @@ import styles from "./ShellNav.module.css";
 export default function ShellNav() {
   return (
     <header className={styles.header}>
-      {/* The site tagline as a subtle mono masthead band above the nav (every page) — the
-          engineering-journal dateline. A <p>, not a heading: it's site chrome, so each page
-          keeps its own h1. */}
-      <p className={styles.masthead}>
-        The Design-Engineering Garden of Jamie Thompson
-      </p>
+      {/* The masthead byline band above the nav (every page) — the engineering-journal
+          dateline. Its inner row is constrained to the same content column as the nav below,
+          so the byline's left edge aligns with the `folio_` wordmark and the page's hero.
+          A <p>, not a heading: it's site chrome, so each page keeps its own h1. */}
+      <div className={styles.masthead}>
+        <div className={styles.mastheadInner}>
+          <p className={styles.byline}>
+            The Design-Engineering Garden of Jamie Thompson
+          </p>
+          {/* Quiet masthead balance — decorative journal dateline, hidden from AT. */}
+          <p className={styles.dateline} aria-hidden="true">
+            Est. 2026
+          </p>
+        </div>
+      </div>
       <nav className={styles.nav} aria-label="Primary">
         {/* Home is the logo (→ `/`). The trailing `_` is a muted blinking-cursor nod — the
             "folio_" wordmark from the engineering-journal direction. */}

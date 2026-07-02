@@ -37,10 +37,10 @@ vi.mock("@/sanity/lib/sanityFetch", () => ({
 import Home from "./page";
 
 describe("Home (featured front door)", () => {
-  it("renders the site owner as the page heading", async () => {
+  it("renders the garden's invitation headline as the h1 (not the byline)", async () => {
     render(await Home());
     expect(
-      screen.getByRole("heading", { level: 1, name: /jamie thompson/i }),
+      screen.getByRole("heading", { level: 1, name: /building in the open/i }),
     ).toBeInTheDocument();
   });
 
@@ -57,12 +57,5 @@ describe("Home (featured front door)", () => {
       "href",
       "/first-light",
     );
-  });
-
-  it("links onward to the browsable Index", async () => {
-    render(await Home());
-    expect(
-      screen.getByRole("link", { name: /browse everything/i }),
-    ).toHaveAttribute("href", "/browse");
   });
 });

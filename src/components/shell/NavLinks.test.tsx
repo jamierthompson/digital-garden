@@ -22,7 +22,7 @@ describe("NavLinks — the journal masthead current-page indicator", () => {
     pathnameMock.mockReturnValue("/");
     render(<NavLinks />);
     const labels = screen.getAllByRole("link").map((a) => a.textContent);
-    expect(labels).toEqual(["featured", "index", "now", "about", "system"]);
+    expect(labels).toEqual(["featured", "index", "system", "about", "now"]);
   });
 
   it("labels the Index 'index' but points it at /browse (route-name collision guard)", () => {
