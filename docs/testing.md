@@ -13,7 +13,7 @@ acceptance criteria; the co-location and scheduling rules are owned by this doc.
 ## TL;DR
 
 | Question         | Answer                                                                                                                                            |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Runner           | **Vitest 4** (`vitest run` in CI, `vitest` watch locally)                                                                                         |
 | Component lib    | **React Testing Library 16** + `@testing-library/jest-dom`                                                                                        |
 | DOM env          | **jsdom + node** via `test.projects` — the engine suite runs in both (see [Dual-env](#dual-env-the-oklch-engine))                                 |
