@@ -73,7 +73,6 @@ function entry(over: EntryOverrides = {}): Record<string, unknown> {
     body: null,
     related: null,
     backlinks: null,
-    tags: null,
     ...over,
   };
 }
@@ -88,7 +87,7 @@ beforeEach(() => {
 describe("EntryPage — kind-aware detail", () => {
   it("renders a note prose-only: title + blurb, and NO brand slot", async () => {
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: null, tags: ["gardening"] }),
+      entry({ kind: "note", componentKey: null }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),

@@ -46,7 +46,6 @@ const FIRST_LIGHT = {
     },
   ],
   notes: null,
-  tags: ["portfolio"],
 };
 
 // Mock the Sanity client so `client.fetch` returns the fixture — no network in Vitest.

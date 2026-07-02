@@ -179,13 +179,6 @@ export const entry = defineType({
         'Backlinks to other entries via real references (not slug strings) so references() resolves — the graph is cross-kind and datastore-enforced.',
       of: [defineArrayMember({type: 'reference', to: [{type: 'entry'}]})],
     }),
-    defineField({
-      name: 'tags',
-      type: 'array',
-      of: [defineArrayMember({type: 'string'})],
-      options: {layout: 'tags'},
-      validation: (rule) => rule.unique(),
-    }),
   ],
   preview: {
     select: {title: 'title', kind: 'kind', stage: 'stage'},

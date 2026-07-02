@@ -60,7 +60,7 @@ Two homes:
   demo), and the components its essay embeds. Each project is a self-contained module under
   `src/projects/<slug>/`; shared parts live in plain shared modules.
 - **Sanity** — content & brand seeds: one `entry` document type covering every content kind — a
-  `kind` discriminator (note · essay · project · now), a Portable Text body (rich text with embeds), tags,
+  `kind` discriminator (note · essay · project · now), a Portable Text body (rich text with embeds),
   a `stage` (sketch → prototype → shipped), an authored `iterated` date, self-referencing `related`
   backlinks, an optional `featuredRank`, and the per-entry `brandColor` / `fontKey` / `componentKey`
   reference-by-key seeds.
@@ -331,7 +331,7 @@ holding it (see the OKLCH engine).
 ### The CMS ↔ code registry
 
 ```
-Sanity entry doc { kind, componentKey: "<slug>", brandColor, fontKey, body, stage, iterated, related, featuredRank, tags }
+Sanity entry doc { kind, componentKey: "<slug>", brandColor, fontKey, body, stage, iterated, related, featuredRank }
         │
         ▼
 src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the project module
