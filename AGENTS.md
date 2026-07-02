@@ -8,7 +8,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # AGENTS.md — Digital Garden
 
-> A personal portfolio + digital garden: one editorial foundation (Newsreader + a neutral
+> A personal portfolio + digital garden: one editorial foundation (Source Serif 4 + a neutral
 > ramp) themes all page chrome, while each project's OKLCH brand color + font theme only its
 > own bounded interactive slot. Next.js 16 / React 19 on Vercel; content in Sanity.
 

@@ -1,7 +1,7 @@
 # Digital Garden
 
 A personal portfolio and digital garden — a place to grow notes, ideas, and work
-over time. The whole site shares one editorial look — Newsreader and a
+over time. The whole site shares one editorial look — Source Serif 4 and a
 black/white/gray neutral ramp — across all page chrome. Each project's brand
 color (a perceptual OKLCH palette) and font theme only its own bounded
 interactive slot, on that shared foundation. Content and brand seeds live in
@@ -83,7 +83,7 @@ CI runs all of the above (plus a TypeGen drift check) on every PR.
 ## Styling approach
 
 - **Foundation** (`src/app/foundation.css`, global `:root`) — the raw primitives + the reset:
-  the neutral ramp, Newsreader, spacing, type scale, motion, z-index, focus-ring geometry,
+  the neutral ramp, Source Serif 4, spacing, type scale, motion, z-index, focus-ring geometry,
   breakpoint constants. Loaded first, and it declares the `@layer foundation, semantic, brand, project;` order.
 - **Semantic** (global `:root`) — the generic role tokens components read (`--surface`, `--text`,
   `--accent`, `--font-face`, `--space-*`, …), mapped from the primitives. Their editorial default

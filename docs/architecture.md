@@ -23,7 +23,7 @@ These are the through-lines; everything else follows from them.
   engine, the odd reused primitive) live in plain shared modules. No fused bundle; no premature
   abstraction either.
 
-- **Composition over inheritance.** Every page wears one global editorial look — Newsreader + a
+- **Composition over inheritance.** Every page wears one global editorial look — Source Serif 4 + a
   neutral black/white/gray ramp — supplied by the foundation and semantic layers at `:root`. Each
   project carries its **own brand color and font**, scoped to its **interactive slot** (the
   `<Experience/>` / `[data-project]` wrapper), where it re-defines the semantic tokens with its own
@@ -87,7 +87,7 @@ Tokens are organized in **three layers**, each consuming the one before it:
 
 | Layer          | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                 |
 | -------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Foundation** | global `:root`                                    | the raw primitives + the reset: the neutral B/W/gray ramp, the Newsreader face, the spacing ramp, content-width measures (`--width-prose`/`-text`/`-content`), motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.              |
+| **Foundation** | global `:root`                                    | the raw primitives + the reset: the neutral B/W/gray ramp, the Source Serif 4 face, the spacing ramp, content-width measures (`--width-prose`/`-text`/`-content`), motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.          |
 | **Semantic**   | global `:root` (the editorial default mapping)    | the **generic role tokens components read** — `--surface`, `--text`, `--text-muted`, `--accent`, `--font-face`, the status roles (`--success` … `--info`), etc. — mapped from the primitives. The editorial look **is** this default mapping at `:root`.                                                 |
 | **Brand**      | the project's interactive slot (`[data-project]`) | a **scoped override** of the semantic layer for one slot — the engine's contrast-solved color tokens (incl. focus-ring _color_ and status colors), driven by the slot's `brandColor`, plus `--font-face` from its `fontKey`. Open-ended by design: a slot may override any semantic token it differs on. |
 
@@ -108,7 +108,7 @@ from is deferred to the Palette Studio (#78).
 
 ```
 global :root  (foundation primitives + the semantic editorial defaults)
-   ├─ FOUNDATION: neutral B/W/gray ramp · Newsreader · spacing ramp · content widths · motion curves
+   ├─ FOUNDATION: neutral B/W/gray ramp · Source Serif 4 · spacing ramp · content widths · motion curves
    │              · type-scale ratios · breakpoint constants · z-index · focus-ring GEOMETRY · reset
    ├─ SEMANTIC (editorial default mapping): --surface · --text · --accent · --font-face
    │              · --text-muted · --border · --success · …  ← the generic contract
@@ -135,7 +135,7 @@ Key points:
   the cascade resolves a component to the nearest scope.
 
 - **The editorial look is the global default mapping; brand lives in the slot.** The semantic
-  tokens at `:root` map to the editorial primitives (Newsreader + the neutral ramp) — that's house
+  tokens at `:root` map to the editorial primitives (Source Serif 4 + the neutral ramp) — that's house
   style, the default every chrome surface reads. Spacing, motion, breakpoints, and type-ratios are
   themeable-in-principle but invariant-in-practice, so a slot rarely overrides them; the brand ramp
   and font, by contrast, genuinely vary per slot and must be flash-free, so they live in the slot
@@ -422,7 +422,7 @@ So, the policy:
 
 Mapped onto the layers:
 
-- **The editorial face** (the site's global identity — Newsreader) → root layout, `preload: true`.
+- **The editorial face** (the site's global identity — Source Serif 4) → root layout, `preload: true`.
   Every page's chrome uses it. Keep to 1–2 faces.
 - **Per-project fonts** → resolved from the project doc's `fontKey` against the code-side roster,
   applied at the project's `[data-project]` **slot** scope via `.variable` — they theme the slot,
