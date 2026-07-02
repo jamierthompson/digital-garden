@@ -21,7 +21,7 @@ or carry `server-only`/`client-only`.
 ```ts
 import { resolveTheme, buildTokenSet, tokenSetToCss } from "@garden/oklch";
 
-// One scheme → flat token map (the oklch-engine playground, cardSwatches):
+// One scheme → flat token map (cardSwatches; the interactive studio, #70):
 const { tokens, seed, isFallback } = resolveTheme("#3b82f6", "light");
 
 // Both schemes zipped for ProjectScope's light-dark() <style>:
@@ -39,10 +39,10 @@ conversions/parsers.
 
 ### Notes for ProjectScope / cardSwatches consumers
 
-- The engine emits the **generic semantic** names only (bare `--surface`, `--accent`, …);
-  mapping to a project alias (`--logx-*`) and to `--focus-ring-color` (foundation's
-  `:focus-visible` reads that) is the **scope's** job, not the engine's. Suggested:
-  `--focus-ring-color: var(--focus-ring)`.
+- The engine emits the **generic semantic** names only (bare `--surface`, `--accent`, …) —
+  there are no project-prefixed aliases (isolation comes from the `[data-project]` scope).
+  Mapping to `--focus-ring-color` (foundation's `:focus-visible` reads that) is the
+  **scope's** job, not the engine's. Suggested: `--focus-ring-color: var(--focus-ring)`.
 - `tokenSetToCss` already emits `color-scheme: light dark;` so `light-dark()` resolves and
   follows `prefers-color-scheme`. Use `tokenSetToDeclarations` if you control placement.
 - `resolveTheme(...).isFallback` / `buildTokenSet(...).meta.isFallback` is `true` when the

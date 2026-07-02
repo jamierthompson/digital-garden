@@ -8,7 +8,7 @@ deps and concerns, deployed independently of the Next.js app.
 
 - `sanity.config.ts` — workspace config: plugins, Presentation tool, document structure.
 - `sanity.cli.ts` — project id / dataset / `studioHost` for the CLI (`dev`, `deploy`, `typegen`).
-- `schemaTypes/` — the content model: `documents/` (project, note, siteSettings), `objects/`
+- `schemaTypes/` — the content model: `documents/` (entry, siteSettings), `objects/`
   (figure, liveEmbed, portableText), and `shared/` validators.
 
 ## Commands

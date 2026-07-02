@@ -71,7 +71,7 @@ pnpm build                   # production build
 pnpm lint                    # ESLint (incl. architectural import boundaries)
 pnpm lint:css                # assert every CSS Module declares its @layer
 pnpm lint:keys               # key-drift guard
-pnpm lint:docs               # assert the gate chain matches across the DoD gate command and ci.yml
+pnpm lint:docs               # gate-chain sync (DoD one command = ci.yml) + markdown link/anchor check
 pnpm typecheck               # tsc --noEmit
 pnpm test                    # run the test suite once
 pnpm format / format:check   # Prettier write / check
@@ -84,9 +84,9 @@ CI runs all of the above (plus a TypeGen drift check) on every PR.
 
 - **Foundation** (`src/app/foundation.css`, global `:root`) — the raw primitives + the reset:
   the neutral ramp, Newsreader, spacing, type scale, motion, z-index, focus-ring geometry,
-  breakpoint constants. Loaded first, and it declares the `@layer foundation, brand, project;` order.
+  breakpoint constants. Loaded first, and it declares the `@layer foundation, semantic, brand, project;` order.
 - **Semantic** (global `:root`) — the generic role tokens components read (`--surface`, `--text`,
-  `--primary`, `--font-body`, `--space-*`, …), mapped from the primitives. Their editorial default
+  `--accent`, `--font-face`, `--space-*`, …), mapped from the primitives. Their editorial default
   mapping **is** the site's global look; this layer is the public token contract.
 - **Brand** (project-slot scope, engine-driven) — a full scoped override of the semantic tokens for
   one slot (color, font, and anything else it differs on), baked flash-free by `ProjectScope` from

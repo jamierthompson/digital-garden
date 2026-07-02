@@ -3,7 +3,7 @@
  *
  * Two wrappers over the low-level surface (convert/gamut/contrast):
  *   • `resolveTheme(brandColor, scheme, opts)` → one scheme's tokens
- *     (the oklch-engine playground and `cardSwatches` — they want one scheme).
+ *     (`cardSwatches`, and the interactive studio #70 — they want one scheme).
  *   • `buildTokenSet(brandColor, opts)` → both schemes zipped into `light-dark()` pairs
  *     (`ProjectScope`, which emits a single block carrying both schemes).
  *

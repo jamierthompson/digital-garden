@@ -6,7 +6,7 @@
  *     contrast-solved, gamut-mapped, baked-literal, never-throwing token sets.
  *     `buildTokenSet` zips both schemes for `light-dark()` output.
  *   • LOW-LEVEL: color conversions, gamut mapping, contrast (APCA Lc + WCAG ratio),
- *     the contrast solver, and lightness ramps — for the playground / card swatches.
+ *     the contrast solver, and lightness ramps — for card swatches / the studio (#70).
  *
  * NEVER add `server-only`/`client-only` here, never import `next`/`react`/`react-dom`,
  * never touch DOM/Node globals — lint-enforced.
