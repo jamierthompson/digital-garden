@@ -36,3 +36,28 @@ jobs:
       - run: git diff --exit-code sanity.types.ts
 
       - run: pnpm build
+
+  # Published-Sanity-keys -> code drift net (issue #39). Separate from `verify` because it
+  # hits the network — the blocking local gate stays offline-safe. The script itself
+  # degrades gracefully (SKIP, exit 0) on a network/config problem and only exits 1 on a
+  # genuine published key with no code resolver, so this job still fails the PR on real
+  # drift.
+  published-keys:
+    runs-on: ubuntu-latest
+    # Sanity project ID and dataset are public (shipped to the browser), not secrets.
+    env:
+      NEXT_PUBLIC_SANITY_PROJECT_ID: 7id6sf36
+      NEXT_PUBLIC_SANITY_DATASET: production
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint:keys:published
