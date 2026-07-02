@@ -86,3 +86,31 @@ describe("EntryCard", () => {
     ).not.toThrow();
   });
 });
+
+describe("EntryCard — title/slug boundaries", () => {
+  // `title ?? "Untitled entry"` is nullish — a blank Studio field serialises to "" (a valid
+  // string) and would slip through to a nameless <h3> (axe empty-heading) with the link's
+  // accessible name silently degrading to the blurb. These pin the blank cases.
+  it("falls back to a neutral label for an empty-string title (not an empty heading)", () => {
+    renderCard(entry({ title: "" }));
+    expect(screen.getByRole("heading", { level: 3 })).toHaveAccessibleName(
+      /untitled entry/i,
+    );
+  });
+
+  it("falls back to a neutral label for a whitespace-only title", () => {
+    renderCard(entry({ title: "   " }));
+    expect(
+      screen.getByRole("heading", { level: 3 }).textContent?.trim(),
+    ).not.toBe("");
+  });
+
+  // An empty-string slug is falsy, so it must degrade to the non-link plate — never href="/".
+  it("renders an empty-string slug as a non-link plate, never href='/'", () => {
+    renderCard(entry({ slug: "" }));
+    expect(screen.queryByRole("link")).toBeNull();
+    expect(
+      screen.getByRole("heading", { level: 3, name: /a card/i }),
+    ).toBeInTheDocument();
+  });
+});
