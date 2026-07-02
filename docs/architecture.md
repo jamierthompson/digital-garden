@@ -87,7 +87,7 @@ Tokens are organized in **three layers**, each consuming the one before it:
 
 | Layer          | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                 |
 | -------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Foundation** | global `:root`                                    | the raw primitives + the reset: the neutral B/W/gray ramp, the Newsreader face, the spacing ramp, motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.                                                                           |
+| **Foundation** | global `:root`                                    | the raw primitives + the reset: the neutral B/W/gray ramp, the Newsreader face, the spacing ramp, content-width measures (`--width-prose`/`-text`/`-content`), motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.              |
 | **Semantic**   | global `:root` (the editorial default mapping)    | the **generic role tokens components read** — `--surface`, `--text`, `--text-muted`, `--accent`, `--font-face`, the status roles (`--success` … `--info`), etc. — mapped from the primitives. The editorial look **is** this default mapping at `:root`.                                                 |
 | **Brand**      | the project's interactive slot (`[data-project]`) | a **scoped override** of the semantic layer for one slot — the engine's contrast-solved color tokens (incl. focus-ring _color_ and status colors), driven by the slot's `brandColor`, plus `--font-face` from its `fontKey`. Open-ended by design: a slot may override any semantic token it differs on. |
 
@@ -108,7 +108,7 @@ from is deferred to the Palette Studio (#78).
 
 ```
 global :root  (foundation primitives + the semantic editorial defaults)
-   ├─ FOUNDATION: neutral B/W/gray ramp · Newsreader · spacing ramp · motion curves
+   ├─ FOUNDATION: neutral B/W/gray ramp · Newsreader · spacing ramp · content widths · motion curves
    │              · type-scale ratios · breakpoint constants · z-index · focus-ring GEOMETRY · reset
    ├─ SEMANTIC (editorial default mapping): --surface · --text · --accent · --font-face
    │              · --text-muted · --border · --success · …  ← the generic contract

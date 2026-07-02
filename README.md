@@ -101,7 +101,7 @@ not auto-layer modules and an unlayered one would silently outrank layered style
 ```
 src/
   app/                  # App Router: routes, layouts, global styles
-    layout.tsx          # root layout — editorial shell (ProjectScope slug="garden") + nav
+    layout.tsx          # root layout — global editorial chrome: SiteNav + page + SiteFooter
     page.tsx            # home — the featured front door (branded cards of featuredRank entries)
     browse/             # the Index — one browsable list of every entry (folds the old work + notes)
     now/                # the /now stream (Sanity-driven, kind == "now"); about/ — editorial pages
@@ -112,7 +112,7 @@ src/
     foundation.css      # foundation primitives + semantic editorial defaults + @layer order + reset
   projects/             # self-contained project modules (e.g. first-light/)
   embeds/               # shared in-essay embed components (key → component)
-  components/           # project-scope (keystone), portable-text serializer, shell nav
+  components/           # shell/ (SiteNav · SiteFooter), entry/ (EntryCard), project-scope (keystone), portable-text
   fonts/roster.ts       # curated next/font faces, one per key
   lib/                  # keys.ts (key contracts), resolvers/, cardSwatches.ts, breakpoints.ts
   sanity/lib/           # Sanity client + defineLive (live.ts) + stega + env + typed GROQ queries
