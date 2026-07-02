@@ -14,7 +14,7 @@ import "./globals.css";
 // so they sit safely after the global sheets.
 import { Geist_Mono, Source_Serif_4 } from "next/font/google";
 
-import ShellNav from "@/components/shell/ShellNav";
+import SiteNav from "@/components/shell/SiteNav";
 import SiteFooter from "@/components/ui/SiteFooter";
 import { FONT_FACES } from "@/fonts/roster";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
@@ -86,7 +86,7 @@ export default function RootLayout({
       className={`${geistMono.variable} ${sourceSerif.variable} ${FONT_FACES["space-grotesk"].variable} ${FONT_FACES["jetbrains-mono"].variable}`}
     >
       <body>
-        <ShellNav />
+        <SiteNav />
         {children}
         <SiteFooter />
         {/* Opens the Sanity Live EventSource so pages revalidate on content changes. Renders for

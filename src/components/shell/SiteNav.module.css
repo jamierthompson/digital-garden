@@ -1,4 +1,4 @@
-/* Shell navigation — the "engineering journal" masthead. @layer project — declares its layer
+/* Site navigation — the "engineering journal" masthead. @layer project — declares its layer
    (unlayered modules outrank every layered rule); var-consuming only. Reads the global
    editorial semantic tokens (the shell is never brand-scoped). */
 @layer project {

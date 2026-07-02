@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import NavLinks from "./NavLinks";
-import styles from "./ShellNav.module.css";
+import styles from "./SiteNav.module.css";
 
 /**
  * The shell's primary navigation — the "engineering journal" masthead.
@@ -12,7 +12,7 @@ import styles from "./ShellNav.module.css";
  * `--text`, `--border`). The shell is never brand-scoped — editorial chrome is global; a
  * project's brand is scoped to its own interactive slot.
  */
-export default function ShellNav() {
+export default function SiteNav() {
   return (
     <header className={styles.header}>
       {/* The masthead byline band above the nav (every page) — the engineering-journal
