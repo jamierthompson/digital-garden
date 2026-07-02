@@ -3,9 +3,9 @@
  *
  * Two wrappers over the low-level surface (convert/gamut/contrast):
  *   • `resolveTheme(brandColor, scheme, opts)` → one scheme's tokens
- *     (Consumer B playground, Consumer C `cardSwatches` — they want one scheme).
+ *     (the oklch-engine playground and `cardSwatches` — they want one scheme).
  *   • `buildTokenSet(brandColor, opts)` → both schemes zipped into `light-dark()` pairs
- *     (Consumer A `ProjectScope`, which emits a single block carrying both schemes).
+ *     (`ProjectScope`, which emits a single block carrying both schemes).
  *
  * Order of operations is fixed: parse defensively → detect the seed's native scheme
  * (auto-direction) → per-scheme seed (dark = reduced chroma) → gamut-map → solve contrast
@@ -471,7 +471,7 @@ function mapTokens<T>(
 }
 
 /**
- * Build the dual-scheme token set for `ProjectScope` (Consumer A): resolves both
+ * Build the dual-scheme token set for `ProjectScope`: resolves both
  * schemes and zips each token into a `{ light, dark }` pair for `light-dark()`.
  * Pure, deterministic, never throws.
  */

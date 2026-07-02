@@ -1,68 +1,99 @@
-/* Home page. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only (shell brand/font tokens). */
+/* Home (featured front door). @layer project — declares its layer (an unlayered module
+   outranks every layered rule). The shell frame is var-consuming editorial (reads the global
+   semantic tokens); the featured cards re-bind ONLY the tokens `cardSwatches` provides
+   (--surface / --text / --border / --accent) inline, so each card themes to its own brand
+   without reaching for a token the swatch doesn't solve (e.g. --text-muted stays global). */
 @layer project {
   .main {
     display: flex;
     flex-direction: column;
-    gap: var(--space-8);
-    max-width: 60rem;
+    gap: var(--space-9);
+    max-width: 64rem;
     margin: 0 auto;
-    padding: var(--space-8) var(--space-6);
+    padding: var(--space-9) var(--space-5);
   }
 
   .hero {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
-    align-items: flex-start;
+    gap: var(--space-3);
+    max-width: 60ch;
   }
 
   .title {
-    font-family: var(--font-face);
     font-size: var(--text-4xl);
     line-height: var(--leading-tight);
     color: var(--text);
   }
 
   .tagline {
-    max-width: 38rem;
     font-size: var(--text-lg);
+    line-height: var(--leading-normal);
     color: var(--text-muted);
   }
 
-  .wayfinding {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  .featured {
+    display: flex;
+    flex-direction: column;
     gap: var(--space-4);
   }
 
+  .sectionHeading {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--space-5);
+    list-style: none;
+    padding: 0;
+  }
+
+  /* A branded card slot: reads only the tokens `cardSwatches` re-binds on this element. */
   .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .cardLink {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
     padding: var(--space-5);
-    border: 1px solid var(--border);
-    border-radius: var(--space-2);
-    background: var(--surface);
+    color: var(--text);
     text-decoration: none;
-    transition:
-      border-color var(--duration-fast) var(--ease-standard),
-      background-color var(--duration-fast) var(--ease-standard);
-  }
-
-  .card:hover {
-    border-color: var(--accent);
-    background: var(--surface-2);
   }
 
   .cardTitle {
-    font-family: var(--font-face);
-    font-weight: 600;
-    font-size: var(--text-lg);
-    color: var(--text);
+    font-size: var(--text-xl);
+    line-height: var(--leading-tight);
+    color: var(--accent);
   }
 
   .cardBlurb {
-    font-size: var(--text-sm);
-    color: var(--text-muted);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+    color: var(--text);
+  }
+
+  .wayfinding {
+    display: flex;
+  }
+
+  .browseLink {
+    font-size: var(--text-lg);
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .browseLink:hover {
+    text-decoration: underline;
   }
 }

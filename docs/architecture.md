@@ -11,16 +11,6 @@ evolves, and git history is the audit trail — there is no separate decision lo
 against. Where any doc and the framework disagree, **the bundled Next docs win**
 (`node_modules/next/dist/docs/`) — your training data is stale on this stack.
 
-**Build status (2026-07-01).** The shared foundation, the OKLCH engine, the Sanity content model,
-and the first project are live. Some material below describes the **designed** state that the
-running code hasn't fully caught up to yet — each tracked by a GitHub issue. Until these land the
-code still names the content type `project`, has no `kind` field, and routes under `/work`:
-
-- one `entry` document type with a `kind` discriminator (note · essay · project · now), `stage`,
-  an authored `iterated` date, self-referencing `related` backlinks, and `featuredRank` → #59;
-- flat root-level `/[slug]` routes, a featured front door at `/`, and the browsable **Index** → #60;
-- seed entries proving the engine across brands → #65.
-
 ---
 
 ## Guiding principles
@@ -224,7 +214,7 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 - Runs **per slot** — once per project slot (seeded by that project's `brandColor`). Multiple themed
   slots can coexist on one page; the page chrome around them stays editorial. **Previews are not
   slots**: an index card or inline preview needs a few colors, not a namespace, so it derives them
-  from the same engine (Consumer C) and skips the scoped `<style>` block.
+  from the same engine (via `cardSwatches`) and skips the scoped `<style>` block.
 
 - Emitted as a **server-rendered scoped `<style>` block** (`[data-project="x"] { … }`), declared
   `@layer brand`. On Vercel this is genuinely **flash-free for color**: the `brandColor` is known
@@ -238,19 +228,19 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   `--font-body`, …); the engine emits the ramp primitives, the scope does the role mapping — not the
   engine.
 
-**Three consumers, one engine:**
+**Three call sites, one engine:**
 
-- **Consumer A — the theming feature**: the per-slot theming layer (`ProjectScope`) calls the
-  engine on the server to emit each slot's `<style>` block.
-- **Consumer B — the portfolio piece**: `src/projects/oklch-engine/` is an ordinary project module
-  (a project module like any other) whose interactive experience is a playground (drag a hue, watch
-  the palette regenerate). The experience **imports the same shared engine** — it never reimplements
-  it, and re-runs the pure function in JS on each slider move (it does not rely on CSS re-derivation).
-- **Consumer C — preview swatches**: the index (and inline previews) call a
-  `cardSwatches(brandColor)` helper that runs the **same engine** and returns just a few stops. The
-  card sets them as inline `--c-*` custom properties on otherwise-editorial chrome — no slot scope,
-  no `<style>` block, no full override. It goes through the same parse/validate path as everything
-  else.
+- **Slot theming (`ProjectScope`)**: the per-slot theming layer calls the engine on the server to
+  emit each slot's `<style>` block.
+- **The portfolio piece (`src/projects/oklch-engine/`)**: an ordinary project module (like any other)
+  whose interactive experience is a playground (drag a hue, watch the palette regenerate). The
+  experience **imports the same shared engine** — it never reimplements it, and re-runs the pure
+  function in JS on each slider move (it does not rely on CSS re-derivation).
+- **Preview swatches (`cardSwatches`)**: the featured-home cards (and inline previews) call a
+  `cardSwatches(brandColor)` helper that runs the **same engine** and returns just a few stops, spread
+  inline as **generic semantic-token overrides** (`--surface`/`--text`/`--border`/`--accent`, no
+  prefix) on an otherwise-editorial frame — no slot scope, no `<style>` block. It goes through the
+  same parse/validate path as everything else.
 
 Two deliberate consequences:
 
@@ -316,11 +306,13 @@ page in `pages/` mounts it. A headless `core/` is **not** templated into every m
 emerge only when an experience's logic warrants extraction (same deferral discipline as the
 embed tiers; see the interactive experience section). The module owns its page components; thin
 route files mount them. Code lives under `src/projects/<slug>/`; **routes are flat** — `/` is the
-**featured** front door, a browsable **Index** lists every entry, and a root-level `/[slug]` (a
-dynamic segment that cedes precedence to static segments like `/about`, `/now`, and the Index) mounts
-any entry's pages. Every entry — note, essay, or project — lives at a **flat top-level slug**
-(`/some-note`, not `/notes/some-note`), so its URL stays stable even if its `kind` changes. There is
-no `/work` prefix.
+**featured** front door, a browsable **Index** (nav-labelled "Index") lists every entry at
+**`/browse`**, and a root-level `/[slug]` (a dynamic segment that cedes precedence to the static
+segments `/browse`, `/about`, `/now`) mounts any entry's pages. Every entry — note, essay, or
+project — lives at a **flat top-level slug** (`/some-note`, not `/notes/some-note`), so its URL stays
+stable even if its `kind` changes. There is no `/work` prefix. The browse route is `/browse`, **not
+`/index`**: Next.js reserves `index` for the root segment's prerender output (`app/index.html`), so a
+route literally named `index` silently serves the home page.
 
 **Start single-tier** — one shared `src/lib/resolvers/embeds.ts` until a second project actually reuses a
 widget; introduce the project-local tier only then. Once you do, embeds follow the **same
@@ -456,8 +448,8 @@ Practical notes:
   being a `_type` split. The kinds differ by **scope and emphasis, not fields** — a _note_ is a small,
   often single-component piece (and doubles as a shareable social post); an _essay_ is writing-led with
   interactions slotted in; a _project_ is an interactive experience with more slots; a _now_ is a dated
-  "now" update (à la a `/now` stream) that can mix into the Index (the Sanity-driven `/now` + Index
-  wiring is #60). `brandColor` and `componentKey` are **conditionally required for a `project`** and
+  "now" update that drives the reverse-chronological `/now` stream and also mixes into the Index.
+  `brandColor` and `componentKey` are **conditionally required for a `project`** and
   optional for the other kinds; `stage` does not apply to a `now`. A second document type is deferred
   until a kind genuinely proves divergent fields.
 - **`stage` is maturity; `iterated` is freshness.** **`stage`** (sketch → prototype → shipped —
@@ -497,7 +489,7 @@ Practical notes:
   registry; neither → it's not an input._
 - **The index query refuses to over-fetch.** The card query pulls `blurb`, `brandColor`, `fontKey`,
   `kind`, `stage`, `featuredRank` — **not** the body. That enforces "a few colors per card" at the data
-  layer (cards feed `cardSwatches` — the OKLCH engine's Consumer C) and keeps the index payload small
+  layer (cards feed `cardSwatches`) and keeps the index payload small
   for CWV.
 - **`ProjectScope` is the resolution keystone.** One server component takes a scope's `brandColor` +
   `fontKey` and emits the flash-free scoped `<style>` (engine palette, both schemes via
@@ -518,10 +510,13 @@ Practical notes:
   components) and pulls a demo bundle only if it explicitly embeds one.
 - **Two reading paths over one content graph.** The **featured home** (`/`) is a curated front door —
   the entries with a `featuredRank`, of _any_ `kind`, ordered by rank — for a hurried evaluator. The
-  **Index** is the full browsable list of every entry, filtered by `kind` and `stage` and wired with
-  backlinks, for the wanderer. The portfolio is a _view_ of the graph (a saved `featuredRank != null`
-  filter), not a separate section. Both, plus `/about` and `/now`, are shell-owned and wear the global
-  editorial look (see the token & theming architecture).
+  **Index** (at `/browse`) is the full browsable list of every entry, filtered by `kind` and `stage`
+  and wired with backlinks, for the wanderer. The portfolio is a _view_ of the graph (a saved
+  `featuredRank != null` filter), not a separate section. The **shell frame** of both — plus `/about`
+  and `/now` — is editorial ink (see the token & theming architecture). Their _content_ differs by
+  intent: the Index is a uniform editorial list, but the **featured home's cards are branded slots** —
+  each re-binds its own engine-solved palette inline via `cardSwatches`, because a
+  card is a bounded slot, not chrome. So brand still lives only in slots, never in the frame.
 - **TypeGen + `defineQuery`**: typed GROQ; run TypeGen after any schema or query change (a committed
   script + a CI `git diff --exit-code` on the generated types keeps it from rotting); `defineQuery`
   must wrap the query literally (no runtime interpolation).

@@ -7,8 +7,8 @@ import {
 } from "./queries";
 
 /**
- * The /work index query's contract is "refuse to over-fetch": it must pull
- * the card fields and must NOT pull the body. Asserting the query string keeps
+ * The project-feed (RSS) query's contract is "refuse to over-fetch": it must pull
+ * the feed fields and must NOT pull the body. Asserting the query string keeps
  * the data-layer guard honest without rendering an async RSC (untestable in
  * jsdom — testing.md). A failure here means the index payload regressed.
  */
@@ -50,7 +50,7 @@ describe("WORK_INDEX_QUERY", () => {
 });
 
 /**
- * The detail query (`/work/<slug>`) is the inverse of the index: it DOES pull the body
+ * The detail query (`/[slug]`) is the inverse of the index: it DOES pull the body
  * and the theming seeds, resolves backlinks both directions (`related[]->` outgoing +
  * incoming `references()`), fetches by `$slug` parameter (never interpolation), and `[0]`s
  * to a single doc so the route can `notFound()` on a miss.

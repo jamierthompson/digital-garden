@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 import styles from "./states.module.css";
 
-// The page-level error boundary for `/work/<slug>`. Error boundaries MUST be Client
+// The page-level error boundary for `/<slug>`. Error boundaries MUST be Client
 // Components (`node_modules/.../03-file-conventions/error.md`). Next 16's props are `error`
 // and `unstable_retry` (NOT the older `reset`) — verified against the bundled docs.
 //

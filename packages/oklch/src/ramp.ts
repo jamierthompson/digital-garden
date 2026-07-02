@@ -2,7 +2,7 @@
  * Low-level surface: build a perceptual lightness ramp for a hue.
  *
  * Part of the engine's exported low-level API (alongside the conversions, gamut map,
- * and contrast functions) so Consumer B (the playground) and any consumer that wants
+ * and contrast functions) so the oklch-engine playground and any caller that wants
  * raw stops — rather than the high-level solved token set — can step lightness and
  * read measured contrast directly. Every stop is gamut-mapped. Pure, never throws.
  */

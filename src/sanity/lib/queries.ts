@@ -1,18 +1,14 @@
 import { defineQuery } from "next-sanity";
 
 /**
- * `/work` index query (project-kind entries).
+ * Project feed query (RSS) — project-kind entries.
  *
- * Pulls only what a card needs — `blurb`, `brandColor`, `fontKey`, plus the `kind` /
- * `stage` / `featuredRank` facets (and id / title / slug for the link) — and deliberately
- * NOT the `body`. This enforces "a few colors per card" at the data layer: `brandColor`
- * feeds `cardSwatches` (engine Consumer C), and omitting the body keeps the index payload
- * small for CWV. The over-fetch guard is asserted in queries.test.ts.
- *
- * Filters to `kind == "project"` — the current `/work` index lists projects (the flat
- * `/[slug]` + browsable Index restructure is #60). Typed by Sanity TypeGen as
- * `WORK_INDEX_QUERYResult` in the root `sanity.types.ts`. `defineQuery` must wrap the
- * literal — no runtime interpolation — so TypeGen can statically pick it up.
+ * Pulls only what the feed needs — `blurb`, plus the `kind` / `stage` / `featuredRank`
+ * facets (and id / title / slug for the link) — and deliberately NOT the `body`, keeping the
+ * read small. Filters to `kind == "project"`: the RSS feed is the portfolio's project stream.
+ * (The old `/work` index this once fed folded into `/browse`; only `rss.xml` reads it now.)
+ * The over-fetch guard is asserted in queries.test.ts. Typed by Sanity TypeGen as
+ * `WORK_INDEX_QUERYResult`. `defineQuery` must wrap the literal — no runtime interpolation.
  */
 export const WORK_INDEX_QUERY = defineQuery(`
   *[_type == "entry" && kind == "project" && defined(slug.current)] | order(_createdAt desc) {
@@ -29,7 +25,18 @@ export const WORK_INDEX_QUERY = defineQuery(`
 `);
 
 /**
- * `/work/<slug>` entry-detail query.
+ * All published entry slugs — any `kind`.
+ *
+ * Feeds `generateStaticParams` for the flat `/[slug]` route: every entry now has a
+ * root-level detail page, so the build prerenders the whole published set (un-enumerated
+ * slugs still render on-demand under PPR). Deliberately minimal — just the slug.
+ */
+export const ENTRY_SLUGS_QUERY = defineQuery(`
+  *[_type == "entry" && defined(slug.current)]{ "slug": slug.current }
+`);
+
+/**
+ * Entry-detail query (`/[slug]`, any `kind`).
  *
  * The full entry document for one slug — UNLIKE the index query, it DOES pull the `body`
  * (the detail route renders it through the Portable Text serializer) plus the theming seeds
@@ -63,6 +70,71 @@ export const PROJECT_DETAIL_QUERY = defineQuery(`
     related[]->{ _id, title, "slug": slug.current, kind },
     "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind },
     tags
+  }
+`);
+
+/**
+ * Index query (`/browse`, every kind) — the browsable list that folds the old `/work` and
+ * `/notes` indexes into one editorial surface.
+ *
+ * Pulls every published entry with the facets the Index reads — `kind` + `stage` (the group
+ * headings + maturity badge) and a `linkCount` (outgoing `related` + incoming `references()`,
+ * the backlink hint) — plus `title` / `slug` / `blurb` for the row. Deliberately NOT the
+ * `body` or theming seeds: the Index wears the global editorial look (no per-row brand), so it
+ * needs neither the rich text nor `brandColor`/`fontKey`. Ordered by `kind`, then freshest
+ * first (`iterated`, falling back to `_createdAt`). Typed as `INDEX_QUERYResult`.
+ */
+export const INDEX_QUERY = defineQuery(`
+  *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {
+    _id,
+    title,
+    "slug": slug.current,
+    kind,
+    stage,
+    iterated,
+    blurb,
+    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])
+  }
+`);
+
+/**
+ * Featured query (`/`, curated front door) — entries with a `featuredRank`, any `kind`.
+ *
+ * The hurried evaluator's reading path: the curated subset an editor promoted (`featuredRank`
+ * is set), ordered by rank (lower = earlier). Pulls the card fields — `blurb` + the theming
+ * seeds `brandColor` / `fontKey` — because the featured cards ARE branded: each re-binds its
+ * own engine-solved palette inline via `cardSwatches`. Deliberately NOT
+ * the `body`, keeping the front-door payload small for LCP. Typed as `FEATURED_QUERYResult`.
+ */
+export const FEATURED_QUERY = defineQuery(`
+  *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {
+    _id,
+    title,
+    "slug": slug.current,
+    kind,
+    stage,
+    blurb,
+    brandColor,
+    fontKey
+  }
+`);
+
+/**
+ * Now query (`/now`) — the dated "now" stream (`kind == "now"`).
+ *
+ * A reverse-chronological stream of `now` updates (à la nownownow.com), newest first by the
+ * authored `iterated` date (falling back to `_createdAt`). Pulls `title` / `slug` / `blurb`
+ * for the stream entry and `iterated` for the date stamp — NOT the `body` (each update links
+ * to its own flat `/[slug]` for the full text). Now-updates also fold into the Index's "Now"
+ * section via `INDEX_QUERY`. Typed as `NOW_QUERYResult`.
+ */
+export const NOW_QUERY = defineQuery(`
+  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {
+    _id,
+    title,
+    "slug": slug.current,
+    iterated,
+    blurb
   }
 `);
 

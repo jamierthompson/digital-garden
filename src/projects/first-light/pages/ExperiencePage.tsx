@@ -5,7 +5,7 @@ import FirstLightExperience from "../experience";
  * component-vs-page split, where a project would add page-level chrome around its experience.
  *
  * No route mounts it: `first-light` embeds its experience inline in the essay (the
- * `/work/[slug]` route resolves the module and renders `Experience` directly). Kept as the
+ * `/[slug]` route resolves the module and renders `Experience` directly). Kept as the
  * scaffold a richer project's route would mount.
  */
 export default function ExperiencePage() {

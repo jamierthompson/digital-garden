@@ -1,15 +1,15 @@
 /**
- * `cardSwatches(brandColor)` — engine Consumer C.
+ * `cardSwatches(brandColor)` — derives a card's engine-solved palette.
  *
  * Derives a project card's full engine-solved palette from its `brandColor`, as inline
  * overrides of the GENERIC semantic tokens (`--surface`, `--text`, `--border`, `--accent`) —
  * the same role names every component already reads. Spread straight onto a card's `style={…}`
  * they re-bind those tokens for that card's subtree (scope-isolation via the inline cascade),
  * so a dozen differently-branded cards coexist on one grid with no `<style>` tag, no class,
- * and no project-prefixed token names (#57). A CONSUMER of the OKLCH engine, not part of it,
+ * and no project-prefixed token names (#57). A caller of the OKLCH engine, not part of it,
  * so it lives in `src/lib/` rather than inside the `@garden/oklch` package.
  *
- * Why the FULL palette, not a lone accent: the `/work` grid is the engine's live contrast
+ * Why the FULL palette, not a lone accent: the featured-home grid is the engine's live contrast
  * stress-test. A card's SURFACE and TEXT are BOTH engine-derived, so the ratio between them
  * *is* the solver's output — exercised and visible at every brand value across the grid. A
  * card is a project's own scoped slot (not chrome), so a fully-branded card is exactly "brand

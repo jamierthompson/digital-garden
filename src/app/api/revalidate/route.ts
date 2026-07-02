@@ -20,7 +20,7 @@ import { parseBody } from "next-sanity/webhook";
  * `{ expire: 0 }` — the form the doc prescribes for webhooks needing immediate
  * expiration. `"max"` is stale-while-revalidate, so the FIRST visitor after a publish
  * would still see stale content (the observed bug — a fresh project missing from
- * `/work`); `{ expire: 0 }` makes the next request a blocking fresh fetch.
+ * `/browse`); `{ expire: 0 }` makes the next request a blocking fresh fetch.
  *
  * `parseBody` verifies the `sanity-webhook-signature` HMAC against
  * `SANITY_REVALIDATE_SECRET`, and with the 3rd arg `true` waits ~3s for Content Lake

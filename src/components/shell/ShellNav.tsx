@@ -14,17 +14,14 @@ export default function ShellNav() {
     <header className={styles.header}>
       <nav className={styles.nav} aria-label="Primary">
         <Link href="/" className={styles.brand}>
-          Digital Garden
+          Jamie Thompson
         </Link>
+        {/* Home is the logo (→ `/`), so it is not a separate nav item. The two reading
+            paths + the shell pages: Index (browse everything) · Now · About. */}
         <ul className={styles.links}>
           <li>
-            <Link href="/work" className={styles.link}>
-              Work
-            </Link>
-          </li>
-          <li>
-            <Link href="/about" className={styles.link}>
-              About
+            <Link href="/browse" className={styles.link}>
+              Index
             </Link>
           </li>
           <li>
@@ -33,8 +30,8 @@ export default function ShellNav() {
             </Link>
           </li>
           <li>
-            <Link href="/notes" className={styles.link}>
-              Notes
+            <Link href="/about" className={styles.link}>
+              About
             </Link>
           </li>
         </ul>
