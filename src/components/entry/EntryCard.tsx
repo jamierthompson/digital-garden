@@ -34,7 +34,10 @@ interface EntryCardProps {
  * dead link); a missing title falls back to a neutral label; missing meta simply omits the row.
  */
 export default function EntryCard({ entry }: EntryCardProps) {
-  const title = entry.title ?? "Untitled entry";
+  // Nullish-coalescing isn't enough: a blank Studio field serialises to "" (a valid string),
+  // which would render an empty <h3> — a nameless heading in the outline and a link whose
+  // accessible name silently degrades to the blurb. Treat blank/whitespace-only as missing.
+  const title = entry.title?.trim() ? entry.title : "Untitled entry";
   const meta = [entry.stage, entry.brandColor].filter(Boolean).join(" · ");
 
   const body: ReactNode = (

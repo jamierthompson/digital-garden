@@ -8,7 +8,10 @@
     gap: var(--space-9);
     max-width: var(--width-content);
     margin: 0 auto;
-    padding: var(--space-9) var(--space-5);
+    /* Horizontal inset MUST match the shell (nav/masthead/footer use --space-6), so the hero
+       and cards sit on the same content column as the `folio_` wordmark — a 24 vs 32px
+       mismatch here left the h1 8px off the byline (browser QA). */
+    padding: var(--space-9) var(--space-6);
   }
 
   .hero {
