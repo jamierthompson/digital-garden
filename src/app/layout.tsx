@@ -12,7 +12,7 @@ import "./globals.css";
 
 // Binding imports (no CSS side-effect that moves the Turbopack stylesheet anchor pinned above),
 // so they sit safely after the global sheets.
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 
 import ShellNav from "@/components/shell/ShellNav";
 import { FONT_FACES } from "@/fonts/roster";
@@ -21,22 +21,21 @@ import { sanityFetch } from "@/sanity/lib/sanityFetch";
 import SanityLiveMount from "@/sanity/SanityLiveMount";
 import VisualEditingControls from "@/sanity/VisualEditingControls";
 
-// The shell's own faces. Geist Sans/Mono are the system sans + mono (mono is the
-// scope's shell-font fallback). Newsreader is the GLOBAL EDITORIAL body font — the
-// semantic `--font-face` default (foundation.css) maps to `var(--font-newsreader)`, so
-// mounting its roster `.variable` on <html> brings that variable into scope for all chrome.
-// Newsreader loads via the roster (preload: false); its size-adjusted fallback keeps CLS at
-// zero. A project slot overrides `--font-face` with its own roster face.
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  preload: true,
-});
-
+// The shell's own faces. Newsreader is the GLOBAL EDITORIAL body font — the semantic
+// `--font-face` default (foundation.css) maps to `var(--font-newsreader)`, so mounting its
+// roster `.variable` on <html> brings that variable into scope for all chrome. Newsreader
+// loads via the roster (preload: false); its size-adjusted fallback keeps CLS at zero. A
+// project slot overrides `--font-face` with its own roster face.
+//
+// Geist Mono is the scope's shell-font FALLBACK (`--font-geist-mono`, used only when a
+// project's `fontKey` doesn't resolve — see scopeSeed.ts). It is never above the fold on the
+// shell routes, so `preload: false` per the font-preload policy: preload only above-the-fold
+// faces (accessibility-and-performance.md). (Geist Sans was removed — nothing read
+// `--font-geist-sans`, so its preload was pure waste competing with LCP.)
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-  preload: true,
+  preload: false,
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -67,12 +66,12 @@ export default function RootLayout({
   // Editorial chrome is GLOBAL: the shell reads the semantic layer's editorial defaults
   // (foundation.css) — no `siteSettings`-seeded brand scope wraps the shell any more. A
   // project's brand color + font are scoped to its own interactive slot (see
-  // `work/[slug]/page.tsx`), never the shell. `siteSettings` still feeds `generateMetadata`
+  // `[slug]/page.tsx`), never the shell. `siteSettings` still feeds `generateMetadata`
   // (title/description); it no longer themes the chrome.
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${FONT_FACES.newsreader.variable}`}
+      className={`${geistMono.variable} ${FONT_FACES.newsreader.variable}`}
     >
       <body>
         <ShellNav />

@@ -29,6 +29,13 @@
   }
 
   .link {
+    /* ≥24×24 hit area (WCAG 2.5.8 Target Size) — a real target, not the 2.5.8 spacing
+       exception: the bare text ran ~18px tall. `inline-flex` + `min-height` guarantees the
+       floor; the vertical padding grows the pointer target without shifting the row. */
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.5rem;
+    padding-block: var(--space-2);
     color: var(--text-muted);
     text-decoration: none;
     transition: color var(--duration-fast) var(--ease-standard);
