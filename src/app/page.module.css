@@ -1,8 +1,6 @@
 /* Home (featured front door). @layer project — declares its layer (an unlayered module
-   outranks every layered rule). The shell frame is var-consuming editorial (reads the global
-   semantic tokens); the featured cards re-bind ONLY the tokens `cardSwatches` provides
-   (--surface / --text / --border / --accent) inline, so each card themes to its own brand
-   without reaching for a token the swatch doesn't solve (e.g. --text-muted stays global). */
+   outranks every layered rule). Var-consuming editorial frame only (reads the global semantic
+   tokens); the branded card slots live in `EntryCard` (its own module + inline swatches). */
 @layer project {
   .main {
     display: flex;
@@ -47,34 +45,5 @@
     gap: var(--space-5);
     list-style: none;
     padding: 0;
-  }
-
-  /* A branded card slot: reads only the tokens `cardSwatches` re-binds on this element. */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 0.75rem;
-    overflow: hidden;
-  }
-
-  .cardLink {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-5);
-    color: var(--text);
-    text-decoration: none;
-  }
-
-  .cardTitle {
-    font-size: var(--text-xl);
-    line-height: var(--leading-tight);
-    color: var(--accent);
-  }
-
-  .cardBlurb {
-    font-size: var(--text-base);
-    line-height: var(--leading-normal);
-    color: var(--text);
   }
 }

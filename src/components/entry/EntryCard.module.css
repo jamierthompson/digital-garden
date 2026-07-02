@@ -1,0 +1,33 @@
+/* Branded entry card. @layer project — declares its layer (an unlayered module outranks every
+   layered rule). Reads ONLY the semantic tokens `cardSwatches` re-binds on this card's element
+   (--surface / --text / --border / --accent); anything it doesn't solve (e.g. --text-muted)
+   stays the global editorial default. */
+@layer project {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .title {
+    font-size: var(--text-xl);
+    line-height: var(--leading-tight);
+    color: var(--accent);
+  }
+
+  .blurb {
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+    color: var(--text);
+  }
+}
