@@ -132,7 +132,7 @@ before touching the roster.
   Caching bakes the resolved className into the HTML but emits **no**
   `<link rel=preload as=font>` for a face it couldn't statically identify.
 - **Per-project faces are applied, not preloaded:** `.variable` on the `[data-project]`
-  scope, where the slot's generic `--font-body` maps to it; they tolerate `font-display: swap`
+  scope, where the slot's generic `--font-face` maps to it; they tolerate `font-display: swap`
   below the fold.
 - **If an above-the-fold project face genuinely must preload,** emit
   `<link rel="preload" as="font" crossorigin>` **manually** — `crossorigin` is required
