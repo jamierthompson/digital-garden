@@ -31,9 +31,9 @@ export default async function Home() {
       <section className={styles.hero}>
         <h1 className={styles.title}>Jamie Thompson</h1>
         <p className={styles.tagline}>
-          Design engineer. A personal portfolio and digital garden — each
-          project a self-contained, independently themed island composed on one
-          shared foundation.
+          A personal portfolio and digital garden — each project a
+          self-contained, independently themed island, composed on one shared
+          foundation.
         </p>
       </section>
 

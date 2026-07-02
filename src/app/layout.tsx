@@ -12,7 +12,7 @@ import "./globals.css";
 
 // Binding imports (no CSS side-effect that moves the Turbopack stylesheet anchor pinned above),
 // so they sit safely after the global sheets.
-import { Geist_Mono } from "next/font/google";
+import { Geist_Mono, Source_Serif_4 } from "next/font/google";
 
 import ShellNav from "@/components/shell/ShellNav";
 import { FONT_FACES } from "@/fonts/roster";
@@ -21,17 +21,28 @@ import { sanityFetch } from "@/sanity/lib/sanityFetch";
 import SanityLiveMount from "@/sanity/SanityLiveMount";
 import VisualEditingControls from "@/sanity/VisualEditingControls";
 
-// The shell's own faces. Newsreader is the GLOBAL EDITORIAL body font — the semantic
-// `--font-face` default (foundation.css) maps to `var(--font-newsreader)`, so mounting its
-// roster `.variable` on <html> brings that variable into scope for all chrome. Newsreader
-// loads via the roster (preload: false); its size-adjusted fallback keeps CLS at zero. A
-// project slot overrides `--font-face` with its own roster face.
+// The shell's own body face. Source Serif 4 is the GLOBAL EDITORIAL body font — the semantic
+// `--font-face` default (foundation.css) maps to `var(--font-source-serif-4)`, so mounting its
+// `.variable` on <html> brings that variable into scope for all chrome. Its size-adjusted
+// fallback keeps CLS at zero. A project slot overrides `--font-face` with its own roster face.
+// The shell's display face (Space Grotesk → `--font-display`, the `folio_` logo + nav) and
+// mono face (JetBrains Mono → `--font-mono`, metadata/readouts) are ALSO in the per-project
+// roster, so the shell reuses those roster `.variable`s (mounted below) rather than declaring
+// duplicate loaders.
 //
-// Geist Mono is the scope's shell-font FALLBACK (`--font-geist-mono`, used only when a
-// project's `fontKey` doesn't resolve — see scopeSeed.ts). It is never above the fold on the
-// shell routes, so `preload: false` per the font-preload policy: preload only above-the-fold
-// faces (accessibility-and-performance.md). (Geist Sans was removed — nothing read
-// `--font-geist-sans`, so its preload was pure waste competing with LCP.)
+// `preload: false` matches the existing shell posture (accessibility-and-performance.md): the
+// preload policy preloads only above-the-fold faces via a manual `<link>`, since `next/font`
+// can't statically target a runtime-selected face — so no loader here flips preload on. (#38.)
+const sourceSerif = Source_Serif_4({
+  variable: "--font-source-serif-4",
+  subsets: ["latin"],
+  preload: false,
+});
+
+// Geist Mono is the project scope's shell-font FALLBACK (`--font-geist-mono`, used only when a
+// project's `fontKey` doesn't resolve — see scopeSeed.ts). Kept mounted so that fallback
+// resolves. Never above the fold on the shell routes, so `preload: false`. (Geist Sans was
+// removed — nothing read `--font-geist-sans`, so its preload was pure waste competing with LCP.)
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -71,7 +82,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistMono.variable} ${FONT_FACES.newsreader.variable}`}
+      className={`${geistMono.variable} ${sourceSerif.variable} ${FONT_FACES["space-grotesk"].variable} ${FONT_FACES["jetbrains-mono"].variable}`}
     >
       <body>
         <ShellNav />
