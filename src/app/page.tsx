@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
-import VisuallyHidden from "@/components/ui/VisuallyHidden";
+import { VisuallyHidden } from "radix-ui";
+
 import { cardSwatches } from "@/lib/cardSwatches";
 import { FEATURED_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
@@ -38,11 +39,12 @@ export default async function Home() {
       {featured.length > 0 ? (
         <section className={styles.featured} aria-labelledby="featured-heading">
           {/* The visual design (mockup 4a) omits a "Featured" label — the plates follow the
-              hero directly. The heading is kept but visually hidden so the section still has an
-              accessible name and the document outline stays intact. */}
-          <VisuallyHidden as="h2" id="featured-heading">
-            Featured
-          </VisuallyHidden>
+              hero directly. The heading is kept but visually hidden (Radix VisuallyHidden via
+              `asChild`, so it stays a real <h2>) — the section keeps its accessible name and
+              the document outline stays intact. */}
+          <VisuallyHidden.Root asChild>
+            <h2 id="featured-heading">Featured</h2>
+          </VisuallyHidden.Root>
           <ul className={styles.grid}>
             {featured.map((entry) => (
               <li
