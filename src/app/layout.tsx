@@ -15,7 +15,7 @@ import "./globals.css";
 import { Geist_Mono, Source_Serif_4 } from "next/font/google";
 
 import SiteNav from "@/components/shell/SiteNav";
-import SiteFooter from "@/components/ui/SiteFooter";
+import SiteFooter from "@/components/shell/SiteFooter";
 import { FONT_FACES } from "@/fonts/roster";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
