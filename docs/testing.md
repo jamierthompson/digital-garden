@@ -13,10 +13,10 @@ acceptance criteria; the co-location and scheduling rules are owned by this doc.
 ## TL;DR
 
 | Question         | Answer                                                                                                                                            |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Runner           | **Vitest 4** (`vitest run` in CI, `vitest` watch locally)                                                                                         |
 | Component lib    | **React Testing Library 16** + `@testing-library/jest-dom`                                                                                        |
-| DOM env          | **jsdom** (single env today; engine adds a `node` project — see [Dual-env](#dual-env-the-oklch-engine))                                           |
+| DOM env          | **jsdom + node** via `test.projects` — the engine suite runs in both (see [Dual-env](#dual-env-the-oklch-engine))                                 |
 | E2E              | **Playwright — not installed.** Add when an E2E of the primary flow is warranted; a jsdom integration test (Sanity mocked) covers it for now      |
 | Browser checks   | **Chrome DevTools MCP** — agent-driven a11y/CWV/visual verification of rendered surfaces; the ship-gate browser check, **not** committed CI tests |
 | Where tests live | **Co-located** next to the subject (`Foo.test.tsx` beside `Foo.tsx`)                                                                              |
@@ -176,7 +176,7 @@ envs (`projects` is the current API — `workspace` is **deprecated** since Vite
 `projects` beats the per-file `// @vitest-environment node` docblock because the docblock runs a
 file in _one_ env — satisfying "both" would mean duplicating the suite. Run a single env while
 debugging an isomorphism failure with `pnpm test --project node`. The committed config is the
-source of truth — read [`../../vitest.config.ts`](../vitest.config.ts).
+source of truth — read [`../vitest.config.ts`](../vitest.config.ts).
 
 ### Engine contract: assert behavior, not snapshots
 
