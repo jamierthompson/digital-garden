@@ -31,7 +31,12 @@ import {
 } from "@garden/oklch";
 
 /** The generic semantic tokens a card re-binds inline — no bespoke prefix (#57). */
-export type CardSwatchVar = "--surface" | "--text" | "--border" | "--accent";
+export type CardSwatchVar =
+  | "--surface"
+  | "--text"
+  | "--border"
+  | "--accent"
+  | "--on-accent";
 
 /** Inline-style-ready object: spread straight onto a card's `style={…}`. */
 export type CardSwatches = Record<CardSwatchVar, string>;
@@ -40,13 +45,15 @@ export type CardSwatches = Record<CardSwatchVar, string>;
  * The engine tokens a card re-binds, keyed by the generic semantic name they override.
  * `satisfies` ties each entry to a real `BrandTokenName`, so a token rename in the engine is
  * a compile error here rather than a silent miss. `surface`/`text` are the contrast-solved
- * pair the stress-test hinges on; `border` and `accent` are the hairline + brand pop.
+ * pair the stress-test hinges on; `border` and `accent` are the hairline + brand pop;
+ * `on-accent` is the engine-solved contrast text for a solid `accent`-colored plate.
  */
 const STOPS = {
   "--surface": "surface",
   "--text": "text",
   "--border": "border",
   "--accent": "accent",
+  "--on-accent": "on-accent",
 } satisfies Record<CardSwatchVar, BrandTokenName>;
 
 /** `light-dark(<light literal>, <dark literal>)` for one token pair — as in css.ts. */

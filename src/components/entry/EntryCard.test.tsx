@@ -8,6 +8,7 @@ function entry(over: Partial<EntryCardEntry> = {}): EntryCardEntry {
     title: "A card",
     slug: "a-card",
     blurb: "A short blurb.",
+    stage: "prototype",
     brandColor: "oklch(0.7 0.15 70)",
     ...over,
   };
@@ -50,11 +51,32 @@ describe("EntryCard", () => {
     expect(screen.queryByText("A short blurb.")).toBeNull();
   });
 
-  it("bakes its brand palette as inline semantic-token overrides (never thrown away)", () => {
+  it("renders the mono meta readout: maturity stage · OKLCH seed", () => {
+    renderCard(entry({ stage: "shipped", brandColor: "oklch(0.6 0.2 260)" }));
+    expect(
+      screen.getByText("shipped · oklch(0.6 0.2 260)"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows only what it has when part of the meta is missing", () => {
+    renderCard(entry({ stage: "sketch", brandColor: null }));
+    expect(screen.getByText("sketch")).toBeInTheDocument();
+  });
+
+  it("omits the meta row entirely when there is no stage or seed", () => {
+    const { container } = renderCard(entry({ stage: null, brandColor: null }));
+    // Title still renders; nothing left to read out.
+    expect(
+      screen.getByRole("heading", { level: 3, name: /a card/i }),
+    ).toBeInTheDocument();
+    expect(container.textContent).not.toContain("·");
+  });
+
+  it("bakes its brand palette inline, incl. the plate's contrast pair (--accent + --on-accent)", () => {
     renderCard(entry());
     const style = screen.getByRole("listitem").getAttribute("style") ?? "";
-    expect(style).toContain("--surface");
     expect(style).toContain("--accent");
+    expect(style).toContain("--on-accent");
   });
 
   it("survives a null / garbage brandColor via the engine fallback (never throws)", () => {

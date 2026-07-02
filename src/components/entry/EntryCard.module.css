@@ -1,33 +1,61 @@
-/* Branded entry card. @layer project — declares its layer (an unlayered module outranks every
-   layered rule). Reads ONLY the semantic tokens `cardSwatches` re-binds on this card's element
-   (--surface / --text / --border / --accent); anything it doesn't solve (e.g. --text-muted)
-   stays the global editorial default. */
+/* Branded entry card — a solid brand PLATE (mockup 4a). @layer project — declares its layer
+   (an unlayered module outranks every layered rule). Reads ONLY the semantic tokens
+   `cardSwatches` re-binds on this card's element: the plate is `--accent`, its text the
+   engine-solved contrast pair `--on-accent`, so each plate is legible by construction. */
 @layer project {
   .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    display: flex;
+    background: var(--accent);
+    color: var(--on-accent);
     border-radius: 0.75rem;
     overflow: hidden;
   }
 
+  /* The whole plate is the target (link) — or a plain wrapper for a slugless entry. `flex: 1`
+     stretches it to the card's grid-stretched height so `.meta` can pin to the plate floor. */
   .link {
     display: flex;
+    flex: 1;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--space-4);
     padding: var(--space-5);
-    color: var(--text);
+    color: inherit;
     text-decoration: none;
   }
 
+  /* Register 1 — the display title (Space Grotesk). */
   .title {
+    font-family: var(--font-display);
     font-size: var(--text-xl);
+    font-weight: 600;
     line-height: var(--leading-tight);
-    color: var(--accent);
+    letter-spacing: -0.01em;
+    color: var(--on-accent);
   }
 
+  /* Register 2 — the editorial serif blurb (the multi-font mix). */
   .blurb {
+    font-family: var(--font-face);
     font-size: var(--text-base);
     line-height: var(--leading-normal);
-    color: var(--text);
+    color: var(--on-accent);
+  }
+
+  /* Register 3 — the mono readout, pinned to the plate floor: maturity stage · OKLCH seed. */
+  .meta {
+    margin-top: auto;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--on-accent);
+    /* Slight de-emphasis vs the title/blurb; on-accent is solved with contrast headroom, so
+       this stays legible on the plate (verified in the browser QA pass). */
+    opacity: 0.8;
+  }
+
+  /* Keep the focus ring legible on the saturated plate: draw it in the on-accent pair, inset so
+     it sits ON the plate rather than being clipped by the card's `overflow: hidden`. */
+  .link:focus-visible {
+    outline-color: var(--on-accent);
+    outline-offset: -4px;
   }
 }
