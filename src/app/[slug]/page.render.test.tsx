@@ -147,6 +147,21 @@ describe("EntryPage — kind-aware detail", () => {
     );
   });
 
+  it("renders NO Tags region even if the fetched entry carries a stray `tags` array", async () => {
+    // Regression guard for the tags removal (#88): the detail query no longer projects
+    // `tags`, and `TagList` is gone. A live/draft doc whose field hasn't been unset could
+    // still hand the page a `tags` array — the page must never render tag markup from it.
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "note", componentKey: null, tags: ["stale", "leftover"] }),
+    );
+    render(await EntryPage({ params: params("an-entry") }));
+    expect(
+      screen.queryByRole("region", { name: /tags/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("stale")).not.toBeInTheDocument();
+    expect(screen.queryByText("leftover")).not.toBeInTheDocument();
+  });
+
   it("mounts the brand slot for a project with a resolvable componentKey", async () => {
     resolveComponentKeyMock.mockReturnValue(foundExperience());
     fetchMock.mockResolvedValueOnce(
