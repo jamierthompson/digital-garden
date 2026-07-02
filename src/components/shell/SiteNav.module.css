@@ -1,4 +1,4 @@
-/* Shell navigation — the "engineering journal" masthead. @layer project — declares its layer
+/* Site navigation — the "engineering journal" masthead. @layer project — declares its layer
    (unlayered modules outrank every layered rule); var-consuming only. Reads the global
    editorial semantic tokens (the shell is never brand-scoped). */
 @layer project {
@@ -7,23 +7,49 @@
     border-bottom: 2px solid var(--text);
   }
 
-  /* The tagline dateline band above the nav — subtle mono, centered, on a faint hairline.
-     Not tracked-out; muted so it reads as a quiet masthead label, not a headline. */
+  /* The masthead byline band above the nav — full-bleed 1px hairline; its inner row aligns to
+     the same content column as the nav, so byline ↔ folio_ left edges line up. */
   .masthead {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mastheadInner {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    max-width: var(--width-content);
+    margin: 0 auto;
+    padding: var(--space-2) var(--space-6);
+  }
+
+  /* Byline + dateline: quiet mono, muted, natural case & spacing (no tracking). */
+  .byline {
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     color: var(--text-muted);
-    text-align: center;
-    padding: var(--space-2) var(--space-6);
-    border-bottom: 1px solid var(--border);
+  }
+
+  .dateline {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* On narrow viewports the byline takes the row; drop the decorative dateline. */
+  @media (max-width: 34rem) {
+    .dateline {
+      display: none;
+    }
   }
 
   .nav {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: var(--space-5);
-    max-width: 60rem;
+    max-width: var(--width-content);
     margin: 0 auto;
     padding: var(--space-4) var(--space-6);
   }
@@ -59,10 +85,10 @@
     min-height: 1.5rem;
     min-width: 1.5rem;
     padding-block: var(--space-2);
-    /* Journal nav: Space Grotesk, lowercase, small. A transparent 2px underline reserved so
-       the active state (below) doesn't shift the row. */
+    /* Journal nav: Space Grotesk, lowercase. A transparent 2px underline reserved so the
+       active state (below) doesn't shift the row. */
     font-family: var(--font-display);
-    font-size: var(--text-sm);
+    font-size: var(--text-base);
     font-weight: 500;
     color: var(--text-muted);
     text-decoration: none;

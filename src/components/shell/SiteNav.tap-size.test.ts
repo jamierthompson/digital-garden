@@ -17,9 +17,9 @@ import { describe, expect, it } from "vitest";
  * browser (no Playwright in-repo); the lead's chrome-devtools pass measured it live
  * (Index 39×40, Now 32×40, About 43×40).
  */
-describe("ShellNav .link — WCAG 2.5.8 target size floor", () => {
+describe("SiteNav .link — WCAG 2.5.8 target size floor", () => {
   const css = readFileSync(
-    resolve(process.cwd(), "src/components/shell/ShellNav.module.css"),
+    resolve(process.cwd(), "src/components/shell/SiteNav.module.css"),
     "utf8",
   );
 

@@ -1,27 +1,29 @@
 /* Home (featured front door). @layer project — declares its layer (an unlayered module
-   outranks every layered rule). The shell frame is var-consuming editorial (reads the global
-   semantic tokens); the featured cards re-bind ONLY the tokens `cardSwatches` provides
-   (--surface / --text / --border / --accent) inline, so each card themes to its own brand
-   without reaching for a token the swatch doesn't solve (e.g. --text-muted stays global). */
+   outranks every layered rule). Var-consuming editorial frame only (reads the global semantic
+   tokens); the branded card slots live in `EntryCard` (its own module + inline swatches). */
 @layer project {
   .main {
     display: flex;
     flex-direction: column;
     gap: var(--space-9);
-    max-width: 64rem;
+    max-width: var(--width-content);
     margin: 0 auto;
-    padding: var(--space-9) var(--space-5);
+    /* Horizontal inset MUST match the shell (nav/masthead/footer use --space-6), so the hero
+       and cards sit on the same content column as the `folio_` wordmark — a 24 vs 32px
+       mismatch here left the h1 8px off the byline (browser QA). */
+    padding: var(--space-9) var(--space-6);
   }
 
   .hero {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-    max-width: 60ch;
   }
 
-  /* Home heading — the name in the journal display face (the garden tagline is now the global
-     masthead band above the nav). */
+  /* Home heading — the garden's invitation headline in the journal display face. Not the
+     name: the masthead band above the nav carries the byline, so the h1 states what the
+     garden IS (notes/essays/work-in-the-open) rather than spending the page's primary
+     heading on a duplicate byline. */
   .title {
     font-family: var(--font-display);
     font-size: var(--text-4xl);
@@ -29,13 +31,9 @@
     line-height: var(--leading-tight);
     letter-spacing: -0.02em;
     color: var(--text);
-  }
-
-  .tagline {
-    font-size: var(--text-lg);
-    line-height: var(--leading-normal);
-    color: var(--text-muted);
-    max-width: 46ch;
+    /* Balance the headline across its lines rather than leaving a stray short last line —
+       the hero spans the full content frame, so this settles to a tidy two lines. */
+    text-wrap: balance;
   }
 
   .featured {
@@ -44,62 +42,14 @@
     gap: var(--space-4);
   }
 
-  .sectionHeading {
-    font-size: var(--text-sm);
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    /* Three across on the 72rem frame: a ~20rem floor is wide enough that a 4th column can't
+       fit the ~69rem inner width, and it collapses to 2 / 1 on smaller screens. `min(…,100%)`
+       stops a single column overflowing a viewport narrower than the floor. */
+    grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
     gap: var(--space-5);
     list-style: none;
     padding: 0;
-  }
-
-  /* A branded card slot: reads only the tokens `cardSwatches` re-binds on this element. */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 0.75rem;
-    overflow: hidden;
-  }
-
-  .cardLink {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-5);
-    color: var(--text);
-    text-decoration: none;
-  }
-
-  .cardTitle {
-    font-size: var(--text-xl);
-    line-height: var(--leading-tight);
-    color: var(--accent);
-  }
-
-  .cardBlurb {
-    font-size: var(--text-base);
-    line-height: var(--leading-normal);
-    color: var(--text);
-  }
-
-  .wayfinding {
-    display: flex;
-  }
-
-  .browseLink {
-    font-size: var(--text-lg);
-    color: var(--accent);
-    text-decoration: none;
-  }
-
-  .browseLink:hover {
-    text-decoration: underline;
   }
 }

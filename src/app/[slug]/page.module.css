@@ -1,7 +1,7 @@
 /* /work/<slug> project page. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only; reads the generic semantic tokens (editorial by default; the brand slot re-binds them for the <Experience/> island). */
 @layer project {
   .module {
-    max-width: 48rem;
+    max-width: var(--width-text);
     margin: 0 auto;
     padding: var(--space-7) var(--space-6);
     font-family: var(--font-face);

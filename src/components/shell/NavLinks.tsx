@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import styles from "./ShellNav.module.css";
+import styles from "./SiteNav.module.css";
 
 /** A primary-nav destination. `label` is the visible journal-style lowercase item. */
 interface NavItem {
@@ -21,9 +21,9 @@ interface NavItem {
 const NAV_ITEMS: readonly NavItem[] = [
   { href: "/", label: "featured" },
   { href: "/browse", label: "index" },
-  { href: "/now", label: "now" },
-  { href: "/about", label: "about" },
   { href: "/system", label: "system" },
+  { href: "/about", label: "about" },
+  { href: "/now", label: "now" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -37,7 +37,7 @@ function isActive(pathname: string, href: string): boolean {
 /**
  * The shell's primary nav links, split into a small Client Component so the current-page
  * indicator can read `usePathname` without dragging the server-rendered header
- * (`ShellNav`) to the client. Var-consuming only: reads the global editorial tokens
+ * (`SiteNav`) to the client. Var-consuming only: reads the global editorial tokens
  * (`--font-display`, `--text`, `--border`) — the shell is never brand-scoped.
  */
 export default function NavLinks(): React.ReactElement {

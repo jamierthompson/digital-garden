@@ -36,7 +36,7 @@ server-emitted `<style>`. Verify against the docs above and the real code, not t
    winning the cascade. This is enforced by `pnpm lint:css`; flag any new module that declares no layer
    and isn't purely var-consuming.
 
-4. **Editorial chrome is global; brand is slot-scoped.** The editorial foundation (Newsreader + the
+4. **Editorial chrome is global; brand is slot-scoped.** The editorial foundation (Source Serif 4 + the
    neutral ramp) themes **all** page chrome — the shell, home, about, `/now`, and the project page
    _around_ the slot. A project's **brand color + font** scope **only** to its bounded interactive slot
    (`[data-project]` / the `<Experience/>`). Flag brand color or a project font bleeding onto page

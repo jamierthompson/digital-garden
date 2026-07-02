@@ -6,7 +6,13 @@ import { cardSwatches } from "./cardSwatches";
 const LIGHT_DARK = /^light-dark\(oklch\([^)]+\), oklch\([^)]+\)\)$/;
 
 /** The generic semantic tokens a card re-binds — the #57 no-prefix contract. */
-const KEYS = ["--surface", "--text", "--border", "--accent"] as const;
+const KEYS = [
+  "--surface",
+  "--text",
+  "--border",
+  "--accent",
+  "--on-accent",
+] as const;
 
 describe("cardSwatches — valid brandColor", () => {
   const style = cardSwatches("#3b82f6");
@@ -18,7 +24,7 @@ describe("cardSwatches — valid brandColor", () => {
   it("uses only generic semantic names — no project-prefixed token leaks (#57)", () => {
     // Every key is a bare semantic role name; none is namespaced (`--c-*`, `--brand-*`, `--<proj>-*`).
     for (const key of Object.keys(style)) {
-      expect(key).toMatch(/^--(?:surface|text|border|accent)$/);
+      expect(key).toMatch(/^--(?:surface|text|border|accent|on-accent)$/);
     }
   });
 

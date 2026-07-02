@@ -54,7 +54,22 @@
     /* Editorial grid — the "engineering journal" column ruler. A faint 1px line every
        `--grid-column`, painted on the body background (globals.css). Foundation primitive:
        the column measure is house-style, the line COLOR is a semantic token below. */
-    --grid-column: 3.5rem;
+    --grid-column: 5rem;
+
+    /* Layout measures — house-style content-frame widths, read directly by route/shell
+       modules instead of hand-picking a per-route `max-width` (which drifted: the nav and
+       home used to disagree, so the wordmark didn't align with the hero). Foundation
+       primitives like the spacing/type ramps: dimensional, house-style, NOT brand-themeable
+       (a project slot re-binds color/font, never the page frame). Ordered by content density:
+       - --width-prose:   narrow pure-reading column (about, system).
+       - --width-text:    reading page with a little more room (entry pages, now).
+       - --width-content: the default modern page frame + the shell nav (home, index) — the
+                          two share ONE token so their edges align.
+       Inline reading measures (a paragraph's `max-width: NNch`) stay per-element — they cap
+       line length for that block, a different job from the page frame. */
+    --width-prose: 42rem;
+    --width-text: 48rem;
+    --width-content: 72rem;
 
     --z-base: 0;
     --z-dropdown: 100;
@@ -130,7 +145,7 @@
     /* Faint column-ruler line for the editorial grid (globals.css paints it on <body>).
        Scheme-aware so it reads as a hairline on both the light and dark editorial surfaces;
        kept incidental (well under any text). */
-    --grid-line: light-dark(rgba(10, 10, 10, 0.05), rgba(255, 255, 255, 0.055));
+    --grid-line: light-dark(rgba(10, 10, 10, 0.05), rgba(255, 255, 255, 0.06));
 
     /* The "engineering journal" editorial type system — three shell faces, all mounted on
        <html> by the root layout, each with a system fallback stack:
