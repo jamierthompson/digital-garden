@@ -94,8 +94,13 @@ export default async function EntryPage({ params }: EntryPageProps) {
     notFound();
   }
 
+  // Mount the interactive slot ONLY for a project — a note/essay/now is chrome + prose even
+  // if it happens to carry a resolvable `componentKey` (the schema leaves the key optional and
+  // un-gated on those kinds). A project has already passed the `notFound()` guard above, so
+  // `resolution` is found here; the `isProject` gate keeps runtime matching the documented
+  // "only a project has a slot" contract.
   const Experience =
-    resolution && !isNotFound(resolution)
+    isProject && resolution && !isNotFound(resolution)
       ? ((await resolution.value()) as { default: ProjectModule }).default
           .Experience
       : null;
