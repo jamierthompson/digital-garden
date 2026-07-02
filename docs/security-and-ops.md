@@ -14,10 +14,10 @@ How we keep secrets out of the repo, dependencies honest, the Sanity token safe,
 
 ### Public vs. secret — know the difference
 
-The `NEXT_PUBLIC_*` prefix is the tripwire: **anything so prefixed is inlined into the browser bundle at build time.** Never give that prefix to a value that must stay private. [`../../.env.example`](../.env.example) is the canonical, machine-readable list; this table explains the why.
+The `NEXT_PUBLIC_*` prefix is the tripwire: **anything so prefixed is inlined into the browser bundle at build time.** Never give that prefix to a value that must stay private. [`../.env.example`](../.env.example) is the canonical, machine-readable list; this table explains the why.
 
 | Variable                         | Public or secret?   | Why                                                                                                                                                                                             |
-| -------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| -------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `NEXT_PUBLIC_SITE_URL`           | **Public**          | The public site origin (no trailing slash); builds absolute URLs in `/rss.xml`.                                                                                                                 |
 | `NEXT_PUBLIC_SANITY_PROJECT_ID`  | **Public**          | Sanity project IDs are public by design — they ship in every client request. Plain env in `ci.yml`, not a secret.                                                                               |
 | `NEXT_PUBLIC_SANITY_DATASET`     | **Public**          | The dataset name (`production`) is part of the client query URL.                                                                                                                                |
@@ -27,13 +27,13 @@ The `NEXT_PUBLIC_*` prefix is the tripwire: **anything so prefixed is inlined in
 | `SANITY_API_BROWSER_TOKEN`       | **Secret (Viewer)** | next-sanity shares this with the browser (the `<SanityLive>` EventSource) for standalone live-draft preview, so it is a **dedicated minimum-scope Viewer** token — never the read token.        |
 | `SANITY_REVALIDATE_SECRET`       | **Secret**          | HMAC secret the `/api/revalidate` webhook verifies; **must exactly match** the Secret on the Sanity webhook or every delivery 401s.                                                             |
 
-Sanity project ID + dataset being public is a deliberate, documented fact — they're committed as plain env in [`../../.github/workflows/ci.yml`](../.github/workflows/ci.yml) precisely because they aren't secrets. Don't "fix" this by moving them to GitHub Secrets.
+Sanity project ID + dataset being public is a deliberate, documented fact — they're committed as plain env in [`../.github/workflows/ci.yml`](../.github/workflows/ci.yml) precisely because they aren't secrets. Don't "fix" this by moving them to GitHub Secrets.
 
 ### `.env.example` is a contract — keep it current
 
-When you add a new env var, add it to [`../../.env.example`](../.env.example) in the **same commit**, with a placeholder value and a one-line comment on what it is and whether it's public or secret. Anyone (human or agent) cloning the repo should learn the full env surface from that file alone.
+When you add a new env var, add it to [`../.env.example`](../.env.example) in the **same commit**, with a placeholder value and a one-line comment on what it is and whether it's public or secret. Anyone (human or agent) cloning the repo should learn the full env surface from that file alone.
 
-The env readers in [`../../src/sanity/lib/env.ts`](../src/sanity/lib/env.ts) `throw` on a missing required var via `assertValue` — a missing var fails loudly at boot, not silently at runtime. Mirror that pattern for any new required var.
+The env readers in [`../src/sanity/lib/env.ts`](../src/sanity/lib/env.ts) `throw` on a missing required var via `assertValue` — a missing var fails loudly at boot, not silently at runtime. Mirror that pattern for any new required var.
 
 ### Agent checklist
 
@@ -53,7 +53,7 @@ Right-sized: discipline, not a security org.
 - **Vet new deps before adding** — prefer well-maintained, widely-used packages. A quick check on [deps.dev](https://deps.dev) is enough; full OpenSSF Scorecard automation is overkill here.
 - **Run `pnpm audit` in any PR that changes `pnpm-lock.yaml`.** Triage only _exploitable_ advisories that reach reachable code; ignore transitive dev-only noise.
 - **Breaking-major upgrades go one-per-branch with the full gate** — never a blind bump. (Open ones are tracked in the issue backlog.)
-- **GitHub Actions are pinned** (`@v5`) in [`../../.github/workflows/ci.yml`](../.github/workflows/ci.yml) — keep them pinned when editing the workflow.
+- **GitHub Actions are pinned** (`@v5`) in [`../.github/workflows/ci.yml`](../.github/workflows/ci.yml) — keep them pinned when editing the workflow.
 
 ---
 
@@ -72,7 +72,7 @@ Two clients with different trust levels: the public published-content read path 
 
 ## 4. Vercel deploy runbook
 
-Vercel is wired to the repo: **a merge to `main` deploys to production.** That's why `main` must always be green and shippable (see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)). The CI gate in [`../../.github/workflows/ci.yml`](../.github/workflows/ci.yml) is the guard — and because that gate regenerates and diff-checks `sanity.types.ts`, a drifted type file fails the build before it can reach prod.
+Vercel is wired to the repo: **a merge to `main` deploys to production.** That's why `main` must always be green and shippable (see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md)). The CI gate in [`../.github/workflows/ci.yml`](../.github/workflows/ci.yml) is the guard — and because that gate regenerates and diff-checks `sanity.types.ts`, a drifted type file fails the build before it can reach prod.
 
 For the **first production deploy** (and whenever the environment changes), work through the Production deploy checklist — env vars, Sanity CORS, schema/Studio deploy, the webhook, and the seed content the build doesn't verify.
 
@@ -107,7 +107,7 @@ What must be true for a **production deploy to actually work** — the env- and 
 
 ### One-time setup (per environment)
 
-**Vercel → Project → Settings → Environment Variables** — mirror [`../../.env.example`](../.env.example), set per environment (a preview value and a prod value differ):
+**Vercel → Project → Settings → Environment Variables** — mirror [`../.env.example`](../.env.example), set per environment (a preview value and a prod value differ):
 
 - [ ] All `NEXT_PUBLIC_*` vars (see the Secrets & env policy section), incl. `NEXT_PUBLIC_SANITY_STUDIO_URL` pointing at the deployed Studio.
 - [ ] `SANITY_API_READ_TOKEN`, `SANITY_API_BROWSER_TOKEN`, `SANITY_REVALIDATE_SECRET` (all secret, server-side scope).
