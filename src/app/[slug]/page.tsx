@@ -15,7 +15,7 @@ import { sanityFetch } from "@/sanity/lib/sanityFetch";
 import styles from "./page.module.css";
 
 // The flat entry route: every `entry` — any `kind` — lives at a root-level `/[slug]` (this
-// dynamic segment cedes precedence to the static routes `/browse`, `/now`, `/about`). Thin
+// dynamic segment cedes precedence to the static routes `/browse`, `/now`, `/about`, `/system`). Thin
 // route (`app/` is routing only — it mounts components from `src/`). The composition:
 // EDITORIAL page chrome (article prose, related entries) reads the global semantic
 // tier; a project's brand color + font are scoped to its interactive slot ONLY:

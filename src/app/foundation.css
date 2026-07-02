@@ -51,6 +51,11 @@
     --duration-base: 200ms;
     --duration-slow: 320ms;
 
+    /* Editorial grid — the "engineering journal" column ruler. A faint 1px line every
+       `--grid-column`, painted on the body background (globals.css). Foundation primitive:
+       the column measure is house-style, the line COLOR is a semantic token below. */
+    --grid-column: 3.5rem;
+
     --z-base: 0;
     --z-dropdown: 100;
     --z-sticky: 200;
@@ -122,9 +127,23 @@
     /* Alias the foundation `:focus-visible` reads (see @layer foundation). */
     --focus-ring-color: var(--focus-ring);
 
-    /* The editorial shell font — Newsreader (mounted on <html> by the root layout), with a
-       serif system fallback. A project slot overrides `--font-face` with its own roster face. */
-    --font-face: var(--font-newsreader), Georgia, "Times New Roman", serif;
+    /* Faint column-ruler line for the editorial grid (globals.css paints it on <body>).
+       Scheme-aware so it reads as a hairline on both the light and dark editorial surfaces;
+       kept incidental (well under any text). */
+    --grid-line: light-dark(rgba(10, 10, 10, 0.05), rgba(255, 255, 255, 0.055));
+
+    /* The "engineering journal" editorial type system — three shell faces, all mounted on
+       <html> by the root layout, each with a system fallback stack:
+       - --font-face    body / long-form editorial serif (Source Serif 4).
+       - --font-display headings, the `folio_` logo, and nav (Space Grotesk).
+       - --font-mono    metadata + token readouts (JetBrains Mono).
+       A project slot overrides `--font-face` with its own roster face; `--font-display` /
+       `--font-mono` stay global editorial chrome (the shell is never brand-scoped). */
+    --font-face: var(--font-source-serif-4), Georgia, "Times New Roman", serif;
+    --font-display:
+      var(--font-space-grotesk), "Helvetica Neue", Arial, sans-serif;
+    --font-mono:
+      var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   }
 }
 
