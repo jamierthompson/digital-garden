@@ -1,6 +1,7 @@
-import {defineArrayMember, defineField, defineType, type ValidationContext} from 'sanity'
+import {defineArrayMember, defineField, defineType} from 'sanity'
 
 import {isBrandColorString} from '../shared/colorValidation'
+import {requiredForNonSketchProject, requiredForProject} from './entryValidators'
 
 /**
  * An `entry` — the single content type for the whole garden.
@@ -13,8 +14,12 @@ import {isBrandColorString} from '../shared/colorValidation'
  *
  * Theming seeds (`brandColor` / `fontKey` / `componentKey`) are reference-by-key values
  * consumed by code, NOT prose — see the stega exclusions in src/sanity/lib/client.ts.
- * They are **conditionally required for a `project`** and optional for a note/essay (a
- * note only needs them when it themes an embedded component).
+ * `brandColor` is required for EVERY `project` (the card plate consumes it, even for a
+ * sketch). `fontKey` / `componentKey` name a coded module + its face, so they are required
+ * only for a `project` PAST the sketch stage — a `stage: sketch` project is an honest
+ * placeholder with no module yet, so it carries a brandColor but no fontKey/componentKey.
+ * All three are optional for a note/essay (a note only needs them when it themes an
+ * embedded component).
  *
  * NOTE: `componentKey` / `fontKey` are plain string fields here on purpose — the
  * standalone Studio bundle must not import app code (keys.ts / next/font / lazy project
@@ -32,12 +37,6 @@ const STAGES = [
   {title: 'Prototype', value: 'prototype'},
   {title: 'Shipped', value: 'shipped'},
 ] as const
-
-/** Sibling-`kind` read shared by the conditional-required validators below. */
-function requiredForProject(value: unknown, context: ValidationContext): true | string {
-  const kind = (context.document as {kind?: unknown} | undefined)?.kind
-  return kind === 'project' && !value ? 'Required for a project.' : true
-}
 
 export const entry = defineType({
   name: 'entry',
@@ -129,14 +128,15 @@ export const entry = defineType({
           .error('Blurb exceeds the 300-character hard cap — the card layout cannot absorb the overflow.'),
     }),
 
-    // Theming seeds: reference-by-key, consumed by code, stega-excluded.
-    // brandColor / fontKey / componentKey are conditionally required for a project.
+    // Theming seeds: reference-by-key, consumed by code, stega-excluded. brandColor is
+    // required for EVERY project (the card plate reads it, even a sketch); fontKey /
+    // componentKey name a coded module + face, so they are required only PAST the sketch stage.
     defineField({
       name: 'brandColor',
       title: 'Brand color',
       type: 'string',
       description:
-        'Per-slot seed for the OKLCH engine — hex or oklch(). One value generates BOTH light & dark ramps. Required for a project; optional for a note/essay that themes an embedded component.',
+        'Per-slot seed for the OKLCH engine — hex or oklch(). One value generates BOTH light & dark ramps. Required for every project (the card plate consumes it, even a sketch); optional for a note/essay that themes an embedded component.',
       validation: (rule) => rule.custom(requiredForProject).custom(isBrandColorString),
     }),
     defineField({
@@ -152,16 +152,16 @@ export const entry = defineType({
       title: 'Font key',
       type: 'string',
       description:
-        'Key of the curated roster face, resolved in app code (fonts/roster.ts). Required for a project; optional otherwise.',
-      validation: (rule) => rule.custom(requiredForProject),
+        'Key of the curated roster face, resolved in app code (fonts/roster.ts). Required for a project past the sketch stage (a sketch has no coded module yet); optional otherwise.',
+      validation: (rule) => rule.custom(requiredForNonSketchProject),
     }),
     defineField({
       name: 'componentKey',
       title: 'Component key',
       type: 'string',
       description:
-        'Key of the coded module this entry mounts, resolved in app code (src/lib/resolvers/components.ts). Required for a project; optional for a note/essay.',
-      validation: (rule) => rule.custom(requiredForProject),
+        'Key of the coded module this entry mounts, resolved in app code (src/lib/resolvers/components.ts). Required for a project past the sketch stage (a sketch renders prose-only, no module); optional for a note/essay.',
+      validation: (rule) => rule.custom(requiredForNonSketchProject),
     }),
 
     defineField({

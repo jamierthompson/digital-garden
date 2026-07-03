@@ -25,8 +25,10 @@ import styles from "./page.module.css";
 //     │   rendered ONLY for a project with a resolvable module
 //     └ <RelatedEntries> — editorial (outgoing `related` + incoming backlinks)
 //
-// Kind-aware: a `project` REQUIRES a coded module (a `componentKey` that resolves), so a
-// missing/renamed key → `notFound()`. A note / essay / now is chrome + prose — it has no
+// Kind-aware: a `project` that DECLARES a `componentKey` must resolve it — a renamed/deleted
+// module (drift) → `notFound()`. But a project with NO `componentKey` is a `stage: sketch`
+// with no coded module yet (the schema only requires the key past the sketch stage), so it
+// renders prose-only, like a note/essay. A note / essay / now is chrome + prose — it has no
 // interactive slot, so it renders without a scope. The keystone stays defensive: the scope
 // never throws on a bad brandColor/fontKey.
 
@@ -83,13 +85,14 @@ export default async function EntryPage({ params }: EntryPageProps) {
 
   const isProject = entry.kind === "project";
 
-  // Resolve the coded module by key. Only a PROJECT requires one: a `componentKey` that no
-  // longer resolves (renamed/deleted module) degrades a project to not-found, never a crash.
-  // A note/essay/now carries no slot, so a missing key is expected, not an error.
+  // Resolve the coded module by key. A `componentKey` that no longer resolves
+  // (renamed/deleted module) degrades a project to not-found, never a crash. A project with
+  // NO `componentKey` is a sketch without a coded module yet — it renders prose-only, not a
+  // 404. A note/essay/now carries no slot either way, so a missing key is expected there.
   const resolution = entry.componentKey
     ? resolveComponentKey(entry.componentKey)
     : null;
-  if (isProject && (!resolution || isNotFound(resolution))) {
+  if (isProject && resolution && isNotFound(resolution)) {
     notFound();
   }
 

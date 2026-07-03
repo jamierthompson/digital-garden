@@ -107,7 +107,7 @@ describe("EntryPage — kind-aware detail", () => {
     // slot; a note/essay/now is prose-only. This asserts that contract.
     resolveComponentKeyMock.mockReturnValue(foundExperience());
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "first-light" }),
+      entry({ kind: "note", componentKey: "any-module" }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
@@ -116,7 +116,7 @@ describe("EntryPage — kind-aware detail", () => {
     expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
   });
 
-  it("notFound()s a project whose componentKey does not resolve", async () => {
+  it("notFound()s a project whose declared componentKey does not resolve (drift)", async () => {
     resolveComponentKeyMock.mockReturnValue(
       notFoundResolution("component", "deleted-module"),
     );
@@ -128,16 +128,24 @@ describe("EntryPage — kind-aware detail", () => {
     );
   });
 
-  it("notFound()s a project with NO componentKey at all", async () => {
-    resolveComponentKeyMock.mockReturnValue(
-      notFoundResolution("component", ""),
-    );
+  it("renders a project with NO componentKey prose-only (a sketch, no module yet)", async () => {
+    // Post-#109 contract: a `stage: sketch` project carries a brandColor but no coded
+    // module, so its detail page renders title + blurb like a note/essay — it must NOT 404,
+    // and it mounts no brand slot (nothing resolves the key it doesn't have).
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "project", componentKey: null }),
+      entry({ kind: "project", componentKey: null, blurb: "A sketch blurb." }),
     );
-    await expect(EntryPage({ params: params("an-entry") })).rejects.toThrow(
-      "NEXT_NOT_FOUND",
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
     );
+    expect(
+      screen.getByRole("heading", { level: 1, name: /an entry/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("A sketch blurb.")).toBeInTheDocument();
+    expect(container.querySelector("[data-project]")).toBeNull();
+    expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
+    // The key resolver must never even be consulted when there is no componentKey.
+    expect(resolveComponentKeyMock).not.toHaveBeenCalled();
   });
 
   it("notFound()s an unknown / unpublished slug (null doc)", async () => {
@@ -167,14 +175,14 @@ describe("EntryPage — kind-aware detail", () => {
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "project",
-        componentKey: "first-light",
+        componentKey: "palette-studio",
         brandColor: "oklch(0.7 0.15 70)",
         fontKey: "newsreader",
-        slug: "first-light",
+        slug: "palette-studio",
       }),
     );
     const { container } = render(
-      await EntryPage({ params: params("first-light") }),
+      await EntryPage({ params: params("palette-studio") }),
     );
     const slot = container.querySelector("[data-project]");
     expect(slot).not.toBeNull();

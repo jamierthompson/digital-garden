@@ -27,29 +27,29 @@ export const FONT_KEYS = [
 export type FontKey = (typeof FONT_KEYS)[number];
 
 /**
- * Component keys — one per project module, resolved to a literal dynamic import
- * in `src/lib/resolvers/components.ts`. Each project registers its key
- * here when it lands; the `satisfies Record<ComponentKey, …>` on `PROJECT_LOADERS`
- * then forces a matching loader entry (compile error if missing).
- *   • `first-light` — the dead-simple first project module.
- *   • `engine-board` — the static engine-output board every seed brand points at (#65);
- *     one key, many projects (componentKey is not unique per project).
+ * Component keys — one per coded project module, resolved to a literal dynamic import
+ * in `src/lib/resolvers/components.ts`. Each project registers its key here when its
+ * module lands; the `satisfies Record<ComponentKey, …>` on `PROJECT_LOADERS` then forces
+ * a matching loader entry (compile error if missing).
+ *
+ * Currently EMPTY: the proof-of-concept mock modules were retired (#109), and the real
+ * studies ship as `stage: sketch` with no coded module yet — a sketch project carries a
+ * `brandColor` but no `componentKey`, so it renders prose-only. The first real module
+ * (the Palette Studio, #70) registers the first key here.
  */
-export const COMPONENT_KEYS = [
-  "first-light",
-  "engine-board",
-] as const satisfies readonly string[];
+export const COMPONENT_KEYS = [] as const satisfies readonly string[];
 export type ComponentKey = (typeof COMPONENT_KEYS)[number];
 
 /**
  * Embed keys — shared in-essay live components / widgets, resolved in
  * `src/lib/resolvers/embeds.ts`. The registry starts single-tier; a
  * project-local tier is added only on a genuine second use.
- *   • `sunrise-meter` — the one tiny embed in the `first-light` essay.
+ *
+ * Currently EMPTY: the proof-of-concept `sunrise-meter` widget was retired with the mock
+ * harness (#109). The generic `liveEmbed` Portable Text block + the resolver stay as the
+ * infrastructure; the first real essay embed registers the first key here.
  */
-export const EMBED_KEYS = [
-  "sunrise-meter",
-] as const satisfies readonly string[];
+export const EMBED_KEYS = [] as const satisfies readonly string[];
 export type EmbedKey = (typeof EMBED_KEYS)[number];
 
 const FONT_KEY_SET: ReadonlySet<string> = new Set(FONT_KEYS);

@@ -16,9 +16,11 @@ export type EmbedLoader = () => Promise<unknown>;
 // `satisfies Record<EmbedKey, EmbedLoader>` makes a missing loader a compile
 // error the moment a key is added to `EMBED_KEYS`. Each value is a LITERAL
 // lazy import per key — never templated (a templated import defeats bundler static analysis).
-const EMBED_LOADERS = {
-  "sunrise-meter": () => import("@/embeds/SunriseMeter"),
-} satisfies Record<EmbedKey, EmbedLoader>;
+//
+// Currently EMPTY: `EMBED_KEYS` holds no keys yet (the mock `sunrise-meter` widget was
+// retired in #109). The first real essay embed adds a literal `import()` entry here
+// alongside its `EMBED_KEYS` key; the resolver + generic `liveEmbed` block stay in place.
+const EMBED_LOADERS = {} satisfies Record<EmbedKey, EmbedLoader>;
 
 // Two variables, two jobs. `EMBED_LOADERS` keeps its literal type so `satisfies`
 // enforces completeness against `EmbedKey`; `loaders` is the widened, string-keyed

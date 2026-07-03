@@ -16,12 +16,16 @@ describe("key contracts", () => {
     for (const key of FONT_KEYS) expect(typeof key).toBe("string");
   });
 
-  it("registers the first-slice keys (first-light / sunrise-meter)", () => {
-    // The dead-simple first project populates the registries. Each holds
-    // exactly its one slice key, unique within the array.
-    expect(COMPONENT_KEYS).toContain("first-light");
-    expect(EMBED_KEYS).toContain("sunrise-meter");
+  it("COMPONENT_KEYS is empty — no coded project module has landed yet (#109)", () => {
+    // The mock modules were retired; the real studies ship as sketches with no module. The
+    // array stays a valid (empty) unique set, and the first real module (#70) adds a key.
+    expect(COMPONENT_KEYS).toHaveLength(0);
     expect(new Set(COMPONENT_KEYS).size).toBe(COMPONENT_KEYS.length);
+  });
+
+  it("EMBED_KEYS is empty — the mock widget was retired, no real embed has landed yet (#109)", () => {
+    // Like COMPONENT_KEYS: a valid (empty) unique set; the first real essay embed adds a key.
+    expect(EMBED_KEYS).toHaveLength(0);
     expect(new Set(EMBED_KEYS).size).toBe(EMBED_KEYS.length);
   });
 
@@ -31,9 +35,9 @@ describe("key contracts", () => {
     expect(isFontKey("")).toBe(false);
   });
 
-  it("isComponentKey / isEmbedKey accept registered keys and reject unknowns", () => {
-    expect(isComponentKey("first-light")).toBe(true);
-    expect(isEmbedKey("sunrise-meter")).toBe(true);
+  it("isComponentKey / isEmbedKey reject every key while both registries are empty", () => {
+    expect(isComponentKey("first-light")).toBe(false);
+    expect(isEmbedKey("sunrise-meter")).toBe(false);
     expect(isComponentKey("log-explorer")).toBe(false);
     expect(isEmbedKey("hue-slider")).toBe(false);
   });

@@ -19,10 +19,11 @@ export type ProjectLoader = () => Promise<unknown>;
 // The `boundaries/dependencies` rule recognizes it as its own `registry`
 // element (see eslint.config.mjs), so these literal project imports are allowed while
 // the shared→project ban still holds everywhere else — no per-line disable needed.
-const PROJECT_LOADERS = {
-  "first-light": () => import("@/projects/first-light"),
-  "engine-board": () => import("@/projects/engine-board"),
-} satisfies Record<ComponentKey, ProjectLoader>;
+//
+// Currently EMPTY: `COMPONENT_KEYS` holds no keys yet (the mock modules were retired in
+// #109 and the real studies ship as sketches with no coded module). The first real module
+// (Palette Studio, #70) adds a literal `import()` entry here alongside its `COMPONENT_KEYS` key.
+const PROJECT_LOADERS = {} satisfies Record<ComponentKey, ProjectLoader>;
 
 // Two variables, two jobs. `PROJECT_LOADERS` keeps its literal type so `satisfies`
 // enforces completeness against `ComponentKey`; `loaders` is the widened,

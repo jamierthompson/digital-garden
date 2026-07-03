@@ -110,7 +110,7 @@ src/
     api/revalidate/     # signed Sanity webhook → revalidateTag (publish→prod)
     rss.xml/            # RSS feed route handler
     foundation.css      # foundation primitives + semantic editorial defaults + @layer order + reset
-  projects/             # self-contained project modules (e.g. first-light/)
+  projects/             # self-contained project modules (one per project); types.ts holds the shared ProjectModule contract
   embeds/               # shared in-essay embed components (key → component)
   components/           # shell/ (SiteNav · SiteFooter), entry/ (EntryCard), project-scope (keystone), portable-text
   fonts/roster.ts       # curated next/font faces, one per key
