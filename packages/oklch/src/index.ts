@@ -56,6 +56,14 @@ export {
 export { minPass, type TokenBinding } from "./binding";
 
 export {
+  buildHarmonyPalette,
+  HARMONY_KINDS,
+  type HarmonyKind,
+  type HarmonyPalette,
+  type HarmonyOptions,
+} from "./harmony";
+
+export {
   parseColor,
   formatOklch,
   formatHex,
