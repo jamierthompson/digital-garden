@@ -8,6 +8,9 @@
  *   • LOW-LEVEL: color conversions, gamut mapping, contrast (APCA Lc + WCAG ratio),
  *     the contrast solver, and lightness ramps — for card swatches / the studio (#70).
  *
+ * This surface is FROZEN (#99) — guarded by `api.test.ts`, versioning stance in
+ * `README.md`. Portable exports (Tailwind v4 `@theme`, DTCG JSON) live in `export.ts`.
+ *
  * NEVER add `server-only`/`client-only` here, never import `next`/`react`/`react-dom`,
  * never touch DOM/Node globals — lint-enforced.
  */
