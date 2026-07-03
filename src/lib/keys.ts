@@ -32,12 +32,13 @@ export type FontKey = (typeof FONT_KEYS)[number];
  * module lands; the `satisfies Record<ComponentKey, …>` on `PROJECT_LOADERS` then forces
  * a matching loader entry (compile error if missing).
  *
- * Currently EMPTY: the proof-of-concept mock modules were retired (#109), and the real
- * studies ship as `stage: sketch` with no coded module yet — a sketch project carries a
- * `brandColor` but no `componentKey`, so it renders prose-only. The first real module
- * (the Palette Studio, #70) registers the first key here.
+ * A sketch project carries a `brandColor` but no `componentKey`, so it renders prose-only;
+ * a project past the sketch stage declares its key here and the resolver maps it to a
+ * literal dynamic import. The first real module is the Palette Studio (#70).
  */
-export const COMPONENT_KEYS = [] as const satisfies readonly string[];
+export const COMPONENT_KEYS = [
+  "palette-studio",
+] as const satisfies readonly string[];
 export type ComponentKey = (typeof COMPONENT_KEYS)[number];
 
 /**
