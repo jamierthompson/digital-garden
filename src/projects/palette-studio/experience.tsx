@@ -18,6 +18,7 @@ import { derivePalette, describeAnchor, parseSeed } from "./derive";
 import { DEFAULT_GAMUT, DEFAULT_RULES, type StudioRules } from "./rules";
 import { DEFAULT_SEED } from "./presets";
 import ContrastReceipt from "./ContrastReceipt";
+import ExportPanel from "./ExportPanel";
 import HarmonyStrip from "./HarmonyStrip";
 import PreviewPanel from "./PreviewPanel";
 import PrimitivesBoard from "./PrimitivesBoard";
@@ -139,6 +140,15 @@ export default function Experience({
               <ContrastReceipt scheme="light" tokens={palette.light.tokens} />
               <ContrastReceipt scheme="dark" tokens={palette.dark.tokens} />
             </div>
+          </section>
+
+          <section className={styles.panel} aria-label="Export">
+            <h3 className={styles.panelTitle}>Export</h3>
+            <p className={styles.panelNote}>
+              The same tokens, serialized by the engine — never re-typed here,
+              so the export can&rsquo;t drift from what you see above.
+            </p>
+            <ExportPanel tokenSet={palette.tokenSet} />
           </section>
         </div>
       </div>

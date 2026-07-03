@@ -148,6 +148,20 @@ describe("Palette Studio experience", () => {
     expect(receipt()).not.toBe(before);
   });
 
+  it("exports the live palette and re-serializes when the seed changes", () => {
+    render(<Experience slug="demo" />);
+    const exportRegion = screen.getByRole("region", { name: "Export" });
+    const before = within(exportRegion).getByRole("tabpanel").textContent;
+    expect(before).toContain(":root");
+    expect(before).toContain("--accent");
+    fireEvent.change(screen.getByLabelText("Seed color"), {
+      target: { value: "#06b6d4" },
+    });
+    expect(within(exportRegion).getByRole("tabpanel").textContent).not.toBe(
+      before,
+    );
+  });
+
   it("namespaces control ids by slug so two mounts don't collide", () => {
     const { unmount } = render(<Experience slug="alpha" />);
     expect(screen.getByLabelText("Seed color").id).toBe("ps-alpha-seed");

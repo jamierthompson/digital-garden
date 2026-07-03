@@ -1,0 +1,97 @@
+/* Export panel — @layer project, var-consuming. Chrome reads ambient ProjectScope tokens; no
+   generated color is authored (the generated palette appears only as text in the code block). */
+@layer project {
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-5);
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .formats {
+    display: inline-flex;
+    gap: var(--space-1);
+  }
+
+  /* Tab trigger + format pill + action button share the pill idiom; ≥24px targets. */
+  .tab,
+  .formatPill,
+  .button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: 0.3125rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      background var(--duration-fast) var(--ease-standard),
+      color var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .tab:hover,
+  .formatPill:hover,
+  .button:hover {
+    border-color: var(--text-muted);
+    color: var(--text);
+  }
+
+  .button {
+    color: var(--text);
+  }
+
+  /* Active tab + selected format fill with the ambient accent. */
+  .tab[data-state="active"],
+  .formatPill[data-state="checked"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .content {
+    min-width: 0;
+  }
+
+  /* Code block — scrolls inside itself so wide lines never scroll the page. */
+  .code {
+    margin: 0;
+    max-height: 22rem;
+    overflow: auto;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    white-space: pre;
+    tab-size: 2;
+  }
+}
