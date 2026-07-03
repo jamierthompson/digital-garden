@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
 
 import styles from "./SiteNav.module.css";
 
@@ -49,13 +50,13 @@ export default function NavLinks(): React.ReactElement {
         const active = isActive(pathname ?? "", href);
         return (
           <li key={href}>
-            <Link
+            <HoverPrefetchLink
               href={href}
               className={`${styles.link} ${active ? styles.active : ""}`}
               aria-current={active ? "page" : undefined}
             >
               {label}
-            </Link>
+            </HoverPrefetchLink>
           </li>
         );
       })}

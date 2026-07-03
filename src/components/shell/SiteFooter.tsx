@@ -1,4 +1,4 @@
-import Link from "next/link";
+import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
 
 import styles from "./SiteFooter.module.css";
 
@@ -19,9 +19,9 @@ export default function SiteFooter() {
     <footer className={styles.footer}>
       <div className={styles.inner}>
         <span>© {COPYRIGHT_YEAR} Jamie Thompson</span>
-        <Link href="/browse" className={styles.link}>
+        <HoverPrefetchLink href="/browse" className={styles.link}>
           browse everything →
-        </Link>
+        </HoverPrefetchLink>
       </div>
     </footer>
   );

@@ -1,6 +1,6 @@
-import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
+import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
 import { cardSwatches } from "@/lib/cardSwatches";
 
 import styles from "./EntryCard.module.css";
@@ -58,9 +58,9 @@ export default function EntryCard({ entry }: EntryCardProps) {
       style={cardSwatches(entry.brandColor) as CSSProperties}
     >
       {entry.slug ? (
-        <Link href={`/${entry.slug}`} className={styles.link}>
+        <HoverPrefetchLink href={`/${entry.slug}`} className={styles.link}>
           {body}
-        </Link>
+        </HoverPrefetchLink>
       ) : (
         <div className={styles.link}>{body}</div>
       )}
