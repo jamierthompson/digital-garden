@@ -161,7 +161,10 @@ Key points:
 
 - **Breakpoints are not `:root` custom properties.** CSS variables are invalid inside `@media`
   conditions, so breakpoints are build-time constants / container queries; custom props can still
-  feed JS. Slot-responsive layout uses container queries scoped to the slot.
+  feed JS. Slot-responsive layout uses container queries scoped to the slot. The constants are
+  `@custom-media` tokens in `src/styles/breakpoints.css` (`--xs-down`, `--sm-up`, …), injected
+  into every compiled sheet and substituted at build time via `postcss.config.mjs` — note a
+  custom PostCSS config replaces Next's defaults, so that file re-declares them.
 
 ### The OKLCH engine
 

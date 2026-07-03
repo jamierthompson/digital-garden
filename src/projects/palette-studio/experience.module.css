@@ -140,14 +140,14 @@
     gap: var(--space-4);
   }
 
-  @media (max-width: 34rem) {
+  @media (--xs-down) {
     .pair {
       grid-template-columns: minmax(0, 1fr);
     }
   }
 
   /* Collapse to a single column on narrow viewports — the rail stacks above the canvas. */
-  @media (max-width: 40rem) {
+  @media (--sm-down) {
     .body {
       grid-template-columns: minmax(0, 1fr);
     }

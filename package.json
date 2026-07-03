@@ -29,6 +29,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@csstools/postcss-global-data": "^4.0.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^22.20.0",
@@ -43,6 +44,8 @@
     "groq-js": "^1.30.3",
     "jsdom": "^29.1.1",
     "postcss": "^8.5.15",
+    "postcss-flexbugs-fixes": "^5.0.2",
+    "postcss-preset-env": "^11.3.2",
     "prettier": "^3.8.4",
     "typescript": "^5.9.3",
     "vitest": "^4.1.9"
