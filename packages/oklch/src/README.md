@@ -25,6 +25,14 @@ or carry `server-only`/`client-only`.
   Fully automatic: the step is keyed off the seed's native direction (`500` light-native,
   `300` dark-native) and reported as `anchorLabel` (`SchemeResult` / `TokenSet.meta`).
   Neutral/status ramps stay on the shared scale.
+- **Generative rules** (`EngineOptions.rules`, surfaced by the Studio #73): **lightness
+  distribution** (`tailwind` default · `linear` · `eased` · `punchy` · `soft`) reshapes the
+  five interior steps `300…700` — the surface-bearing shoulders (`50/100/200`,
+  `800/900/950`) are **pinned**, which is what keeps every contrast guarantee intact under
+  every policy; **chroma policy** (`flat` default · `taper` · `hold`); **hue policy**
+  (`constant` default · `warm-shadows` · `cool-highlights`, ±9° drift); **tinted neutrals**
+  (default `true`; `false` = pure achromatic greys). Every default reproduces the un-ruled
+  output bit-for-bit.
 - **Scheme-aware** `(brandColor, scheme) → { ramps, tokens }`; dark **re-generates** each
   ramp (reduced chroma) and **re-solves** every binding against dark's own surfaces, emitted
   via `light-dark()`.
