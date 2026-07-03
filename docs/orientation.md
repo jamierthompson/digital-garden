@@ -33,7 +33,7 @@ docs/                      THIS handbook — how we work (process docs + the sys
 AGENTS.md                  lean pointer for agents; @-imports into CLAUDE.md
 README.md                  human-facing overview + scripts
 eslint.config.mjs          the real import-boundary + isomorphism rules
-.github/workflows/ci.yml   the real CI gate (job: verify)
+.github/workflows/ci.yml   the real CI gate (jobs: verify + published-keys)
 scripts/
   check-css-layers.mjs     the @layer-declaration lint (pnpm lint:css)
   check-key-drift.mjs      the key-drift guard (pnpm lint:keys)

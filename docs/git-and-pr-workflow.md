@@ -222,8 +222,11 @@ See [./definition-of-done.md](./definition-of-done.md) for what "done" means bef
 
 CI is the merge gate — an enforce-from-the-start guardrail. It runs on every `pull_request`
 targeting `main`. **The workflow file is the source of truth** —
-[`.github/workflows/ci.yml`](../.github/workflows/ci.yml), single job **`verify`**,
-`ubuntu-latest`, Node 22, pnpm, `pnpm install --frozen-lockfile`.
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml). The blocking merge gate is the
+**`verify`** job (`ubuntu-latest`, Node 22, pnpm, `pnpm install --frozen-lockfile`); a sibling
+**`published-keys`** job runs the network-hitting published-Sanity-keys → code drift net
+(`check-published-keys.mjs`), kept out of the offline one-command gate and degrading to a SKIP
+on a network/config miss.
 
 Steps run **in this order**; each maps to a local command you should have already run:
 
