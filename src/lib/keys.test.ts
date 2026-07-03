@@ -16,11 +16,12 @@ describe("key contracts", () => {
     for (const key of FONT_KEYS) expect(typeof key).toBe("string");
   });
 
-  it("COMPONENT_KEYS is empty — no coded project module has landed yet (#109)", () => {
-    // The mock modules were retired; the real studies ship as sketches with no module. The
-    // array stays a valid (empty) unique set, and the first real module (#70) adds a key.
-    expect(COMPONENT_KEYS).toHaveLength(0);
+  it("COMPONENT_KEYS is a unique set holding the landed project modules", () => {
+    // The first real coded module is the Palette Studio (#70); its key is registered here
+    // and mapped to a literal dynamic import in the components resolver.
     expect(new Set(COMPONENT_KEYS).size).toBe(COMPONENT_KEYS.length);
+    expect(COMPONENT_KEYS).toContain("palette-studio");
+    for (const key of COMPONENT_KEYS) expect(typeof key).toBe("string");
   });
 
   it("EMBED_KEYS is empty — the mock widget was retired, no real embed has landed yet (#109)", () => {
@@ -35,10 +36,12 @@ describe("key contracts", () => {
     expect(isFontKey("")).toBe(false);
   });
 
-  it("isComponentKey / isEmbedKey reject every key while both registries are empty", () => {
+  it("isComponentKey narrows the registered key and rejects unknown ones", () => {
+    expect(isComponentKey("palette-studio")).toBe(true);
     expect(isComponentKey("first-light")).toBe(false);
-    expect(isEmbedKey("sunrise-meter")).toBe(false);
     expect(isComponentKey("log-explorer")).toBe(false);
+    // The embed registry is still empty — every embed key misses.
+    expect(isEmbedKey("sunrise-meter")).toBe(false);
     expect(isEmbedKey("hue-slider")).toBe(false);
   });
 });

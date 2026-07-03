@@ -99,6 +99,9 @@ export type {
   RampPair,
   SchemePair,
   SchemeTokens,
+  BindingStep,
+  BindingProvenance,
+  BindingPair,
   SchemeResult,
   TokenSet,
 } from "./types";

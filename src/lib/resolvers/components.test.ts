@@ -28,10 +28,10 @@ describe("resolveComponentKey", () => {
     expect(() => resolveComponentKey("anything-at-all")).not.toThrow();
   });
 
-  // Every declared ComponentKey (currently none) must resolve to a module whose default
-  // satisfies the ProjectModule contract (a renderable, props-free `Experience`). Iterating
-  // the source-of-truth key array means the first real module that lands with a broken or
-  // missing loader trips here, not in prod. Guarded so an empty registry is a passing no-op.
+  // Every declared ComponentKey must resolve to a module whose default satisfies the
+  // ProjectModule contract (a renderable `Experience`). Iterating the source-of-truth key
+  // array means any module that lands with a broken or missing loader trips here, not in
+  // prod. Guarded so an empty registry is still a passing no-op.
   it("resolves every declared ComponentKey to a valid, mountable ProjectModule", async () => {
     for (const key of COMPONENT_KEYS) {
       const result = resolveComponentKey(key);

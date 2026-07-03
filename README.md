@@ -8,10 +8,12 @@ interactive slot, on that shared foundation. Content and brand seeds live in
 Sanity; the site renders on Next.js.
 
 > **Status:** the shared foundation, the OKLCH theming engine (`@garden/oklch`), the Sanity
-> content model, and mock projects are **live on Vercel** — with the editorial
-> garden shell, an RSS feed, and Sanity draft mode + live preview wired to publish→production
-> revalidation. Remaining work is tracked in
-> [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
+> content model, and the real garden entries are **live on Vercel** — with the editorial
+> garden shell, an RSS feed, Sanity draft mode + live preview wired to publish→production
+> revalidation, and the first coded project module: the **OKLCH Palette Studio**
+> (`src/projects/palette-studio/`), an interactive one-seed palette generator that re-runs
+> the engine live with a measured contrast receipt and CSS/Tailwind/JSON export. Remaining
+> work is tracked in [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
 The engineering docs live in [`docs/`](./docs/) (start at
 [`orientation.md`](./docs/orientation.md)); the system model is
@@ -110,7 +112,7 @@ src/
     api/revalidate/     # signed Sanity webhook → revalidateTag (publish→prod)
     rss.xml/            # RSS feed route handler
     foundation.css      # foundation primitives + semantic editorial defaults + @layer order + reset
-  projects/             # self-contained project modules (one per project); types.ts holds the shared ProjectModule contract
+  projects/             # self-contained project modules; types.ts = the ProjectModule contract; palette-studio/ = the OKLCH Palette Studio
   embeds/               # shared in-essay embed components (key → component)
   components/           # shell/ (SiteNav · SiteFooter), entry/ (EntryCard), project-scope (keystone), portable-text
   fonts/roster.ts       # curated next/font faces, one per key

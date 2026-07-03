@@ -35,6 +35,9 @@ import type {
   RampPair,
   SchemePair,
   SchemeTokens,
+  BindingStep,
+  BindingProvenance,
+  BindingPair,
   SchemeResult,
   TokenSet,
   // palette options
@@ -76,6 +79,9 @@ type PublicTypeSurface = {
   RampPair: RampPair;
   SchemePair: SchemePair;
   SchemeTokens: SchemeTokens;
+  BindingStep: BindingStep;
+  BindingProvenance: BindingProvenance;
+  BindingPair: BindingPair;
   SchemeResult: SchemeResult;
   TokenSet: TokenSet;
   EngineOptions: EngineOptions;
@@ -93,7 +99,7 @@ type PublicTypeSurface = {
 
 describe("frozen public TYPE surface (#99) — completeness guard", () => {
   it("every documented public type is exported from the barrel", () => {
-    // If this file compiled, all 27 type exports resolved. Assert the map is inhabited
+    // If this file compiled, all 30 type exports resolved. Assert the map is inhabited
     // so the test is not empty; the real guard is compile-time.
     expectTypeOf<PublicTypeSurface>().toBeObject();
   });

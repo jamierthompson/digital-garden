@@ -1,0 +1,65 @@
+/* Contrast receipt card — @layer project. Scoped to the generated palette (inline vars from
+   ContrastReceipt), so the card sits on this scheme's generated surface + text. */
+@layer project {
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+
+  .name {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--text);
+  }
+
+  .measure {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  .value {
+    color: var(--text-muted);
+  }
+
+  .mark {
+    color: var(--error);
+    font-weight: 600;
+  }
+
+  .mark[data-pass] {
+    color: var(--success);
+  }
+}
