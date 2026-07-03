@@ -51,7 +51,7 @@ export {
   clamp01,
 } from "./convert";
 
-export { RAMP_LABELS } from "./types";
+export { RAMP_LABELS, RAMP_ROLES, BRAND_TOKEN_NAMES } from "./types";
 
 export type {
   OkLCH,
@@ -59,6 +59,7 @@ export type {
   RGB,
   Scheme,
   Gamut,
+  ColorFormat,
   BrandTokenName,
   RampLabel,
   RampRole,

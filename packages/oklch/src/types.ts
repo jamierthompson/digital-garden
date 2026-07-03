@@ -41,24 +41,40 @@ export type Scheme = "light" | "dark";
  */
 export type Gamut = "srgb" | "p3";
 
-/** The generic, public token names the engine emits. */
-export type BrandTokenName =
-  | "bg"
-  | "surface"
-  | "surface-2"
-  | "text"
-  | "text-muted"
-  | "border"
-  | "accent"
-  | "accent-text"
-  | "on-accent"
-  | "focus-ring"
-  // Status signal colors — accessible foregrounds at FIXED canonical hues (not
-  // brand-derived), harmonized with the slot only through the shared treatment.
-  | "success"
-  | "error"
-  | "warning"
-  | "info";
+/**
+ * Export value serialization (#99, for the studio export #107). `oklch` is the engine's
+ * native, lossless form; `hex`/`rgb` serialize the gamut-mapped sRGB rendering of each
+ * color (identical paint for the default `srgb` gamut; a P3 literal is clamped — the
+ * lowest-common-denominator downconversion).
+ */
+export type ColorFormat = "oklch" | "hex" | "rgb";
+
+/**
+ * The generic, public token names the engine emits, in canonical emission order — the
+ * FROZEN semantic contract (#99). Exported so consumers (the freeze-guard test, Sanity
+ * author-time validation, the studio receipt) read the one list rather than restating it.
+ * The last four are status signal colors — accessible foregrounds at FIXED canonical hues
+ * (not brand-derived), harmonized with the slot only through the shared treatment.
+ */
+export const BRAND_TOKEN_NAMES = [
+  "bg",
+  "surface",
+  "surface-2",
+  "text",
+  "text-muted",
+  "border",
+  "accent",
+  "accent-text",
+  "on-accent",
+  "focus-ring",
+  "success",
+  "error",
+  "warning",
+  "info",
+] as const;
+
+/** One generic, public token name. */
+export type BrandTokenName = (typeof BRAND_TOKEN_NAMES)[number];
 
 /**
  * The 11 ramp step labels — Tailwind-style `50…950`. Ordered lightest → darkest, so a
@@ -84,18 +100,24 @@ export const RAMP_LABELS = [
 export type RampLabel = (typeof RAMP_LABELS)[number];
 
 /**
- * The roles the engine emits a generative ramp for: the `brand` ramp (full seed chroma),
- * the near-neutral `neutral` ramp (surfaces + near-neutral text/border bind to it), and one
- * ramp per canonical status hue. Role→step binding is a *separate* layer (the semantic
- * tokens); this is the pure lightness primitive behind them.
+ * The roles the engine emits a generative ramp for, in canonical emission order: the
+ * `brand` ramp (full seed chroma), the near-neutral `neutral` ramp (surfaces +
+ * near-neutral text/border bind to it), and one ramp per canonical status hue. Role→step
+ * binding is a *separate* layer (the semantic tokens); this is the pure lightness
+ * primitive behind them. Part of the frozen contract (#99), exported like
+ * `BRAND_TOKEN_NAMES`.
  */
-export type RampRole =
-  | "brand"
-  | "neutral"
-  | "success"
-  | "error"
-  | "warning"
-  | "info";
+export const RAMP_ROLES = [
+  "brand",
+  "neutral",
+  "success",
+  "error",
+  "warning",
+  "info",
+] as const;
+
+/** One ramp role. */
+export type RampRole = (typeof RAMP_ROLES)[number];
 
 /** One resolved ramp step: its label, the gamut-mapped color, and the out-of-gamut flag. */
 export interface RampStep {

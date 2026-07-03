@@ -40,19 +40,21 @@ import {
   withSolveMargin,
   type ContrastTarget,
 } from "./contrast";
-import type {
-  BrandTokenName,
-  Gamut,
-  OkLCH,
-  Ramp,
-  RampLabel,
-  RampRole,
-  Scheme,
-  SchemePair,
-  SchemeResult,
-  SchemeTokens,
-  RampPair,
-  TokenSet,
+import {
+  BRAND_TOKEN_NAMES,
+  RAMP_ROLES,
+  type BrandTokenName,
+  type Gamut,
+  type OkLCH,
+  type Ramp,
+  type RampLabel,
+  type RampRole,
+  type Scheme,
+  type SchemePair,
+  type SchemeResult,
+  type SchemeTokens,
+  type RampPair,
+  type TokenSet,
 } from "./types";
 
 export interface EngineOptions {
@@ -427,65 +429,18 @@ export function resolveTheme(
   return { tokens, ramps, seed, gamut, isFallback, direction };
 }
 
-// The canonical token order. `satisfies readonly BrandTokenName[]` rejects an
-// unknown/misspelled name (the code→type direction); the `_TokenNamesExhaustive`
-// guard below rejects a MISSING name (the type→code direction).
-const TOKEN_NAMES = [
-  "bg",
-  "surface",
-  "surface-2",
-  "text",
-  "text-muted",
-  "border",
-  "accent",
-  "accent-text",
-  "on-accent",
-  "focus-ring",
-  "success",
-  "error",
-  "warning",
-  "info",
-] as const satisfies readonly BrandTokenName[];
-
-// Compile-time exhaustiveness guard: if any `BrandTokenName` is absent from
-// `TOKEN_NAMES`, `Exclude<…>` is a non-`never` union, this type resolves to `never`,
-// and the `= true` assignment fails to typecheck. Pure type-level — emits nothing.
-type _TokenNamesExhaustive =
-  Exclude<BrandTokenName, (typeof TOKEN_NAMES)[number]> extends never
-    ? true
-    : never;
-const _TOKEN_NAMES_EXHAUSTIVE: _TokenNamesExhaustive = true;
-void _TOKEN_NAMES_EXHAUSTIVE; // referenced so it isn't flagged as unused
-
-// The canonical ramp-role order for zipping the dual-scheme ramps. Same exhaustiveness
-// discipline as TOKEN_NAMES: `satisfies` rejects a bad name, the guard rejects a missing one.
-const RAMP_ROLES = [
-  "brand",
-  "neutral",
-  "success",
-  "error",
-  "warning",
-  "info",
-] as const satisfies readonly RampRole[];
-
-type _RampRolesExhaustive =
-  Exclude<RampRole, (typeof RAMP_ROLES)[number]> extends never ? true : never;
-const _RAMP_ROLES_EXHAUSTIVE: _RampRolesExhaustive = true;
-void _RAMP_ROLES_EXHAUSTIVE;
-
 /**
- * Build a `Record<BrandTokenName, T>` by calling `value` for every token in
- * `TOKEN_NAMES`. The completeness guarantee comes from the guards on `TOKEN_NAMES`
- * above (exhaustive + no extras), not from this helper: those make "visit every
- * token, exactly once" a compile-time fact, so the lone `as` here (unavoidable —
- * `Object.fromEntries` is typed to a loose index signature) is sound rather than a
- * blind assertion.
+ * Build a `Record<BrandTokenName, T>` by calling `value` for every token in the
+ * canonical `BRAND_TOKEN_NAMES` (types.ts) — since `BrandTokenName` is DERIVED from
+ * that list, "visit every token, exactly once" is a compile-time fact, so the lone
+ * `as` here (unavoidable — `Object.fromEntries` is typed to a loose index signature)
+ * is sound rather than a blind assertion.
  */
 function mapTokens<T>(
   value: (name: BrandTokenName) => T,
 ): Record<BrandTokenName, T> {
   return Object.fromEntries(
-    TOKEN_NAMES.map((name) => [name, value(name)] as const),
+    BRAND_TOKEN_NAMES.map((name) => [name, value(name)] as const),
   ) as Record<BrandTokenName, T>;
 }
 
