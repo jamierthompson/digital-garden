@@ -36,7 +36,7 @@ import { gamutMap } from "./gamut";
 import { clamp01, parseColor } from "./convert";
 import {
   apcaLc,
-  contrastWCAG,
+  checkContrast,
   withSolveMargin,
   type ContrastTarget,
 } from "./contrast";
@@ -226,10 +226,7 @@ function detectDirection(base: OkLCH, gamut: Gamut): Scheme {
   const surface2 = surface2Of(ramps, "light");
   // The candidate light-mode primary is the accent anchored at the seed's own lightness.
   const accent = gamutMap({ L: seed.L, C: seed.C, H: seed.H }, gamut);
-  const clearsUi =
-    contrastWCAG(accent, surface2) >= TARGET.ui.wcag &&
-    apcaLc(accent, surface2) >= TARGET.ui.apca;
-  return clearsUi ? "light" : "dark";
+  return checkContrast(accent, surface2, TARGET.ui).passes ? "light" : "dark";
 }
 
 /**
@@ -280,16 +277,16 @@ function solveAccent(
   for (let L = 0.3; L <= 0.8 + 1e-9; L += 0.01) {
     const accent = gamutMap({ L, C: seed.C, H: hue }, gamut);
     // The fill must read as a UI element against the surface (non-text 3:1 / Lc 45).
-    if (contrastWCAG(accent, surfaceBg) < ui.wcag) continue;
-    if (apcaLc(accent, surfaceBg) < ui.apca) continue;
+    if (!checkContrast(accent, surfaceBg, ui).passes) continue;
 
     for (const label of labels) {
-      const lc = apcaLc(label, accent);
+      const check = checkContrast(label, accent, target);
+      const lc = check.apca;
       // Track the overall best label/fill in case nothing meets target (unreachable).
       if (!fallback || lc > fallback.lc)
         fallback = { accent, onAccent: label, lc };
 
-      if (contrastWCAG(label, accent) >= target.wcag && lc >= target.apca) {
+      if (check.passes) {
         // Prefer the most chromatic fill; tie-break on label contrast margin.
         if (
           !best ||
@@ -352,16 +349,11 @@ function solveNativeAccent(
     const L = clamp01(seed.L + sign * delta);
     const accent = gamutMap({ L, C: seed.C, H: hue }, gamut);
     // The fill must still read as a UI element against the worst-case surface.
-    const readsOnSurface =
-      contrastWCAG(accent, surfaceBg) >= ui.wcag &&
-      apcaLc(accent, surfaceBg) >= ui.apca;
-    if (readsOnSurface) {
+    if (checkContrast(accent, surfaceBg, ui).passes) {
       // Accept this (faithful) fill as soon as SOME extreme label clears the floor, but
       // ship the higher-contrast extreme so on-accent has headroom (#95).
       const hosts = labels.some(
-        (label) =>
-          contrastWCAG(label, accent) >= target.wcag &&
-          apcaLc(label, accent) >= target.apca,
+        (label) => checkContrast(label, accent, target).passes,
       );
       if (hosts) return { accent, onAccent: onAccentLabel(accent, hue, gamut) };
     }
