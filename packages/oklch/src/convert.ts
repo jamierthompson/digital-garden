@@ -7,7 +7,7 @@
  * the CSS Color 4 reference values (https://www.w3.org/TR/css-color-4/#color-conversion-code).
  */
 
-import type { Gamut, OkLab, OkLCH, RGB } from "./types";
+import type { ColorFormat, Gamut, OkLab, OkLCH, RGB } from "./types";
 
 /** Gamma-encoded sRGB channel → linear-light. Also the Display-P3 transfer fn. */
 export function srgbToLinear(c: number): number {
@@ -204,4 +204,44 @@ function fmt(n: number, places: number): string {
 /** Format an OKLCH as a literal `oklch(L C H)` string for baking into CSS. */
 export function formatOklch({ L, C, H }: OkLCH): string {
   return `oklch(${fmt(L, 4)} ${fmt(C, 4)} ${fmt(H, 2)})`;
+}
+
+/** OKLCH → gamma sRGB channels quantized to 0–255. Channels are clamped, so a color the
+ *  engine gamut-mapped into sRGB serializes losslessly and a wider (P3) literal clamps to
+ *  its nearest sRGB rendering — the lossy-by-design downconversion `ColorFormat` documents.
+ *  A non-finite channel (a hand-built NaN/Infinity OKLCH — unreachable via the engine's
+ *  own parse-guarded paths) collapses to 0, so hex and rgb() degrade IDENTICALLY to black
+ *  instead of one masking and the other emitting invalid CSS (QA-99). */
+function srgb255(color: OkLCH): [number, number, number] {
+  const { r, g, b } = oklchToSrgb(color);
+  const q = (ch: number): number =>
+    Number.isFinite(ch) ? Math.round(clamp01(ch) * 255) : 0;
+  return [q(r), q(g), q(b)];
+}
+
+/** Format an OKLCH as a lowercase `#rrggbb` hex literal (sRGB, clamped). */
+export function formatHex(color: OkLCH): string {
+  const [r, g, b] = srgb255(color);
+  return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
+}
+
+/** Format an OKLCH as a modern `rgb(r g b)` literal (sRGB, clamped). */
+export function formatRgb(color: OkLCH): string {
+  const [r, g, b] = srgb255(color);
+  return `rgb(${r} ${g} ${b})`;
+}
+
+/** Format an OKLCH in the requested `ColorFormat` — the one value-serialization switch
+ *  every export format routes through (#99). An out-of-union format (reachable only by a
+ *  JS caller casting past the type) falls back to the native `oklch` literal rather than
+ *  returning `undefined` (QA-99). */
+export function formatColor(color: OkLCH, format: ColorFormat): string {
+  switch (format) {
+    case "hex":
+      return formatHex(color);
+    case "rgb":
+      return formatRgb(color);
+    default:
+      return formatOklch(color);
+  }
 }

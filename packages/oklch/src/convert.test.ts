@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { formatOklch, oklchToSrgb, parseColor, srgbToOklch } from "./convert";
+import {
+  formatColor,
+  formatHex,
+  formatOklch,
+  formatRgb,
+  oklchToSrgb,
+  parseColor,
+  srgbToOklch,
+} from "./convert";
 import type { RGB } from "./types";
 
 /** Max per-channel error tolerated on a full sRGB → OKLCH → sRGB round-trip. */
@@ -119,5 +127,41 @@ describe("formatOklch", () => {
     expect(formatOklch({ L: 0.123456, C: 0.234567, H: 123.456 })).toBe(
       "oklch(0.1235 0.2346 123.46)",
     );
+  });
+});
+
+describe("formatHex / formatRgb / formatColor", () => {
+  it("round-trips an sRGB hex literal through OKLCH exactly", () => {
+    const parsed = parseColor("#3b82f6")!;
+    expect(formatHex(parsed)).toBe("#3b82f6");
+    expect(formatRgb(parsed)).toBe("rgb(59 130 246)");
+  });
+
+  it("serializes the extremes without drift", () => {
+    expect(formatHex(srgbToOklch({ r: 1, g: 1, b: 1 }))).toBe("#ffffff");
+    expect(formatHex(srgbToOklch({ r: 0, g: 0, b: 0 }))).toBe("#000000");
+    expect(formatRgb(srgbToOklch({ r: 1, g: 0, b: 0 }))).toBe("rgb(255 0 0)");
+  });
+
+  it("zero-pads low channels", () => {
+    expect(formatHex(parseColor("#000a0b")!)).toBe("#000a0b");
+  });
+
+  it("clamps an out-of-sRGB color instead of overflowing", () => {
+    // Full-chroma OKLCH green is far outside sRGB — channels must clamp to [0,255].
+    const wild = { L: 0.65, C: 0.4, H: 145 };
+    expect(formatHex(wild)).toMatch(/^#[0-9a-f]{6}$/);
+    const rgb = formatRgb(wild).match(/\d+/g)!.map(Number);
+    for (const ch of rgb) {
+      expect(ch).toBeGreaterThanOrEqual(0);
+      expect(ch).toBeLessThanOrEqual(255);
+    }
+  });
+
+  it("formatColor routes to the matching serializer", () => {
+    const c = parseColor("#3b82f6")!;
+    expect(formatColor(c, "oklch")).toBe(formatOklch(c));
+    expect(formatColor(c, "hex")).toBe("#3b82f6");
+    expect(formatColor(c, "rgb")).toBe("rgb(59 130 246)");
   });
 });

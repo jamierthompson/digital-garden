@@ -86,4 +86,13 @@ describe("tokenSetToCss", () => {
     // The complete scoped rule carries the ramp primitives too (#98).
     expect(css).toContain("--brand-500:");
   });
+
+  it("serializes values per ColorFormat on request, defaulting to native oklch (#99)", () => {
+    const set = buildTokenSet("#3b82f6");
+    const selector = '[data-project="garden"]';
+    expect(tokenSetToCss(set, selector)).toContain("light-dark(oklch(");
+    const hex = tokenSetToCss(set, selector, { format: "hex" });
+    expect(hex).toMatch(/--accent: light-dark\(#[0-9a-f]{6}, #[0-9a-f]{6}\);/);
+    expect(hex).not.toContain("oklch(");
+  });
 });

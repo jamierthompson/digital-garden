@@ -43,12 +43,43 @@ const css = tokenSetToCss(set, '[data-project="garden"]'); // @layer brand, toke
 
 Tokens (generic semantic contract, emitted as bare `--<name>`): `bg`, `surface`,
 `surface-2`, `text`, `text-muted`, `border`, `accent`, `accent-text`, `on-accent`,
-`focus-ring`, plus the status signals `success`, `error`, `warning`, `info`.
+`focus-ring`, plus the status signals `success`, `error`, `warning`, `info`. The canonical
+lists are exported (`BRAND_TOKEN_NAMES`, `RAMP_ROLES`, `RAMP_LABELS`) — import them, don't
+restate them.
 
 Ramps (the primitive tier, emitted as `--<role>-<step>`): one per role — `brand`, `neutral`,
 `success`, `error`, `warning`, `info` — each 11 `50…950` steps (`RampStep` = `{ label, color,
 oog }`). `tokenSetToDeclarations` emits the semantic tier only; `rampSetToDeclarations` the
 ramp tier only; `tokenSetToCss` both.
+
+### The frozen contract & versioning stance (#99)
+
+The public surface — the runtime export names, the canonical name lists above, the
+custom-property names the serializers emit, and the high-level signatures — is **frozen**,
+guarded by `api.test.ts`. When that test fails, the contract changed; that happens only as
+a deliberate decision:
+
+- **Additions are fine** (new export, new token) — extend the freeze-guard's lists in the
+  same commit, and update this README.
+- **Renames/removals are breaking** — migrate every consumer (`ProjectScope`,
+  `cardSwatches`, Studio validation, the studio module) in the same PR. There is no
+  deprecation window inside a monorepo; the PR is the migration.
+- Never adjust the guard to make accidental drift pass.
+
+### Export formats (for the studio export UI, #107)
+
+Portable serializations of a `TokenSet`, each taking `{ format?: "oklch" | "hex" | "rgb" }`
+(default `oklch`, the native lossless literal; `hex`/`rgb` are the clamped sRGB rendering):
+
+```ts
+import { tokenSetToTailwindTheme, tokenSetToDesignTokens } from "@garden/oklch";
+
+tokenSetToTailwindTheme(set); // Tailwind v4 `@theme { --color-brand-500: …; }` (CSS-first)
+tokenSetToDesignTokens(set, { format: "hex" }); // W3C-DTCG JSON, per-scheme groups
+```
+
+The in-repo CSS serializers (`tokenSetToCss` & co.) take the same option; `ProjectScope`
+uses the default.
 
 **Low-level surface** is also exported: `contrastWCAG`, `contrastAPCA`/`apcaLc`,
 `solveForeground`, `gamutMap`/`inGamut`, `buildRamp` (the `50…950` role ramp) +
