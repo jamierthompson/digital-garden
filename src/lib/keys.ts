@@ -44,12 +44,12 @@ export type ComponentKey = (typeof COMPONENT_KEYS)[number];
  * Embed keys — shared in-essay live components / widgets, resolved in
  * `src/lib/resolvers/embeds.ts`. The registry starts single-tier; a
  * project-local tier is added only on a genuine second use.
- *   • `sunrise-meter` — a small static in-essay widget; the one worked example proving the
- *     Portable Text `liveEmbed` → `resolveEmbedKey` path end-to-end for future essays.
+ *
+ * Currently EMPTY: the proof-of-concept `sunrise-meter` widget was retired with the mock
+ * harness (#109). The generic `liveEmbed` Portable Text block + the resolver stay as the
+ * infrastructure; the first real essay embed registers the first key here.
  */
-export const EMBED_KEYS = [
-  "sunrise-meter",
-] as const satisfies readonly string[];
+export const EMBED_KEYS = [] as const satisfies readonly string[];
 export type EmbedKey = (typeof EMBED_KEYS)[number];
 
 const FONT_KEY_SET: ReadonlySet<string> = new Set(FONT_KEYS);

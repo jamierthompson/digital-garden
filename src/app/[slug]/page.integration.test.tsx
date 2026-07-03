@@ -16,18 +16,18 @@ import EmbedBlock from "@/components/portable-text/EmbedBlock";
 import ProjectScope from "@/components/project-scope/ProjectScope";
 import { resolveScope } from "@/components/project-scope/scopeSeed";
 import { resolveComponentKey } from "@/lib/resolvers/components";
-import { resolveEmbedKey } from "@/lib/resolvers/embeds";
 import { isNotFound } from "@/lib/resolvers/resolution";
 
 // Integration test of the primary flow — Sanity document → themed slot → essay
 // embed — with the Sanity fetch MOCKED so no network touches Vitest. It exercises the
-// SYNCHRONOUS seams of the flow (scope resolution, scope render, embed key resolution, the
-// missing-embed fallback); the async-RSC page render itself is jsdom-untestable and is the
-// Chrome DevTools MCP browser check's job / Playwright's (testing.md "Async RSCs").
+// SYNCHRONOUS seams of the flow (scope resolution, scope render, the missing-embed
+// fallback); the async-RSC page render itself is jsdom-untestable and is the Chrome
+// DevTools MCP browser check's job / Playwright's (testing.md "Async RSCs").
 //
 // The fixture is a representative themed-entry doc shape — the theming/embed infrastructure
-// is exercised directly here (no coded project module ships post-#109, so the full page
-// only mounts a slot once a real module lands; the seams below are the durable contract).
+// is exercised directly here (no coded project module or registered embed ships post-#109,
+// so the full page only mounts a slot once a real module lands; the seams below are the
+// durable contract, and the embed registry now resolves every key to the missing-embed seam).
 
 const THEMED_ENTRY = {
   _id: "themed-entry-fixture",
@@ -37,14 +37,6 @@ const THEMED_ENTRY = {
   brandColor: "oklch(0.7 0.15 70)",
   brandColorDark: null,
   fontKey: "newsreader",
-  essay: [
-    {
-      _type: "liveEmbed" as const,
-      _key: "embed1",
-      embedKey: "sunrise-meter",
-      caption: "The sunrise meter.",
-    },
-  ],
   notes: null,
 };
 
@@ -89,24 +81,6 @@ describe("/[slug] primary flow (Sanity mocked)", () => {
     const style = document.head.querySelector("style[data-precedence]");
     expect(style?.textContent).toContain('[data-project="themed-slot"]');
     expect(style?.textContent).toContain("--accent: light-dark(");
-  });
-
-  it("resolves the essay's embed key (sunrise-meter) to a loader", () => {
-    const embed = resolveEmbedKey("sunrise-meter");
-    expect(isNotFound(embed)).toBe(false);
-  });
-
-  it("renders the live embed (sunrise-meter) themed in the essay", async () => {
-    // EmbedBlock is an async Server Component; awaiting it here yields its element tree,
-    // which RTL then renders — the embed (SunriseMeter) appears with its caption.
-    const ui = await EmbedBlock({
-      embedKey: "sunrise-meter",
-      caption: "The sunrise meter.",
-    });
-    render(ui);
-    expect(screen.getByText("The sunrise meter.")).toBeInTheDocument();
-    // SunriseMeter renders its own labelled meter figure.
-    expect(screen.getByLabelText(/Dawn progress/i)).toBeInTheDocument();
   });
 
   it("shows the missing-embed placeholder for an unresolved embed key (no crash)", async () => {

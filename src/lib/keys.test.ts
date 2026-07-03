@@ -23,8 +23,9 @@ describe("key contracts", () => {
     expect(new Set(COMPONENT_KEYS).size).toBe(COMPONENT_KEYS.length);
   });
 
-  it("EMBED_KEYS registers the one worked embed example (sunrise-meter), uniquely", () => {
-    expect(EMBED_KEYS).toContain("sunrise-meter");
+  it("EMBED_KEYS is empty — the mock widget was retired, no real embed has landed yet (#109)", () => {
+    // Like COMPONENT_KEYS: a valid (empty) unique set; the first real essay embed adds a key.
+    expect(EMBED_KEYS).toHaveLength(0);
     expect(new Set(EMBED_KEYS).size).toBe(EMBED_KEYS.length);
   });
 
@@ -34,10 +35,9 @@ describe("key contracts", () => {
     expect(isFontKey("")).toBe(false);
   });
 
-  it("isComponentKey / isEmbedKey accept registered keys and reject unknowns", () => {
-    // No component key resolves while the registry is empty; the embed registry still has one.
+  it("isComponentKey / isEmbedKey reject every key while both registries are empty", () => {
     expect(isComponentKey("first-light")).toBe(false);
-    expect(isEmbedKey("sunrise-meter")).toBe(true);
+    expect(isEmbedKey("sunrise-meter")).toBe(false);
     expect(isComponentKey("log-explorer")).toBe(false);
     expect(isEmbedKey("hue-slider")).toBe(false);
   });

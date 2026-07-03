@@ -106,7 +106,7 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
     liveEmbedBlockCount: 3,
     fontKeys: ["inter"],
     componentKeys: ["some-module"],
-    embedKeys: ["sunrise-meter"],
+    embedKeys: ["some-embed"],
   };
 
   it("returns no signals when every structural count and key array agree", () => {
