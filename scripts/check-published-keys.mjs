@@ -33,10 +33,11 @@
 // Vacuous-green hardening: `array::unique()` on a renamed/typo'd field resolves to `[]`
 // with no error — a broken query and a genuinely empty dataset are indistinguishable from
 // the key arrays alone. `findBrokenQuerySignals` below cross-checks each key array against
-// a STRUCTURAL count (entry/siteSettings/project counts, and a liveEmbed *block* count that
-// doesn't reference the `embedKey` field name) tied to an actual schema requirement, so it
-// FAILs on a broken query but stays silent on a legitimately empty dataset (e.g. after the
-// #109 mock-data purge, where every count — structural and key — drops to zero together).
+// a STRUCTURAL count (entry/siteSettings/non-sketch-project counts, and a liveEmbed *block*
+// count that doesn't reference the `embedKey` field name) tied to an actual schema
+// requirement, so it FAILs on a broken query but stays silent when a key array is legitimately
+// empty — a genuinely empty dataset, or a garden of only sketch-stage projects (which carry
+// no componentKey), where the paired structural count is likewise zero.
 
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -52,7 +53,7 @@ const root = new URL("../", import.meta.url);
 const PUBLISHED_KEYS_QUERY = `{
   "entryCount": count(*[_type == "entry"]),
   "siteSettingsCount": count(*[_type == "siteSettings"]),
-  "projectEntryCount": count(*[_type == "entry" && kind == "project"]),
+  "nonSketchProjectCount": count(*[_type == "entry" && kind == "project" && stage != "sketch"]),
   "liveEmbedBlockCount": count(*[_type == "entry" && count(body[_type == "liveEmbed"]) > 0]),
   "fontKeys": array::unique(*[_type in ["entry", "siteSettings"] && defined(fontKey)].fontKey),
   "componentKeys": array::unique(*[_type == "entry" && defined(componentKey)].componentKey),
@@ -76,15 +77,18 @@ export function findUnresolvedKeys(publishedKeys, knownKeys) {
  * non-empty key array:
  *   - `siteSettings.fontKey` is `rule.required()` — a published siteSettings doc with zero
  *     resolved fontKeys means the fontKey path broke.
- *   - a "project"-kind `entry.componentKey` is conditionally `required()` — a published
- *     project entry with zero resolved componentKeys means the componentKey path broke.
+ *   - a NON-SKETCH "project"-kind `entry.componentKey` is `required()` (a `stage: sketch`
+ *     project has no coded module yet, so componentKey is required only PAST sketch — see
+ *     studio/schemaTypes/documents/entry.ts). So the canary counts only non-sketch projects:
+ *     a published non-sketch project with zero resolved componentKeys means the componentKey
+ *     path broke. (An all-sketch garden legitimately has zero componentKeys AND zero
+ *     non-sketch projects, so it never trips this.)
  *   - a `liveEmbed` block's `embedKey` is `rule.required()` too, and `liveEmbedBlockCount`
  *     is derived from `_type == "liveEmbed"` matching ALONE (no `embedKey` reference), so
  *     it still holds even if `embedKey` itself were renamed.
- * Every check is gated on its structural count being > 0, so a genuinely empty dataset —
- * e.g. after the #109 mock-data purge, where entry/siteSettings/project counts all drop to
- * zero together — trips none of them; the net stays a clean pass, not a false alarm.
- * Exported and unit-tested directly, same as `findUnresolvedKeys`.
+ * Every check is gated on its structural count being > 0, so a genuinely empty dataset — or
+ * a garden of only sketch-stage projects — trips none of them; the net stays a clean pass,
+ * not a false alarm. Exported and unit-tested directly, same as `findUnresolvedKeys`.
  */
 export function findBrokenQuerySignals(published) {
   const signals = [];
@@ -94,11 +98,14 @@ export function findBrokenQuerySignals(published) {
         "values resolved — the fontKey query is likely broken, not a benign empty dataset.",
     );
   }
-  if (published.projectEntryCount > 0 && published.componentKeys.length === 0) {
+  if (
+    published.nonSketchProjectCount > 0 &&
+    published.componentKeys.length === 0
+  ) {
     signals.push(
-      `${published.projectEntryCount} published "project"-kind entry(ies) exist ` +
-        "(componentKey is schema-required there) but zero componentKey values resolved " +
-        "— the componentKey query is likely broken.",
+      `${published.nonSketchProjectCount} published non-sketch "project"-kind entry(ies) exist ` +
+        "(componentKey is schema-required past the sketch stage) but zero componentKey values " +
+        "resolved — the componentKey query is likely broken.",
     );
   }
   if (published.liveEmbedBlockCount > 0 && published.embedKeys.length === 0) {
@@ -216,7 +223,7 @@ async function main() {
   console.log(
     `check-published-keys: OK — every published key resolves in src/lib/keys.ts (${counts}; ` +
       `entries=${published.entryCount}, siteSettings=${published.siteSettingsCount}, ` +
-      `projectEntries=${published.projectEntryCount}, liveEmbedBlocks=${published.liveEmbedBlockCount}).`,
+      `nonSketchProjects=${published.nonSketchProjectCount}, liveEmbedBlocks=${published.liveEmbedBlockCount}).`,
   );
   process.exit(0);
 }
