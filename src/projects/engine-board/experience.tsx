@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
 
+import type { ExperienceProps } from "@/projects/types";
+
 import styles from "./experience.module.css";
 
 // The generic semantic role tokens the OKLCH engine bakes and `ProjectScope` re-binds per
@@ -73,10 +75,15 @@ function TokenGroup({
  * stress the plumbing end-to-end (route → Sanity → engine → scope → slot), not to be a
  * finished surface.
  */
-export default function EngineBoardExperience() {
+export default function EngineBoardExperience({ slug }: ExperienceProps) {
+  // `slug`-scoped: this board is pointed at by MANY seed brands' `componentKey` at once, so
+  // two DIFFERENT projects sharing it can both be Activity-preserved simultaneously — a
+  // hardcoded id would collide (see `ExperienceProps.slug`).
+  const headingId = `engine-board-heading-${slug}`;
+
   return (
-    <section className={styles.board} aria-labelledby="engine-board-heading">
-      <h2 id="engine-board-heading" className={styles.heading}>
+    <section className={styles.board} aria-labelledby={headingId}>
+      <h2 id={headingId} className={styles.heading}>
         Engine output
       </h2>
       <p className={styles.caption}>

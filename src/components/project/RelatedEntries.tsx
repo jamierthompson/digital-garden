@@ -38,6 +38,16 @@ export default function RelatedEntries({
   related,
   backlinks,
 }: RelatedEntriesProps) {
+  // Cache Components keeps up to 3 route instances mounted at once (React's `<Activity>`,
+  // hidden ones `display:none`) — visiting several `/[slug]` projects in one session can leave
+  // multiple RelatedEntries trees live simultaneously, so a hardcoded id collides across them.
+  // `useId()` looked like the fix but ISN'T: empirically, two Activity-preserved `/[slug]`
+  // instances generated the identical id (Next's per-route Activity boundary resets React's
+  // tree-id counter rather than forking it, so structurally-identical trees collide anyway).
+  // `currentId` — the entry's own Sanity `_id` — is unique per rendered instance by
+  // construction and doesn't depend on tree position, so it's used directly instead.
+  const headingId = `related-heading-${currentId}`;
+
   const seen = new Set<string>([currentId]);
   const entries: RelatedEntry[] = [];
   for (const entry of [...(related ?? []), ...(backlinks ?? [])]) {
@@ -51,8 +61,8 @@ export default function RelatedEntries({
   }
 
   return (
-    <section className={styles.related} aria-labelledby="related-heading">
-      <h2 id="related-heading" className={styles.heading}>
+    <section className={styles.related} aria-labelledby={headingId}>
+      <h2 id={headingId} className={styles.heading}>
         Related
       </h2>
       <ul className={styles.list}>

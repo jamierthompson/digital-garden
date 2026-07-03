@@ -9,5 +9,5 @@ import FirstLightExperience from "../experience";
  * scaffold a richer project's route would mount.
  */
 export default function ExperiencePage() {
-  return <FirstLightExperience />;
+  return <FirstLightExperience slug="first-light" />;
 }
