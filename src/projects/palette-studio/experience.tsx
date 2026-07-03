@@ -37,7 +37,9 @@ export default function Experience({
   const [gamut, setGamut] = useState<Gamut>(DEFAULT_GAMUT);
   const [scheme, setScheme] = useState<Scheme>("light");
 
-  const parsed = useMemo(() => parseSeed(seed), [seed]);
+  // Gamut-map the readout into the palette's gamut so it echoes the exact in-gamut seed the
+  // palette derives from — not the parser's half-clamped raw value (QA-BR).
+  const parsed = useMemo(() => parseSeed(seed, gamut), [seed, gamut]);
   // The single engine run per state change — kept out of render churn (a scheme toggle
   // must NOT re-derive). #41 will memoize the engine itself; this is just the idiomatic guard.
   const palette = useMemo(

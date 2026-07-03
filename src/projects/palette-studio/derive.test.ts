@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   BRAND_TOKEN_NAMES,
   buildTokenSet,
+  inGamut,
+  parseColor,
   RAMP_LABELS,
   RAMP_ROLES,
 } from "@garden/oklch";
@@ -29,6 +31,30 @@ describe("parseSeed", () => {
       expect(parsed.oklch).toBeNull();
       expect(parsed.input).toBe(input);
     }
+  });
+
+  // QA-BR: the engine's parser clamps L but echoes C/H raw, so oklch(9 9 9) parses to the
+  // out-of-gamut hybrid oklch(1 9 9). The readout must show the gamut-mapped seed the palette
+  // actually derives from, never that hybrid.
+  it.each(["srgb", "p3"] as const)(
+    "echoes the in-gamut seed the palette derives from for out-of-range oklch (%s)",
+    (gamut) => {
+      const parsed = parseSeed("oklch(9 9 9)", gamut);
+      expect(parsed.isFallback).toBe(false);
+      expect(parsed.oklch).not.toBeNull();
+      // In gamut — not a half-clamped hybrid.
+      expect(inGamut(parsed.oklch!, gamut)).toBe(true);
+      // …and byte-identical to the seed the palette bakes from (meta.seed.light is the parsed
+      // seed mapped into the same gamut; the light seed holds full chroma).
+      const seedUsed = derivePalette("oklch(9 9 9)", DEFAULT_RULES, gamut)
+        .tokenSet.meta.seed.light;
+      expect(parsed.oklch).toEqual(seedUsed);
+    },
+  );
+
+  it("leaves an already in-gamut seed unchanged in the readout", () => {
+    const parsed = parseSeed("#3b82f6", "srgb");
+    expect(parsed.oklch).toEqual(parseColor("#3b82f6"));
   });
 });
 

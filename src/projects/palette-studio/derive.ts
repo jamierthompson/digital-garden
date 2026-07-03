@@ -10,6 +10,7 @@
 
 import {
   buildTokenSet,
+  gamutMap,
   parseColor,
   RAMP_ROLES,
   type BindingStep,
@@ -30,7 +31,10 @@ import type { StudioRules } from "./rules";
  * The parsed seed for the live input readout. `oklch` is `null` exactly when the input
  * failed to parse — the `isFallback` signal the UI shows inline (the engine still bakes a
  * safe palette, so the rest of the tool keeps working). Uses the engine's own parser so the
- * readout can never disagree with what the palette was derived from.
+ * readout can never disagree with what the palette was derived from — and it is **gamut-
+ * mapped into the palette's gamut**, so the readout is the exact in-gamut seed the palette
+ * derives from, never a half-clamped hybrid (the parser clamps `L` but echoes `C`/`H` raw,
+ * so `oklch(9 9 9)` parses to `oklch(1 9 9)` — out of gamut; the map pulls it back in).
  */
 export interface ParsedSeed {
   readonly input: string;
@@ -38,10 +42,19 @@ export interface ParsedSeed {
   readonly isFallback: boolean;
 }
 
-/** Parse a raw seed string for the input readout (accepts hex / rgb() / oklch()). */
-export function parseSeed(input: string): ParsedSeed {
-  const oklch = parseColor(input);
-  return { input, oklch, isFallback: oklch === null };
+/**
+ * Parse a raw seed string for the input readout (accepts hex / rgb() / oklch()), then
+ * gamut-map it into `gamut` so the readout equals the seed the palette actually derives from
+ * (`buildTokenSet(...).meta.seed.light` — the parsed seed mapped into the same gamut). A
+ * failed parse stays `null` (the fallback signal); a valid parse is always reported in gamut.
+ */
+export function parseSeed(input: string, gamut: Gamut = "srgb"): ParsedSeed {
+  const parsed = parseColor(input);
+  return {
+    input,
+    oklch: parsed === null ? null : gamutMap(parsed, gamut),
+    isFallback: parsed === null,
+  };
 }
 
 /**
