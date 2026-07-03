@@ -223,3 +223,110 @@ describe("seed anchor (#108)", () => {
     }
   });
 });
+
+describe("generative rules (#101)", () => {
+  const BASE = { hue: 260, chroma: 0.12, gamut: "srgb" as const };
+
+  it("all-default rules reproduce the un-ruled ramp exactly", () => {
+    expect(
+      buildRamp({
+        ...BASE,
+        rules: {
+          distribution: "tailwind",
+          chromaPolicy: "flat",
+          huePolicy: "constant",
+        },
+      }),
+    ).toEqual(buildRamp(BASE));
+  });
+
+  // Chroma 0 keeps every step in gamut, isolating the distribution math from mapping.
+  const DISTS = ["linear", "eased", "punchy", "soft"] as const;
+
+  it.each(DISTS)(
+    "distribution %s pins the shoulders, reshapes the interior, stays strictly monotonic",
+    (distribution) => {
+      const ramp = buildRamp({ ...BASE, chroma: 0, rules: { distribution } });
+      const plain = buildRamp({ ...BASE, chroma: 0 });
+      // The surface-bearing shoulders never move — this is what keeps the contrast
+      // guarantees intact under every policy (see scaleOf).
+      for (const i of [0, 1, 2, 8, 9, 10]) {
+        expect(ramp[i].color.L, `shoulder ${ramp[i].label}`).toBeCloseTo(
+          plain[i].color.L,
+          9,
+        );
+      }
+      // …the interior genuinely differs from the default scale…
+      expect(ramp.slice(3, 8).map((s) => s.color.L)).not.toEqual(
+        plain.slice(3, 8).map((s) => s.color.L),
+      );
+      // …and the whole scale stays strictly monotonic across the shoulder boundaries.
+      for (let i = 1; i < ramp.length; i++) {
+        expect(ramp[i].color.L).toBeLessThan(ramp[i - 1].color.L);
+      }
+    },
+  );
+
+  it("taper pulls chroma from both extremes; hold keeps chroma into the darks", () => {
+    const taper = buildRamp({ ...BASE, rules: { chromaPolicy: "taper" } });
+    const hold = buildRamp({ ...BASE, rules: { chromaPolicy: "hold" } });
+    const flat = buildRamp(BASE);
+    // Extremes: taper's nominal chroma → 0 (sin(0) = sin(π) = 0).
+    expect(taper[0].color.C).toBeCloseTo(0, 6);
+    expect(taper[10].color.C).toBeCloseTo(0, 6);
+    // Near-dark steps: hold keeps more chroma than taper (flatter bell).
+    const at = (r: typeof taper, label: string) =>
+      r.find((s) => s.label === label)!.color.C;
+    expect(at(hold, "900")).toBeGreaterThan(at(taper, "900"));
+    // Flat is the identity — nominal chroma everywhere the gamut allows.
+    expect(at(flat, "500")).toBeGreaterThanOrEqual(at(taper, "500"));
+  });
+
+  it("warm-shadows drifts dark steps warmer; cool-highlights mirrors it", () => {
+    // Chroma 0: every step is in gamut, so the mapper is the identity and the NOMINAL
+    // hue survives to the output (at low chroma near the gamut edge, clipping would
+    // legitimately rotate an ill-conditioned hue — that's mapping behavior, not the
+    // policy's).
+    const warm = buildRamp({
+      ...BASE,
+      chroma: 0,
+      rules: { huePolicy: "warm-shadows" },
+    });
+    const cool = buildRamp({
+      ...BASE,
+      chroma: 0,
+      rules: { huePolicy: "cool-highlights" },
+    });
+    // ±9° at the ends, 0 at the middle step.
+    expect(warm[10].color.H).toBeCloseTo(269, 6);
+    expect(warm[0].color.H).toBeCloseTo(251, 6);
+    expect(warm[5].color.H).toBeCloseTo(260, 6);
+    expect(cool[10].color.H).toBeCloseTo(251, 6);
+    expect(cool[0].color.H).toBeCloseTo(269, 6);
+  });
+
+  it("hue drift wraps at the 0/360 seam instead of leaving the circle", () => {
+    const ramp = buildRamp({
+      hue: 355,
+      chroma: 0,
+      gamut: "srgb",
+      rules: { huePolicy: "warm-shadows" },
+    });
+    expect(ramp[10].color.H).toBeCloseTo(4, 6); // 355 + 9 → 4
+    expect(ramp[10].color.H).toBeGreaterThanOrEqual(0);
+    expect(ramp[10].color.H).toBeLessThan(360);
+  });
+
+  it("the seed anchor composes with a named distribution", () => {
+    const ramp = buildRamp({
+      ...BASE,
+      chroma: 0.01,
+      rules: { distribution: "eased" },
+      anchor: { label: "500", L: 0.61 },
+    });
+    expect(ramp.find((s) => s.label === "500")!.color.L).toBeCloseTo(0.61, 9);
+    for (let i = 1; i < ramp.length; i++) {
+      expect(ramp[i].color.L).toBeLessThan(ramp[i - 1].color.L);
+    }
+  });
+});

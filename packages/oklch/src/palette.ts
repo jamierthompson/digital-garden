@@ -44,6 +44,7 @@ import {
   BRAND_TOKEN_NAMES,
   RAMP_ROLES,
   type BrandTokenName,
+  type EngineRules,
   type Gamut,
   type OkLCH,
   type Ramp,
@@ -60,6 +61,12 @@ import {
 export interface EngineOptions {
   /** Target display gamut. Defaults to `srgb` (safe everywhere — see types). */
   gamut?: Gamut;
+  /**
+   * Generative rules (#101) — lightness distribution, chroma/hue policy, tinted
+   * neutrals. Omitted (or any subset omitted) → the documented defaults, which
+   * reproduce the un-ruled engine output exactly. The Studio surfaces these (#73).
+   */
+  rules?: EngineRules;
 }
 
 /**
@@ -184,29 +191,45 @@ const ANCHOR_LABEL: Record<Scheme, RampLabel> = {
 };
 
 /** Build all six role ramps for one scheme from a per-scheme seed. Only the `brand`
- *  ramp is anchored to the seed (#108); neutral/status stay on the shared scale. */
+ *  ramp is anchored to the seed (#108); neutral/status stay on the shared scale. The
+ *  ramp-tier rules (#101) shape every role; `tintedNeutrals: false` zeroes the neutral
+ *  chroma for pure achromatic greys (default `true` — the brand-tinted signature). */
 function buildRamps(
   seed: OkLCH,
   cfg: SchemeConfig,
   gamut: Gamut,
+  rules: EngineRules = {},
   anchor?: { label: RampLabel; L: number },
 ): Record<RampRole, Ramp> {
   const hue = seed.H;
+  const neutralChroma = (rules.tintedNeutrals ?? true) ? cfg.neutralChroma : 0;
   return {
-    brand: buildRamp({ hue, chroma: seed.C, gamut, anchor }),
-    neutral: buildRamp({ hue, chroma: cfg.neutralChroma, gamut }),
+    brand: buildRamp({ hue, chroma: seed.C, gamut, anchor, rules }),
+    neutral: buildRamp({ hue, chroma: neutralChroma, gamut, rules }),
     success: buildRamp({
       hue: STATUS_HUE.success,
       chroma: STATUS_CHROMA,
       gamut,
+      rules,
     }),
-    error: buildRamp({ hue: STATUS_HUE.error, chroma: STATUS_CHROMA, gamut }),
+    error: buildRamp({
+      hue: STATUS_HUE.error,
+      chroma: STATUS_CHROMA,
+      gamut,
+      rules,
+    }),
     warning: buildRamp({
       hue: STATUS_HUE.warning,
       chroma: STATUS_CHROMA,
       gamut,
+      rules,
     }),
-    info: buildRamp({ hue: STATUS_HUE.info, chroma: STATUS_CHROMA, gamut }),
+    info: buildRamp({
+      hue: STATUS_HUE.info,
+      chroma: STATUS_CHROMA,
+      gamut,
+      rules,
+    }),
   };
 }
 
@@ -227,14 +250,18 @@ function surface2Of(ramps: Record<RampRole, Ramp>, scheme: Scheme): OkLCH {
  * read on a light surface → `dark` (the seed is the dark-mode brand, light-mode derived).
  * Deterministic; reuses the same ramp/contrast/gamut primitives as the solve. Never throws.
  */
-function detectDirection(base: OkLCH, gamut: Gamut): Scheme {
+function detectDirection(
+  base: OkLCH,
+  gamut: Gamut,
+  rules: EngineRules,
+): Scheme {
   const cfg = SCHEMES.light;
   // Mirror resolveTheme's light path: per-scheme seed, its ramps, the worst-case surface.
   const seed = gamutMap(
     { L: base.L, C: base.C * cfg.seedChroma, H: base.H },
     gamut,
   );
-  const ramps = buildRamps(seed, cfg, gamut);
+  const ramps = buildRamps(seed, cfg, gamut, rules);
   const surface2 = surface2Of(ramps, "light");
   // The candidate light-mode primary is the accent anchored at the seed's own lightness.
   const accent = gamutMap({ L: seed.L, C: seed.C, H: seed.H }, gamut);
@@ -389,6 +416,7 @@ export function resolveTheme(
   opts: EngineOptions = {},
 ): SchemeResult {
   const gamut: Gamut = opts.gamut ?? "srgb";
+  const rules = opts.rules ?? {};
   const parsed = parseColor(brandColor);
   const isFallback = parsed === null;
   const base = parsed ?? FALLBACK_SEED;
@@ -396,7 +424,7 @@ export function resolveTheme(
 
   // Auto-direction: the seed's native scheme, detected from the seed alone so both
   // scheme calls agree. Drives whether this scheme's accent is faithful or derived.
-  const direction = detectDirection(base, gamut);
+  const direction = detectDirection(base, gamut, rules);
 
   // Per-scheme seed: hold L/H, dampen chroma in dark, then gamut-map.
   const seed = gamutMap(
@@ -409,7 +437,7 @@ export function resolveTheme(
   const anchorLabel = ANCHOR_LABEL[direction];
 
   // The per-role generative ramps for this scheme — the primitive the tokens bind to.
-  const ramps = buildRamps(seed, cfg, gamut, {
+  const ramps = buildRamps(seed, cfg, gamut, rules, {
     label: anchorLabel,
     L: seed.L,
   });

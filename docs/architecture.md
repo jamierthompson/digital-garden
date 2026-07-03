@@ -245,7 +245,11 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   **anchored to the seed**: one step (keyed off the seed's native direction, reported as
   `anchorLabel`) is bent to the seed's exact lightness — endpoint-preserving, still monotonic — so
   the brand's own color sits on its ramp and the native-scheme accent fill is that step exactly.
-  Neutral/status ramps stay on the shared scale.
+  Neutral/status ramps stay on the shared scale. **Generative rules** (`EngineOptions.rules`)
+  parameterize how the ramp tier is shaped — lightness distribution, chroma policy, hue policy,
+  tinted neutrals — with every default reproducing the un-ruled output; distributions reshape only
+  the interior steps (`300…700`) while the surface-bearing shoulders stay pinned, so the engine's
+  contrast guarantees hold under every policy. The Studio (#73) surfaces them ("Rules · set once").
 
 - **The public surface is frozen and test-guarded.** The semantic token names (`BRAND_TOKEN_NAMES`),
   ramp roles (`RAMP_ROLES`), step labels (`RAMP_LABELS` — `50…950`), the emitted custom-property

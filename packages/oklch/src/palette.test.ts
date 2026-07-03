@@ -840,3 +840,107 @@ describe("seed anchor-step (#108)", () => {
     expect(buildTokenSet("#facc15").meta.anchorLabel).toBe("300");
   });
 });
+
+describe("generative rules threading (#101)", () => {
+  it("explicit all-default rules reproduce the optionless output exactly, both schemes", () => {
+    const rules = {
+      distribution: "tailwind",
+      chromaPolicy: "flat",
+      huePolicy: "constant",
+      tintedNeutrals: true,
+    } as const;
+    for (const scheme of SCHEMES) {
+      expect(resolveTheme("#2563eb", scheme, { rules })).toEqual(
+        resolveTheme("#2563eb", scheme),
+      );
+    }
+    expect(buildTokenSet("#2563eb", { rules })).toEqual(
+      buildTokenSet("#2563eb"),
+    );
+  });
+
+  it("tintedNeutrals: false yields pure achromatic greys; the default keeps the tint", () => {
+    const grey = resolveTheme("#2563eb", "light", {
+      rules: { tintedNeutrals: false },
+    });
+    for (const step of grey.ramps.neutral) {
+      expect(step.color.C).toBe(0);
+    }
+    const tinted = resolveTheme("#2563eb", "light");
+    expect(tinted.ramps.neutral.some((step) => step.color.C > 0)).toBe(true);
+  });
+
+  it("a distribution reshapes the interior but never the pinned surfaces", () => {
+    const plain = resolveTheme("#2563eb", "light");
+    for (const distribution of ["linear", "soft", "punchy"] as const) {
+      const ruled = resolveTheme("#2563eb", "light", {
+        rules: { distribution },
+      });
+      // The surface trio binds shoulder steps — identical under every distribution
+      // (this is what keeps the worst-case surface, and so the AA guarantee, intact).
+      expect(ruled.tokens.bg).toEqual(plain.tokens.bg);
+      expect(ruled.tokens.surface).toEqual(plain.tokens.surface);
+      expect(ruled.tokens["surface-2"]).toEqual(plain.tokens["surface-2"]);
+      // …while the interior of the neutral scale genuinely moves.
+      const midL = (r: SchemeResult): number[] =>
+        r.ramps.neutral.slice(3, 8).map((s) => s.color.L);
+      expect(midL(ruled)).not.toEqual(midL(plain));
+    }
+  });
+
+  it(
+    "contrast guarantees hold under every policy, one-at-a-time, both schemes",
+    () => {
+      const VARIATIONS: Array<Record<string, unknown>> = [
+        { distribution: "linear" },
+        { distribution: "eased" },
+        { distribution: "punchy" },
+        { distribution: "soft" },
+        { chromaPolicy: "taper" },
+        { chromaPolicy: "hold" },
+        { huePolicy: "warm-shadows" },
+        { huePolicy: "cool-highlights" },
+        { tintedNeutrals: false },
+      ];
+      // Foreground tokens vs the worst-case surface they are solved against, at their
+      // schema targets (palette.ts TARGET table).
+      const FLOORS: Array<[BrandTokenName, number, number]> = [
+        ["text", 4.5, 75],
+        ["text-muted", 4.5, 60],
+        ["border", 3, 30],
+        ["accent-text", 4.5, 60],
+        ["focus-ring", 3, 45],
+        ["success", 4.5, 60],
+        ["error", 4.5, 60],
+        ["warning", 4.5, 60],
+        ["info", 4.5, 60],
+      ];
+      for (const rules of VARIATIONS)
+        for (const seed of ["#2563eb", "#eab308", "#06b6d4"])
+          for (const scheme of SCHEMES) {
+            const { tokens } = resolveTheme(seed, scheme, { rules });
+            const bg = tokens["surface-2"];
+            for (const [name, wcag, apca] of FLOORS) {
+              const label = `${name} ${JSON.stringify(rules)} ${seed}/${scheme}`;
+              expect(
+                contrastWCAG(tokens[name], bg),
+                label,
+              ).toBeGreaterThanOrEqual(wcag);
+              expect(apcaLc(tokens[name], bg), label).toBeGreaterThanOrEqual(
+                apca,
+              );
+            }
+            // The accent fill + its label keep their co-solved guarantees too.
+            expect(
+              contrastWCAG(tokens["on-accent"], tokens.accent),
+              `on-accent ${JSON.stringify(rules)} ${seed}/${scheme}`,
+            ).toBeGreaterThanOrEqual(4.5);
+            expect(
+              apcaLc(tokens["on-accent"], tokens.accent),
+              `on-accent ${JSON.stringify(rules)} ${seed}/${scheme}`,
+            ).toBeGreaterThanOrEqual(60);
+          }
+    },
+    SWEEP_TIMEOUT,
+  );
+});
