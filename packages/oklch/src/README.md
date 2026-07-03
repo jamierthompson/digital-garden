@@ -80,6 +80,17 @@ Ramps (the primitive tier, emitted as `--<role>-<step>`): one per role — `bran
 oog }`). `tokenSetToDeclarations` emits the semantic tier only; `rampSetToDeclarations` the
 ramp tier only; `tokenSetToCss` both.
 
+Binding provenance (the receipt): each result reports **which ramp step every semantic token
+bound to**, so a consumer (the Studio token table, #70) can print a truthful "`--text` →
+`neutral · 800`" without reverse-engineering it by value-matching — a scan that _lies_ where
+the brand and neutral ramps converge (an achromatic seed, `tintedNeutrals: false`) and scan
+order, not the schema, would pick the role. `SchemeResult.bindings` is
+`Record<BrandTokenName, BindingProvenance>` for that scheme; `TokenSet.meta.bindings` is
+`Record<BrandTokenName, BindingPair>` (`{ light, dark }`). `BindingProvenance` is
+`BindingStep | null` — `{ role, label }` for a discrete step, or `null` for the bindings that
+are **not** a step: the continuous `accent`/`on-accent` co-solves and any `literal`. It is
+**reporting, not re-solving** — every baked color is byte-identical with or without it.
+
 ### The frozen contract & versioning stance (#99)
 
 The public surface — the runtime export names, the canonical name lists above, the

@@ -17,6 +17,7 @@ import {
   type ContrastTarget,
 } from "./contrast";
 import type {
+  BindingProvenance,
   BrandTokenName,
   OkLCH,
   Ramp,
@@ -101,37 +102,72 @@ function stepAt(ramp: Ramp, label: RampLabel): OkLCH {
   return (found ?? ramp[ramp.length - 1]).color;
 }
 
-/** Resolve one token's binding to a concrete OKLCH for the context's scheme. */
+/**
+ * One resolved binding: the baked color AND the ramp step it came from. `step` is `null`
+ * for the bindings that are not a discrete ramp step — the continuous `accent`/`on-accent`
+ * co-solves and any `literal`. Surfacing the step HERE, at solve time, is what lets the
+ * receipt name the SCHEMA's role rather than reverse-engineering it by value-matching (which
+ * lies when two ramps converge — an achromatic seed, `tintedNeutrals: false`). #70.
+ */
+export interface ResolvedBinding {
+  color: OkLCH;
+  step: BindingProvenance;
+}
+
+/** Resolve one token's binding to a concrete OKLCH — and report which ramp step it bound
+ *  to — for the context's scheme. */
 export function resolveBinding(
   binding: TokenBinding,
   ctx: BindingContext,
-): OkLCH {
+): ResolvedBinding {
   switch (binding.kind) {
-    case "step":
-      return stepAt(
+    case "step": {
+      const label = ctx.scheme === "light" ? binding.light : binding.dark;
+      return {
+        color: stepAt(ctx.ramps[binding.role], label),
+        step: { role: binding.role, label },
+      };
+    }
+    case "auto": {
+      const chosen = minPass(
         ctx.ramps[binding.role],
-        ctx.scheme === "light" ? binding.light : binding.dark,
+        ctx.surface2,
+        binding.target,
       );
-    case "auto":
-      return minPass(ctx.ramps[binding.role], ctx.surface2, binding.target)
-        .color;
+      return {
+        color: chosen.color,
+        step: { role: binding.role, label: chosen.label },
+      };
+    }
     case "literal":
-      return ctx.scheme === "light" ? binding.light : binding.dark;
+      return {
+        color: ctx.scheme === "light" ? binding.light : binding.dark,
+        step: null,
+      };
     case "accent":
-      return ctx.accent;
+      return { color: ctx.accent, step: null };
     case "on-accent":
-      return ctx.onAccent;
+      return { color: ctx.onAccent, step: null };
   }
 }
 
-/** Resolve a full binding schema into a scheme's token set. */
+/** A scheme's resolved token set plus each token's binding provenance (parallel keys). */
+export interface ResolvedTokens {
+  tokens: SchemeTokens;
+  bindings: Record<BrandTokenName, BindingProvenance>;
+}
+
+/** Resolve a full binding schema into a scheme's token set + per-token provenance. */
 export function resolveTokens(
   schema: Record<BrandTokenName, TokenBinding>,
   ctx: BindingContext,
-): SchemeTokens {
+): ResolvedTokens {
   const tokens = {} as SchemeTokens;
+  const bindings = {} as Record<BrandTokenName, BindingProvenance>;
   for (const name of Object.keys(schema) as BrandTokenName[]) {
-    tokens[name] = resolveBinding(schema[name], ctx);
+    const resolved = resolveBinding(schema[name], ctx);
+    tokens[name] = resolved.color;
+    bindings[name] = resolved.step;
   }
-  return tokens;
+  return { tokens, bindings };
 }

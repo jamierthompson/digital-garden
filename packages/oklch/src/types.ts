@@ -202,6 +202,30 @@ export interface SchemePair {
 /** Every brand token resolved for a SINGLE scheme (Consumers B & C). */
 export type SchemeTokens = Record<BrandTokenName, OkLCH>;
 
+/**
+ * The discrete ramp step a semantic token bound to — the `(role, label)` the binding layer
+ * chose at solve time (surfaces pin a fixed step; `auto` tokens land the `minPass` step).
+ */
+export interface BindingStep {
+  role: RampRole;
+  label: RampLabel;
+}
+
+/**
+ * A token's binding provenance (#70): the ramp step it bound to, reported by the binding
+ * layer AT SOLVE TIME — never reverse-engineered by value-matching (which lies when the
+ * brand and neutral ramps converge, e.g. an achromatic seed or `tintedNeutrals: false`).
+ * `null` exactly for the bindings that are NOT a discrete step: the continuous accent
+ * co-solves (`accent`/`on-accent`) and any `literal` binding.
+ */
+export type BindingProvenance = BindingStep | null;
+
+/** One token's binding provenance for both schemes — zipped like the token values. */
+export interface BindingPair {
+  light: BindingProvenance;
+  dark: BindingProvenance;
+}
+
 /** Per-scheme engine result — the literal `(brandColor, scheme) → tokenSet` shape. */
 export interface SchemeResult {
   tokens: SchemeTokens;
@@ -235,6 +259,14 @@ export interface SchemeResult {
    * the step is close to — not exactly — the seed's L.
    */
   anchorLabel: RampLabel;
+  /**
+   * Per-token binding provenance for THIS scheme (#109): which ramp step each semantic
+   * token bound to, reported by the binding layer at solve time (`null` for the continuous
+   * `accent`/`on-accent` co-solves and `literal` bindings). The truthful source for a
+   * "`--text` → `neutral · 800`" receipt — a value-scan cannot tell brand from neutral when
+   * the two ramps converge. Reporting only: every `tokens` value is unchanged by its presence.
+   */
+  bindings: Record<BrandTokenName, BindingProvenance>;
 }
 
 /**
@@ -265,5 +297,12 @@ export interface TokenSet {
     direction: Scheme;
     /** The `brand` ramp step the seed is anchored to (#108) — see `SchemeResult`. */
     anchorLabel: RampLabel;
+    /**
+     * Per-token binding provenance (#70), zipped `{ light, dark }` per token — which ramp
+     * step each semantic token bound to in each scheme (`null` for the continuous
+     * `accent`/`on-accent` co-solves and `literal` bindings). The truthful source for the
+     * Studio's binding receipt. Reporting only: every `tokens` value is unchanged by it.
+     */
+    bindings: Record<BrandTokenName, BindingPair>;
   };
 }

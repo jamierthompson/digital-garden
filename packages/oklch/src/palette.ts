@@ -43,6 +43,7 @@ import {
 import {
   BRAND_TOKEN_NAMES,
   RAMP_ROLES,
+  type BindingPair,
   type BrandTokenName,
   type EngineRules,
   type Gamut,
@@ -53,7 +54,6 @@ import {
   type Scheme,
   type SchemePair,
   type SchemeResult,
-  type SchemeTokens,
   type RampPair,
   type TokenSet,
 } from "./types";
@@ -456,8 +456,9 @@ export function resolveTheme(
       : solveAccent(seed, surface2, gamut);
 
   // Resolve the binding schema: surfaces pin fixed steps, readable tokens run `minPass`,
-  // the accent/on-accent defer to the co-solve above.
-  const tokens: SchemeTokens = resolveTokens(DEFAULT_SCHEMA, {
+  // the accent/on-accent defer to the co-solve above. `bindings` reports the winning step
+  // per token (the receipt's truthful source), computed at solve time — not re-derived.
+  const { tokens, bindings } = resolveTokens(DEFAULT_SCHEMA, {
     scheme,
     ramps,
     surface2,
@@ -465,7 +466,16 @@ export function resolveTheme(
     onAccent,
   });
 
-  return { tokens, ramps, seed, gamut, isFallback, direction, anchorLabel };
+  return {
+    tokens,
+    ramps,
+    seed,
+    gamut,
+    isFallback,
+    direction,
+    anchorLabel,
+    bindings,
+  };
 }
 
 /**
@@ -514,6 +524,12 @@ export function buildTokenSet(
     dark: dark.tokens[name],
   }));
 
+  // Zip each token's per-scheme provenance, mirroring how the token values are zipped.
+  const bindings = mapTokens<BindingPair>((name) => ({
+    light: light.bindings[name],
+    dark: dark.bindings[name],
+  }));
+
   return {
     tokens,
     ramps: zipRamps(light.ramps, dark.ramps),
@@ -524,6 +540,7 @@ export function buildTokenSet(
       // Detected from the seed alone, so both scheme results agree — pick either.
       direction: light.direction,
       anchorLabel: light.anchorLabel,
+      bindings,
     },
   };
 }
