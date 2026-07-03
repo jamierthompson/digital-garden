@@ -1,3 +1,5 @@
+import type { ExperienceProps } from "@/projects/types";
+
 import styles from "./experience.module.css";
 
 /**
@@ -7,10 +9,14 @@ import styles from "./experience.module.css";
  * reaches up for a look. No headless `core/` — don't carve one until logic earns it,
  * and a static panel does not (instantiate on genuine need, not before).
  */
-export default function FirstLightExperience() {
+export default function FirstLightExperience({ slug }: ExperienceProps) {
+  // `slug`-scoped, not a literal: two Activity-preserved `/[slug]` routes rendering this
+  // same component would otherwise collide on a hardcoded id (see `ExperienceProps.slug`).
+  const headingId = `experience-heading-${slug}`;
+
   return (
-    <section className={styles.experience} aria-labelledby="experience-heading">
-      <h2 id="experience-heading" className={styles.heading}>
+    <section className={styles.experience} aria-labelledby={headingId}>
+      <h2 id={headingId} className={styles.heading}>
         The experience
       </h2>
       <p className={styles.body}>

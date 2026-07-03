@@ -162,6 +162,28 @@ describe("RelatedEntries", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("scopes the Related heading's id to the entry's own _id, so two instances rendered together (Cache Components' Activity keeps several /[slug] routes mounted at once) never collide", () => {
+    render(
+      <>
+        <RelatedEntries
+          currentId="entry-a"
+          related={[entry({ _id: "x", title: "X", slug: "x" })]}
+          backlinks={null}
+        />
+        <RelatedEntries
+          currentId="entry-b"
+          related={[entry({ _id: "y", title: "Y", slug: "y" })]}
+          backlinks={null}
+        />
+      </>,
+    );
+    const headings = screen.getAllByRole("heading", { name: /related/i });
+    expect(headings).toHaveLength(2);
+    const ids = headings.map((h) => h.id);
+    expect(new Set(ids).size).toBe(2);
+    expect(ids.every(Boolean)).toBe(true);
+  });
+
   it("preserves related-before-backlinks order with multiple entries in each arm", () => {
     render(
       <RelatedEntries

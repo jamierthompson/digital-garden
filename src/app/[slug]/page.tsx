@@ -125,7 +125,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
               fontKey: entry.fontKey ?? "",
             }}
           >
-            <Experience />
+            <Experience slug={slug} />
           </ProjectScope>
         </ProjectScopeBoundary>
       ) : null}

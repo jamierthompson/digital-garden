@@ -50,14 +50,14 @@ const STATUS_TOKENS = ["success", "error", "warning", "info"];
 
 describe("EngineBoardExperience", () => {
   it("renders a labelled chip for every semantic and status token", () => {
-    render(<EngineBoardExperience />);
+    render(<EngineBoardExperience slug="goldenrod" />);
     for (const token of [...SEMANTIC_TOKENS, ...STATUS_TOKENS]) {
       expect(screen.getByText(`--${token}`)).toBeInTheDocument();
     }
   });
 
   it("fills each chip from its live scoped `var(--<token>)`", () => {
-    const { container } = render(<EngineBoardExperience />);
+    const { container } = render(<EngineBoardExperience slug="goldenrod" />);
     // The accent chip's inline background reads the scoped accent token, not a hardcoded
     // color — this is what makes the board re-theme per brand scope.
     const accentLabel = screen.getByText("--accent");
@@ -71,7 +71,7 @@ describe("EngineBoardExperience", () => {
   });
 
   it("groups tokens under Semantic roles and Status signals headings", () => {
-    render(<EngineBoardExperience />);
+    render(<EngineBoardExperience slug="goldenrod" />);
     expect(
       screen.getByRole("heading", { name: /semantic roles/i }),
     ).toBeInTheDocument();
@@ -88,7 +88,7 @@ describe("EngineBoardExperience", () => {
   // from the live engine so it catches drift the hardcoded lists structurally cannot.
   it("renders exactly the engine's emitted token set — no drift, no extras", () => {
     const emitted = engineEmittedTokenNames("#3b82f6");
-    const { container } = render(<EngineBoardExperience />);
+    const { container } = render(<EngineBoardExperience slug="goldenrod" />);
     const rendered = boardRenderedTokenNames(container);
 
     const missingFromBoard = [...emitted].filter((t) => !rendered.has(t));
@@ -118,7 +118,7 @@ describe("EngineBoardExperience", () => {
   // chip points at a different token than its `--label` would still render N chips and
   // pass a count check, but is a real defect the board exists to prove against.
   it("fills every chip from the var() of its own adjacent label", () => {
-    const { container } = render(<EngineBoardExperience />);
+    const { container } = render(<EngineBoardExperience slug="goldenrod" />);
     const items = Array.from(container.querySelectorAll("li"));
     expect(items.length).toBeGreaterThan(0);
     for (const li of items) {
@@ -135,7 +135,7 @@ describe("EngineBoardExperience", () => {
   // The board is a named landmark region so AT users can find/skip it; its name comes
   // from the visible <h2> via aria-labelledby, not a duplicated aria-label.
   it("exposes the board as a named region landmark", () => {
-    render(<EngineBoardExperience />);
+    render(<EngineBoardExperience slug="goldenrod" />);
     expect(
       screen.getByRole("region", { name: /engine output/i }),
     ).toBeInTheDocument();
@@ -144,7 +144,25 @@ describe("EngineBoardExperience", () => {
   // The two swatch groups are real lists (semantics AT relies on for "N items"), not
   // bare divs, and there are exactly two of them.
   it("renders the swatches as two accessible lists", () => {
-    render(<EngineBoardExperience />);
+    render(<EngineBoardExperience slug="goldenrod" />);
     expect(screen.getAllByRole("list")).toHaveLength(2);
+  });
+
+  // This board is shared by MANY seed brands' componentKey (see the module's own doc
+  // comment) — Cache Components' Activity can keep two DIFFERENT projects that both point
+  // at it mounted simultaneously, so its heading id must be scoped per `slug`, not a
+  // literal. Renders two instances together (the exact concurrent-mount shape) to pin it.
+  it("scopes the heading id to `slug`, so two projects sharing this board never collide", () => {
+    render(
+      <>
+        <EngineBoardExperience slug="goldenrod" />
+        <EngineBoardExperience slug="tidepool" />
+      </>,
+    );
+    const headings = screen.getAllByRole("heading", { name: /engine output/i });
+    expect(headings).toHaveLength(2);
+    const ids = headings.map((h) => h.id);
+    expect(new Set(ids).size).toBe(2);
+    expect(ids.every(Boolean)).toBe(true);
   });
 });
