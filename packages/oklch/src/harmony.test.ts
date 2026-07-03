@@ -258,18 +258,17 @@ describe("buildHarmonyPalette — QA-102 edge hardening", () => {
     );
   });
 
-  // ── KNOWN BOUNDARY (QA-102 finding): the "never throws" guarantee is scoped ──
-  // to the untrusted color arg. `opts` is typed, so passing `null` (a TYPE
-  // violation, not reachable from well-typed callers) reads `null.gamut` and
-  // throws. Untrusted data that reaches this from an `unknown` boundary would
-  // crash rather than fall back. Hardening `opts.gamut` → `opts?.gamut` closes
-  // it; this test pins the CURRENT behavior so a fix flips it deliberately.
-  it("(known gap) throws on an explicitly-null opts — recommend opts?.gamut", () => {
+  // QA-102 found an explicitly-null `opts` (a type violation, but reachable from an
+  // `unknown` boundary in JS) read `null.gamut` and threw — the one hole in the
+  // never-throws posture. Fixed engine-wide (`opts?.` in harmony/palette/css/export);
+  // this pins the defensive behavior.
+  it("never throws on an explicitly-null opts (QA-102)", () => {
     expect(() =>
       buildHarmonyPalette("#3b82f6", null as unknown as undefined),
-    ).toThrow(TypeError);
-    // The well-typed shapes it is meant to accept never throw:
-    expect(() => buildHarmonyPalette("#3b82f6")).not.toThrow();
+    ).not.toThrow();
+    expect(
+      buildHarmonyPalette("#3b82f6", null as unknown as undefined),
+    ).toEqual(buildHarmonyPalette("#3b82f6"));
     expect(() => buildHarmonyPalette("#3b82f6", {})).not.toThrow();
     expect(() =>
       buildHarmonyPalette("#3b82f6", { gamut: undefined }),

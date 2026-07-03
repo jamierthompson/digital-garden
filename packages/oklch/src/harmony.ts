@@ -66,7 +66,7 @@ export function buildHarmonyPalette(
   brandColor: unknown,
   opts: HarmonyOptions = {},
 ): HarmonyPalette {
-  const gamut: Gamut = opts.gamut ?? "srgb";
+  const gamut: Gamut = opts?.gamut ?? "srgb";
   const parsed = parseColor(brandColor);
   const isFallback = parsed === null;
   const seed = gamutMap(parsed ?? FALLBACK_SEED, gamut);

@@ -57,22 +57,23 @@ function tOf(i: number): number {
  * `linear`/`soft` darkens `surface-2` past what any neutral step can host Lc-75 text
  * on). The curves are the prototype's easings, remapped over the interior span.
  */
+// Interior easings e(t): t = 0 at the 200 shoulder, 1 at the 800 shoulder.
+const INTERIOR_EASE: Partial<
+  Record<LightnessDistribution, (t: number) => number>
+> = {
+  linear: (t) => t,
+  eased: (t) => t * t * (3 - 2 * t), // smoothstep
+  punchy: (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2), // ease-in-out quad
+  soft: (t) => 0.5 + (t - 0.5) * 0.6, // interior huddles toward the mid — low-contrast band
+};
+
 function scaleOf(distribution: LightnessDistribution): number[] {
   const base = RAMP_LABELS.map((label) => RAMP_L[label]);
-  if (distribution === "tailwind") return base;
-  // Interior easing e(t): t = 0 at the 200 shoulder, 1 at the 800 shoulder.
-  const ease = (t: number): number => {
-    switch (distribution) {
-      case "linear":
-        return t;
-      case "eased":
-        return t * t * (3 - 2 * t); // smoothstep
-      case "punchy":
-        return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2; // ease-in-out quad
-      case "soft":
-        return 0.5 + (t - 0.5) * 0.6; // interior huddles toward the mid — low-contrast band
-    }
-  };
+  // `tailwind` — and, defensively, any out-of-union string reaching here from JS — uses
+  // the default scale rather than producing NaN interior lightness: the same posture as
+  // the anchor's non-finite guard (QA-101).
+  const ease = INTERIOR_EASE[distribution];
+  if (!ease) return base;
   const light = RAMP_L["200"];
   const dark = RAMP_L["800"];
   // Steps 300…700 sit at indexes 3…7; t spans the open interior of [200 … 800].
