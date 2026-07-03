@@ -9,23 +9,23 @@ const { FEATURED_FIXTURE } = vi.hoisted(() => ({
   FEATURED_FIXTURE: [
     {
       _id: "1",
-      title: "OKLCH Engine",
-      slug: "oklch-engine",
+      title: "OKLCH Palette Studio",
+      slug: "palette-studio",
       kind: "project",
-      stage: "prototype",
-      blurb: "A high-chroma brand.",
+      stage: "sketch",
+      blurb: "A seed in, a solved palette out.",
       brandColor: "oklch(0.7 0.28 330)",
-      fontKey: "fraunces",
+      fontKey: null,
     },
     {
       _id: "2",
-      title: "First Light",
-      slug: "first-light",
+      title: "Feature Lens",
+      slug: "feature-lens",
       kind: "project",
-      stage: "prototype",
-      blurb: "The first entry.",
+      stage: "sketch",
+      blurb: "Looking inside a model.",
       brandColor: "oklch(0.7 0.15 70)",
-      fontKey: "newsreader",
+      fontKey: null,
     },
   ],
 }));
@@ -49,13 +49,12 @@ describe("Home (featured front door)", () => {
     expect(
       screen.getByRole("heading", { name: /featured/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /oklch engine/i })).toHaveAttribute(
+    expect(
+      screen.getByRole("link", { name: /oklch palette studio/i }),
+    ).toHaveAttribute("href", "/palette-studio");
+    expect(screen.getByRole("link", { name: /feature lens/i })).toHaveAttribute(
       "href",
-      "/oklch-engine",
-    );
-    expect(screen.getByRole("link", { name: /first light/i })).toHaveAttribute(
-      "href",
-      "/first-light",
+      "/feature-lens",
     );
   });
 });
