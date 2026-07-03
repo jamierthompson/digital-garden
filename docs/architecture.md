@@ -97,7 +97,7 @@ is **no separate "feel" or "geometry" tier** — radius, border, shadow, and den
 semantic tokens, and a slot overrides as many or as few of them as it differs on. What varies per
 project is therefore open-ended (any semantic token), not a fixed subset.
 
-A project's page chrome (title, prose, nav) reads the **semantic tokens at their global editorial
+An entry page's chrome (title, prose, nav) reads the **semantic tokens at their global editorial
 defaults**. Its **interactive slot** and the components embedded inside it read the **same generic
 semantic tokens**, but resolved to the slot's brand values because the `[data-project]` scope
 re-defines them. Components never read a project-prefixed name — there are **no `--<proj>-*`
@@ -117,9 +117,12 @@ global :root  (foundation primitives + the semantic editorial defaults)
    │              · --text-muted · --border · --success · …  ← the generic contract
    └─ @layer foundation, semantic, brand, project;   ← bare order statement, loaded first
           │ every page's chrome (nav · headers · prose) reads the semantic tokens at their defaults ↓
-   home · about · /now · the project page AROUND the slot   — all editorial, no brand
-          │ and inside a project page, one bounded slot re-defines the semantic tokens ↓
-[data-project="<slug>"]   the project's interactive slot — re-binds the generic semantic tokens
+   home · about · /now · the entry page AROUND the slots   — all editorial, no brand
+          │ and inside a project entry's page, each bounded slot re-defines the semantic tokens ↓
+[data-project="<slug>"]   a project slot — re-binds the generic semantic tokens. A page mounts
+   │        one (the classic after-prose experience) or MANY (slots interleaved through the
+   │        prose); N same-seed slots share ONE hoisted <style> (React de-dupes by href), so
+   │        each extra slot costs one [data-project] container, not another style block
    ├─ --surface / --text / --accent / …  ◄── OKLCH engine ◄── this project's brandColor (from Sanity)
    ├─ status colors  ◄── canonical hue (success/warning/error/info), brand-*treated* by the engine
    ├─ --font-face    ◄── resolved face's .variable class
@@ -287,6 +290,14 @@ it need not call the engine at runtime (the studio is the exception — it re-ru
 function in JS live, and reports the engine's own receipts: per-token binding provenance,
 measured contrast, the anchor readout).
 
+The studio composes as an **editorial page with branded slots**, not prose-then-app: the entry's
+Portable Text body interleaves explanatory prose with `liveEmbed` slots (seed row, rules rail,
+primitives board, token table, preview, contrast receipt, export), each mounted in its **own**
+scoped container while the prose between them reads the editorial register. The slots share
+state through the module's `Provider` (see the module contract below). Layout is **breakout**:
+the page container runs wide so the page reads as a demo, prose keeps its readable measure, and
+the slots break out to the full container width.
+
 Two deliberate consequences:
 
 - **It themes itself, on purpose.** An engine-showcase project's slot (the Palette Studio,
@@ -345,10 +356,21 @@ src/lib/resolvers/components.ts  componentKey → () => import("@/projects/<slug
 src/*/keys.ts              string-constant key contracts (Studio imports these; resolvers don't)
 ```
 
-A project is **one or more pages**. The interactive experience is the only constant; beyond it a
-project may have an essay/rich-media page, a hero, something else, or nothing more at all — the
-page set is decided per project, not fixed by a template. `experience.tsx` is the component; a thin
-page in `pages/` mounts it. A headless `core/` is **not** templated into every module — let it
+A project is **one or more pages**. Its registry entry (the `ProjectModule` contract,
+`src/projects/types.ts`) exports one or both of two composition members — a compile error
+enforces at least one:
+
+- **`Experience`** — one interactive slot the page mounts after the prose, inside its own
+  brand scope. The default for a module whose demo is a single surface.
+- **`Provider`** — a client frame the page wraps the `<article>` in, so `liveEmbed` slots
+  interleaved through the prose share state via context. The prose stays server-rendered
+  (children pass-through); the provider adds state, never markup that re-themes the
+  editorial register. The page threads the brand seed to the serializer, and each embed
+  mounts in its own `ProjectScope` container (one shared hoisted `<style>`).
+
+Beyond those a project may have an essay/rich-media page, a hero, something else, or nothing
+more at all — the page set is decided per project, not fixed by a template. `experience.tsx`
+is the component; a thin page in `pages/` mounts it. A headless `core/` is **not** templated into every module — let it
 emerge only when an experience's logic warrants extraction (same deferral discipline as the
 embed tiers; see the interactive experience section). The module owns its page components; thin
 route files mount them. Code lives under `src/projects/<slug>/`; **routes are flat** — `/` is the

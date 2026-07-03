@@ -3,14 +3,17 @@
 // A `componentKey` resolves (via `src/lib/resolvers/components.ts`, a LITERAL dynamic
 // import per key) to a project module; this is the contract that module's default
 // export satisfies, so a thin `/[slug]` route can mount its pages without knowing the
-// concrete project. `Experience` is the only required member — a project adds its
-// own page components as it needs them.
+// concrete project. A module composes with the editorial page in one (or both) of two
+// ways — `Experience` (one interactive slot mounted after the prose) and/or `Provider`
+// (a client frame around the article so `liveEmbed` slots interleaved through the prose
+// can share state) — and must export at least one; the union below makes an
+// empty module a compile error.
 //
 // Lives in shared `src/projects/` (not inside any one project) because it is the
 // cross-module contract the resolver and route key off — named where it will live now,
 // instantiated on a genuine second use (deferral discipline).
 
-import type { ComponentType } from "react";
+import type { ComponentType, ReactNode } from "react";
 
 /** The one prop every `Experience` takes — see `ExperienceProps.slug` below. */
 export interface ExperienceProps {
@@ -26,11 +29,42 @@ export interface ExperienceProps {
   readonly slug: string;
 }
 
-/** A project module's registry entry — the default export of its `index.ts`. */
-export interface ProjectModule {
+/** Props for a module's `Provider` — the client frame around the editorial article. */
+export interface ProviderProps {
+  /** The route's own slug — same collision rationale as `ExperienceProps.slug`. */
+  readonly slug: string;
   /**
-   * The interactive experience component — the one constant every project has. A thin page
-   * mounts it, passing only `slug`; it themes off the ambient project scope otherwise.
+   * The server-rendered article (prose + interleaved `liveEmbed` slots), passed through
+   * as rendered output — the provider adds shared client state around it, never markup
+   * that re-themes the editorial register.
    */
-  readonly Experience: ComponentType<ExperienceProps>;
+  readonly children: ReactNode;
 }
+
+/** The members a project module MAY export — see `ProjectModule` for the at-least-one rule. */
+interface ProjectModuleMembers {
+  /**
+   * One interactive slot, mounted by the page after the prose inside its own brand scope.
+   * The default composition for a module whose experience is a single surface.
+   */
+  readonly Experience?: ComponentType<ExperienceProps>;
+  /**
+   * A client component the page wraps the `<article>` in when the module exports it. The
+   * prose stays server-rendered (`children` pass-through); the provider exists so the
+   * module's `liveEmbed` slots — mounted between prose blocks, each in its own scoped
+   * container — can share state via context. The documented interleaving pattern:
+   * `node_modules/next/dist/docs/01-app/01-getting-started/05-server-and-client-components.md`.
+   */
+  readonly Provider?: ComponentType<ProviderProps>;
+}
+
+/**
+ * A project module's registry entry — the default export of its `index.ts`. The
+ * intersection with the union enforces "at least one composition member" at compile
+ * time: a module exporting neither `Experience` nor `Provider` cannot satisfy it.
+ */
+export type ProjectModule = ProjectModuleMembers &
+  (
+    | { readonly Experience: ComponentType<ExperienceProps> }
+    | { readonly Provider: ComponentType<ProviderProps> }
+  );
