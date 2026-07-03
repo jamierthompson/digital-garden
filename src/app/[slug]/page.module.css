@@ -47,12 +47,15 @@
     grid-column: prose;
   }
 
-  .article :is(h2, h3) {
+  /* Direct children ONLY: these are the page's prose rules, and a descendant selector
+     would leak them into the slots' internals (a panel's own <p>/<h3> must style
+     itself, not inherit the essay measure). */
+  .article > :is(h2, h3) {
     margin-top: var(--space-6);
     color: var(--accent-text);
   }
 
-  .article p {
+  .article > p {
     margin-top: var(--space-4);
     max-width: 64ch;
   }
