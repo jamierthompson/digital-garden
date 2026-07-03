@@ -160,12 +160,17 @@ export function buildRamp(spec: RampSpec): Ramp {
   const chromaPolicy = spec.rules?.chromaPolicy ?? "flat";
   const huePolicy = spec.rules?.huePolicy ?? "constant";
   const scale = scaleOf(distribution);
-  const anchorIdx = spec.anchor ? RAMP_LABELS.indexOf(spec.anchor.label) : -1;
+  // A non-finite anchor L would propagate NaN into every step (QA-108); the never-throws,
+  // never-garbage posture treats it as "no anchor". Unreachable via resolveTheme (a parsed
+  // seed L is always finite) — this defends the public low-level API.
+  const anchor =
+    spec.anchor && Number.isFinite(spec.anchor.L) ? spec.anchor : undefined;
+  const anchorIdx = anchor ? RAMP_LABELS.indexOf(anchor.label) : -1;
   return RAMP_LABELS.map((label, i) => {
     const t = tOf(i);
     const delta = hueDelta(t, huePolicy);
     const nominal: OkLCH = {
-      L: spec.anchor ? anchoredL(i, scale, anchorIdx, spec.anchor.L) : scale[i],
+      L: anchor ? anchoredL(i, scale, anchorIdx, anchor.L) : scale[i],
       C: Math.max(0, spec.chroma) * chromaCurve(t, chromaPolicy),
       // Untouched when the policy doesn't drift (bit-identical default output);
       // normalized into [0, 360) only when a real delta is applied.

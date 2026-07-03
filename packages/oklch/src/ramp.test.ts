@@ -330,3 +330,57 @@ describe("generative rules (#101)", () => {
     }
   });
 });
+
+// QA #108 — adversarial hardening of the anchor math (adopted from QA-108's review; the
+// lead re-based the exactness cases on chroma-0 ramps where the gamut map is the identity,
+// and re-pinned the non-finite case to the defensive behavior the finding motivated).
+describe("seed anchor (#108) — QA edge hardening", () => {
+  const HARD = { hue: 260, chroma: 0, gamut: "srgb" as const };
+  // Every documented nominal step L, so an anchor can land exactly on a neighbor's L.
+  const NOMINALS = [
+    0.985, 0.967, 0.922, 0.87, 0.708, 0.556, 0.439, 0.371, 0.269, 0.205, 0.145,
+  ];
+  const DENSE_LS: number[] = [];
+  for (let L = -0.3; L <= 1.3; L += 0.01) DENSE_LS.push(Number(L.toFixed(3)));
+  const EDGES = [0.145, 0.15, 0.1501, 0.98, 0.9799, 0.155, 0.975];
+
+  it("stays STRICTLY monotonic for every (label × L) across a dense grid incl. out-of-scale + duplicate-neighbor L", () => {
+    for (const label of RAMP_LABELS) {
+      for (const L of [...DENSE_LS, ...NOMINALS, ...EDGES]) {
+        const ramp = buildRamp({ ...HARD, anchor: { label, L } });
+        for (let i = 1; i < ramp.length; i++) {
+          expect(ramp[i].color.L, `label=${label} L=${L} i=${i}`).toBeLessThan(
+            ramp[i - 1].color.L,
+          );
+        }
+      }
+    }
+  });
+
+  it("clamps the anchored step to the scale's open interval — an out-of-scale seed L does NOT land exactly", () => {
+    // Documents the true contract: the pin is EXACT only for L inside (~0.15, ~0.98);
+    // beyond it the step is clamped (EDGE = 0.005 off each end), NOT the seed's L. Callers
+    // relying on "the step's L IS the seed's" must know an extreme seed is clamped.
+    const near1 = buildRamp({ ...HARD, anchor: { label: "500", L: 1 } }).find(
+      (s) => s.label === "500",
+    )!;
+    const near0 = buildRamp({ ...HARD, anchor: { label: "500", L: 0 } }).find(
+      (s) => s.label === "500",
+    )!;
+    expect(near1.color.L).toBeCloseTo(0.98, 9); // lightEnd - EDGE, not 1
+    expect(near0.color.L).toBeCloseTo(0.15, 9); // darkEnd + EDGE, not 0
+  });
+
+  it("treats a non-finite anchor L as no anchor — never NaN, never a throw", () => {
+    // QA-108 found NaN propagated into every step's lightness; the defensive posture
+    // (never-throws, never-garbage) now ignores the anchor instead.
+    const plain = buildRamp(HARD);
+    for (const L of [NaN, Infinity, -Infinity]) {
+      const ramp = buildRamp({ ...HARD, anchor: { label: "500", L } });
+      expect(ramp).toEqual(plain);
+      for (const step of ramp) {
+        expect(Number.isFinite(step.color.L)).toBe(true);
+      }
+    }
+  });
+});

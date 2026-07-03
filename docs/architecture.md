@@ -244,7 +244,8 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   binding against dark's own surfaces — not a mirror-label flip. The **brand** ramp is additionally
   **anchored to the seed**: one step (keyed off the seed's native direction, reported as
   `anchorLabel`) is bent to the seed's exact lightness — endpoint-preserving, still monotonic — so
-  the brand's own color sits on its ramp and the native-scheme accent fill is that step exactly.
+  the brand's own color sits on its ramp and the native-scheme accent fill is that step exactly
+  (when the seed's own lightness can host the on-accent label; extreme seeds clamp just inside the scale).
   Neutral/status ramps stay on the shared scale. **Generative rules** (`EngineOptions.rules`)
   parameterize how the ramp tier is shaped — lightness distribution, chroma policy, hue policy,
   tinted neutrals — with every default reproducing the un-ruled output; distributions reshape only
