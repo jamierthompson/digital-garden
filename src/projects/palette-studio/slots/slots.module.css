@@ -1,0 +1,56 @@
+/* Studio slot chrome — @layer project, var-consuming (ambient ProjectScope tokens; the
+   generated palette appears only as child swatch data). The panel frame itself is the
+   shared ui/Panel primitive; this module holds only slot-internal layout. */
+@layer project {
+  /* Anchor receipt — a READOUT of the engine's automatic anchoring, not a control. */
+  .anchor {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+
+  .anchorKicker {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* Slot header row — readout/control aligned over a board. */
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-5);
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Light + dark side by side (preview panels, receipt cards) — both schemes always shown. */
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  @media (--xs-down) {
+    .pair {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* The no-frame placeholder — same honest-degradation voice as MissingEmbed. */
+  .missing {
+    margin: 0;
+    padding: var(--space-4);
+    border: 1px dashed var(--border);
+    border-radius: 0.5rem;
+    font-style: italic;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+}

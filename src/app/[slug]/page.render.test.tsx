@@ -47,12 +47,29 @@ import {
 
 import EntryPage from "./page";
 
-// A fake resolvable module whose Experience marks itself, so a mounted brand slot is
-// unambiguously detectable in the rendered tree.
+// Fake resolvable modules whose members mark themselves, so a mounted brand slot / frame
+// is unambiguously detectable in the rendered tree.
 const foundExperience = () =>
   found(async () => ({
     default: {
       Experience: () => <div data-testid="experience">experience slot</div>,
+    },
+  }));
+
+const foundProvider = () =>
+  found(async () => ({
+    default: {
+      Provider: ({
+        slug,
+        children,
+      }: {
+        slug: string;
+        children: React.ReactNode;
+      }) => (
+        <div data-testid="provider" data-slug={slug}>
+          {children}
+        </div>
+      ),
     },
   }));
 
@@ -187,5 +204,35 @@ describe("EntryPage — kind-aware detail", () => {
     const slot = container.querySelector("[data-project]");
     expect(slot).not.toBeNull();
     expect(screen.getByTestId("experience")).toBeInTheDocument();
+  });
+
+  it("wraps the article in the module's Provider when it exports one (no after-prose slot)", async () => {
+    // The #131 composition: a Provider-only module gets a client frame AROUND the
+    // article (so interleaved liveEmbed slots share state) and mounts NO monolithic
+    // Experience after the prose. The frame is state-only — it must not introduce a
+    // brand scope of its own (each embed brings its own scoped container).
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "project",
+        componentKey: "palette-studio",
+        brandColor: "oklch(0.7 0.15 70)",
+        fontKey: "newsreader",
+        slug: "palette-studio",
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("palette-studio") }),
+    );
+    const frame = screen.getByTestId("provider");
+    expect(frame).toHaveAttribute("data-slug", "palette-studio");
+    // The article (title within it) renders INSIDE the frame — children pass through.
+    expect(
+      screen.getByRole("heading", { level: 1, name: /an entry/i }),
+    ).toBeInTheDocument();
+    expect(frame.querySelector("h1")).not.toBeNull();
+    // No monolithic slot, no page-level brand scope from the frame itself.
+    expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
+    expect(container.querySelector("[data-project]")).toBeNull();
   });
 });

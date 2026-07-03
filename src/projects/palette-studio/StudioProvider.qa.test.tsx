@@ -1,12 +1,35 @@
-// Adversarial QA (QA-S13) for the Studio UI — the edges the author's suite optimised past:
-// two instances mounted AT ONCE (Cache Components / <Activity> keeps several `/[slug]` routes
-// alive), rapid chip→type→chip input churn, aria-invalid honesty round-tripped through the
-// real component, and scheme-toggle consistency between the table caption and the toggle.
+// Adversarial QA (QA-S13, ported to the #131 composition) for the Studio UI — the edges
+// the author's suite optimised past: two instances mounted AT ONCE (Cache Components /
+// <Activity> keeps several `/[slug]` routes alive), rapid chip→type→chip input churn,
+// aria-invalid honesty round-tripped through the real component, and scheme-toggle
+// consistency between the table caption and the toggle — now ACROSS slots, not within
+// one component tree.
 
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import Experience from "./experience";
+import StudioProvider from "./StudioProvider";
+import SeedSlot from "./slots/SeedSlot";
+import RulesSlot from "./slots/RulesSlot";
+import PrimitivesSlot from "./slots/PrimitivesSlot";
+import TokensSlot from "./slots/TokensSlot";
+import PreviewSlot from "./slots/PreviewSlot";
+import ReceiptSlot from "./slots/ReceiptSlot";
+import ExportSlot from "./slots/ExportSlot";
+
+function studio(slug: string) {
+  return (
+    <StudioProvider slug={slug}>
+      <SeedSlot />
+      <RulesSlot />
+      <PrimitivesSlot />
+      <TokensSlot />
+      <PreviewSlot />
+      <ReceiptSlot />
+      <ExportSlot />
+    </StudioProvider>
+  );
+}
 
 describe("QA-S13 · Studio UI under adversarial interaction", () => {
   it(
@@ -16,8 +39,8 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
       // The author's own test unmounts between renders; the real risk is two live routes at once.
       const { container } = render(
         <>
-          <Experience slug="alpha" />
-          <Experience slug="beta" />
+          {studio("alpha")}
+          {studio("beta")}
         </>,
       );
       const ids = [...container.querySelectorAll("[id]")].map((el) => el.id);
@@ -41,7 +64,7 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
     "survives a rapid chip → typed-garbage → chip → clear sequence, staying honest",
     { timeout: 30000 },
     () => {
-      render(<Experience slug="demo" />);
+      render(studio("demo"));
       const input = () =>
         screen.getByLabelText("Seed color") as HTMLInputElement;
 
@@ -72,7 +95,7 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
     "aria-invalid tracks the SAME parser the palette derives from (no lying input)",
     { timeout: 30000 },
     () => {
-      render(<Experience slug="demo" />);
+      render(studio("demo"));
       const input = screen.getByLabelText("Seed color") as HTMLInputElement;
       // A string the naive eye might think valid but the engine rejects (hsl unsupported).
       fireEvent.change(input, { target: { value: "hsl(210 50% 50%)" } });
@@ -84,11 +107,12 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
   );
 
   it(
-    "the scheme toggle drives the token-table caption in lockstep",
+    "the scheme toggle drives the token-table caption in lockstep — across slots",
     { timeout: 30000 },
     () => {
-      render(<Experience slug="demo" />);
+      render(studio("demo"));
       expect(screen.getByText(/Showing the light scheme/i)).toBeInTheDocument();
+      // The toggle lives in the primitives slot; the caption in the tokens slot.
       fireEvent.click(screen.getByRole("radio", { name: "dark" }));
       expect(screen.getByText(/Showing the dark scheme/i)).toBeInTheDocument();
       // The receipt shows BOTH schemes irrespective of the toggle — its cards persist.
@@ -105,7 +129,7 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
     "every rendered contrast mark reads as a pass for the default seed, both schemes",
     { timeout: 30000 },
     () => {
-      render(<Experience slug="demo" />);
+      render(studio("demo"));
       for (const name of ["light contrast receipt", "dark contrast receipt"]) {
         const card = screen.getByRole("group", { name });
         const marks = within(card).getAllByRole("img");

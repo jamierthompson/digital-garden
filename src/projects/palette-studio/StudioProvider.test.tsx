@@ -1,7 +1,34 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import Experience from "./experience";
+import StudioProvider from "./StudioProvider";
+import SeedSlot from "./slots/SeedSlot";
+import RulesSlot from "./slots/RulesSlot";
+import PrimitivesSlot from "./slots/PrimitivesSlot";
+import TokensSlot from "./slots/TokensSlot";
+import PreviewSlot from "./slots/PreviewSlot";
+import ReceiptSlot from "./slots/ReceiptSlot";
+import ExportSlot from "./slots/ExportSlot";
+
+/**
+ * The composed studio, as the entry page mounts it: the Provider frame with every slot —
+ * in authored order — beneath it. In production the slots arrive as `liveEmbed`s
+ * interleaved through server prose; state flows identically (context), so this is the
+ * faithful jsdom composition.
+ */
+function renderStudio(slug = "demo") {
+  return render(
+    <StudioProvider slug={slug}>
+      <SeedSlot />
+      <RulesSlot />
+      <PrimitivesSlot />
+      <TokensSlot />
+      <PreviewSlot />
+      <ReceiptSlot />
+      <ExportSlot />
+    </StudioProvider>,
+  );
+}
 
 /** Read the resolved value text of one semantic-token row in the token table. */
 function tokenValue(name: string): string {
@@ -11,9 +38,19 @@ function tokenValue(name: string): string {
   return within(row).getByText(/oklch\(/).textContent ?? "";
 }
 
-describe("Palette Studio experience", () => {
+const ALL_SLOTS = [
+  ["seed", SeedSlot],
+  ["rules", RulesSlot],
+  ["primitives", PrimitivesSlot],
+  ["tokens", TokensSlot],
+  ["preview", PreviewSlot],
+  ["receipt", ReceiptSlot],
+  ["export", ExportSlot],
+] as const;
+
+describe("Palette Studio (Provider + slots)", () => {
   it("mounts with the default seed and a live parsed readout", () => {
-    render(<Experience slug="demo" />);
+    renderStudio();
     const input = screen.getByLabelText("Seed color") as HTMLInputElement;
     expect(input.value).toBe("oklch(0.66 0.2 350)");
     // The readout echoes the parsed seed (canonicalized by the engine parser). It's the
@@ -25,9 +62,11 @@ describe("Palette Studio experience", () => {
     expect(input).toHaveAttribute("aria-invalid", "false");
   });
 
-  it("re-derives the palette when a new seed is typed", () => {
-    render(<Experience slug="demo" />);
+  it("re-derives across slots when a new seed is typed (shared state)", () => {
+    renderStudio();
     const before = tokenValue("accent");
+    // The input lives in the seed slot; the token table is a DIFFERENT slot — the change
+    // must cross the provider, not component-local state.
     fireEvent.change(screen.getByLabelText("Seed color"), {
       target: { value: "#16a34a" },
     });
@@ -35,7 +74,7 @@ describe("Palette Studio experience", () => {
   });
 
   it("signals an unparseable seed inline without crashing", () => {
-    render(<Experience slug="demo" />);
+    renderStudio();
     const input = screen.getByLabelText("Seed color");
     fireEvent.change(input, { target: { value: "definitely-not-a-color" } });
     expect(input).toHaveAttribute("aria-invalid", "true");
@@ -45,7 +84,7 @@ describe("Palette Studio experience", () => {
   });
 
   it("applies a preset chip's seed on click", () => {
-    render(<Experience slug="demo" />);
+    renderStudio();
     // Flamingo is the default, so it starts pressed.
     expect(screen.getByRole("button", { name: /Flamingo/ })).toHaveAttribute(
       "aria-pressed",
@@ -62,7 +101,7 @@ describe("Palette Studio experience", () => {
   });
 
   it("routes each rule choice into a re-derivation and shows its consequence", () => {
-    render(<Experience slug="demo" />);
+    renderStudio();
     const before = tokenValue("text");
     // Distribution → the interior steps reshape, so a bound token can move.
     fireEvent.click(screen.getByRole("radio", { name: "Punchy" }));
@@ -75,7 +114,7 @@ describe("Palette Studio experience", () => {
   });
 
   it("toggles tinted neutrals and reflects the change in the neutral ramp", () => {
-    render(<Experience slug="demo" />);
+    renderStudio();
     const before = tokenValue("surface");
     const toggle = screen.getByRole("switch", { name: "Tinted neutrals" });
     expect(toggle).toBeChecked();
@@ -87,7 +126,7 @@ describe("Palette Studio experience", () => {
   });
 
   it("switches the displayed scheme without re-deriving from scratch", () => {
-    render(<Experience slug="demo" />);
+    renderStudio();
     expect(screen.getByText(/light scheme/i)).toBeInTheDocument();
     const lightBg = tokenValue("bg");
     fireEvent.click(screen.getByRole("radio", { name: "dark" }));
@@ -97,7 +136,7 @@ describe("Palette Studio experience", () => {
   });
 
   it("exposes each rule as a labeled radio group with its current selection", () => {
-    render(<Experience slug="demo" />);
+    renderStudio();
     for (const name of ["Distribution", "Chroma", "Hue drift", "Gamut"]) {
       expect(screen.getByRole("radiogroup", { name })).toBeInTheDocument();
     }
@@ -117,7 +156,7 @@ describe("Palette Studio experience", () => {
   });
 
   it("renders a live preview and a contrast receipt for BOTH schemes", () => {
-    render(<Experience slug="demo" />);
+    renderStudio();
     for (const name of [
       "light preview",
       "dark preview",
@@ -138,7 +177,7 @@ describe("Palette Studio experience", () => {
   });
 
   it("re-measures the receipt when the seed changes", () => {
-    render(<Experience slug="demo" />);
+    renderStudio();
     const receipt = () =>
       screen.getByRole("group", { name: "light contrast receipt" }).textContent;
     const before = receipt();
@@ -149,7 +188,7 @@ describe("Palette Studio experience", () => {
   });
 
   it("exports the live palette and re-serializes when the seed changes", () => {
-    render(<Experience slug="demo" />);
+    renderStudio();
     const exportRegion = screen.getByRole("region", { name: "Export" });
     const before = within(exportRegion).getByRole("tabpanel").textContent;
     expect(before).toContain(":root");
@@ -163,10 +202,30 @@ describe("Palette Studio experience", () => {
   });
 
   it("namespaces control ids by slug so two mounts don't collide", () => {
-    const { unmount } = render(<Experience slug="alpha" />);
+    const { unmount } = render(
+      <StudioProvider slug="alpha">
+        <SeedSlot />
+      </StudioProvider>,
+    );
     expect(screen.getByLabelText("Seed color").id).toBe("ps-alpha-seed");
     unmount();
-    render(<Experience slug="beta" />);
+    render(
+      <StudioProvider slug="beta">
+        <SeedSlot />
+      </StudioProvider>,
+    );
     expect(screen.getByLabelText("Seed color").id).toBe("ps-beta-seed");
+  });
+
+  it("every slot degrades to a visible placeholder when mounted without the frame", () => {
+    // A liveEmbed can be authored into ANY entry's body — a slot outside the studio entry
+    // must say so, not crash the essay.
+    for (const [, Slot] of ALL_SLOTS) {
+      const { container, unmount } = render(<Slot />);
+      expect(
+        within(container as HTMLElement).getByRole("note"),
+      ).toHaveTextContent(/no studio frame/i);
+      unmount();
+    }
   });
 });

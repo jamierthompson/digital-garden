@@ -58,17 +58,17 @@ const eslintConfig = defineConfig([
           pattern: "src/projects/*/**/*",
           capture: ["slug"],
         },
-        // The resolver registry is the ONE sanctioned shared→project importer:
-        // the contract mandates that a `componentKey` resolves to a literal
-        // `() => import("@/projects/<slug>")` right here. Modeling the registry as its
+        // The resolver registries are the ONLY sanctioned shared→project importers:
+        // the contract mandates that a `componentKey` / `embedKey` resolves to a literal
+        // `() => import("@/projects/…")` right there. Modeling the registries as their
         // own element — matched before the `shared` catch-all, since first match wins —
-        // lets it import `project` modules while the `shared`→`project` ban below still
-        // holds for every other shared module. Tightens the boundary to the one allowed
-        // importer rather than loosening the rule wholesale.
+        // lets them import `project` modules while the `shared`→`project` ban below still
+        // holds for every other shared module. Tightens the boundary to the allowed
+        // importers rather than loosening the rule wholesale.
         {
           type: "registry",
           mode: "file",
-          pattern: "src/lib/resolvers/components.ts",
+          pattern: "src/lib/resolvers/{components,embeds}.ts",
         },
         { type: "shared", mode: "file", pattern: "src/**/*" },
       ],
