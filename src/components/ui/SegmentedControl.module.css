@@ -1,0 +1,29 @@
+/* Segmented pill control — @layer project, var-consuming only (generic semantic tokens,
+   editorial by default, brand inside a project slot). */
+@layer project {
+  .root {
+    display: inline-flex;
+    gap: var(--space-1);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.5rem;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .pill[data-state="checked"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+  }
+}

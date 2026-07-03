@@ -394,10 +394,13 @@ _shared_ embed themes off the **generic semantic tokens** (`--surface`, `--accen
 never anything project-specific. Promote a widget into the shared registry only once it's genuinely
 reused; both tiers lazy-import.
 
-Most UI belongs to its project module; lift a primitive into a shared `src/` module only once it's
-genuinely reused across projects — not preemptively. A project may also _consume_ shared logic
-without owning it — an engine-showcase module (the Palette Studio) showcases the shared engine's
-output rather than holding the engine (see the OKLCH engine).
+Project-specific composites belong to their project module — but **UI primitives are built out
+proactively into `src/components/ui/`, even while single-use**. A primitive (an interactive
+control, a panel frame, a meta label) is a design-system unit by nature: it reads the generic
+semantic tokens, ships its own defaults, and works composed into any project or none, so it goes
+to `ui/` the moment it's recognized as a primitive, not on its second consumer. A project may
+also _consume_ shared logic without owning it — an engine-showcase module (the Palette Studio)
+showcases the shared engine's output rather than holding the engine (see the OKLCH engine).
 
 ### The CMS ↔ code registry
 
