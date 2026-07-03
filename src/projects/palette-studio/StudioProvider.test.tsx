@@ -131,7 +131,7 @@ describe("Palette Studio (Provider + slots)", () => {
   });
 
   it("displays the viewer's preferred color scheme — no page-local toggle (#133)", () => {
-    // jsdom's matchMedia never matches, so the default render reads as light…
+    // the setup stub's matchMedia never matches, so the default render reads as light…
     renderStudio();
     expect(screen.getByText(/light scheme/i)).toBeInTheDocument();
     const lightBg = tokenValue("bg");
