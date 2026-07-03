@@ -1,5 +1,5 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 // The OKLCH engine is isomorphic: its suite runs under BOTH `node` and `jsdom`
 // to prove identical behavior server- and client-side. `test.projects` runs the SAME
@@ -12,6 +12,12 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
+    // Agent-team worktrees live in-root at .claude/worktrees/<slug>/ (each a full repo
+    // checkout with its own tests, possibly mid-edit) — without this exclude the root
+    // run globs every worktree's copy and a teammate's in-progress red test fails the
+    // main gate. Not in Vitest's defaults, so excluded explicitly; inherited by both
+    // projects via `extends: true`.
+    exclude: [...configDefaults.exclude, "**/.claude/**"],
     projects: [
       {
         extends: true,
