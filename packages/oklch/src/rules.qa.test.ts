@@ -243,25 +243,23 @@ describe("generative rules (#101) — QA: taper/hold vs the 'seed lands on the r
 describe("generative rules (#101) — QA: public buildRamp runtime posture", () => {
   // buildRamp is a PUBLIC export (index.ts). The author explicitly hardened the sibling
   // "non-finite anchor L" case (ramp.ts: Number.isFinite guard → treat as no anchor), on
-  // the engine's documented "never throws, never garbage" posture. An unknown `distribution`
-  // string (reachable from a JS caller or an eroded/`as`-cast type) hits `scaleOf`'s inner
-  // switch, which has NO default branch → `ease` returns undefined → the interior
-  // lightnesses become NaN. This documents the CURRENT behavior; if the never-garbage
-  // posture is meant to be uniform, scaleOf needs a default (fall back to `tailwind`)
-  // the way the anchor path already defends itself.
-  it("CHARACTERIZATION: an unknown distribution yields NaN interior lightness (defensive-posture gap vs the anchor guard)", () => {
-    const ramp = buildRamp({
+  // the engine's documented "never throws, never garbage" posture. QA-101 found an unknown
+  // `distribution` string (reachable from a JS caller or an eroded/`as`-cast type) produced
+  // NaN interior lightness (scaleOf's easing switch had no default) while the anchor path
+  // defended itself — a posture asymmetry. Fixed: an unknown distribution now falls back to
+  // the default `tailwind` scale; this pins the defensive behavior.
+  it("an unknown distribution falls back to the default scale — never NaN (QA-101)", () => {
+    const bogus = buildRamp({
       hue: 260,
       chroma: 0.1,
       gamut: "srgb",
       rules: { distribution: "bogus" as never },
     });
-    const interior = ramp.slice(3, 8).map((s) => s.color.L);
-    // Present-tense truth: the interior is non-finite. When the author adds a `default` to
-    // scaleOf, flip this to expect the tailwind interior instead.
-    expect(interior.every((L) => Number.isNaN(L))).toBe(true);
-    // The pinned shoulders survive (they bypass `ease`), so the failure is silent + partial.
-    expect(Number.isFinite(ramp[0].color.L)).toBe(true);
+    const plain = buildRamp({ hue: 260, chroma: 0.1, gamut: "srgb" });
+    expect(bogus).toEqual(plain);
+    for (const step of bogus) {
+      expect(Number.isFinite(step.color.L)).toBe(true);
+    }
   });
 
   // Contrast with the guarded siblings: garbage chromaPolicy / huePolicy degrade GRACEFULLY

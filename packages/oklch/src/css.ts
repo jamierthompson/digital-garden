@@ -75,7 +75,7 @@ export function tokenSetToDeclarations(
   set: TokenSet,
   opts: CssOptions = {},
 ): string {
-  const format = opts.format ?? "oklch";
+  const format = opts?.format ?? "oklch";
   const lines = ["color-scheme: light dark;"];
   for (const name of Object.keys(set.tokens) as BrandTokenName[]) {
     lines.push(
@@ -96,7 +96,7 @@ export function rampSetToDeclarations(
   set: TokenSet,
   opts: CssOptions = {},
 ): string {
-  const format = opts.format ?? "oklch";
+  const format = opts?.format ?? "oklch";
   const lines: string[] = [];
   for (const role of Object.keys(set.ramps) as RampRole[]) {
     const { light, dark } = set.ramps[role];

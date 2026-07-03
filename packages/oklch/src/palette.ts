@@ -415,8 +415,8 @@ export function resolveTheme(
   scheme: Scheme,
   opts: EngineOptions = {},
 ): SchemeResult {
-  const gamut: Gamut = opts.gamut ?? "srgb";
-  const rules = opts.rules ?? {};
+  const gamut: Gamut = opts?.gamut ?? "srgb";
+  const rules = opts?.rules ?? {};
   const parsed = parseColor(brandColor);
   const isFallback = parsed === null;
   const base = parsed ?? FALLBACK_SEED;

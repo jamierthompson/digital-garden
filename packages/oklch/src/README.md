@@ -27,8 +27,10 @@ or carry `server-only`/`client-only`.
   design). Fully automatic: the step is keyed off the seed's native direction (`500`
   light-native, `300` dark-native) and reported as `anchorLabel` (`SchemeResult` /
   `TokenSet.meta`). A near-white/near-black seed's L is clamped just inside the scale
-  (~0.15…0.98), so its pin is close-to rather than exact. Neutral/status ramps stay on the
-  shared scale.
+  (~0.15…0.98), so its pin is close-to rather than exact. Under a non-`flat` **chroma
+  policy** the pin is **lightness-only** — the anchored step's chroma follows the policy's
+  curve like every other step, so full seed-color fidelity holds under the default `flat`
+  policy (QA-101). Neutral/status ramps stay on the shared scale.
 - **Brand-harmony palette** (`buildHarmonyPalette`, #102): decorative hue sets in
   mathematical harmony with the seed — analogous (±30°), complementary (180°), triadic
   (±120°), split-complementary (150°/210°) — each at the seed's own L/C, gamut-mapped, for
