@@ -19,9 +19,11 @@ import type { ColorFormat, Scheme, SchemeResult, TokenSet } from "./types";
  *  at runtime; the signature checks below guard those. */
 const RUNTIME_EXPORTS = [
   "BRAND_TOKEN_NAMES",
+  "HARMONY_KINDS",
   "RAMP_LABELS",
   "RAMP_ROLES",
   "apcaLc",
+  "buildHarmonyPalette",
   "buildLightnessRamp",
   "buildRamp",
   "buildTokenSet",

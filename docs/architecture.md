@@ -251,6 +251,10 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   tinted neutrals — with every default reproducing the un-ruled output; distributions reshape only
   the interior steps (`300…700`) while the surface-bearing shoulders stay pinned, so the engine's
   contrast guarantees hold under every policy. The Studio (#73) surfaces them ("Rules · set once").
+  A separate **decorative brand-harmony palette** (`buildHarmonyPalette`) emits analogous /
+  complementary / triadic / split-complementary hue sets at the seed's own L/C, gamut-mapped —
+  expressly non-semantic and non-contrast-bearing (status colors stay canonical-hue; a consumer
+  backing text with a harmony color contrast-checks it via `checkContrast`).
 
 - **The public surface is frozen and test-guarded.** The semantic token names (`BRAND_TOKEN_NAMES`),
   ramp roles (`RAMP_ROLES`), step labels (`RAMP_LABELS` — `50…950`), the emitted custom-property

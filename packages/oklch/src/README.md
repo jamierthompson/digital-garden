@@ -29,6 +29,13 @@ or carry `server-only`/`client-only`.
   `TokenSet.meta`). A near-white/near-black seed's L is clamped just inside the scale
   (~0.15…0.98), so its pin is close-to rather than exact. Neutral/status ramps stay on the
   shared scale.
+- **Brand-harmony palette** (`buildHarmonyPalette`, #102): decorative hue sets in
+  mathematical harmony with the seed — analogous (±30°), complementary (180°), triadic
+  (±120°), split-complementary (150°/210°) — each at the seed's own L/C, gamut-mapped, for
+  charts/gradients/secondary accents. **Decorative, not semantic**: kept apart from the
+  token contract and the canonical-hue status colors, and **non-contrast-bearing by
+  default** — a consumer that puts text on one runs `checkContrast` (or `solveForeground`)
+  itself.
 - **Generative rules** (`EngineOptions.rules`, surfaced by the Studio #73): **lightness
   distribution** (`tailwind` default · `linear` · `eased` · `punchy` · `soft`) reshapes the
   five interior steps `300…700` — the surface-bearing shoulders (`50/100/200`,
