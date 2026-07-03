@@ -965,28 +965,33 @@ describe("seed anchor-step (#108) — QA edge hardening", () => {
   // The committed AA sweep only spans seed L ∈ [0.4, 0.82]. The bend + the anchor clamp
   // both bite hardest at the extremes — where the anchored brand step (which accent-text /
   // focus-ring bind through) is clamped, not the seed's L. Prove the AA guarantee survives.
-  it("every foreground token still clears its floor for extreme-L seeds (incl. #fff / #000)", () => {
-    const seeds: unknown[] = ["#ffffff", "#000000", "#fefefe", "#010101"];
-    for (const H of [0, 60, 145, 200, 260, 320])
-      for (const L of [0.03, 0.08, 0.12, 0.15, 0.92, 0.95, 0.98, 1.0])
-        for (const C of [0.05, 0.2]) seeds.push(`oklch(${L} ${C} ${H})`);
+  it(
+    "every foreground token still clears its floor for extreme-L seeds (incl. #fff / #000)",
+    () => {
+      const seeds: unknown[] = ["#ffffff", "#000000", "#fefefe", "#010101"];
+      for (const H of [0, 60, 145, 200, 260, 320])
+        for (const L of [0.03, 0.08, 0.12, 0.15, 0.92, 0.95, 0.98, 1.0])
+          for (const C of [0.05, 0.2]) seeds.push(`oklch(${L} ${C} ${H})`);
 
-    for (const scheme of SCHEMES)
-      for (const seed of seeds) {
-        const { tokens } = resolveTheme(seed, scheme);
-        for (const [name, c] of Object.entries(AA)) {
-          const fg = bake(tokens[name as BrandTokenName]);
-          const bg = bake(tokens[c.bg]);
-          const where = `${name}/${scheme}/${String(seed)}`;
-          expect(contrastWCAG(fg, bg), `${where} WCAG`).toBeGreaterThanOrEqual(
-            c.wcag,
-          );
-          expect(apcaLc(fg, bg), `${where} APCA`).toBeGreaterThanOrEqual(
-            c.apca,
-          );
+      for (const scheme of SCHEMES)
+        for (const seed of seeds) {
+          const { tokens } = resolveTheme(seed, scheme);
+          for (const [name, c] of Object.entries(AA)) {
+            const fg = bake(tokens[name as BrandTokenName]);
+            const bg = bake(tokens[c.bg]);
+            const where = `${name}/${scheme}/${String(seed)}`;
+            expect(
+              contrastWCAG(fg, bg),
+              `${where} WCAG`,
+            ).toBeGreaterThanOrEqual(c.wcag);
+            expect(apcaLc(fg, bg), `${where} APCA`).toBeGreaterThanOrEqual(
+              c.apca,
+            );
+          }
         }
-      }
-  });
+    },
+    SWEEP_TIMEOUT,
+  );
 
   // Honesty check on the "the anchored step's L IS the seed's" contract (types.ts / README):
   // for a seed outside the ramp's open interval the step is CLAMPED, so it is NOT the seed's
