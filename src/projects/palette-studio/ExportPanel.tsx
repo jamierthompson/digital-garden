@@ -3,7 +3,7 @@
 // The output is produced ONLY by the engine serializers (exporters.ts), so it can never drift
 // from the previewed/derived palette. Copy-to-clipboard + download per target.
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { RadioGroup, Tabs } from "radix-ui";
 import type { ColorFormat, TokenSet } from "@garden/oklch";
@@ -25,8 +25,18 @@ export default function ExportPanel({
 }: ExportPanelProps): React.ReactElement {
   const [tab, setTab] = useState<ExportTabId>("css");
   const [format, setFormat] = useState<ColorFormat>("oklch");
-  const [copied, setCopied] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">(
+    "idle",
+  );
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clear the pending flash timer on unmount so it never fires against a gone component.
+  useEffect(
+    () => () => {
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    },
+    [],
+  );
 
   // Serialize all three targets for the current format in one memo — produced solely by the
   // engine serializers, so exports and the live palette can't disagree.
@@ -41,12 +51,21 @@ export default function ExportPanel({
   const activeTab = EXPORT_TABS.find((t) => t.id === tab)!;
   const output = outputs[tab];
 
+  // Flash a transient status on the Copy button, auto-reverting to idle.
+  const flashCopy = (status: "copied" | "failed"): void => {
+    setCopyStatus(status);
+    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    copiedTimer.current = setTimeout(() => setCopyStatus("idle"), 1500);
+  };
+
   const handleCopy = (): void => {
-    void navigator.clipboard?.writeText(output).then(() => {
-      setCopied(true);
-      if (copiedTimer.current) clearTimeout(copiedTimer.current);
-      copiedTimer.current = setTimeout(() => setCopied(false), 1500);
-    });
+    // A rejected write (denied permission, unfocused document) must fail visibly, not as an
+    // unhandled rejection — so the `.catch` surfaces it on the button (QA-S4-1). The optional
+    // chain keeps a missing clipboard API (non-secure context) a graceful no-op.
+    void navigator.clipboard
+      ?.writeText(output)
+      .then(() => flashCopy("copied"))
+      .catch(() => flashCopy("failed"));
   };
 
   const handleDownload = (): void => {
@@ -94,7 +113,11 @@ export default function ExportPanel({
           </RadioGroup.Root>
 
           <button type="button" className={styles.button} onClick={handleCopy}>
-            {copied ? "Copied" : "Copy"}
+            {copyStatus === "copied"
+              ? "Copied"
+              : copyStatus === "failed"
+                ? "Copy failed"
+                : "Copy"}
           </button>
           <button
             type="button"
