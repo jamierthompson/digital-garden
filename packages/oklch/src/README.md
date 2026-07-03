@@ -82,9 +82,10 @@ The in-repo CSS serializers (`tokenSetToCss` & co.) take the same option; `Proje
 uses the default.
 
 **Low-level surface** is also exported: `contrastWCAG`, `contrastAPCA`/`apcaLc`,
-`solveForeground`, `gamutMap`/`inGamut`, `buildRamp` (the `50…950` role ramp) +
-`buildLightnessRamp` (raw stops), `minPass` (discrete step binding), and the color
-conversions/parsers.
+`checkContrast` (the shared "does it clear?" report — measured WCAG + APCA + `passes`,
+the one predicate every solve and binding routes through, #100), `solveForeground`,
+`gamutMap`/`inGamut`, `buildRamp` (the `50…950` role ramp) + `buildLightnessRamp` (raw
+stops), `minPass` (discrete step binding), and the color conversions/parsers.
 
 ### Notes for ProjectScope / cardSwatches consumers
 

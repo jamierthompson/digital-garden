@@ -12,8 +12,7 @@
  */
 
 import {
-  apcaLc,
-  contrastWCAG,
+  checkContrast,
   withSolveMargin,
   type ContrastTarget,
 } from "./contrast";
@@ -28,9 +27,10 @@ import type {
   SchemeTokens,
 } from "./types";
 
-/** Does `fg` clear BOTH the WCAG floor and the APCA target against `bg`? */
+/** Does `fg` clear BOTH the WCAG floor and the APCA target against `bg`? The engine's
+ *  shared check (#100) — one semantics for solves, bindings, and the receipt. */
 function meets(fg: OkLCH, bg: OkLCH, target: ContrastTarget): boolean {
-  return contrastWCAG(fg, bg) >= target.wcag && apcaLc(fg, bg) >= target.apca;
+  return checkContrast(fg, bg, target).passes;
 }
 
 /**

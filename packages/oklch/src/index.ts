@@ -37,7 +37,9 @@ export {
   contrastWCAG,
   contrastAPCA,
   apcaLc,
+  checkContrast,
   solveForeground,
+  type ContrastCheck,
   type ContrastTarget,
   type SolveOptions,
 } from "./contrast";
