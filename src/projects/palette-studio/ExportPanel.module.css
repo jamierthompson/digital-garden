@@ -74,6 +74,15 @@
     color: var(--on-accent);
   }
 
+  /* Format honesty note — mono-meta register: quiet, monospaced, muted. */
+  .note {
+    margin: 0;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+  }
+
   .content {
     min-width: 0;
   }

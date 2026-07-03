@@ -48,4 +48,26 @@ describe("ExportPanel", () => {
     expect(copied).toContain("--accent: light-dark(oklch(");
     expect(copied).toContain(":root");
   });
+
+  // QA-S4-2: hex/rgb are the sRGB rendering; the UI must disclose it (and the P3 clamp is
+  // lossy). OKLCH is lossless, so no note there.
+  it("discloses hex/rgb as the sRGB rendering, and never for OKLCH", () => {
+    render(<ExportPanel tokenSet={set} />);
+    // Default OKLCH — no note.
+    expect(screen.queryByRole("note")).not.toBeInTheDocument();
+    // Hex — the note appears.
+    fireEvent.click(screen.getByRole("radio", { name: "Hex" }));
+    expect(screen.getByRole("note")).toHaveTextContent(/sRGB rendering/i);
+    // Back to OKLCH — the note is gone.
+    fireEvent.click(screen.getByRole("radio", { name: "OKLCH" }));
+    expect(screen.queryByRole("note")).not.toBeInTheDocument();
+  });
+
+  it("warns that hex/rgb clamp a P3 palette (lossy)", () => {
+    render(
+      <ExportPanel tokenSet={buildTokenSet("#7c3aed", { gamut: "p3" })} />,
+    );
+    fireEvent.click(screen.getByRole("radio", { name: "RGB" }));
+    expect(screen.getByRole("note")).toHaveTextContent(/P3.*sRGB|lossy/i);
+  });
 });

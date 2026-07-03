@@ -51,6 +51,16 @@ export default function ExportPanel({
   const activeTab = EXPORT_TABS.find((t) => t.id === tab)!;
   const output = outputs[tab];
 
+  // Honesty note for the lossy formats (QA-S4-2): hex/rgb are the sRGB rendering — identical
+  // paint for an sRGB palette, but a LOSSY clamp for a P3 one (the engine README's contract).
+  // OKLCH is the lossless native form, so no note there.
+  const formatNote =
+    format === "oklch"
+      ? null
+      : tokenSet.meta.gamut === "p3"
+        ? "Hex & RGB clamp this P3 palette to sRGB — a lossy rendering. OKLCH keeps the full-gamut values."
+        : "Hex & RGB are the sRGB rendering of each OKLCH value.";
+
   // Flash a transient status on the Copy button, auto-reverting to idle.
   const flashCopy = (status: "copied" | "failed"): void => {
     setCopyStatus(status);
@@ -128,6 +138,12 @@ export default function ExportPanel({
           </button>
         </div>
       </div>
+
+      {formatNote && (
+        <p className={styles.note} role="note">
+          {formatNote}
+        </p>
+      )}
 
       {EXPORT_TABS.map((t) => (
         <Tabs.Content key={t.id} value={t.id} className={styles.content}>
