@@ -13,15 +13,6 @@
     color: var(--text-muted);
   }
 
-  /* Slot header row — readout/control aligned over a board. */
-  .head {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3) var(--space-5);
-    justify-content: space-between;
-    align-items: center;
-  }
-
   /* Light + dark side by side (preview panels, receipt cards) — both schemes always shown. */
   .pair {
     display: grid;

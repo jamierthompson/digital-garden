@@ -6,7 +6,13 @@
 // state store and ONE engine run per change. The client boundary is this frame plus the
 // slot leaves; the prose between slots passes through as server-rendered children.
 
-import { createContext, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import {
   buildHarmonyPalette,
@@ -38,9 +44,12 @@ export interface StudioState {
   readonly patchRules: (patch: Partial<StudioRules>) => void;
   readonly gamut: Gamut;
   readonly setGamut: (gamut: Gamut) => void;
-  /** The scheme the single-scheme slots display (boards, token table). */
+  /**
+   * The scheme the single-scheme slots display (boards, token table). Follows the
+   * viewer's color scheme — there is no page-local toggle by design (the toggle is
+   * site-wide chrome, #133); when that control lands it re-binds this same signal.
+   */
   readonly scheme: Scheme;
-  readonly setScheme: (scheme: Scheme) => void;
   /** The single engine run per state change — every slot reads this one result. */
   readonly palette: DerivedPalette;
   /** The displayed scheme's view of `palette`. */
@@ -52,6 +61,18 @@ export interface StudioState {
 // Null default on purpose: a slot can be authored into any entry's body, so it must
 // degrade to a visible placeholder when no studio frame is mounted (see `useStudio`).
 const StudioContext = createContext<StudioState | null>(null);
+
+const DARK_SCHEME_QUERY = "(prefers-color-scheme: dark)";
+
+function subscribeToScheme(onChange: () => void): () => void {
+  const query = window.matchMedia(DARK_SCHEME_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+function readScheme(): Scheme {
+  return window.matchMedia(DARK_SCHEME_QUERY).matches ? "dark" : "light";
+}
 
 /**
  * Read the studio frame's shared state. Returns `null` when the slot is mounted with no
@@ -69,7 +90,13 @@ export default function StudioProvider({
   const [seed, setSeed] = useState<string>(DEFAULT_SEED);
   const [rules, setRules] = useState<StudioRules>(DEFAULT_RULES);
   const [gamut, setGamut] = useState<Gamut>(DEFAULT_GAMUT);
-  const [scheme, setScheme] = useState<Scheme>("light");
+  // Server snapshot is "light" (the shell's default); the client corrects on mount and
+  // tracks live scheme changes. Replaced by the site-wide toggle's signal when #133 lands.
+  const scheme = useSyncExternalStore(
+    subscribeToScheme,
+    readScheme,
+    () => "light" as const,
+  );
 
   // Gamut-map the readout into the palette's gamut so it echoes the exact in-gamut seed
   // the palette derives from — not the parser's half-clamped raw value (QA-BR).
@@ -96,7 +123,6 @@ export default function StudioProvider({
       gamut,
       setGamut,
       scheme,
-      setScheme,
       palette,
       view: scheme === "light" ? palette.light : palette.dark,
       harmony,

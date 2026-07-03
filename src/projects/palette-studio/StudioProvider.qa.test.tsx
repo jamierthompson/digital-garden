@@ -107,15 +107,16 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
   );
 
   it(
-    "the scheme toggle drives the token-table caption in lockstep — across slots",
+    "single-scheme slots follow the viewer's scheme; the receipt always shows BOTH",
     { timeout: 30000 },
     () => {
       render(studio("demo"));
+      // No page-local scheme toggle by design — the toggle is site-wide chrome (#133).
+      expect(
+        screen.queryByRole("radio", { name: /^(light|dark)$/ }),
+      ).not.toBeInTheDocument();
       expect(screen.getByText(/Showing the light scheme/i)).toBeInTheDocument();
-      // The toggle lives in the primitives slot; the caption in the tokens slot.
-      fireEvent.click(screen.getByRole("radio", { name: "dark" }));
-      expect(screen.getByText(/Showing the dark scheme/i)).toBeInTheDocument();
-      // The receipt shows BOTH schemes irrespective of the toggle — its cards persist.
+      // The receipt shows BOTH schemes irrespective of the viewer's scheme.
       expect(
         screen.getByRole("group", { name: "light contrast receipt" }),
       ).toBeInTheDocument();

@@ -1,5 +1,11 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import StudioProvider from "./StudioProvider";
 import SeedSlot from "./slots/SeedSlot";
@@ -125,14 +131,31 @@ describe("Palette Studio (Provider + slots)", () => {
     expect(tokenValue("surface")).not.toBe(before);
   });
 
-  it("switches the displayed scheme without re-deriving from scratch", () => {
+  it("displays the viewer's preferred color scheme — no page-local toggle (#133)", () => {
+    // jsdom's matchMedia never matches, so the default render reads as light…
     renderStudio();
     expect(screen.getByText(/light scheme/i)).toBeInTheDocument();
     const lightBg = tokenValue("bg");
-    fireEvent.click(screen.getByRole("radio", { name: "dark" }));
-    expect(screen.getByText(/dark scheme/i)).toBeInTheDocument();
-    // Dark bg differs from light bg — both schemes are always derived.
-    expect(tokenValue("bg")).not.toBe(lightBg);
+    cleanup();
+    // …and a dark-preferring viewer gets the dark view of the SAME derivation.
+    const mql = {
+      matches: true,
+      media: "(prefers-color-scheme: dark)",
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    };
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => mql),
+    );
+    try {
+      renderStudio();
+      expect(screen.getByText(/dark scheme/i)).toBeInTheDocument();
+      // Dark bg differs from light bg — both schemes are always derived.
+      expect(tokenValue("bg")).not.toBe(lightBg);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("exposes each rule as a labeled radio group with its current selection", () => {
