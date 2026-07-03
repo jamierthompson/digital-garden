@@ -1,6 +1,7 @@
-import {defineArrayMember, defineField, defineType, type ValidationContext} from 'sanity'
+import {defineArrayMember, defineField, defineType} from 'sanity'
 
 import {isBrandColorString} from '../shared/colorValidation'
+import {requiredForNonSketchProject, requiredForProject} from './entryValidators'
 
 /**
  * An `entry` — the single content type for the whole garden.
@@ -36,25 +37,6 @@ const STAGES = [
   {title: 'Prototype', value: 'prototype'},
   {title: 'Shipped', value: 'shipped'},
 ] as const
-
-/** Sibling-`kind` read shared by the conditional-required validators below. */
-function requiredForProject(value: unknown, context: ValidationContext): true | string {
-  const kind = (context.document as {kind?: unknown} | undefined)?.kind
-  return kind === 'project' && !value ? 'Required for a project.' : true
-}
-
-/**
- * Sibling-`kind` + `stage` read: required only for a `project` PAST the sketch stage. A
- * `stage: sketch` project is an honest placeholder with no coded module yet, so the
- * module-naming seeds (`componentKey` / `fontKey`) stay optional until it graduates to
- * prototype/shipped.
- */
-function requiredForNonSketchProject(value: unknown, context: ValidationContext): true | string {
-  const doc = context.document as {kind?: unknown; stage?: unknown} | undefined
-  return doc?.kind === 'project' && doc?.stage !== 'sketch' && !value
-    ? 'Required for a project past the sketch stage.'
-    : true
-}
 
 export const entry = defineType({
   name: 'entry',
