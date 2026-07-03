@@ -43,6 +43,9 @@ export { minPass, type TokenBinding } from "./binding";
 export {
   parseColor,
   formatOklch,
+  formatHex,
+  formatRgb,
+  formatColor,
   oklchToSrgb,
   srgbToOklch,
   oklchToOklab,
