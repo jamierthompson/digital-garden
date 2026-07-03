@@ -19,9 +19,9 @@ export interface ExperienceProps {
    * value stable and unique per rendered instance, for ids that must not collide. Cache
    * Components can keep several `/[slug]` routes mounted at once (React's `<Activity>`,
    * `docs/architecture.md`), including two different slugs pointed at the SAME shared
-   * `Experience` (e.g. `engine-board`, used by many seed brands) — a hardcoded id, or even
-   * `useId()` (empirically: it also collides across Activity-preserved routes), breaks
-   * there. `slug` doesn't.
+   * `Experience` (a module reused by several projects) — a hardcoded id, or even `useId()`
+   * (empirically: it also collides across Activity-preserved routes), breaks there. `slug`
+   * doesn't.
    */
   readonly slug: string;
 }

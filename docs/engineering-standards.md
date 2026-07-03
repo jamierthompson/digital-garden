@@ -37,7 +37,7 @@ Default is **Server Component**. Reach for a Client Component (`'use client'`) o
 
 ```ts
 // ✅ statically analyzable — bundler can split per slug
-const load = () => import("@/projects/engine-board");
+const load = () => import("@/projects/palette-studio");
 // ❌ templated — defeats static analysis, breaks the split
 const load = () => import(`@/projects/${slug}`);
 ```

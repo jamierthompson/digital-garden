@@ -105,7 +105,7 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
     projectEntryCount: 6,
     liveEmbedBlockCount: 3,
     fontKeys: ["inter"],
-    componentKeys: ["engine-board"],
+    componentKeys: ["some-module"],
     embedKeys: ["sunrise-meter"],
   };
 
