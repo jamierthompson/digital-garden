@@ -227,9 +227,12 @@ export interface SchemeResult {
    */
   direction: Scheme;
   /**
-   * The `brand` ramp step the seed is anchored to (#108) — that step's lightness IS the
+   * The `brand` ramp step the seed is anchored to (#108) — that step's lightness is the
    * seed's (the ramp bends around it), so the seed's own color lands on the ramp. Keyed
    * off `direction` (`500` light-native, `300` dark-native). Only `brand` is anchored.
+   * Caveat (QA-108): the pin is exact only for a seed L inside the scale's open interval
+   * (~0.15…0.98); a near-white/near-black seed is CLAMPED just inside it, so for those
+   * the step is close to — not exactly — the seed's L.
    */
   anchorLabel: RampLabel;
 }
