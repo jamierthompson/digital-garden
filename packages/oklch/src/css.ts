@@ -2,17 +2,28 @@
  * Serialize a TokenSet to baked CSS — literal `oklch()` values inside `light-dark()`,
  * wrapped in `@layer brand`.
  *
- * The engine emits the GENERIC SEMANTIC token contract (`--surface`, `--accent`,
- * `--text`, … `--success`) — the same role names the foundation layer defines as the
- * global editorial default; a slot's `@layer brand` block re-binds them with the brand's
- * solved values. Adding the `--focus-ring-color` alias and the `--font-face` mapping is
- * the project scope's job, not the engine's. `ProjectScope` (owned elsewhere) drops these
- * declarations into its scoped `<style>`; this serializer is the convenience that
- * produces them.
+ * Two tiers:
+ *   • the GENERIC SEMANTIC token contract (`--surface`, `--accent`, `--text`, … `--success`)
+ *     — the same role names the foundation layer defines as the global editorial default; a
+ *     slot's `@layer brand` block re-binds them with the brand's solved values.
+ *   • the per-role `50…950` ramp PRIMITIVES the semantic tokens bind from (`--brand-500`,
+ *     `--neutral-200`, … `--info-950`) — the tier exposed 1:1 to a Tailwind numeric scale.
+ *
+ * `tokenSetToDeclarations` emits just the semantic tier; `rampSetToDeclarations` just the
+ * ramp tier; `tokenSetToCss` emits both, wrapped in the scoped rule. Adding the
+ * `--focus-ring-color` alias and the `--font-face` mapping is the project scope's job, not
+ * the engine's. `ProjectScope` (owned elsewhere) composes the declarations it wants into its
+ * scoped `<style>`; this serializer is the convenience that produces them.
  */
 
 import { formatOklch } from "./convert";
-import type { BrandTokenName, SchemePair, TokenSet } from "./types";
+import type {
+  BrandTokenName,
+  RampRole,
+  RampStep,
+  SchemePair,
+  TokenSet,
+} from "./types";
 
 /**
  * Public custom-property prefix. The engine's token names ARE the generic semantic role
@@ -32,9 +43,22 @@ function customProperty(name: BrandTokenName): string {
 }
 
 /**
- * Just the declaration lines (no selector, no layer) — for a caller that controls
- * placement. Includes `color-scheme: light dark` so `light-dark()` resolves and the
- * scheme follows `prefers-color-scheme` by default. Each line is `\n`-joined.
+ * `--<role>-<step>` for one ramp step (`--brand-500`, `--neutral-200`, `--success-700`) —
+ * the primitive tier, exposed 1:1 to a Tailwind numeric scale. A consumer inside the slot
+ * (a subtle branded fill, the card ramp strip #96) reads these; the semantic tokens above
+ * are what components read by default.
+ */
+function rampProperty(role: RampRole, step: RampStep): string {
+  return `${PREFIX}${role}-${step.label}`;
+}
+
+/**
+ * Just the SEMANTIC declaration lines (no selector, no layer) — the generic role contract
+ * components read (`--surface`, `--accent`, … `--success`). For a caller that controls
+ * placement and wants only the semantic tier (e.g. `ProjectScope`, which hand-assembles the
+ * block and adds its own aliases). Includes `color-scheme: light dark` so `light-dark()`
+ * resolves and the scheme follows `prefers-color-scheme` by default. Each line is
+ * `\n`-joined. The primitive ramp tier is a separate opt-in — see `rampSetToDeclarations`.
  */
 export function tokenSetToDeclarations(set: TokenSet): string {
   const lines = ["color-scheme: light dark;"];
@@ -45,11 +69,34 @@ export function tokenSetToDeclarations(set: TokenSet): string {
 }
 
 /**
- * A complete, ready-to-inline scoped rule wrapped in `@layer brand`.
- * `selector` is typically `[data-project="<slug>"]`. Indentation is cosmetic.
+ * Just the primitive `--<role>-<step>` ramp declarations (`--brand-500`, `--neutral-200`,
+ * … `--info-950`) — the `50…950` tier the semantic tokens bind from, exposed 1:1 to a
+ * Tailwind numeric scale (#98). Opt-in and separate from the semantic tier so a caller
+ * decides whether to ship the full ramp into its scope; `tokenSetToCss` includes them by
+ * default. Each line is `\n`-joined.
+ */
+export function rampSetToDeclarations(set: TokenSet): string {
+  const lines: string[] = [];
+  for (const role of Object.keys(set.ramps) as RampRole[]) {
+    const { light, dark } = set.ramps[role];
+    for (let i = 0; i < light.length; i++) {
+      lines.push(
+        `${rampProperty(role, light[i])}: light-dark(${formatOklch(light[i].color)}, ${formatOklch(dark[i].color)});`,
+      );
+    }
+  }
+  return lines.join("\n");
+}
+
+/**
+ * A complete, ready-to-inline scoped rule wrapped in `@layer brand` — the semantic role
+ * tokens AND the per-role `50…950` ramp primitives (#98). `selector` is typically
+ * `[data-project="<slug>"]`. Indentation is cosmetic. A caller wanting only the semantic
+ * tier composes `tokenSetToDeclarations` itself (as `ProjectScope` does).
  */
 export function tokenSetToCss(set: TokenSet, selector: string): string {
-  const body = tokenSetToDeclarations(set)
+  const body = [tokenSetToDeclarations(set), rampSetToDeclarations(set)]
+    .join("\n")
     .split("\n")
     .map((line) => `    ${line}`)
     .join("\n");

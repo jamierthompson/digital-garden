@@ -14,7 +14,11 @@
 
 export { resolveTheme, buildTokenSet, type EngineOptions } from "./palette";
 
-export { tokenSetToCss, tokenSetToDeclarations } from "./css";
+export {
+  tokenSetToCss,
+  tokenSetToDeclarations,
+  rampSetToDeclarations,
+} from "./css";
 
 export {
   contrastWCAG,
@@ -27,7 +31,14 @@ export {
 
 export { gamutMap, inGamut } from "./gamut";
 
-export { buildLightnessRamp, type RampOptions } from "./ramp";
+export {
+  buildLightnessRamp,
+  buildRamp,
+  type RampOptions,
+  type RampSpec,
+} from "./ramp";
+
+export { minPass, type TokenBinding } from "./binding";
 
 export {
   parseColor,
@@ -40,6 +51,8 @@ export {
   clamp01,
 } from "./convert";
 
+export { RAMP_LABELS } from "./types";
+
 export type {
   OkLCH,
   OkLab,
@@ -47,6 +60,11 @@ export type {
   Scheme,
   Gamut,
   BrandTokenName,
+  RampLabel,
+  RampRole,
+  RampStep,
+  Ramp,
+  RampPair,
   SchemePair,
   SchemeTokens,
   SchemeResult,

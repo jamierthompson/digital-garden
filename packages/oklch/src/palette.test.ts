@@ -1,10 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import { buildTokenSet, resolveTheme } from "./palette";
+import { minPass } from "./binding";
 import { inGamut } from "./gamut";
 import { apcaLc, contrastWCAG } from "./contrast";
 import { formatOklch, parseColor } from "./convert";
-import type { BrandTokenName, OkLCH, Scheme, SchemeResult } from "./types";
+import {
+  RAMP_LABELS,
+  type BrandTokenName,
+  type OkLCH,
+  type Ramp,
+  type RampRole,
+  type Scheme,
+  type SchemeResult,
+} from "./types";
 
 const TOKEN_NAMES: BrandTokenName[] = [
   "bg",
@@ -24,6 +33,182 @@ const TOKEN_NAMES: BrandTokenName[] = [
 ];
 
 const SCHEMES: Scheme[] = ["light", "dark"];
+
+// Budget for the exhaustive correctness sweeps below. Each runs hundreds of FULL theme
+// resolutions across both gamuts, both schemes, and a hue/L/chroma grid — deliberately
+// thorough. Their nominal wall-time is healthy (~0.2s each, per `--reporter=verbose`), but
+// they run under BOTH the node and jsdom Vitest projects AND alongside the rest of the
+// suite, a production build, and (on an agent team) parallel work all competing for CPU.
+// Under that contention a 0.2s test can dilate past Vitest's default 5s per-test budget and
+// flake — the budget was the problem, not the engine (there is no perf bug; memoizing the
+// per-hue gamut boundary is tracked separately as #41). A generous explicit budget removes
+// the load-dependence without weakening the sweep.
+const SWEEP_TIMEOUT = 30_000;
+
+// The ramp role each ramp-bound semantic token derives from (the default binding schema).
+// `accent`/`on-accent` are the faithful co-solve, not ramp steps, so they are excluded.
+const TOKEN_ROLE: Partial<Record<BrandTokenName, RampRole>> = {
+  bg: "neutral",
+  surface: "neutral",
+  "surface-2": "neutral",
+  text: "neutral",
+  "text-muted": "neutral",
+  border: "neutral",
+  "accent-text": "brand",
+  "focus-ring": "brand",
+  success: "success",
+  error: "error",
+  warning: "warning",
+  info: "info",
+};
+
+const RAMP_ROLES: RampRole[] = [
+  "brand",
+  "neutral",
+  "success",
+  "error",
+  "warning",
+  "info",
+];
+
+const sameColor = (a: OkLCH, b: OkLCH): boolean =>
+  a.L === b.L && a.C === b.C && a.H === b.H;
+
+const isRampStep = (c: OkLCH, ramp: Ramp): boolean =>
+  ramp.some((s) => sameColor(s.color, c));
+
+describe("ramp primitives + binding (#98)", () => {
+  it.each(SCHEMES)(
+    "exposes all six role ramps as 11 labelled, in-gamut, monotonic-lightness steps (%s)",
+    (scheme) => {
+      const { ramps } = resolveTheme("#3b82f6", scheme);
+      for (const role of RAMP_ROLES) {
+        const ramp = ramps[role];
+        expect(
+          ramp.map((s) => s.label),
+          role,
+        ).toEqual([...RAMP_LABELS]);
+        for (let i = 1; i < ramp.length; i++) {
+          expect(ramp[i].color.L, `${role} ${ramp[i].label}`).toBeLessThan(
+            ramp[i - 1].color.L,
+          );
+        }
+        for (const step of ramp) {
+          expect(inGamut(step.color, "srgb"), `${role} ${step.label}`).toBe(
+            true,
+          );
+          expect(typeof step.oog).toBe("boolean");
+        }
+      }
+    },
+  );
+
+  // The load-bearing contract: "names, not numbers." Every ramp-bound semantic token IS a
+  // concrete step of its role ramp — the token is a binding, not an independent solve.
+  // Proven across hue-spanning seeds + fallback, both schemes.
+  it("every ramp-bound token is exactly one of its role ramp's steps", () => {
+    const seeds: unknown[] = [
+      "#e11d48",
+      "#eab308",
+      "#06b6d4",
+      "#7c3aed",
+      "#0f3d3e",
+      "#faf3c0",
+      "garbage",
+    ];
+    for (const seed of seeds)
+      for (const scheme of SCHEMES) {
+        const { tokens, ramps } = resolveTheme(seed, scheme);
+        for (const [name, role] of Object.entries(TOKEN_ROLE) as [
+          BrandTokenName,
+          RampRole,
+        ][]) {
+          expect(
+            isRampStep(tokens[name], ramps[role]),
+            `${name} should be a ${role} ramp step (${String(seed)}/${scheme})`,
+          ).toBe(true);
+        }
+      }
+  });
+
+  it("binds surfaces to the documented fixed neutral steps, inverted per scheme", () => {
+    const stepColor = (ramp: Ramp, label: string): OkLCH =>
+      ramp.find((s) => s.label === label)!.color;
+    const light = resolveTheme("#3b82f6", "light");
+    const dark = resolveTheme("#3b82f6", "dark");
+    // Light: page → elevated → higher taken from the light end (50/100/200).
+    expect(light.tokens.bg).toEqual(stepColor(light.ramps.neutral, "50"));
+    expect(light.tokens.surface).toEqual(stepColor(light.ramps.neutral, "100"));
+    expect(light.tokens["surface-2"]).toEqual(
+      stepColor(light.ramps.neutral, "200"),
+    );
+    // Dark: the dark end, inverted (950/900/800) — the "re-solve per scheme".
+    expect(dark.tokens.bg).toEqual(stepColor(dark.ramps.neutral, "950"));
+    expect(dark.tokens.surface).toEqual(stepColor(dark.ramps.neutral, "900"));
+    expect(dark.tokens["surface-2"]).toEqual(
+      stepColor(dark.ramps.neutral, "800"),
+    );
+  });
+
+  it("on-accent is a near-white or near-black extreme (headroom label, #95), never a mid-tone", () => {
+    const seeds = ["#e11d48", "#eab308", "#06b6d4", "#7c3aed", "#3b82f6"];
+    for (const seed of seeds)
+      for (const scheme of SCHEMES) {
+        const { tokens } = resolveTheme(seed, scheme);
+        const onAccent = tokens["on-accent"];
+        // Extreme lightness (a near-white or near-black), near-zero chroma.
+        expect(onAccent.L > 0.9 || onAccent.L < 0.2, `${seed}/${scheme}`).toBe(
+          true,
+        );
+        expect(onAccent.C, `${seed}/${scheme}`).toBeLessThan(0.02);
+        // …and it clears the on-accent floor on the accent fill (harness re-asserts too).
+        expect(
+          apcaLc(onAccent, tokens.accent),
+          `${seed}/${scheme}`,
+        ).toBeGreaterThanOrEqual(60);
+      }
+  });
+
+  it("surfaces buildTokenSet.ramps as light/dark pairs for every role + step", () => {
+    const set = buildTokenSet("#3b82f6");
+    for (const role of RAMP_ROLES) {
+      expect(set.ramps[role].light.map((s) => s.label)).toEqual([
+        ...RAMP_LABELS,
+      ]);
+      expect(set.ramps[role].dark.map((s) => s.label)).toEqual([
+        ...RAMP_LABELS,
+      ]);
+    }
+    // The dual-scheme ramps agree with the single-scheme resolveTheme (one source of truth).
+    expect(set.ramps.brand.light).toEqual(
+      resolveTheme("#3b82f6", "light").ramps.brand,
+    );
+  });
+
+  it("still exposes ramps on the fallback path (garbage seed)", () => {
+    const { ramps, isFallback } = resolveTheme("not-a-color", "light");
+    expect(isFallback).toBe(true);
+    for (const role of RAMP_ROLES) {
+      expect(ramps[role]).toHaveLength(11);
+    }
+  });
+
+  // Guards that the surface the `auto` tokens are SOLVED against is exactly the `surface-2`
+  // that SHIPS — the "AA on every surface" guarantee rests on those being identical. If the
+  // internal worst-case surface ever drifted from the surface-2 token, `text` would be
+  // minPass'd against a different background than it renders on, and this equality breaks.
+  it("solves `text` against exactly the surface-2 token it ships (no worst-case-surface drift)", () => {
+    for (const scheme of SCHEMES) {
+      const { tokens, ramps } = resolveTheme("#3b82f6", scheme);
+      // TARGET.bodyText — the documented body-text floor (palette.ts).
+      const expected = minPass(ramps.neutral, tokens["surface-2"], {
+        wcag: 4.5,
+        apca: 75,
+      }).color;
+      expect(tokens.text, scheme).toEqual(expected);
+    }
+  });
+});
 
 describe("resolveTheme", () => {
   it.each(SCHEMES)(
@@ -383,35 +568,43 @@ describe("status colors", () => {
 
   // Locks the accessibility promise the docs make ("any brand, both schemes, both gamuts"):
   // a dense hue × L × chroma sweep in sRGB AND P3, measured with the real contrast fns.
-  it("every status color clears its floor across a hue/L/chroma sweep (sRGB + P3)", () => {
-    const gamuts = ["srgb", "p3"] as const;
-    const Hs = [0, 27, 80, 145, 250, 330];
-    const Ls = [0.1, 0.5, 0.9];
-    const Cs = [0, 0.15, 0.35];
-    for (const gamut of gamuts)
-      for (const H of Hs)
-        for (const L of Ls)
-          for (const C of Cs)
-            for (const scheme of SCHEMES) {
-              const { tokens } = resolveTheme(`oklch(${L} ${C} ${H})`, scheme, {
-                gamut,
-              });
-              const surface2 = tokens["surface-2"];
-              for (const name of STATUS_TOKENS) {
-                const c = tokens[name];
-                const where = `${name}/${scheme}/${gamut}/H${H}L${L}C${C}`;
-                expect(inGamut(c, gamut), where).toBe(true);
-                expect(
-                  contrastWCAG(c, surface2),
-                  `${where} WCAG`,
-                ).toBeGreaterThanOrEqual(STATUS_FLOOR.wcag);
-                expect(
-                  apcaLc(c, surface2),
-                  `${where} APCA`,
-                ).toBeGreaterThanOrEqual(STATUS_FLOOR.apca);
+  it(
+    "every status color clears its floor across a hue/L/chroma sweep (sRGB + P3)",
+    () => {
+      const gamuts = ["srgb", "p3"] as const;
+      const Hs = [0, 27, 80, 145, 250, 330];
+      const Ls = [0.1, 0.5, 0.9];
+      const Cs = [0, 0.15, 0.35];
+      for (const gamut of gamuts)
+        for (const H of Hs)
+          for (const L of Ls)
+            for (const C of Cs)
+              for (const scheme of SCHEMES) {
+                const { tokens } = resolveTheme(
+                  `oklch(${L} ${C} ${H})`,
+                  scheme,
+                  {
+                    gamut,
+                  },
+                );
+                const surface2 = tokens["surface-2"];
+                for (const name of STATUS_TOKENS) {
+                  const c = tokens[name];
+                  const where = `${name}/${scheme}/${gamut}/H${H}L${L}C${C}`;
+                  expect(inGamut(c, gamut), where).toBe(true);
+                  expect(
+                    contrastWCAG(c, surface2),
+                    `${where} WCAG`,
+                  ).toBeGreaterThanOrEqual(STATUS_FLOOR.wcag);
+                  expect(
+                    apcaLc(c, surface2),
+                    `${where} APCA`,
+                  ).toBeGreaterThanOrEqual(STATUS_FLOOR.apca);
+                }
               }
-            }
-  });
+    },
+    SWEEP_TIMEOUT,
+  );
 
   // Documents the intended design: because the hue is fixed-canonical and surface-2's brand
   // tint is capped tiny, status colors are near brand-invariant — two wildly different brands
@@ -529,23 +722,27 @@ describe("baked literals clear the TRUE contrast floor (#79)", () => {
   ];
   const GAMUTS = ["srgb", "p3"] as const;
 
-  it("every solved foreground token clears its true floor as the BAKED (rounded) literal", () => {
-    for (const gamut of GAMUTS)
-      for (const scheme of SCHEMES)
-        for (const seed of SEEDS) {
-          const { tokens } = resolveTheme(seed, scheme, { gamut });
-          for (const [name, c] of Object.entries(CONTRACT)) {
-            const fg = bake(tokens[name as BrandTokenName]);
-            const bg = bake(tokens[c.bg]);
-            const where = `${name}/${scheme}/${gamut}/${String(seed)}`;
-            expect(
-              contrastWCAG(fg, bg),
-              `${where} WCAG`,
-            ).toBeGreaterThanOrEqual(c.wcag);
-            expect(apcaLc(fg, bg), `${where} APCA`).toBeGreaterThanOrEqual(
-              c.apca,
-            );
+  it(
+    "every solved foreground token clears its true floor as the BAKED (rounded) literal",
+    () => {
+      for (const gamut of GAMUTS)
+        for (const scheme of SCHEMES)
+          for (const seed of SEEDS) {
+            const { tokens } = resolveTheme(seed, scheme, { gamut });
+            for (const [name, c] of Object.entries(CONTRACT)) {
+              const fg = bake(tokens[name as BrandTokenName]);
+              const bg = bake(tokens[c.bg]);
+              const where = `${name}/${scheme}/${gamut}/${String(seed)}`;
+              expect(
+                contrastWCAG(fg, bg),
+                `${where} WCAG`,
+              ).toBeGreaterThanOrEqual(c.wcag);
+              expect(apcaLc(fg, bg), `${where} APCA`).toBeGreaterThanOrEqual(
+                c.apca,
+              );
+            }
           }
-        }
-  });
+    },
+    SWEEP_TIMEOUT,
+  );
 });
