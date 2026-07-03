@@ -116,6 +116,38 @@ describe("Palette Studio experience", () => {
     expect(checked[0]).toHaveAccessibleName("Tailwind");
   });
 
+  it("renders a live preview and a contrast receipt for BOTH schemes", () => {
+    render(<Experience slug="demo" />);
+    for (const name of [
+      "light preview",
+      "dark preview",
+      "light contrast receipt",
+      "dark contrast receipt",
+    ]) {
+      expect(screen.getByRole("group", { name })).toBeInTheDocument();
+    }
+    // The receipt is the guarantee: every measured pair passes, in both schemes.
+    for (const name of ["light contrast receipt", "dark contrast receipt"]) {
+      const card = screen.getByRole("group", { name });
+      const marks = within(card).getAllByRole("img");
+      expect(marks.length).toBeGreaterThan(0);
+      for (const mark of marks) {
+        expect(mark).toHaveAccessibleName("passes");
+      }
+    }
+  });
+
+  it("re-measures the receipt when the seed changes", () => {
+    render(<Experience slug="demo" />);
+    const receipt = () =>
+      screen.getByRole("group", { name: "light contrast receipt" }).textContent;
+    const before = receipt();
+    fireEvent.change(screen.getByLabelText("Seed color"), {
+      target: { value: "#06b6d4" },
+    });
+    expect(receipt()).not.toBe(before);
+  });
+
   it("namespaces control ids by slug so two mounts don't collide", () => {
     const { unmount } = render(<Experience slug="alpha" />);
     expect(screen.getByLabelText("Seed color").id).toBe("ps-alpha-seed");

@@ -124,6 +124,28 @@
     color: var(--text);
   }
 
+  .panelNote {
+    margin: 0;
+    max-width: 60ch;
+    font-family: var(--font-face);
+    font-style: italic;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+
+  /* Light + dark side by side (preview panels, receipt cards) — both schemes always shown. */
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  @media (max-width: 34rem) {
+    .pair {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
   /* Collapse to a single column on narrow viewports — the rail stacks above the canvas. */
   @media (max-width: 40rem) {
     .body {

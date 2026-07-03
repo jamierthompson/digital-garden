@@ -10,13 +10,16 @@
 import { useMemo, useState } from "react";
 
 import { RadioGroup } from "radix-ui";
-import type { Gamut, Scheme } from "@garden/oklch";
+import { buildHarmonyPalette, type Gamut, type Scheme } from "@garden/oklch";
 
 import type { ExperienceProps } from "@/projects/types";
 
 import { derivePalette, describeAnchor, parseSeed } from "./derive";
 import { DEFAULT_GAMUT, DEFAULT_RULES, type StudioRules } from "./rules";
 import { DEFAULT_SEED } from "./presets";
+import ContrastReceipt from "./ContrastReceipt";
+import HarmonyStrip from "./HarmonyStrip";
+import PreviewPanel from "./PreviewPanel";
 import PrimitivesBoard from "./PrimitivesBoard";
 import RulesRail from "./RulesRail";
 import SeedRow from "./SeedRow";
@@ -41,6 +44,12 @@ export default function Experience({
     [seed, rules, gamut],
   );
   const view = scheme === "light" ? palette.light : palette.dark;
+  // Decorative harmony sets are built from the raw seed (scheme-independent), so they memoize
+  // on seed + gamut alone and render once.
+  const harmony = useMemo(
+    () => buildHarmonyPalette(seed, { gamut }),
+    [seed, gamut],
+  );
 
   // Namespace every minted id by the route slug: Cache Components can keep several `/[slug]`
   // routes mounted at once (React <Activity>), so a hardcoded id would collide across them.
@@ -108,6 +117,28 @@ export default function Experience({
           <section className={styles.panel} aria-label="Semantic tokens">
             <h3 className={styles.panelTitle}>Semantic tokens</h3>
             <TokenTable rows={palette.rows} scheme={scheme} />
+          </section>
+
+          <section className={styles.panel} aria-label="Live preview">
+            <h3 className={styles.panelTitle}>Preview</h3>
+            <div className={styles.pair}>
+              <PreviewPanel scheme="light" tokens={palette.light.tokens} />
+              <PreviewPanel scheme="dark" tokens={palette.dark.tokens} />
+            </div>
+            <HarmonyStrip harmony={harmony} />
+          </section>
+
+          <section className={styles.panel} aria-label="Contrast receipt">
+            <h3 className={styles.panelTitle}>Contrast, audited</h3>
+            <p className={styles.panelNote}>
+              Measured on the generated tokens — every readable pair clears its
+              WCAG floor and APCA target, in both schemes. That&rsquo;s the
+              guarantee.
+            </p>
+            <div className={styles.pair}>
+              <ContrastReceipt scheme="light" tokens={palette.light.tokens} />
+              <ContrastReceipt scheme="dark" tokens={palette.dark.tokens} />
+            </div>
           </section>
         </div>
       </div>
