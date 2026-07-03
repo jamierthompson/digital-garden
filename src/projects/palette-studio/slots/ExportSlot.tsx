@@ -1,6 +1,7 @@
 "use client";
 
-import Panel, { PanelNote } from "@/components/ui/Panel";
+import Note from "@/components/ui/Note";
+import Panel from "@/components/ui/Panel";
 
 import { useStudio } from "../StudioProvider";
 import ExportPanel from "../ExportPanel";
@@ -12,10 +13,10 @@ export default function ExportSlot(): React.ReactElement {
   if (!studio) return <MissingFrame name="export" />;
   return (
     <Panel label="Export">
-      <PanelNote>
+      <Note>
         The same tokens, serialized by the engine — never re-typed here, so the
         export can&rsquo;t drift from what you see above.
-      </PanelNote>
+      </Note>
       <ExportPanel tokenSet={studio.palette.tokenSet} />
     </Panel>
   );

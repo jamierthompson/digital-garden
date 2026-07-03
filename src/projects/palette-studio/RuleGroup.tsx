@@ -1,9 +1,11 @@
-// One rule group in the left rail: a mono kicker label, a segmented Radix RadioGroup of
-// pills (roving-focus, fully keyboard-operable), and a live one-line consequence showing the
-// active choice's plain-English effect. Generic over the rule's string union so distribution,
-// chroma, hue, and gamut all share it — the four are the same control shape.
+// One rule group: a mono kicker label, a segmented pill control, and a live one-line
+// consequence showing the active choice's plain-English effect. A thin composition of the
+// ui/ primitives (Kicker + SegmentedControl + Note) — generic over the rule's string union
+// so distribution, chroma, hue, and gamut all share it.
 
-import { RadioGroup } from "radix-ui";
+import Kicker from "@/components/ui/Kicker";
+import Note from "@/components/ui/Note";
+import SegmentedControl from "@/components/ui/SegmentedControl";
 
 import type { RuleOption } from "./ruleOptions";
 import styles from "./RuleGroup.module.css";
@@ -32,27 +34,14 @@ export default function RuleGroup<T extends string>({
   const hint = options.find((o) => o.value === value)?.hint;
   return (
     <div className={styles.group}>
-      <span id={labelId} className={styles.label}>
-        {label}
-      </span>
-      <RadioGroup.Root
-        className={styles.options}
-        aria-labelledby={labelId}
+      <Kicker id={labelId}>{label}</Kicker>
+      <SegmentedControl
+        labelledBy={labelId}
         value={value}
-        onValueChange={(v) => onValueChange(v as T)}
-        orientation="horizontal"
-      >
-        {options.map((opt) => (
-          <RadioGroup.Item
-            key={opt.value}
-            className={styles.pill}
-            value={opt.value}
-          >
-            {opt.label}
-          </RadioGroup.Item>
-        ))}
-      </RadioGroup.Root>
-      {hint ? <p className={styles.hint}>{hint}</p> : null}
+        onValueChange={onValueChange}
+        options={options}
+      />
+      {hint ? <Note>{hint}</Note> : null}
     </div>
   );
 }

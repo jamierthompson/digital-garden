@@ -11,8 +11,10 @@ export interface SegmentedOption<T extends string> {
 }
 
 interface SegmentedControlProps<T extends string> {
-  /** Accessible name for the group — announced, not rendered. */
-  readonly label: string;
+  /** Accessible name for the group — announced, not rendered. Or wire `labelledBy`. */
+  readonly label?: string;
+  /** Id of the element that labels the group (e.g. a `Kicker`). */
+  readonly labelledBy?: string;
   readonly value: T;
   readonly onValueChange: (value: T) => void;
   readonly options: readonly SegmentedOption<T>[];
@@ -23,10 +25,11 @@ interface SegmentedControlProps<T extends string> {
  * under the hood, so roving arrow-key navigation and `aria-checked` come for free).
  * Generic UI primitive: themes off the ambient semantic tokens (`--accent`,
  * `--on-accent`, `--border`, …) so it reads editorial by default and brand inside a
- * project slot.
+ * project slot. Provide `label` or `labelledBy`, not both.
  */
 export default function SegmentedControl<T extends string>({
   label,
+  labelledBy,
   value,
   onValueChange,
   options,
@@ -35,6 +38,7 @@ export default function SegmentedControl<T extends string>({
     <RadioGroup.Root
       className={styles.root}
       aria-label={label}
+      aria-labelledby={labelledBy}
       value={value}
       onValueChange={(v) => onValueChange(v as T)}
       orientation="horizontal"

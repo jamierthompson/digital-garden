@@ -14,13 +14,4 @@
     color: var(--text);
     font-family: var(--font-face);
   }
-
-  .note {
-    margin: 0;
-    max-width: 60ch;
-    font-family: var(--font-face);
-    font-style: italic;
-    font-size: var(--text-sm);
-    color: var(--text-muted);
-  }
 }

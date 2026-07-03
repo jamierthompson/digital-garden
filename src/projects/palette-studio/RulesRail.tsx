@@ -1,9 +1,11 @@
-// The left rules rail — the five generative-rule controls, opinionated defaults ON so the
-// tool is usable in zero clicks. Four are segmented RadioGroups (RuleGroup); tinted-neutrals
-// is a Radix Switch. Each carries a live plain-English consequence line. The rail themes off
-// the ambient ProjectScope tokens; it only sets rule state, never any generated color.
+// The rules board — the five generative-rule controls, opinionated defaults ON so the
+// tool is usable in zero clicks. Four are segmented pill groups (RuleGroup); tinted-neutrals
+// is a Switch. Each carries a live plain-English consequence line (Note). Mounted full-width
+// inside its slot Panel (#131); it only sets rule state, never any generated color.
 
-import { Switch } from "radix-ui";
+import Kicker from "@/components/ui/Kicker";
+import Note from "@/components/ui/Note";
+import Switch from "@/components/ui/Switch";
 
 import type { Gamut } from "@garden/oklch";
 
@@ -40,11 +42,11 @@ export default function RulesRail({
     ? TINTED_NEUTRALS_HINT.on
     : TINTED_NEUTRALS_HINT.off;
   return (
-    <aside className={styles.rail} aria-label="Palette rules">
-      <p className={styles.intro}>
+    <div className={styles.rail} role="group" aria-label="Palette rules">
+      <Note>
         Rules shape the ramp before the tokens bind to it. Every default is on —
         the palette is legible before you touch a thing.
-      </p>
+      </Note>
 
       <RuleGroup
         label="Distribution"
@@ -72,25 +74,20 @@ export default function RulesRail({
       />
 
       <div className={styles.group}>
-        <span id={tintedLabelId} className={styles.label}>
-          Tinted neutrals
-        </span>
+        <Kicker id={tintedLabelId}>Tinted neutrals</Kicker>
         <div className={styles.switchRow}>
-          <Switch.Root
-            className={styles.switch}
-            aria-labelledby={tintedLabelId}
+          <Switch
+            labelledBy={tintedLabelId}
             checked={rules.tintedNeutrals}
             onCheckedChange={(tintedNeutrals) =>
               onRulesChange({ tintedNeutrals })
             }
-          >
-            <Switch.Thumb className={styles.thumb} />
-          </Switch.Root>
+          />
           <span className={styles.switchState}>
             {rules.tintedNeutrals ? "on" : "off"}
           </span>
         </div>
-        <p className={styles.hint}>{tintedHint}</p>
+        <Note>{tintedHint}</Note>
       </div>
 
       <RuleGroup
@@ -101,6 +98,6 @@ export default function RulesRail({
         value={gamut}
         onValueChange={onGamutChange}
       />
-    </aside>
+    </div>
   );
 }

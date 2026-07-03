@@ -12,8 +12,7 @@ interface PanelProps {
  * A bordered surface panel — the framed card every interactive slot and demo board sits
  * in (the module-page "demo panel" treatment). Generic UI primitive: reads the ambient
  * semantic tokens, so it renders editorial by default and brand-tinted inside a project
- * slot. `PanelNote` is its companion caption voice — the italic aside beneath a panel's
- * content.
+ * slot. Pair with `Note` for the italic aside voice inside a panel.
  */
 export default function Panel({
   label,
@@ -24,13 +23,4 @@ export default function Panel({
       {children}
     </section>
   );
-}
-
-/** The panel's italic aside — explanatory voice inside a panel, muted and short-measure. */
-export function PanelNote({
-  children,
-}: {
-  readonly children: ReactNode;
-}): React.ReactElement {
-  return <p className={styles.note}>{children}</p>;
 }

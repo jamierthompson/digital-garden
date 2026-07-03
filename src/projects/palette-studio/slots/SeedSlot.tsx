@@ -1,5 +1,6 @@
 "use client";
 
+import Kicker from "@/components/ui/Kicker";
 import Panel from "@/components/ui/Panel";
 
 import { describeAnchor } from "../derive";
@@ -21,7 +22,7 @@ export default function SeedSlot(): React.ReactElement {
         onSeedChange={studio.setSeed}
       />
       <p className={styles.anchor} role="status" aria-live="polite">
-        <span className={styles.anchorKicker}>Anchor</span>
+        <Kicker>Anchor</Kicker>
         {describeAnchor(studio.palette)}
       </p>
     </Panel>

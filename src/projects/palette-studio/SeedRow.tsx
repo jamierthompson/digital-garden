@@ -4,7 +4,8 @@
 // decides validity, so the readout can never disagree with the derived palette.
 
 import { formatOklch } from "@garden/oklch";
-import { Label } from "radix-ui";
+
+import Kicker from "@/components/ui/Kicker";
 
 import type { ParsedSeed } from "./derive";
 import { PRESETS } from "./presets";
@@ -29,9 +30,7 @@ export default function SeedRow({
   return (
     <div className={styles.row}>
       <div className={styles.field}>
-        <Label.Root className={styles.label} htmlFor={inputId}>
-          Seed color
-        </Label.Root>
+        <Kicker htmlFor={inputId}>Seed color</Kicker>
         <div className={styles.inputWrap}>
           <span
             className={styles.swatch}
@@ -73,7 +72,7 @@ export default function SeedRow({
       </div>
 
       <div className={styles.presets}>
-        <span className={styles.presetsLabel}>Starters</span>
+        <Kicker>Starters</Kicker>
         <div className={styles.chips} role="group" aria-label="Preset seeds">
           {PRESETS.map((preset) => (
             <button
