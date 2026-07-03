@@ -14,26 +14,31 @@ import { describe, expect, it } from "vitest";
 import { formatColor, formatHex, formatRgb, parseColor } from "./convert";
 import type { OkLCH } from "./types";
 
-describe("serializers — non-finite input (robustness gap, LOW: type-guarded)", () => {
+describe("serializers — non-finite input (defended per QA-99)", () => {
   const nan: OkLCH = { L: NaN, C: NaN, H: NaN };
   const inf: OkLCH = { L: Infinity, C: Infinity, H: Infinity };
 
-  it("PINS the inconsistency: formatHex masks NaN as black, formatRgb emits invalid CSS", () => {
-    // formatHex silently produces a valid-LOOKING black (bitwise ops coerce NaN → 0).
+  it("hex and rgb degrade IDENTICALLY to black on non-finite channels — never invalid CSS", () => {
+    // QA-99 found formatHex masked NaN as #000000 while formatRgb emitted the invalid
+    // literal rgb(NaN NaN NaN) — divergent failure modes for the same bad input. Both
+    // now collapse non-finite channels to 0 (srgb255), one documented degradation.
     expect(formatHex(nan)).toBe("#000000");
     expect(formatHex(inf)).toBe("#000000");
-    // formatRgb emits literally invalid CSS instead — a divergent failure mode for the
-    // same bad input. Neither is loud; ideally both would clamp identically (to #000000 /
-    // rgb(0 0 0)) or both throw.
-    expect(formatRgb(nan)).toBe("rgb(NaN NaN NaN)");
-    expect(formatRgb(inf)).toBe("rgb(NaN NaN NaN)");
+    expect(formatRgb(nan)).toBe("rgb(0 0 0)");
+    expect(formatRgb(inf)).toBe("rgb(0 0 0)");
   });
 
-  it("PINS: formatColor with an out-of-union format returns undefined at runtime", () => {
-    // TypeScript blocks this at compile time (ColorFormat is exhaustive, no default arm),
-    // but a consumer casting through `any`/`unknown` gets silent `undefined`, not a throw.
-    const bad = formatColor({ L: 0.5, C: 0.1, H: 200 }, "hsl" as never);
-    expect(bad).toBeUndefined();
+  it("Infinity on only some channels still yields valid output", () => {
+    expect(formatRgb({ L: 0.5, C: Infinity, H: 200 })).toMatch(
+      /^rgb\(\d+ \d+ \d+\)$/,
+    );
+  });
+
+  it("formatColor with an out-of-union format falls back to the native oklch literal", () => {
+    // TypeScript blocks this at compile time; a JS caller casting past the union used to
+    // get silent `undefined` (QA-99) — now the default arm returns the lossless literal.
+    const c: OkLCH = { L: 0.5, C: 0.1, H: 200 };
+    expect(formatColor(c, "hsl" as never)).toBe(formatColor(c, "oklch"));
   });
 });
 

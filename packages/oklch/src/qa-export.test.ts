@@ -19,44 +19,41 @@ describe("DTCG export — spec conformance (#99)", () => {
    * The current W3C Design Tokens Community Group Color module
    * (https://www.designtokens.org/TR/drafts/color/, 2025.10 schema) requires a color
    * token's `$value` to be an OBJECT: `{ colorSpace: string, components: number[] }`
-   * (with optional `alpha`/`hex`). A plain CSS string — `"#ff0000"` and *especially*
-   * `"oklch(0.47 0.188 259.81)"` (which no DTCG draft has ever accepted) — is NOT a
-   * valid color value. This engine emits a string, defaulting to `oklch(...)`.
-   *
-   * Marked `it.fails`: it documents the claim-vs-reality gap and stays green until the
-   * shape is fixed. If the author moves `$value` to the DTCG object form (the natural,
-   * lossless fit for an OKLCH-native engine — `{ colorSpace: "oklch", components: [L,C,H] }`),
-   * this assertion starts PASSING and `it.fails` flips red → remove the marker.
+   * (with optional `alpha`/`hex`). A plain CSS string is NOT a valid color value.
+   * QA-99 originally filed this as a FAILING reproducer (the engine emitted a CSS
+   * string, defaulting to `oklch(...)` which no DTCG draft has ever accepted); the
+   * export was fixed to the object form in response, and this now guards conformance.
    */
-  it.fails(
-    "default $value is a DTCG-conformant color object, not a CSS string",
-    () => {
-      const tokens = tokenSetToDesignTokens(buildTokenSet(SEED));
-      const value = tokens.light.semantic.accent.$value as unknown;
-      expect(typeof value).toBe("object");
-      expect(value).toMatchObject({
-        colorSpace: expect.any(String),
-        components: expect.arrayContaining([expect.any(Number)]),
-      });
-    },
-  );
-
-  it("PINS current behavior: default $value is an oklch() CSS string (drift guard)", () => {
+  it("default $value is a DTCG-conformant color object, not a CSS string", () => {
     const tokens = tokenSetToDesignTokens(buildTokenSet(SEED));
-    const value = tokens.light.semantic.accent.$value;
-    expect(typeof value).toBe("string");
-    expect(value).toMatch(/^oklch\(/);
-    // The default value is not even a legacy hex/rgb string a pre-object DTCG tool
-    // would read — it is an oklch() function no DTCG consumer accepts.
-    expect(value).not.toMatch(/^#[0-9a-f]{6}$/);
-    expect(value).not.toMatch(/^rgb\(/);
+    const value = tokens.light.semantic.accent.$value as unknown;
+    expect(typeof value).toBe("object");
+    expect(value).toMatchObject({
+      colorSpace: expect.any(String),
+      components: expect.arrayContaining([expect.any(Number)]),
+    });
   });
 
-  it("hex-format $value is at least a bare hex string (legacy-tool readable)", () => {
+  it("every token in every group is object-form — no string $value anywhere", () => {
+    const tokens = tokenSetToDesignTokens(buildTokenSet(SEED));
+    for (const scheme of ["light", "dark"] as const) {
+      for (const token of Object.values(tokens[scheme].semantic)) {
+        expect(typeof token.$value).toBe("object");
+      }
+      for (const ramp of Object.values(tokens[scheme].ramps)) {
+        for (const token of Object.values(ramp)) {
+          expect(typeof token.$value).toBe("object");
+        }
+      }
+    }
+  });
+
+  it("hex-format export carries a legacy-tool-readable hex fallback", () => {
     const tokens = tokenSetToDesignTokens(buildTokenSet(SEED), {
       format: "hex",
     });
-    expect(tokens.light.semantic.accent.$value).toMatch(/^#[0-9a-f]{6}$/);
+    expect(tokens.light.semantic.accent.$value.hex).toMatch(/^#[0-9a-f]{6}$/);
+    expect(tokens.light.semantic.accent.$value.colorSpace).toBe("srgb");
   });
 });
 
