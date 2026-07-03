@@ -10,6 +10,12 @@ const EXPECTED_PAIRS = [
   "accent text",
   "on-accent",
   "focus ring",
+  // The four status signals — colored text the preview paints, solved on surface-2 at the
+  // accent-text target, so the receipt audits them too (QA-S13-1).
+  "success",
+  "error",
+  "warning",
+  "info",
 ];
 
 // Hue-spanning seeds incl. the yellow + cyan stressers — the whole point of the receipt is

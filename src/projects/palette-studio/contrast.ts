@@ -26,8 +26,14 @@ interface ReceiptPair {
  * The pairs the receipt reports — every readable-on-surface token measured against the
  * worst-case surface (`surface-2`, what the engine solves against), plus the on-accent label
  * on its fill and the focus ring. Foregrounds solved against `surface-2` also clear on `bg`
- * and `surface`, so `surface-2` is the honest worst case to show.
+ * and `surface`, so `surface-2` is the honest worst case to show. The four status signals
+ * belong here too: the engine solves them as `auto` readable-on-surface tokens against
+ * `surface-2` at the accent-text target (`{ wcag: 4.5, apca: 60 }`, palette.ts
+ * `TARGET.accentText`), and the preview paints them as colored text — so they are part of
+ * the guarantee this receipt exists to prove (QA-S13-1).
  */
+const STATUS_TEXT_TARGET: ContrastTarget = { wcag: 4.5, apca: 60 };
+
 const RECEIPT_PAIRS: readonly ReceiptPair[] = [
   {
     label: "body text",
@@ -59,6 +65,22 @@ const RECEIPT_PAIRS: readonly ReceiptPair[] = [
     bg: "surface-2",
     target: { wcag: 3, apca: 45 },
   },
+  // Status signals — colored text the preview paints on the surface; solved on `surface-2`
+  // at the accent-text target, so they clear it exactly like `accent text` above.
+  {
+    label: "success",
+    fg: "success",
+    bg: "surface-2",
+    target: STATUS_TEXT_TARGET,
+  },
+  { label: "error", fg: "error", bg: "surface-2", target: STATUS_TEXT_TARGET },
+  {
+    label: "warning",
+    fg: "warning",
+    bg: "surface-2",
+    target: STATUS_TEXT_TARGET,
+  },
+  { label: "info", fg: "info", bg: "surface-2", target: STATUS_TEXT_TARGET },
 ];
 
 /** One measured receipt line, ready to render. */
