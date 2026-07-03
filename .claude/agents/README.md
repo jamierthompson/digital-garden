@@ -17,7 +17,7 @@ especially the parallel-review mode.
 
 ## Generic process agents live globally
 
-Reusable, cross-repo **process** agents — adversarial QA, architect, devil's-advocate, and the like —
+Reusable, cross-repo **process** agents — adversarial QA, architect, devils-advocate, and the like —
 are **not** defined here. They live in `~/.claude/agents/` so they're available in every repo. This
 folder is only for agents that encode **this repo's domain rules**. If a lens here turns out to be
 portable (no digital-garden-specific rules), it belongs in the global folder instead.
