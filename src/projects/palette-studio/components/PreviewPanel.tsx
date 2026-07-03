@@ -6,7 +6,7 @@
 
 import type { Scheme, SchemeTokens } from "@garden/oklch";
 
-import { tokensToScopeVars } from "./scope";
+import { tokensToScopeVars } from "../core/scope";
 import styles from "./PreviewPanel.module.css";
 
 interface PreviewPanelProps {

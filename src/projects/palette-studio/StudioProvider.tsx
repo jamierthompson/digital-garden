@@ -23,9 +23,9 @@ import {
   type DerivedPalette,
   type ParsedSeed,
   type SchemeView,
-} from "./derive";
-import { DEFAULT_GAMUT, DEFAULT_RULES, type StudioRules } from "./rules";
-import { DEFAULT_SEED } from "./presets";
+} from "./core/derive";
+import { DEFAULT_GAMUT, DEFAULT_RULES, type StudioRules } from "./core/rules";
+import { DEFAULT_SEED } from "./core/presets";
 
 export interface StudioState {
   /** Slug-derived id namespace — ids must not collide across Activity-kept routes. */

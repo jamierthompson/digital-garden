@@ -3,8 +3,8 @@
 import Panel from "@/components/ui/Panel";
 
 import { useStudio } from "../StudioProvider";
-import PreviewPanel from "../PreviewPanel";
-import HarmonyStrip from "../HarmonyStrip";
+import PreviewPanel from "../components/PreviewPanel";
+import HarmonyStrip from "../components/HarmonyStrip";
 import MissingFrame from "./MissingFrame";
 import styles from "./slots.module.css";
 

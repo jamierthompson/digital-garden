@@ -3,9 +3,9 @@
 import Kicker from "@/components/ui/Kicker";
 import Panel from "@/components/ui/Panel";
 
-import { describeAnchor } from "../derive";
+import { describeAnchor } from "../core/derive";
 import { useStudio } from "../StudioProvider";
-import SeedRow from "../SeedRow";
+import SeedRow from "../components/SeedRow";
 import MissingFrame from "./MissingFrame";
 import styles from "./slots.module.css";
 

@@ -13,7 +13,7 @@ import {
   FORMAT_OPTIONS,
   serializeExport,
   type ExportTabId,
-} from "./exporters";
+} from "../core/exporters";
 import styles from "./ExportPanel.module.css";
 
 interface ExportPanelProps {

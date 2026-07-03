@@ -10,14 +10,14 @@ import Switch from "@/components/ui/Switch";
 import type { Gamut } from "@garden/oklch";
 
 import RuleGroup from "./RuleGroup";
-import type { StudioRules } from "./rules";
+import type { StudioRules } from "../core/rules";
 import {
   CHROMA_OPTIONS,
   DISTRIBUTION_OPTIONS,
   GAMUT_OPTIONS,
   HUE_OPTIONS,
   TINTED_NEUTRALS_HINT,
-} from "./ruleOptions";
+} from "../core/ruleOptions";
 import styles from "./RulesRail.module.css";
 
 interface RulesRailProps {

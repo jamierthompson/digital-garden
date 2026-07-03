@@ -7,8 +7,8 @@
 
 import type { Scheme, SchemeTokens } from "@garden/oklch";
 
-import { measureReceipt } from "./contrast";
-import { tokensToScopeVars } from "./scope";
+import { measureReceipt } from "../core/contrast";
+import { tokensToScopeVars } from "../core/scope";
 import styles from "./ContrastReceipt.module.css";
 
 interface ContrastReceiptProps {

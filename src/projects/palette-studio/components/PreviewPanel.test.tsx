@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 
 import { formatOklch } from "@garden/oklch";
 
-import { derivePalette } from "./derive";
-import { DEFAULT_GAMUT, DEFAULT_RULES } from "./rules";
+import { derivePalette } from "../core/derive";
+import { DEFAULT_GAMUT, DEFAULT_RULES } from "../core/rules";
 import PreviewPanel from "./PreviewPanel";
 
 describe("PreviewPanel", () => {

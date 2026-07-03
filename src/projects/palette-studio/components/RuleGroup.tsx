@@ -7,7 +7,7 @@ import Kicker from "@/components/ui/Kicker";
 import Note from "@/components/ui/Note";
 import SegmentedControl from "@/components/ui/SegmentedControl";
 
-import type { RuleOption } from "./ruleOptions";
+import type { RuleOption } from "../core/ruleOptions";
 import styles from "./RuleGroup.module.css";
 
 interface RuleGroupProps<T extends string> {

@@ -3,7 +3,7 @@
 import Panel from "@/components/ui/Panel";
 
 import { useStudio } from "../StudioProvider";
-import RulesRail from "../RulesRail";
+import RulesRail from "../components/RulesRail";
 import MissingFrame from "./MissingFrame";
 
 /** The generative rules — every EngineOptions.rules choice as a labelled radio group. */

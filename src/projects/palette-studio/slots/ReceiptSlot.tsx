@@ -4,7 +4,7 @@ import Note from "@/components/ui/Note";
 import Panel from "@/components/ui/Panel";
 
 import { useStudio } from "../StudioProvider";
-import ContrastReceipt from "../ContrastReceipt";
+import ContrastReceipt from "../components/ContrastReceipt";
 import MissingFrame from "./MissingFrame";
 import styles from "./slots.module.css";
 

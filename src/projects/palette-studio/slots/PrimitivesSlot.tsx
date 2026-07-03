@@ -6,7 +6,7 @@ import SegmentedControl from "@/components/ui/SegmentedControl";
 import type { Scheme } from "@garden/oklch";
 
 import { useStudio } from "../StudioProvider";
-import PrimitivesBoard from "../PrimitivesBoard";
+import PrimitivesBoard from "../components/PrimitivesBoard";
 import MissingFrame from "./MissingFrame";
 import styles from "./slots.module.css";
 

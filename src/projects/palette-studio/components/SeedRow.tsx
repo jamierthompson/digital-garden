@@ -7,8 +7,8 @@ import { formatOklch } from "@garden/oklch";
 
 import Kicker from "@/components/ui/Kicker";
 
-import type { ParsedSeed } from "./derive";
-import { PRESETS } from "./presets";
+import type { ParsedSeed } from "../core/derive";
+import { PRESETS } from "../core/presets";
 import styles from "./SeedRow.module.css";
 
 interface SeedRowProps {

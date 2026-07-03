@@ -5,7 +5,7 @@
 
 import { formatOklch, type Scheme } from "@garden/oklch";
 
-import type { TokenRow } from "./derive";
+import type { TokenRow } from "../core/derive";
 import styles from "./TokenTable.module.css";
 
 interface TokenTableProps {

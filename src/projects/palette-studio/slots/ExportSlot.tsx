@@ -4,7 +4,7 @@ import Note from "@/components/ui/Note";
 import Panel from "@/components/ui/Panel";
 
 import { useStudio } from "../StudioProvider";
-import ExportPanel from "../ExportPanel";
+import ExportPanel from "../components/ExportPanel";
 import MissingFrame from "./MissingFrame";
 
 /** The export surface — the live token set, serialized by the engine itself. */
