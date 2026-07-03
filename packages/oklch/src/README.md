@@ -18,6 +18,34 @@ or carry `server-only`/`client-only`.
   continuous solve anchored at the seed's lightness — with its on-accent label a near-white/
   near-black extreme that clears with headroom. Consumers read the generic semantic **names**;
   the ramp math stays behind them (the raw `--<role>-<step>` steps are emitted too).
+- **Seed anchor-step.** The **brand** ramp is bent so one step sits at the seed's **exact**
+  lightness (a per-side shift+scale that preserves the endpoints, keeps the scale strictly
+  monotonic, and happens _before_ gamut mapping) — the seed's own color lands **on** the ramp
+  instead of drifting between steps, and in the native scheme the accent fill IS that step
+  _whenever the seed's own lightness can host a legible on-accent label_ (a label-hostile
+  mid-tone seed falls back to the co-solve's minimal nudge, diverging from the step — by
+  design). Fully automatic: the step is keyed off the seed's native direction (`500`
+  light-native, `300` dark-native) and reported as `anchorLabel` (`SchemeResult` /
+  `TokenSet.meta`). A near-white/near-black seed's L is clamped just inside the scale
+  (~0.15…0.98), so its pin is close-to rather than exact. Under a non-`flat` **chroma
+  policy** the pin is **lightness-only** — the anchored step's chroma follows the policy's
+  curve like every other step, so full seed-color fidelity holds under the default `flat`
+  policy (QA-101). Neutral/status ramps stay on the shared scale.
+- **Brand-harmony palette** (`buildHarmonyPalette`, #102): decorative hue sets in
+  mathematical harmony with the seed — analogous (±30°), complementary (180°), triadic
+  (±120°), split-complementary (150°/210°) — each at the seed's own L/C, gamut-mapped, for
+  charts/gradients/secondary accents. **Decorative, not semantic**: kept apart from the
+  token contract and the canonical-hue status colors, and **non-contrast-bearing by
+  default** — a consumer that puts text on one runs `checkContrast` (or `solveForeground`)
+  itself.
+- **Generative rules** (`EngineOptions.rules`, surfaced by the Studio #73): **lightness
+  distribution** (`tailwind` default · `linear` · `eased` · `punchy` · `soft`) reshapes the
+  five interior steps `300…700` — the surface-bearing shoulders (`50/100/200`,
+  `800/900/950`) are **pinned**, which is what keeps every contrast guarantee intact under
+  every policy; **chroma policy** (`flat` default · `taper` · `hold`); **hue policy**
+  (`constant` default · `warm-shadows` · `cool-highlights`, ±9° drift); **tinted neutrals**
+  (default `true`; `false` = pure achromatic greys). Every default reproduces the un-ruled
+  output bit-for-bit.
 - **Scheme-aware** `(brandColor, scheme) → { ramps, tokens }`; dark **re-generates** each
   ramp (reduced chroma) and **re-solves** every binding against dark's own surfaces, emitted
   via `light-dark()`.
@@ -82,9 +110,10 @@ The in-repo CSS serializers (`tokenSetToCss` & co.) take the same option; `Proje
 uses the default.
 
 **Low-level surface** is also exported: `contrastWCAG`, `contrastAPCA`/`apcaLc`,
-`solveForeground`, `gamutMap`/`inGamut`, `buildRamp` (the `50…950` role ramp) +
-`buildLightnessRamp` (raw stops), `minPass` (discrete step binding), and the color
-conversions/parsers.
+`checkContrast` (the shared "does it clear?" report — measured WCAG + APCA + `passes`,
+the one predicate every solve and binding routes through, #100), `solveForeground`,
+`gamutMap`/`inGamut`, `buildRamp` (the `50…950` role ramp) + `buildLightnessRamp` (raw
+stops), `minPass` (discrete step binding), and the color conversions/parsers.
 
 ### Notes for ProjectScope / cardSwatches consumers
 

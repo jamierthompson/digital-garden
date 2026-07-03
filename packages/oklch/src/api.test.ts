@@ -19,12 +19,15 @@ import type { ColorFormat, Scheme, SchemeResult, TokenSet } from "./types";
  *  at runtime; the signature checks below guard those. */
 const RUNTIME_EXPORTS = [
   "BRAND_TOKEN_NAMES",
+  "HARMONY_KINDS",
   "RAMP_LABELS",
   "RAMP_ROLES",
   "apcaLc",
+  "buildHarmonyPalette",
   "buildLightnessRamp",
   "buildRamp",
   "buildTokenSet",
+  "checkContrast",
   "clamp01",
   "contrastAPCA",
   "contrastWCAG",
@@ -135,5 +138,9 @@ describe("the frozen public surface (#99)", () => {
     expectTypeOf(api.formatColor).parameters.toEqualTypeOf<
       [api.OkLCH, ColorFormat]
     >();
+    expectTypeOf(api.checkContrast).parameters.toEqualTypeOf<
+      [api.OkLCH, api.OkLCH, api.ContrastTarget]
+    >();
+    expectTypeOf(api.checkContrast).returns.toEqualTypeOf<api.ContrastCheck>();
   });
 });

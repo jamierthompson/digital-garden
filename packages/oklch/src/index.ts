@@ -37,7 +37,9 @@ export {
   contrastWCAG,
   contrastAPCA,
   apcaLc,
+  checkContrast,
   solveForeground,
+  type ContrastCheck,
   type ContrastTarget,
   type SolveOptions,
 } from "./contrast";
@@ -52,6 +54,14 @@ export {
 } from "./ramp";
 
 export { minPass, type TokenBinding } from "./binding";
+
+export {
+  buildHarmonyPalette,
+  HARMONY_KINDS,
+  type HarmonyKind,
+  type HarmonyPalette,
+  type HarmonyOptions,
+} from "./harmony";
 
 export {
   parseColor,
@@ -76,6 +86,11 @@ export type {
   Scheme,
   Gamut,
   ColorFormat,
+  LightnessDistribution,
+  ChromaPolicy,
+  HuePolicy,
+  RampRules,
+  EngineRules,
   BrandTokenName,
   RampLabel,
   RampRole,

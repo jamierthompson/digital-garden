@@ -2,12 +2,15 @@ import { describe, expect, it } from "vitest";
 
 import {
   apcaLc,
+  checkContrast,
   contrastAPCA,
   contrastWCAG,
   solveForeground,
 } from "./contrast";
+import { minPass } from "./binding";
 import { parseColor } from "./convert";
 import { inGamut } from "./gamut";
+import { resolveTheme } from "./palette";
 import type { OkLCH } from "./types";
 
 const BLACK = parseColor("#000000")!;
@@ -104,5 +107,68 @@ describe("solveForeground", () => {
       gamut: "srgb" as const,
     };
     expect(solveForeground(opts)).toEqual(solveForeground(opts));
+  });
+});
+
+describe("checkContrast (#100)", () => {
+  const BODY = { wcag: 4.5, apca: 75 };
+
+  it("reports pass with the measured values for a clearing pair", () => {
+    const check = checkContrast(BLACK, WHITE, BODY);
+    expect(check.passes).toBe(true);
+    expect(check.wcag).toBeCloseTo(21, 0);
+    expect(check.apca).toBeGreaterThan(100);
+  });
+
+  it("reports fail (not a throw, not a lie) when nothing clears", () => {
+    const grey: OkLCH = { L: 0.5, C: 0, H: 0 };
+    const nearGrey: OkLCH = { L: 0.55, C: 0, H: 0 };
+    const check = checkContrast(nearGrey, grey, BODY);
+    expect(check.passes).toBe(false);
+    expect(check.wcag).toBeLessThan(4.5);
+    expect(check.apca).toBeLessThan(75);
+  });
+
+  it("agrees with the primitive measurements it composes", () => {
+    const fg = parseColor("#7c3aed")!;
+    const check = checkContrast(fg, WHITE, BODY);
+    expect(check.wcag).toBe(contrastWCAG(fg, WHITE));
+    expect(check.apca).toBe(apcaLc(fg, WHITE));
+  });
+
+  it("requires BOTH floors — WCAG-only or APCA-only is a fail", () => {
+    const fg = parseColor("#767676")!; // ~4.54:1 on white, Lc ~64 — clears WCAG, not Lc 75
+    const check = checkContrast(fg, WHITE, BODY);
+    expect(check.wcag).toBeGreaterThanOrEqual(4.5);
+    expect(check.apca).toBeLessThan(75);
+    expect(check.passes).toBe(false);
+  });
+
+  // The engine-wide guarantee, restated through the public check: every auto-bound token
+  // the schema targets actually clears per checkContrast — hue-spanning, both schemes.
+  const SEEDS = ["#3b82f6", "#eab308", "#06b6d4", "#dc2626", "#16a34a"];
+  const SCHEMES = ["light", "dark"] as const;
+  for (const scheme of SCHEMES) {
+    it.each(SEEDS)(
+      `text clears body text on surface-2 (%s, ${scheme})`,
+      (seed) => {
+        const { tokens } = resolveTheme(seed, scheme);
+        expect(
+          checkContrast(tokens.text, tokens["surface-2"], BODY).passes,
+        ).toBe(true);
+      },
+    );
+  }
+
+  it("honestly reports the minPass extreme fallback as failing an absurd target", () => {
+    const absurd = { wcag: 22, apca: 110 }; // unreachable by construction
+    const { ramps, tokens } = resolveTheme("#3b82f6", "light");
+    const fallback = minPass(ramps.neutral, tokens["surface-2"], absurd);
+    // minPass always resolves (the highest-contrast extreme) …
+    expect(fallback.label).toBeDefined();
+    // … and the public check tells the truth about it rather than inheriting "resolved" as "passes".
+    expect(
+      checkContrast(fallback.color, tokens["surface-2"], absurd).passes,
+    ).toBe(false);
   });
 });

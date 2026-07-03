@@ -36,7 +36,7 @@ import { gamutMap } from "./gamut";
 import { clamp01, parseColor } from "./convert";
 import {
   apcaLc,
-  contrastWCAG,
+  checkContrast,
   withSolveMargin,
   type ContrastTarget,
 } from "./contrast";
@@ -44,6 +44,7 @@ import {
   BRAND_TOKEN_NAMES,
   RAMP_ROLES,
   type BrandTokenName,
+  type EngineRules,
   type Gamut,
   type OkLCH,
   type Ramp,
@@ -60,6 +61,12 @@ import {
 export interface EngineOptions {
   /** Target display gamut. Defaults to `srgb` (safe everywhere — see types). */
   gamut?: Gamut;
+  /**
+   * Generative rules (#101) — lightness distribution, chroma/hue policy, tinted
+   * neutrals. Omitted (or any subset omitted) → the documented defaults, which
+   * reproduce the un-ruled engine output exactly. The Studio surfaces these (#73).
+   */
+  rules?: EngineRules;
 }
 
 /**
@@ -173,28 +180,56 @@ const SURFACE2_LABEL: { light: RampLabel; dark: RampLabel } =
       }
     : { light: "200", dark: "800" };
 
-/** Build all six role ramps for one scheme from a per-scheme seed. */
+/**
+ * The default step the seed anchors to, keyed off its native direction (#108): a
+ * dark-enough seed (light-native) pins the mid `500`; a light seed (dark-native) pins
+ * the light `300`. Fully automatic — no UI control.
+ */
+const ANCHOR_LABEL: Record<Scheme, RampLabel> = {
+  light: "500",
+  dark: "300",
+};
+
+/** Build all six role ramps for one scheme from a per-scheme seed. Only the `brand`
+ *  ramp is anchored to the seed (#108); neutral/status stay on the shared scale. The
+ *  ramp-tier rules (#101) shape every role; `tintedNeutrals: false` zeroes the neutral
+ *  chroma for pure achromatic greys (default `true` — the brand-tinted signature). */
 function buildRamps(
   seed: OkLCH,
   cfg: SchemeConfig,
   gamut: Gamut,
+  rules: EngineRules = {},
+  anchor?: { label: RampLabel; L: number },
 ): Record<RampRole, Ramp> {
   const hue = seed.H;
+  const neutralChroma = (rules.tintedNeutrals ?? true) ? cfg.neutralChroma : 0;
   return {
-    brand: buildRamp({ hue, chroma: seed.C, gamut }),
-    neutral: buildRamp({ hue, chroma: cfg.neutralChroma, gamut }),
+    brand: buildRamp({ hue, chroma: seed.C, gamut, anchor, rules }),
+    neutral: buildRamp({ hue, chroma: neutralChroma, gamut, rules }),
     success: buildRamp({
       hue: STATUS_HUE.success,
       chroma: STATUS_CHROMA,
       gamut,
+      rules,
     }),
-    error: buildRamp({ hue: STATUS_HUE.error, chroma: STATUS_CHROMA, gamut }),
+    error: buildRamp({
+      hue: STATUS_HUE.error,
+      chroma: STATUS_CHROMA,
+      gamut,
+      rules,
+    }),
     warning: buildRamp({
       hue: STATUS_HUE.warning,
       chroma: STATUS_CHROMA,
       gamut,
+      rules,
     }),
-    info: buildRamp({ hue: STATUS_HUE.info, chroma: STATUS_CHROMA, gamut }),
+    info: buildRamp({
+      hue: STATUS_HUE.info,
+      chroma: STATUS_CHROMA,
+      gamut,
+      rules,
+    }),
   };
 }
 
@@ -215,21 +250,22 @@ function surface2Of(ramps: Record<RampRole, Ramp>, scheme: Scheme): OkLCH {
  * read on a light surface → `dark` (the seed is the dark-mode brand, light-mode derived).
  * Deterministic; reuses the same ramp/contrast/gamut primitives as the solve. Never throws.
  */
-function detectDirection(base: OkLCH, gamut: Gamut): Scheme {
+function detectDirection(
+  base: OkLCH,
+  gamut: Gamut,
+  rules: EngineRules,
+): Scheme {
   const cfg = SCHEMES.light;
   // Mirror resolveTheme's light path: per-scheme seed, its ramps, the worst-case surface.
   const seed = gamutMap(
     { L: base.L, C: base.C * cfg.seedChroma, H: base.H },
     gamut,
   );
-  const ramps = buildRamps(seed, cfg, gamut);
+  const ramps = buildRamps(seed, cfg, gamut, rules);
   const surface2 = surface2Of(ramps, "light");
   // The candidate light-mode primary is the accent anchored at the seed's own lightness.
   const accent = gamutMap({ L: seed.L, C: seed.C, H: seed.H }, gamut);
-  const clearsUi =
-    contrastWCAG(accent, surface2) >= TARGET.ui.wcag &&
-    apcaLc(accent, surface2) >= TARGET.ui.apca;
-  return clearsUi ? "light" : "dark";
+  return checkContrast(accent, surface2, TARGET.ui).passes ? "light" : "dark";
 }
 
 /**
@@ -280,16 +316,16 @@ function solveAccent(
   for (let L = 0.3; L <= 0.8 + 1e-9; L += 0.01) {
     const accent = gamutMap({ L, C: seed.C, H: hue }, gamut);
     // The fill must read as a UI element against the surface (non-text 3:1 / Lc 45).
-    if (contrastWCAG(accent, surfaceBg) < ui.wcag) continue;
-    if (apcaLc(accent, surfaceBg) < ui.apca) continue;
+    if (!checkContrast(accent, surfaceBg, ui).passes) continue;
 
     for (const label of labels) {
-      const lc = apcaLc(label, accent);
+      const check = checkContrast(label, accent, target);
+      const lc = check.apca;
       // Track the overall best label/fill in case nothing meets target (unreachable).
       if (!fallback || lc > fallback.lc)
         fallback = { accent, onAccent: label, lc };
 
-      if (contrastWCAG(label, accent) >= target.wcag && lc >= target.apca) {
+      if (check.passes) {
         // Prefer the most chromatic fill; tie-break on label contrast margin.
         if (
           !best ||
@@ -352,16 +388,11 @@ function solveNativeAccent(
     const L = clamp01(seed.L + sign * delta);
     const accent = gamutMap({ L, C: seed.C, H: hue }, gamut);
     // The fill must still read as a UI element against the worst-case surface.
-    const readsOnSurface =
-      contrastWCAG(accent, surfaceBg) >= ui.wcag &&
-      apcaLc(accent, surfaceBg) >= ui.apca;
-    if (readsOnSurface) {
+    if (checkContrast(accent, surfaceBg, ui).passes) {
       // Accept this (faithful) fill as soon as SOME extreme label clears the floor, but
       // ship the higher-contrast extreme so on-accent has headroom (#95).
       const hosts = labels.some(
-        (label) =>
-          contrastWCAG(label, accent) >= target.wcag &&
-          apcaLc(label, accent) >= target.apca,
+        (label) => checkContrast(label, accent, target).passes,
       );
       if (hosts) return { accent, onAccent: onAccentLabel(accent, hue, gamut) };
     }
@@ -384,7 +415,8 @@ export function resolveTheme(
   scheme: Scheme,
   opts: EngineOptions = {},
 ): SchemeResult {
-  const gamut: Gamut = opts.gamut ?? "srgb";
+  const gamut: Gamut = opts?.gamut ?? "srgb";
+  const rules = opts?.rules ?? {};
   const parsed = parseColor(brandColor);
   const isFallback = parsed === null;
   const base = parsed ?? FALLBACK_SEED;
@@ -392,7 +424,7 @@ export function resolveTheme(
 
   // Auto-direction: the seed's native scheme, detected from the seed alone so both
   // scheme calls agree. Drives whether this scheme's accent is faithful or derived.
-  const direction = detectDirection(base, gamut);
+  const direction = detectDirection(base, gamut, rules);
 
   // Per-scheme seed: hold L/H, dampen chroma in dark, then gamut-map.
   const seed = gamutMap(
@@ -400,8 +432,15 @@ export function resolveTheme(
     gamut,
   );
 
+  // Seed anchor (#108): pin the brand ramp's default step (keyed off the native
+  // direction) to the seed's EXACT lightness, so the seed's own color lands on the ramp.
+  const anchorLabel = ANCHOR_LABEL[direction];
+
   // The per-role generative ramps for this scheme — the primitive the tokens bind to.
-  const ramps = buildRamps(seed, cfg, gamut);
+  const ramps = buildRamps(seed, cfg, gamut, rules, {
+    label: anchorLabel,
+    L: seed.L,
+  });
 
   // Foregrounds are solved against the WORST-CASE surface — the one whose lightness is
   // closest to the foreground (surface-2 in both schemes) — so a token that clears its
@@ -426,7 +465,7 @@ export function resolveTheme(
     onAccent,
   });
 
-  return { tokens, ramps, seed, gamut, isFallback, direction };
+  return { tokens, ramps, seed, gamut, isFallback, direction, anchorLabel };
 }
 
 /**
@@ -484,6 +523,7 @@ export function buildTokenSet(
       isFallback: light.isFallback,
       // Detected from the seed alone, so both scheme results agree — pick either.
       direction: light.direction,
+      anchorLabel: light.anchorLabel,
     },
   };
 }

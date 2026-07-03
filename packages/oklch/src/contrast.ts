@@ -125,9 +125,36 @@ export interface SolveOptions {
   gamut: Gamut;
 }
 
+/**
+ * The measured contrast of a foreground/background pair against a target — the engine's
+ * one "does it clear?" report (#100). `passes` is the shared predicate every solve and
+ * binding routes through; the measured `wcag`/`apca` values back the studio's read-only
+ * contrast receipt (#106). Pure, symmetric inputs are NOT assumed (APCA is polarity-aware);
+ * pass the actual foreground first.
+ */
+export interface ContrastCheck {
+  /** Measured WCAG 2.x ratio (1–21). */
+  wcag: number;
+  /** Measured APCA Lc magnitude. */
+  apca: number;
+  /** True when BOTH the WCAG floor and the APCA target are met. */
+  passes: boolean;
+}
+
+/** Measure `fg` against `bg` and report whether it clears `target` (#100). Never throws. */
+export function checkContrast(
+  fg: OkLCH,
+  bg: OkLCH,
+  target: ContrastTarget,
+): ContrastCheck {
+  const wcag = contrastWCAG(fg, bg);
+  const apca = apcaLc(fg, bg);
+  return { wcag, apca, passes: wcag >= target.wcag && apca >= target.apca };
+}
+
 /** Does this color clear BOTH the WCAG floor and the APCA target against `bg`? */
 function meets(fg: OkLCH, bg: OkLCH, target: ContrastTarget): boolean {
-  return contrastWCAG(fg, bg) >= target.wcag && apcaLc(fg, bg) >= target.apca;
+  return checkContrast(fg, bg, target).passes;
 }
 
 // The solver lands on the least-extreme L that *just* meets its target — with zero margin

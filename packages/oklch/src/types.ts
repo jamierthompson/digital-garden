@@ -50,6 +50,59 @@ export type Gamut = "srgb" | "p3";
 export type ColorFormat = "oklch" | "hex" | "rgb";
 
 /**
+ * Generative rules (#101) — how the ramp-primitive tier is SHAPED, before the semantic
+ * tokens bind to it. Deterministic, isomorphic engine inputs; the Studio surfaces them
+ * ("Rules · set once", #73). Every default reproduces the engine's un-ruled output.
+ */
+
+/**
+ * How the steps space in lightness. `tailwind` (default) is the engine's hand-shaped
+ * scale — denser at both extremes so each end yields three close-spaced surfaces. The
+ * named curves reshape the five INTERIOR steps (`300…700`) between pinned shoulders
+ * (`50/100/200` + `800/900/950` never move — they host the surfaces and the extreme
+ * fallbacks, which is what keeps the contrast guarantees intact under every policy):
+ * `linear` an even interior march, `eased` a smoothstep, `punchy` a steep mid,
+ * `soft` a low-contrast band huddled toward the middle.
+ */
+export type LightnessDistribution =
+  | "tailwind"
+  | "linear"
+  | "eased"
+  | "punchy"
+  | "soft";
+
+/**
+ * How nominal chroma varies across the steps. `flat` (default) holds the nominal chroma
+ * at every step (the per-step gamut map still desaturates what can't fit); `taper` pulls
+ * chroma away from the lightest + darkest steps (a sine bell); `hold` keeps chroma
+ * pushing into the darks (a flatter bell).
+ */
+export type ChromaPolicy = "flat" | "taper" | "hold";
+
+/**
+ * Subtle per-step hue drift. `constant` (default) holds the hue; `warm-shadows` drifts
+ * darker steps warmer (up to ±9°); `cool-highlights` drifts lighter steps cooler (the
+ * mirror curve).
+ */
+export type HuePolicy = "constant" | "warm-shadows" | "cool-highlights";
+
+/** The ramp-tier rules `buildRamp` understands (per-ramp shaping). */
+export interface RampRules {
+  distribution?: LightnessDistribution;
+  chromaPolicy?: ChromaPolicy;
+  huePolicy?: HuePolicy;
+}
+
+/**
+ * The full engine rule set (#101): the ramp-tier shaping plus `tintedNeutrals` — whether
+ * the neutral ramp leans toward the brand hue (default `true`, the engine's signature
+ * brand-tinted greys; `false` yields pure achromatic greys).
+ */
+export interface EngineRules extends RampRules {
+  tintedNeutrals?: boolean;
+}
+
+/**
  * The generic, public token names the engine emits, in canonical emission order — the
  * FROZEN semantic contract (#99). Exported so consumers (the freeze-guard test, Sanity
  * author-time validation, the studio receipt) read the one list rather than restating it.
@@ -173,6 +226,15 @@ export interface SchemeResult {
    * to host a legible on-accent label); in the other scheme it is derived.
    */
   direction: Scheme;
+  /**
+   * The `brand` ramp step the seed is anchored to (#108) — that step's lightness is the
+   * seed's (the ramp bends around it), so the seed's own color lands on the ramp. Keyed
+   * off `direction` (`500` light-native, `300` dark-native). Only `brand` is anchored.
+   * Caveat (QA-108): the pin is exact only for a seed L inside the scale's open interval
+   * (~0.15…0.98); a near-white/near-black seed is CLAMPED just inside it, so for those
+   * the step is close to — not exactly — the seed's L.
+   */
+  anchorLabel: RampLabel;
 }
 
 /**
@@ -201,5 +263,7 @@ export interface TokenSet {
      * the seed alone, so it is a single value for the set, not a per-scheme pair.
      */
     direction: Scheme;
+    /** The `brand` ramp step the seed is anchored to (#108) — see `SchemeResult`. */
+    anchorLabel: RampLabel;
   };
 }

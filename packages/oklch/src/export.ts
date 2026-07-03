@@ -40,7 +40,7 @@ export function tokenSetToTailwindTheme(
   set: TokenSet,
   opts: ExportOptions = {},
 ): string {
-  const format = opts.format ?? "oklch";
+  const format = opts?.format ?? "oklch";
   const lines: string[] = [];
   for (const name of Object.keys(set.tokens) as BrandTokenName[]) {
     const { light, dark } = set.tokens[name];
@@ -97,7 +97,7 @@ export function tokenSetToDesignTokens(
   set: TokenSet,
   opts: ExportOptions = {},
 ): DesignTokensExport {
-  const format = opts.format ?? "oklch";
+  const format = opts?.format ?? "oklch";
   // Components round to the same precision the CSS literals bake at (4/4/2 dp for
   // OKLCH; 4 dp for 0–1 sRGB channels) so the JSON and CSS exports agree on paint.
   const round = (n: number, places: number): number =>

@@ -746,3 +746,301 @@ describe("baked literals clear the TRUE contrast floor (#79)", () => {
     SWEEP_TIMEOUT,
   );
 });
+
+describe("seed anchor-step (#108)", () => {
+  it("the brand ramp's anchored step IS the seed's exact color (light-native seed)", () => {
+    const result = resolveTheme("#2563eb", "light");
+    expect(result.direction).toBe("light");
+    expect(result.anchorLabel).toBe("500");
+    const anchored = result.ramps.brand.find(
+      (s) => s.label === result.anchorLabel,
+    )!;
+    expect(anchored.color.L).toBeCloseTo(result.seed.L, 9);
+    expect(anchored.color.C).toBeCloseTo(result.seed.C, 9);
+    expect(anchored.color.H).toBeCloseTo(result.seed.H, 9);
+  });
+
+  it("a dark-native (light-colored) seed anchors the light 300 step", () => {
+    const result = resolveTheme("#facc15", "light"); // light yellow — no light-mode primary
+    expect(result.direction).toBe("dark");
+    expect(result.anchorLabel).toBe("300");
+    const anchored = result.ramps.brand.find((s) => s.label === "300")!;
+    expect(anchored.color.L).toBeCloseTo(result.seed.L, 9);
+  });
+
+  it("anchors the brand ramp in BOTH schemes at the same label", () => {
+    for (const scheme of ["light", "dark"] as const) {
+      const result = resolveTheme("#dc2626", scheme);
+      const anchored = result.ramps.brand.find(
+        (s) => s.label === result.anchorLabel,
+      )!;
+      // Same L in both schemes (only chroma dampens in dark).
+      expect(anchored.color.L).toBeCloseTo(result.seed.L, 9);
+    }
+  });
+
+  it("only the brand ramp is anchored — neutral/status stay on the shared scale", () => {
+    // Same hue, different seed L: only the anchor input differs between the two runs.
+    const a = resolveTheme("oklch(0.45 0.15 260)", "light");
+    const b = resolveTheme("oklch(0.7 0.15 260)", "light");
+    // Neutral tracks the seed hue but NOT its lightness; status hues are fixed — all
+    // four are seed-independent. Identical at full precision.
+    for (const role of [
+      "neutral",
+      "success",
+      "error",
+      "warning",
+      "info",
+    ] as const) {
+      expect(a.ramps[role]).toEqual(b.ramps[role]);
+    }
+    // …while the brand ramps genuinely differ at their anchored steps.
+    const stepOf = (r: typeof a, label: string) =>
+      r.ramps.brand.find((s) => s.label === label)!;
+    expect(stepOf(a, a.anchorLabel).color.L).not.toBeCloseTo(
+      stepOf(b, b.anchorLabel).color.L,
+      2,
+    );
+  });
+
+  it("the NATIVE-scheme accent lands exactly on the anchored ramp step", () => {
+    // The faithful co-solve's delta-0 candidate and the anchored step are built from the
+    // same (L, C, H) — when the candidate passes, the accent IS a ramp step (#108's
+    // point: the seed's own color sits on the ramp). Checked in each seed's native scheme.
+    for (const seed of ["#2563eb", "#dc2626", "#facc15"]) {
+      const direction = resolveTheme(seed, "light").direction;
+      const result = resolveTheme(seed, direction);
+      const anchored = result.ramps.brand.find(
+        (s) => s.label === result.anchorLabel,
+      )!;
+      expect(result.tokens.accent).toEqual(anchored.color);
+    }
+  });
+
+  it("anchoring holds across seed lightnesses (harness-style sweep)", () => {
+    for (const hex of ["#1e3a8a", "#dc2626", "#16a34a", "#eab308", "#06b6d4"]) {
+      for (const scheme of ["light", "dark"] as const) {
+        const result = resolveTheme(hex, scheme);
+        const anchored = result.ramps.brand.find(
+          (s) => s.label === result.anchorLabel,
+        )!;
+        expect(anchored.color.L).toBeCloseTo(result.seed.L, 9);
+        // The bent ramp stays strictly monotonic.
+        for (let i = 1; i < result.ramps.brand.length; i++) {
+          expect(result.ramps.brand[i].color.L).toBeLessThan(
+            result.ramps.brand[i - 1].color.L,
+          );
+        }
+      }
+    }
+  });
+
+  it("buildTokenSet surfaces the anchor label in meta", () => {
+    expect(buildTokenSet("#2563eb").meta.anchorLabel).toBe("500");
+    expect(buildTokenSet("#facc15").meta.anchorLabel).toBe("300");
+  });
+});
+
+describe("generative rules threading (#101)", () => {
+  it("explicit all-default rules reproduce the optionless output exactly, both schemes", () => {
+    const rules = {
+      distribution: "tailwind",
+      chromaPolicy: "flat",
+      huePolicy: "constant",
+      tintedNeutrals: true,
+    } as const;
+    for (const scheme of SCHEMES) {
+      expect(resolveTheme("#2563eb", scheme, { rules })).toEqual(
+        resolveTheme("#2563eb", scheme),
+      );
+    }
+    expect(buildTokenSet("#2563eb", { rules })).toEqual(
+      buildTokenSet("#2563eb"),
+    );
+  });
+
+  it("tintedNeutrals: false yields pure achromatic greys; the default keeps the tint", () => {
+    const grey = resolveTheme("#2563eb", "light", {
+      rules: { tintedNeutrals: false },
+    });
+    for (const step of grey.ramps.neutral) {
+      expect(step.color.C).toBe(0);
+    }
+    const tinted = resolveTheme("#2563eb", "light");
+    expect(tinted.ramps.neutral.some((step) => step.color.C > 0)).toBe(true);
+  });
+
+  it("a distribution reshapes the interior but never the pinned surfaces", () => {
+    const plain = resolveTheme("#2563eb", "light");
+    for (const distribution of ["linear", "soft", "punchy"] as const) {
+      const ruled = resolveTheme("#2563eb", "light", {
+        rules: { distribution },
+      });
+      // The surface trio binds shoulder steps — identical under every distribution
+      // (this is what keeps the worst-case surface, and so the AA guarantee, intact).
+      expect(ruled.tokens.bg).toEqual(plain.tokens.bg);
+      expect(ruled.tokens.surface).toEqual(plain.tokens.surface);
+      expect(ruled.tokens["surface-2"]).toEqual(plain.tokens["surface-2"]);
+      // …while the interior of the neutral scale genuinely moves.
+      const midL = (r: SchemeResult): number[] =>
+        r.ramps.neutral.slice(3, 8).map((s) => s.color.L);
+      expect(midL(ruled)).not.toEqual(midL(plain));
+    }
+  });
+
+  it(
+    "contrast guarantees hold under every policy, one-at-a-time, both schemes",
+    () => {
+      const VARIATIONS: Array<Record<string, unknown>> = [
+        { distribution: "linear" },
+        { distribution: "eased" },
+        { distribution: "punchy" },
+        { distribution: "soft" },
+        { chromaPolicy: "taper" },
+        { chromaPolicy: "hold" },
+        { huePolicy: "warm-shadows" },
+        { huePolicy: "cool-highlights" },
+        { tintedNeutrals: false },
+      ];
+      // Foreground tokens vs the worst-case surface they are solved against, at their
+      // schema targets (palette.ts TARGET table).
+      const FLOORS: Array<[BrandTokenName, number, number]> = [
+        ["text", 4.5, 75],
+        ["text-muted", 4.5, 60],
+        ["border", 3, 30],
+        ["accent-text", 4.5, 60],
+        ["focus-ring", 3, 45],
+        ["success", 4.5, 60],
+        ["error", 4.5, 60],
+        ["warning", 4.5, 60],
+        ["info", 4.5, 60],
+      ];
+      for (const rules of VARIATIONS)
+        for (const seed of ["#2563eb", "#eab308", "#06b6d4"])
+          for (const scheme of SCHEMES) {
+            const { tokens } = resolveTheme(seed, scheme, { rules });
+            const bg = tokens["surface-2"];
+            for (const [name, wcag, apca] of FLOORS) {
+              const label = `${name} ${JSON.stringify(rules)} ${seed}/${scheme}`;
+              expect(
+                contrastWCAG(tokens[name], bg),
+                label,
+              ).toBeGreaterThanOrEqual(wcag);
+              expect(apcaLc(tokens[name], bg), label).toBeGreaterThanOrEqual(
+                apca,
+              );
+            }
+            // The accent fill + its label keep their co-solved guarantees too.
+            expect(
+              contrastWCAG(tokens["on-accent"], tokens.accent),
+              `on-accent ${JSON.stringify(rules)} ${seed}/${scheme}`,
+            ).toBeGreaterThanOrEqual(4.5);
+            expect(
+              apcaLc(tokens["on-accent"], tokens.accent),
+              `on-accent ${JSON.stringify(rules)} ${seed}/${scheme}`,
+            ).toBeGreaterThanOrEqual(60);
+          }
+    },
+    SWEEP_TIMEOUT,
+  );
+});
+
+// QA #108 — the boundaries the committed suite optimized past: extreme-lightness seeds
+// (white/black/out-of-gamut-L), the "exact L IS the seed's" claim under the clamp, and the
+// over-general "accent lands exactly on the anchored step" claim (committed test asserts it
+// from three delta-0 fixtures; it does NOT hold for a mid-tone seed).
+describe("seed anchor-step (#108) — QA edge hardening", () => {
+  const bake = (c: OkLCH): OkLCH => parseColor(formatOklch(c))!;
+  const AA: Record<string, { bg: BrandTokenName; wcag: number; apca: number }> =
+    {
+      text: { bg: "surface-2", wcag: 4.5, apca: 75 },
+      "text-muted": { bg: "surface-2", wcag: 4.5, apca: 60 },
+      border: { bg: "surface-2", wcag: 3, apca: 30 },
+      "accent-text": { bg: "surface-2", wcag: 4.5, apca: 60 },
+      "focus-ring": { bg: "surface-2", wcag: 3, apca: 45 },
+      accent: { bg: "surface-2", wcag: 3, apca: 45 },
+      "on-accent": { bg: "accent", wcag: 4.5, apca: 60 },
+    };
+
+  // The committed AA sweep only spans seed L ∈ [0.4, 0.82]. The bend + the anchor clamp
+  // both bite hardest at the extremes — where the anchored brand step (which accent-text /
+  // focus-ring bind through) is clamped, not the seed's L. Prove the AA guarantee survives.
+  it(
+    "every foreground token still clears its floor for extreme-L seeds (incl. #fff / #000)",
+    () => {
+      const seeds: unknown[] = ["#ffffff", "#000000", "#fefefe", "#010101"];
+      for (const H of [0, 60, 145, 200, 260, 320])
+        for (const L of [0.03, 0.08, 0.12, 0.15, 0.92, 0.95, 0.98, 1.0])
+          for (const C of [0.05, 0.2]) seeds.push(`oklch(${L} ${C} ${H})`);
+
+      for (const scheme of SCHEMES)
+        for (const seed of seeds) {
+          const { tokens } = resolveTheme(seed, scheme);
+          for (const [name, c] of Object.entries(AA)) {
+            const fg = bake(tokens[name as BrandTokenName]);
+            const bg = bake(tokens[c.bg]);
+            const where = `${name}/${scheme}/${String(seed)}`;
+            expect(
+              contrastWCAG(fg, bg),
+              `${where} WCAG`,
+            ).toBeGreaterThanOrEqual(c.wcag);
+            expect(apcaLc(fg, bg), `${where} APCA`).toBeGreaterThanOrEqual(
+              c.apca,
+            );
+          }
+        }
+    },
+    SWEEP_TIMEOUT,
+  );
+
+  // Honesty check on the "the anchored step's L IS the seed's" contract (types.ts / README):
+  // for a seed outside the ramp's open interval the step is CLAMPED, so it is NOT the seed's
+  // exact L. White anchors dark-native `300` at 0.98 (seed L ≈ 1); black anchors light-native
+  // `500` at 0.15 (seed L ≈ 0). The docs state the equality unconditionally — this pins the
+  // real, clamped behavior so the caveat is explicit and testable.
+  it("clamps the anchored step for out-of-scale seeds — NOT the seed's exact L (#fff / #000)", () => {
+    const white = resolveTheme("#ffffff", "dark"); // white → dark-native
+    expect(white.anchorLabel).toBe("300");
+    const wStep = white.ramps.brand.find((s) => s.label === "300")!;
+    expect(white.seed.L).toBeGreaterThan(0.98); // seed is lighter than the clamp
+    expect(wStep.color.L).toBeCloseTo(0.98, 4); // …but the step is clamped to it
+    expect(wStep.color.L).not.toBeCloseTo(white.seed.L, 4); // so NOT the seed's exact L
+
+    const black = resolveTheme("#000000", "light"); // black → light-native
+    expect(black.anchorLabel).toBe("500");
+    const bStep = black.ramps.brand.find((s) => s.label === "500")!;
+    expect(black.seed.L).toBeLessThan(0.15);
+    expect(bStep.color.L).toBeCloseTo(0.15, 4);
+    expect(bStep.color.L).not.toBeCloseTo(black.seed.L, 4);
+  });
+
+  it("agrees on anchorLabel across both schemes and buildTokenSet.meta for extreme seeds", () => {
+    for (const seed of ["#ffffff", "#000000", "oklch(0.98 0.02 200)"]) {
+      const light = resolveTheme(seed, "light");
+      const dark = resolveTheme(seed, "dark");
+      const meta = buildTokenSet(seed).meta.anchorLabel;
+      expect(light.anchorLabel).toBe(dark.anchorLabel); // direction is seed-only
+      expect(meta).toBe(light.anchorLabel);
+    }
+  });
+
+  // Counter-example to the committed "the NATIVE-scheme accent lands exactly on the anchored
+  // ramp step" test, which only samples three delta-0 fixtures. The equality is NOT general:
+  // a mid-tone native seed that cannot host a legible on-accent label at its own L makes
+  // `solveNativeAccent` nudge L away from mid (by design) — so the accent FILL diverges from
+  // the anchored step, while the anchored STEP itself still equals seed.L. This pins the true,
+  // conditional contract so nobody builds on a false "accent ≡ anchored step" invariant.
+  it("native accent DIVERGES from the anchored step for a mid-tone seed (equality is NOT general)", () => {
+    const seed = "oklch(0.65 0.15 0)"; // dark-native mid red — needs a delta nudge
+    const direction = resolveTheme(seed, "light").direction;
+    const r = resolveTheme(seed, direction);
+    const anchored = r.ramps.brand.find((s) => s.label === r.anchorLabel)!;
+
+    // The anchored STEP faithfully holds the seed's L…
+    expect(anchored.color.L).toBeCloseTo(r.seed.L, 6);
+    // …but the accent FILL is co-solved elsewhere for on-accent legibility — they differ.
+    expect(Math.abs(anchored.color.L - r.tokens.accent.L)).toBeGreaterThan(
+      0.05,
+    );
+  });
+});
