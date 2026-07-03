@@ -9,10 +9,21 @@ or carry `server-only`/`client-only`.
 
 ## Decisions baked in
 
-- **Scheme-aware** `(brandColor, scheme) → tokenSet`; dark is reduced-chroma + shifted
-  surfaces with contrast **re-solved per scheme**, emitted via `light-dark()`.
-- **Contrast is solved, not stepped** — APCA Lc (quality) + WCAG 2.x ratio (floor),
-  binary-searched on `L` against the _relevant background_.
+- **Ramp primitive + bound semantic tokens.** The engine emits a per-role generative ramp
+  — `brand`, `neutral`, and the four status ramps — as **11 `50…950` steps** (a pure
+  perceptual-lightness primitive, gamut-mapped, with an out-of-gamut flag per step), and the
+  semantic tokens **bind to ramp steps**: surfaces pin a fixed neutral step per scheme, and
+  every readable-on-surface token binds to the _smallest step that clears_ its contrast target
+  (`minPass`, with an extreme-step fallback). The accent **fill** is the exception — a faithful
+  continuous solve anchored at the seed's lightness — with its on-accent label a near-white/
+  near-black extreme that clears with headroom. Consumers read the generic semantic **names**;
+  the ramp math stays behind them (the raw `--<role>-<step>` steps are emitted too).
+- **Scheme-aware** `(brandColor, scheme) → { ramps, tokens }`; dark **re-generates** each
+  ramp (reduced chroma) and **re-solves** every binding against dark's own surfaces, emitted
+  via `light-dark()`.
+- **Contrast is solved, not stepped** — APCA Lc (quality) + WCAG 2.x ratio (floor), solved
+  against the _relevant background_ (binary-searched on `L` for the accent co-solve; the
+  smallest passing ramp step for the bound tokens).
 - **Gamut-map before contrast math** — CSS Color 4 chroma reduction, default `srgb`.
 - **Bakes literals, never throws** — bad input → safe fallback palette.
 
@@ -21,20 +32,27 @@ or carry `server-only`/`client-only`.
 ```ts
 import { resolveTheme, buildTokenSet, tokenSetToCss } from "@garden/oklch";
 
-// One scheme → flat token map (cardSwatches; the interactive studio, #70):
-const { tokens, seed, isFallback } = resolveTheme("#3b82f6", "light");
+// One scheme → { ramps, tokens, seed, isFallback } (cardSwatches; the studio, #70):
+const { ramps, tokens, seed, isFallback } = resolveTheme("#3b82f6", "light");
+ramps.brand[7]; // → { label: "700", color: {…}, oog: false }
 
 // Both schemes zipped for ProjectScope's light-dark() <style>:
 const set = buildTokenSet("#3b82f6"); // { gamut: "p3" } to opt into wide gamut
-const css = tokenSetToCss(set, '[data-project="garden"]'); // wrapped in @layer brand
+const css = tokenSetToCss(set, '[data-project="garden"]'); // @layer brand, tokens + ramps
 ```
 
 Tokens (generic semantic contract, emitted as bare `--<name>`): `bg`, `surface`,
 `surface-2`, `text`, `text-muted`, `border`, `accent`, `accent-text`, `on-accent`,
 `focus-ring`, plus the status signals `success`, `error`, `warning`, `info`.
 
+Ramps (the primitive tier, emitted as `--<role>-<step>`): one per role — `brand`, `neutral`,
+`success`, `error`, `warning`, `info` — each 11 `50…950` steps (`RampStep` = `{ label, color,
+oog }`). `tokenSetToDeclarations` emits the semantic tier only; `rampSetToDeclarations` the
+ramp tier only; `tokenSetToCss` both.
+
 **Low-level surface** is also exported: `contrastWCAG`, `contrastAPCA`/`apcaLc`,
-`solveForeground`, `gamutMap`/`inGamut`, `buildLightnessRamp`, and the color
+`solveForeground`, `gamutMap`/`inGamut`, `buildRamp` (the `50…950` role ramp) +
+`buildLightnessRamp` (raw stops), `minPass` (discrete step binding), and the color
 conversions/parsers.
 
 ### Notes for ProjectScope / cardSwatches consumers

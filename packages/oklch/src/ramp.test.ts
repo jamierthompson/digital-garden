@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { inGamut } from "./gamut";
-import { buildLightnessRamp } from "./ramp";
+import { buildLightnessRamp, buildRamp } from "./ramp";
+import { RAMP_LABELS } from "./types";
 
 /** Brand-ish hues spanning the wheel, incl. the yellow/cyan stressers. */
 const HUES = [29, 110, 145, 195, 260, 330];
@@ -79,5 +80,73 @@ describe("buildLightnessRamp", () => {
     expect(buildLightnessRamp(195, opts)).toEqual(
       buildLightnessRamp(195, opts),
     );
+  });
+});
+
+describe("buildRamp (the 50…950 role primitive)", () => {
+  it("returns exactly the 11 labelled steps, in 50→950 order", () => {
+    const ramp = buildRamp({ hue: 260, chroma: 0.12, gamut: "srgb" });
+    expect(ramp.map((s) => s.label)).toEqual([...RAMP_LABELS]);
+  });
+
+  it("steps lightness monotonically DOWN — 50 is lightest, 950 darkest (Tailwind order)", () => {
+    const ramp = buildRamp({ hue: 260, chroma: 0.12, gamut: "srgb" });
+    for (let i = 1; i < ramp.length; i++) {
+      expect(ramp[i].color.L).toBeLessThan(ramp[i - 1].color.L);
+    }
+    // The named ends bracket the scale: 50 near-white, 950 near-black.
+    expect(ramp[0].color.L).toBeGreaterThan(0.95);
+    expect(ramp[ramp.length - 1].color.L).toBeLessThan(0.2);
+  });
+
+  it("gamut-maps every step into the target gamut, even at high chroma", () => {
+    for (const H of HUES) {
+      const ramp = buildRamp({ hue: H, chroma: 0.4, gamut: "srgb" });
+      for (const step of ramp) {
+        expect(inGamut(step.color, "srgb")).toBe(true);
+      }
+    }
+  });
+
+  it("gamut-maps into P3 when asked", () => {
+    const ramp = buildRamp({ hue: 145, chroma: 0.4, gamut: "p3" });
+    for (const step of ramp) {
+      expect(inGamut(step.color, "p3")).toBe(true);
+    }
+  });
+
+  it("flags oog per step: a high nominal chroma is out-of-gamut at the extremes, in-gamut mid", () => {
+    // At C 0.3 a hue's darkest/lightest steps overflow sRGB (flagged oog + chroma-reduced),
+    // while a near-mid step can sit inside it. The flag is surfaced, not swallowed.
+    const ramp = buildRamp({ hue: 29, chroma: 0.3, gamut: "srgb" });
+    // Extremes are OOG at this chroma…
+    expect(ramp[0].oog).toBe(true); // 50 (near-white can't hold C 0.3)
+    expect(ramp[ramp.length - 1].oog).toBe(true); // 950 (near-black can't either)
+    // …and where oog is true, the emitted color really was chroma-reduced to fit.
+    for (const step of ramp) {
+      if (step.oog) expect(step.color.C).toBeLessThan(0.3);
+      expect(inGamut(step.color, "srgb")).toBe(true);
+    }
+  });
+
+  it("never flags oog for a zero-chroma (pure-grey) ramp — grey is in gamut at every L", () => {
+    const ramp = buildRamp({ hue: 200, chroma: 0, gamut: "srgb" });
+    for (const step of ramp) {
+      expect(step.oog).toBe(false);
+      expect(step.color.C).toBe(0);
+    }
+  });
+
+  it("clamps a negative nominal chroma to 0 rather than producing NaN", () => {
+    const ramp = buildRamp({ hue: 200, chroma: -1, gamut: "srgb" });
+    for (const step of ramp) {
+      expect(step.color.C).toBe(0);
+      expect(Number.isFinite(step.color.L)).toBe(true);
+    }
+  });
+
+  it("is deterministic — same spec yields identical steps", () => {
+    const spec = { hue: 195, chroma: 0.15, gamut: "srgb" as const };
+    expect(buildRamp(spec)).toEqual(buildRamp(spec));
   });
 });

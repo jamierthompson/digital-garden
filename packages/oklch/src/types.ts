@@ -60,6 +60,64 @@ export type BrandTokenName =
   | "warning"
   | "info";
 
+/**
+ * The 11 ramp step labels — Tailwind-style `50…950`. Ordered lightest → darkest, so a
+ * consumer reads them 1:1 against a Tailwind numeric scale. The public *label* scheme (how
+ * a token displays which step it binds to) is owned by #99; these are the engine-internal
+ * primitive labels the semantic tokens bind against.
+ */
+export const RAMP_LABELS = [
+  "50",
+  "100",
+  "200",
+  "300",
+  "400",
+  "500",
+  "600",
+  "700",
+  "800",
+  "900",
+  "950",
+] as const;
+
+/** One ramp step label. */
+export type RampLabel = (typeof RAMP_LABELS)[number];
+
+/**
+ * The roles the engine emits a generative ramp for: the `brand` ramp (full seed chroma),
+ * the near-neutral `neutral` ramp (surfaces + near-neutral text/border bind to it), and one
+ * ramp per canonical status hue. Role→step binding is a *separate* layer (the semantic
+ * tokens); this is the pure lightness primitive behind them.
+ */
+export type RampRole =
+  | "brand"
+  | "neutral"
+  | "success"
+  | "error"
+  | "warning"
+  | "info";
+
+/** One resolved ramp step: its label, the gamut-mapped color, and the out-of-gamut flag. */
+export interface RampStep {
+  label: RampLabel;
+  /** The gamut-mapped color for this step (always in the target gamut). */
+  color: OkLCH;
+  /**
+   * True when the ramp's *nominal* (pre-map) chroma exceeded the target gamut at this
+   * step's lightness — i.e. `color` was chroma-reduced to fit. The surfaced OOG flag (#98).
+   */
+  oog: boolean;
+}
+
+/** A role's ramp: the 11 steps, ordered `50` (lightest) → `950` (darkest). */
+export type Ramp = readonly RampStep[];
+
+/** One role's ramp resolved for both schemes — zipped into `light-dark()` per step. */
+export interface RampPair {
+  light: Ramp;
+  dark: Ramp;
+}
+
 /** One token resolved per scheme — both baked into a `light-dark()` literal. */
 export interface SchemePair {
   light: OkLCH;
@@ -72,6 +130,12 @@ export type SchemeTokens = Record<BrandTokenName, OkLCH>;
 /** Per-scheme engine result — the literal `(brandColor, scheme) → tokenSet` shape. */
 export interface SchemeResult {
   tokens: SchemeTokens;
+  /**
+   * The generative per-role ramps for THIS scheme — the `50…950` lightness primitives the
+   * semantic `tokens` bind to. Exposed so the studio (#70) and card ramp strip (#96) can
+   * read the raw steps rather than re-deriving them.
+   */
+  ramps: Record<RampRole, Ramp>;
   /** The parsed, gamut-mapped (and per-scheme chroma-adjusted) brand seed. */
   seed: OkLCH;
   /** Target gamut the colors were mapped into. */
@@ -96,6 +160,12 @@ export interface SchemeResult {
  */
 export interface TokenSet {
   tokens: Record<BrandTokenName, SchemePair>;
+  /**
+   * The per-role `50…950` ramps, each zipped into a `{ light, dark }` pair for
+   * `light-dark()` output (`tokenSetToCss` emits them as `--<role>-<step>` alongside the
+   * semantic tokens). The primitive tier the semantic tokens are bound from (#98).
+   */
+  ramps: Record<RampRole, RampPair>;
   meta: {
     /** The parsed, gamut-mapped brand seed (or the fallback seed) per scheme. */
     seed: SchemePair;
