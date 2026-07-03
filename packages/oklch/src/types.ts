@@ -173,6 +173,12 @@ export interface SchemeResult {
    * to host a legible on-accent label); in the other scheme it is derived.
    */
   direction: Scheme;
+  /**
+   * The `brand` ramp step the seed is anchored to (#108) — that step's lightness IS the
+   * seed's (the ramp bends around it), so the seed's own color lands on the ramp. Keyed
+   * off `direction` (`500` light-native, `300` dark-native). Only `brand` is anchored.
+   */
+  anchorLabel: RampLabel;
 }
 
 /**
@@ -201,5 +207,7 @@ export interface TokenSet {
      * the seed alone, so it is a single value for the set, not a per-scheme pair.
      */
     direction: Scheme;
+    /** The `brand` ramp step the seed is anchored to (#108) — see `SchemeResult`. */
+    anchorLabel: RampLabel;
   };
 }

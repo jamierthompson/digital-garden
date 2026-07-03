@@ -173,15 +173,27 @@ const SURFACE2_LABEL: { light: RampLabel; dark: RampLabel } =
       }
     : { light: "200", dark: "800" };
 
-/** Build all six role ramps for one scheme from a per-scheme seed. */
+/**
+ * The default step the seed anchors to, keyed off its native direction (#108): a
+ * dark-enough seed (light-native) pins the mid `500`; a light seed (dark-native) pins
+ * the light `300`. Fully automatic — no UI control.
+ */
+const ANCHOR_LABEL: Record<Scheme, RampLabel> = {
+  light: "500",
+  dark: "300",
+};
+
+/** Build all six role ramps for one scheme from a per-scheme seed. Only the `brand`
+ *  ramp is anchored to the seed (#108); neutral/status stay on the shared scale. */
 function buildRamps(
   seed: OkLCH,
   cfg: SchemeConfig,
   gamut: Gamut,
+  anchor?: { label: RampLabel; L: number },
 ): Record<RampRole, Ramp> {
   const hue = seed.H;
   return {
-    brand: buildRamp({ hue, chroma: seed.C, gamut }),
+    brand: buildRamp({ hue, chroma: seed.C, gamut, anchor }),
     neutral: buildRamp({ hue, chroma: cfg.neutralChroma, gamut }),
     success: buildRamp({
       hue: STATUS_HUE.success,
@@ -392,8 +404,15 @@ export function resolveTheme(
     gamut,
   );
 
+  // Seed anchor (#108): pin the brand ramp's default step (keyed off the native
+  // direction) to the seed's EXACT lightness, so the seed's own color lands on the ramp.
+  const anchorLabel = ANCHOR_LABEL[direction];
+
   // The per-role generative ramps for this scheme — the primitive the tokens bind to.
-  const ramps = buildRamps(seed, cfg, gamut);
+  const ramps = buildRamps(seed, cfg, gamut, {
+    label: anchorLabel,
+    L: seed.L,
+  });
 
   // Foregrounds are solved against the WORST-CASE surface — the one whose lightness is
   // closest to the foreground (surface-2 in both schemes) — so a token that clears its
@@ -418,7 +437,7 @@ export function resolveTheme(
     onAccent,
   });
 
-  return { tokens, ramps, seed, gamut, isFallback, direction };
+  return { tokens, ramps, seed, gamut, isFallback, direction, anchorLabel };
 }
 
 /**
@@ -476,6 +495,7 @@ export function buildTokenSet(
       isFallback: light.isFallback,
       // Detected from the seed alone, so both scheme results agree — pick either.
       direction: light.direction,
+      anchorLabel: light.anchorLabel,
     },
   };
 }

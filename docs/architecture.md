@@ -241,7 +241,11 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   `--focus-ring-color` alias and the `--font-face` mapping in the same block; the raw
   `--<role>-<step>` primitives are emitted alongside for a consumer that wants them (`tokenSetToCss`
   / `rampSetToDeclarations`). Dark re-generates each ramp (reduced chroma) and re-solves every
-  binding against dark's own surfaces — not a mirror-label flip.
+  binding against dark's own surfaces — not a mirror-label flip. The **brand** ramp is additionally
+  **anchored to the seed**: one step (keyed off the seed's native direction, reported as
+  `anchorLabel`) is bent to the seed's exact lightness — endpoint-preserving, still monotonic — so
+  the brand's own color sits on its ramp and the native-scheme accent fill is that step exactly.
+  Neutral/status ramps stay on the shared scale.
 
 - **The public surface is frozen and test-guarded.** The semantic token names (`BRAND_TOKEN_NAMES`),
   ramp roles (`RAMP_ROLES`), step labels (`RAMP_LABELS` — `50…950`), the emitted custom-property

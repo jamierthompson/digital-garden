@@ -18,6 +18,13 @@ or carry `server-only`/`client-only`.
   continuous solve anchored at the seed's lightness — with its on-accent label a near-white/
   near-black extreme that clears with headroom. Consumers read the generic semantic **names**;
   the ramp math stays behind them (the raw `--<role>-<step>` steps are emitted too).
+- **Seed anchor-step.** The **brand** ramp is bent so one step sits at the seed's **exact**
+  lightness (a per-side shift+scale that preserves the endpoints, keeps the scale strictly
+  monotonic, and happens _before_ gamut mapping) — the seed's own color lands **on** the ramp
+  instead of drifting between steps, and in the native scheme the accent fill IS that step.
+  Fully automatic: the step is keyed off the seed's native direction (`500` light-native,
+  `300` dark-native) and reported as `anchorLabel` (`SchemeResult` / `TokenSet.meta`).
+  Neutral/status ramps stay on the shared scale.
 - **Scheme-aware** `(brandColor, scheme) → { ramps, tokens }`; dark **re-generates** each
   ramp (reduced chroma) and **re-solves** every binding against dark's own surfaces, emitted
   via `light-dark()`.
