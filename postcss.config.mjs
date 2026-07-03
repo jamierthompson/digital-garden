@@ -9,10 +9,16 @@
 // - `custom-media-queries: true` makes preset-env substitute `@media (--sm-up)` et al.
 //   with their literal queries at build time — breakpoints can't be runtime custom
 //   properties (invalid in @media conditions; see docs/architecture.md).
+import { fileURLToPath } from "node:url";
+
 const config = {
   plugins: {
     "@csstools/postcss-global-data": {
-      files: ["./src/styles/breakpoints.css"],
+      // Absolute path: a consumer's PostCSS may run with any cwd (Vite resolves the
+      // nearest config upward), so a relative path here breaks outside the repo root.
+      files: [
+        fileURLToPath(new URL("./src/styles/breakpoints.css", import.meta.url)),
+      ],
     },
     "postcss-flexbugs-fixes": {},
     "postcss-preset-env": {
