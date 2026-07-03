@@ -9,7 +9,7 @@
 // - `custom-media-queries: true` makes preset-env substitute `@media (--sm-up)` et al.
 //   with their literal queries at build time — breakpoints can't be runtime custom
 //   properties (invalid in @media conditions; see docs/architecture.md).
-export default {
+const config = {
   plugins: {
     "@csstools/postcss-global-data": {
       files: ["./src/styles/breakpoints.css"],
@@ -27,3 +27,5 @@ export default {
     },
   },
 };
+
+export default config;
