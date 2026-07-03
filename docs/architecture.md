@@ -102,9 +102,12 @@ defaults**. Its **interactive slot** and the components embedded inside it read 
 semantic tokens**, but resolved to the slot's brand values because the `[data-project]` scope
 re-defines them. Components never read a project-prefixed name — there are **no `--<proj>-*`
 tokens**. Two projects on one page reuse the identical generic token names; the cascade resolves
-each to the nearest `[data-project]` scope. The engine solves the slot's semantic-token values
-directly; a slot-scoped ramp-primitive tier (`--ramp-1..12`) for the semantic tokens to be mapped
-from is deferred to the Palette Studio (#78).
+each to the nearest `[data-project]` scope. Under the hood the engine emits a **per-role
+`50…950` ramp primitive** (`brand`, `neutral`, and the four status ramps) and **binds each
+semantic token to a ramp step** — so `--text` is `neutral`'s smallest step that clears body-text
+contrast, `--surface` is a fixed light/dark neutral step, and so on. Consumers still read only the
+generic semantic names; the ramp math stays behind them (the raw `--<role>-<step>` steps are also
+emitted for a consumer that wants them).
 
 ```
 global :root  (foundation primitives + the semantic editorial defaults)
@@ -224,10 +227,21 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   boundary blocks on it before paint; if it renders in the shell above any Suspense (the common
   case), plain inline is already flush-before-paint.
 
-- The engine emits the **semantic role tokens directly** (`--surface`, `--accent`, …) as
-  contrast-solved literals; the slot scope adds the `--focus-ring-color` alias and the
-  `--font-face` mapping in the same block. A ramp-primitive tier (engine emits `--ramp-1..12`,
-  the scope does the role mapping) is deferred to the Palette Studio (#78).
+- **Ramp-primitive tier, semantic tokens bound to it.** The engine emits a per-role
+  generative ramp — `brand`, `neutral`, and the four status ramps, each **11 `50…950` steps**
+  (a pure perceptual-lightness primitive, gamut-mapped, with an out-of-gamut flag per step) — and
+  the **semantic role tokens bind to ramp steps** rather than being solved in isolation: a surface
+  pins a fixed neutral step (the light end in light mode, the dark end in dark — the per-scheme
+  re-solve), and every readable-on-surface token binds to the _smallest step that clears_ its
+  contrast target (`minPass`, with an extreme-step fallback). The one exception is the accent
+  **fill**: it is the brand's identity, so it stays a faithful continuous solve anchored at the
+  seed's lightness, with its on-accent label a near-white/near-black extreme that clears with
+  headroom. Consumers see the generic semantic **names** (`--surface`, `--accent`, … bound to,
+  e.g., `neutral`'s `800` step) — the ramp math stays behind them. The slot scope adds the
+  `--focus-ring-color` alias and the `--font-face` mapping in the same block; the raw
+  `--<role>-<step>` primitives are emitted alongside for a consumer that wants them (`tokenSetToCss`
+  / `rampSetToDeclarations`). Dark re-generates each ramp (reduced chroma) and re-solves every
+  binding against dark's own surfaces — not a mirror-label flip.
 
 **Three call sites, one engine:**
 
