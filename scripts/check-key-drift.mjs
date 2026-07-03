@@ -12,9 +12,10 @@
 //       guards that the enforcement stays WIRED (check 3): drop a `satisfies` and the
 //       compile-time net silently disappears, which typecheck alone won't flag.
 //
-//   (b) published Sanity keys <-> keys.ts — needs a live GROQ query + Sanity client; OUT
-//       OF SCOPE, tracked in the issue backlog. Resolvers degrade gracefully on a miss
-//       (typed NotFound), so (b) is a lint/observability net, not a crash risk.
+//   (b) published Sanity keys <-> keys.ts — needs a live GROQ query + Sanity client, so it
+//       lives in its own script (`check-published-keys.mjs`, the `published-keys` CI job) OUT
+//       of this offline, dependency-free guard. Resolvers degrade gracefully on a miss (typed
+//       NotFound), so (b) is a lint/observability net, not a crash risk.
 //
 // What this checks: (1) keys.ts loads and exports the three arrays; (2) each array is
 // well-formed — non-empty kebab-case, unique within and across arrays (real invariants the
@@ -164,6 +165,6 @@ const counts = Object.entries(KEY_ARRAYS)
 console.log(
   `key-drift: OK — keys.ts well-formed (${counts}); ` +
     `${SATISFIES_GUARDS.length} compile-time \`satisfies\` guards wired. ` +
-    `(Published-keys-vs-code GROQ net is tracked in the issue backlog.)`,
+    `(Published-keys-vs-code GROQ net runs separately in \`check-published-keys.mjs\`.)`,
 );
 process.exit(0);
