@@ -19,6 +19,11 @@ import type { StegaConfig } from "@sanity/client/stega";
  *   break the color parse.
  * - `fontKey` / `componentKey` / `embedKey` are resolved against code by key; stega
  *   chars break the lookup (and reintroduce key-drift).
+ * - `kind` / `stage` are discriminators compared in code (`entry.kind === "project"`
+ *   gates the module mount and the browse sections; `stage` feeds a `data-stage`
+ *   CSS attribute selector). Stega chars make every comparison false — in Draft Mode
+ *   that silently degraded a project entry to prose-only and emptied the browse
+ *   sections (found via #131's mounted-draft review).
  *
  * Sanity's default stega denylist skips `color`/`hex`/slugs but NOT these field
  * names, so we exclude them explicitly.
@@ -29,6 +34,8 @@ export const STEGA_EXCLUDED_FIELDS = new Set([
   "fontKey",
   "componentKey",
   "embedKey",
+  "kind",
+  "stage",
 ]);
 
 /**
