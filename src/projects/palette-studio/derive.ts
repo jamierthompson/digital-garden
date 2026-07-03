@@ -3,7 +3,8 @@
 // paints: the two scheme views, the semantic-token table (each token's NAME, the ramp step
 // it resolved to, and its per-scheme value), and the automatic anchor readout.
 //
-// It NEVER reimplements engine math — every color comes from `buildTokenSet`. Kept pure and
+// It NEVER reimplements engine math — every color AND every binding receipt comes from
+// `buildTokenSet` (the engine reports which ramp step each token bound to). Kept pure and
 // separable so #41 can memoize `derivePalette` later without touching a component; the engine
 // already never throws, so neither does this.
 
@@ -11,6 +12,7 @@ import {
   buildTokenSet,
   parseColor,
   RAMP_ROLES,
+  type BindingStep,
   type BrandTokenName,
   type Gamut,
   type OkLCH,
@@ -42,25 +44,13 @@ export function parseSeed(input: string): ParsedSeed {
   return { input, oklch, isFallback: oklch === null };
 }
 
-/** Which ramp step a semantic token resolved to (`null` for the continuously-solved accent
- *  fill / on-accent label, which are not bound to a discrete step). */
-export interface BoundStep {
-  readonly role: RampRole;
-  readonly label: RampLabel;
-}
-
 /**
- * The two tokens the engine solves CONTINUOUSLY rather than binding to a ramp step — the
- * brand's faithful accent fill and the near-white/near-black label on it (the documented
- * exception in `packages/oklch/src/README.md`). Their value can coincidentally equal the
- * anchored brand step (when the seed's own lightness hosts a legible label), so they must be
- * excluded from step-matching by NAME — otherwise a coincidental numeric match would
- * mislabel a continuous solve as step-bound. Everything else binds to a real step.
+ * Which ramp step a semantic token bound to — the engine's own binding provenance
+ * (`@garden/oklch`), reported at solve time. `null` for the continuously-solved accent fill
+ * / on-accent label (and any literal), which are not a discrete ramp step. Aliased to the
+ * engine's `BindingStep` so the receipt shape has one source of truth, not a restatement.
  */
-const CONTINUOUS_TOKENS: ReadonlySet<BrandTokenName> = new Set([
-  "accent",
-  "on-accent",
-]);
+export type BoundStep = BindingStep;
 
 /** One semantic token, resolved for both schemes with the ramp step each scheme bound to. */
 export interface TokenRow {
@@ -93,33 +83,6 @@ export interface DerivedPalette {
   readonly tokenSet: TokenSet;
 }
 
-/**
- * Find the ramp step whose baked color a semantic token equals. The engine binds every
- * surface / readable token to an actual ramp step, so its resolved value IS that step's
- * color object — an exact numeric match identifies (role, step) without duplicating the
- * engine's private binding schema. The accent fill and its on-accent label are continuous
- * co-solves that sit between steps, so they match nothing and return `null`.
- */
-function findBoundStep(
-  name: BrandTokenName,
-  value: OkLCH,
-  ramps: Record<RampRole, Ramp>,
-): BoundStep | null {
-  if (CONTINUOUS_TOKENS.has(name)) return null;
-  for (const role of RAMP_ROLES) {
-    for (const step of ramps[role]) {
-      if (
-        step.color.L === value.L &&
-        step.color.C === value.C &&
-        step.color.H === value.H
-      ) {
-        return { role, label: step.label };
-      }
-    }
-  }
-  return null;
-}
-
 /** Project a `TokenSet` into one scheme's `SchemeView` (ramps + tokens for that scheme). */
 function schemeView(set: TokenSet, scheme: Scheme): SchemeView {
   const ramps = Object.fromEntries(
@@ -148,16 +111,19 @@ export function derivePalette(
   const light = schemeView(set, "light");
   const dark = schemeView(set, "dark");
 
+  // The binding step comes straight from the engine's per-scheme provenance report — the
+  // truthful source (it names the schema's role even where the brand and neutral ramps
+  // numerically converge). No value-matching, no restated continuous-token list.
   const rows: TokenRow[] = (Object.keys(set.tokens) as BrandTokenName[]).map(
     (name) => ({
       name,
       light: {
         value: light.tokens[name],
-        boundTo: findBoundStep(name, light.tokens[name], light.ramps),
+        boundTo: set.meta.bindings[name].light,
       },
       dark: {
         value: dark.tokens[name],
-        boundTo: findBoundStep(name, dark.tokens[name], dark.ramps),
+        boundTo: set.meta.bindings[name].dark,
       },
     }),
   );

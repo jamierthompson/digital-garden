@@ -94,6 +94,71 @@ describe("token rows", () => {
     }
   });
 
+  // The whole reason the receipt reads the engine's report instead of value-matching: where
+  // the brand and neutral ramps CONVERGE — an achromatic seed, or pure achromatic neutrals —
+  // a value-scan decides the role by scan order, not by the schema. The report doesn't.
+  it.each([
+    ["achromatic seed", "#808080", DEFAULT_RULES],
+    [
+      "achromatic seed, untinted",
+      "#808080",
+      { ...DEFAULT_RULES, tintedNeutrals: false },
+    ],
+    [
+      "pure black, untinted",
+      "#000000",
+      { ...DEFAULT_RULES, tintedNeutrals: false },
+    ],
+  ] as const)(
+    "names the schema role for neutral-bound tokens even when ramps converge (%s)",
+    (_label, seed, rules) => {
+      const { rows } = derivePalette(seed, rules, DEFAULT_GAMUT);
+      // Surfaces + near-neutral foregrounds bind the NEUTRAL ramp, per the engine schema —
+      // never `brand`, even where a grey brand step shares the value.
+      for (const name of [
+        "bg",
+        "surface",
+        "surface-2",
+        "text",
+        "text-muted",
+        "border",
+      ] as const) {
+        const row = rows.find((r) => r.name === name)!;
+        expect(row.light.boundTo?.role, `${name}/light`).toBe("neutral");
+        expect(row.dark.boundTo?.role, `${name}/dark`).toBe("neutral");
+      }
+      // …while accent-text / focus-ring still name the brand ramp.
+      for (const name of ["accent-text", "focus-ring"] as const) {
+        const row = rows.find((r) => r.name === name)!;
+        expect(row.light.boundTo?.role, `${name}/light`).toBe("brand");
+      }
+    },
+  );
+
+  // Internal consistency: for every step-bound token, the receipt's (role, label) step is the
+  // ramp step whose baked color IS the token's value — the receipt can't point at the wrong step.
+  it("every reported step's color equals the token value it labels", () => {
+    for (const seed of ["#808080", "#000000", SEED]) {
+      const palette = derivePalette(
+        seed,
+        { ...DEFAULT_RULES, tintedNeutrals: false },
+        DEFAULT_GAMUT,
+      );
+      for (const row of palette.rows) {
+        for (const scheme of ["light", "dark"] as const) {
+          const cell = row[scheme];
+          if (cell.boundTo === null) continue; // continuous co-solve — no step to check
+          const view = palette[scheme];
+          const step = view.ramps[cell.boundTo.role].find(
+            (s) => s.label === cell.boundTo!.label,
+          );
+          expect(step, `${row.name}/${scheme}`).toBeDefined();
+          expect(step!.color).toEqual(cell.value);
+        }
+      }
+    }
+  });
+
   it("carries the resolved value the engine baked for each token", () => {
     const set = buildTokenSet(SEED);
     const { rows } = derivePalette(SEED, DEFAULT_RULES, DEFAULT_GAMUT);
