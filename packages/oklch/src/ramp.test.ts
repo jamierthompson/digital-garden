@@ -150,3 +150,76 @@ describe("buildRamp (the 50…950 role primitive)", () => {
     expect(buildRamp(spec)).toEqual(buildRamp(spec));
   });
 });
+
+describe("seed anchor (#108)", () => {
+  // Low chroma keeps every step in-gamut, so the mapped color's L IS the nominal L and
+  // exactness can be asserted at full precision. Gamut-mapped exactness is a separate
+  // case below — mapping happens AFTER anchoring, as the engine's order-of-ops requires.
+  const SPEC = { hue: 260, chroma: 0.01, gamut: "srgb" as const };
+
+  const anchorCases = RAMP_LABELS.flatMap((label) =>
+    [0.25, 0.45, 0.55, 0.72, 0.88].map((L) => [label, L] as const),
+  );
+
+  it.each(anchorCases)(
+    "pins step %s to L=%d exactly and keeps the other endpoints",
+    (label, L) => {
+      const ramp = buildRamp({ ...SPEC, anchor: { label, L } });
+      const anchored = ramp.find((s) => s.label === label)!;
+      expect(anchored.color.L).toBeCloseTo(L, 9);
+      // Non-anchored endpoints preserved — surfaces bound to the extremes are unaffected.
+      // (Anchoring an endpoint itself legitimately moves it: the pin wins.)
+      const plain = buildRamp(SPEC);
+      if (label !== "50")
+        expect(ramp[0].color.L).toBeCloseTo(plain[0].color.L, 9);
+      if (label !== "950")
+        expect(ramp[10].color.L).toBeCloseTo(plain[10].color.L, 9);
+    },
+  );
+
+  it("gamut-maps AFTER anchoring — a high-chroma anchored step pins the NOMINAL L", () => {
+    // At chroma 0.12 / hue 260 the dark steps are out of sRGB; the mapped paint may move
+    // L a hair (CSS4 mapping), but the oog flag reports the reduction and the pin is on
+    // the nominal scale. Tolerance reflects the mapping, not the anchor.
+    const ramp = buildRamp({
+      hue: 260,
+      chroma: 0.12,
+      gamut: "srgb",
+      anchor: { label: "500", L: 0.25 },
+    });
+    const anchored = ramp.find((s) => s.label === "500")!;
+    expect(anchored.color.L).toBeCloseTo(0.25, 2);
+  });
+
+  it.each(anchorCases)(
+    "stays strictly monotonic lightest→darkest around anchor %s at L=%d",
+    (label, L) => {
+      const ramp = buildRamp({ ...SPEC, anchor: { label, L } });
+      for (let i = 1; i < ramp.length; i++) {
+        expect(ramp[i].color.L).toBeLessThan(ramp[i - 1].color.L);
+      }
+    },
+  );
+
+  it("clamps an out-of-scale anchor L instead of folding the ramp", () => {
+    for (const L of [0, 0.05, 0.99, 1]) {
+      const ramp = buildRamp({ ...SPEC, anchor: { label: "500", L } });
+      for (let i = 1; i < ramp.length; i++) {
+        expect(ramp[i].color.L).toBeLessThan(ramp[i - 1].color.L);
+      }
+    }
+  });
+
+  it("without an anchor the shared scale is unchanged", () => {
+    expect(buildRamp(SPEC)).toEqual(buildRamp({ ...SPEC }));
+  });
+
+  it("anchoring at an endpoint label keeps a usable ramp (span guard)", () => {
+    for (const label of ["50", "950"] as const) {
+      const ramp = buildRamp({ ...SPEC, anchor: { label, L: 0.5 } });
+      for (let i = 1; i < ramp.length; i++) {
+        expect(ramp[i].color.L).toBeLessThan(ramp[i - 1].color.L);
+      }
+    }
+  });
+});

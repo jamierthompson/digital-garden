@@ -746,3 +746,97 @@ describe("baked literals clear the TRUE contrast floor (#79)", () => {
     SWEEP_TIMEOUT,
   );
 });
+
+describe("seed anchor-step (#108)", () => {
+  it("the brand ramp's anchored step IS the seed's exact color (light-native seed)", () => {
+    const result = resolveTheme("#2563eb", "light");
+    expect(result.direction).toBe("light");
+    expect(result.anchorLabel).toBe("500");
+    const anchored = result.ramps.brand.find(
+      (s) => s.label === result.anchorLabel,
+    )!;
+    expect(anchored.color.L).toBeCloseTo(result.seed.L, 9);
+    expect(anchored.color.C).toBeCloseTo(result.seed.C, 9);
+    expect(anchored.color.H).toBeCloseTo(result.seed.H, 9);
+  });
+
+  it("a dark-native (light-colored) seed anchors the light 300 step", () => {
+    const result = resolveTheme("#facc15", "light"); // light yellow — no light-mode primary
+    expect(result.direction).toBe("dark");
+    expect(result.anchorLabel).toBe("300");
+    const anchored = result.ramps.brand.find((s) => s.label === "300")!;
+    expect(anchored.color.L).toBeCloseTo(result.seed.L, 9);
+  });
+
+  it("anchors the brand ramp in BOTH schemes at the same label", () => {
+    for (const scheme of ["light", "dark"] as const) {
+      const result = resolveTheme("#dc2626", scheme);
+      const anchored = result.ramps.brand.find(
+        (s) => s.label === result.anchorLabel,
+      )!;
+      // Same L in both schemes (only chroma dampens in dark).
+      expect(anchored.color.L).toBeCloseTo(result.seed.L, 9);
+    }
+  });
+
+  it("only the brand ramp is anchored — neutral/status stay on the shared scale", () => {
+    // Same hue, different seed L: only the anchor input differs between the two runs.
+    const a = resolveTheme("oklch(0.45 0.15 260)", "light");
+    const b = resolveTheme("oklch(0.7 0.15 260)", "light");
+    // Neutral tracks the seed hue but NOT its lightness; status hues are fixed — all
+    // four are seed-independent. Identical at full precision.
+    for (const role of [
+      "neutral",
+      "success",
+      "error",
+      "warning",
+      "info",
+    ] as const) {
+      expect(a.ramps[role]).toEqual(b.ramps[role]);
+    }
+    // …while the brand ramps genuinely differ at their anchored steps.
+    const stepOf = (r: typeof a, label: string) =>
+      r.ramps.brand.find((s) => s.label === label)!;
+    expect(stepOf(a, a.anchorLabel).color.L).not.toBeCloseTo(
+      stepOf(b, b.anchorLabel).color.L,
+      2,
+    );
+  });
+
+  it("the NATIVE-scheme accent lands exactly on the anchored ramp step", () => {
+    // The faithful co-solve's delta-0 candidate and the anchored step are built from the
+    // same (L, C, H) — when the candidate passes, the accent IS a ramp step (#108's
+    // point: the seed's own color sits on the ramp). Checked in each seed's native scheme.
+    for (const seed of ["#2563eb", "#dc2626", "#facc15"]) {
+      const direction = resolveTheme(seed, "light").direction;
+      const result = resolveTheme(seed, direction);
+      const anchored = result.ramps.brand.find(
+        (s) => s.label === result.anchorLabel,
+      )!;
+      expect(result.tokens.accent).toEqual(anchored.color);
+    }
+  });
+
+  it("anchoring holds across seed lightnesses (harness-style sweep)", () => {
+    for (const hex of ["#1e3a8a", "#dc2626", "#16a34a", "#eab308", "#06b6d4"]) {
+      for (const scheme of ["light", "dark"] as const) {
+        const result = resolveTheme(hex, scheme);
+        const anchored = result.ramps.brand.find(
+          (s) => s.label === result.anchorLabel,
+        )!;
+        expect(anchored.color.L).toBeCloseTo(result.seed.L, 9);
+        // The bent ramp stays strictly monotonic.
+        for (let i = 1; i < result.ramps.brand.length; i++) {
+          expect(result.ramps.brand[i].color.L).toBeLessThan(
+            result.ramps.brand[i - 1].color.L,
+          );
+        }
+      }
+    }
+  });
+
+  it("buildTokenSet surfaces the anchor label in meta", () => {
+    expect(buildTokenSet("#2563eb").meta.anchorLabel).toBe("500");
+    expect(buildTokenSet("#facc15").meta.anchorLabel).toBe("300");
+  });
+});
