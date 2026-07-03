@@ -344,6 +344,9 @@ describe("seed anchor (#108) — QA edge hardening", () => {
   for (let L = -0.3; L <= 1.3; L += 0.01) DENSE_LS.push(Number(L.toFixed(3)));
   const EDGES = [0.145, 0.15, 0.1501, 0.98, 0.9799, 0.155, 0.975];
 
+  // Explicit budget: an exhaustive sweep dilates past the default 5s per-test budget under
+  // CPU contention (parallel QA agents / builds) — same rationale as palette.test.ts's
+  // SWEEP_TIMEOUT; the real speed-up is #41.
   it("stays STRICTLY monotonic for every (label × L) across a dense grid incl. out-of-scale + duplicate-neighbor L", () => {
     for (const label of RAMP_LABELS) {
       for (const L of [...DENSE_LS, ...NOMINALS, ...EDGES]) {
@@ -355,7 +358,7 @@ describe("seed anchor (#108) — QA edge hardening", () => {
         }
       }
     }
-  });
+  }, 30_000);
 
   it("clamps the anchored step to the scale's open interval — an out-of-scale seed L does NOT land exactly", () => {
     // Documents the true contract: the pin is EXACT only for L inside (~0.15, ~0.98);
