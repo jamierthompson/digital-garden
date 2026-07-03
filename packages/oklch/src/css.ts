@@ -16,14 +16,25 @@
  * scoped `<style>`; this serializer is the convenience that produces them.
  */
 
-import { formatOklch } from "./convert";
+import { formatColor } from "./convert";
 import type {
   BrandTokenName,
+  ColorFormat,
   RampRole,
   RampStep,
   SchemePair,
   TokenSet,
 } from "./types";
+
+/** Options shared by the CSS serializers. */
+export interface CssOptions {
+  /**
+   * Value serialization (#99). Defaults to `oklch` — the native, lossless literal
+   * `ProjectScope` bakes. `hex`/`rgb` exist for the export surface (#107): identical
+   * paint for the default `srgb` gamut, clamped for `p3`.
+   */
+  format?: ColorFormat;
+}
 
 /**
  * Public custom-property prefix. The engine's token names ARE the generic semantic role
@@ -33,8 +44,8 @@ import type {
 const PREFIX = "--";
 
 /** `light-dark(<light literal>, <dark literal>)` for one token pair. */
-function lightDark(pair: SchemePair): string {
-  return `light-dark(${formatOklch(pair.light)}, ${formatOklch(pair.dark)})`;
+function lightDark(pair: SchemePair, format: ColorFormat): string {
+  return `light-dark(${formatColor(pair.light, format)}, ${formatColor(pair.dark, format)})`;
 }
 
 /** `--<name>` for a token (the generic semantic custom property). */
@@ -60,10 +71,16 @@ function rampProperty(role: RampRole, step: RampStep): string {
  * resolves and the scheme follows `prefers-color-scheme` by default. Each line is
  * `\n`-joined. The primitive ramp tier is a separate opt-in — see `rampSetToDeclarations`.
  */
-export function tokenSetToDeclarations(set: TokenSet): string {
+export function tokenSetToDeclarations(
+  set: TokenSet,
+  opts: CssOptions = {},
+): string {
+  const format = opts.format ?? "oklch";
   const lines = ["color-scheme: light dark;"];
   for (const name of Object.keys(set.tokens) as BrandTokenName[]) {
-    lines.push(`${customProperty(name)}: ${lightDark(set.tokens[name])};`);
+    lines.push(
+      `${customProperty(name)}: ${lightDark(set.tokens[name], format)};`,
+    );
   }
   return lines.join("\n");
 }
@@ -75,13 +92,17 @@ export function tokenSetToDeclarations(set: TokenSet): string {
  * decides whether to ship the full ramp into its scope; `tokenSetToCss` includes them by
  * default. Each line is `\n`-joined.
  */
-export function rampSetToDeclarations(set: TokenSet): string {
+export function rampSetToDeclarations(
+  set: TokenSet,
+  opts: CssOptions = {},
+): string {
+  const format = opts.format ?? "oklch";
   const lines: string[] = [];
   for (const role of Object.keys(set.ramps) as RampRole[]) {
     const { light, dark } = set.ramps[role];
     for (let i = 0; i < light.length; i++) {
       lines.push(
-        `${rampProperty(role, light[i])}: light-dark(${formatOklch(light[i].color)}, ${formatOklch(dark[i].color)});`,
+        `${rampProperty(role, light[i])}: ${lightDark({ light: light[i].color, dark: dark[i].color }, format)};`,
       );
     }
   }
@@ -94,8 +115,15 @@ export function rampSetToDeclarations(set: TokenSet): string {
  * `[data-project="<slug>"]`. Indentation is cosmetic. A caller wanting only the semantic
  * tier composes `tokenSetToDeclarations` itself (as `ProjectScope` does).
  */
-export function tokenSetToCss(set: TokenSet, selector: string): string {
-  const body = [tokenSetToDeclarations(set), rampSetToDeclarations(set)]
+export function tokenSetToCss(
+  set: TokenSet,
+  selector: string,
+  opts: CssOptions = {},
+): string {
+  const body = [
+    tokenSetToDeclarations(set, opts),
+    rampSetToDeclarations(set, opts),
+  ]
     .join("\n")
     .split("\n")
     .map((line) => `    ${line}`)

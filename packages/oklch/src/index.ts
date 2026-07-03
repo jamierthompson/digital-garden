@@ -18,7 +18,17 @@ export {
   tokenSetToCss,
   tokenSetToDeclarations,
   rampSetToDeclarations,
+  type CssOptions,
 } from "./css";
+
+export {
+  tokenSetToTailwindTheme,
+  tokenSetToDesignTokens,
+  type ExportOptions,
+  type DesignToken,
+  type DesignTokenScheme,
+  type DesignTokensExport,
+} from "./export";
 
 export {
   contrastWCAG,
