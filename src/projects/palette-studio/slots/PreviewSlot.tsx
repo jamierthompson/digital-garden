@@ -3,7 +3,7 @@
 import Panel from "@/components/ui/Panel";
 
 import { useStudio } from "../StudioProvider";
-import PreviewPanel from "../components/PreviewPanel";
+import PreviewCard from "../components/PreviewCard";
 import HarmonyStrip from "../components/HarmonyStrip";
 import MissingFrame from "./MissingFrame";
 import styles from "./slots.module.css";
@@ -15,8 +15,8 @@ export default function PreviewSlot(): React.ReactElement {
   return (
     <Panel label="Live preview">
       <div className={styles.pair}>
-        <PreviewPanel scheme="light" tokens={studio.palette.light.tokens} />
-        <PreviewPanel scheme="dark" tokens={studio.palette.dark.tokens} />
+        <PreviewCard scheme="light" tokens={studio.palette.light.tokens} />
+        <PreviewCard scheme="dark" tokens={studio.palette.dark.tokens} />
       </div>
       <HarmonyStrip harmony={studio.harmony} />
     </Panel>

@@ -5,6 +5,8 @@
 // with this scheme's real text — the numbers and the surface they describe agree by
 // construction.
 
+import Kicker from "@/components/ui/Kicker";
+
 import type { Scheme, SchemeTokens } from "@garden/oklch";
 
 import { measureReceipt } from "../core/contrast";
@@ -28,7 +30,7 @@ export default function ContrastReceipt({
       role="group"
       aria-label={`${scheme} contrast receipt`}
     >
-      <span className={styles.label}>{scheme}</span>
+      <Kicker>{scheme}</Kicker>
       <dl className={styles.rows}>
         {rows.map((row) => (
           <div key={row.label} className={styles.row}>

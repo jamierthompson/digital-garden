@@ -4,6 +4,8 @@
 // contract; the strip just displays them. Scheme-independent (built from the raw seed), so it
 // renders once, not per scheme.
 
+import Note from "@/components/ui/Note";
+
 import { formatOklch, HARMONY_KINDS, type HarmonyPalette } from "@garden/oklch";
 
 import styles from "./HarmonyStrip.module.css";
@@ -17,11 +19,11 @@ export default function HarmonyStrip({
 }: HarmonyStripProps): React.ReactElement {
   return (
     <div className={styles.strip}>
-      <p className={styles.note}>
+      <Note>
         Decorative harmony sets — for charts, gradients, and secondary accents.
         Not part of the contract; run them through the receipt before putting
         text on one.
-      </p>
+      </Note>
       <div className={styles.groups}>
         <div className={styles.group}>
           <span className={styles.groupLabel}>seed</span>

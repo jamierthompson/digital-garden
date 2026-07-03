@@ -18,9 +18,9 @@ import {
   HUE_OPTIONS,
   TINTED_NEUTRALS_HINT,
 } from "../core/ruleOptions";
-import styles from "./RulesRail.module.css";
+import styles from "./RulesBoard.module.css";
 
-interface RulesRailProps {
+interface RulesBoardProps {
   /** Slug-derived id namespace, threaded to each labelled control. */
   readonly idPrefix: string;
   readonly rules: StudioRules;
@@ -30,19 +30,19 @@ interface RulesRailProps {
   readonly onGamutChange: (gamut: Gamut) => void;
 }
 
-export default function RulesRail({
+export default function RulesBoard({
   idPrefix,
   rules,
   gamut,
   onRulesChange,
   onGamutChange,
-}: RulesRailProps): React.ReactElement {
+}: RulesBoardProps): React.ReactElement {
   const tintedLabelId = `${idPrefix}-tinted-label`;
   const tintedHint = rules.tintedNeutrals
     ? TINTED_NEUTRALS_HINT.on
     : TINTED_NEUTRALS_HINT.off;
   return (
-    <div className={styles.rail} role="group" aria-label="Palette rules">
+    <div className={styles.board} role="group" aria-label="Palette rules">
       <Note>
         Rules shape the ramp before the tokens bind to it. Every default is on —
         the palette is legible before you touch a thing.

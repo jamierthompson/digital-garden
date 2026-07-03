@@ -7,13 +7,13 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildTokenSet } from "@garden/oklch";
-import ExportPanel from "./ExportPanel";
+import ExportTabs from "./ExportTabs";
 
 const set = buildTokenSet("#7c3aed");
 
-describe("ExportPanel", () => {
+describe("ExportTabs", () => {
   it("defaults to the CSS tab and shows engine-serialized output", () => {
-    render(<ExportPanel tokenSet={set} />);
+    render(<ExportTabs tokenSet={set} />);
     const panel = screen.getByRole("tabpanel");
     expect(within(panel).getByText(/:root/)).toBeInTheDocument();
     expect(
@@ -22,7 +22,7 @@ describe("ExportPanel", () => {
   });
 
   it("switches export target when another tab is selected", () => {
-    render(<ExportPanel tokenSet={set} />);
+    render(<ExportTabs tokenSet={set} />);
     // Radix Tabs default to automatic activation (on focus), so focus the trigger.
     fireEvent.focus(screen.getByRole("tab", { name: "Tailwind theme" }));
     expect(
@@ -35,7 +35,7 @@ describe("ExportPanel", () => {
   });
 
   it("reserializes in the chosen color format", () => {
-    render(<ExportPanel tokenSet={set} />);
+    render(<ExportTabs tokenSet={set} />);
     fireEvent.click(screen.getByRole("radio", { name: "Hex" }));
     expect(
       within(screen.getByRole("tabpanel")).getByText(/--accent: light-dark\(#/),
@@ -45,7 +45,7 @@ describe("ExportPanel", () => {
   it("copies the active output to the clipboard", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator, { clipboard: { writeText } });
-    render(<ExportPanel tokenSet={set} />);
+    render(<ExportTabs tokenSet={set} />);
     fireEvent.click(screen.getByRole("button", { name: "Copy" }));
     expect(writeText).toHaveBeenCalledOnce();
     const copied = writeText.mock.calls[0][0];
@@ -56,7 +56,7 @@ describe("ExportPanel", () => {
   // QA-S4-2: hex/rgb are the sRGB rendering; the UI must disclose it (and the P3 clamp is
   // lossy). OKLCH is lossless, so no note there.
   it("discloses hex/rgb as the sRGB rendering, and never for OKLCH", () => {
-    render(<ExportPanel tokenSet={set} />);
+    render(<ExportTabs tokenSet={set} />);
     // Default OKLCH — no note.
     expect(screen.queryByRole("note")).not.toBeInTheDocument();
     // Hex — the note appears.
@@ -68,9 +68,7 @@ describe("ExportPanel", () => {
   });
 
   it("warns that hex/rgb clamp a P3 palette (lossy)", () => {
-    render(
-      <ExportPanel tokenSet={buildTokenSet("#7c3aed", { gamut: "p3" })} />,
-    );
+    render(<ExportTabs tokenSet={buildTokenSet("#7c3aed", { gamut: "p3" })} />);
     fireEvent.click(screen.getByRole("radio", { name: "RGB" }));
     expect(screen.getByRole("note")).toHaveTextContent(/P3.*sRGB|lossy/i);
   });
@@ -87,10 +85,10 @@ afterEach(() => {
   Object.assign(navigator, { clipboard: undefined });
 });
 
-describe("ExportPanel — clipboard error paths", () => {
+describe("ExportTabs — clipboard error paths", () => {
   it("does NOT throw when there is no clipboard API (non-secure context / old browser)", () => {
     Object.assign(navigator, { clipboard: undefined });
-    render(<ExportPanel tokenSet={set} />);
+    render(<ExportTabs tokenSet={set} />);
     // The click must be a graceful no-op, never a synchronous crash.
     expect(() =>
       fireEvent.click(screen.getByRole("button", { name: "Copy" })),
@@ -110,7 +108,7 @@ describe("ExportPanel — clipboard error paths", () => {
     };
     process.on("unhandledRejection", onUnhandled);
 
-    render(<ExportPanel tokenSet={set} />);
+    render(<ExportTabs tokenSet={set} />);
     fireEvent.click(screen.getByRole("button", { name: "Copy" }));
 
     // Let the rejected microtask settle and any unhandledRejection macrotask fire.
@@ -128,11 +126,11 @@ describe("ExportPanel — clipboard error paths", () => {
   });
 });
 
-describe("ExportPanel — copy lands the EXACT bytes of the ACTIVE tab", () => {
+describe("ExportTabs — copy lands the EXACT bytes of the ACTIVE tab", () => {
   it("copies the JSON output (not the default CSS) after switching to the JSON tab", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator, { clipboard: { writeText } });
-    render(<ExportPanel tokenSet={set} />);
+    render(<ExportTabs tokenSet={set} />);
 
     fireEvent.focus(screen.getByRole("tab", { name: "JSON tokens" }));
     const shown = within(screen.getByRole("tabpanel")).getByText(
@@ -156,7 +154,7 @@ describe("ExportPanel — copy lands the EXACT bytes of the ACTIVE tab", () => {
   });
 });
 
-describe("ExportPanel — download filename + mime per target", () => {
+describe("ExportTabs — download filename + mime per target", () => {
   const cases = [
     { tab: "CSS variables", filename: "palette.css", mime: "text/css" },
     {
@@ -198,7 +196,7 @@ describe("ExportPanel — download filename + mime per target", () => {
         return el;
       });
 
-      render(<ExportPanel tokenSet={set} />);
+      render(<ExportTabs tokenSet={set} />);
       fireEvent.focus(screen.getByRole("tab", { name: tab }));
       fireEvent.click(screen.getByRole("button", { name: "Download" }));
 

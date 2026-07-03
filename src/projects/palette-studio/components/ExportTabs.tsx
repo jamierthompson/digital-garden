@@ -1,12 +1,18 @@
-// The export UI (#107) — Radix Tabs across the three targets (CSS variables / Tailwind theme /
-// JSON tokens) with a format switch (OKLCH · Hex · RGB) driving the engine's `ColorFormat`.
-// The output is produced ONLY by the engine serializers (exporters.ts), so it can never drift
-// from the previewed/derived palette. Copy-to-clipboard + download per target.
+// The export UI (#107) — a tabbed surface across the three targets (CSS variables /
+// Tailwind theme / JSON tokens) with a format switch (OKLCH · Hex · RGB) driving the
+// engine's `ColorFormat`. Composed from the ui/ primitives: PillTabList (tabs),
+// SegmentedControl (format), Button (copy/download). The output is produced ONLY by the
+// engine serializers (exporters.ts), so it can never drift from the previewed/derived
+// palette.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { RadioGroup, Tabs } from "radix-ui";
+import { Tabs } from "radix-ui";
 import type { ColorFormat, TokenSet } from "@garden/oklch";
+
+import Button from "@/components/ui/Button";
+import PillTabList from "@/components/ui/PillTabList";
+import SegmentedControl from "@/components/ui/SegmentedControl";
 
 import {
   EXPORT_TABS,
@@ -14,15 +20,15 @@ import {
   serializeExport,
   type ExportTabId,
 } from "../core/exporters";
-import styles from "./ExportPanel.module.css";
+import styles from "./ExportTabs.module.css";
 
-interface ExportPanelProps {
+interface ExportTabsProps {
   readonly tokenSet: TokenSet;
 }
 
-export default function ExportPanel({
+export default function ExportTabs({
   tokenSet,
-}: ExportPanelProps): React.ReactElement {
+}: ExportTabsProps): React.ReactElement {
   const [tab, setTab] = useState<ExportTabId>("css");
   const [format, setFormat] = useState<ColorFormat>("oklch");
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">(
@@ -95,52 +101,28 @@ export default function ExportPanel({
       onValueChange={(v) => setTab(v as ExportTabId)}
     >
       <div className={styles.toolbar}>
-        <Tabs.List className={styles.tabs} aria-label="Export format">
-          {EXPORT_TABS.map((t) => (
-            <Tabs.Trigger key={t.id} className={styles.tab} value={t.id}>
-              {t.label}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
+        <PillTabList label="Export format" tabs={EXPORT_TABS} />
 
         <div className={styles.actions}>
-          <RadioGroup.Root
-            className={styles.formats}
-            aria-label="Color value format"
+          <SegmentedControl
+            label="Color value format"
             value={format}
-            onValueChange={(v) => setFormat(v as ColorFormat)}
-            orientation="horizontal"
-          >
-            {FORMAT_OPTIONS.map((f) => (
-              <RadioGroup.Item
-                key={f.value}
-                className={styles.formatPill}
-                value={f.value}
-              >
-                {f.label}
-              </RadioGroup.Item>
-            ))}
-          </RadioGroup.Root>
-
-          <button type="button" className={styles.button} onClick={handleCopy}>
+            onValueChange={setFormat}
+            options={FORMAT_OPTIONS}
+          />
+          <Button onClick={handleCopy}>
             {copyStatus === "copied"
               ? "Copied"
               : copyStatus === "failed"
                 ? "Copy failed"
                 : "Copy"}
-          </button>
-          <button
-            type="button"
-            className={styles.button}
-            onClick={handleDownload}
-          >
-            Download
-          </button>
+          </Button>
+          <Button onClick={handleDownload}>Download</Button>
         </div>
       </div>
 
       {formatNote && (
-        <p className={styles.note} role="note">
+        <p className={styles.formatNote} role="note">
           {formatNote}
         </p>
       )}

@@ -4,12 +4,14 @@
 // re-deriving color. Specimens are visual only (non-interactive) — a demo of the palette on
 // real component shapes, not working controls. Re-themes live because its tokens are props.
 
+import Kicker from "@/components/ui/Kicker";
+
 import type { Scheme, SchemeTokens } from "@garden/oklch";
 
 import { tokensToScopeVars } from "../core/scope";
-import styles from "./PreviewPanel.module.css";
+import styles from "./PreviewCard.module.css";
 
-interface PreviewPanelProps {
+interface PreviewCardProps {
   readonly scheme: Scheme;
   readonly tokens: SchemeTokens;
 }
@@ -21,18 +23,18 @@ const STATUS: readonly { token: string; label: string }[] = [
   { token: "info", label: "Syncing" },
 ];
 
-export default function PreviewPanel({
+export default function PreviewCard({
   scheme,
   tokens,
-}: PreviewPanelProps): React.ReactElement {
+}: PreviewCardProps): React.ReactElement {
   return (
     <div
-      className={styles.panel}
+      className={styles.root}
       style={{ ...tokensToScopeVars(tokens), colorScheme: scheme }}
       role="group"
       aria-label={`${scheme} preview`}
     >
-      <span className={styles.schemeLabel}>{scheme}</span>
+      <Kicker>{scheme}</Kicker>
 
       <div className={styles.card}>
         <h4 className={styles.cardTitle}>A card on this palette</h4>

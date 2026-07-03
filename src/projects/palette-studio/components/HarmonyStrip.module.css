@@ -7,15 +7,6 @@
     gap: var(--space-3);
   }
 
-  .note {
-    margin: 0;
-    max-width: 60ch;
-    font-family: var(--font-face);
-    font-style: italic;
-    font-size: var(--text-sm);
-    color: var(--text-muted);
-  }
-
   .groups {
     display: flex;
     flex-wrap: wrap;

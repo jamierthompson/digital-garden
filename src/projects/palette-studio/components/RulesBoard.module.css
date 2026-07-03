@@ -3,14 +3,14 @@
    as responsive columns; the Panel owns the frame chrome, the ui/ primitives own the
    label/pill/switch/note treatments. */
 @layer project {
-  .rail {
+  .board {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
     gap: var(--space-5) var(--space-6);
     align-items: start;
   }
 
-  .rail > :first-child {
+  .board > :first-child {
     grid-column: 1 / -1;
   }
 

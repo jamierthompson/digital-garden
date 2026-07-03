@@ -5,12 +5,12 @@ import { formatOklch } from "@garden/oklch";
 
 import { derivePalette } from "../core/derive";
 import { DEFAULT_GAMUT, DEFAULT_RULES } from "../core/rules";
-import PreviewPanel from "./PreviewPanel";
+import PreviewCard from "./PreviewCard";
 
-describe("PreviewPanel", () => {
+describe("PreviewCard", () => {
   it("scopes the generated tokens inline so specimens paint them, not the ambient theme", () => {
     const { light } = derivePalette("#7c3aed", DEFAULT_RULES, DEFAULT_GAMUT);
-    render(<PreviewPanel scheme="light" tokens={light.tokens} />);
+    render(<PreviewCard scheme="light" tokens={light.tokens} />);
     const panel = screen.getByRole("group", { name: "light preview" });
     // The container re-binds the semantic tokens to the GENERATED values — the specimens read
     // these via var(), never re-deriving color.
@@ -29,13 +29,13 @@ describe("PreviewPanel", () => {
   it("re-scopes when the tokens change (live re-theme)", () => {
     const first = derivePalette("#7c3aed", DEFAULT_RULES, DEFAULT_GAMUT).light;
     const { rerender } = render(
-      <PreviewPanel scheme="light" tokens={first.tokens} />,
+      <PreviewCard scheme="light" tokens={first.tokens} />,
     );
     const before = screen
       .getByRole("group", { name: "light preview" })
       .style.getPropertyValue("--accent");
     const second = derivePalette("#eab308", DEFAULT_RULES, DEFAULT_GAMUT).light;
-    rerender(<PreviewPanel scheme="light" tokens={second.tokens} />);
+    rerender(<PreviewCard scheme="light" tokens={second.tokens} />);
     const after = screen
       .getByRole("group", { name: "light preview" })
       .style.getPropertyValue("--accent");

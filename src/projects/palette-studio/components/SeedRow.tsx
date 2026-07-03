@@ -5,6 +5,7 @@
 
 import { formatOklch } from "@garden/oklch";
 
+import Chip from "@/components/ui/Chip";
 import Kicker from "@/components/ui/Kicker";
 
 import type { ParsedSeed } from "../core/derive";
@@ -75,20 +76,14 @@ export default function SeedRow({
         <Kicker>Starters</Kicker>
         <div className={styles.chips} role="group" aria-label="Preset seeds">
           {PRESETS.map((preset) => (
-            <button
+            <Chip
               key={preset.name}
-              type="button"
-              className={styles.chip}
+              pressed={seed === preset.seed}
               onClick={() => onSeedChange(preset.seed)}
-              aria-pressed={seed === preset.seed}
+              swatch={preset.seed}
             >
-              <span
-                className={styles.chipSwatch}
-                style={{ background: preset.seed }}
-                aria-hidden="true"
-              />
               {preset.name}
-            </button>
+            </Chip>
           ))}
         </div>
       </div>

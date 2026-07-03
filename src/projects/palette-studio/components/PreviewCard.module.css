@@ -2,7 +2,7 @@
    component, but here those names are re-bound (inline, by PreviewPanel) to the generated
    palette for this scheme, so the specimens paint the generated colors. */
 @layer project {
-  .panel {
+  .root {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
@@ -12,15 +12,6 @@
     background: var(--bg);
     color: var(--text);
     overflow: hidden;
-  }
-
-  .schemeLabel {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text-muted);
   }
 
   .card {
