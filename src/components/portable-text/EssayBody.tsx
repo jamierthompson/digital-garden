@@ -16,10 +16,13 @@ type Body = NonNullable<NonNullable<ENTRY_DETAIL_QUERY_RESULT>["body"]>;
 interface EssayBodyProps {
   value: Body;
   /**
-   * The host entry's brand-scope seed — set only for a project entry. Threaded to each
-   * `liveEmbed` so every embed mounts in its own scoped container while the prose between
-   * them stays editorial. The serializer is per-render because the components map closes
-   * over it; the map is tiny, so rebuilding it costs nothing measurable.
+   * The host entry's brand-scope seed — set whenever a non-`now` entry themes OR mounts a
+   * module (`brandColor || componentKey`), not just for a project. Keyed on the entry's own
+   * slug, so a module-only entry (no `brandColor`) still scopes its embeds under its own
+   * `[data-entry]` with the engine's fallback palette. Threaded to each `liveEmbed` so every
+   * embed mounts in its own scoped container while the prose between them stays editorial. The
+   * serializer is per-render because the components map closes over it; the map is tiny, so
+   * rebuilding it costs nothing measurable.
    */
   scope?: ScopeSeed;
 }

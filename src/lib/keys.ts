@@ -1,6 +1,6 @@
 // Reference-by-key contracts — the single source of truth for which keys exist.
 // Sanity stores keys (`componentKey`, `fontKey`, `embedKey`)
-// on a project document; code resolves them. This module owns the *allowed key
+// on an entry document; code resolves them. This module owns the *allowed key
 // values* and their types; resolvers (src/lib/resolvers/**) and the font roster
 // (src/fonts/roster.ts) key off these, and the Sanity schema builds its dropdowns
 // from them. Resolvers are typed `satisfies Record<Key, …>` so a missing entry is
@@ -28,13 +28,17 @@ export type FontKey = (typeof FONT_KEYS)[number];
 
 /**
  * Component keys — one per coded entry module, resolved to a literal dynamic import
- * in `src/lib/resolvers/components.ts`. Each project registers its key here when its
+ * in `src/lib/resolvers/components.ts`. Each entry registers its key here when its
  * module lands; the `satisfies Record<ComponentKey, …>` on `ENTRY_LOADERS` then forces
  * a matching loader entry (compile error if missing).
  *
- * A sketch project carries a `brandColor` but no `componentKey`, so it renders prose-only;
- * a project past the sketch stage declares its key here and the resolver maps it to a
- * literal dynamic import. The first real module is the Palette Studio (#70).
+ * `componentKey` is capability-gated, not kind-gated: any kind but `now` can declare one.
+ * An entry with no `componentKey` renders prose-only (a sketch project carrying a
+ * `brandColor` but no key yet, or an unkeyed note/essay); an entry that declares its key
+ * here has the resolver map it to a literal dynamic import. A key is required for a project
+ * past the sketch stage and optional-but-honored for a note or essay; a declared key that
+ * fails to resolve is a `notFound()` for any kind. The first real module is the Palette
+ * Studio (#70).
  */
 export const COMPONENT_KEYS = [
   "palette-studio",
