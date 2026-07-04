@@ -1,0 +1,193 @@
+/* Swatch card — @layer components, var-consuming. The card chrome reads ambient semantic
+   tokens (it is itself inside the brand-scoped slot); the only painted colors are the baked
+   swatch literals, set inline. */
+@layer components {
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-inline-size: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: 0.625rem;
+    background: var(--surface);
+    list-style: none;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .name {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .badge {
+    padding-block: 0.125rem;
+    padding-inline: var(--space-2);
+    border-radius: 99px;
+    background: color-mix(in oklab, var(--text) 8%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* A generous swatch — the card's headline element. */
+  .swatch {
+    block-size: 4.5rem;
+  }
+
+  .values {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    margin: 0;
+  }
+
+  .values dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+
+  .valueOklch {
+    font-size: var(--text-sm);
+    color: var(--text);
+  }
+
+  .valueHex {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+  }
+
+  .sentence {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .contrast {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+
+  .mark {
+    color: var(--error);
+  }
+
+  .mark[data-pass] {
+    color: var(--success);
+  }
+
+  .usage {
+    margin: 0;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+  }
+
+  /* Disclosure body — the two scheme facets stacked, each a compact repeat of the face. */
+  .disclosure {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .facet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .facetHead {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .facetSwatch {
+    display: block;
+    inline-size: 2rem;
+    block-size: 1.25rem;
+  }
+
+  .facetScheme {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .facetSentence {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
+
+  .facetValues {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+    margin: 0;
+  }
+
+  .facetValues div {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  .facetValues dt {
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .facetValues dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--text);
+  }
+
+  .oogNote {
+    margin: 0;
+    padding-block-start: var(--space-2);
+    border-block-start: 1px solid var(--border);
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .srOnly {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}

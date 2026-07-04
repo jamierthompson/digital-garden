@@ -1,0 +1,47 @@
+@layer components {
+  /* The cut corner is two nested clips: the outer span is the hairline (border-colored
+     background), the inner fill clips 1px smaller — a real border along the diagonal,
+     which border/box-shadow can't draw on a clipped box. */
+  .swatch {
+    --swatch-notch: 14px;
+
+    position: relative;
+    display: block;
+    block-size: 100%;
+    min-block-size: 24px;
+    background: var(--border);
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--swatch-notch)) 0,
+      100% var(--swatch-notch),
+      100% 100%,
+      0 100%
+    );
+    border-radius: var(--radius-1, 4px);
+  }
+
+  .fill {
+    position: absolute;
+    inset: 1px;
+    background: transparent;
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--swatch-notch) + 0.5px) 0,
+      100% calc(var(--swatch-notch) - 0.5px),
+      100% 100%,
+      0 100%
+    );
+    border-radius: calc(var(--radius-1, 4px) - 1px);
+  }
+
+  .oog {
+    position: absolute;
+    inset-block-start: 4px;
+    inset-inline-start: 4px;
+    inline-size: 5px;
+    block-size: 5px;
+    border-radius: 99px;
+    background: var(--bg);
+    box-shadow: 0 0 0 1px var(--text-muted);
+  }
+}

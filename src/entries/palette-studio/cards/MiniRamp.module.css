@@ -1,0 +1,54 @@
+/* Mini ramp strip — @layer components, var-consuming. The only painted colors are the
+   baked ramp literals set inline; chrome (border, marker text) reads ambient tokens. */
+@layer components {
+  .ramp {
+    display: grid;
+    grid-template-columns: repeat(var(--step-count, 11), minmax(0, 1fr));
+    gap: 2px;
+    align-items: end;
+    block-size: 2rem;
+  }
+
+  .step {
+    position: relative;
+    block-size: 1.25rem;
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px
+      color-mix(in oklab, var(--text) 12%, transparent);
+  }
+
+  /* The bound step is raised full-height and ringed, so the "this token sits HERE" thread
+     reads at a glance — the ring uses the ambient text color for a scheme-safe outline. */
+  .step[data-bound] {
+    block-size: 2rem;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--text) 20%, transparent),
+      0 0 0 2px var(--text);
+    z-index: 1;
+  }
+
+  /* Out-of-gamut steps carry a small dot (the chroma was trimmed to fit the screen). */
+  .step[data-oog]::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 2px;
+    inset-inline-start: 2px;
+    inline-size: 4px;
+    block-size: 4px;
+    border-radius: 99px;
+    background: var(--bg);
+    box-shadow: 0 0 0 1px var(--text-muted);
+  }
+
+  .marker {
+    position: absolute;
+    inset-block-start: -1.1rem;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+}
