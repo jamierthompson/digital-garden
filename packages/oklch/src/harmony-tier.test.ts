@@ -4,7 +4,6 @@ import {
   buildHarmonyTier,
   resolveHarmonyTier,
   HARMONY_HUES,
-  type HarmonyHue,
   type HarmonyTier,
 } from "./harmony-tier";
 import {
@@ -17,7 +16,7 @@ import { CONTRAST_TARGETS } from "./targets";
 import { checkContrast } from "./contrast";
 import { inGamut } from "./gamut";
 import { RAMP_LABELS, BRAND_TOKEN_NAMES, RAMP_ROLES } from "./types";
-import type { Gamut, OkLCH, Scheme } from "./types";
+import type { OkLCH } from "./types";
 
 /** JND budget the gamut mapper is allowed to nudge L by (gamut.ts JND = 0.02 ΔEok). */
 const JND = 0.02;
@@ -332,5 +331,247 @@ describe("harmony tier — opt-in, separated export group", () => {
     expect(hexTheme).not.toContain("oklch(");
     const dt = harmonyTierToDesignTokens(tier, { format: "rgb" });
     expect(dt.light.harmony["analogous-a"].text.$value.colorSpace).toBe("srgb");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fresh adversarial QA (#152). Attacks the edges the author's happy path optimized
+// past: the "worst-case surface" promise measured on EVERY surface, the DTCG hex
+// fallback under a P3 gamut, provenance truthfulness when 7 hues collapse to one
+// ramp, the 0.4-chroma boundary, finiteness of every emitted color, and the
+// dual-scheme zip's meta correctness. Every color is baked to the shipped 4/4/2-dp
+// literal before it is measured — the check is on what the browser actually paints.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** The three surface tokens a harmony pick can sit on; `surface-2` is the derivation's
+ *  declared worst case, so a pick that clears it must also clear the other two. */
+const SURFACE_TOKENS = ["bg", "surface", "surface-2"] as const;
+
+/** True when every OKLCH component is a finite number (no NaN/Infinity leak). */
+function allFinite(c: OkLCH): boolean {
+  return Number.isFinite(c.L) && Number.isFinite(c.C) && Number.isFinite(c.H);
+}
+
+describe("QA — adversarial (#152)", () => {
+  it.each(SEEDS)(
+    "%s: each pick clears its target on EVERY surface, not just surface-2 (both schemes/gamuts, baked)",
+    (_l, seed) => {
+      for (const gamut of ["srgb", "p3"] as const) {
+        for (const scheme of ["light", "dark"] as const) {
+          const base = resolveTheme(seed, scheme, { gamut });
+          const tier = resolveHarmonyTier(seed, scheme, { gamut });
+          for (const surfaceName of SURFACE_TOKENS) {
+            const surface = bake(base.tokens[surfaceName]);
+            for (const hue of HARMONY_HUES) {
+              const h = tier.hues[hue];
+              const text = checkContrast(
+                bake(h.text.color),
+                surface,
+                CONTRAST_TARGETS.accentText,
+              );
+              const fill = checkContrast(
+                bake(h.fill.color),
+                surface,
+                CONTRAST_TARGETS.ui,
+              );
+              expect(
+                text.passes,
+                `${hue} text ${scheme}/${gamut} vs ${surfaceName}: wcag ${text.wcag} apca ${text.apca}`,
+              ).toBe(true);
+              expect(
+                fill.passes,
+                `${hue} fill ${scheme}/${gamut} vs ${surfaceName}: wcag ${fill.wcag} apca ${fill.apca}`,
+              ).toBe(true);
+            }
+          }
+        }
+      }
+    },
+  );
+
+  it.each(SEEDS)(
+    "%s: no emitted color carries a non-finite component (ramp steps + both picks, both schemes/gamuts)",
+    (_l, seed) => {
+      for (const gamut of ["srgb", "p3"] as const) {
+        const tier = buildHarmonyTier(seed, { gamut });
+        for (const hue of HARMONY_HUES) {
+          const h = tier.hues[hue];
+          for (const scheme of ["light", "dark"] as const) {
+            for (const step of h.ramp[scheme]) {
+              expect(
+                allFinite(step.color),
+                `${hue} ${scheme} ${step.label}`,
+              ).toBe(true);
+              expect(inGamut(step.color, gamut)).toBe(true);
+            }
+            expect(allFinite(h.text[scheme].color)).toBe(true);
+            expect(allFinite(h.fill[scheme].color)).toBe(true);
+          }
+        }
+      }
+    },
+  );
+
+  it.each(["srgb", "p3"] as const)(
+    "DTCG hex fallback is a 6-digit lowercase hex under the %s gamut, across all formats",
+    (gamut) => {
+      const tier = buildHarmonyTier("oklch(0.65 0.3 145)", { gamut });
+      for (const format of ["oklch", "hex", "rgb"] as const) {
+        const dt = harmonyTierToDesignTokens(tier, { format });
+        for (const scheme of ["light", "dark"] as const) {
+          for (const hue of HARMONY_HUES) {
+            const group = dt[scheme].harmony[hue];
+            for (const token of [
+              group.text,
+              group.fill,
+              ...Object.values(group.ramp),
+            ]) {
+              // The sRGB hex fallback must ALWAYS be present and valid, even when the
+              // color itself is a P3 value the hex clamps down from (never overflow).
+              expect(token.$value.hex).toMatch(/^#[0-9a-f]{6}$/);
+              const [r, g, b] = token.$value.components;
+              for (const ch of [r, g, b])
+                expect(Number.isFinite(ch)).toBe(true);
+            }
+          }
+        }
+      }
+    },
+  );
+
+  it.each(["srgb", "p3"] as const)(
+    "serialized CSS/Tailwind never emits NaN/Infinity/undefined under the %s gamut",
+    (gamut) => {
+      const tier = buildHarmonyTier("oklch(0.65 0.3 145)", { gamut });
+      for (const css of [
+        harmonyTierToCss(tier),
+        harmonyTierToTailwindTheme(tier),
+        harmonyTierToCss(tier, ":root", { format: "hex" }),
+        harmonyTierToTailwindTheme(tier, { format: "rgb" }),
+      ]) {
+        expect(css).not.toMatch(/NaN|Infinity|undefined|null/);
+      }
+    },
+  );
+
+  it("achromatic seed: provenance stays truthful when the 7 hues visually collapse to grey", () => {
+    // A near-grey seed (C≈0) makes every derived hue's ramp visually identical — same L
+    // profile, chroma indistinguishable from zero — so value-matching on the painted color
+    // would be ambiguous across hues. Solve-time provenance must still name THIS hue and a
+    // real step of ITS OWN ramp. (The OKLCH objects keep a distinct H field, but that is not
+    // what a receipt reader compares — the paint is grey.)
+    for (const scheme of ["light", "dark"] as const) {
+      const tier = resolveHarmonyTier("#808080", scheme);
+      const refL = tier.hues["analogous-a"].ramp.map((s) => s.color.L);
+      for (const hue of HARMONY_HUES) {
+        const h = tier.hues[hue];
+        // Visual collapse is real: same L profile, chroma ≈ 0 at every step.
+        expect(h.ramp.map((s) => s.color.L)).toEqual(refL);
+        for (const step of h.ramp) expect(step.color.C).toBeLessThan(1e-4);
+        // Provenance is nonetheless per-hue truthful, landed at solve time.
+        for (const pick of [h.text, h.fill]) {
+          expect(pick.provenance.role).toBe(hue);
+          const step = h.ramp.find((s) => s.label === pick.provenance.label);
+          expect(
+            step,
+            `${hue} ${pick.provenance.label} not on its own ramp`,
+          ).toBeDefined();
+          expect(pick.color).toEqual(step!.color);
+        }
+      }
+    }
+  });
+
+  it("extreme chroma (0.4) never throws, stays in gamut, and clears every pick", () => {
+    for (const gamut of ["srgb", "p3"] as const) {
+      let tier!: HarmonyTier;
+      expect(
+        () => (tier = buildHarmonyTier("oklch(0.6 0.4 300)", { gamut })),
+      ).not.toThrow();
+      for (const scheme of ["light", "dark"] as const) {
+        const base = resolveTheme("oklch(0.6 0.4 300)", scheme, { gamut });
+        const surface2 = bake(base.tokens["surface-2"]);
+        for (const hue of HARMONY_HUES) {
+          const h = tier.hues[hue];
+          for (const step of h.ramp[scheme]) {
+            expect(inGamut(step.color, gamut)).toBe(true);
+          }
+          expect(
+            checkContrast(
+              bake(h.text[scheme].color),
+              surface2,
+              CONTRAST_TARGETS.accentText,
+            ).passes,
+          ).toBe(true);
+          expect(
+            checkContrast(
+              bake(h.fill[scheme].color),
+              surface2,
+              CONTRAST_TARGETS.ui,
+            ).passes,
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("buildHarmonyTier zips the correct per-scheme seed, gamut, and fallback flag", () => {
+    for (const [, seed] of SEEDS) {
+      for (const gamut of ["srgb", "p3"] as const) {
+        const tier = buildHarmonyTier(seed, { gamut });
+        const light = resolveHarmonyTier(seed, "light", { gamut });
+        const dark = resolveHarmonyTier(seed, "dark", { gamut });
+        expect(tier.meta.seed.light).toEqual(light.seed);
+        expect(tier.meta.seed.dark).toEqual(dark.seed);
+        expect(tier.meta.gamut).toBe(gamut);
+        // The fallback verdict is a property of the input alone — both schemes must agree,
+        // so the single flag `buildHarmonyTier` reports off `light` is not a half-truth.
+        expect(light.isFallback).toBe(dark.isFallback);
+        expect(tier.meta.isFallback).toBe(light.isFallback);
+        // Each zipped hue carries the matching per-scheme picks (no light/dark crossover).
+        for (const hue of HARMONY_HUES) {
+          expect(tier.hues[hue].text.light).toEqual(light.hues[hue].text);
+          expect(tier.hues[hue].text.dark).toEqual(dark.hues[hue].text);
+          expect(tier.hues[hue].fill.light).toEqual(light.hues[hue].fill);
+          expect(tier.hues[hue].fill.dark).toEqual(dark.hues[hue].fill);
+        }
+      }
+    }
+  });
+
+  it("hue wraparound (0° and 359°) rotates cleanly — no NaN, deterministic, complementary is ~180° off", () => {
+    for (const seed of ["oklch(0.6 0.15 0)", "oklch(0.6 0.15 359.9)"]) {
+      const a = buildHarmonyTier(seed);
+      const b = buildHarmonyTier(seed);
+      expect(a).toEqual(b); // determinism across the wrap boundary
+      // The offset metadata is the rotation contract: complementary sits 180° from the seed.
+      expect(a.hues.complementary.offset).toBe(180);
+      expect(a.hues["analogous-a"].offset).toBe(-30);
+      expect(a.hues["split-complementary-b"].offset).toBe(210);
+    }
+  });
+
+  it("partial/garbage opts fields degrade to defaults without throwing", () => {
+    const cases: unknown[] = [
+      { gamut: undefined },
+      { rules: undefined },
+      { gamut: "p3", rules: undefined },
+      { gamut: "srgb", rules: {} },
+      {},
+    ];
+    for (const opts of cases) {
+      expect(() =>
+        buildHarmonyTier(
+          "#3b82f6",
+          opts as Parameters<typeof buildHarmonyTier>[1],
+        ),
+      ).not.toThrow();
+    }
+    // A bare/undefined-gamut opts resolves identically to the srgb default.
+    expect(
+      buildHarmonyTier("#3b82f6", { gamut: undefined } as Parameters<
+        typeof buildHarmonyTier
+      >[1]),
+    ).toEqual(buildHarmonyTier("#3b82f6"));
   });
 });
