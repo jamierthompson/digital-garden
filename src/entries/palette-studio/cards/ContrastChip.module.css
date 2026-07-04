@@ -1,0 +1,20 @@
+/* Contrast chip — @layer components, var-consuming. Numbers in mono; the mark colored by pass. */
+@layer components {
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+
+  .mark {
+    color: var(--error);
+  }
+
+  .mark[data-pass] {
+    color: var(--success);
+  }
+}

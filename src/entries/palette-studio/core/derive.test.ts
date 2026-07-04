@@ -11,8 +11,13 @@ import {
   type HuePolicy,
   type LightnessDistribution,
 } from "@garden/oklch";
+import type { BindingProvenance, StepProvenance } from "@garden/oklch";
 import { DEFAULT_GAMUT, DEFAULT_RULES, type StudioRules } from "./rules";
 import { derivePalette, describeAnchor, parseSeed } from "./derive";
+
+/** Narrow a provenance to its ramp-step form (surfaces + `auto` tokens), else null. */
+const asStep = (p: BindingProvenance): StepProvenance | null =>
+  p?.kind === "step" ? p : null;
 
 const SEED = "#7c3aed"; // a saturated violet — sensitive to every ramp-shaping rule
 const CRIMSON = "#e11d48";
@@ -113,27 +118,37 @@ describe("token rows", () => {
   it("binds surfaces + readable tokens to a neutral ramp step, both schemes", () => {
     const { rows } = derivePalette(SEED, DEFAULT_RULES, DEFAULT_GAMUT);
     const bg = rows.find((r) => r.name === "bg")!;
-    expect(bg.light.boundTo).toEqual({ role: "neutral", label: "50" });
-    expect(bg.dark.boundTo).toEqual({ role: "neutral", label: "950" });
+    expect(bg.light.boundTo).toEqual({
+      kind: "step",
+      role: "neutral",
+      label: "50",
+    });
+    expect(bg.dark.boundTo).toEqual({
+      kind: "step",
+      role: "neutral",
+      label: "950",
+    });
     const text = rows.find((r) => r.name === "text")!;
-    expect(text.light.boundTo?.role).toBe("neutral");
-    expect(text.dark.boundTo?.role).toBe("neutral");
+    expect(asStep(text.light.boundTo)?.role).toBe("neutral");
+    expect(asStep(text.dark.boundTo)?.role).toBe("neutral");
   });
 
   it("binds accent-text / focus-ring to the brand ramp", () => {
     const { rows } = derivePalette(SEED, DEFAULT_RULES, DEFAULT_GAMUT);
     for (const name of ["accent-text", "focus-ring"] as const) {
       const row = rows.find((r) => r.name === name)!;
-      expect(row.light.boundTo?.role).toBe("brand");
+      expect(asStep(row.light.boundTo)?.role).toBe("brand");
     }
   });
 
-  it("reports the continuously-solved accent + on-accent as unbound (no discrete step)", () => {
+  it("reports the accent + on-accent co-solve stories, not a discrete step", () => {
     const { rows } = derivePalette(SEED, DEFAULT_RULES, DEFAULT_GAMUT);
     for (const name of ["accent", "on-accent"] as const) {
       const row = rows.find((r) => r.name === name)!;
-      expect(row.light.boundTo).toBeNull();
-      expect(row.dark.boundTo).toBeNull();
+      // No longer null — each carries a first-class co-solve report tagged by kind (#151).
+      expect(row.light.boundTo?.kind).toBe(name);
+      expect(row.dark.boundTo?.kind).toBe(name);
+      expect(asStep(row.light.boundTo)).toBeNull();
     }
   });
 
@@ -167,13 +182,15 @@ describe("token rows", () => {
         "border",
       ] as const) {
         const row = rows.find((r) => r.name === name)!;
-        expect(row.light.boundTo?.role, `${name}/light`).toBe("neutral");
-        expect(row.dark.boundTo?.role, `${name}/dark`).toBe("neutral");
+        expect(asStep(row.light.boundTo)?.role, `${name}/light`).toBe(
+          "neutral",
+        );
+        expect(asStep(row.dark.boundTo)?.role, `${name}/dark`).toBe("neutral");
       }
       // …while accent-text / focus-ring still name the brand ramp.
       for (const name of ["accent-text", "focus-ring"] as const) {
         const row = rows.find((r) => r.name === name)!;
-        expect(row.light.boundTo?.role, `${name}/light`).toBe("brand");
+        expect(asStep(row.light.boundTo)?.role, `${name}/light`).toBe("brand");
       }
     },
   );
@@ -190,10 +207,11 @@ describe("token rows", () => {
       for (const row of palette.rows) {
         for (const scheme of ["light", "dark"] as const) {
           const cell = row[scheme];
-          if (cell.boundTo === null) continue; // continuous co-solve — no step to check
+          const bound = asStep(cell.boundTo);
+          if (!bound) continue; // continuous co-solve — no discrete step to check
           const view = palette[scheme];
-          const step = view.ramps[cell.boundTo.role].find(
-            (s) => s.label === cell.boundTo!.label,
+          const step = view.ramps[bound.role].find(
+            (s) => s.label === bound.label,
           );
           expect(step, `${row.name}/${scheme}`).toBeDefined();
           expect(step!.color).toEqual(cell.value);

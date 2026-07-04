@@ -1,0 +1,62 @@
+/* One scheme's detail block inside a card disclosure — @layer components, var-consuming. */
+@layer components {
+  .facet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .swatch {
+    display: block;
+    inline-size: 2rem;
+    block-size: 1.25rem;
+  }
+
+  .scheme {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .sentence {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
+
+  .values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+    margin: 0;
+  }
+
+  .values div {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  .values dt {
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .values dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--text);
+  }
+}

@@ -78,24 +78,6 @@
     color: var(--text);
   }
 
-  .contrast {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    color: var(--text-muted);
-  }
-
-  .mark {
-    color: var(--error);
-  }
-
-  .mark[data-pass] {
-    color: var(--success);
-  }
-
   .usage {
     margin: 0;
     font-size: 0.6875rem;
@@ -103,71 +85,11 @@
     color: var(--text-muted);
   }
 
-  /* Disclosure body — the two scheme facets stacked, each a compact repeat of the face. */
+  /* Disclosure body — the two scheme facets stacked (each a `FacetDetail`), plus the oog aside. */
   .disclosure {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-  }
-
-  .facet {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .facetHead {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-
-  .facetSwatch {
-    display: block;
-    inline-size: 2rem;
-    block-size: 1.25rem;
-  }
-
-  .facetScheme {
-    font-family: var(--font-mono);
-    font-size: 0.625rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-
-  .facetSentence {
-    margin: 0;
-    font-size: var(--text-sm);
-    line-height: 1.5;
-  }
-
-  .facetValues {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1) var(--space-4);
-    margin: 0;
-  }
-
-  .facetValues div {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-2);
-  }
-
-  .facetValues dt {
-    font-family: var(--font-mono);
-    font-size: 0.5625rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-
-  .facetValues dd {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    color: var(--text);
   }
 
   .oogNote {

@@ -9,6 +9,7 @@
 
 import {
   checkContrast,
+  CONTRAST_TARGETS,
   type BrandTokenName,
   type ContrastTarget,
   type SchemeTokens,
@@ -28,42 +29,42 @@ interface ReceiptPair {
  * on its fill and the focus ring. Foregrounds solved against `surface-2` also clear on `bg`
  * and `surface`, so `surface-2` is the honest worst case to show. The four status signals
  * belong here too: the engine solves them as `auto` readable-on-surface tokens against
- * `surface-2` at the accent-text target (`{ wcag: 4.5, apca: 60 }`, palette.ts
- * `TARGET.accentText`), and the preview paints them as colored text — so they are part of
- * the guarantee this receipt exists to prove (QA-S13-1).
+ * `surface-2` at the accent-text target (`CONTRAST_TARGETS.accentText`), and the preview
+ * paints them as colored text — so they are part of the guarantee this receipt exists to
+ * prove (QA-S13-1).
  */
-const STATUS_TEXT_TARGET: ContrastTarget = { wcag: 4.5, apca: 60 };
-
+// Every target is the engine's own `CONTRAST_TARGETS` tier read by identity (#150) — the
+// solver and this receipt can never disagree on the numbers.
 const RECEIPT_PAIRS: readonly ReceiptPair[] = [
   {
     label: "body text",
     fg: "text",
     bg: "surface-2",
-    target: { wcag: 4.5, apca: 75 },
+    target: CONTRAST_TARGETS.bodyText,
   },
   {
     label: "muted text",
     fg: "text-muted",
     bg: "surface-2",
-    target: { wcag: 4.5, apca: 60 },
+    target: CONTRAST_TARGETS.mutedText,
   },
   {
     label: "accent text",
     fg: "accent-text",
     bg: "surface-2",
-    target: { wcag: 4.5, apca: 60 },
+    target: CONTRAST_TARGETS.accentText,
   },
   {
     label: "on-accent",
     fg: "on-accent",
     bg: "accent",
-    target: { wcag: 4.5, apca: 60 },
+    target: CONTRAST_TARGETS.onAccent,
   },
   {
     label: "focus ring",
     fg: "focus-ring",
     bg: "surface-2",
-    target: { wcag: 3, apca: 45 },
+    target: CONTRAST_TARGETS.ui,
   },
   // Status signals — colored text the preview paints on the surface; solved on `surface-2`
   // at the accent-text target, so they clear it exactly like `accent text` above.
@@ -71,16 +72,26 @@ const RECEIPT_PAIRS: readonly ReceiptPair[] = [
     label: "success",
     fg: "success",
     bg: "surface-2",
-    target: STATUS_TEXT_TARGET,
+    target: CONTRAST_TARGETS.accentText,
   },
-  { label: "error", fg: "error", bg: "surface-2", target: STATUS_TEXT_TARGET },
+  {
+    label: "error",
+    fg: "error",
+    bg: "surface-2",
+    target: CONTRAST_TARGETS.accentText,
+  },
   {
     label: "warning",
     fg: "warning",
     bg: "surface-2",
-    target: STATUS_TEXT_TARGET,
+    target: CONTRAST_TARGETS.accentText,
   },
-  { label: "info", fg: "info", bg: "surface-2", target: STATUS_TEXT_TARGET },
+  {
+    label: "info",
+    fg: "info",
+    bg: "surface-2",
+    target: CONTRAST_TARGETS.accentText,
+  },
 ];
 
 /** One measured receipt line, ready to render. */

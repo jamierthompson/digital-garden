@@ -13,7 +13,7 @@ import {
   gamutMap,
   parseColor,
   RAMP_ROLES,
-  type BindingStep,
+  type BindingProvenance,
   type BrandTokenName,
   type Gamut,
   type OkLCH,
@@ -86,18 +86,19 @@ export function parseSeed(input: string, gamut: Gamut = "srgb"): ParsedSeed {
 }
 
 /**
- * Which ramp step a semantic token bound to — the engine's own binding provenance
- * (`@garden/oklch`), reported at solve time. `null` for the continuously-solved accent fill
- * / on-accent label (and any literal), which are not a discrete ramp step. Aliased to the
- * engine's `BindingStep` so the receipt shape has one source of truth, not a restatement.
+ * One semantic token, resolved for both schemes with each scheme's solve-time binding
+ * provenance — the engine's own report (`@garden/oklch`), read verbatim, never value-matched.
+ * `BindingProvenance` is a discriminated union on `kind`: `step` (surfaces + every `auto`
+ * token) carries the `(role, label)` ramp coordinate; `accent`/`on-accent` carry the
+ * continuous co-solve story (native/deltaL, pole/chroma); `null` only for a `literal` binding.
  */
-export type BoundStep = BindingStep;
-
-/** One semantic token, resolved for both schemes with the ramp step each scheme bound to. */
 export interface TokenRow {
   readonly name: BrandTokenName;
-  readonly light: { readonly value: OkLCH; readonly boundTo: BoundStep | null };
-  readonly dark: { readonly value: OkLCH; readonly boundTo: BoundStep | null };
+  readonly light: {
+    readonly value: OkLCH;
+    readonly boundTo: BindingProvenance;
+  };
+  readonly dark: { readonly value: OkLCH; readonly boundTo: BindingProvenance };
 }
 
 /** Everything the UI needs to paint ONE scheme's boards. */
