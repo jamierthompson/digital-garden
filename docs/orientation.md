@@ -38,14 +38,15 @@ scripts/
   check-css-layers.mjs     the @layer-declaration lint (pnpm lint:css)
   check-key-drift.mjs      the key-drift guard (pnpm lint:keys)
   check-doc-gate-sync.mjs  the gate-doc sync guard (pnpm lint:docs; keeps the gate chain ≡ across the DoD one command, ci.yml)
-  check-doc-links.mjs      the markdown link & anchor checker (the other half of pnpm lint:docs)
+  check-doc-links.mjs      the markdown link & anchor checker (pnpm lint:docs)
+  check-retired-citations.mjs  the retired-citation guard (the third leg of pnpm lint:docs)
+  check-published-keys.mjs the published-Sanity-keys → code drift net (pnpm lint:keys:published; CI job published-keys)
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
     layout.tsx             root layout (shell nav skeleton, shell fonts preload:true)
     foundation.css         foundation primitives + semantic editorial defaults + the @layer foundation, semantic, brand, project order
   lib/                     resolvers, keys, cardSwatches, breakpoints (build-time, NOT :root vars)
   projects/<slug>/         self-contained project modules (registry-resolved, literal imports)
-  embeds/                  shared cross-project embed components (componentKey/embedKey resolved in lib/resolvers/)
   fonts/roster.ts          curated next/font faces, one per key (preload:false)
   sanity/lib/              Sanity client + env + the defineLive read path
 packages/
@@ -121,7 +122,7 @@ These are the things that silently break this specific stack, or that the owner 
 ## Which doc for which task
 
 | Your task is about…                                               | Read                                                                       |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | The system model / what the architecture _is_ / why we chose X    | [`./architecture.md`](./architecture.md) (the system model)                |
 | What to do next / the work backlog                                | [GitHub issues](https://github.com/jamierthompson/digital-garden/issues)   |
 | Code style, TS rules, the `@layer` trap, import boundaries        | [`./engineering-standards.md`](./engineering-standards.md)                 |
