@@ -15,8 +15,9 @@
  */
 
 import type { ContrastTarget } from "./contrast";
+import { deepFreeze } from "./freeze";
 
-export const CONTRAST_TARGETS = {
+export const CONTRAST_TARGETS = deepFreeze({
   /** Body text: WCAG 4.5 floor, APCA Lc 75 quality target. */
   bodyText: { wcag: 4.5, apca: 75 } satisfies ContrastTarget,
   /** Muted/secondary text: still small-text AA (4.5), lower APCA tier (Lc 60). */
@@ -32,7 +33,7 @@ export const CONTRAST_TARGETS = {
   ui: { wcag: 3, apca: 45 } satisfies ContrastTarget,
   /** Subtle borders: non-text 3:1 floor. */
   border: { wcag: 3, apca: 30 } satisfies ContrastTarget,
-} as const;
+} as const);
 
 /** The named contrast tiers, e.g. `"bodyText"` — the keys of `CONTRAST_TARGETS` (#150). */
 export type ContrastTargetName = keyof typeof CONTRAST_TARGETS;

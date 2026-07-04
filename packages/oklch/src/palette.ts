@@ -43,6 +43,7 @@ import { gamutMap } from "./gamut";
 import { parseColor } from "./convert";
 import { checkContrast } from "./contrast";
 import { CONTRAST_TARGETS } from "./targets";
+import { deepFreeze } from "./freeze";
 import {
   BRAND_TOKEN_NAMES,
   RAMP_ROLES,
@@ -130,7 +131,7 @@ const SCHEMES: Record<Scheme, SchemeConfig> = {
  */
 export const DEFAULT_BINDING_SCHEMA: Readonly<
   Record<BrandTokenName, TokenBinding>
-> = {
+> = deepFreeze({
   // Surfaces: page → elevated → higher, from the near-neutral ramp. Light end in light,
   // dark end in dark; `surface-2` is the worst-case surface the `auto` tokens solve on.
   bg: { kind: "step", role: "neutral", light: "50", dark: "950" },
@@ -168,7 +169,7 @@ export const DEFAULT_BINDING_SCHEMA: Readonly<
     target: CONTRAST_TARGETS.accentText,
   },
   info: { kind: "auto", role: "info", target: CONTRAST_TARGETS.accentText },
-};
+});
 
 /**
  * The label the `surface-2` step binds to in each scheme — the WORST-CASE surface the `auto`

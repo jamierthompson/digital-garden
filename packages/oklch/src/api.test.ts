@@ -284,3 +284,63 @@ describe("the exported derivation contract (#150)", () => {
     }
   });
 });
+
+describe("QA — adversarial: #150 exports are a READ-ONLY contract, not a mutable singleton", () => {
+  // #150 asks for the schema "or a READ-ONLY view of it". The solver reads these exact
+  // objects at runtime — `resolveTheme` resolves `DEFAULT_BINDING_SCHEMA` directly, and each
+  // `auto` binding references a `CONTRAST_TARGETS` tier BY IDENTITY. A `Readonly<…>` type and
+  // `as const` are COMPILE-TIME ONLY: they vanish at runtime, leaving a shared, writable
+  // singleton every consumer of `@garden/oklch` holds a live reference to. A single stray
+  // `CONTRAST_TARGETS.bodyText.wcag = …` (or a schema reassignment) in the Studio — or any
+  // other importer — silently corrupts EVERY subsequent solve process-wide. The contract has
+  // to be enforced at runtime (`Object.freeze`, deeply), not just described in the types.
+
+  it("CONTRAST_TARGETS is deeply frozen — a stray write cannot corrupt the solver's tiers", () => {
+    expect(Object.isFrozen(api.CONTRAST_TARGETS)).toBe(true);
+    for (const [name, tier] of Object.entries(api.CONTRAST_TARGETS)) {
+      expect(Object.isFrozen(tier), `tier ${name}`).toBe(true);
+    }
+  });
+
+  it("DEFAULT_BINDING_SCHEMA is deeply frozen — the exported schema cannot be reassigned", () => {
+    expect(Object.isFrozen(api.DEFAULT_BINDING_SCHEMA)).toBe(true);
+    for (const [name, binding] of Object.entries(api.DEFAULT_BINDING_SCHEMA)) {
+      expect(Object.isFrozen(binding), `binding ${name}`).toBe(true);
+    }
+  });
+
+  it("mutating a CONTRAST_TARGETS tier does NOT corrupt a later solve (proves the shared-singleton risk)", () => {
+    // Demonstrates the concrete blast radius: `text` binds `auto` against `bodyText`, so
+    // raising that tier's floor at runtime moves the shipped `--text` color. Restored in a
+    // `finally` so the demonstration can't poison sibling tests — but a frozen table would
+    // make the write a silent no-op (loose mode) or throw (strict), and this would pass.
+    const tier = api.CONTRAST_TARGETS.bodyText as {
+      wcag: number;
+      apca: number;
+    };
+    const before = api.buildTokenSet("#3b82f6").tokens.text.light;
+    const original = { wcag: tier.wcag, apca: tier.apca };
+    // On a deeply-frozen table this write throws in ESM strict mode (or silently no-ops in
+    // loose mode) — both mean the tier is immutable. Tolerate the throw so we can still assert
+    // the real payload: a later solve is UNCHANGED. The finally restore (also throw-tolerant)
+    // keeps a regression from poisoning sibling tests if the freeze ever comes off.
+    try {
+      try {
+        tier.wcag = 21;
+        tier.apca = 108;
+      } catch {
+        /* frozen property → strict-mode TypeError: the immutability we want */
+      }
+      const after = api.buildTokenSet("#3b82f6").tokens.text.light;
+      // A read-only contract keeps the solve stable regardless of the attempted write.
+      expect(after).toEqual(before);
+    } finally {
+      try {
+        tier.wcag = original.wcag;
+        tier.apca = original.apca;
+      } catch {
+        /* frozen — nothing to restore */
+      }
+    }
+  });
+});

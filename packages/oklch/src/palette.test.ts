@@ -799,6 +799,36 @@ describe("baked literals clear the TRUE contrast floor (#79)", () => {
   );
 });
 
+describe("QA — adversarial: #153 on-accent C→0 limit at the chroma-backoff BOUNDARY", () => {
+  // #153 acceptance: "Achromatic-seed output identical to today (C→0 limit)." The existing
+  // suite proves this at EXACTLY C=0 (#808080). The strict-generalization guarantee lives in
+  // `chromaticOnAccentLabel`'s `chroma <= CHROMA_BACKOFF_EPS` (1e-4) short-circuit — so the
+  // real boundary is a seed whose (per-scheme-dampened) chroma sits AT or just below that eps,
+  // not zero. A regression that widened the eps, or dropped the short-circuit, would emit a
+  // faintly-tinted label here instead of the achromatic extreme; a fixed C=0 test can't see it.
+  it("a seed at/just-below the chroma-backoff eps still ships a purely achromatic label", () => {
+    for (const C of [0, 0.00005, 0.0001]) {
+      for (const L of [0.25, 0.5, 0.75]) {
+        const seed = `oklch(${L} ${C} 137)`;
+        for (const scheme of SCHEMES) {
+          const { tokens } = resolveTheme(seed, scheme);
+          // The label carries NO chroma — bit-for-bit the near-white/near-black extreme.
+          expect(tokens["on-accent"].C, `${seed}/${scheme}`).toBe(0);
+        }
+      }
+    }
+  });
+
+  it("tintedNeutrals:false does not perturb the achromatic on-accent label (still C=0)", () => {
+    for (const scheme of SCHEMES) {
+      const { tokens } = resolveTheme("#808080", scheme, {
+        rules: { tintedNeutrals: false },
+      });
+      expect(tokens["on-accent"].C, scheme).toBe(0);
+    }
+  });
+});
+
 describe("seed anchor-step (#108)", () => {
   it("the brand ramp's anchored step IS the seed's exact color (light-native seed)", () => {
     const result = resolveTheme("#2563eb", "light");

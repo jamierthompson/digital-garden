@@ -331,3 +331,63 @@ describe("accent + on-accent co-solve report (#151)", () => {
     }
   });
 });
+
+// The existing suite proves the co-solve report is truthful on 5 hand-picked seeds. The
+// promise of #151 (report the story, never value-match) has to hold across the WHOLE input
+// space, including the hostile corners the happy-path list skips: the full hue wheel, near-
+// achromatic chroma, and the P3 gamut (wider chroma at high L changes which pole/backoff the
+// label lands on). A single lie here — a `chroma` that isn't the label's own, a `pole` that
+// disagrees with the baked lightness, a `deltaL` that isn't the fill's actual L offset, an
+// off-scheme `native:true` — is a false receipt. Generative, so it can't miss the corner a
+// fixed list forgets.
+describe("QA — adversarial: co-solve report never lies across the hue wheel × gamut (#151)", () => {
+  // 30° hue wheel × a coarse L/C grid × both gamuts. Kept deliberately modest (full theme
+  // resolutions are compute-heavy — see palette.test.ts's SWEEP_TIMEOUT note / #41).
+  const SWEEP_TIMEOUT = 30_000;
+  const HUES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
+  const LS = [0.25, 0.5, 0.75];
+  const CS = [0, 0.06, 0.18, 0.3];
+  const GAMUTS = ["srgb", "p3"] as const;
+
+  it(
+    "accent + on-accent provenance is internally consistent for every seed on the grid",
+    () => {
+      for (const gamut of GAMUTS)
+        for (const H of HUES)
+          for (const L of LS)
+            for (const C of CS) {
+              const seed = `oklch(${L} ${C} ${H})`;
+              const set = buildTokenSet(seed, { gamut });
+              for (const scheme of SCHEMES) {
+                const accent = set.tokens.accent[scheme];
+                const onAccent = set.tokens["on-accent"][scheme];
+                const s = set.meta.seed[scheme];
+                const where = `${seed}/${scheme}/${gamut}`;
+
+                const aP = set.meta.bindings.accent[scheme];
+                if (aP?.kind !== "accent")
+                  throw new Error(`${where}: expected accent report`);
+                // native is the solve-path flag; off-scheme it can NEVER be true (no faithful
+                // solve runs there). deltaL is exactly the fill's L offset from the seed.
+                if (scheme !== set.meta.direction)
+                  expect(aP.native, `${where} native`).toBe(false);
+                expect(aP.deltaL, `${where} deltaL`).toBe(accent.L - s.L);
+
+                const oP = set.meta.bindings["on-accent"][scheme];
+                if (oP?.kind !== "on-accent")
+                  throw new Error(`${where}: expected on-accent report`);
+                // Every reported field must match the baked label, not an approximation.
+                expect(oP.hue, `${where} hue`).toBe(s.H);
+                expect(oP.chroma, `${where} chroma`).toBe(onAccent.C);
+                expect(oP.pole, `${where} pole`).toBe(
+                  onAccent.L >= accent.L ? "white" : "black",
+                );
+                expect(oP.backedOff, `${where} backedOff`).toBe(
+                  onAccent.C + 1e-4 < s.C,
+                );
+              }
+            }
+    },
+    SWEEP_TIMEOUT,
+  );
+});
