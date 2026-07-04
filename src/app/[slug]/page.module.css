@@ -1,12 +1,16 @@
-/* /work/<slug> project page. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only; reads the generic semantic tokens (editorial by default; the brand slot re-binds them for the <Experience/> island). */
+/* /[slug] entry page. @layer project — declares its layer (an unlayered module outranks
+   every layered rule); var-consuming only; reads the generic semantic tokens (editorial by
+   default; each brand slot re-binds them inside its own scoped container). Breakout layout:
+   the page frame runs wide (demo, not essay), the prose keeps its reading measure via the
+   article grid's named [prose] column, and a liveEmbed slot spans [full] (EmbedBlock sets
+   `grid-column: full`). */
 @layer project {
   .module {
-    max-width: var(--width-text);
+    max-width: var(--width-content);
     margin: 0 auto;
     padding: var(--space-7) var(--space-6);
     font-family: var(--font-face);
     color: var(--text);
-    background: var(--surface);
   }
 
   .header {
@@ -27,17 +31,39 @@
   }
 
   .article {
+    display: grid;
+    grid-template-columns:
+      [full-start] minmax(0, 1fr)
+      [prose-start] min(var(--width-text), 100%)
+      [prose-end] minmax(0, 1fr)
+      [full-end];
     font-size: var(--text-base);
     line-height: var(--leading-relaxed, 1.7);
   }
 
-  .article :is(h2, h3) {
+  /* Zero-specificity default so a slot's own `grid-column: full` (equal layer, any
+     insertion order) always wins without a specificity arms race. */
+  :where(.article) > * {
+    grid-column: prose;
+  }
+
+  /* Direct children ONLY: these are the page's prose rules, and a descendant selector
+     would leak them into the slots' internals (a panel's own <p>/<h3> must style
+     itself, not inherit the essay measure). */
+  .article > :is(h2, h3) {
     margin-top: var(--space-6);
     color: var(--accent-text);
   }
 
-  .article p {
+  .article > p {
     margin-top: var(--space-4);
     max-width: 64ch;
+  }
+
+  /* The non-article page pieces (related entries) hold the reading measure — only the
+     article's breakout slots use the wide frame. */
+  .module > :where(:not(.article)) {
+    max-width: var(--width-text);
+    margin-inline: auto;
   }
 }

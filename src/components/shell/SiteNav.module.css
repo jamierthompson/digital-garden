@@ -38,7 +38,7 @@
   }
 
   /* On narrow viewports the byline takes the row; drop the decorative dateline. */
-  @media (max-width: 34rem) {
+  @media (--xs-down) {
     .dateline {
       display: none;
     }

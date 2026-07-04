@@ -1,0 +1,417 @@
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import StudioProvider from "./StudioProvider";
+import SeedSlot from "./slots/SeedSlot";
+import RulesSlot from "./slots/RulesSlot";
+import PrimitivesSlot from "./slots/PrimitivesSlot";
+import TokensSlot from "./slots/TokensSlot";
+import PreviewSlot from "./slots/PreviewSlot";
+import ReceiptSlot from "./slots/ReceiptSlot";
+import ExportSlot from "./slots/ExportSlot";
+
+/**
+ * The composed studio, as the entry page mounts it: the Provider frame with every slot —
+ * in authored order — beneath it. In production the slots arrive as `liveEmbed`s
+ * interleaved through server prose; state flows identically (context), so this is the
+ * faithful jsdom composition.
+ */
+function renderStudio(slug = "demo") {
+  return render(
+    <StudioProvider slug={slug}>
+      <SeedSlot />
+      <RulesSlot />
+      <PrimitivesSlot />
+      <TokensSlot />
+      <PreviewSlot />
+      <ReceiptSlot />
+      <ExportSlot />
+    </StudioProvider>,
+  );
+}
+
+/** Read the resolved value text of one semantic-token row in the token table. */
+function tokenValue(name: string): string {
+  const header = screen.getByRole("rowheader", { name: `--${name}` });
+  const row = header.closest("tr");
+  if (!row) throw new Error(`no row for --${name}`);
+  return within(row).getByText(/oklch\(/).textContent ?? "";
+}
+
+const ALL_SLOTS = [
+  ["seed", SeedSlot],
+  ["rules", RulesSlot],
+  ["primitives", PrimitivesSlot],
+  ["tokens", TokensSlot],
+  ["preview", PreviewSlot],
+  ["receipt", ReceiptSlot],
+  ["export", ExportSlot],
+] as const;
+
+describe("Palette Studio (Provider + slots)", () => {
+  it("mounts with the default seed and a live parsed readout", () => {
+    renderStudio();
+    const input = screen.getByLabelText("Seed color") as HTMLInputElement;
+    expect(input.value).toBe("oklch(0.66 0.2 350)");
+    // The readout echoes the parsed seed (canonicalized by the engine parser). It's the
+    // status region that carries an oklch() value (the other is the anchor receipt).
+    const readout = screen
+      .getAllByRole("status")
+      .find((el) => /oklch\(/.test(el.textContent ?? ""));
+    expect(readout).toBeDefined();
+    expect(input).toHaveAttribute("aria-invalid", "false");
+  });
+
+  it("re-derives across slots when a new seed is typed (shared state)", () => {
+    renderStudio();
+    const before = tokenValue("accent");
+    // The input lives in the seed slot; the token table is a DIFFERENT slot — the change
+    // must cross the provider, not component-local state.
+    fireEvent.change(screen.getByLabelText("Seed color"), {
+      target: { value: "#16a34a" },
+    });
+    expect(tokenValue("accent")).not.toBe(before);
+  });
+
+  it("re-binds every slot's own chrome to the CURRENT seed (self-demonstrating tool)", () => {
+    // Owner design call (2026-07-03): the slots' pills/switch/tabs repaint live with the
+    // palette they generate — the provider's slotStyle re-binds the semantic tokens on
+    // each Panel. The prose around the slots stays editorial; this only themes inside.
+    renderStudio();
+    const rulesPanel = screen.getByRole("region", { name: "Rules" });
+    const before = rulesPanel.style.getPropertyValue("--accent");
+    expect(before).not.toBe("");
+    fireEvent.change(screen.getByLabelText("Seed color"), {
+      target: { value: "#16a34a" },
+    });
+    const after = rulesPanel.style.getPropertyValue("--accent");
+    expect(after).not.toBe(before);
+    // Every slot panel carries the SAME live binding.
+    for (const name of [
+      "Seed",
+      "Primitive ramps",
+      "Semantic tokens",
+      "Live preview",
+      "Contrast receipt",
+      "Export",
+    ]) {
+      expect(
+        screen.getByRole("region", { name }).style.getPropertyValue("--accent"),
+      ).toBe(after);
+    }
+  });
+
+  it("signals an unparseable seed inline without crashing", () => {
+    renderStudio();
+    const input = screen.getByLabelText("Seed color");
+    fireEvent.change(input, { target: { value: "definitely-not-a-color" } });
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText(/can.t read that color/i)).toBeInTheDocument();
+    // The palette still renders — a full token table survives a garbage seed.
+    expect(screen.getByRole("rowheader", { name: "--accent" })).toBeVisible();
+  });
+
+  it("applies a preset chip's seed on click", () => {
+    renderStudio();
+    // Flamingo is the default, so it starts checked (Radix single-type = radio chips).
+    expect(screen.getByRole("radio", { name: /Flamingo/ })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    fireEvent.click(screen.getByRole("radio", { name: /Fern/ }));
+    expect(
+      (screen.getByLabelText("Seed color") as HTMLInputElement).value,
+    ).toBe("#16a34a");
+    expect(screen.getByRole("radio", { name: /Fern/ })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
+  it("routes each rule choice into a re-derivation and shows its consequence", () => {
+    renderStudio();
+    const before = tokenValue("text");
+    // Distribution → the interior steps reshape, so a bound token can move.
+    fireEvent.click(screen.getByRole("radio", { name: "Punchy" }));
+    expect(screen.getByRole("radio", { name: "Punchy" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(screen.getByText(/steep mid-section/i)).toBeInTheDocument();
+    expect(tokenValue("text")).not.toBe(before);
+  });
+
+  it("toggles tinted neutrals and reflects the change in the neutral ramp", () => {
+    renderStudio();
+    const before = tokenValue("surface");
+    const toggle = screen.getByRole("switch", { name: "Tinted neutrals" });
+    expect(toggle).toBeChecked();
+    fireEvent.click(toggle);
+    expect(toggle).not.toBeChecked();
+    expect(screen.getByText(/achromatic greys/i)).toBeInTheDocument();
+    // Surfaces come off the neutral ramp — dropping the tint changes their value.
+    expect(tokenValue("surface")).not.toBe(before);
+  });
+
+  it("displays the viewer's preferred color scheme — no page-local toggle (#133)", () => {
+    // the setup stub's matchMedia never matches, so the default render reads as light…
+    renderStudio();
+    expect(screen.getByText(/light scheme/i)).toBeInTheDocument();
+    const lightBg = tokenValue("bg");
+    cleanup();
+    // …and a dark-preferring viewer gets the dark view of the SAME derivation.
+    const mql = {
+      matches: true,
+      media: "(prefers-color-scheme: dark)",
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    };
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => mql),
+    );
+    try {
+      renderStudio();
+      expect(screen.getByText(/dark scheme/i)).toBeInTheDocument();
+      // Dark bg differs from light bg — both schemes are always derived.
+      expect(tokenValue("bg")).not.toBe(lightBg);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("exposes each rule as a labeled radio group with its current selection", () => {
+    renderStudio();
+    for (const name of ["Distribution", "Chroma", "Hue drift", "Gamut"]) {
+      expect(screen.getByRole("radiogroup", { name })).toBeInTheDocument();
+    }
+    // The accessible structure Radix's roving keyboard nav rides on: every option is a radio,
+    // and the current choice is reflected via aria-checked (live arrow-key drive is verified
+    // in the browser QA pass — jsdom can't simulate Radix's focus mechanics).
+    const distribution = screen.getByRole("radiogroup", {
+      name: "Distribution",
+    });
+    const radios = within(distribution).getAllByRole("radio");
+    expect(radios).toHaveLength(5);
+    const checked = radios.filter(
+      (r) => r.getAttribute("aria-checked") === "true",
+    );
+    expect(checked).toHaveLength(1);
+    expect(checked[0]).toHaveAccessibleName("Tailwind");
+  });
+
+  it("renders a live preview and a contrast receipt for BOTH schemes", () => {
+    renderStudio();
+    for (const name of [
+      "light preview",
+      "dark preview",
+      "light contrast receipt",
+      "dark contrast receipt",
+    ]) {
+      expect(screen.getByRole("group", { name })).toBeInTheDocument();
+    }
+    // The receipt is the guarantee: every measured pair passes, in both schemes.
+    for (const name of ["light contrast receipt", "dark contrast receipt"]) {
+      const card = screen.getByRole("group", { name });
+      const marks = within(card).getAllByRole("img");
+      expect(marks.length).toBeGreaterThan(0);
+      for (const mark of marks) {
+        expect(mark).toHaveAccessibleName("passes");
+      }
+    }
+  });
+
+  it("re-measures the receipt when the seed changes", () => {
+    renderStudio();
+    const receipt = () =>
+      screen.getByRole("group", { name: "light contrast receipt" }).textContent;
+    const before = receipt();
+    fireEvent.change(screen.getByLabelText("Seed color"), {
+      target: { value: "#06b6d4" },
+    });
+    expect(receipt()).not.toBe(before);
+  });
+
+  it("exports the live palette and re-serializes when the seed changes", () => {
+    renderStudio();
+    const exportRegion = screen.getByRole("region", { name: "Export" });
+    const before = within(exportRegion).getByRole("tabpanel").textContent;
+    expect(before).toContain(":root");
+    expect(before).toContain("--accent");
+    fireEvent.change(screen.getByLabelText("Seed color"), {
+      target: { value: "#06b6d4" },
+    });
+    expect(within(exportRegion).getByRole("tabpanel").textContent).not.toBe(
+      before,
+    );
+  });
+
+  it("namespaces control ids by slug so two mounts don't collide", () => {
+    const { unmount } = render(
+      <StudioProvider slug="alpha">
+        <SeedSlot />
+      </StudioProvider>,
+    );
+    expect(screen.getByLabelText("Seed color").id).toBe("ps-alpha-seed");
+    unmount();
+    render(
+      <StudioProvider slug="beta">
+        <SeedSlot />
+      </StudioProvider>,
+    );
+    expect(screen.getByLabelText("Seed color").id).toBe("ps-beta-seed");
+  });
+
+  it("every slot degrades to a visible placeholder when mounted without the frame", () => {
+    // A liveEmbed can be authored into ANY entry's body — a slot outside the studio entry
+    // must say so, not crash the essay.
+    for (const [, Slot] of ALL_SLOTS) {
+      const { container, unmount } = render(<Slot />);
+      expect(
+        within(container as HTMLElement).getByRole("note"),
+      ).toHaveTextContent(/no studio frame/i);
+      unmount();
+    }
+  });
+});
+
+// Adversarial QA (QA-S13, ported to the #131 composition) for the Studio UI — the edges
+// the author's suite optimised past: two instances mounted AT ONCE (Cache Components /
+// <Activity> keeps several `/[slug]` routes alive), rapid chip→type→chip input churn,
+// aria-invalid honesty round-tripped through the real component, and scheme-toggle
+// consistency between the table caption and the toggle — now ACROSS slots, not within
+// one component tree.
+
+function studio(slug: string) {
+  return (
+    <StudioProvider slug={slug}>
+      <SeedSlot />
+      <RulesSlot />
+      <PrimitivesSlot />
+      <TokensSlot />
+      <PreviewSlot />
+      <ReceiptSlot />
+      <ExportSlot />
+    </StudioProvider>
+  );
+}
+
+describe("QA-S13 · Studio UI under adversarial interaction", () => {
+  it(
+    "two instances mounted simultaneously mint NO duplicate element ids",
+    { timeout: 30000 },
+    () => {
+      // The author's own test unmounts between renders; the real risk is two live routes at once.
+      const { container } = render(
+        <>
+          {studio("alpha")}
+          {studio("beta")}
+        </>,
+      );
+      const ids = [...container.querySelectorAll("[id]")].map((el) => el.id);
+      const seen = new Set<string>();
+      const dupes = new Set<string>();
+      for (const id of ids) {
+        if (seen.has(id)) dupes.add(id);
+        seen.add(id);
+      }
+      expect(
+        [...dupes],
+        `duplicate ids across two mounts: ${[...dupes]}`,
+      ).toEqual([]);
+      // And each instance's seed input carries its own slug-namespaced id.
+      expect(document.getElementById("ps-alpha-seed")).not.toBeNull();
+      expect(document.getElementById("ps-beta-seed")).not.toBeNull();
+    },
+  );
+
+  it(
+    "survives a rapid chip → typed-garbage → chip → clear sequence, staying honest",
+    { timeout: 30000 },
+    () => {
+      render(studio("demo"));
+      const input = () =>
+        screen.getByLabelText("Seed color") as HTMLInputElement;
+
+      fireEvent.click(screen.getByRole("radio", { name: /Solar/ }));
+      expect(input().value).toBe("#eab308");
+      expect(input()).toHaveAttribute("aria-invalid", "false");
+
+      fireEvent.change(input(), { target: { value: "###" } });
+      expect(input()).toHaveAttribute("aria-invalid", "true");
+      expect(screen.getByText(/can.t read that color/i)).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("radio", { name: /Lagoon/ }));
+      expect(input().value).toBe("#06b6d4");
+      expect(input()).toHaveAttribute("aria-invalid", "false");
+      // The unparseable signal is gone once a valid seed is applied.
+      expect(
+        screen.queryByText(/can.t read that color/i),
+      ).not.toBeInTheDocument();
+
+      fireEvent.change(input(), { target: { value: "" } });
+      expect(input()).toHaveAttribute("aria-invalid", "true");
+      // Even empty, the token table is intact — the tool never blanks out.
+      expect(screen.getByRole("rowheader", { name: "--accent" })).toBeVisible();
+    },
+  );
+
+  it(
+    "aria-invalid tracks the SAME parser the palette derives from (no lying input)",
+    { timeout: 30000 },
+    () => {
+      render(studio("demo"));
+      const input = screen.getByLabelText("Seed color") as HTMLInputElement;
+      // hsl is normalized to rgb ahead of the engine parser (QA-131 D3) — valid now.
+      fireEvent.change(input, { target: { value: "hsl(210 50% 50%)" } });
+      expect(input).toHaveAttribute("aria-invalid", "false");
+      // A space the engine genuinely rejects still reads invalid.
+      fireEvent.change(input, { target: { value: "lab(52% 40 59)" } });
+      expect(input).toHaveAttribute("aria-invalid", "true");
+      // A wide-gamut oklch is accepted.
+      fireEvent.change(input, { target: { value: "oklch(0.7 0.15 200)" } });
+      expect(input).toHaveAttribute("aria-invalid", "false");
+    },
+  );
+
+  it(
+    "single-scheme slots follow the viewer's scheme; the receipt always shows BOTH",
+    { timeout: 30000 },
+    () => {
+      render(studio("demo"));
+      // No page-local scheme toggle by design — the toggle is site-wide chrome (#133).
+      expect(
+        screen.queryByRole("radio", { name: /^(light|dark)$/ }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByText(/Showing the light scheme/i)).toBeInTheDocument();
+      // The receipt shows BOTH schemes irrespective of the viewer's scheme.
+      expect(
+        screen.getByRole("group", { name: "light contrast receipt" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("group", { name: "dark contrast receipt" }),
+      ).toBeInTheDocument();
+    },
+  );
+
+  it(
+    "every rendered contrast mark reads as a pass for the default seed, both schemes",
+    { timeout: 30000 },
+    () => {
+      render(studio("demo"));
+      for (const name of ["light contrast receipt", "dark contrast receipt"]) {
+        const card = screen.getByRole("group", { name });
+        const marks = within(card).getAllByRole("img");
+        expect(marks.length).toBeGreaterThan(0);
+        for (const mark of marks) {
+          expect(mark).toHaveAccessibleName("passes");
+        }
+      }
+    },
+  );
+});

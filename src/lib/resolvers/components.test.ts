@@ -29,8 +29,9 @@ describe("resolveComponentKey", () => {
   });
 
   // Every declared ComponentKey must resolve to a module whose default satisfies the
-  // ProjectModule contract (a renderable `Experience`). Iterating the source-of-truth key
-  // array means any module that lands with a broken or missing loader trips here, not in
+  // ProjectModule contract — at least one composition member (`Experience` and/or
+  // `Provider`), each a renderable component. Iterating the source-of-truth key array
+  // means any module that lands with a broken or missing loader trips here, not in
   // prod. Guarded so an empty registry is still a passing no-op.
   it("resolves every declared ComponentKey to a valid, mountable ProjectModule", async () => {
     for (const key of COMPONENT_KEYS) {
@@ -38,12 +39,31 @@ describe("resolveComponentKey", () => {
       expect(isNotFound(result)).toBe(false);
       if (isNotFound(result)) throw new Error(`expected a loader for ${key}`);
       const mod = (await result.value()) as {
-        default: { Experience: unknown };
+        default: { Experience?: unknown; Provider?: unknown };
       };
       expect(mod.default).toBeTruthy();
-      expect(typeof mod.default.Experience).toBe("function");
-      const Experience = mod.default.Experience as React.ComponentType;
-      expect(isValidElement(createElement(Experience))).toBe(true);
+      const members = [mod.default.Experience, mod.default.Provider].filter(
+        (member) => member !== undefined,
+      );
+      expect(
+        members.length,
+        `${key} exports no composition member`,
+      ).toBeGreaterThan(0);
+      for (const member of members) {
+        expect(typeof member).toBe("function");
+        const Member = member as React.ComponentType<{ slug: string }>;
+        expect(isValidElement(createElement(Member, { slug: key }))).toBe(true);
+      }
     }
   });
+  // Pins the Object.hasOwn guard (QA-131 D1): same prototype-lookup hole as
+  // resolveEmbedKey — an unguarded plain-object index would return "__proto__"/
+  // "constructor" as Found, pass EntryPage's drift guard, and crash on `.value()`.
+  // These keys must stay NotFound.
+  it.each(["__proto__", "constructor"])(
+    "treats the prototype-inherited name '%s' as NotFound",
+    (key) => {
+      expect(isNotFound(resolveComponentKey(key))).toBe(true);
+    },
+  );
 });

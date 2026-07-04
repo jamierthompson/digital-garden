@@ -7,14 +7,14 @@ import {
 } from "./stega";
 
 /**
- * The stega exclusion set is a correctness landmine, not cosmetics: the five
- * code-consumed fields are parsed by the OKLCH engine or resolved by key, and stega's
- * invisible chars break both. This is single-sourced here precisely so the published
- * client and the Live base client can never drift — so the test pins the exact set and
- * the filter's two branches.
+ * The stega exclusion set is a correctness landmine, not cosmetics: the
+ * code-consumed fields are parsed by the OKLCH engine, resolved by key, or compared
+ * as discriminators, and stega's invisible chars break all three. This is
+ * single-sourced here precisely so the published client and the Live base client can
+ * never drift — so the test pins the exact set and the filter's two branches.
  */
 describe("stega exclusions", () => {
-  it("excludes exactly the five code-consumed fields", () => {
+  it("excludes exactly the code-consumed fields", () => {
     expect([...STEGA_EXCLUDED_FIELDS].sort()).toEqual(
       [
         "brandColor",
@@ -22,6 +22,8 @@ describe("stega exclusions", () => {
         "componentKey",
         "embedKey",
         "fontKey",
+        "kind",
+        "stage",
       ].sort(),
     );
   });

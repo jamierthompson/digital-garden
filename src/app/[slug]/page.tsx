@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import EssayBody from "@/components/portable-text/EssayBody";
 import ProjectScope from "@/components/project-scope/ProjectScope";
 import ProjectScopeBoundary from "@/components/project-scope/ProjectScopeBoundary";
+import type { ScopeSeed } from "@/components/project-scope/scopeSeed";
 import RelatedEntries from "@/components/project/RelatedEntries";
 import { resolveComponentKey } from "@/lib/resolvers/components";
 import { isNotFound } from "@/lib/resolvers/resolution";
@@ -96,38 +97,53 @@ export default async function EntryPage({ params }: EntryPageProps) {
     notFound();
   }
 
-  // Mount the interactive slot ONLY for a project — a note/essay/now is chrome + prose even
+  // Load the module ONLY for a project — a note/essay/now is chrome + prose even
   // if it happens to carry a resolvable `componentKey` (the schema leaves the key optional and
   // un-gated on those kinds). A project has already passed the `notFound()` guard above, so
   // `resolution` is found here; the `isProject` gate keeps runtime matching the documented
-  // "only a project has a slot" contract.
-  const Experience =
+  // "only a project has a slot" contract. The module composes one (or both) of two ways:
+  // `Experience` = one slot after the prose; `Provider` = a client frame around the article
+  // so `liveEmbed` slots interleaved through the prose share state (see `ProjectModule`).
+  const projectModule =
     isProject && resolution && !isNotFound(resolution)
       ? ((await resolution.value()) as { default: ProjectModule }).default
-          .Experience
       : null;
+  const Experience = projectModule?.Experience ?? null;
+  const Provider = projectModule?.Provider ?? null;
+
+  // The brand seed, threaded to the body for a project so each `liveEmbed` mounts in its
+  // own scoped container. The prose between slots reads the editorial tiers — brand never
+  // wraps the article itself.
+  const scope: ScopeSeed | undefined = isProject
+    ? {
+        slug,
+        brandColor: entry.brandColor ?? "",
+        fontKey: entry.fontKey ?? "",
+      }
+    : undefined;
+
+  const article = (
+    <article className={styles.article}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>{entry.title}</h1>
+        {entry.blurb ? <p className={styles.blurb}>{entry.blurb}</p> : null}
+      </header>
+      {entry.body ? <EssayBody value={entry.body} scope={scope} /> : null}
+    </article>
+  );
 
   return (
     <main className={styles.module}>
-      <article className={styles.article}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>{entry.title}</h1>
-          {entry.blurb ? <p className={styles.blurb}>{entry.blurb}</p> : null}
-        </header>
-        {entry.body ? <EssayBody value={entry.body} /> : null}
-      </article>
+      {/* The provider is a state frame, not a theme: prose inside stays server-rendered
+          editorial content (children pass-through). Rendered as deep as possible per the
+          bundled composition docs. */}
+      {Provider ? <Provider slug={slug}>{article}</Provider> : article}
       {/* Brand is scoped to the interactive slot ONLY — the engine theme wraps
           <Experience/>, not the editorial article/related around it. Rendered only when a
           module resolved (a project); other kinds are prose-only. */}
       {Experience ? (
         <ProjectScopeBoundary>
-          <ProjectScope
-            seed={{
-              slug,
-              brandColor: entry.brandColor ?? "",
-              fontKey: entry.fontKey ?? "",
-            }}
-          >
+          <ProjectScope seed={scope}>
             <Experience slug={slug} />
           </ProjectScope>
         </ProjectScopeBoundary>

@@ -1,0 +1,39 @@
+/* Toggle switch — @layer project, var-consuming only. Off reads as a hairline pill; on
+   fills with the ambient accent. */
+@layer project {
+  .switch {
+    position: relative;
+    width: 2.5rem;
+    height: 1.5rem;
+    flex: none;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    background: var(--surface-2);
+    cursor: pointer;
+    transition:
+      background var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .switch[data-state="checked"] {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .thumb {
+    display: block;
+    width: 1.125rem;
+    height: 1.125rem;
+    transform: translateX(0.1875rem);
+    border-radius: 99px;
+    background: var(--bg);
+    transition: transform var(--duration-fast) var(--ease-standard);
+    will-change: transform;
+  }
+
+  .thumb[data-state="checked"] {
+    transform: translateX(1.1875rem);
+    background: var(--on-accent);
+  }
+}

@@ -1,0 +1,120 @@
+/* Live preview — @layer project. Var-consuming: reads the SAME semantic token names as any
+   component, but here those names are re-bound (inline, by PreviewPanel) to the generated
+   palette for this scheme, so the specimens paint the generated colors. */
+@layer project {
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--surface);
+  }
+
+  .cardTitle {
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .body {
+    margin: 0;
+    font-family: var(--font-face);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    color: var(--text);
+  }
+
+  .link {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .muted {
+    margin: 0;
+    font-family: var(--font-face);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .button,
+  .chip,
+  .input,
+  .focusInput {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 99px;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    line-height: 1;
+  }
+
+  .button {
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+  }
+
+  .chip {
+    border: 1px solid var(--accent);
+    color: var(--accent-text);
+    font-family: var(--font-mono);
+  }
+
+  .input,
+  .focusInput {
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  /* Static focus specimen — draws the generated focus ring so its color is visible in-place. */
+  .focusInput {
+    outline: var(--focus-ring-width, 2px) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset, 2px);
+    color: var(--text);
+  }
+
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* Status pill — color + border set inline to the generated status token. */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border: 1px solid;
+    border-radius: 99px;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+}

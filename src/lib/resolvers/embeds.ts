@@ -16,11 +16,22 @@ export type EmbedLoader = () => Promise<unknown>;
 // `satisfies Record<EmbedKey, EmbedLoader>` makes a missing loader a compile
 // error the moment a key is added to `EMBED_KEYS`. Each value is a LITERAL
 // lazy import per key — never templated (a templated import defeats bundler static analysis).
-//
-// Currently EMPTY: `EMBED_KEYS` holds no keys yet (the mock `sunrise-meter` widget was
-// retired in #109). The first real essay embed adds a literal `import()` entry here
-// alongside its `EMBED_KEYS` key; the resolver + generic `liveEmbed` block stay in place.
-const EMBED_LOADERS = {} satisfies Record<EmbedKey, EmbedLoader>;
+const EMBED_LOADERS = {
+  "palette-studio-seed": () =>
+    import("@/projects/palette-studio/slots/SeedSlot"),
+  "palette-studio-rules": () =>
+    import("@/projects/palette-studio/slots/RulesSlot"),
+  "palette-studio-primitives": () =>
+    import("@/projects/palette-studio/slots/PrimitivesSlot"),
+  "palette-studio-tokens": () =>
+    import("@/projects/palette-studio/slots/TokensSlot"),
+  "palette-studio-preview": () =>
+    import("@/projects/palette-studio/slots/PreviewSlot"),
+  "palette-studio-receipt": () =>
+    import("@/projects/palette-studio/slots/ReceiptSlot"),
+  "palette-studio-export": () =>
+    import("@/projects/palette-studio/slots/ExportSlot"),
+} satisfies Record<EmbedKey, EmbedLoader>;
 
 // Two variables, two jobs. `EMBED_LOADERS` keeps its literal type so `satisfies`
 // enforces completeness against `EmbedKey`; `loaders` is the widened, string-keyed
@@ -33,6 +44,9 @@ const loaders: Readonly<Record<string, EmbedLoader>> = EMBED_LOADERS;
  * Resolve an `embedKey` to its embed loader. Returns `NotFound` for an unknown key.
  */
 export function resolveEmbedKey(key: string): Resolution<EmbedLoader> {
-  const loader = loaders[key];
+  // Own-property guard: a plain-object index resolves prototype members
+  // ("__proto__", "constructor", "toString") to truthy non-loaders, which would
+  // crash the page as a Found resolution (QA-131 D1).
+  const loader = Object.hasOwn(loaders, key) ? loaders[key] : undefined;
   return loader ? found(loader) : notFound("embed", key);
 }

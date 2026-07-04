@@ -42,15 +42,23 @@ export const COMPONENT_KEYS = [
 export type ComponentKey = (typeof COMPONENT_KEYS)[number];
 
 /**
- * Embed keys — shared in-essay live components / widgets, resolved in
+ * Embed keys — in-essay live components / widgets, resolved in
  * `src/lib/resolvers/embeds.ts`. The registry starts single-tier; a
  * project-local tier is added only on a genuine second use.
  *
- * Currently EMPTY: the proof-of-concept `sunrise-meter` widget was retired with the mock
- * harness (#109). The generic `liveEmbed` Portable Text block + the resolver stay as the
- * infrastructure; the first real essay embed registers the first key here.
+ * The `palette-studio-*` keys are the Palette Studio's slots (#131): the studio composes
+ * as an editorial page whose prose interleaves these embeds, each in its own brand-scoped
+ * container, sharing state through the module's `Provider`.
  */
-export const EMBED_KEYS = [] as const satisfies readonly string[];
+export const EMBED_KEYS = [
+  "palette-studio-seed",
+  "palette-studio-rules",
+  "palette-studio-primitives",
+  "palette-studio-tokens",
+  "palette-studio-preview",
+  "palette-studio-receipt",
+  "palette-studio-export",
+] as const satisfies readonly string[];
 export type EmbedKey = (typeof EMBED_KEYS)[number];
 
 const FONT_KEY_SET: ReadonlySet<string> = new Set(FONT_KEYS);

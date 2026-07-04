@@ -24,10 +24,15 @@ describe("key contracts", () => {
     for (const key of COMPONENT_KEYS) expect(typeof key).toBe("string");
   });
 
-  it("EMBED_KEYS is empty — the mock widget was retired, no real embed has landed yet (#109)", () => {
-    // Like COMPONENT_KEYS: a valid (empty) unique set; the first real essay embed adds a key.
-    expect(EMBED_KEYS).toHaveLength(0);
+  it("EMBED_KEYS is a unique set holding the Palette Studio's slots (#131)", () => {
+    // The first real embeds: the studio's seven slots, interleaved through its entry's
+    // prose. Every key is mapped to a literal dynamic import in the embeds resolver.
     expect(new Set(EMBED_KEYS).size).toBe(EMBED_KEYS.length);
+    expect(EMBED_KEYS.length).toBeGreaterThan(0);
+    for (const key of EMBED_KEYS) {
+      expect(typeof key).toBe("string");
+      expect(key).toMatch(/^palette-studio-/);
+    }
   });
 
   it("isFontKey narrows known keys and rejects unknown ones", () => {

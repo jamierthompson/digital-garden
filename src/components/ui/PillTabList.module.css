@@ -1,0 +1,38 @@
+/* Pill tab list — @layer project, var-consuming only. */
+@layer project {
+  .list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.5rem;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      background var(--duration-fast) var(--ease-standard),
+      color var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .pill:hover {
+    border-color: var(--text-muted);
+    color: var(--text);
+  }
+
+  .pill[data-state="active"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+  }
+}
