@@ -19,19 +19,26 @@ import styles from "./page.module.css";
 // dynamic segment cedes precedence to the static routes `/browse`, `/now`, `/about`, `/system`). Thin
 // route (`app/` is routing only — it mounts components from `src/`). The composition:
 // EDITORIAL page chrome (article prose, related entries) reads the global semantic
-// tier; a project's brand color + font are scoped to its interactive slot ONLY:
+// tier; an entry's brand color + font are scoped to its interactive slot ONLY:
 //   <main> editorial chrome
 //     ├ <article> the entry's essay (PT serializer) — editorial
 //     ├ EntryScopeBoundary + EntryScope + <Experience/> — the brand-themed slot,
-//     │   rendered ONLY for a project with a resolvable module
+//     │   rendered for ANY entry that resolves a module
 //     └ <RelatedEntries> — editorial (outgoing `related` + incoming backlinks)
 //
-// Kind-aware: a `project` that DECLARES a `componentKey` must resolve it — a renamed/deleted
-// module (drift) → `notFound()`. But a project with NO `componentKey` is a `stage: sketch`
-// with no coded module yet (the schema only requires the key past the sketch stage), so it
-// renders prose-only, like a note/essay. A note / essay / now is chrome + prose — it has no
-// interactive slot, so it renders without a scope. The keystone stays defensive: the scope
-// never throws on a bad brandColor/fontKey.
+// CAPABILITY-gated, not kind-gated: which slot an entry gets is decided by the capability
+// fields it carries, not by its `kind` (any kind of entry can be interactive or themed).
+//   • Module — a `componentKey` that DECLARES a coded module: present → resolve it; a
+//     renamed/deleted module (drift) → `notFound()`, for ANY kind. NO `componentKey` →
+//     prose-only, never a 404 (a `stage: sketch` project keeps its key null until it ships,
+//     and a note/essay simply never has one).
+//   • Theming — a `brandColor`: present → build the scope seed and thread it to the body so
+//     each `liveEmbed` mounts in its own scoped container, exactly as a project's do.
+//
+// `now` is the ONE exception, excluded by design: it stays chrome + prose — never a scope,
+// never a module — even if it happens to carry `brandColor`/`componentKey`, because a `now`
+// note is an editorial status update, not an interactive slot. The keystone stays defensive:
+// the scope never throws on a bad brandColor/fontKey, so an empty seed field is always safe.
 
 interface EntryPageProps {
   params: Promise<{ slug: string }>;
@@ -84,43 +91,51 @@ export default async function EntryPage({ params }: EntryPageProps) {
     notFound();
   }
 
-  const isProject = entry.kind === "project";
+  // `now` is excluded from BOTH capabilities by design (an editorial status update, never an
+  // interactive slot) — so it never resolves a key and never builds a scope, even if the doc
+  // happens to carry `componentKey`/`brandColor`.
+  const isNow = entry.kind === "now";
 
-  // Resolve the coded module by key. A `componentKey` that no longer resolves
-  // (renamed/deleted module) degrades a project to not-found, never a crash. A project with
-  // NO `componentKey` is a sketch without a coded module yet — it renders prose-only, not a
-  // 404. A note/essay/now carries no slot either way, so a missing key is expected there.
-  const resolution = entry.componentKey
-    ? resolveComponentKey(entry.componentKey)
-    : null;
-  if (isProject && resolution && isNotFound(resolution)) {
+  // Module gate — capability, not kind. A DECLARED `componentKey` must resolve for any kind
+  // except `now`: a renamed/deleted module (drift) → `notFound()`, never a crash. NO
+  // `componentKey` → `resolution` is null → prose-only, not a 404 (a sketch project keeps its
+  // key null until it ships; a note/essay simply never has one). The resolver is never even
+  // consulted without a key, nor for a `now`.
+  const resolution =
+    !isNow && entry.componentKey
+      ? resolveComponentKey(entry.componentKey)
+      : null;
+  if (resolution && isNotFound(resolution)) {
     notFound();
   }
 
-  // Load the module ONLY for a project — a note/essay/now is chrome + prose even
-  // if it happens to carry a resolvable `componentKey` (the schema leaves the key optional and
-  // un-gated on those kinds). A project has already passed the `notFound()` guard above, so
-  // `resolution` is found here; the `isProject` gate keeps runtime matching the documented
-  // "only a project has a slot" contract. The module composes one (or both) of two ways:
-  // `Experience` = one slot after the prose; `Provider` = a client frame around the article
-  // so `liveEmbed` slots interleaved through the prose share state (see `EntryModule`).
+  // Load the resolved module. Past the guard above, a non-null `resolution` is `found`, so this
+  // mounts for ANY kind (except `now`) that declared a resolvable key. The module composes one
+  // (or both) of two ways: `Experience` = one slot after the prose; `Provider` = a client frame
+  // around the article so `liveEmbed` slots interleaved through the prose share state (see
+  // `EntryModule`).
   const entryModule =
-    isProject && resolution && !isNotFound(resolution)
+    resolution && !isNotFound(resolution)
       ? ((await resolution.value()) as { default: EntryModule }).default
       : null;
   const Experience = entryModule?.Experience ?? null;
   const Provider = entryModule?.Provider ?? null;
 
-  // The brand seed, threaded to the body for a project so each `liveEmbed` mounts in its
-  // own scoped container. The prose between slots reads the editorial tiers — brand never
-  // wraps the article itself.
-  const scope: ScopeSeed | undefined = isProject
-    ? {
-        slug,
-        brandColor: entry.brandColor ?? "",
-        fontKey: entry.fontKey ?? "",
-      }
-    : undefined;
+  // The brand seed, threaded to the body so each `liveEmbed` — and the `Experience` slot —
+  // mounts in its own scoped container. Built whenever this entry either themes (`brandColor`)
+  // OR mounts a module: keyed on the REAL `slug` so a scope never collapses to the shared
+  // `data-entry="fallback"` (which would cross-contaminate two such entries via one hoisted
+  // `<style>` — see `vetSlug`). An absent `brandColor`/`fontKey` is a safe empty string: the
+  // keystone falls back to the engine palette + shell font without throwing. The prose between
+  // slots reads the editorial tiers — brand never wraps the article itself.
+  const scope: ScopeSeed | undefined =
+    !isNow && (entry.brandColor || entryModule)
+      ? {
+          slug,
+          brandColor: entry.brandColor ?? "",
+          fontKey: entry.fontKey ?? "",
+        }
+      : undefined;
 
   const article = (
     <article className={styles.article}>
@@ -140,7 +155,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
       {Provider ? <Provider slug={slug}>{article}</Provider> : article}
       {/* Brand is scoped to the interactive slot ONLY — the engine theme wraps
           <Experience/>, not the editorial article/related around it. Rendered only when a
-          module resolved (a project); other kinds are prose-only. */}
+          module resolved (any kind but `now`); an entry without one is prose-only. */}
       {Experience ? (
         <EntryScopeBoundary>
           <EntryScope seed={scope}>
