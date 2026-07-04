@@ -174,4 +174,46 @@ describe("EntryScope (engine-driven)", () => {
     // A theme carrying the NEW brand now exists and differs from the original — not stale.
     expect(themesFor("editme").some((t) => !before.includes(t))).toBe(true);
   });
+
+  // The href is the load-bearing de-dup key AND part of the naming contract renamed in #132
+  // (`project-theme-` → `entry-theme-`). Nothing else pins the PREFIX, so an incomplete
+  // rename (or an accidental revert) would ship silently. React 19 serializes the hoisted
+  // `<style href precedence>` with the href on `data-href`. Queries are slug-scoped because
+  // React head-hoisting accumulates styles across the tests above.
+  describe("hoisted-style href contract (#132 rename guard)", () => {
+    const hrefs = (): string[] =>
+      [...document.head.querySelectorAll("style[data-href]")].map(
+        (s) => s.getAttribute("data-href") ?? "",
+      );
+
+    it("keys the hoisted theme <style> on an `entry-theme-<slug>-<hash>` href", () => {
+      render(
+        <EntryScope
+          seed={{
+            slug: "href-probe",
+            brandColor: "oklch(0.62 0.21 264)",
+            fontKey: "inter",
+          }}
+        >
+          <p>themed</p>
+        </EntryScope>,
+      );
+      const matching = hrefs().filter((h) => h.includes("href-probe"));
+      expect(matching).toHaveLength(1);
+      // Prefix is the renamed contract — must be `entry-theme-`, never `project-theme-`.
+      expect(matching[0]).toMatch(/^entry-theme-href-probe-[a-z0-9]+$/);
+      expect(hrefs().some((h) => h.startsWith("project-theme-"))).toBe(false);
+    });
+
+    it("carries the vetted fallback slug in the href for garbage seeds", () => {
+      render(
+        <EntryScope seed={42}>
+          <p>fallback</p>
+        </EntryScope>,
+      );
+      expect(
+        hrefs().some((h) => /^entry-theme-fallback-[a-z0-9]+$/.test(h)),
+      ).toBe(true);
+    });
+  });
 });
