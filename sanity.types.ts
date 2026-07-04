@@ -73,9 +73,6 @@ export type SiteSettings = {
   _rev: string;
   title?: string;
   description?: string;
-  brandColor?: string;
-  brandColorDark?: string;
-  fontKey?: string;
 };
 
 export type EntryReference = {
@@ -343,14 +340,11 @@ export type NOW_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: SITE_SETTINGS_QUERY
-// Query: *[_type == "siteSettings"][0] {    _id,    title,    description,    brandColor,    brandColorDark,    fontKey  }
+// Query: *[_type == "siteSettings"][0] {    _id,    title,    description  }
 export type SITE_SETTINGS_QUERY_RESULT = {
   _id: string;
   title: string | null;
   description: string | null;
-  brandColor: string | null;
-  brandColorDark: string | null;
-  fontKey: string | null;
 } | null;
 
 // Query TypeMap
@@ -363,6 +357,6 @@ declare module "@sanity/client" {
     '\n  *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    blurb,\n    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])\n  }\n': INDEX_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': FEATURED_QUERY_RESULT;
     '\n  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    iterated,\n    blurb\n  }\n': NOW_QUERY_RESULT;
-    '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description,\n    brandColor,\n    brandColorDark,\n    fontKey\n  }\n': SITE_SETTINGS_QUERY_RESULT;
+    '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description\n  }\n': SITE_SETTINGS_QUERY_RESULT;
   }
 }

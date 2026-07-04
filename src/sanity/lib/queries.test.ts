@@ -114,15 +114,15 @@ describe("SITE_SETTINGS_QUERY", () => {
     expect(SITE_SETTINGS_QUERY).toContain("[0]");
   });
 
-  it("pulls the shell brand seed + identity", () => {
-    for (const field of [
-      "brandColor",
-      "brandColorDark",
-      "fontKey",
-      "title",
-      "description",
-    ]) {
+  it("pulls the shell identity used by generateMetadata", () => {
+    for (const field of ["title", "description"]) {
       expect(SITE_SETTINGS_QUERY).toContain(field);
+    }
+  });
+
+  it("carries no theming seeds — the shell is static + monochromatic", () => {
+    for (const field of ["brandColor", "brandColorDark", "fontKey"]) {
+      expect(SITE_SETTINGS_QUERY).not.toContain(field);
     }
   });
 });

@@ -145,16 +145,15 @@ export const NOW_QUERY = defineQuery(`
  * `siteSettings` is intended as a singleton (one document, enforced via Studio Structure
  * in a separate slice). `[0]` guards that intent at the query layer: it returns the single
  * settings document (or `null` if none is published) so the shell can fall back defensively
- * rather than assume an array. Pulls the shell's brand seed + identity for `EntryScope`
- * (slug="garden") and default metadata. Typed as `SITE_SETTINGS_QUERYResult`.
+ * rather than assume an array. Pulls the shell identity only — `title` / `description` for
+ * `generateMetadata` (layout.tsx). The shell is static + monochromatic (it wears the global
+ * editorial layer), so this carries no brand seed; theming lives on each `entry`. Typed as
+ * `SITE_SETTINGS_QUERYResult`.
  */
 export const SITE_SETTINGS_QUERY = defineQuery(`
   *[_type == "siteSettings"][0] {
     _id,
     title,
-    description,
-    brandColor,
-    brandColorDark,
-    fontKey
+    description
   }
 `);

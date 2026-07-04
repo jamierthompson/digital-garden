@@ -1,14 +1,14 @@
 import {defineField, defineType} from 'sanity'
 
-import {isBrandColorString} from '../shared/colorValidation'
-
 /**
  * Shell / digital-garden settings.
  *
- * Holds the shell island's brand seed (EntryScope slug="garden") and shell
- * identity. Enforced as a singleton via Studio Structure (structureTool config in
- * sanity.config.ts). Same brand treatment as
- * a project: stega-excluded seed, engine-validated, defensively rendered.
+ * Shell identity only: the site title and default meta description that
+ * `generateMetadata` reads (src/app/layout.tsx). The shell is static and
+ * monochromatic — it wears the global editorial layer, NOT a Sanity-seeded brand — so
+ * this singleton carries no theming fields; brand color + font live on each `entry` and
+ * theme only that entry's own slot. Enforced as a singleton via Studio Structure
+ * (structureTool config in sanity.config.ts).
  */
 export const siteSettings = defineType({
   name: 'siteSettings',
@@ -26,30 +26,6 @@ export const siteSettings = defineType({
       type: 'text',
       rows: 3,
       description: 'Shell tagline / default meta description.',
-    }),
-    defineField({
-      name: 'brandColor',
-      title: 'Shell brand color',
-      type: 'string',
-      description:
-        'Brand seed for the shell island — hex or oklch(). Same engine treatment as a project; one value drives both schemes.',
-      validation: (rule) => rule.required().custom(isBrandColorString),
-    }),
-    defineField({
-      name: 'brandColorDark',
-      title: 'Shell brand color (dark override)',
-      type: 'string',
-      description:
-        'Optional hand-tuned dark-scheme shell brand. The engine derives dark from brandColor when empty.',
-      validation: (rule) => rule.custom(isBrandColorString),
-    }),
-    defineField({
-      name: 'fontKey',
-      title: 'Shell font key',
-      type: 'string',
-      description:
-        'Curated roster face for the shell, resolved in app code. Picker wired to keys.ts in a later slice.',
-      validation: (rule) => rule.required(),
     }),
   ],
   preview: {
