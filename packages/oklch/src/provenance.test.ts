@@ -25,9 +25,11 @@ import {
   type BrandTokenName,
   type EngineRules,
   type OkLCH,
+  type OnAccentProvenance,
   type Ramp,
   type RampRole,
   type Scheme,
+  type StepProvenance,
   type TokenSet,
 } from "./types";
 
@@ -130,23 +132,26 @@ describe("truthful provenance (#70): reports the schema role, not a value-scan",
           RampRole,
         ][]) {
           const binding = set.meta.bindings[name][scheme];
-          expect(binding, `${name}/${scheme}`).not.toBeNull();
-          expect(binding!.role, `${name}/${scheme}`).toBe(role);
+          expect(binding?.kind, `${name}/${scheme}`).toBe("step");
+          expect((binding as StepProvenance).role, `${name}/${scheme}`).toBe(
+            role,
+          );
         }
       }
     },
   );
 
   it.each(TRIGGERS)(
-    "$label — accent + on-accent report null (continuous co-solve, no discrete step)",
+    "$label — accent + on-accent carry a co-solve report, never null (#151)",
     ({ seed, rules }) => {
       const set = buildTokenSet(seed, rules ? { rules } : {});
       for (const scheme of SCHEMES)
-        for (const name of CONTINUOUS)
-          expect(
-            set.meta.bindings[name][scheme],
-            `${name}/${scheme}`,
-          ).toBeNull();
+        for (const name of CONTINUOUS) {
+          const p = set.meta.bindings[name][scheme];
+          expect(p, `${name}/${scheme}`).not.toBeNull();
+          // The report's kind matches the token: `accent` → "accent", `on-accent` → "on-accent".
+          expect(p!.kind, `${name}/${scheme}`).toBe(name);
+        }
     },
   );
 
@@ -158,7 +163,7 @@ describe("truthful provenance (#70): reports the schema role, not a value-scan",
         const rampFor = (role: RampRole): Ramp => set.ramps[role][scheme];
         for (const name of BRAND_TOKEN_NAMES) {
           const binding = set.meta.bindings[name][scheme];
-          if (binding === null) continue; // continuous / literal — no step to check
+          if (binding?.kind !== "step") continue; // co-solve / literal — no ramp step
           const step = rampFor(binding.role).find(
             (s) => s.label === binding.label,
           );
@@ -198,16 +203,104 @@ describe("truthful provenance (#70): reports the schema role, not a value-scan",
     const firstMatch = (value: OkLCH): BindingProvenance => {
       for (const role of RAMP_ROLES)
         for (const step of set.ramps[role][scheme])
-          if (sameColor(step.color, value)) return { role, label: step.label };
+          if (sameColor(step.color, value))
+            return { kind: "step", role, label: step.label };
       return null;
     };
 
     // The value-scan is FOOLED — it names `brand`, a false receipt.
-    expect(firstMatch(bg)).toEqual({ role: "brand", label: "50" });
+    expect(firstMatch(bg)).toEqual({
+      kind: "step",
+      role: "brand",
+      label: "50",
+    });
     // The engine report is TRUTHFUL — bg binds the NEUTRAL ramp, per the schema.
     expect(set.meta.bindings.bg[scheme]).toEqual({
+      kind: "step",
       role: "neutral",
       label: "50",
     });
+  });
+});
+
+// #151 — the accent/on-accent bindings stop being `null` and carry a first-class co-solve
+// report, so the Studio renders faithful/nudged/derived + the label pole WITHOUT comparing
+// `meta.seed` to `tokens.accent` (exactly the value-matching #109 forbids). The reports are
+// REPORTING ONLY — the byte-identical suite above (which strips `meta.bindings`) already
+// proves no baked value moved; here we prove the reports are truthful to those values.
+describe("accent + on-accent co-solve report (#151)", () => {
+  const REPORT_CASES = [
+    "#3b82f6", // chromatic, light-native
+    "#e11d48", // chromatic
+    "#faf3c0", // very light — dark-native
+    "#808080", // achromatic
+    "garbage", // fallback (chromatic fallback seed)
+  ];
+
+  it.each(REPORT_CASES)(
+    "%s — every field is internally consistent with the baked colors (no lie)",
+    (seed) => {
+      const set = buildTokenSet(seed);
+      for (const scheme of SCHEMES) {
+        const accent = set.tokens.accent[scheme];
+        const onAccent = set.tokens["on-accent"][scheme];
+        const s = set.meta.seed[scheme];
+
+        const accentP = set.meta.bindings.accent[scheme];
+        if (accentP?.kind !== "accent")
+          throw new Error(`accent/${scheme}: expected accent report`);
+        // `native` is the faithful-path flag — true iff the fill came from the native solve.
+        // For every seed here that solve succeeds when this scheme is the seed's direction,
+        // so it equals `scheme === direction`. `deltaL` is exactly the fill's L delta off the
+        // seed — both recoverable without any value-scan of the ramps.
+        expect(accentP.native).toBe(scheme === set.meta.direction);
+        expect(accentP.deltaL).toBe(accent.L - s.L);
+
+        const labelP = set.meta.bindings["on-accent"][scheme];
+        if (labelP?.kind !== "on-accent")
+          throw new Error(`on-accent/${scheme}: expected on-accent report`);
+        expect(labelP.hue).toBe(s.H);
+        expect(labelP.chroma).toBe(onAccent.C);
+        expect(labelP.pole).toBe(onAccent.L >= accent.L ? "white" : "black");
+      }
+    },
+  );
+
+  // For genuinely hostable seeds the faithful native solve succeeds in the seed's own
+  // direction, so `native` flags exactly that scheme — the accent's faithful/derived story
+  // with no value math. (On the rare native seed with no hostable label the fill is derived
+  // and `native` is false; none of these seeds hit that path.)
+  it("flags exactly the native scheme — the accent's faithful/derived story, no value math", () => {
+    for (const seed of REPORT_CASES) {
+      const set = buildTokenSet(seed);
+      const nativeFlags = SCHEMES.map((scheme) => {
+        const p = set.meta.bindings.accent[scheme];
+        return p?.kind === "accent" ? p.native : null;
+      });
+      expect(nativeFlags, seed).toEqual(
+        SCHEMES.map((scheme) => scheme === set.meta.direction),
+      );
+    }
+  });
+
+  it("a chromatic seed's on-accent is the achromatic extreme → chroma ~0, backedOff true", () => {
+    // #151 leaves on-accent achromatic (the near-white/near-black extreme). Since the seed
+    // HAS chroma, that extreme is the C→0 limit of the backoff — reported as backedOff.
+    const set = buildTokenSet("#3b82f6");
+    for (const scheme of SCHEMES) {
+      const p = set.meta.bindings["on-accent"][scheme];
+      if (p?.kind !== "on-accent") throw new Error("expected on-accent report");
+      expect(p.chroma).toBeLessThan(0.02);
+      expect(p.backedOff).toBe(true);
+    }
+  });
+
+  it("an achromatic seed's on-accent reports backedOff false (no chroma to give up)", () => {
+    const set = buildTokenSet("#808080");
+    for (const scheme of SCHEMES) {
+      const p = set.meta.bindings["on-accent"][scheme];
+      if (p?.kind !== "on-accent") throw new Error("expected on-accent report");
+      expect(p.backedOff).toBe(false);
+    }
   });
 });

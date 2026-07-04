@@ -37,6 +37,9 @@ import type {
   SchemePair,
   SchemeTokens,
   BindingStep,
+  StepProvenance,
+  AccentProvenance,
+  OnAccentProvenance,
   BindingProvenance,
   BindingPair,
   SchemeResult,
@@ -215,6 +218,9 @@ type PublicTypeSurface = {
   SchemePair: SchemePair;
   SchemeTokens: SchemeTokens;
   BindingStep: BindingStep;
+  StepProvenance: StepProvenance;
+  AccentProvenance: AccentProvenance;
+  OnAccentProvenance: OnAccentProvenance;
   BindingProvenance: BindingProvenance;
   BindingPair: BindingPair;
   SchemeResult: SchemeResult;

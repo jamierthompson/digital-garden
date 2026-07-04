@@ -211,14 +211,59 @@ export interface BindingStep {
   label: RampLabel;
 }
 
+/** Provenance for a token that bound to a discrete ramp step (surfaces + every `auto`
+ *  token): the `(role, label)` coordinate, tagged for the `BindingProvenance` union. */
+export interface StepProvenance extends BindingStep {
+  kind: "step";
+}
+
 /**
- * A token's binding provenance (#70): the ramp step it bound to, reported by the binding
- * layer AT SOLVE TIME — never reverse-engineered by value-matching (which lies when the
- * brand and neutral ramps converge, e.g. an achromatic seed or `tintedNeutrals: false`).
- * `null` exactly for the bindings that are NOT a discrete step: the continuous accent
- * co-solves (`accent`/`on-accent`) and any `literal` binding.
+ * Provenance for the accent FILL co-solve (#151) — the story the receipt tells instead of
+ * reverse-engineering it from `meta.seed` vs `tokens.accent`. `native` is true when the fill
+ * was solved on its FAITHFUL native path (this scheme is the seed's direction AND a faithful
+ * accent that hosts a legible label existed) — the fill then honors `seed.L`. It is `false`
+ * both off-scheme and on the rare native seed whose faithful solve finds no hostable label
+ * and falls through to the derived scan, so that edge reads "derived", not a phantom nudge.
+ * `deltaL` is the signed `accent.L − seed.L` (0 = perfectly faithful; a small magnitude when
+ * native = the minimal legibility nudge; when not native it is just the derived L delta).
+ * Together they drive the three copy branches: faithful / nudged / derived.
  */
-export type BindingProvenance = BindingStep | null;
+export interface AccentProvenance {
+  kind: "accent";
+  native: boolean;
+  deltaL: number;
+}
+
+/**
+ * Provenance for the on-accent LABEL co-solve (#151, carrying the label solve #153 rides).
+ * `pole` is which extreme the label sits toward relative to the fill — near-white vs
+ * near-black, the headroom polarity (#95). `hue`/`chroma` are the label's own: `chroma` is 0
+ * for the achromatic extreme, `> 0` for the chromatic color-on-color solve (#153 — gold on
+ * navy). `backedOff` is true when the label carries LESS chroma than the seed's, i.e. the
+ * target/gamut forced it toward grey (the achromatic extreme is the C→0 limit → `true`).
+ */
+export interface OnAccentProvenance {
+  kind: "on-accent";
+  pole: "white" | "black";
+  hue: number;
+  chroma: number;
+  backedOff: boolean;
+}
+
+/**
+ * A token's binding provenance (#70, #151): the solve-time story the receipt reads instead
+ * of reverse-engineering it. A discriminated union on `kind`: `step` for a discrete ramp
+ * step (surfaces + `auto` tokens), `accent`/`on-accent` for the continuous brand co-solves
+ * (which are NOT a ramp step but still carry a first-class report), and `null` ONLY for a
+ * `literal` binding (a fixed value — no derivation to report). Reported by the binding layer
+ * AT SOLVE TIME — never value-matched (a scan lies when the brand and neutral ramps converge,
+ * e.g. an achromatic seed or `tintedNeutrals: false`).
+ */
+export type BindingProvenance =
+  | StepProvenance
+  | AccentProvenance
+  | OnAccentProvenance
+  | null;
 
 /** One token's binding provenance for both schemes — zipped like the token values. */
 export interface BindingPair {
@@ -260,11 +305,13 @@ export interface SchemeResult {
    */
   anchorLabel: RampLabel;
   /**
-   * Per-token binding provenance for THIS scheme (#109): which ramp step each semantic
-   * token bound to, reported by the binding layer at solve time (`null` for the continuous
-   * `accent`/`on-accent` co-solves and `literal` bindings). The truthful source for a
-   * "`--text` → `neutral · 800`" receipt — a value-scan cannot tell brand from neutral when
-   * the two ramps converge. Reporting only: every `tokens` value is unchanged by its presence.
+   * Per-token binding provenance for THIS scheme (#109, #151): the solve-time story of each
+   * semantic token — a `step` `(role, label)` for ramp-bound tokens, a first-class `accent`/
+   * `on-accent` co-solve report for the continuous brand pair, `null` only for a `literal`.
+   * The truthful source for a "`--text` → `neutral · 800`" receipt AND the accent's
+   * faithful/nudged/derived + label-pole story — a value-scan cannot tell brand from neutral
+   * when the two ramps converge, nor recover the co-solve. Reporting only: every `tokens`
+   * value is unchanged by its presence.
    */
   bindings: Record<BrandTokenName, BindingProvenance>;
 }
@@ -298,10 +345,10 @@ export interface TokenSet {
     /** The `brand` ramp step the seed is anchored to (#108) — see `SchemeResult`. */
     anchorLabel: RampLabel;
     /**
-     * Per-token binding provenance (#70), zipped `{ light, dark }` per token — which ramp
-     * step each semantic token bound to in each scheme (`null` for the continuous
-     * `accent`/`on-accent` co-solves and `literal` bindings). The truthful source for the
-     * Studio's binding receipt. Reporting only: every `tokens` value is unchanged by it.
+     * Per-token binding provenance (#70, #151), zipped `{ light, dark }` per token — the
+     * `step` `(role, label)` each ramp-bound token landed, the `accent`/`on-accent` co-solve
+     * report for the continuous brand pair, `null` only for a `literal`. The truthful source
+     * for the Studio's binding receipt. Reporting only: every `tokens` value is unchanged by it.
      */
     bindings: Record<BrandTokenName, BindingPair>;
   };

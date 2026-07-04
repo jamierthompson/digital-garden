@@ -86,10 +86,15 @@ bound to**, so a consumer (the Studio token table, #70) can print a truthful "`-
 the brand and neutral ramps converge (an achromatic seed, `tintedNeutrals: false`) and scan
 order, not the schema, would pick the role. `SchemeResult.bindings` is
 `Record<BrandTokenName, BindingProvenance>` for that scheme; `TokenSet.meta.bindings` is
-`Record<BrandTokenName, BindingPair>` (`{ light, dark }`). `BindingProvenance` is
-`BindingStep | null` — `{ role, label }` for a discrete step, or `null` for the bindings that
-are **not** a step: the continuous `accent`/`on-accent` co-solves and any `literal`. It is
-**reporting, not re-solving** — every baked color is byte-identical with or without it.
+`Record<BrandTokenName, BindingPair>` (`{ light, dark }`). `BindingProvenance` is a
+discriminated union on `kind`: `StepProvenance` (`{ kind: "step", role, label }`) for a
+discrete ramp step (surfaces + every `auto` token); `AccentProvenance`
+(`{ kind: "accent", native, deltaL }`) and `OnAccentProvenance`
+(`{ kind: "on-accent", pole, hue, chroma, backedOff }`) — the first-class co-solve reports
+for the continuous brand pair (#151), so the receipt tells the accent's faithful/nudged/
+derived story and the label's pole/chroma-backoff without comparing color values; and `null`
+**only** for a `literal` binding. It is **reporting, not re-solving** — every baked color is
+byte-identical with or without it.
 
 The derivation contract (the receipt's other half, #150): `CONTRAST_TARGETS` — the named
 tiers each pair is measured against (`bodyText` 4.5/75, `mutedText`/`accentText`/`onAccent`

@@ -17,9 +17,11 @@ import {
   type ContrastTarget,
 } from "./contrast";
 import type {
+  AccentProvenance,
   BindingProvenance,
   BrandTokenName,
   OkLCH,
+  OnAccentProvenance,
   Ramp,
   RampLabel,
   RampRole,
@@ -92,6 +94,12 @@ export interface BindingContext {
   /** The faithful brand accent fill (continuous co-solve) and its on-accent label. */
   accent: OkLCH;
   onAccent: OkLCH;
+  /** The `accent` co-solve story (#151) — reported verbatim as the `accent` token's
+   *  provenance so the receipt never reverse-engineers native/nudged/derived from values. */
+  accentProvenance: AccentProvenance;
+  /** The `on-accent` label solve story (#151/#153) — pole + hue/chroma/backoff, reported
+   *  verbatim as the `on-accent` token's provenance. */
+  onAccentProvenance: OnAccentProvenance;
 }
 
 /** Find a ramp step by label (the ramp is a fixed 11-entry array, so this is a scan). */
@@ -103,11 +111,12 @@ function stepAt(ramp: Ramp, label: RampLabel): OkLCH {
 }
 
 /**
- * One resolved binding: the baked color AND the ramp step it came from. `step` is `null`
- * for the bindings that are not a discrete ramp step — the continuous `accent`/`on-accent`
- * co-solves and any `literal`. Surfacing the step HERE, at solve time, is what lets the
- * receipt name the SCHEMA's role rather than reverse-engineering it by value-matching (which
- * lies when two ramps converge — an achromatic seed, `tintedNeutrals: false`). #70.
+ * One resolved binding: the baked color AND its provenance. `step` is the discrete
+ * `(role, label)` for ramp-bound tokens, the `accent`/`on-accent` co-solve report for the
+ * continuous brand pair (#151), or `null` only for a `literal`. Surfacing provenance HERE, at
+ * solve time, is what lets the receipt name the SCHEMA's role and the co-solve story rather
+ * than reverse-engineering them by value-matching (which lies when two ramps converge — an
+ * achromatic seed, `tintedNeutrals: false`). #70. (`step` keeps its name for continuity.)
  */
 export interface ResolvedBinding {
   color: OkLCH;
@@ -125,7 +134,7 @@ export function resolveBinding(
       const label = ctx.scheme === "light" ? binding.light : binding.dark;
       return {
         color: stepAt(ctx.ramps[binding.role], label),
-        step: { role: binding.role, label },
+        step: { kind: "step", role: binding.role, label },
       };
     }
     case "auto": {
@@ -136,7 +145,7 @@ export function resolveBinding(
       );
       return {
         color: chosen.color,
-        step: { role: binding.role, label: chosen.label },
+        step: { kind: "step", role: binding.role, label: chosen.label },
       };
     }
     case "literal":
@@ -145,9 +154,9 @@ export function resolveBinding(
         step: null,
       };
     case "accent":
-      return { color: ctx.accent, step: null };
+      return { color: ctx.accent, step: ctx.accentProvenance };
     case "on-accent":
-      return { color: ctx.onAccent, step: null };
+      return { color: ctx.onAccent, step: ctx.onAccentProvenance };
   }
 }
 

@@ -96,6 +96,16 @@ describe("resolveBinding", () => {
     surface2: lightSurface,
     accent: { L: 0.5, C: 0.15, H: 260 },
     onAccent: { L: 0.99, C: 0, H: 260 },
+    // The co-solve reports are computed by palette.ts and passed in verbatim; resolveBinding
+    // just forwards them as the accent/on-accent provenance (identity — asserted below).
+    accentProvenance: { kind: "accent", native: true, deltaL: 0 },
+    onAccentProvenance: {
+      kind: "on-accent",
+      pole: "white",
+      hue: 260,
+      chroma: 0,
+      backedOff: false,
+    },
   };
 
   it("`step` picks the scheme's label (light vs dark) and reports it as provenance", () => {
@@ -107,10 +117,10 @@ describe("resolveBinding", () => {
     };
     const light = resolveBinding(b, { ...baseCtx, scheme: "light" });
     expect(light.color).toEqual(neutral.find((s) => s.label === "50")!.color);
-    expect(light.step).toEqual({ role: "neutral", label: "50" });
+    expect(light.step).toEqual({ kind: "step", role: "neutral", label: "50" });
     const dark = resolveBinding(b, { ...baseCtx, scheme: "dark" });
     expect(dark.color).toEqual(neutral.find((s) => s.label === "950")!.color);
-    expect(dark.step).toEqual({ role: "neutral", label: "950" });
+    expect(dark.step).toEqual({ kind: "step", role: "neutral", label: "950" });
   });
 
   it("`auto` runs minPass against surface-2 and reports the winning step", () => {
@@ -119,8 +129,15 @@ describe("resolveBinding", () => {
     const got = resolveBinding(b, { ...baseCtx, scheme: "light" });
     expect(got.color).toEqual(chosen.color);
     // The reported step is the one minPass actually chose — and its color IS the value.
-    expect(got.step).toEqual({ role: "neutral", label: chosen.label });
-    const reported = neutral.find((s) => s.label === got.step!.label)!;
+    expect(got.step).toEqual({
+      kind: "step",
+      role: "neutral",
+      label: chosen.label,
+    });
+    if (got.step?.kind !== "step")
+      throw new Error("expected a step provenance");
+    const step = got.step; // capture so the narrowing survives into the closure below
+    const reported = neutral.find((s) => s.label === step.label)!;
     expect(reported.color).toEqual(got.color);
   });
 
@@ -136,19 +153,20 @@ describe("resolveBinding", () => {
     expect(d.step).toBeNull();
   });
 
-  it("`accent` / `on-accent` defer to the co-solve, with null provenance", () => {
+  it("`accent` / `on-accent` defer to the co-solve, forwarding its provenance report (#151)", () => {
     const a = resolveBinding(
       { kind: "accent" },
       { ...baseCtx, scheme: "light" },
     );
     expect(a.color).toBe(baseCtx.accent);
-    expect(a.step).toBeNull();
+    // Not null any more — the accent reports the co-solve story it was handed, verbatim.
+    expect(a.step).toBe(baseCtx.accentProvenance);
     const on = resolveBinding(
       { kind: "on-accent" },
       { ...baseCtx, scheme: "light" },
     );
     expect(on.color).toBe(baseCtx.onAccent);
-    expect(on.step).toBeNull();
+    expect(on.step).toBe(baseCtx.onAccentProvenance);
   });
 
   it("resolveTokens visits every key, returning parallel tokens + provenance", () => {
@@ -164,8 +182,8 @@ describe("resolveBinding", () => {
     expect(Object.keys(tokens)).toEqual(["bg", "text", "accent"]);
     expect(Object.keys(bindings)).toEqual(["bg", "text", "accent"]);
     expect(tokens.accent).toBe(baseCtx.accent);
-    // A stepped binding reports its (role, label); the continuous accent reports null.
-    expect(bindings.bg).toEqual({ role: "neutral", label: "50" });
-    expect(bindings.accent).toBeNull();
+    // A stepped binding reports its (role, label); the continuous accent forwards its report.
+    expect(bindings.bg).toEqual({ kind: "step", role: "neutral", label: "50" });
+    expect(bindings.accent).toBe(baseCtx.accentProvenance);
   });
 });

@@ -43,8 +43,10 @@ import {
 import {
   BRAND_TOKEN_NAMES,
   RAMP_ROLES,
+  type AccentProvenance,
   type BindingPair,
   type BrandTokenName,
+  type OnAccentProvenance,
   type EngineRules,
   type Gamut,
   type OkLCH,
@@ -438,6 +440,46 @@ function solveNativeAccent(
   return null;
 }
 
+/** How much less chroma than the seed's counts as the label being "backed off" — well
+ *  above the 4-dp bake error, so the flag is stable. */
+const CHROMA_BACKOFF_EPS = 1e-4;
+
+/**
+ * Report the accent FILL co-solve (#151): whether the fill came from the FAITHFUL native
+ * solve (`native` — it then honors `seed.L`, nudged at most minimally) vs the derived scan,
+ * and the signed `accent.L − seed.L` (0 = perfectly faithful; a small magnitude when native
+ * = the legibility nudge; just the L delta when derived). A pure function of the
+ * already-solved colors + which path ran — reporting only, no value is perturbed.
+ */
+function describeAccent(
+  accent: OkLCH,
+  seed: OkLCH,
+  native: boolean,
+): AccentProvenance {
+  return { kind: "accent", native, deltaL: accent.L - seed.L };
+}
+
+/**
+ * Report the on-accent LABEL co-solve (#151, carrying the #153 label solve): which extreme
+ * the label sits toward relative to the fill (`pole` — near-white vs near-black headroom
+ * polarity, #95), the label's own hue/chroma, and whether its chroma was backed off below
+ * the seed's (the achromatic extreme is the C→0 limit, so a chromatic seed's achromatic
+ * label reports `true`). A pure function of the solved colors — reporting only.
+ */
+function describeOnAccent(
+  onAccent: OkLCH,
+  accent: OkLCH,
+  seed: OkLCH,
+): OnAccentProvenance {
+  return {
+    kind: "on-accent",
+    pole: onAccent.L >= accent.L ? "white" : "black",
+    hue: seed.H,
+    chroma: onAccent.C,
+    backedOff: onAccent.C + CHROMA_BACKOFF_EPS < seed.C,
+  };
+}
+
 /**
  * Resolve every brand token for ONE scheme, plus the per-role ramps they bind to. The
  * literal `(brandColor, scheme) → { ramps, tokens }` of the architecture signature. Also
@@ -484,11 +526,21 @@ export function resolveTheme(
 
   // Native scheme → faithful to seed.L (fall back to the derived scan if no faithful
   // accent hosts a label). Off scheme → derive the brand from the seed by scanning.
+  // `usedNative` records which path ACTUALLY produced the fill — so the report says
+  // "derived" (not a huge phantom "nudge") on the rare native seed whose faithful solve
+  // found no hostable label and fell through to the scan.
+  const nativeSolve =
+    scheme === direction ? solveNativeAccent(seed, surface2, gamut) : null;
+  const usedNative = nativeSolve !== null;
   const { accent, onAccent } =
-    scheme === direction
-      ? (solveNativeAccent(seed, surface2, gamut) ??
-        solveAccent(seed, surface2, gamut))
-      : solveAccent(seed, surface2, gamut);
+    nativeSolve ?? solveAccent(seed, surface2, gamut);
+
+  // The accent/on-accent co-solve provenance (#151): the receipt's truthful source for the
+  // brand pair, reported at solve time so the Studio never reverse-engineers native/nudged/
+  // derived (or the label pole) by comparing `seed` to `tokens.accent`. Pure functions of the
+  // solved colors + which solve path ran — reporting only, no value is perturbed.
+  const accentProvenance = describeAccent(accent, seed, usedNative);
+  const onAccentProvenance = describeOnAccent(onAccent, accent, seed);
 
   // Resolve the binding schema: surfaces pin fixed steps, readable tokens run `minPass`,
   // the accent/on-accent defer to the co-solve above. `bindings` reports the winning step
@@ -499,6 +551,8 @@ export function resolveTheme(
     surface2,
     accent,
     onAccent,
+    accentProvenance,
+    onAccentProvenance,
   });
 
   return {
