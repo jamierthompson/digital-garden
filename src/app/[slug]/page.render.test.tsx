@@ -92,6 +92,31 @@ const foundProvider = () =>
     },
   }));
 
+// A module that composes BOTH ways — a Provider frame around the article AND an after-prose
+// Experience slot. The `EntryModule` type permits "one or both"; this exercises "both".
+const foundBoth = () =>
+  found(async () => ({
+    default: {
+      Experience: () => <div data-testid="experience">experience slot</div>,
+      Provider: ({
+        slug,
+        children,
+      }: {
+        slug: string;
+        children: React.ReactNode;
+      }) => (
+        <div data-testid="provider" data-slug={slug}>
+          {children}
+        </div>
+      ),
+    },
+  }));
+
+// A module that RESOLVES (`found`) but whose default export is malformed — it exports
+// neither `Experience` nor `Provider`. The compile-time union forbids this, but drift/bad
+// data can produce it at runtime; the page must degrade to prose-only, never crash, never 404.
+const foundEmptyModule = () => found(async () => ({ default: {} }));
+
 interface EntryOverrides {
   [key: string]: unknown;
 }
@@ -349,5 +374,156 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     // No monolithic slot, no page-level brand scope from the frame itself.
     expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
     expect(container.querySelector("[data-entry]")).toBeNull();
+  });
+
+  // ── QA additions: edge / boundary / error cases the capability grid skipped ──
+
+  it("mounts BOTH the Provider frame AND the after-prose Experience slot when a module exports both", async () => {
+    // The `EntryModule` union allows "one OR both" composition members. When a module exports
+    // both, the article renders INSIDE the Provider frame AND a separate Experience slot mounts
+    // after the prose inside its own `[data-entry]` scope. Pins the both-present composition the
+    // suite otherwise never exercises — a mutation that dropped either half would slip through.
+    resolveComponentKeyMock.mockReturnValue(foundBoth());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "note",
+        componentKey: "palette-studio",
+        brandColor: "oklch(0.7 0.15 70)",
+        ...withBody,
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    // Article wrapped in the Provider frame (children pass-through).
+    const frame = screen.getByTestId("provider");
+    expect(frame).toHaveAttribute("data-slug", "an-entry");
+    expect(frame.querySelector("h1")).not.toBeNull();
+    // Experience slot present AND inside its own real-slug scope (not `fallback`).
+    const slot = container.querySelector("[data-entry]");
+    expect(slot).toHaveAttribute("data-entry", "an-entry");
+    expect(slot?.querySelector('[data-testid="experience"]')).not.toBeNull();
+  });
+
+  it("degrades to prose-only (no slot, no crash, no 404) when a resolved module exports neither member", async () => {
+    // Drift-in-the-loader: the key RESOLVES (`found`), so the drift-404 guard does not fire, but
+    // the loaded default is malformed — neither `Experience` nor `Provider`. The page must render
+    // the article and mount nothing, rather than throw. `entryModule` is a truthy `{}`, so the
+    // scope is still built and threaded to the body (theming survives a slot-less module).
+    resolveComponentKeyMock.mockReturnValue(foundEmptyModule());
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "note", componentKey: "palette-studio", ...withBody }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    expect(
+      screen.getByRole("heading", { level: 1, name: /an entry/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("provider")).not.toBeInTheDocument();
+    // No visible slot (Experience null → EntryScope not rendered), so no page-level scope div…
+    expect(container.querySelector("[data-entry]")).toBeNull();
+    // …but the resolved (if empty) module still counts as "mounts a module", so the body scope
+    // is threaded and keyed on the real slug.
+    const body = screen.getByTestId("essay-body");
+    expect(body).toHaveAttribute("data-has-scope", "yes");
+    expect(body).toHaveAttribute("data-scope-slug", "an-entry");
+    // The resolver WAS consulted (a key was declared) — just yielded a slot-less module.
+    expect(resolveComponentKeyMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("treats an EMPTY-STRING componentKey as no key (falsy): resolver never consulted, no 404, prose-only", async () => {
+    // A Sanity string field can be present-but-empty (`""`), which is falsy. The page's
+    // `entry.componentKey` guard must treat it exactly like a missing key — no resolution, no
+    // drift-404, prose-only — never call the resolver with `""`.
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "note", componentKey: "", ...withBody }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    expect(
+      screen.getByRole("heading", { level: 1, name: /an entry/i }),
+    ).toBeInTheDocument();
+    expect(container.querySelector("[data-entry]")).toBeNull();
+    expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
+    expect(resolveComponentKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("never throws on a hostile brandColor threaded through the REAL EntryScope, and still keys the slot on the real slug", async () => {
+    // The keystone contract at the PAGE seam: a garbage `brandColor` reaching the real
+    // `EntryScope` → `resolveScope` → OKLCH engine must degrade to the fallback palette, never
+    // throw, and the slot stays keyed on the vetted real slug (injection-safe). Uses a
+    // resolvable Experience so the real EntryScope actually mounts (not the mocked EssayBody).
+    resolveComponentKeyMock.mockReturnValue(foundExperience());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "note",
+        componentKey: "palette-studio",
+        brandColor: 'javascript:alert(1)"]{}body{display:none}',
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    // Rendered without throwing; the slot is present and keyed on the sanitized real slug.
+    expect(screen.getByTestId("experience")).toBeInTheDocument();
+    const slot = container.querySelector("[data-entry]");
+    expect(slot).toHaveAttribute("data-entry", "an-entry");
+  });
+
+  it("threads the brand scope to the body under a Provider frame (a themed essay's embeds are scoped even though the frame is not)", async () => {
+    // A Provider-only module frames the article for shared state but introduces NO page-level
+    // scope of its own (#131). A themed essay must still hand its `brandColor` scope to the body
+    // so each interleaved `liveEmbed` mounts in its own scoped container. Pins scope-threading on
+    // the Provider path — the existing Provider test carries no body, so it never checks this.
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "essay",
+        componentKey: "palette-studio",
+        brandColor: "oklch(0.7 0.15 70)",
+        fontKey: "newsreader",
+        slug: "an-essay",
+        ...withBody,
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-essay") }),
+    );
+    expect(screen.getByTestId("provider")).toBeInTheDocument();
+    // Frame introduces no page-level scope wrapper.
+    expect(container.querySelector("[data-entry]")).toBeNull();
+    // …but the body was handed the brand scope for its embeds.
+    const body = screen.getByTestId("essay-body");
+    expect(body).toHaveAttribute("data-has-scope", "yes");
+    expect(body).toHaveAttribute("data-scope-slug", "an-essay");
+    expect(body).toHaveAttribute("data-scope-brand", "oklch(0.7 0.15 70)");
+  });
+
+  it("does NOT build a scope for a lone fontKey (no brandColor, no module) — a fontKey alone has no slot to apply to", async () => {
+    // CHARACTERIZATION of the current capability gate: the scope is built on `brandColor ||
+    // module` only, so a `fontKey` set WITHOUT a brandColor or a module is silently dropped —
+    // the body gets no scope and no `[data-entry]` mounts. This is a deliberate consequence of
+    // "brand is scoped to the slot, never the prose", but it means font-only theming of a note's
+    // embeds is a NON-feature today. If that intent ever matters, the gate must add `fontKey`.
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "note",
+        componentKey: null,
+        brandColor: null,
+        fontKey: "newsreader",
+        ...withBody,
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    expect(container.querySelector("[data-entry]")).toBeNull();
+    expect(screen.getByTestId("essay-body")).toHaveAttribute(
+      "data-has-scope",
+      "no",
+    );
   });
 });
