@@ -14,7 +14,7 @@ export default function PrimitivesSlot(): React.ReactElement {
   const studio = useStudio();
   if (!studio) return <MissingFrame name="primitive ramps" />;
   return (
-    <Panel label="Primitive ramps">
+    <Panel label="Primitive ramps" style={studio.slotStyle}>
       <PrimitivesBoard ramps={studio.view.ramps} />
     </Panel>
   );

@@ -32,6 +32,7 @@ import {
 } from "./core/derive";
 import { DEFAULT_GAMUT, DEFAULT_RULES, type StudioRules } from "./core/rules";
 import { DEFAULT_SEED } from "./core/presets";
+import { tokensToScopeVars } from "./core/scope";
 
 export interface StudioState {
   /** Slug-derived id namespace — ids must not collide across Activity-kept routes. */
@@ -56,6 +57,15 @@ export interface StudioState {
   readonly view: SchemeView;
   /** Decorative harmony sets — seed + gamut only, scheme-independent. */
   readonly harmony: HarmonyPalette;
+  /**
+   * Inline semantic-token re-bind for a slot's container: the CURRENT seed's generated
+   * palette (displayed scheme), as CSS custom properties. Every slot passes this to its
+   * Panel so the studio's own chrome — pills, switch, tabs, borders — repaints live with
+   * the palette it generates (the tool demonstrates itself). Safe by construction: the
+   * engine's output is contrast-solved and never throws (garbage seed → fallback), and
+   * inline custom props are ordinary downward theming within the slot's brand scope.
+   */
+  readonly slotStyle: React.CSSProperties;
 }
 
 // Null default on purpose: a slot can be authored into any entry's body, so it must
@@ -112,8 +122,9 @@ export default function StudioProvider({
     [seed, gamut],
   );
 
-  const value = useMemo<StudioState>(
-    () => ({
+  const value = useMemo<StudioState>(() => {
+    const view = scheme === "light" ? palette.light : palette.dark;
+    return {
       idPrefix: `ps-${slug}`,
       seed,
       setSeed,
@@ -124,11 +135,11 @@ export default function StudioProvider({
       setGamut,
       scheme,
       palette,
-      view: scheme === "light" ? palette.light : palette.dark,
+      view,
       harmony,
-    }),
-    [slug, seed, parsed, rules, gamut, scheme, palette, harmony],
-  );
+      slotStyle: { ...tokensToScopeVars(view.tokens), colorScheme: scheme },
+    };
+  }, [slug, seed, parsed, rules, gamut, scheme, palette, harmony]);
 
   return (
     <StudioContext.Provider value={value}>{children}</StudioContext.Provider>

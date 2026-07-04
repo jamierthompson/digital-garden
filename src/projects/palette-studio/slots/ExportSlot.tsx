@@ -12,7 +12,7 @@ export default function ExportSlot(): React.ReactElement {
   const studio = useStudio();
   if (!studio) return <MissingFrame name="export" />;
   return (
-    <Panel label="Export">
+    <Panel label="Export" style={studio.slotStyle}>
       <Note>
         The same tokens, serialized by the engine — never re-typed here, so the
         export can&rsquo;t drift from what you see above.

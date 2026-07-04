@@ -11,7 +11,7 @@ export default function RulesSlot(): React.ReactElement {
   const studio = useStudio();
   if (!studio) return <MissingFrame name="rules" />;
   return (
-    <Panel label="Rules">
+    <Panel label="Rules" style={studio.slotStyle}>
       <RulesBoard
         idPrefix={studio.idPrefix}
         rules={studio.rules}

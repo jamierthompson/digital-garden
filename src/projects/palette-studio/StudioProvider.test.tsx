@@ -78,6 +78,34 @@ describe("Palette Studio (Provider + slots)", () => {
     expect(tokenValue("accent")).not.toBe(before);
   });
 
+  it("re-binds every slot's own chrome to the CURRENT seed (self-demonstrating tool)", () => {
+    // Owner design call (2026-07-03): the slots' pills/switch/tabs repaint live with the
+    // palette they generate — the provider's slotStyle re-binds the semantic tokens on
+    // each Panel. The prose around the slots stays editorial; this only themes inside.
+    renderStudio();
+    const rulesPanel = screen.getByRole("region", { name: "Rules" });
+    const before = rulesPanel.style.getPropertyValue("--accent");
+    expect(before).not.toBe("");
+    fireEvent.change(screen.getByLabelText("Seed color"), {
+      target: { value: "#16a34a" },
+    });
+    const after = rulesPanel.style.getPropertyValue("--accent");
+    expect(after).not.toBe(before);
+    // Every slot panel carries the SAME live binding.
+    for (const name of [
+      "Seed",
+      "Primitive ramps",
+      "Semantic tokens",
+      "Live preview",
+      "Contrast receipt",
+      "Export",
+    ]) {
+      expect(
+        screen.getByRole("region", { name }).style.getPropertyValue("--accent"),
+      ).toBe(after);
+    }
+  });
+
   it("signals an unparseable seed inline without crashing", () => {
     renderStudio();
     const input = screen.getByLabelText("Seed color");

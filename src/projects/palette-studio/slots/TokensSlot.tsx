@@ -11,7 +11,7 @@ export default function TokensSlot(): React.ReactElement {
   const studio = useStudio();
   if (!studio) return <MissingFrame name="semantic tokens" />;
   return (
-    <Panel label="Semantic tokens">
+    <Panel label="Semantic tokens" style={studio.slotStyle}>
       <TokenTable rows={studio.palette.rows} scheme={studio.scheme} />
     </Panel>
   );

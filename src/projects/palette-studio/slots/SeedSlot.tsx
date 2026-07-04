@@ -14,7 +14,7 @@ export default function SeedSlot(): React.ReactElement {
   const studio = useStudio();
   if (!studio) return <MissingFrame name="seed" />;
   return (
-    <Panel label="Seed">
+    <Panel label="Seed" style={studio.slotStyle}>
       <SeedRow
         idPrefix={studio.idPrefix}
         seed={studio.seed}

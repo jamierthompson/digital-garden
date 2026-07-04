@@ -13,7 +13,7 @@ export default function ReceiptSlot(): React.ReactElement {
   const studio = useStudio();
   if (!studio) return <MissingFrame name="contrast receipt" />;
   return (
-    <Panel label="Contrast receipt">
+    <Panel label="Contrast receipt" style={studio.slotStyle}>
       <Note>
         Measured on the generated tokens — every readable pair clears its WCAG
         floor and APCA target, in both schemes. That&rsquo;s the guarantee.

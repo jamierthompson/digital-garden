@@ -13,7 +13,7 @@ export default function PreviewSlot(): React.ReactElement {
   const studio = useStudio();
   if (!studio) return <MissingFrame name="live preview" />;
   return (
-    <Panel label="Live preview">
+    <Panel label="Live preview" style={studio.slotStyle}>
       <div className={styles.pair}>
         <PreviewCard scheme="light" tokens={studio.palette.light.tokens} />
         <PreviewCard scheme="dark" tokens={studio.palette.dark.tokens} />
