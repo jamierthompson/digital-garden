@@ -35,12 +35,18 @@ function renderStudio(slug = "demo") {
   );
 }
 
-/** Read the resolved value text off one token's swatch card (the active-scheme face). */
+/** Read the resolved value text off one token's swatch card (the active-scheme face). The
+ *  MiniRamp readout also prints an oklch() value, so target the face value cell specifically —
+ *  the only element whose text STARTS with "oklch(". */
 function tokenValue(name: string): string {
   const heading = screen.getByRole("heading", { name: `--${name}` });
   const card = heading.closest("li");
   if (!card) throw new Error(`no card for --${name}`);
-  return within(card).getByText(/oklch\(/).textContent ?? "";
+  const value = within(card)
+    .getAllByText(/oklch\(/)
+    .find((el) => (el.textContent ?? "").startsWith("oklch("));
+  if (!value) throw new Error(`no face value for --${name}`);
+  return value.textContent ?? "";
 }
 
 const ALL_SLOTS = [
