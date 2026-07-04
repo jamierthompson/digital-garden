@@ -15,8 +15,9 @@ or carry `server-only`/`client-only`.
   semantic tokens **bind to ramp steps**: surfaces pin a fixed neutral step per scheme, and
   every readable-on-surface token binds to the _smallest step that clears_ its contrast target
   (`minPass`, with an extreme-step fallback). The accent **fill** is the exception — a faithful
-  continuous solve anchored at the seed's lightness — with its on-accent label a near-white/
-  near-black extreme that clears with headroom. Consumers read the generic semantic **names**;
+  continuous solve anchored at the seed's lightness — with its on-accent label the **most
+  chromatic** color at the brand hue that clears on the fill (#153 — gold on navy, degrading to
+  a near-white/near-black extreme when the gamut allows no chroma there). Consumers read the generic semantic **names**;
   the ramp math stays behind them (the raw `--<role>-<step>` steps are emitted too).
 - **Seed anchor-step.** The **brand** ramp is bent so one step sits at the seed's **exact**
   lightness (a per-side shift+scale that preserves the endpoints, keeps the scale strictly

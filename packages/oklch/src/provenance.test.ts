@@ -55,12 +55,29 @@ const CASES: Array<{
 
 const golden = goldenFixture as Record<string, unknown>;
 
-/** The pre-existing surface of a TokenSet — everything EXCEPT the added `meta.bindings`. */
-function withoutBindings(set: TokenSet): unknown {
-  const meta: Record<string, unknown> = { ...set.meta };
-  delete meta.bindings;
-  return { tokens: set.tokens, ramps: set.ramps, meta };
+/**
+ * The pre-change surface of a TokenSet, minus the two intentional post-fixture changes:
+ * `meta.bindings` (added by the #70/#151 provenance report) and the `on-accent` token (moved
+ * by #153's chromatic label for chromatic seeds). Everything that REMAINS — the accent FILL,
+ * all six ramps, the surfaces, every other token, and the rest of `meta` — must still be
+ * bit-identical to the pre-change engine. Applied to both the live set and the golden JSON.
+ */
+function stableSurface(view: unknown): unknown {
+  const v = view as {
+    tokens: Record<string, unknown>;
+    ramps: unknown;
+    meta: Record<string, unknown>;
+  };
+  const meta = { ...v.meta };
+  delete meta.bindings; // #70 / #151 — reported provenance, not a baked value
+  const tokens = { ...v.tokens };
+  delete tokens["on-accent"]; // #153 — the chromatic label legitimately moved
+  return { tokens, ramps: v.ramps, meta };
 }
+
+/** The cases whose seed is achromatic — where #153 degrades to today's white/black label, so
+ *  even `on-accent` stays bit-identical (the C→0 limit / strict-generalization guarantee). */
+const ACHROMATIC_KEYS = new Set(["achromatic", "achromatic-p3"]);
 
 const SCHEMES: Scheme[] = ["light", "dark"];
 const sameColor = (a: OkLCH, b: OkLCH): boolean =>
@@ -85,12 +102,25 @@ const EXPECTED_ROLE: Partial<Record<BrandTokenName, RampRole>> = {
 
 const CONTINUOUS: BrandTokenName[] = ["accent", "on-accent"];
 
-describe("byte-identical (#70): the report never perturbs a baked value", () => {
+describe("byte-identical (#70, #153): only the report + the #153 label ever move", () => {
   it.each(CASES)(
-    "$key — tokens/ramps/meta match the pre-change engine bit-for-bit",
+    "$key — the fill, ramps, surfaces, other tokens + meta match the pre-change engine bit-for-bit",
     ({ key, seed, opts }) => {
       const set = buildTokenSet(seed, opts);
-      expect(withoutBindings(set)).toEqual(golden[key]);
+      // The provenance report (#70/#151) and the #153 on-accent label are the ONLY intended
+      // changes; everything else is proven unchanged against the pre-change golden fixture.
+      expect(stableSurface(set)).toEqual(stableSurface(golden[key]));
+    },
+  );
+
+  it.each(CASES.filter((c) => ACHROMATIC_KEYS.has(c.key)))(
+    "$key — on-accent is ALSO bit-identical (achromatic seed = #153's C→0 limit)",
+    ({ key, seed, opts }) => {
+      // Strict generalization: an achromatic seed has no chroma to spend, so #153's label is
+      // the same near-white/near-black extreme as before — the on-accent token cannot move.
+      const set = buildTokenSet(seed, opts);
+      const ref = golden[key] as { tokens: Record<string, unknown> };
+      expect(set.tokens["on-accent"]).toEqual(ref.tokens["on-accent"]);
     },
   );
 
@@ -283,16 +313,15 @@ describe("accent + on-accent co-solve report (#151)", () => {
     }
   });
 
-  it("a chromatic seed's on-accent is the achromatic extreme → chroma ~0, backedOff true", () => {
-    // #151 leaves on-accent achromatic (the near-white/near-black extreme). Since the seed
-    // HAS chroma, that extreme is the C→0 limit of the backoff — reported as backedOff.
+  it("a chromatic seed's on-accent report tracks the #153 chromatic label (chroma is the label's own)", () => {
     const set = buildTokenSet("#3b82f6");
-    for (const scheme of SCHEMES) {
-      const p = set.meta.bindings["on-accent"][scheme];
-      if (p?.kind !== "on-accent") throw new Error("expected on-accent report");
-      expect(p.chroma).toBeLessThan(0.02);
-      expect(p.backedOff).toBe(true);
-    }
+    // Navy fill in dark mode hosts a chromatic light label — the report carries its REAL
+    // chroma (not 0), exactly the baked token's, with backedOff = carries less than the seed's.
+    const p = set.meta.bindings["on-accent"].dark;
+    if (p?.kind !== "on-accent") throw new Error("expected on-accent report");
+    expect(p.chroma).toBeGreaterThan(0.03);
+    expect(p.chroma).toBe(set.tokens["on-accent"].dark.C);
+    expect(p.backedOff).toBe(p.chroma + 1e-4 < set.meta.seed.dark.C);
   });
 
   it("an achromatic seed's on-accent reports backedOff false (no chroma to give up)", () => {

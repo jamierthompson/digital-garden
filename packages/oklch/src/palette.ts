@@ -16,7 +16,8 @@
  * that clears its contrast target (`minPass`). The one exception is the accent FILL: it is
  * the brand's own identity, so it stays a faithful continuous co-solve anchored at the
  * seed's lightness (the rare exact solve `solveForeground` exists for), with its on-accent
- * label a near-white/near-black extreme that clears with headroom.
+ * label the most chromatic color that clears on the fill (#153 — degrading to a near-white/
+ * near-black extreme when the gamut allows no chroma there).
  *
  * Order of operations is fixed: parse defensively → detect the seed's native scheme
  * (auto-direction) → per-scheme seed (dark = reduced chroma) → build the per-scheme ramps →
@@ -125,6 +126,14 @@ const STATUS_HUE: Record<"success" | "error" | "warning" | "info", number> = {
 // e.g. warning/yellow correctly desaturates at its dark steps — that is the point of a
 // gamut-mapped ramp rather than a uniform ΔL step.
 const STATUS_CHROMA = 0.15;
+
+/** Chroma resolution for the on-accent label solve (#153) and the "backed off below the
+ *  seed's chroma" flag (#151) — well above the 4-dp bake error, so both are stable. */
+const CHROMA_BACKOFF_EPS = 1e-4;
+
+/** Chroma step for the on-accent label backoff (#153): coarse is fine — chroma barely moves
+ *  luminance, so the label's lightness (not this step) dominates whether it clears. */
+const LABEL_CHROMA_STEP = 0.02;
 
 interface SchemeConfig {
   /** Chroma multiplier applied to the brand seed for this scheme (dark dampens). */
@@ -319,13 +328,76 @@ function onAccentLabel(accent: OkLCH, hue: number, gamut: Gamut): OkLCH {
 }
 
 /**
+ * The on-accent LABEL (#153): the MOST CHROMATIC color at the brand hue that still clears the
+ * on-accent target on the fill — gold on navy, mint on plum, cream on terracotta. The physics:
+ * WCAG + APCA contrast are luminance-based, so a legible label always lands far from the fill
+ * in LIGHTNESS; what the solve wins is the chroma the gamut allows AT that lightness (dark fills
+ * → colorful light labels; light fills → deep colorful darks). It is a STRICT generalization of
+ * `onAccentLabel`: that achromatic near-white/near-black extreme is the C→0 limit of the backoff
+ * AND the guaranteed-clearing floor, so we search the pole it chose and only REPLACE it when a
+ * chromatic label genuinely clears — an achromatic seed (chroma ≤ eps) returns it bit-for-bit,
+ * so legibility can never regress. Solve a hair above the floor (#79) so the 4-dp bake still
+ * clears; gamut-map every candidate so the math matches paint. Pure, deterministic, never throws.
+ */
+function chromaticOnAccentLabel(
+  accent: OkLCH,
+  hue: number,
+  chroma: number,
+  gamut: Gamut,
+): OkLCH {
+  // Today's label: the higher-contrast achromatic extreme — the guaranteed floor + the pole.
+  const achromatic = onAccentLabel(accent, hue, gamut);
+  // No chroma to spend (achromatic seed) → the label IS that extreme, bit-identical to today.
+  if (chroma <= CHROMA_BACKOFF_EPS) return achromatic;
+
+  const target = withSolveMargin(CONTRAST_TARGETS.onAccent);
+  // The chromatic label sits on the same pole `onAccentLabel` picked (the far side of the fill
+  // in lightness — where contrast lives); scan that side for the most chromatic clearing color.
+  // Following that pole is a deliberate headroom-FIRST priority: for a balanced mid-lightness
+  // fill the opposite pole could occasionally hold marginally more gamut chroma, but the chosen
+  // pole is the higher-contrast one (#95) and always clears, so we never trade legibility for it.
+  const poleWhite = achromatic.L >= accent.L;
+  const loL = poleWhite ? accent.L : 0.1;
+  const hiL = poleWhite ? 0.99 : accent.L;
+
+  let best = achromatic;
+  let bestChroma = achromatic.C; // ≈ 0 — any clearing chromatic label beats it
+  let bestLc = apcaLc(achromatic, accent);
+
+  for (let L = loL; L <= hiL + 1e-9; L += 0.01) {
+    // Start at the gamut-max chroma THIS lightness allows (≤ requested), then back off toward
+    // grey only as far as the target forces — the label keeps as much brand color as it can.
+    const capped = gamutMap({ L, C: chroma, H: hue }, gamut).C;
+    for (let C = capped; C > CHROMA_BACKOFF_EPS; C -= LABEL_CHROMA_STEP) {
+      const candidate = gamutMap({ L, C, H: hue }, gamut);
+      if (!checkContrast(candidate, accent, target).passes) continue;
+      const lc = apcaLc(candidate, accent);
+      // Prefer the most chromatic label; tie-break on contrast headroom.
+      if (
+        candidate.C > bestChroma + CHROMA_BACKOFF_EPS ||
+        (Math.abs(candidate.C - bestChroma) <= CHROMA_BACKOFF_EPS &&
+          lc > bestLc)
+      ) {
+        best = candidate;
+        bestChroma = candidate.C;
+        bestLc = lc;
+      }
+      break; // the first passing C is the most chromatic clearing label at this lightness
+    }
+  }
+
+  return best;
+}
+
+/**
  * Co-solve the accent FILL and the text that sits ON it. A mid-tone fill can host no
  * high-Lc text in either polarity, so we scan the brand hue across lightness for the
  * fill that (a) stays visible on the worst-case surface (≥3:1 + Lc 45, non-text)
  * and (b) lets a near-white OR near-black label clear the on-accent target — preferring
- * the MOST chromatic (most brand-faithful) such fill. The on-accent label is then the
- * higher-contrast extreme for the chosen fill (`onAccentLabel`), so it clears with headroom
- * (#95). Deterministic, always returns a usable pair (a saturated fill hosts a legible label).
+ * the MOST chromatic (most brand-faithful) such fill. The achromatic extremes gate FILL
+ * feasibility (a fill that can host one is accepted); the shipped label is then the most
+ * chromatic color that clears on that fill (`chromaticOnAccentLabel`, #153 — falling back to
+ * the achromatic extreme). Deterministic, always returns a usable pair.
  */
 function solveAccent(
   seed: OkLCH,
@@ -378,26 +450,30 @@ function solveAccent(
   if (best)
     return {
       accent: best.accent,
-      onAccent: onAccentLabel(best.accent, hue, gamut),
+      onAccent: chromaticOnAccentLabel(best.accent, hue, seed.C, gamut),
     };
   // Should be unreachable, but never return undefined — defensive.
   if (fallback)
     return {
       accent: fallback.accent,
-      onAccent: onAccentLabel(fallback.accent, hue, gamut),
+      onAccent: chromaticOnAccentLabel(fallback.accent, hue, seed.C, gamut),
     };
   const accent = gamutMap(
     { L: surfaceBg.L >= 0.5 ? 0.45 : 0.7, C: seed.C, H: hue },
     gamut,
   );
-  return { accent, onAccent: onAccentLabel(accent, hue, gamut) };
+  return {
+    accent,
+    onAccent: chromaticOnAccentLabel(accent, hue, seed.C, gamut),
+  };
 }
 
 /**
  * NATIVE-scheme accent — FAITHFUL to the seed's own lightness. Anchor the fill at
  * `seed.L` (the per-scheme dampened `seed.C`), verify it still reads as a UI element on
- * the worst-case surface, and host a legible near-white/near-black on-accent label. When
- * a mid-lightness `seed.L` can host no label, nudge L minimally toward the nearer extreme
+ * the worst-case surface, and host a legible on-accent label (the chromatic solve #153, which
+ * degrades to the near-white/near-black extreme). When a mid-lightness `seed.L` can host no
+ * label, nudge L minimally toward the nearer extreme
  * (away from mid) — staying as close to `seed.L` as possible — until a label clears while
  * the UI floor still holds. Returns `null` if nothing works (so the caller falls back to
  * the derived scan); this should not happen for a genuinely native seed. Never throws.
@@ -431,7 +507,11 @@ function solveNativeAccent(
       const hosts = labels.some(
         (label) => checkContrast(label, accent, target).passes,
       );
-      if (hosts) return { accent, onAccent: onAccentLabel(accent, hue, gamut) };
+      if (hosts)
+        return {
+          accent,
+          onAccent: chromaticOnAccentLabel(accent, hue, seed.C, gamut),
+        };
     }
     // Once L pins to an extreme, further deltas can't move it — stop scanning.
     if (L <= 0 || L >= 1) break;
@@ -439,10 +519,6 @@ function solveNativeAccent(
 
   return null;
 }
-
-/** How much less chroma than the seed's counts as the label being "backed off" — well
- *  above the 4-dp bake error, so the flag is stable. */
-const CHROMA_BACKOFF_EPS = 1e-4;
 
 /**
  * Report the accent FILL co-solve (#151): whether the fill came from the FAITHFUL native

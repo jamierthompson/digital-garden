@@ -150,21 +150,73 @@ describe("ramp primitives + binding (#98)", () => {
     );
   });
 
-  it("on-accent is a near-white or near-black extreme (headroom label, #95), never a mid-tone", () => {
+  it("on-accent clears the on-accent floor on the fill and lands far in lightness (#153)", () => {
     const seeds = ["#e11d48", "#eab308", "#06b6d4", "#7c3aed", "#3b82f6"];
     for (const seed of seeds)
       for (const scheme of SCHEMES) {
         const { tokens } = resolveTheme(seed, scheme);
         const onAccent = tokens["on-accent"];
-        // Extreme lightness (a near-white or near-black), near-zero chroma.
-        expect(onAccent.L > 0.9 || onAccent.L < 0.2, `${seed}/${scheme}`).toBe(
-          true,
-        );
-        expect(onAccent.C, `${seed}/${scheme}`).toBeLessThan(0.02);
-        // …and it clears the on-accent floor on the accent fill (harness re-asserts too).
+        // Legibility never regresses: the label clears WCAG 4.5 + APCA Lc 60 on the fill.
+        expect(
+          contrastWCAG(onAccent, tokens.accent),
+          `${seed}/${scheme}`,
+        ).toBeGreaterThanOrEqual(4.5);
         expect(
           apcaLc(onAccent, tokens.accent),
           `${seed}/${scheme}`,
+        ).toBeGreaterThanOrEqual(60);
+        // Contrast is luminance-based, so the label always lands FAR from the fill in
+        // lightness — the chromatic solve wins chroma, never a mid-tone "orange on purple".
+        expect(
+          Math.abs(onAccent.L - tokens.accent.L),
+          `${seed}/${scheme}`,
+        ).toBeGreaterThan(0.3);
+      }
+  });
+
+  it("on-accent degrades to today's achromatic extreme for an achromatic seed (#153 = C→0 limit)", () => {
+    // Strict generalization: no seed chroma to spend → the label is the same near-white/
+    // near-black extreme (bit-for-bit) as before #153, so legibility can never regress.
+    for (const scheme of SCHEMES) {
+      const onAccent = resolveTheme("#808080", scheme).tokens["on-accent"];
+      expect(onAccent.C, scheme).toBeLessThan(1e-6);
+      expect(onAccent.L > 0.9 || onAccent.L < 0.2, scheme).toBe(true);
+    }
+  });
+
+  it("on-accent becomes CHROMATIC where the fill + gamut allow it (#153 — gold-on-navy)", () => {
+    // A navy fill in dark mode hosts a chromatic light label — the whole point of #153. The
+    // label carries real brand chroma at the brand hue, not a bleached near-white.
+    const { tokens } = resolveTheme("#3b82f6", "dark");
+    const onAccent = tokens["on-accent"];
+    expect(onAccent.C).toBeGreaterThan(0.03);
+    // Still a legible, luminance-driven label (clears the floor with the chroma it kept).
+    expect(apcaLc(onAccent, tokens.accent)).toBeGreaterThanOrEqual(60);
+  });
+
+  it("the 4-dp-BAKED on-accent literal still clears the TRUE floor on the baked fill (#79/#153)", () => {
+    // The acceptance bar: after formatOklch's 4-dp rounding, the shipped literal must still
+    // clear 4.5:1 + Lc 60 — the #79 solve margin has to cover the chromatic label too.
+    const seeds = [
+      "#3b82f6",
+      "#e11d48",
+      "#eab308",
+      "#06b6d4",
+      "#7c3aed",
+      "#808080",
+    ];
+    for (const seed of seeds)
+      for (const scheme of SCHEMES) {
+        const { tokens } = resolveTheme(seed, scheme);
+        const label = parseColor(formatOklch(tokens["on-accent"]))!;
+        const fill = parseColor(formatOklch(tokens.accent))!;
+        expect(
+          contrastWCAG(label, fill),
+          `${seed}/${scheme} WCAG`,
+        ).toBeGreaterThanOrEqual(4.5);
+        expect(
+          apcaLc(label, fill),
+          `${seed}/${scheme} Lc`,
         ).toBeGreaterThanOrEqual(60);
       }
   });
