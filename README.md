@@ -73,7 +73,7 @@ pnpm build                   # production build
 pnpm lint                    # ESLint (incl. architectural import boundaries)
 pnpm lint:css                # assert every CSS Module declares its @layer
 pnpm lint:keys               # key-drift guard
-pnpm lint:docs               # gate-chain sync (DoD one command = ci.yml) + markdown link/anchor check
+pnpm lint:docs               # gate-chain sync (DoD one command = ci.yml) + markdown link/anchor check + retired-citation guard
 pnpm typecheck               # tsc --noEmit
 pnpm test                    # run the test suite once
 pnpm format / format:check   # Prettier write / check
@@ -113,8 +113,7 @@ src/
     rss.xml/            # RSS feed route handler
     foundation.css      # foundation primitives + semantic editorial defaults + @layer order + reset
   projects/             # self-contained project modules; types.ts = the ProjectModule contract; palette-studio/ = the OKLCH Palette Studio
-  embeds/               # shared in-essay embed components (key → component)
-  components/           # shell/ (SiteNav · SiteFooter), entry/ (EntryCard), project-scope (keystone), portable-text
+  components/           # shell/ (SiteNav · SiteFooter), entry/ (EntryCard), project/ (RelatedEntries), project-scope (keystone), portable-text, ui/
   fonts/roster.ts       # curated next/font faces, one per key
   lib/                  # keys.ts (key contracts), resolvers/, cardSwatches.ts, breakpoints.ts
   sanity/lib/           # Sanity client + defineLive (live.ts) + stega + env + typed GROQ queries
