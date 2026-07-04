@@ -18,11 +18,11 @@
 export {
   resolveTheme,
   buildTokenSet,
-  CONTRAST_TARGETS,
   DEFAULT_BINDING_SCHEMA,
   type EngineOptions,
-  type ContrastTargetName,
 } from "./palette";
+
+export { CONTRAST_TARGETS, type ContrastTargetName } from "./targets";
 
 export {
   tokenSetToCss,

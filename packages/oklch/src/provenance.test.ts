@@ -25,12 +25,10 @@ import {
   type BrandTokenName,
   type EngineRules,
   type OkLCH,
-  type OnAccentProvenance,
   type Ramp,
   type RampRole,
   type Scheme,
   type StepProvenance,
-  type TokenSet,
 } from "./types";
 
 // The same cases the golden fixture was generated from (keep in lock-step).
