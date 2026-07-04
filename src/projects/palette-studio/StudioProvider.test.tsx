@@ -118,17 +118,17 @@ describe("Palette Studio (Provider + slots)", () => {
 
   it("applies a preset chip's seed on click", () => {
     renderStudio();
-    // Flamingo is the default, so it starts pressed.
-    expect(screen.getByRole("button", { name: /Flamingo/ })).toHaveAttribute(
-      "aria-pressed",
+    // Flamingo is the default, so it starts checked (Radix single-type = radio chips).
+    expect(screen.getByRole("radio", { name: /Flamingo/ })).toHaveAttribute(
+      "aria-checked",
       "true",
     );
-    fireEvent.click(screen.getByRole("button", { name: /Fern/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /Fern/ }));
     expect(
       (screen.getByLabelText("Seed color") as HTMLInputElement).value,
     ).toBe("#16a34a");
-    expect(screen.getByRole("button", { name: /Fern/ })).toHaveAttribute(
-      "aria-pressed",
+    expect(screen.getByRole("radio", { name: /Fern/ })).toHaveAttribute(
+      "aria-checked",
       "true",
     );
   });
@@ -338,7 +338,7 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
       const input = () =>
         screen.getByLabelText("Seed color") as HTMLInputElement;
 
-      fireEvent.click(screen.getByRole("button", { name: /Solar/ }));
+      fireEvent.click(screen.getByRole("radio", { name: /Solar/ }));
       expect(input().value).toBe("#eab308");
       expect(input()).toHaveAttribute("aria-invalid", "false");
 
@@ -346,7 +346,7 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
       expect(input()).toHaveAttribute("aria-invalid", "true");
       expect(screen.getByText(/can.t read that color/i)).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole("button", { name: /Lagoon/ }));
+      fireEvent.click(screen.getByRole("radio", { name: /Lagoon/ }));
       expect(input().value).toBe("#06b6d4");
       expect(input()).toHaveAttribute("aria-invalid", "false");
       // The unparseable signal is gone once a valid seed is applied.

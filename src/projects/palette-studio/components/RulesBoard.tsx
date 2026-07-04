@@ -37,7 +37,7 @@ export default function RulesBoard({
   onRulesChange,
   onGamutChange,
 }: RulesBoardProps): React.ReactElement {
-  const tintedLabelId = `${idPrefix}-tinted-label`;
+  const tintedSwitchId = `${idPrefix}-tinted`;
   const tintedHint = rules.tintedNeutrals
     ? TINTED_NEUTRALS_HINT.on
     : TINTED_NEUTRALS_HINT.off;
@@ -74,10 +74,10 @@ export default function RulesBoard({
       />
 
       <div className={styles.group}>
-        <Kicker id={tintedLabelId}>Tinted neutrals</Kicker>
+        <Kicker htmlFor={tintedSwitchId}>Tinted neutrals</Kicker>
         <div className={styles.switchRow}>
           <Switch
-            labelledBy={tintedLabelId}
+            id={tintedSwitchId}
             checked={rules.tintedNeutrals}
             onCheckedChange={(tintedNeutrals) =>
               onRulesChange({ tintedNeutrals })

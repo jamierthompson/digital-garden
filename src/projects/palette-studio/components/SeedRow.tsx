@@ -5,8 +5,9 @@
 
 import { formatOklch } from "@garden/oklch";
 
-import Chip from "@/components/ui/Chip";
+import ChipGroup from "@/components/ui/ChipGroup";
 import Kicker from "@/components/ui/Kicker";
+import TextInput from "@/components/ui/TextInput";
 
 import type { ParsedSeed } from "../core/derive";
 import { PRESETS } from "../core/presets";
@@ -43,9 +44,9 @@ export default function SeedRow({
             data-empty={parsed.oklch ? undefined : ""}
             aria-hidden="true"
           />
-          <input
+          <TextInput
+            mono
             id={inputId}
-            className={styles.input}
             value={seed}
             onChange={(e) => onSeedChange(e.target.value)}
             spellCheck={false}
@@ -74,18 +75,20 @@ export default function SeedRow({
 
       <div className={styles.presets}>
         <Kicker>Starters</Kicker>
-        <div className={styles.chips} role="group" aria-label="Preset seeds">
-          {PRESETS.map((preset) => (
-            <Chip
-              key={preset.name}
-              pressed={seed === preset.seed}
-              onClick={() => onSeedChange(preset.seed)}
-              swatch={preset.seed}
-            >
-              {preset.name}
-            </Chip>
-          ))}
-        </div>
+        <ChipGroup
+          label="Preset seeds"
+          value={PRESETS.some((p) => p.seed === seed) ? seed : ""}
+          onValueChange={(picked) => {
+            // "" = Radix single-type deselect (re-clicking the active preset) — a no-op
+            // here; the seed keeps its value.
+            if (picked) onSeedChange(picked);
+          }}
+          options={PRESETS.map((p) => ({
+            value: p.seed,
+            label: p.name,
+            swatch: p.seed,
+          }))}
+        />
       </div>
     </div>
   );
