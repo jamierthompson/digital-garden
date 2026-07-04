@@ -338,14 +338,12 @@ describe("QA — adversarial", () => {
     });
   });
 
-  describe("cross-tab drift — a hostile/removed value written by another tab", () => {
-    // Documents CURRENT behavior (potential regression from the binary refactor): the store
-    // exposes no way to CLEAR an applied inline color-scheme, so if another tab replaces the
-    // override with an invalid value, this tab keeps the stale inline scheme while
-    // getResolvedScheme resolves to the OS — a DOM ⇄ state drift. Low severity (only reachable
-    // by a manual/hostile write; setScheme never writes an invalid value), but pinned so a
-    // future fix (clear the inline scheme when the stored value is absent/invalid) is provable.
-    it("leaves the previously-applied inline scheme in place (drift)", () => {
+  describe("cross-tab clear — a hostile/removed value written by another tab", () => {
+    // If another tab replaces the override with an invalid value (or removes it), the storage
+    // handler CLEARS this tab's inline scheme so the DOM and getResolvedScheme() agree — no
+    // DOM ⇄ state drift. (Low severity in practice: setScheme never writes an invalid value and
+    // the binary UI has no "return to system", so the stored value is normally light/dark.)
+    it("clears the stale inline scheme so it does not drift from the resolved state", () => {
       setScheme("dark");
       const onChange = vi.fn();
       const unsubscribe = subscribe(onChange);
@@ -355,9 +353,9 @@ describe("QA — adversarial", () => {
         new StorageEvent("storage", { key: SCHEME_STORAGE_KEY }),
       );
       expect(onChange).toHaveBeenCalledTimes(1);
-      // The DOM still says dark…
-      expect(document.documentElement.style.colorScheme).toBe("dark");
-      // …but the resolved state has silently reverted to the OS (light). This is the drift.
+      // The inline override is cleared (native light dark resumes)…
+      expect(document.documentElement.style.colorScheme).toBe("");
+      // …so the DOM and the resolved state agree on the OS preference (light) — no drift.
       expect(getResolvedScheme()).toBe("light");
       unsubscribe();
     });

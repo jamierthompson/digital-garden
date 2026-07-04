@@ -79,7 +79,11 @@ export function subscribe(onChange: () => void): () => void {
   const onStorage = (event: StorageEvent): void => {
     if (event.key === SCHEME_STORAGE_KEY) {
       const stored = getStoredScheme();
+      // Mirror the init script: an override applies, its absence CLEARS the inline scheme so
+      // the native `light dark` default resumes. Clearing (not just setting) keeps the DOM and
+      // `getResolvedScheme()` in agreement if another tab removes/invalidates the override.
       if (stored) applyScheme(stored);
+      else document.documentElement.style.removeProperty("color-scheme");
       onChange();
     }
   };
