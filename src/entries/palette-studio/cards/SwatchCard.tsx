@@ -1,20 +1,21 @@
-// One swatch card (#154) — the complete record of a single semantic color: the swatch, its
-// `oklch()` value + hex fallback, the derivation sentence (how the engine derived it), where
-// it sits on its ramp, live-measured contrast, and where you'd use it. An agent-reasoning-
-// chain UI, but for one color. Everything beyond what the face holds — the other scheme, the
-// full ramp, the gamut story — lives behind the progressive-disclosure preview.
+// One swatch card (#154) — the complete record of a single semantic color, in plain language:
+// the swatch, its `oklch()` value + hex fallback, how the engine made it, where it sits on its
+// scale, the measured contrast, where you'd use it, and a one-line hint of what it becomes in
+// the other color scheme. An agent-reasoning-chain UI, but for one color.
 //
-// Display-only: every value comes pre-computed from `cardModel` (one engine run reshaped).
-// The face shows the ACTIVE scheme; the disclosure renders a `FacetDetail` per scheme, so the
-// 14 cards stay scannable while the full both-scheme receipt is one interaction away.
+// The card shows ONE scheme — the active (viewer's) one; the site-wide light/dark toggle (#133)
+// is how users compare schemes (flipping it re-solves the page live, which IS the light-dark()
+// demo). Nothing here hardcodes a scheme: the facet is picked from `scheme`, so the toggle
+// flips it for free. The disclosure holds plain-language definitions of the terms of art.
 
 import Swatch from "@/components/ui/Swatch";
 
 import type { BindingKind } from "./cardContract";
 import type { SwatchCardData } from "./cardModel";
+import { oogNote } from "./derivationCopy";
+import { glossaryFor } from "./glossary";
 import CardDisclosure from "./CardDisclosure";
 import ContrastChip from "./ContrastChip";
-import FacetDetail from "./FacetDetail";
 import MiniRamp from "./MiniRamp";
 import styles from "./SwatchCard.module.css";
 
@@ -24,12 +25,12 @@ interface SwatchCardProps {
   readonly scheme: "light" | "dark";
 }
 
-/** A one-word badge for the binding kind — the derivation story at a glance. */
+/** A plain-language badge for the binding kind — the role at a glance, no jargon. */
 const KIND_BADGE: Record<BindingKind, string> = {
-  step: "surface",
-  auto: "solved",
-  accent: "co-solved",
-  "on-accent": "co-solved",
+  step: "background",
+  auto: "auto-picked",
+  accent: "brand color",
+  "on-accent": "label",
 };
 
 export default function SwatchCard({
@@ -37,6 +38,10 @@ export default function SwatchCard({
   scheme,
 }: SwatchCardProps): React.ReactElement {
   const facet = scheme === "light" ? card.light : card.dark;
+  const glossary = glossaryFor({
+    measured: facet.measured !== null,
+    oog: facet.oog,
+  });
   return (
     <li className={styles.card}>
       <div className={styles.header}>
@@ -73,16 +78,22 @@ export default function SwatchCard({
 
       <p className={styles.usage}>{card.usage}</p>
 
+      <p className={styles.counterpart}>{facet.counterpart}</p>
+
       <CardDisclosure
-        label="Full receipt"
-        title={`--${card.name} — both schemes`}
+        label="What do these terms mean?"
+        title={`--${card.name} — in plain terms`}
       >
         <div className={styles.disclosure}>
-          <FacetDetail facet={card.light} name={card.name} />
-          <FacetDetail facet={card.dark} name={card.name} />
-          {card.oogNote ? (
-            <p className={styles.oogNote}>{card.oogNote}</p>
-          ) : null}
+          <dl className={styles.glossary}>
+            {glossary.map((entry) => (
+              <div key={entry.term}>
+                <dt>{entry.term}</dt>
+                <dd>{entry.definition}</dd>
+              </div>
+            ))}
+          </dl>
+          {facet.oog ? <p className={styles.oogNote}>{oogNote()}</p> : null}
         </div>
       </CardDisclosure>
     </li>

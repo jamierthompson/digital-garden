@@ -18,6 +18,7 @@ export default function ContrastChip({
   if (!measured) return null;
   return (
     <p className={styles.chip}>
+      <span className={styles.label}>Measured contrast</span>
       <span>
         {measured.wcag.toFixed(1)}:1 · Lc {measured.apca.toFixed(0)}
       </span>

@@ -26,7 +26,7 @@ import {
   describeTarget,
   type BindingKind,
 } from "./cardContract";
-import { derivationSentence, oogNote, stepOf } from "./derivationCopy";
+import { counterpartHint, derivationSentence, stepOf } from "./derivationCopy";
 
 /** One token resolved for one scheme — everything a card face (or its disclosure) renders. */
 export interface SchemeFacet {
@@ -46,15 +46,19 @@ export interface SchemeFacet {
   readonly measured: ContrastCheck | null;
   /** The derivation sentence for this scheme — regenerated from the engine output. */
   readonly sentence: string;
+  /** One-line hint of what this token becomes in the OTHER scheme (from that scheme's provenance). */
+  readonly counterpart: string;
 }
 
-/** One swatch card — a semantic token, its kind, usage, and both scheme facets. */
+/**
+ * One swatch card — a semantic token and both scheme facets. The card shows the ACTIVE scheme
+ * (the disclosure/oog aside key off the active facet, chosen at render); the other facet backs
+ * the one-line counterpart hint.
+ */
 export interface SwatchCardData {
   readonly name: BrandTokenName;
   readonly kind: BindingKind;
   readonly usage: string;
-  /** The out-of-gamut aside, present only when either scheme's bound step desaturated. */
-  readonly oogNote: string | null;
   readonly light: SchemeFacet;
   readonly dark: SchemeFacet;
 }
@@ -100,16 +104,16 @@ function buildFacet(
       )
     : null;
 
+  const otherProvenance = provenanceOf(
+    palette,
+    name,
+    scheme === "light" ? "dark" : "light",
+  );
+
   const sentence = derivationSentence({
     cardKind: contract.kind,
     scheme,
     provenance,
-    otherProvenance: provenanceOf(
-      palette,
-      name,
-      scheme === "light" ? "dark" : "light",
-    ),
-    measured,
     targetPhrase: contract.against
       ? describeTarget(contract.against.target)
       : null,
@@ -126,6 +130,7 @@ function buildFacet(
     oog,
     measured,
     sentence,
+    counterpart: counterpartHint(contract.kind, scheme, otherProvenance),
   };
 }
 
@@ -139,7 +144,6 @@ export function buildCards(palette: DerivedPalette): SwatchCardData[] {
       name: row.name,
       kind: contract.kind,
       usage: contract.usage,
-      oogNote: light.oog || dark.oog ? oogNote() : null,
       light,
       dark,
     };

@@ -33,52 +33,67 @@ function renderCard(name: string, scheme: "light" | "dark" = "light") {
   );
 }
 
-describe("SwatchCard — face", () => {
-  it("shows the token name, kind badge, value, derivation, contrast, and usage", () => {
+describe("SwatchCard — face (single scheme, plain language)", () => {
+  it("shows the token name, a plain-language badge, value, derivation, contrast, usage, and counterpart", () => {
     renderCard("text");
     expect(screen.getByRole("heading", { name: "--text" })).toBeInTheDocument();
-    expect(screen.getByText("solved")).toBeInTheDocument();
+    // Plain badge, not "solved" jargon.
+    expect(screen.getByText("auto-picked")).toBeInTheDocument();
     // The oklch value of the active (light) face.
     expect(screen.getByText(textCard.light.oklch)).toBeInTheDocument();
-    // The derivation sentence names the bound step.
-    expect(screen.getByText(/Bound to neutral ·/)).toBeInTheDocument();
-    // The live contrast reads as passing.
+    // The derivation sentence reads plainly (the badge also says "auto-picked", so match the
+    // sentence by a phrase unique to it).
+    expect(
+      screen.getByText(/closest shade to the background/i),
+    ).toBeInTheDocument();
+    // The live contrast reads as passing, with a plain lead word.
+    expect(screen.getByText(/measured contrast/i)).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "passes" })).toBeInTheDocument();
-    // The usage line.
+    // The usage line and the one-line counterpart hint.
     expect(screen.getByText(/anything meant to be read/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/in dark mode, this switches to the/i),
+    ).toBeInTheDocument();
   });
 
-  it("shows the active scheme's face — dark differs from light", () => {
+  it("shows the active scheme's face only — dark differs from light, no both-scheme block", () => {
     renderCard("text", "dark");
     expect(screen.getByText(textCard.dark.oklch)).toBeInTheDocument();
     expect(screen.queryByText(textCard.light.oklch)).not.toBeInTheDocument();
+    // The counterpart now points back at light.
+    expect(
+      screen.getByText(/in light mode, this switches to the/i),
+    ).toBeInTheDocument();
   });
 
   it("renders the accent card without a mini-ramp (it is a continuous co-solve)", () => {
     renderCard("accent");
-    // No ramp group on the face for a co-solve, but the co-solve badge is shown.
-    expect(screen.getByText("co-solved")).toBeInTheDocument();
+    // No ramp on the face for a co-solve; the plain "brand color" badge is shown.
+    expect(screen.getByText("brand color")).toBeInTheDocument();
     expect(screen.queryByRole("group")).not.toBeInTheDocument();
   });
 });
 
-describe("SwatchCard — disclosure", () => {
-  it("exposes the full receipt behind a real button", () => {
+describe("SwatchCard — disclosure (plain-language glossary)", () => {
+  it("exposes the glossary behind a real button", () => {
     renderCard("text");
     expect(
-      screen.getByRole("button", { name: /full receipt/i }),
+      screen.getByRole("button", { name: /what do these terms mean/i }),
     ).toBeInTheDocument();
   });
 
-  it("opens the both-scheme receipt on activation", () => {
+  it("opens plain-language definitions of the terms the card uses", () => {
     renderCard("text");
-    fireEvent.click(screen.getByRole("button", { name: /full receipt/i }));
-    // The preview heading and both scheme detail blocks appear.
-    expect(screen.getByText("--text — both schemes")).toBeInTheDocument();
-    const disclosure = screen
-      .getByText("--text — both schemes")
-      .closest("div")!;
-    expect(within(disclosure).getByText("light")).toBeInTheDocument();
-    expect(within(disclosure).getByText("dark")).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: /what do these terms mean/i }),
+    );
+    expect(screen.getByText("--text — in plain terms")).toBeInTheDocument();
+    const panel = screen.getByText("--text — in plain terms").closest("div")!;
+    // A measured token's glossary defines the scale + both contrast scores.
+    expect(within(panel).getByText(/Scale \(ramp\)/i)).toBeInTheDocument();
+    expect(
+      within(panel).getByText(/Contrast ratio \(WCAG\)/i),
+    ).toBeInTheDocument();
+    expect(within(panel).getByText(/Lc \(APCA\)/i)).toBeInTheDocument();
   });
 });

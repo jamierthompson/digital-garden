@@ -65,24 +65,25 @@ describe("buildCards", () => {
     expect(onAccent.light.measured?.passes).toBe(true);
   });
 
-  it("regenerates the derivation copy from the seed (a violet accent says so)", () => {
-    // A light-native seed → the light accent copy is the faithful/nudged branch, not derived.
+  it("regenerates the derivation copy from the seed's provenance per scheme", () => {
+    // #7c3aed is light-native, so light is faithful/nudged and dark is the derived twin.
     const accent = byName("accent");
-    expect(accent.light.sentence).not.toMatch(/derived .*-mode twin/i);
-    // The dark scheme is off-native for this seed → derived twin.
-    expect(accent.dark.sentence).toMatch(/derived .*-mode twin/i);
+    expect(accent.light.sentence).not.toMatch(/derived version of your color/i);
+    expect(accent.dark.sentence).toMatch(
+      /derived version of your color for dark mode/i,
+    );
   });
-});
 
-describe("buildCards — oog note", () => {
-  it("attaches the gamut aside only when a bound step actually desaturated", () => {
-    for (const card of cards) {
-      const anyOog = card.light.oog || card.dark.oog;
-      if (anyOog) {
-        expect(card.oogNote).toMatch(/desaturated/i);
-      } else {
-        expect(card.oogNote).toBeNull();
-      }
-    }
+  it("carries a one-line counterpart hint pointing at the other scheme", () => {
+    const text = byName("text");
+    // The light face's hint names the DARK shade, and vice versa.
+    expect(text.light.counterpart).toMatch(
+      /in dark mode, this switches to the/i,
+    );
+    expect(text.dark.counterpart).toMatch(
+      /in light mode, this switches to the/i,
+    );
+    // The accent's hint is the re-solve line, not a shade.
+    expect(byName("accent").light.counterpart).toMatch(/re-solved/i);
   });
 });
