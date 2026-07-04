@@ -40,7 +40,7 @@ const HUE_POLICIES: HuePolicy[] = [
 ];
 
 // Foreground tokens vs the worst-case surface (surface-2) at their schema targets
-// (palette.ts TARGET table). [name, wcag floor, apca floor].
+// (palette.ts CONTRAST_TARGETS table). [name, wcag floor, apca floor].
 const FLOORS: Array<[BrandTokenName, number, number]> = [
   ["text", 4.5, 75],
   ["text-muted", 4.5, 60],

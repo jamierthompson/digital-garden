@@ -157,9 +157,11 @@ export interface ResolvedTokens {
   bindings: Record<BrandTokenName, BindingProvenance>;
 }
 
-/** Resolve a full binding schema into a scheme's token set + per-token provenance. */
+/** Resolve a full binding schema into a scheme's token set + per-token provenance. The
+ *  schema is read-only here — resolution only reads it (so the exported
+ *  `DEFAULT_BINDING_SCHEMA`, #150, passes straight through). */
 export function resolveTokens(
-  schema: Record<BrandTokenName, TokenBinding>,
+  schema: Readonly<Record<BrandTokenName, TokenBinding>>,
   ctx: BindingContext,
 ): ResolvedTokens {
   const tokens = {} as SchemeTokens;

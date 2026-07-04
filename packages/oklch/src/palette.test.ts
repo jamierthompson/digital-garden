@@ -200,7 +200,7 @@ describe("ramp primitives + binding (#98)", () => {
   it("solves `text` against exactly the surface-2 token it ships (no worst-case-surface drift)", () => {
     for (const scheme of SCHEMES) {
       const { tokens, ramps } = resolveTheme("#3b82f6", scheme);
-      // TARGET.bodyText — the documented body-text floor (palette.ts).
+      // CONTRAST_TARGETS.bodyText — the documented body-text floor (palette.ts).
       const expected = minPass(ramps.neutral, tokens["surface-2"], {
         wcag: 4.5,
         apca: 75,
@@ -286,7 +286,7 @@ describe("resolveTheme", () => {
 });
 
 // The engine's own contrast floors (accessibility-and-performance.md, mirrored by the
-// palette's `TARGET`): a UI/non-text element clears WCAG 3:1 + APCA Lc 45; a label on the
+// palette's `CONTRAST_TARGETS`): a UI/non-text element clears WCAG 3:1 + APCA Lc 45; a label on the
 // accent fill clears WCAG 4.5 + APCA Lc 60. Asserted below with the REAL contrast fns so
 // these tests prove accessibility against the actual solved colors rather than snapshotting
 // specific token values (which are free to change as the solve improves).
@@ -903,7 +903,7 @@ describe("generative rules threading (#101)", () => {
         { tintedNeutrals: false },
       ];
       // Foreground tokens vs the worst-case surface they are solved against, at their
-      // schema targets (palette.ts TARGET table).
+      // schema targets (palette.ts CONTRAST_TARGETS table).
       const FLOORS: Array<[BrandTokenName, number, number]> = [
         ["text", 4.5, 75],
         ["text-muted", 4.5, 60],

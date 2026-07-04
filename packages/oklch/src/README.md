@@ -91,6 +91,15 @@ order, not the schema, would pick the role. `SchemeResult.bindings` is
 are **not** a step: the continuous `accent`/`on-accent` co-solves and any `literal`. It is
 **reporting, not re-solving** — every baked color is byte-identical with or without it.
 
+The derivation contract (the receipt's other half, #150): `CONTRAST_TARGETS` — the named
+tiers each pair is measured against (`bodyText` 4.5/75, `mutedText`/`accentText`/`onAccent`
+4.5/60, `ui` 3/45, `border` 3/30) — and `DEFAULT_BINDING_SCHEMA`, the read-only
+`Record<BrandTokenName, TokenBinding>` the engine solves against. Together they let the
+Studio answer, for any token, WHICH binding kind it is (`step`/`auto`/`accent`/`on-accent`/
+`literal`), against WHICH role's ramp, to WHICH tier — reading the solver's own table rather
+than restating it. Each `auto` binding's `target` is a `CONTRAST_TARGETS` object by identity,
+so the receipt's target and the solver's are one value. `ContrastTargetName` names the tiers.
+
 ### The frozen contract & versioning stance (#99)
 
 The public surface — the runtime export names, the canonical name lists above, the

@@ -15,7 +15,14 @@
  * never touch DOM/Node globals — lint-enforced.
  */
 
-export { resolveTheme, buildTokenSet, type EngineOptions } from "./palette";
+export {
+  resolveTheme,
+  buildTokenSet,
+  CONTRAST_TARGETS,
+  DEFAULT_BINDING_SCHEMA,
+  type EngineOptions,
+  type ContrastTargetName,
+} from "./palette";
 
 export {
   tokenSetToCss,

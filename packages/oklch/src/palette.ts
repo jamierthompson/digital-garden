@@ -75,8 +75,16 @@ export interface EngineOptions {
  */
 const FALLBACK_SEED: OkLCH = { L: 0.55, C: 0.11, H: 264 };
 
-// Contrast targets mirror accessibility-and-performance.md table.
-const TARGET = {
+/**
+ * The named contrast tiers every solved pair is measured against — the WCAG 2.x floor
+ * (legal compliance) paired with the APCA Lc quality target, mirroring the
+ * accessibility-and-performance.md table. EXPORTED (#150) so the Studio's per-swatch
+ * receipt can NAME a token's target ("clears 4.5:1 and Lc 75") by reading the same table
+ * the solver used, rather than restating it — a second copy that silently drifts if these
+ * ever change. `DEFAULT_BINDING_SCHEMA` (below) references these objects by identity, so a
+ * token's `target` and this table are one source of truth.
+ */
+export const CONTRAST_TARGETS = {
   /** Body text: WCAG 4.5 floor, APCA Lc 75 quality target. */
   bodyText: { wcag: 4.5, apca: 75 } satisfies ContrastTarget,
   /** Muted/secondary text: still small-text AA (4.5), lower APCA tier (Lc 60). */
@@ -93,6 +101,9 @@ const TARGET = {
   /** Subtle borders: non-text 3:1 floor. */
   border: { wcag: 3, apca: 30 } satisfies ContrastTarget,
 } as const;
+
+/** The named contrast tiers, e.g. `"bodyText"` — the keys of `CONTRAST_TARGETS` (#150). */
+export type ContrastTargetName = keyof typeof CONTRAST_TARGETS;
 
 // Status signal colors. The hues are FIXED canonical anchors — NOT derived from the brand
 // — because a status color's job is to signal meaning at a glance, and that depends on
@@ -139,8 +150,14 @@ const SCHEMES: Record<Scheme, SchemeConfig> = {
  * The accent fill / on-accent label defer to the faithful brand co-solve. A `literal`
  * binding (a fixed value per scheme, e.g. a pure-white surface) is supported by the schema
  * for a brand that wants one; the default uses stepped surfaces so they carry the tint.
+ *
+ * EXPORTED read-only (#150) so the Studio can answer, for any `BrandTokenName`, WHICH kind
+ * of binding it is, against WHICH role's ramp, to WHICH `CONTRAST_TARGETS` tier — reading
+ * the one mapping the engine solves against rather than hardcoding the 14-row table.
  */
-const DEFAULT_SCHEMA: Record<BrandTokenName, TokenBinding> = {
+export const DEFAULT_BINDING_SCHEMA: Readonly<
+  Record<BrandTokenName, TokenBinding>
+> = {
   // Surfaces: page → elevated → higher, from the near-neutral ramp. Light end in light,
   // dark end in dark; `surface-2` is the worst-case surface the `auto` tokens solve on.
   bg: { kind: "step", role: "neutral", light: "50", dark: "950" },
@@ -148,35 +165,51 @@ const DEFAULT_SCHEMA: Record<BrandTokenName, TokenBinding> = {
   "surface-2": { kind: "step", role: "neutral", light: "200", dark: "800" },
   // Near-neutral foregrounds — bound to the neutral ramp (the brand tint desaturates at the
   // dark steps via gamut-mapping, so any hue clears body-text contrast).
-  text: { kind: "auto", role: "neutral", target: TARGET.bodyText },
-  "text-muted": { kind: "auto", role: "neutral", target: TARGET.mutedText },
-  border: { kind: "auto", role: "neutral", target: TARGET.border },
+  text: { kind: "auto", role: "neutral", target: CONTRAST_TARGETS.bodyText },
+  "text-muted": {
+    kind: "auto",
+    role: "neutral",
+    target: CONTRAST_TARGETS.mutedText,
+  },
+  border: { kind: "auto", role: "neutral", target: CONTRAST_TARGETS.border },
   // Brand identity — the faithful continuous accent + its on-accent label.
   accent: { kind: "accent" },
   "on-accent": { kind: "on-accent" },
   // Brand-colored foregrounds — bound to the full-chroma brand ramp.
-  "accent-text": { kind: "auto", role: "brand", target: TARGET.accentText },
-  "focus-ring": { kind: "auto", role: "brand", target: TARGET.ui },
+  "accent-text": {
+    kind: "auto",
+    role: "brand",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "focus-ring": { kind: "auto", role: "brand", target: CONTRAST_TARGETS.ui },
   // Status signals — each bound to its own canonical-hue ramp at the accent-text tier.
-  success: { kind: "auto", role: "success", target: TARGET.accentText },
-  error: { kind: "auto", role: "error", target: TARGET.accentText },
-  warning: { kind: "auto", role: "warning", target: TARGET.accentText },
-  info: { kind: "auto", role: "info", target: TARGET.accentText },
+  success: {
+    kind: "auto",
+    role: "success",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  error: { kind: "auto", role: "error", target: CONTRAST_TARGETS.accentText },
+  warning: {
+    kind: "auto",
+    role: "warning",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  info: { kind: "auto", role: "info", target: CONTRAST_TARGETS.accentText },
 };
 
 /**
  * The label the `surface-2` step binds to in each scheme — the WORST-CASE surface the `auto`
- * tokens are solved against. Derived from `DEFAULT_SCHEMA["surface-2"]` itself, so the
+ * tokens are solved against. Derived from `DEFAULT_BINDING_SCHEMA["surface-2"]` itself, so the
  * surface those tokens solve on can never drift from the `surface-2` token that actually
  * ships (single source of truth; the "AA on every surface" guarantee rests on their being
  * identical). The fallback only fires if the schema retypes `surface-2` off a step binding —
  * a design change a test would catch.
  */
 const SURFACE2_LABEL: { light: RampLabel; dark: RampLabel } =
-  DEFAULT_SCHEMA["surface-2"].kind === "step"
+  DEFAULT_BINDING_SCHEMA["surface-2"].kind === "step"
     ? {
-        light: DEFAULT_SCHEMA["surface-2"].light,
-        dark: DEFAULT_SCHEMA["surface-2"].dark,
+        light: DEFAULT_BINDING_SCHEMA["surface-2"].light,
+        dark: DEFAULT_BINDING_SCHEMA["surface-2"].dark,
       }
     : { light: "200", dark: "800" };
 
@@ -244,7 +277,7 @@ function surface2Of(ramps: Record<RampRole, Ramp>, scheme: Scheme): OkLCH {
  * Detect the seed's NATIVE scheme from the seed alone (independent of the scheme being
  * resolved, so both scheme calls agree). The seed is `light`-native when — at its own
  * L/C/H, gamut-mapped, using the LIGHT per-scheme seed (`seedChroma` = 1, so base chroma)
- * — it clears the UI contrast floor (`TARGET.ui`) as an accent fill against the light
+ * — it clears the UI contrast floor (`CONTRAST_TARGETS.ui`) as an accent fill against the light
  * scheme's WORST-CASE surface (`surface-2` light, the neutral ramp step `resolveTheme`
  * uses). If it clears it can serve as a light-mode primary → `light`; if it is too light to
  * read on a light surface → `dark` (the seed is the dark-mode brand, light-mode derived).
@@ -265,7 +298,9 @@ function detectDirection(
   const surface2 = surface2Of(ramps, "light");
   // The candidate light-mode primary is the accent anchored at the seed's own lightness.
   const accent = gamutMap({ L: seed.L, C: seed.C, H: seed.H }, gamut);
-  return checkContrast(accent, surface2, TARGET.ui).passes ? "light" : "dark";
+  return checkContrast(accent, surface2, CONTRAST_TARGETS.ui).passes
+    ? "light"
+    : "dark";
 }
 
 /**
@@ -298,8 +333,8 @@ function solveAccent(
   const hue = seed.H;
   // Solve to a hair above the floors (#79) so the 4-dp-rounded baked fill + label still
   // clear their true floors — this scan bakes literals just like `solveForeground`.
-  const target = withSolveMargin(TARGET.onAccent);
-  const ui = withSolveMargin(TARGET.ui);
+  const target = withSolveMargin(CONTRAST_TARGETS.onAccent);
+  const ui = withSolveMargin(CONTRAST_TARGETS.ui);
   const labels = [
     gamutMap({ L: 0.99, C: 0, H: hue }, gamut), // near-white
     gamutMap({ L: 0.1, C: 0, H: hue }, gamut), // near-black
@@ -372,8 +407,8 @@ function solveNativeAccent(
 ): { accent: OkLCH; onAccent: OkLCH } | null {
   const hue = seed.H;
   // Solve to a hair above the floors (#79) so the rounded baked fill + label still clear.
-  const target = withSolveMargin(TARGET.onAccent);
-  const ui = withSolveMargin(TARGET.ui);
+  const target = withSolveMargin(CONTRAST_TARGETS.onAccent);
+  const ui = withSolveMargin(CONTRAST_TARGETS.ui);
   const labels = [
     gamutMap({ L: 0.99, C: 0, H: hue }, gamut), // near-white
     gamutMap({ L: 0.1, C: 0, H: hue }, gamut), // near-black
@@ -458,7 +493,7 @@ export function resolveTheme(
   // Resolve the binding schema: surfaces pin fixed steps, readable tokens run `minPass`,
   // the accent/on-accent defer to the co-solve above. `bindings` reports the winning step
   // per token (the receipt's truthful source), computed at solve time — not re-derived.
-  const { tokens, bindings } = resolveTokens(DEFAULT_SCHEMA, {
+  const { tokens, bindings } = resolveTokens(DEFAULT_BINDING_SCHEMA, {
     scheme,
     ramps,
     surface2,

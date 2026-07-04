@@ -43,6 +43,7 @@ import type {
   TokenSet,
   // palette options
   EngineOptions,
+  ContrastTargetName,
   // css options
   CssOptions,
   // export surface
@@ -64,6 +65,8 @@ import type {
  *  at runtime; the signature checks below guard those. */
 const RUNTIME_EXPORTS = [
   "BRAND_TOKEN_NAMES",
+  "CONTRAST_TARGETS",
+  "DEFAULT_BINDING_SCHEMA",
   "HARMONY_KINDS",
   "RAMP_LABELS",
   "RAMP_ROLES",
@@ -217,6 +220,7 @@ type PublicTypeSurface = {
   SchemeResult: SchemeResult;
   TokenSet: TokenSet;
   EngineOptions: EngineOptions;
+  ContrastTargetName: ContrastTargetName;
   CssOptions: CssOptions;
   ExportOptions: ExportOptions;
   DesignToken: DesignToken;
@@ -234,5 +238,43 @@ describe("frozen public TYPE surface (#99) — completeness guard", () => {
     // If this file compiled, all 30 type exports resolved. Assert the map is inhabited
     // so the test is not empty; the real guard is compile-time.
     expectTypeOf<PublicTypeSurface>().toBeObject();
+  });
+});
+
+describe("the exported derivation contract (#150)", () => {
+  it("exposes the named contrast tiers with their WCAG floor + APCA target", () => {
+    expect(api.CONTRAST_TARGETS).toEqual({
+      bodyText: { wcag: 4.5, apca: 75 },
+      mutedText: { wcag: 4.5, apca: 60 },
+      accentText: { wcag: 4.5, apca: 60 },
+      onAccent: { wcag: 4.5, apca: 60 },
+      ui: { wcag: 3, apca: 45 },
+      border: { wcag: 3, apca: 30 },
+    });
+  });
+
+  it("binds every semantic token — the studio can answer kind/role/target for each", () => {
+    // Coverage: exactly the frozen token names, no more, no fewer.
+    expect(Object.keys(api.DEFAULT_BINDING_SCHEMA).sort()).toEqual(
+      [...api.BRAND_TOKEN_NAMES].sort(),
+    );
+    // Shape: every binding declares a kind the receipt copy switches on.
+    for (const name of api.BRAND_TOKEN_NAMES) {
+      expect(["step", "auto", "literal", "accent", "on-accent"]).toContain(
+        api.DEFAULT_BINDING_SCHEMA[name].kind,
+      );
+    }
+  });
+
+  it("each auto binding's target IS a CONTRAST_TARGETS tier (one source, no restatement)", () => {
+    // Identity, not deep-equality: a drifted copy of the table would fail this. This is the
+    // single-source guarantee #150 exists to make — the receipt names the solver's own tier.
+    const tiers = Object.values(api.CONTRAST_TARGETS);
+    for (const name of api.BRAND_TOKEN_NAMES) {
+      const binding = api.DEFAULT_BINDING_SCHEMA[name];
+      if (binding.kind === "auto") {
+        expect(tiers).toContain(binding.target);
+      }
+    }
   });
 });

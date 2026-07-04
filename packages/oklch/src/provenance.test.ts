@@ -65,7 +65,7 @@ const sameColor = (a: OkLCH, b: OkLCH): boolean =>
   a.L === b.L && a.C === b.C && a.H === b.H;
 
 // The documented default schema's role per ramp-bound token (accent/on-accent excluded —
-// they are the continuous co-solve). Mirrors palette.ts DEFAULT_SCHEMA.
+// they are the continuous co-solve). Mirrors palette.ts DEFAULT_BINDING_SCHEMA.
 const EXPECTED_ROLE: Partial<Record<BrandTokenName, RampRole>> = {
   bg: "neutral",
   surface: "neutral",
