@@ -42,14 +42,42 @@ export interface ParsedSeed {
   readonly isFallback: boolean;
 }
 
+// hsl()/hsla() in either modern (space/slash) or legacy (comma) syntax. The engine's
+// frozen parser speaks hex / rgb() / oklch() only, but hsl is a common paste format
+// (QA-131 D3) — so the STUDIO normalizes it to rgb() before parsing. Alpha is ignored
+// (seeds are opaque, matching the engine's rgb handling).
+const HSL_RE =
+  /^hsla?\(\s*([+-]?\d*\.?\d+)(?:deg)?\s*[,\s]\s*(\d*\.?\d+)%\s*[,\s]\s*(\d*\.?\d+)%\s*(?:[,/]\s*\d*\.?\d+%?\s*)?\)$/i;
+
 /**
- * Parse a raw seed string for the input readout (accepts hex / rgb() / oklch()), then
- * gamut-map it into `gamut` so the readout equals the seed the palette actually derives from
- * (`buildTokenSet(...).meta.seed.light` — the parsed seed mapped into the same gamut). A
- * failed parse stays `null` (the fallback signal); a valid parse is always reported in gamut.
+ * Normalize a seed the engine can't parse but users commonly paste: hsl()/hsla() becomes
+ * rgb() via the CSS Color 4 algorithm (https://www.w3.org/TR/css-color-4/#hsl-to-rgb);
+ * anything else passes through untouched for the engine's own parser to judge.
+ */
+export function normalizeSeedInput(input: string): string {
+  const m = HSL_RE.exec(input.trim());
+  if (!m) return input;
+  const h = ((parseFloat(m[1]) % 360) + 360) % 360;
+  const s = Math.min(100, parseFloat(m[2])) / 100;
+  const l = Math.min(100, parseFloat(m[3])) / 100;
+  const a = s * Math.min(l, 1 - l);
+  const channel = (n: number): number => {
+    const k = (n + h / 30) % 12;
+    return l - a * Math.max(-1, Math.min(k - 3, Math.min(9 - k, 1)));
+  };
+  const to255 = (v: number): number => Math.round(v * 255);
+  return `rgb(${to255(channel(0))} ${to255(channel(8))} ${to255(channel(4))})`;
+}
+
+/**
+ * Parse a raw seed string for the input readout (accepts hex / rgb() / oklch(), plus
+ * hsl() via `normalizeSeedInput`), then gamut-map it into `gamut` so the readout equals
+ * the seed the palette actually derives from (`buildTokenSet(...).meta.seed.light` — the
+ * parsed seed mapped into the same gamut). A failed parse stays `null` (the fallback
+ * signal); a valid parse is always reported in gamut.
  */
 export function parseSeed(input: string, gamut: Gamut = "srgb"): ParsedSeed {
-  const parsed = parseColor(input);
+  const parsed = parseColor(normalizeSeedInput(input));
   return {
     input,
     oklch: parsed === null ? null : gamutMap(parsed, gamut),
@@ -120,7 +148,8 @@ export function derivePalette(
   rules: StudioRules,
   gamut: Gamut,
 ): DerivedPalette {
-  const set = buildTokenSet(seed, { gamut, rules });
+  // Same normalization as parseSeed — the readout and the palette must see ONE seed.
+  const set = buildTokenSet(normalizeSeedInput(seed), { gamut, rules });
   const light = schemeView(set, "light");
   const dark = schemeView(set, "dark");
 

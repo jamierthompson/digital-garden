@@ -35,6 +35,21 @@ describe("parseSeed", () => {
     }
   });
 
+  it("accepts hsl()/hsla() by normalizing to rgb ahead of the engine parser (QA-131 D3)", () => {
+    // Modern space syntax ≡ its rgb equivalent, through the SAME parser+map path.
+    const viaHsl = parseSeed("hsl(210 50% 50%)");
+    expect(viaHsl.isFallback).toBe(false);
+    expect(viaHsl.oklch).toEqual(parseSeed("rgb(64 128 191)").oklch);
+    // Legacy comma syntax, alpha (ignored — seeds are opaque), and hue wrap-around.
+    expect(parseSeed("hsl(210, 50%, 50%)").oklch).toEqual(viaHsl.oklch);
+    expect(parseSeed("hsla(210 50% 50% / 0.4)").oklch).toEqual(viaHsl.oklch);
+    expect(parseSeed("hsl(570 50% 50%)").oklch).toEqual(viaHsl.oklch);
+    // The palette derives from the same normalized seed the readout shows.
+    const palette = derivePalette("hsl(210 50% 50%)", DEFAULT_RULES, "srgb");
+    const viaRgb = derivePalette("rgb(64 128 191)", DEFAULT_RULES, "srgb");
+    expect(palette.light.tokens.accent).toEqual(viaRgb.light.tokens.accent);
+  });
+
   // QA-BR: the engine's parser clamps L but echoes C/H raw, so oklch(9 9 9) parses to the
   // out-of-gamut hybrid oklch(1 9 9). The readout must show the gamut-mapped seed the palette
   // actually derives from, never that hybrid.
@@ -275,7 +290,7 @@ const HOSTILE_SEEDS: readonly string[] = [
   "oklch(2 5 999)", // L, C, H all out of nominal range
   "oklch(-1 -1 -1)",
   "oklch(x y z)",
-  "hsl(0 0 0)", // unsupported color space
+  "hsl(0 0 0)", // invalid hsl syntax (s/l require %)
   "not-a-color",
   "🎨🌈",
   "  #16a34a  ", // surrounding whitespace

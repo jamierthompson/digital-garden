@@ -367,8 +367,11 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
     () => {
       render(studio("demo"));
       const input = screen.getByLabelText("Seed color") as HTMLInputElement;
-      // A string the naive eye might think valid but the engine rejects (hsl unsupported).
+      // hsl is normalized to rgb ahead of the engine parser (QA-131 D3) — valid now.
       fireEvent.change(input, { target: { value: "hsl(210 50% 50%)" } });
+      expect(input).toHaveAttribute("aria-invalid", "false");
+      // A space the engine genuinely rejects still reads invalid.
+      fireEvent.change(input, { target: { value: "lab(52% 40 59)" } });
       expect(input).toHaveAttribute("aria-invalid", "true");
       // A wide-gamut oklch is accepted.
       fireEvent.change(input, { target: { value: "oklch(0.7 0.15 200)" } });
