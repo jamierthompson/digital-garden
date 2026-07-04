@@ -24,8 +24,7 @@ export const liveEmbed = defineType({
       name: 'embedKey',
       title: 'Embed key',
       type: 'string',
-      description:
-        'Key of the coded component to embed, resolved in app code against the embed registry — not a free-text label. The picker is wired to keys.ts in a later slice.',
+      description: 'Name of the component to embed — ask a developer for the valid keys.',
       validation: (rule) => rule.required(),
     }),
     defineField({

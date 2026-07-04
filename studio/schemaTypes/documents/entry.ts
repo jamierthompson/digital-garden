@@ -49,8 +49,7 @@ export const entry = defineType({
     defineField({
       name: 'kind',
       type: 'string',
-      description:
-        'Note (small, single-subject, often one component) · Essay (writing-led, interactions slotted in) · Project (an interactive experience) · Now (a dated “now” update). Drives the Index filter and the card label.',
+      description: '“Now” is a dated update for your now page.',
       options: {list: [...KINDS], layout: 'radio'},
       initialValue: 'project',
       validation: (rule) => rule.required(),
@@ -91,8 +90,6 @@ export const entry = defineType({
     defineField({
       name: 'stage',
       type: 'string',
-      description:
-        'Maturity badge (the honesty signal): sketch → prototype → shipped. Independent of kind and of featuredRank. Not applicable to a “now” update.',
       options: {list: [...STAGES], layout: 'radio'},
       initialValue: 'sketch',
       hidden: ({document}) => document?.kind === 'now',
@@ -106,23 +103,19 @@ export const entry = defineType({
       name: 'iterated',
       title: 'Last iterated',
       type: 'date',
-      description:
-        'Authored “last worked on” date — an intentional signal of a living, tended piece. NOT the automatic _updatedAt.',
     }),
     defineField({
       name: 'featuredRank',
       title: 'Featured rank',
       type: 'number',
       description:
-        'Set to feature this entry on the homepage front door (any kind). The value orders the featured list (lower = earlier). Leave empty to keep it out of the front door.',
+        'Set a number to feature this entry on the homepage — lower numbers show first. Leave empty to keep it off.',
       validation: (rule) => rule.integer(),
     }),
     defineField({
       name: 'blurb',
       type: 'text',
       rows: 3,
-      description:
-        'Short summary for the index card. NOT the body — the index query pulls this, never the body.',
       validation: (rule) =>
         rule
           .max(280)
@@ -139,7 +132,7 @@ export const entry = defineType({
       title: 'Brand color',
       type: 'string',
       description:
-        'Per-slot seed for the OKLCH engine — hex or oklch(). One value generates BOTH light & dark ramps. Required for every project (the card plate consumes it, even a sketch). Optional for a note or essay — but set it and this entry gets its own brand scope (theming is gated on this field, not on kind). A “now” update ignores it.',
+        'Hex or oklch() accent for this entry’s interactive component. Required for projects; optional for a note or essay, where setting it also themes that entry’s component.',
       validation: (rule) => rule.custom(requiredForProject).custom(isBrandColorString),
     }),
     defineField({
@@ -147,7 +140,7 @@ export const entry = defineType({
       title: 'Brand color (dark override)',
       type: 'string',
       description:
-        'OPTIONAL hand-tuned dark-scheme seed. Leave empty to let the engine derive dark from brandColor — never a required parallel field.',
+        'Optional dark-mode override. Leave empty to derive it automatically from the brand color.',
       validation: (rule) => rule.custom(isBrandColorString),
     }),
     defineField({
@@ -155,7 +148,7 @@ export const entry = defineType({
       title: 'Font key',
       type: 'string',
       description:
-        'Key of the curated roster face, resolved in app code (fonts/roster.ts). Required for a project past the sketch stage (a sketch has no coded module yet). Optional for a note or essay — but honored when set: it themes the entry’s mounted module. A “now” update ignores it.',
+        'Name of the roster font for this entry’s component — ask a developer for the valid keys. Required for a project past the sketch stage.',
       validation: (rule) => rule.custom(requiredForNonSketchProject),
     }),
     defineField({
@@ -163,7 +156,7 @@ export const entry = defineType({
       title: 'Component key',
       type: 'string',
       description:
-        'Key of the coded module this entry mounts, resolved in app code (src/lib/resolvers/components.ts). Required for a project past the sketch stage (a sketch renders prose-only, no module). Optional for a note or essay — but set it and that entry mounts the module too (mounting is gated on this field, not on kind). A “now” update ignores it.',
+        'Name of the coded component this entry mounts — ask a developer for the valid keys. Required for a project past the sketch stage; optional for a note or essay, where setting it also mounts that component.',
       validation: (rule) => rule.custom(requiredForNonSketchProject),
     }),
 
@@ -171,15 +164,11 @@ export const entry = defineType({
       name: 'body',
       title: 'Body',
       type: 'portableText',
-      description:
-        'The write-up. Embed live components with the Live embed block (default); pick images with Figure.',
     }),
     defineField({
       name: 'related',
       title: 'Related entries',
       type: 'array',
-      description:
-        'Backlinks to other entries via real references (not slug strings) so references() resolves — the graph is cross-kind and datastore-enforced.',
       of: [defineArrayMember({type: 'reference', to: [{type: 'entry'}]})],
     }),
   ],
