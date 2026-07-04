@@ -1,7 +1,7 @@
-/* Studio slot chrome — @layer project, var-consuming (ambient ProjectScope tokens; the
+/* Studio slot chrome — @layer components, var-consuming (ambient EntryScope tokens; the
    generated palette appears only as child swatch data). The panel frame itself is the
    shared ui/Panel primitive; this module holds only slot-internal layout. */
-@layer project {
+@layer components {
   /* Anchor receipt — a READOUT of the engine's automatic anchoring, not a control. */
   .anchor {
     display: flex;

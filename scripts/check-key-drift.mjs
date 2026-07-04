@@ -6,7 +6,7 @@
 //
 //   (a) code <-> keys.ts — a registry that doesn't cover every declared key (or covers a
 //       missing one). ALREADY compile-time-enforced: every registry is typed
-//       `satisfies Record<XKey,…>` (FONT_FACES, PROJECT_LOADERS, EMBED_LOADERS), so a gap
+//       `satisfies Record<XKey,…>` (FONT_FACES, ENTRY_LOADERS, EMBED_LOADERS), so a gap
 //       is a `pnpm typecheck` error. This script can't re-prove that at runtime — the
 //       registries import `next/font`, which a plain node script can't load. Instead it
 //       guards that the enforcement stays WIRED (check 3): drop a `satisfies` and the
@@ -137,7 +137,7 @@ const SATISFIES_GUARDS = [
   {
     file: "src/lib/resolvers/components.ts",
     pattern: /\}\s*satisfies\s+Record<\s*ComponentKey\s*,/,
-    note: "PROJECT_LOADERS must stay `satisfies Record<ComponentKey, ProjectLoader>`",
+    note: "ENTRY_LOADERS must stay `satisfies Record<ComponentKey, EntryLoader>`",
   },
   {
     file: "src/lib/resolvers/embeds.ts",

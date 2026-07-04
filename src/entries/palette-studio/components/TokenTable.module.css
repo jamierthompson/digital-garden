@@ -1,6 +1,6 @@
-/* Semantic token table — @layer project, var-consuming. Chrome from ambient tokens; the only
+/* Semantic token table — @layer components, var-consuming. Chrome from ambient tokens; the only
    painted color is each token's value swatch, set inline from the baked literal. */
-@layer project {
+@layer components {
   .table {
     width: 100%;
     border-collapse: collapse;

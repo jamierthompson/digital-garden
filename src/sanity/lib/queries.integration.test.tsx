@@ -2,9 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { evaluate, parse } from "groq-js";
 import { describe, expect, it } from "vitest";
 
-import RelatedEntries from "@/components/project/RelatedEntries";
+import RelatedEntries from "@/components/entry/RelatedEntries";
 
-import { PROJECT_DETAIL_QUERY } from "./queries";
+import { ENTRY_DETAIL_QUERY } from "./queries";
 
 // The backlink graph, tested by EXECUTION — not string assertions.
 //
@@ -12,7 +12,7 @@ import { PROJECT_DETAIL_QUERY } from "./queries";
 // RelatedEntries.test.tsx pins the component LOGIC (union / dedupe / self-exclude). Neither
 // actually RUNS `references()`, so a regression that leaves the string intact but breaks
 // resolution (wrong `^` scope, dropped `->`, a Sanity/GROQ behavior change) would sail past
-// both. This test closes that gap: it evaluates the REAL `PROJECT_DETAIL_QUERY` against an
+// both. This test closes that gap: it evaluates the REAL `ENTRY_DETAIL_QUERY` against an
 // in-memory dataset with `groq-js` (the same GROQ engine `@sanity/client` uses), then feeds
 // the result into `RelatedEntries` — proving the whole chain, query → render, resolves the
 // incoming-backlink graph the way the live dataset does. The graph is CROSS-KIND: a `now`
@@ -82,12 +82,12 @@ const DATASET = [
 ];
 
 async function fetchDetail(slug: string) {
-  const tree = parse(PROJECT_DETAIL_QUERY);
+  const tree = parse(ENTRY_DETAIL_QUERY);
   const value = await evaluate(tree, { dataset: DATASET, params: { slug } });
   return value.get();
 }
 
-describe("PROJECT_DETAIL_QUERY backlink graph (executed via groq-js)", () => {
+describe("ENTRY_DETAIL_QUERY backlink graph (executed via groq-js)", () => {
   it("resolves incoming backlinks via references() — including a cross-kind `now` entry", async () => {
     const hub = await fetchDetail("hub");
     const backlinks = (hub.backlinks ?? []) as Array<{

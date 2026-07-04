@@ -1,8 +1,8 @@
-/* Export tabs — @layer project, var-consuming. Chrome reads ambient ProjectScope tokens; no
+/* Export tabs — @layer components, var-consuming. Chrome reads ambient EntryScope tokens; no
    generated color is authored (the generated palette appears only as text in the code block).
    The pills/tabs/buttons are the ui/ primitives; this module owns only layout + the code
    block + the mono-meta format note. */
-@layer project {
+@layer components {
   .root {
     display: flex;
     flex-direction: column;

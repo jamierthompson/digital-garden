@@ -7,7 +7,7 @@ import {
   scopedStyleCss,
 } from "./scopeSeed";
 
-interface ProjectScopeProps {
+interface EntryScopeProps {
   /** Untrusted scope seed (e.g. `{ slug }` from route params). Resolved defensively. */
   seed: unknown;
   children: ReactNode;
@@ -22,7 +22,7 @@ interface ProjectScopeProps {
  *    the resolved font's `--font-face` mapping — all in one block declared `@layer brand`.
  *    The slot re-binds the generic semantic tokens for this island, overriding the global
  *    editorial defaults from `@layer semantic`.
- * 2. Wraps its subtree in `[data-project="<slug>"]`, mounting the resolved roster face's
+ * 2. Wraps its subtree in `[data-entry="<slug>"]`, mounting the resolved roster face's
  *    `.variable` className so `var(--font-face)` has its variable in scope.
  *
  * Flash-free mechanics: the `<style>` uses React 19's `precedence` + a slug `href`.
@@ -33,21 +33,21 @@ interface ProjectScopeProps {
  *
  * Defensive by construction: `resolveScope` never throws — it collapses any bad seed
  * to a safe fallback palette + shell font. It is ALSO wrapped at the route in
- * `unstable_catchError` (see `ProjectScopeBoundary`) as the last-resort backstop: `error.tsx`
+ * `unstable_catchError` (see `EntryScopeBoundary`) as the last-resort backstop: `error.tsx`
  * can't catch a layout-level throw, so a component boundary is the correct containment.
  *
  * Synchronous on purpose: it awaits nothing, so it prerenders into the static shell with no
  * `use cache` needed (`node_modules/next/dist/docs/01-app/01-getting-started/08-caching.md`),
  * and stays unit-testable in jsdom (async RSCs do not render there).
  */
-export default function ProjectScope({ seed, children }: ProjectScopeProps) {
+export default function EntryScope({ seed, children }: EntryScopeProps) {
   const scope = resolveScope(seed);
   const css = scopedStyleCss(scope);
   // Key the hoisted <style> on the slug AND a hash of its CONTENT. React 19 de-dupes hoisted
   // styles by `href`: the content hash means distinct themes never share one <style> (no
   // cross-slot bleed), and a SAME-slug re-render with an edited brand gets a new href so the
   // preview shows the fresh theme instead of the stale first-committed one.
-  const href = `project-theme-${scope.slug}-${hashCss(css)}`;
+  const href = `entry-theme-${scope.slug}-${hashCss(css)}`;
   return (
     <>
       {/* `precedence` and the `@layer` in `scopedStyleCss` read the SAME `BRAND_LAYER`
@@ -57,10 +57,7 @@ export default function ProjectScope({ seed, children }: ProjectScopeProps) {
       </style>
       {/* Shell-mono fallback has no roster class (its variable is already on `<html>`), so
           `className` is omitted to avoid an empty class attribute. */}
-      <div
-        data-project={scope.slug}
-        className={scope.font.variable || undefined}
-      >
+      <div data-entry={scope.slug} className={scope.font.variable || undefined}>
         {children}
       </div>
     </>

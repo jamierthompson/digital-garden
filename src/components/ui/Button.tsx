@@ -9,7 +9,7 @@ interface ButtonProps {
 
 /**
  * A pill action button. Generic UI primitive: hairline pill that reads the ambient
- * semantic tokens — editorial by default, brand inside a project slot. Always
+ * semantic tokens — editorial by default, brand inside a brand slot. Always
  * `type="button"` (no implicit form submission).
  */
 export default function Button({

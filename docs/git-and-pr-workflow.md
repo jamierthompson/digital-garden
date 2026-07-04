@@ -72,7 +72,7 @@ git switch main && git pull
 git switch -c feat/oklch-contrast-engine
 ```
 
-Examples: `feat/add-project-scope`, `fix/font-preload-head-link`, `chore/setup-commitlint`.
+Examples: `feat/add-entry-scope`, `fix/font-preload-head-link`, `chore/setup-commitlint`.
 
 ---
 

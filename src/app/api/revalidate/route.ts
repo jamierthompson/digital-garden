@@ -11,7 +11,7 @@ import { parseBody } from "next-sanity/webhook";
  * the change appears on the next request instead.
  *
  * Tag contract (kept in sync with the Live read-path slice): every fetch is tagged with
- * two coarse tags — `sanity` (catch-all) and `sanity:<_type>` (e.g. `sanity:project`).
+ * two coarse tags — `sanity` (catch-all) and `sanity:<_type>` (e.g. `sanity:entry`).
  * We derive BOTH from the verified payload's `_type` server-side rather than trusting a
  * `tags` array, so a misconfigured webhook can't aim revalidation at an arbitrary tag.
  *
@@ -19,7 +19,7 @@ import { parseBody } from "next-sanity/webhook";
  * webhook is a Route Handler (…/04-functions/updateTag.md vs revalidateTag.md). We pass
  * `{ expire: 0 }` — the form the doc prescribes for webhooks needing immediate
  * expiration. `"max"` is stale-while-revalidate, so the FIRST visitor after a publish
- * would still see stale content (the observed bug — a fresh project missing from
+ * would still see stale content (the observed bug — a fresh entry missing from
  * `/browse`); `{ expire: 0 }` makes the next request a blocking fresh fetch.
  *
  * `parseBody` verifies the `sanity-webhook-signature` HMAC against

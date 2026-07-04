@@ -1,7 +1,7 @@
-// The shape every project module's registry entry (`index.ts`) exports.
+// The shape every entry module's registry entry (`index.ts`) exports.
 //
 // A `componentKey` resolves (via `src/lib/resolvers/components.ts`, a LITERAL dynamic
-// import per key) to a project module; this is the contract that module's default
+// import per key) to an entry module; this is the contract that module's default
 // export satisfies, so a thin `/[slug]` route can mount its pages without knowing the
 // concrete project. A module composes with the editorial page in one (or both) of two
 // ways — `Experience` (one interactive slot mounted after the prose) and/or `Provider`
@@ -9,7 +9,7 @@
 // can share state) — and must export at least one; the union below makes an
 // empty module a compile error.
 //
-// Lives in shared `src/projects/` (not inside any one project) because it is the
+// Lives in shared `src/entries/` (not inside any one project) because it is the
 // cross-module contract the resolver and route key off — named where it will live now,
 // instantiated on a genuine second use (deferral discipline).
 
@@ -41,8 +41,8 @@ export interface ProviderProps {
   readonly children: ReactNode;
 }
 
-/** The members a project module MAY export — see `ProjectModule` for the at-least-one rule. */
-interface ProjectModuleMembers {
+/** The members an entry module MAY export — see `EntryModule` for the at-least-one rule. */
+interface EntryModuleMembers {
   /**
    * One interactive slot, mounted by the page after the prose inside its own brand scope.
    * The default composition for a module whose experience is a single surface.
@@ -59,11 +59,11 @@ interface ProjectModuleMembers {
 }
 
 /**
- * A project module's registry entry — the default export of its `index.ts`. The
+ * An entry module's registry entry — the default export of its `index.ts`. The
  * intersection with the union enforces "at least one composition member" at compile
  * time: a module exporting neither `Experience` nor `Provider` cannot satisfy it.
  */
-export type ProjectModule = ProjectModuleMembers &
+export type EntryModule = EntryModuleMembers &
   (
     | { readonly Experience: ComponentType<ExperienceProps> }
     | { readonly Provider: ComponentType<ProviderProps> }

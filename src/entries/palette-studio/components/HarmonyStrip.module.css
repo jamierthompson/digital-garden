@@ -1,6 +1,6 @@
-/* Decorative harmony strip — @layer project, var-consuming chrome. The only painted colors
+/* Decorative harmony strip — @layer components, var-consuming chrome. The only painted colors
    are the harmony swatches (generated, inline). */
-@layer project {
+@layer components {
   .strip {
     display: flex;
     flex-direction: column;

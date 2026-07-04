@@ -14,11 +14,11 @@ import { resolveScope, scopedStyleCss } from "./scopeSeed";
 /**
  * Adversarial-QA characterization suite: pins the LIMIT of `vetSlug`'s isolation guarantee.
  *
- * `scopeSeed.ts` claims a per-project sanitized slug "stays UNIQUE per project". That is only
+ * `scopeSeed.ts` claims a per-entry sanitized slug "stays UNIQUE per project". That is only
  * true because uniqueness is enforced UPSTREAM (the Sanity `slug` schema: charset
  * `^[a-z0-9-]+$` + `isUnique`), so on valid published data `vetSlug` is a no-op. `vetSlug`
  * ITSELF is NOT injective — it lowercases and strips non-`[a-z0-9-]` chars, so two distinct
- * inputs can collapse to the SAME `[data-project]` selector. The content-hashed `<style>` href
+ * inputs can collapse to the SAME `[data-entry]` selector. The content-hashed `<style>` href
  * only prevents IDENTICAL themes from sharing one tag; it does NOT prevent two DIFFERENT themes
  * from both matching one colliding selector.
  *
@@ -45,9 +45,9 @@ describe("vetSlug is not injective — isolation rests on upstream uniqueness", 
     expect(a.slug).toBe(b.slug); // collision: same selector for two different projects
   });
 
-  it("emits two DIFFERENT theme bodies that both target the one collided [data-project]", () => {
+  it("emits two DIFFERENT theme bodies that both target the one collided [data-entry]", () => {
     // The cross-bleed hazard made concrete: distinct brands → distinct CSS (so distinct hrefs,
-    // React keeps BOTH <style>s), yet both select `[data-project="foobar"]`. Co-mounted, cascade
+    // React keeps BOTH <style>s), yet both select `[data-entry="foobar"]`. Co-mounted, cascade
     // source-order decides which brand wins — i.e. one project would render the other's theme.
     const a = scopedStyleCss(
       resolveScope({
@@ -59,8 +59,8 @@ describe("vetSlug is not injective — isolation rests on upstream uniqueness", 
     const b = scopedStyleCss(
       resolveScope({ slug: "foobar", brandColor: "#1a1a2e", fontKey: "inter" }),
     );
-    expect(a).toContain('[data-project="foobar"]');
-    expect(b).toContain('[data-project="foobar"]');
+    expect(a).toContain('[data-entry="foobar"]');
+    expect(b).toContain('[data-entry="foobar"]');
     // Different brand → different baked color literals → the content hash would NOT dedupe them.
     expect(a).not.toBe(b);
   });

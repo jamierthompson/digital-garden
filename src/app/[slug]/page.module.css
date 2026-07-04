@@ -1,10 +1,10 @@
-/* /[slug] entry page. @layer project — declares its layer (an unlayered module outranks
+/* /[slug] entry page. @layer components — declares its layer (an unlayered module outranks
    every layered rule); var-consuming only; reads the generic semantic tokens (editorial by
    default; each brand slot re-binds them inside its own scoped container). Breakout layout:
    the page frame runs wide (demo, not essay), the prose keeps its reading measure via the
    article grid's named [prose] column, and a liveEmbed slot spans [full] (EmbedBlock sets
    `grid-column: full`). */
-@layer project {
+@layer components {
   .module {
     max-width: var(--width-content);
     margin: 0 auto;

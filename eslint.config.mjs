@@ -53,16 +53,16 @@ const eslintConfig = defineConfig([
       "boundaries/elements": [
         { type: "app", mode: "file", pattern: "src/app/**/*" },
         {
-          type: "project",
+          type: "entry",
           mode: "file",
-          pattern: "src/projects/*/**/*",
+          pattern: "src/entries/*/**/*",
           capture: ["slug"],
         },
-        // The resolver registries are the ONLY sanctioned shared→project importers:
+        // The resolver registries are the ONLY sanctioned shared→entry importers:
         // the contract mandates that a `componentKey` / `embedKey` resolves to a literal
-        // `() => import("@/projects/…")` right there. Modeling the registries as their
+        // `() => import("@/entries/…")` right there. Modeling the registries as their
         // own element — matched before the `shared` catch-all, since first match wins —
-        // lets them import `project` modules while the `shared`→`project` ban below still
+        // lets them import `entry` modules while the `shared`→`entry` ban below still
         // holds for every other shared module. Tightens the boundary to the allowed
         // importers rather than loosening the rule wholesale.
         {
@@ -81,21 +81,21 @@ const eslintConfig = defineConfig([
           checkAllOrigins: true,
           rules: [
             {
-              from: { type: "project" },
+              from: { type: "entry" },
               disallow: {
                 to: {
-                  type: "project",
+                  type: "entry",
                   captured: { slug: "!{{from.captured.slug}}" },
                 },
               },
               message:
-                "A project module cannot import another project — lift shared code into a shared module.",
+                "An entry module cannot import another entry — lift shared code into a shared module.",
             },
             {
               from: { type: "shared" },
-              disallow: { to: { type: "project" } },
+              disallow: { to: { type: "entry" } },
               message:
-                "Shared modules cannot import project code — dependencies point from projects to shared, never back.",
+                "Shared modules cannot import entry-module code — dependencies point from entry modules to shared, never back.",
             },
           ],
         },

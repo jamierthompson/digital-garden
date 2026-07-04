@@ -2,7 +2,7 @@
 //
 // It resolves a `brandColor` through the OKLCH engine (`buildTokenSet` → dual-scheme, `light-dark()`,
 // baked literals) and a `fontKey` through the font roster (`resolveFontKey`),
-// then serializes everything into one `@layer brand { [data-project="…"] { … } }` block.
+// then serializes everything into one `@layer brand { [data-entry="…"] { … } }` block.
 //
 // The defensive contract the stub established is preserved exactly: `resolveScope`
 // is TOTAL and NEVER throws. A bad/missing `brandColor` collapses to the engine's own
@@ -24,7 +24,7 @@ import type { FontFace } from "@/fonts/roster";
 export interface ResolvedScope {
   /**
    * The selector key: the project's slug, sanitized to `[a-z0-9-]` (never raw user input) so
-   * it is **injection-safe** — it can't break out of `[data-project="…"]`. UNIQUENESS per
+   * it is **injection-safe** — it can't break out of `[data-entry="…"]`. UNIQUENESS per
    * project is guaranteed upstream by the Sanity `slug` schema (charset `^[a-z0-9-]+$` +
    * `isUnique`), so on valid data `vetSlug` is a no-op; the theme `<style>` href additionally
    * carries a content hash (`hashCss`) so distinct themes never share a hoisted style and a
@@ -55,7 +55,7 @@ export const FALLBACK_SLUG = "fallback";
  * one mechanism: the cascade slots the rule by `@layer` name while React orders the hoisted
  * `<style>` by precedence. Single-sourcing the literal here makes the invariant mechanical
  * rather than vigilance-dependent — `scopedStyleCss` builds `@layer ${BRAND_LAYER}` and
- * `ProjectScope` sets `precedence={BRAND_LAYER}`, so they cannot silently desync.
+ * `EntryScope` sets `precedence={BRAND_LAYER}`, so they cannot silently desync.
  */
 export const BRAND_LAYER = "brand";
 
@@ -75,13 +75,13 @@ const SHELL_MONO_FACE: FontFace = {
 const FONT_STACK = "ui-monospace, monospace";
 
 // Sanitize an untrusted slug into a CSS-selector-safe token: lowercased and stripped to
-// `[a-z0-9-]`, so it can never break out of the `[data-project="…"]` selector or the
+// `[a-z0-9-]`, so it can never break out of the `[data-entry="…"]` selector or the
 // `<style>` href — a hostile `"]}body{…}` sanitizes to inert characters, no injection.
 //
 // We SANITIZE the slug rather than collapse every unrecognized one to a single constant.
 // Collapsing (the old behavior) made every project without a registered component module —
 // e.g. the seed brands goldenrod / marginalia / tidepool — share the SAME
-// `[data-project="fallback"]` scope AND the SAME `<style href="project-theme-fallback">`.
+// `[data-entry="fallback"]` scope AND the SAME `<style href="entry-theme-fallback">`.
 // React 19 de-dupes hoisted styles by `href` and keeps the FIRST committed, so navigating
 // between two such projects cross-contaminated them (the second showed the first's theme).
 // A real project slug is already `[a-z0-9-]`, so it passes through unchanged and stays
@@ -156,7 +156,7 @@ export function resolveScope(seed: unknown): ResolvedScope {
  * `--font-face` mapping all live in the SAME selector block. The slot re-binds the generic
  * semantic tokens (`--surface`, `--accent`, … `--success`) with the brand's solved values,
  * overriding the global editorial defaults for this island only. The `@layer ${BRAND_LAYER}`
- * wrapper here pairs with `ProjectScope`'s `precedence={BRAND_LAYER}` — see `BRAND_LAYER`.
+ * wrapper here pairs with `EntryScope`'s `precedence={BRAND_LAYER}` — see `BRAND_LAYER`.
  */
 export function scopedStyleCss(scope: ResolvedScope): string {
   // Engine declarations: `color-scheme: light dark;` + each `--<name>: light-dark(…)`
@@ -174,5 +174,5 @@ export function scopedStyleCss(scope: ResolvedScope): string {
   const fontFace = `    --font-face: var(${scope.font.cssVariable}), ${FONT_STACK};`;
 
   const body = [brandDecls, focusRing, fontFace].join("\n");
-  return `@layer ${BRAND_LAYER} {\n  [data-project="${scope.slug}"] {\n${body}\n  }\n}`;
+  return `@layer ${BRAND_LAYER} {\n  [data-entry="${scope.slug}"] {\n${body}\n  }\n}`;
 }

@@ -2,7 +2,7 @@
 
 > Read [`../SKILL.md`](../SKILL.md) (Preflight + universal mechanics) first. Use when a feature **spans layers or modules** and
 > splits cleanly into slices over **distinct file sets** — frontend / data / tests, or several
-> independent project modules. This is the highest-coordination mode: the official guidance says
+> independent entry modules. This is the highest-coordination mode: the official guidance says
 > start with research/review before attempting parallel implementation, and the cardinal rule is
 > **avoid file conflicts** — two teammates editing one file overwrite each other.
 

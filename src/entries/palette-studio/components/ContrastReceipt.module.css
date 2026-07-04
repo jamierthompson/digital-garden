@@ -1,6 +1,6 @@
-/* Contrast receipt card — @layer project. Scoped to the generated palette (inline vars from
+/* Contrast receipt card — @layer components. Scoped to the generated palette (inline vars from
    ContrastReceipt), so the card sits on this scheme's generated surface + text. */
-@layer project {
+@layer components {
   .card {
     display: flex;
     flex-direction: column;

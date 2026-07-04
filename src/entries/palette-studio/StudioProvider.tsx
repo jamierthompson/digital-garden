@@ -1,7 +1,7 @@
 "use client";
 
 // The Palette Studio's shared-state frame. The page wraps the entry's article in this
-// provider (the `ProjectModule.Provider` contract), so the studio's slots — mounted as
+// provider (the `EntryModule.Provider` contract), so the studio's slots — mounted as
 // individual `liveEmbed`s interleaved through the server-rendered prose — share one
 // state store and ONE engine run per change. The client boundary is this frame plus the
 // slot leaves; the prose between slots passes through as server-rendered children.
@@ -21,7 +21,7 @@ import {
   type Scheme,
 } from "@garden/oklch";
 
-import type { ProviderProps } from "@/projects/types";
+import type { ProviderProps } from "@/entries/types";
 
 import {
   derivePalette,

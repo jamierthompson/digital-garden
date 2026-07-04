@@ -1,6 +1,6 @@
-/* Seed row — @layer project, var-consuming. Reads ambient ProjectScope tokens; the only
+/* Seed row — @layer components, var-consuming. Reads ambient EntryScope tokens; the only
    colors it paints are the seed/preset SWATCHES, set inline from generated/seed data. */
-@layer project {
+@layer components {
   .row {
     display: flex;
     flex-wrap: wrap;

@@ -1,17 +1,17 @@
 import { PortableText, type PortableTextComponents } from "next-sanity";
 
-import type { ScopeSeed } from "@/components/project-scope/scopeSeed";
+import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 
 // TypeGen output lives at the repo root (the `@/*` alias maps to `src/`, so it can't cover
 // it) — this relative hop up to the root types file is intentional, not a deep `src` chain.
-import type { PROJECT_DETAIL_QUERY_RESULT } from "../../../sanity.types";
+import type { ENTRY_DETAIL_QUERY_RESULT } from "../../../sanity.types";
 
 import EmbedBlock from "./EmbedBlock";
 import EssayFigure from "./EssayFigure";
 
 // Lifted off the typed detail query so serializer and query can't drift. `NonNullable`
 // drops the `body: … | null` arm — the caller only renders this when a body exists.
-type Body = NonNullable<NonNullable<PROJECT_DETAIL_QUERY_RESULT>["body"]>;
+type Body = NonNullable<NonNullable<ENTRY_DETAIL_QUERY_RESULT>["body"]>;
 
 interface EssayBodyProps {
   value: Body;

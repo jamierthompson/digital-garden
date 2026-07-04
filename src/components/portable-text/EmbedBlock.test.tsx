@@ -1,7 +1,7 @@
 // QA #131 — EmbedBlock is the seam where an authored `liveEmbed` meets code. The
 // contract under test: (1) a missing/unknown key degrades to the visible MissingEmbed —
 // never a throw; (2) with a project `scope` the embed mounts inside its OWN
-// `[data-project]` container; (3) without a scope it mounts bare; (4) the caption stays
+// `[data-entry]` container; (3) without a scope it mounts bare; (4) the caption stays
 // OUTSIDE the brand scope (editorial register). EmbedBlock is an async Server Component,
 // so each case awaits the element before rendering (the jsdom-compatible RSC pattern).
 
@@ -9,7 +9,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 // next/font/google is untransformed under Vitest (see roster.test.ts) — mock the faces
-// the roster imports, loaded transitively via EmbedBlock → ProjectScope → resolveScope.
+// the roster imports, loaded transitively via EmbedBlock → EntryScope → resolveScope.
 vi.mock("next/font/google", () => ({
   Inter: () => ({ variable: "mock-inter" }),
   Newsreader: () => ({ variable: "mock-newsreader" }),
@@ -50,11 +50,11 @@ describe("EmbedBlock", () => {
     expect(screen.getByRole("note")).toHaveTextContent("Embed unavailable");
   });
 
-  it("mounts a resolved embed inside its OWN [data-project] scope when given one", async () => {
+  it("mounts a resolved embed inside its OWN [data-entry] scope when given one", async () => {
     const { container } = render(
       await EmbedBlock({ embedKey: "palette-studio-seed", scope: SCOPE }),
     );
-    const scoped = container.querySelector('[data-project="palette-studio"]');
+    const scoped = container.querySelector('[data-entry="palette-studio"]');
     expect(scoped).not.toBeNull();
     // The embed (a studio slot with no provider above it) renders ITS placeholder inside
     // the scope — proving both the per-slot scoping and the provider-less degradation
@@ -66,7 +66,7 @@ describe("EmbedBlock", () => {
     const { container } = render(
       await EmbedBlock({ embedKey: "palette-studio-seed" }),
     );
-    expect(container.querySelector("[data-project]")).toBeNull();
+    expect(container.querySelector("[data-entry]")).toBeNull();
     // Still renders the slot (which degrades to its placeholder without a provider).
     expect(screen.getByText(/no studio frame mounted/)).toBeInTheDocument();
   });
@@ -82,7 +82,7 @@ describe("EmbedBlock", () => {
     const caption = screen.getByText("A caption in the essay voice");
     expect(caption.tagName).toBe("FIGCAPTION");
     // The caption must NOT sit inside the scoped container — brand never reaches prose.
-    expect(caption.closest("[data-project]")).toBeNull();
+    expect(caption.closest("[data-entry]")).toBeNull();
     // And the whole block is one <figure>.
     expect(container.querySelector("figure")).toContainElement(caption);
   });

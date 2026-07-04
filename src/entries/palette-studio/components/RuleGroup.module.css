@@ -1,7 +1,7 @@
-/* One rule group — declares @layer project (an unlayered module outranks every layered
+/* One rule group — declares @layer components (an unlayered module outranks every layered
    rule). Layout only: the label, pills, and hint are the ui/ primitives (Kicker,
    SegmentedControl, Note). */
-@layer project {
+@layer components {
   .group {
     display: flex;
     flex-direction: column;

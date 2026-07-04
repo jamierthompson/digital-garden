@@ -1,7 +1,7 @@
-/* Global site footer — the journal colophon. @layer project (var-consuming shell chrome; reads
+/* Global site footer — the journal colophon. @layer components (var-consuming shell chrome; reads
    the global editorial semantic tokens, never brand-scoped). Its inner row aligns to the same
    content column as the nav and page frames (--width-content). */
-@layer project {
+@layer components {
   .footer {
     border-top: 1px solid var(--border);
     /* Push the footer to the viewport floor on short pages (body is a flex column); collapses

@@ -1,5 +1,5 @@
-/* Entry "Related" list. @layer project — declares its layer (unlayered modules outrank every layered rule); var-consuming only; reads the generic semantic tokens. */
-@layer project {
+/* Entry "Related" list. @layer components — declares its layer (unlayered modules outrank every layered rule); var-consuming only; reads the generic semantic tokens. */
+@layer components {
   .related {
     margin-top: var(--space-7);
     border-top: 1px solid var(--border, var(--text));

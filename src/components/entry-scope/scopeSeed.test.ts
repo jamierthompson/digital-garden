@@ -19,7 +19,7 @@ import {
   scopedStyleCss,
 } from "./scopeSeed";
 
-// Mirrors the shape the route passes ProjectScope from a Sanity document.
+// Mirrors the shape the route passes EntryScope from a Sanity document.
 const VALID_SEED = {
   slug: "oklch-engine",
   brandColor: "oklch(0.62 0.21 264)",
@@ -96,7 +96,7 @@ describe("resolveScope — defensive, never throws", () => {
 
   it("sanitizes a hostile slug so it can never inject into the emitted CSS selector", () => {
     // The hostile slug is stripped to `[a-z0-9-]` (inert chars), so no bracket/brace/quote
-    // survives to break out of the `[data-project="…"]` selector.
+    // survives to break out of the `[data-entry="…"]` selector.
     const css = scopedStyleCss(
       resolveScope({
         slug: '"]}body{color:red}',
@@ -104,14 +104,14 @@ describe("resolveScope — defensive, never throws", () => {
         fontKey: "inter",
       }),
     );
-    expect(css).toContain('[data-project="bodycolorred"]');
+    expect(css).toContain('[data-entry="bodycolorred"]');
     expect(css).not.toContain("]}");
     expect(css).not.toContain("body{color:red}");
   });
 
   it("keeps a distinct sanitized slug per project so scopes can't collide (theme-bleed guard)", () => {
     // Regression guard: two seed projects without a component module both used to collapse to
-    // `FALLBACK_SLUG`, sharing one `[data-project]` scope + `<style href="project-theme-…">`.
+    // `FALLBACK_SLUG`, sharing one `[data-entry]` scope + `<style href="entry-theme-…">`.
     // React 19 de-dupes hoisted styles by href and keeps the first, so navigating between them
     // cross-contaminated the theme. Distinct slugs → distinct scopes + hrefs → no bleed.
     const gold = resolveScope({
@@ -127,8 +127,8 @@ describe("resolveScope — defensive, never throws", () => {
     expect(gold.slug).toBe("goldenrod");
     expect(marg.slug).toBe("marginalia");
     expect(gold.slug).not.toBe(marg.slug);
-    expect(scopedStyleCss(gold)).toContain('[data-project="goldenrod"]');
-    expect(scopedStyleCss(marg)).toContain('[data-project="marginalia"]');
+    expect(scopedStyleCss(gold)).toContain('[data-entry="goldenrod"]');
+    expect(scopedStyleCss(marg)).toContain('[data-entry="marginalia"]');
   });
 });
 
@@ -137,7 +137,7 @@ describe("scopedStyleCss", () => {
 
   it("wraps the scoped block in @layer brand", () => {
     expect(css).toMatch(/^@layer brand \{/);
-    expect(css).toContain('[data-project="oklch-engine"]');
+    expect(css).toContain('[data-entry="oklch-engine"]');
   });
 
   it("emits baked semantic-token light-dark() literals + the color-scheme", () => {

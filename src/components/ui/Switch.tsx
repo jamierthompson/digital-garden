@@ -17,7 +17,7 @@ interface SwitchProps {
 /**
  * A toggle switch (Radix `Switch` under the hood). Generic UI primitive: the off state
  * reads as a hairline pill, the on state fills with the ambient accent — editorial by
- * default, brand inside a project slot. Provide `label` or `labelledBy`, not both.
+ * default, brand inside a brand slot. Provide `label` or `labelledBy`, not both.
  */
 export default function Switch({
   checked,

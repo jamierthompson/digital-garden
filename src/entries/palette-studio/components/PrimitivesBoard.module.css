@@ -1,7 +1,7 @@
-/* Primitives board — @layer project, var-consuming. Chrome reads ambient tokens; the swatch
+/* Primitives board — @layer components, var-consuming. Chrome reads ambient tokens; the swatch
    fills are generated engine literals set inline. `--step-count` is passed from the component
    (11) so the grid never hard-codes the ramp length. */
-@layer project {
+@layer components {
   .board {
     display: flex;
     flex-direction: column;

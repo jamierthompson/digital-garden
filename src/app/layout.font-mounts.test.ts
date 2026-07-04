@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
  *     `var(--font-geist-sans)`; its `preload: true` was pure waste on the LCP path.
  *     Re-adding the loader (or re-mounting its variable) reintroduces a preloaded face
  *     that no surface consumes. Pin that it stays gone.
- *  2. **A dropped Geist Mono mount.** `--font-geist-mono` is the project scope's shell-font
+ *  2. **A dropped Geist Mono mount.** `--font-geist-mono` is the entry scope's shell-font
  *     FALLBACK (`scopeSeed.ts` → `SHELL_MONO_FACE`, guarded by `scopeSeed.test.ts`). That
  *     fallback only resolves because `geistMono.variable` is mounted on `<html>` here. If a
  *     future edit drops the mount, `var(--font-geist-mono)` resolves to nothing and every
@@ -39,7 +39,7 @@ describe("layout.tsx shell font mounts (#38 preload trim)", () => {
     );
   });
 
-  it("still mounts Geist Mono (the project-scope shell-font fallback)", () => {
+  it("still mounts Geist Mono (the entry-scope shell-font fallback)", () => {
     // Import + loader call survive…
     expect(source).toMatch(/import\s*\{[^}]*\bGeist_Mono\b[^}]*\}/);
     expect(source).toMatch(/Geist_Mono\(/);
@@ -53,7 +53,7 @@ describe("layout.tsx shell font mounts (#38 preload trim)", () => {
     expect(source).toMatch(/Source_Serif_4\(/);
     expect(htmlClassName).toContain("sourceSerif.variable");
     // Space Grotesk → `--font-display` and JetBrains Mono → `--font-mono` are reused from the
-    // per-project roster (not duplicate loaders), so they mount via FONT_FACES.
+    // per-entry roster (not duplicate loaders), so they mount via FONT_FACES.
     expect(htmlClassName).toContain('FONT_FACES["space-grotesk"].variable');
     expect(htmlClassName).toContain('FONT_FACES["jetbrains-mono"].variable');
   });

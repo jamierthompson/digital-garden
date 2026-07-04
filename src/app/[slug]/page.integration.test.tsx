@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 // next/font/google is untransformed under Vitest (a build-time transform), so mock the
-// faces the roster imports — loaded transitively via ProjectScope → resolveScope →
-// FONT_FACES. Same shape as ProjectScope.test.tsx / roster.test.ts.
+// faces the roster imports — loaded transitively via EntryScope → resolveScope →
+// FONT_FACES. Same shape as EntryScope.test.tsx / roster.test.ts.
 vi.mock("next/font/google", () => ({
   Inter: () => ({ variable: "mock-inter" }),
   Newsreader: () => ({ variable: "mock-newsreader" }),
@@ -13,8 +13,8 @@ vi.mock("next/font/google", () => ({
 }));
 
 import EmbedBlock from "@/components/portable-text/EmbedBlock";
-import ProjectScope from "@/components/project-scope/ProjectScope";
-import { resolveScope } from "@/components/project-scope/scopeSeed";
+import EntryScope from "@/components/entry-scope/EntryScope";
+import { resolveScope } from "@/components/entry-scope/scopeSeed";
 import { resolveComponentKey } from "@/lib/resolvers/components";
 import { isNotFound } from "@/lib/resolvers/resolution";
 
@@ -25,7 +25,7 @@ import { isNotFound } from "@/lib/resolvers/resolution";
 // DevTools MCP browser check's job / Playwright's (testing.md "Async RSCs").
 //
 // The fixture is a representative themed-entry doc shape — the theming/embed infrastructure
-// is exercised directly here (no coded project module or registered embed ships post-#109,
+// is exercised directly here (no coded entry module or registered embed ships post-#109,
 // so the full page only mounts a slot once a real module lands; the seams below are the
 // durable contract, and the embed registry now resolves every key to the missing-embed seam).
 
@@ -47,7 +47,7 @@ vi.mock("@/sanity/lib/client", () => ({
 
 describe("/[slug] primary flow (Sanity mocked)", () => {
   it("drives a real, non-fallback themed scope from the doc's brandColor + slug", () => {
-    // ProjectScope is handed { slug, brandColor, fontKey }. The slug passes through
+    // EntryScope is handed { slug, brandColor, fontKey }. The slug passes through
     // `vetSlug` (sanitized `[a-z0-9-]`, unique per entry) to its OWN scope — it does not
     // collapse to `fallback` for a valid slug.
     const scope = resolveScope({
@@ -62,9 +62,9 @@ describe("/[slug] primary flow (Sanity mocked)", () => {
     expect(scope.font.variable).not.toBe("");
   });
 
-  it("renders the slot themed with its own brand under its data-project scope", () => {
+  it("renders the slot themed with its own brand under its data-entry scope", () => {
     const { container } = render(
-      <ProjectScope
+      <EntryScope
         seed={{
           slug: THEMED_ENTRY.slug,
           brandColor: THEMED_ENTRY.brandColor,
@@ -72,14 +72,14 @@ describe("/[slug] primary flow (Sanity mocked)", () => {
         }}
       >
         <p>essay</p>
-      </ProjectScope>,
+      </EntryScope>,
     );
-    const wrapper = container.querySelector("[data-project]");
-    expect(wrapper).toHaveAttribute("data-project", "themed-slot");
-    // React 19 hoists the `<style precedence>` into <head> (see ProjectScope.test.tsx); the
+    const wrapper = container.querySelector("[data-entry]");
+    expect(wrapper).toHaveAttribute("data-entry", "themed-slot");
+    // React 19 hoists the `<style precedence>` into <head> (see EntryScope.test.tsx); the
     // scoped block re-binds the generic semantic tokens with baked literals on THIS island.
     const style = document.head.querySelector("style[data-precedence]");
-    expect(style?.textContent).toContain('[data-project="themed-slot"]');
+    expect(style?.textContent).toContain('[data-entry="themed-slot"]');
     expect(style?.textContent).toContain("--accent: light-dark(");
   });
 

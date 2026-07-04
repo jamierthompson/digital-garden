@@ -5,7 +5,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { ScopeSeed } from "@/components/project-scope/scopeSeed";
+import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 
 import EssayBody from "./EssayBody";
 

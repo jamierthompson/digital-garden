@@ -1,7 +1,7 @@
-/* Root loading boundary. @layer project — declares its layer (an unlayered module outranks
+/* Root loading boundary. @layer components — declares its layer (an unlayered module outranks
    every layered rule). Editorial chrome only: var-consuming from foundation scales, matching
    the [slug] state boundaries' treatment. */
-@layer project {
+@layer components {
   .state {
     max-width: var(--width-prose);
     margin: 0 auto;

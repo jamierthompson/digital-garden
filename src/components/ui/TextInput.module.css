@@ -1,5 +1,5 @@
-/* Text input field — @layer project, var-consuming only. */
-@layer project {
+/* Text input field — @layer components, var-consuming only. */
+@layer components {
   .input {
     flex: 1;
     min-width: 0;

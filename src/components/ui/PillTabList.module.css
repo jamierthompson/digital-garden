@@ -1,5 +1,5 @@
-/* Pill tab list — @layer project, var-consuming only. */
-@layer project {
+/* Pill tab list — @layer components, var-consuming only. */
+@layer components {
   .list {
     display: flex;
     flex-wrap: wrap;

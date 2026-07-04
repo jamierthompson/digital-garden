@@ -64,9 +64,9 @@ import { resolveTheme, buildTokenSet, tokenSetToCss } from "@garden/oklch";
 const { ramps, tokens, seed, isFallback } = resolveTheme("#3b82f6", "light");
 ramps.brand[7]; // → { label: "700", color: {…}, oog: false }
 
-// Both schemes zipped for ProjectScope's light-dark() <style>:
+// Both schemes zipped for EntryScope's light-dark() <style>:
 const set = buildTokenSet("#3b82f6"); // { gamut: "p3" } to opt into wide gamut
-const css = tokenSetToCss(set, '[data-project="garden"]'); // @layer brand, tokens + ramps
+const css = tokenSetToCss(set, '[data-entry="garden"]'); // @layer brand, tokens + ramps
 ```
 
 Tokens (generic semantic contract, emitted as bare `--<name>`): `bg`, `surface`,
@@ -100,7 +100,7 @@ a deliberate decision:
 
 - **Additions are fine** (new export, new token) — extend the freeze-guard's lists in the
   same commit, and update this README.
-- **Renames/removals are breaking** — migrate every consumer (`ProjectScope`,
+- **Renames/removals are breaking** — migrate every consumer (`EntryScope`,
   `cardSwatches`, Studio validation, the studio module) in the same PR. There is no
   deprecation window inside a monorepo; the PR is the migration.
 - Never adjust the guard to make accidental drift pass.
@@ -117,7 +117,7 @@ tokenSetToTailwindTheme(set); // Tailwind v4 `@theme { --color-brand-500: …; }
 tokenSetToDesignTokens(set, { format: "hex" }); // W3C-DTCG JSON, per-scheme groups
 ```
 
-The in-repo CSS serializers (`tokenSetToCss` & co.) take the same option; `ProjectScope`
+The in-repo CSS serializers (`tokenSetToCss` & co.) take the same option; `EntryScope`
 uses the default.
 
 **Low-level surface** is also exported: `contrastWCAG`, `contrastAPCA`/`apcaLc`,
@@ -126,10 +126,10 @@ the one predicate every solve and binding routes through, #100), `solveForegroun
 `gamutMap`/`inGamut`, `buildRamp` (the `50…950` role ramp) + `buildLightnessRamp` (raw
 stops), `minPass` (discrete step binding), and the color conversions/parsers.
 
-### Notes for ProjectScope / cardSwatches consumers
+### Notes for EntryScope / cardSwatches consumers
 
 - The engine emits the **generic semantic** names only (bare `--surface`, `--accent`, …) —
-  there are no project-prefixed aliases (isolation comes from the `[data-project]` scope).
+  there are no project-prefixed aliases (isolation comes from the `[data-entry]` scope).
   Mapping to `--focus-ring-color` (foundation's `:focus-visible` reads that) is the
   **scope's** job, not the engine's. Suggested: `--focus-ring-color: var(--focus-ring)`.
 - `tokenSetToCss` already emits `color-scheme: light dark;` so `light-dark()` resolves and

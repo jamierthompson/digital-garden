@@ -1,5 +1,5 @@
-/* About page. @layer project — declares its layer (an unlayered module outranks every layered rule); var-consuming only (shell brand/font tokens). */
-@layer project {
+/* About page. @layer components — declares its layer (an unlayered module outranks every layered rule); var-consuming only (shell brand/font tokens). */
+@layer components {
   .main {
     display: flex;
     flex-direction: column;

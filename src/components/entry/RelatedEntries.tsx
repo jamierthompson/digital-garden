@@ -12,7 +12,7 @@ interface RelatedEntry {
 interface RelatedEntriesProps {
   /** The current entry's `_id`, so it is excluded from its own list (self-reference guard). */
   currentId: string;
-  /** Outgoing edges — `PROJECT_DETAIL_QUERY`'s `related[]->` projection. */
+  /** Outgoing edges — `ENTRY_DETAIL_QUERY`'s `related[]->` projection. */
   related: (RelatedEntry | null)[] | null;
   /** Incoming edges — every entry that references this one, via GROQ `references()`. */
   backlinks: (RelatedEntry | null)[] | null;

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 // See roster.test.ts: next/font/google is untransformed under Vitest, so mock the faces
-// the roster imports (loaded transitively via ProjectScope → resolveScope → FONT_FACES).
+// the roster imports (loaded transitively via EntryScope → resolveScope → FONT_FACES).
 vi.mock("next/font/google", () => ({
   Inter: () => ({ variable: "mock-inter" }),
   Newsreader: () => ({ variable: "mock-newsreader" }),
@@ -13,7 +13,7 @@ vi.mock("next/font/google", () => ({
 
 import { FONT_FACES } from "@/fonts/roster";
 
-import ProjectScope from "./ProjectScope";
+import EntryScope from "./EntryScope";
 import { BRAND_LAYER } from "./scopeSeed";
 
 const VALID_SEED = {
@@ -22,29 +22,27 @@ const VALID_SEED = {
   fontKey: "jetbrains-mono",
 } as const;
 
-// ProjectScope is a SYNC server component, so jsdom can render it (async RSCs cannot).
+// EntryScope is a SYNC server component, so jsdom can render it (async RSCs cannot).
 // React serializes the `<style precedence>` as `data-precedence` in <head>, so we can
 // observe it; the actual flush-before-paint ordering is verified in the browser.
-describe("ProjectScope (engine-driven)", () => {
-  it("wraps children in the scoped [data-project] and mounts the resolved font class", () => {
+describe("EntryScope (engine-driven)", () => {
+  it("wraps children in the scoped [data-entry] and mounts the resolved font class", () => {
     render(
-      <ProjectScope seed={VALID_SEED}>
+      <EntryScope seed={VALID_SEED}>
         <p>module content</p>
-      </ProjectScope>,
+      </EntryScope>,
     );
-    const wrapper = screen
-      .getByText("module content")
-      .closest("[data-project]");
-    expect(wrapper).toHaveAttribute("data-project", "oklch-engine");
+    const wrapper = screen.getByText("module content").closest("[data-entry]");
+    expect(wrapper).toHaveAttribute("data-entry", "oklch-engine");
     // The resolved roster face's `.variable` className is on the wrapper.
     expect(wrapper).toHaveClass(FONT_FACES["jetbrains-mono"].variable);
   });
 
   it("hoists the theme <style> with precedence == the brand @layer", () => {
     render(
-      <ProjectScope seed={VALID_SEED}>
+      <EntryScope seed={VALID_SEED}>
         <p>themed</p>
-      </ProjectScope>,
+      </EntryScope>,
     );
     // `data-precedence` == BRAND_LAYER proves the hoist order and the `@layer ${BRAND_LAYER}`
     // wrapper are driven by the SAME value — they cannot desync.
@@ -59,43 +57,43 @@ describe("ProjectScope (engine-driven)", () => {
     // `fallback` — so two such projects can't cross-contaminate each other's theme.
     expect(() =>
       render(
-        <ProjectScope
+        <EntryScope
           seed={{ slug: "nope", brandColor: "#0099ff", fontKey: "inter" }}
         >
           <p>still rendered</p>
-        </ProjectScope>,
+        </EntryScope>,
       ),
     ).not.toThrow();
     expect(
-      screen.getByText("still rendered").closest("[data-project]"),
-    ).toHaveAttribute("data-project", "nope");
+      screen.getByText("still rendered").closest("[data-entry]"),
+    ).toHaveAttribute("data-entry", "nope");
   });
 
   it("degrades to the constant fallback scope only for an empty/garbage slug", () => {
     render(
-      <ProjectScope
+      <EntryScope
         seed={{ slug: "   ", brandColor: "#0099ff", fontKey: "inter" }}
       >
         <p>fallback scope</p>
-      </ProjectScope>,
+      </EntryScope>,
     );
     expect(
-      screen.getByText("fallback scope").closest("[data-project]"),
-    ).toHaveAttribute("data-project", "fallback");
+      screen.getByText("fallback scope").closest("[data-entry]"),
+    ).toHaveAttribute("data-entry", "fallback");
   });
 
   it("renders without a font class when the fontKey falls back to the shell face", () => {
     // An unknown fontKey resolves to the shell mono face, which has no roster `.variable`
     // class — so the wrapper carries no (empty) className attribute.
     render(
-      <ProjectScope
+      <EntryScope
         seed={{ slug: "oklch-engine", brandColor: "#0099ff", fontKey: "nope" }}
       >
         <p>shell font</p>
-      </ProjectScope>,
+      </EntryScope>,
     );
-    const wrapper = screen.getByText("shell font").closest("[data-project]");
-    expect(wrapper).toHaveAttribute("data-project", "oklch-engine");
+    const wrapper = screen.getByText("shell font").closest("[data-entry]");
+    expect(wrapper).toHaveAttribute("data-entry", "oklch-engine");
     expect(wrapper).not.toHaveAttribute("class");
   });
 
@@ -104,14 +102,14 @@ describe("ProjectScope (engine-driven)", () => {
       render(
         // `seed` is typed `unknown`, so a hostile primitive is a valid prop here —
         // resolveScope collapses it to the fallback scope.
-        <ProjectScope seed={42}>
+        <EntryScope seed={42}>
           <p>survived</p>
-        </ProjectScope>,
+        </EntryScope>,
       ),
     ).not.toThrow();
     expect(
-      screen.getByText("survived").closest("[data-project]"),
-    ).toHaveAttribute("data-project", "fallback");
+      screen.getByText("survived").closest("[data-entry]"),
+    ).toHaveAttribute("data-entry", "fallback");
   });
 
   // Theme text for a given scope slug, from the hoisted <style>s (queried by scope selector
@@ -119,7 +117,7 @@ describe("ProjectScope (engine-driven)", () => {
   const themesFor = (slug: string): string[] =>
     [...document.head.querySelectorAll("style[data-precedence]")]
       .map((s) => s.textContent ?? "")
-      .filter((t) => t.includes(`[data-project="${slug}"]`));
+      .filter((t) => t.includes(`[data-entry="${slug}"]`));
 
   it("hoists TWO distinct theme <style>s for two distinct projects (no href collision)", () => {
     // DOM-level guard of the React-19 href de-dup mechanism (restores the coverage the
@@ -127,7 +125,7 @@ describe("ProjectScope (engine-driven)", () => {
     // theme, or the second slot renders the first's brand.
     render(
       <>
-        <ProjectScope
+        <EntryScope
           seed={{
             slug: "alpha",
             brandColor: "oklch(0.62 0.21 264)",
@@ -135,8 +133,8 @@ describe("ProjectScope (engine-driven)", () => {
           }}
         >
           <p>a</p>
-        </ProjectScope>
-        <ProjectScope
+        </EntryScope>
+        <EntryScope
           seed={{
             slug: "beta",
             brandColor: "oklch(0.62 0.13 30)",
@@ -144,7 +142,7 @@ describe("ProjectScope (engine-driven)", () => {
           }}
         >
           <p>b</p>
-        </ProjectScope>
+        </EntryScope>
       </>,
     );
     expect(themesFor("alpha")).toHaveLength(1);
@@ -161,17 +159,17 @@ describe("ProjectScope (engine-driven)", () => {
       fontKey,
     });
     const { rerender } = render(
-      <ProjectScope seed={seed("oklch(0.62 0.21 264)", "inter")}>
+      <EntryScope seed={seed("oklch(0.62 0.21 264)", "inter")}>
         <p>v1</p>
-      </ProjectScope>,
+      </EntryScope>,
     );
     const before = themesFor("editme");
     expect(before.length).toBeGreaterThanOrEqual(1);
 
     rerender(
-      <ProjectScope seed={seed("oklch(0.62 0.13 30)", "fraunces")}>
+      <EntryScope seed={seed("oklch(0.62 0.13 30)", "fraunces")}>
         <p>v2</p>
-      </ProjectScope>,
+      </EntryScope>,
     );
     // A theme carrying the NEW brand now exists and differs from the original — not stale.
     expect(themesFor("editme").some((t) => !before.includes(t))).toBe(true);

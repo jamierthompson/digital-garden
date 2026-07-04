@@ -1,8 +1,8 @@
-/* The rules board — @layer project, var-consuming only (ambient ProjectScope tokens +
+/* The rules board — @layer components, var-consuming only (ambient EntryScope tokens +
    foundation scales). Mounted full-width inside its slot Panel (#131), so the groups flow
    as responsive columns; the Panel owns the frame chrome, the ui/ primitives own the
    label/pill/switch/note treatments. */
-@layer project {
+@layer components {
   .board {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));

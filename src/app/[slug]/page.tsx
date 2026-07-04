@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import EssayBody from "@/components/portable-text/EssayBody";
-import ProjectScope from "@/components/project-scope/ProjectScope";
-import ProjectScopeBoundary from "@/components/project-scope/ProjectScopeBoundary";
-import type { ScopeSeed } from "@/components/project-scope/scopeSeed";
-import RelatedEntries from "@/components/project/RelatedEntries";
+import EntryScope from "@/components/entry-scope/EntryScope";
+import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
+import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
+import RelatedEntries from "@/components/entry/RelatedEntries";
 import { resolveComponentKey } from "@/lib/resolvers/components";
 import { isNotFound } from "@/lib/resolvers/resolution";
-import type { ProjectModule } from "@/projects/types";
+import type { EntryModule } from "@/entries/types";
 import { client } from "@/sanity/lib/client";
-import { ENTRY_SLUGS_QUERY, PROJECT_DETAIL_QUERY } from "@/sanity/lib/queries";
+import { ENTRY_SLUGS_QUERY, ENTRY_DETAIL_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
 
 import styles from "./page.module.css";
@@ -22,7 +22,7 @@ import styles from "./page.module.css";
 // tier; a project's brand color + font are scoped to its interactive slot ONLY:
 //   <main> editorial chrome
 //     ├ <article> the entry's essay (PT serializer) — editorial
-//     ├ ProjectScopeBoundary + ProjectScope + <Experience/> — the brand-themed slot,
+//     ├ EntryScopeBoundary + EntryScope + <Experience/> — the brand-themed slot,
 //     │   rendered ONLY for a project with a resolvable module
 //     └ <RelatedEntries> — editorial (outgoing `related` + incoming backlinks)
 //
@@ -61,7 +61,7 @@ export async function generateMetadata({
   params,
 }: EntryPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const entry = await sanityFetch(PROJECT_DETAIL_QUERY, { slug });
+  const entry = await sanityFetch(ENTRY_DETAIL_QUERY, { slug });
   if (!entry) {
     return { title: "Not found" };
   }
@@ -77,7 +77,7 @@ export async function generateMetadata({
 export default async function EntryPage({ params }: EntryPageProps) {
   // Request API is async under Next 16 — `params` is a Promise, awaited before use.
   const { slug } = await params;
-  const entry = await sanityFetch(PROJECT_DETAIL_QUERY, { slug });
+  const entry = await sanityFetch(ENTRY_DETAIL_QUERY, { slug });
 
   // Unpublished / unknown slug → the not-found boundary.
   if (!entry) {
@@ -103,13 +103,13 @@ export default async function EntryPage({ params }: EntryPageProps) {
   // `resolution` is found here; the `isProject` gate keeps runtime matching the documented
   // "only a project has a slot" contract. The module composes one (or both) of two ways:
   // `Experience` = one slot after the prose; `Provider` = a client frame around the article
-  // so `liveEmbed` slots interleaved through the prose share state (see `ProjectModule`).
-  const projectModule =
+  // so `liveEmbed` slots interleaved through the prose share state (see `EntryModule`).
+  const entryModule =
     isProject && resolution && !isNotFound(resolution)
-      ? ((await resolution.value()) as { default: ProjectModule }).default
+      ? ((await resolution.value()) as { default: EntryModule }).default
       : null;
-  const Experience = projectModule?.Experience ?? null;
-  const Provider = projectModule?.Provider ?? null;
+  const Experience = entryModule?.Experience ?? null;
+  const Provider = entryModule?.Provider ?? null;
 
   // The brand seed, threaded to the body for a project so each `liveEmbed` mounts in its
   // own scoped container. The prose between slots reads the editorial tiers — brand never
@@ -142,11 +142,11 @@ export default async function EntryPage({ params }: EntryPageProps) {
           <Experience/>, not the editorial article/related around it. Rendered only when a
           module resolved (a project); other kinds are prose-only. */}
       {Experience ? (
-        <ProjectScopeBoundary>
-          <ProjectScope seed={scope}>
+        <EntryScopeBoundary>
+          <EntryScope seed={scope}>
             <Experience slug={slug} />
-          </ProjectScope>
-        </ProjectScopeBoundary>
+          </EntryScope>
+        </EntryScopeBoundary>
       ) : null}
       <RelatedEntries
         currentId={entry._id}

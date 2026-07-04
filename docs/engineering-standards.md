@@ -33,13 +33,13 @@ Default is **Server Component**. Reach for a Client Component (`'use client'`) o
 | `useState`/`useEffect`/`onClick`/`matchMedia`/Context | Client Component, `'use client'` at the top       | Context is **unavailable** in Server Components.                                                |
 | Conditionally include a Client widget's JS            | `next/dynamic` / `React.lazy` _inside_ the module | Server Components are auto-split already; the real client-bundle win is lazy Client Components. |
 
-**Code-splitting projects uses LITERAL dynamic imports:**
+**Code-splitting entry modules uses LITERAL dynamic imports:**
 
 ```ts
 // ✅ statically analyzable — bundler can split per slug
-const load = () => import("@/projects/palette-studio");
+const load = () => import("@/entries/palette-studio");
 // ❌ templated — defeats static analysis, breaks the split
-const load = () => import(`@/projects/${slug}`);
+const load = () => import(`@/entries/${slug}`);
 ```
 
 `ssr: false` is **Client-Component-only** — passing it from a Server Component is an error (`…/02-guides/lazy-loading.md`).
@@ -111,7 +111,7 @@ async function Card({ theme }: { theme: string }) {
 }
 ```
 
-**This is the load-bearing pattern for theming:** render the slot's `ProjectScope` inside the prerendered shell, `'use cache'` it keyed on `brandColor`/`fontKey` with `cacheLife('max')` and no request APIs in that boundary — so the slot's theme `<style>` and the font `.variable` class land in the **initial static HTML** (flash-free).
+**This is the load-bearing pattern for theming:** render the slot's `EntryScope` inside the prerendered shell, `'use cache'` it keyed on `brandColor`/`fontKey` with `cacheLife('max')` and no request APIs in that boundary — so the slot's theme `<style>` and the font `.variable` class land in the **initial static HTML** (flash-free).
 
 **Routing fact that bites:** `middleware.ts` is renamed **`proxy.ts`**, **Node runtime only** — setting `runtime` throws (`…/03-file-conventions/proxy.md`).
 
@@ -127,20 +127,20 @@ async function Card({ theme }: { theme: string }) {
 
 1. **Foundation** (primitives: spacing, motion, breakpoints, z-index, type-scale) → global `:root` in `src/app/foundation.css`.
 2. **Semantic** (generic role tokens components actually read) → the layer components consume; radius, border weight, shadow, and density live here too — they're just more semantic tokens, not a separate "feel/geometry" tier.
-3. **Brand** → a project **slot**'s full scoped override of the semantic layer — engine-scoped to the `[data-project]` wrapper, emitted by the OKLCH engine; page chrome stays on the global editorial foundation.
+3. **Brand** → a project **slot**'s full scoped override of the semantic layer — engine-scoped to the `[data-entry]` wrapper, emitted by the OKLCH engine; page chrome stays on the global editorial foundation.
 
-Components read **generic semantic tokens** — `--surface`, `--text`, `--accent`, … `--font-face`, `--space-*`. There are **no `--<proj>-*` per-project prefixed token names**: the `[data-project]` scope provides the isolation, so a slot overrides the same generic names the rest of the app reads.
+Components read **generic semantic tokens** — `--surface`, `--text`, `--accent`, … `--font-face`, `--space-*`. There are **no `--<proj>-*` per-entry prefixed token names**: the `[data-entry]` scope provides the isolation, so a slot overrides the same generic names the rest of the app reads.
 
 ### The `@layer` trap — read this
 
 **Next does NOT auto-assign CSS Modules to a cascade layer.** Per the CSS cascade-layers spec (CSS Cascading and Inheritance Level 5; see MDN "Cascade layers"), an **unlayered** declaration **outranks every `@layer` style** regardless of specificity — and Next leaves Modules unlayered. So:
 
-> **Every `*.module.css` MUST wrap its rules in `@layer foundation` / `@layer brand` / `@layer project` — or stay strictly var-consuming (no bare rules).**
+> **Every `*.module.css` MUST wrap its rules in `@layer foundation` / `@layer brand` / `@layer components` — or stay strictly var-consuming (no bare rules).**
 
 This is enforced by `pnpm lint:css` (`scripts/check-css-layers.mjs`, a CI gate): any rule outside an `@layer` block fails the build. Layer order is declared once, first, in `foundation.css`:
 
 ```css
-@layer foundation, semantic, brand, project; /* foundation < semantic < brand < project */
+@layer foundation, semantic, brand, components; /* foundation < semantic < brand < components */
 ```
 
 The engine's scoped `<style>` declares `@layer brand`. Note: Next's own CSS doc (`…/01-getting-started/11-css.md`) covers only import-order chunking — it never assigns Modules to a layer, which is exactly the gap this rule closes.
@@ -151,7 +151,7 @@ The engine's scoped `<style>` declares `@layer brand`. Note: Next's own CSS doc 
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | **Breakpoints are not `:root` vars** | CSS variables are invalid inside `@media` conditions. Use container queries or the literal px in CSS; `src/lib/breakpoints.ts` holds the constants that feed JS (`matchMedia`); slot-responsive layout uses container queries scoped to the slot. | —                                                                              |
 | **Focus ring**                       | Geometry (width/offset/style, `:focus-visible` policy) is global in `foundation.css`; ring **color** is an engine token per slot. Use `:focus-visible`, never bare `outline: none`.                                                               | see [`./accessibility-and-performance.md`](./accessibility-and-performance.md) |
-| **Streamed `<style>`**               | Plain inline `<style>` is fine when `ProjectScope` renders above any Suspense (the common case). Use React 19 `<style href={\`theme-${slug}\`} precedence>`only if`ProjectScope` can suspend.                                                     | —                                                                              |
+| **Streamed `<style>`**               | Plain inline `<style>` is fine when `EntryScope` renders above any Suspense (the common case). Use React 19 `<style href={\`theme-${slug}\`} precedence>`only if`EntryScope` can suspend.                                                         | —                                                                              |
 | **Stega off `brandColor`/`fontKey`** | Sanity stega injects invisible chars that break the OKLCH parse and font lookup — disable it on those fields.                                                                                                                                     | —                                                                              |
 
 ---
@@ -160,10 +160,10 @@ The engine's scoped `<style>` declares `@layer brand`. Note: Next's own CSS doc 
 
 `eslint.config.mjs` defines four element types over `src/**` and enforces directional dependencies via `pnpm lint` (CI-gated). The directories are stood up empty so the rules can't rot before code arrives. **First match wins**, so specific patterns precede the `shared` catch-all. The table is the _intent_; `eslint.config.mjs` is the source of truth for the exact lint message you'll see when one fails. (The OKLCH engine is not a `boundaries` element — it lives in its own workspace package; its isomorphism guard lives in a dedicated block, see below.)
 
-| Rule                        | Meaning                                                                                                                          |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `project` ⇏ other `project` | A project module **cannot import another project** (matched by captured `slug`) — lift shared code into a shared module instead. |
-| `shared` ⇏ `project`        | Dependencies point **from projects to shared, never back**.                                                                      |
+| Rule                    | Meaning                                                                                                                              |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `entry` ⇏ other `entry` | An entry module **cannot import another entry module** (matched by captured `slug`) — lift shared code into a shared module instead. |
+| `shared` ⇏ `entry`      | Dependencies point **from entry modules to shared, never back**.                                                                     |
 
 **The OKLCH engine (`packages/oklch/**`, the `@garden/oklch`workspace package) is isomorphic**— it must run identically in Node and the browser. It lives in its own package precisely so the standalone Studio can import it too; its guard is a dedicated `eslint.config.mjs`block on`packages/oklch/**`(not a`boundaries`element — that plugin is`src/**`-scoped). Two guards:
 
@@ -193,11 +193,11 @@ House rule: **establish the pattern early, instantiate it late** (the deferral d
 
 **Type placement.** A single-use type stays **in the module's file**. Promote it to a shared `src/types/*` only when a **second** module imports it — the second importer is the trigger. (`sanity.types.ts` and the `keys.ts` contracts are the existing shared shapes; don't hand-edit the generated one, the TypeScript section.)
 
-**One file, one concern.** One component per file, with its `*.module.css` and `*.test.tsx` co-located beside it (see [`./testing.md`](./testing.md)). Avoid broad **barrel** `index.ts` re-exports — they defeat the per-project code-splitting the literal dynamic imports depend on; the only `index.ts` files are registry entries (a project module's own `src/projects/<slug>/index.ts`).
+**One file, one concern.** One component per file, with its `*.module.css` and `*.test.tsx` co-located beside it (see [`./testing.md`](./testing.md)). Avoid broad **barrel** `index.ts` re-exports — they defeat the per-entry code-splitting the literal dynamic imports depend on; the only `index.ts` files are registry entries (an entry module's own `src/entries/<slug>/index.ts`).
 
 **`app/` is routing only.** Route files (`page` / `layout` / `loading` / `error`) stay thin and **mount** components from `src/`; business logic never lives in `app/` ([`./orientation.md`](./orientation.md)).
 
-**Naming.** Components and their files PascalCase (`ProjectScope.tsx`); non-component modules camelCase (`breakpoints.ts`, `roster.ts`); slugs, routes, CSS-module selectors and custom properties kebab-case (`--surface`, `--accent-text`); types/interfaces PascalCase. Match the surrounding file when unsure.
+**Naming.** Components and their files PascalCase (`EntryScope.tsx`); non-component modules camelCase (`breakpoints.ts`, `roster.ts`); slugs, routes, CSS-module selectors and custom properties kebab-case (`--surface`, `--accent-text`); types/interfaces PascalCase. Match the surrounding file when unsure.
 
 **No magic values.** Extract named constants for anything meaningful or used in more than one place — `src/lib/breakpoints.ts` is the model.
 
@@ -215,7 +215,7 @@ Skim this before writing framework code; **verify each against the bundled doc**
 - [ ] `'use cache'` can't read request APIs — pass them as **args** (args = cache key); no functions/class instances/`URL` in args.
 - [ ] `middleware.ts` → **`proxy.ts`**, Node runtime only.
 - [ ] `<Activity>` keeps recent routes mounted (hidden), so state + DOM **persist** across nav; effects are **not** auto-cleaned.
-- [ ] Project lazy-load = **literal** `() => import("@/projects/<slug>")`, never templated.
+- [ ] Project lazy-load = **literal** `() => import("@/entries/<slug>")`, never templated.
 - [ ] CSS Modules need an explicit **`@layer`** — the unlayered module outranks everything.
 - [ ] Engine is **isomorphic**: no `next`/`react`/`react-dom`, no DOM/Node globals, no `server-only`/`client-only`.
 - [ ] Only `NEXT_PUBLIC_*` env vars reach the client; Context is Server-Component-unavailable.

@@ -7,7 +7,7 @@ import styles from "./states.module.css";
 export default function WorkLoading() {
   return (
     <main className={styles.state} aria-busy="true">
-      <p className={styles.body}>Loading project…</p>
+      <p className={styles.body}>Loading entry…</p>
     </main>
   );
 }

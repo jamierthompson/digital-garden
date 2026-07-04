@@ -9,7 +9,7 @@
 //
 // IMPORTANT — keep this module dependency-free and side-effect-free. It is the
 // contract both the app and the standalone Studio consume, so it must not
-// pull in `next/font`, project bundles, or any app-only code (the Studio can't
+// pull in `next/font`, entry-module bundles, or any app-only code (the Studio can't
 // import `src/*`).
 
 /**
@@ -27,9 +27,9 @@ export const FONT_KEYS = [
 export type FontKey = (typeof FONT_KEYS)[number];
 
 /**
- * Component keys — one per coded project module, resolved to a literal dynamic import
+ * Component keys — one per coded entry module, resolved to a literal dynamic import
  * in `src/lib/resolvers/components.ts`. Each project registers its key here when its
- * module lands; the `satisfies Record<ComponentKey, …>` on `PROJECT_LOADERS` then forces
+ * module lands; the `satisfies Record<ComponentKey, …>` on `ENTRY_LOADERS` then forces
  * a matching loader entry (compile error if missing).
  *
  * A sketch project carries a `brandColor` but no `componentKey`, so it renders prose-only;
@@ -44,7 +44,7 @@ export type ComponentKey = (typeof COMPONENT_KEYS)[number];
 /**
  * Embed keys — in-essay live components / widgets, resolved in
  * `src/lib/resolvers/embeds.ts`. The registry starts single-tier; a
- * project-local tier is added only on a genuine second use.
+ * entry-local tier is added only on a genuine second use.
  *
  * The `palette-studio-*` keys are the Palette Studio's slots (#131): the studio composes
  * as an editorial page whose prose interleaves these embeds, each in its own brand-scoped

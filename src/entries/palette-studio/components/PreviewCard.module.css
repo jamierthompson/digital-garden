@@ -1,7 +1,7 @@
-/* Live preview — @layer project. Var-consuming: reads the SAME semantic token names as any
+/* Live preview — @layer components. Var-consuming: reads the SAME semantic token names as any
    component, but here those names are re-bound (inline, by PreviewPanel) to the generated
    palette for this scheme, so the specimens paint the generated colors. */
-@layer project {
+@layer components {
   .root {
     display: flex;
     flex-direction: column;

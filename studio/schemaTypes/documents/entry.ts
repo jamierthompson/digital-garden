@@ -60,7 +60,7 @@ export const entry = defineType({
     defineField({
       name: 'slug',
       type: 'slug',
-      // The slug keys the theme scope selector `[data-project="<slug>"]` AND the hoisted
+      // The slug keys the theme scope selector `[data-entry="<slug>"]` AND the hoisted
       // `<style>` href on a themed slot, so it MUST be CSS-safe and unique per entry — a
       // stray `.` / `_` / unicode / duplicate would collide two entries onto one theme
       // (React de-dupes styles by href). Every entry shares one flat slug namespace

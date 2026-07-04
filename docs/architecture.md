@@ -26,13 +26,13 @@ These are the through-lines; everything else follows from them.
 - **Composition over inheritance.** Every page wears one global editorial look — Source Serif 4 + a
   neutral black/white/gray ramp — supplied by the foundation and semantic layers at `:root`. Each
   project carries its **own brand color and font**, scoped to its **interactive slot** (the
-  `<Experience/>` / `[data-project]` wrapper), where it re-defines the semantic tokens with its own
+  `<Experience/>` / `[data-entry]` wrapper), where it re-defines the semantic tokens with its own
   values — self-themed _within_ the page, not across it. Projects are not variations of one global
   _brand_; they are self-assembled from shared parts. "Shared" is a build-time authoring convenience
   for the foundation layer and a runtime parent only for genuinely shared plumbing.
 
 - **Self-sufficient contracts; theme downward; never reach up _for a look_.** Every unit — a
-  token group, a component, a project module — ships its own defaults and is themed by whatever
+  token group, a component, an entry module — ships its own defaults and is themed by whatever
   composes it _downward_. Nothing depends on **themeable** ambient context (a brand value) provided
   by an ancestor it doesn't own. It _may_ depend on the global **foundation** layer (spacing,
   motion, breakpoints, z-index) — that's shared plumbing, not a look. This is the precise form of
@@ -45,7 +45,7 @@ These are the through-lines; everything else follows from them.
   only where they earn their keep. The foundation and the semantic defaults are shared globally (and
   carry the global editorial look); only the **brand layer** — a slot's full override of the semantic
   tokens — is scoped to each project's slot. A small foundation _coordination_ layer is the norm (see
-  the token & theming architecture below), the embed registry starts single-tier (see project
+  the token & theming architecture below), the embed registry starts single-tier (see entry
   modules), and the don't-reach-up litmus applies to shared primitives, not every component.
   Concentrate the sophistication where it pays — the OKLCH engine (the load-bearing, genuinely hard
   piece), the content model, performance — and let the rest be boringly simple.
@@ -58,7 +58,7 @@ Two homes:
 
 - **The Next app** — all code: each project's pages, its interactive experience (a working
   demo), and the components its essay embeds. Each project is a self-contained module under
-  `src/projects/<slug>/`; shared parts live in plain shared modules.
+  `src/entries/<slug>/`; shared parts live in plain shared modules.
 - **Sanity** — content & brand seeds: one `entry` document type covering every content kind — a
   `kind` discriminator (note · essay · project · now), a Portable Text body (rich text with embeds),
   a `stage` (sketch → prototype → shipped), an authored `iterated` date, self-referencing `related`
@@ -68,7 +68,7 @@ Two homes:
 Within a project the division is code vs content, but the line isn't a wall. The interactive
 experience and the components are code; the essay is content. The essay is _rich_, though — it
 can embed media and live components (including the demo itself, in place of screenshots) by key —
-per-project or shared, the same reference-by-key move as `componentKey` (see project modules and
+per-entry or shared, the same reference-by-key move as `componentKey` (see entry modules and
 the content model). The experience's logic lives in a headless core when it earns one (see the
 interactive experience section), but that's ordinary code organization, not a boundary the site has
 to maintain.
@@ -85,24 +85,24 @@ token & theming architecture).
 
 Tokens are organized in **three layers**, each consuming the one before it:
 
-| Layer          | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                 |
-| -------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Foundation** | global `:root`                                    | the raw primitives + the reset: the neutral B/W/gray ramp, the Source Serif 4 face, the spacing ramp, content-width measures (`--width-prose`/`-text`/`-content`), motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.          |
-| **Semantic**   | global `:root` (the editorial default mapping)    | the **generic role tokens components read** — `--surface`, `--text`, `--text-muted`, `--accent`, `--font-face`, the status roles (`--success` … `--info`), etc. — mapped from the primitives. The editorial look **is** this default mapping at `:root`.                                                 |
-| **Brand**      | the project's interactive slot (`[data-project]`) | a **scoped override** of the semantic layer for one slot — the engine's contrast-solved color tokens (incl. focus-ring _color_ and status colors), driven by the slot's `brandColor`, plus `--font-face` from its `fontKey`. Open-ended by design: a slot may override any semantic token it differs on. |
+| Layer          | Lives at                                        | Contents                                                                                                                                                                                                                                                                                                 |
+| -------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Foundation** | global `:root`                                  | the raw primitives + the reset: the neutral B/W/gray ramp, the Source Serif 4 face, the spacing ramp, content-width measures (`--width-prose`/`-text`/`-content`), motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.          |
+| **Semantic**   | global `:root` (the editorial default mapping)  | the **generic role tokens components read** — `--surface`, `--text`, `--text-muted`, `--accent`, `--font-face`, the status roles (`--success` … `--info`), etc. — mapped from the primitives. The editorial look **is** this default mapping at `:root`.                                                 |
+| **Brand**      | the project's interactive slot (`[data-entry]`) | a **scoped override** of the semantic layer for one slot — the engine's contrast-solved color tokens (incl. focus-ring _color_ and status colors), driven by the slot's `brandColor`, plus `--font-face` from its `fontKey`. Open-ended by design: a slot may override any semantic token it differs on. |
 
 The model is layered, not partitioned: the **semantic layer is the contract** components code
-against, and a project slot simply re-defines those same semantic tokens with its own values. There
+against, and a brand slot simply re-defines those same semantic tokens with its own values. There
 is **no separate "feel" or "geometry" tier** — radius, border, shadow, and density are just more
 semantic tokens, and a slot overrides as many or as few of them as it differs on. What varies per
 project is therefore open-ended (any semantic token), not a fixed subset.
 
 An entry page's chrome (title, prose, nav) reads the **semantic tokens at their global editorial
 defaults**. Its **interactive slot** and the components embedded inside it read the **same generic
-semantic tokens**, but resolved to the slot's brand values because the `[data-project]` scope
+semantic tokens**, but resolved to the slot's brand values because the `[data-entry]` scope
 re-defines them. Components never read a project-prefixed name — there are **no `--<proj>-*`
 tokens**. Two projects on one page reuse the identical generic token names; the cascade resolves
-each to the nearest `[data-project]` scope. Under the hood the engine emits a **per-role
+each to the nearest `[data-entry]` scope. Under the hood the engine emits a **per-role
 `50…950` ramp primitive** (`brand`, `neutral`, and the four status ramps) and **binds each
 semantic token to a ramp step** — so `--text` is `neutral`'s smallest step that clears body-text
 contrast, `--surface` is a fixed light/dark neutral step, and so on. Consumers still read only the
@@ -115,14 +115,14 @@ global :root  (foundation primitives + the semantic editorial defaults)
    │              · type-scale ratios · breakpoint constants · z-index · focus-ring GEOMETRY · reset
    ├─ SEMANTIC (editorial default mapping): --surface · --text · --accent · --font-face
    │              · --text-muted · --border · --success · …  ← the generic contract
-   └─ @layer foundation, semantic, brand, project;   ← bare order statement, loaded first
+   └─ @layer foundation, semantic, brand, components;   ← bare order statement, loaded first
           │ every page's chrome (nav · headers · prose) reads the semantic tokens at their defaults ↓
    home · about · /now · the entry page AROUND the slots   — all editorial, no brand
           │ and inside a project entry's page, each bounded slot re-defines the semantic tokens ↓
-[data-project="<slug>"]   a project slot — re-binds the generic semantic tokens. A page mounts
+[data-entry="<slug>"]   a brand slot — re-binds the generic semantic tokens. A page mounts
    │        one (the classic after-prose experience) or MANY (slots interleaved through the
    │        prose); N same-seed slots share ONE hoisted <style> (React de-dupes by href), so
-   │        each extra slot costs one [data-project] container, not another style block
+   │        each extra slot costs one [data-entry] container, not another style block
    ├─ --surface / --text / --accent / …  ◄── OKLCH engine ◄── this project's brandColor (from Sanity)
    ├─ status colors  ◄── canonical hue (success/warning/error/info), brand-*treated* by the engine
    ├─ --font-face    ◄── resolved face's .variable class
@@ -137,7 +137,7 @@ Key points:
 - **The public token contract is the SEMANTIC layer.** Shared, cross-project units read the
   generic role tokens (`--surface`, `--text`, `--accent`, `--font-face`, `--space-*`) — never a
   project-prefixed name, because a shared embed cannot know which project hosts it. Isolation comes
-  from **scope, not prefix**: the `[data-project]` boundary re-defines the same generic tokens, and
+  from **scope, not prefix**: the `[data-entry]` boundary re-defines the same generic tokens, and
   the cascade resolves a component to the nearest scope.
 
 - **The editorial look is the global default mapping; brand lives in the slot.** The semantic
@@ -150,12 +150,12 @@ Key points:
 - **Every CSS Module must declare its `@layer`.** Next does **not** auto-assign CSS Modules to a
   cascade layer, and an _unlayered_ module's plain declarations outrank **every** `@layer` style
   regardless of specificity or source order. So any component CSS Module that sets real properties
-  must wrap its body in `@layer project { … }` (or stay strictly var-_consuming_); the engine's
-  scoped `<style>` declares `@layer brand`; the bare `@layer foundation, semantic, brand, project;`
+  must wrap its body in `@layer components { … }` (or stay strictly var-_consuming_); the engine's
+  scoped `<style>` declares `@layer brand`; the bare `@layer foundation, semantic, brand, components;`
   order statement is emitted in a global sheet loaded first. Lint-enforced (see the don't-reach-up
   litmus).
 
-- **Cascade order via `@layer`** (foundation < semantic < brand < project) to kill CSS-module insertion-order
+- **Cascade order via `@layer`** (foundation < semantic < brand < components) to kill CSS-module insertion-order
   accidents instead of fighting specificity. The global order statement must register before
   `next/font` — pinned by import order in the root layout.
 
@@ -217,18 +217,18 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 - **Defensive, never throws.** `brandColor` comes from an editor and may be invalid or
   out-of-gamut. The engine parses/clamps/gamut-validates and **returns a safe fallback palette**
   rather than throwing — a bad color is expected data, not an exceptional bug. This pairs with
-  author-time Sanity validation (see the content model) and a `ProjectScope` backstop (the content
+  author-time Sanity validation (see the content model) and an `EntryScope` backstop (the content
   model and repo & hosting sections).
 
-- Runs **per slot** — once per project slot (seeded by that project's `brandColor`). Multiple themed
+- Runs **per slot** — once per brand slot (seeded by that project's `brandColor`). Multiple themed
   slots can coexist on one page; the page chrome around them stays editorial. **Previews are not
   slots**: an index card or inline preview needs a few colors, not a namespace, so it derives them
   from the same engine (via `cardSwatches`) and skips the scoped `<style>` block.
 
-- Emitted as a **server-rendered scoped `<style>` block** (`[data-project="x"] { … }`), declared
+- Emitted as a **server-rendered scoped `<style>` block** (`[data-entry="x"] { … }`), declared
   `@layer brand`. On Vercel this is genuinely **flash-free for color**: the `brandColor` is known
   on the _server_, so the `<style>` is in the initial HTML, server/client RSC payloads agree, and
-  there's no hydration mismatch and no FOUC. Emit via `dangerouslySetInnerHTML`. If `ProjectScope`
+  there's no hydration mismatch and no FOUC. Emit via `dangerouslySetInnerHTML`. If `EntryScope`
   can ever be _suspended_, use React 19 `<style href={`theme-${slug}`} precedence>` so the
   boundary blocks on it before paint; if it renders in the shell above any Suspense (the common
   case), plain inline is already flush-before-paint.
@@ -274,7 +274,7 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 
 **Three call sites, one engine:**
 
-- **Slot theming (`ProjectScope`)**: the per-slot theming layer calls the engine on the server to
+- **Slot theming (`EntryScope`)**: the per-slot theming layer calls the engine on the server to
   emit each slot's `<style>` block.
 - **Author-time validation (`studio/schemaTypes/shared/colorValidation.ts`)**: the Studio's
   `brandColor` validation runs the same `buildTokenSet` pipeline (parse → gamut-map →
@@ -285,9 +285,9 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   prefix) on an otherwise-editorial frame — no slot scope, no `<style>` block. It goes through the
   same parse/validate path as everything else.
 
-The **interactive OKLCH studio** — a project module whose experience re-runs the pure engine in JS
+The **interactive OKLCH studio** — an entry module whose experience re-runs the pure engine in JS
 on each control change (type a seed, watch the palette regenerate) — ships as the
-`palette-studio` module (`src/projects/palette-studio/`), the component registry's first real
+`palette-studio` module (`src/entries/palette-studio/`), the component registry's first real
 key. A showcase module renders its slot's baked tokens by consuming the scope's CSS variables;
 it need not call the engine at runtime (the studio is the exception — it re-runs the pure
 function in JS live, and reports the engine's own receipts: per-token binding provenance,
@@ -309,7 +309,7 @@ Two deliberate consequences:
   (the project depends on the engine; the engine depends on nothing).
 - **Keep it isomorphic** (enforced — see above).
 
-The anti-pattern to avoid: putting the engine _inside_ a project module and having the theming
+The anti-pattern to avoid: putting the engine _inside_ an entry module and having the theming
 layer reach up into a portfolio piece for infrastructure — that inverts the dependency direction.
 Shared logic lives in a shared module; the project is a presentation of it.
 
@@ -341,26 +341,26 @@ any _specific_ project's scope. It ships its own defaults and reads generic sema
 
 ---
 
-## Project modules
+## Entry modules
 
 ### Structure
 
 ```
-src/projects/<slug>/
+src/entries/<slug>/
   ├─ pages/             the project's own page components — essay / hero / other
   ├─ experience.tsx     the interactive experience (the working demo); a thin page mounts it
   ├─ core/              headless core — ONLY when the experience's logic earns extraction
-  ├─ embeds.ts          project-local embed map (key → component) — bespoke inline embeds
+  ├─ embeds.ts          entry-local embed map (key → component) — bespoke inline embeds
   ├─ tokens.css         the project's slot-scoped semantic override (generic names, brand values)
   └─ index.ts           registry entry
 src/fonts/roster.ts        curated next/font declarations, one per face, exported by key
-src/lib/resolvers/embeds.ts      embedKey → embed-component loader — cross-project widgets
-src/lib/resolvers/components.ts  componentKey → () => import("@/projects/<slug>")  [literal imports]
+src/lib/resolvers/embeds.ts      embedKey → embed-component loader — cross-entry widgets
+src/lib/resolvers/components.ts  componentKey → () => import("@/entries/<slug>")  [literal imports]
 src/*/keys.ts              string-constant key contracts (Studio imports these; resolvers don't)
 ```
 
-A project is **one or more pages**. Its registry entry (the `ProjectModule` contract,
-`src/projects/types.ts`) exports one or both of two composition members — a compile error
+A project is **one or more pages**. Its registry entry (the `EntryModule` contract,
+`src/entries/types.ts`) exports one or both of two composition members — a compile error
 enforces at least one:
 
 - **`Experience`** — one interactive slot the page mounts after the prose, inside its own
@@ -369,14 +369,14 @@ enforces at least one:
   interleaved through the prose share state via context. The prose stays server-rendered
   (children pass-through); the provider adds state, never markup that re-themes the
   editorial register. The page threads the brand seed to the serializer, and each embed
-  mounts in its own `ProjectScope` container (one shared hoisted `<style>`).
+  mounts in its own `EntryScope` container (one shared hoisted `<style>`).
 
 Beyond those a project may have an essay/rich-media page, a hero, something else, or nothing
 more at all — the page set is decided per project, not fixed by a template. `experience.tsx`
 is the component; a thin page in `pages/` mounts it. A headless `core/` is **not** templated into every module — let it
 emerge only when an experience's logic warrants extraction (same deferral discipline as the
 embed tiers; see the interactive experience section). The module owns its page components; thin
-route files mount them. Code lives under `src/projects/<slug>/`; **routes are flat** — `/` is the
+route files mount them. Code lives under `src/entries/<slug>/`; **routes are flat** — `/` is the
 **featured** front door, a browsable **Index** (nav-labelled "Index") lists every entry at
 **`/browse`**, and a root-level `/[slug]` (a dynamic segment that cedes precedence to the static
 segments `/browse`, `/about`, `/now`) mounts any entry's pages. Every entry — note, essay, or
@@ -386,15 +386,15 @@ stable even if its `kind` changes. There is no `/work` prefix. The browse route 
 route literally named `index` silently serves the home page.
 
 **Start single-tier** — one shared `src/lib/resolvers/embeds.ts` until a second project actually reuses a
-widget; introduce the project-local tier only then. Once you do, embeds follow the **same
-per-project-plus-shared shape as tokens and fonts**. For a given project the resolver composes the
-two (`{ ...shared, ...projectLocal }`) so a project-local key **overrides** a shared one of the same
+widget; introduce the entry-local tier only then. Once you do, embeds follow the **same
+per-entry-plus-shared shape as tokens and fonts**. For a given project the resolver composes the
+two (`{ ...shared, ...entryLocal }`) so an entry-local key **overrides** a shared one of the same
 name — the downward-override spirit of `var(--public-override, var(--_internal-default))`. A
 _shared_ embed themes off the **generic semantic tokens** (`--surface`, `--accent`, `--font-face`),
 never anything project-specific. Promote a widget into the shared registry only once it's genuinely
 reused; both tiers lazy-import.
 
-Project-specific composites belong to their project module — but **UI primitives are built out
+Project-specific composites belong to their entry module — but **UI primitives are built out
 proactively into `src/components/ui/`, even while single-use**. A primitive (an interactive
 control, a panel frame, a meta label) is a design-system unit by nature: it reads the generic
 semantic tokens, ships its own defaults, and works composed into any project or none, so it goes
@@ -408,14 +408,14 @@ showcases the shared engine's output rather than holding the engine (see the OKL
 Sanity entry doc { kind, componentKey: "<slug>", brandColor, fontKey, body, stage, iterated, related, featuredRank }
         │
         ▼
-src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the project module
+src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the entry module
         │
         ▼
-src/projects/<slug>/   its pages (experience + any essay/hero/other) + embeddable components
+src/entries/<slug>/   its pages (experience + any essay/hero/other) + embeddable components
 ```
 
 - **Content references; code resolves.** The essay comes from Sanity and references coded
-  components by key, resolved against the project-local `embeds.ts` first, then the shared
+  components by key, resolved against the entry-local `embeds.ts` first, then the shared
   `src/lib/resolvers/embeds.ts`. The CMS never reimplements interaction.
 - **Keys are a contract with no referential integrity — guard the seam.** `keys.ts` is the
   **single source of truth** for which keys exist; resolvers are typed `satisfies Record<Key, …>`
@@ -427,7 +427,7 @@ src/projects/<slug>/   its pages (experience + any essay/hero/other) + embeddabl
   _published_ keys and asserts each exists in code is an additive safety net, tracked in the issue
   backlog — not a schema decision.)
 - **Lazy-load each module** via a **literal** dynamic import per key
-  (`() => import("@/projects/<slug>")`, never a templated `import(\`…/${slug}\`)`, which defeats
+  (`() => import("@/entries/<slug>")`, never a templated `import(\`…/${slug}\`)`, which defeats
   bundler static analysis). Server Components are auto-split already; the manual lazy import
   buys conditional inclusion, and the real client-bundle savings come from the Client Components
   _inside_ each module.
@@ -453,7 +453,7 @@ scope, so it themes identically.
 **Store-the-key (roster-by-key).** A curated roster of faces is declared in code (each a `next/font`
 export, in a single shared module); Sanity stores a `fontKey` per project and the editor picks from
 a dropdown; the project's **slot scope** applies the face that key resolves to, via that face's
-**`.variable` class** on the `[data-project]` wrapper, with the slot's `--font-face` mapping to it;
+**`.variable` class** on the `[data-entry]` wrapper, with the slot's `--font-face` mapping to it;
 page chrome stays on the editorial face. This keeps
 `next/font`'s self-hosting, subsetting, and zero-CLS sizing while putting a project's type choice on
 its document alongside its brand color.
@@ -470,7 +470,7 @@ Two facts make a large roster cheap:
 2. **Preload is build-time static analysis — and `fontKey` is a runtime index.** `next/font`
    injects `<link rel=preload>` for a face it can _statically_ see a route reference. Because the
    roster resolves `fontKey` (a Sanity string) → face at **runtime**, Next cannot target the
-   resolved per-project face for preload. This is **not** an SSG-vs-dynamic question (that
+   resolved per-entry face for preload. This is **not** an SSG-vs-dynamic question (that
    route-level toggle is gone under Next 16 `cacheComponents`; see repo & hosting) — it's a
    build-time-static-analyzability question, independent of caching.
 
@@ -479,12 +479,12 @@ So, the policy:
 - **`preload: false` on every roster face** by default (the default is `true`, so this must be set
   explicitly). Only the **1–2 editorial faces** get `preload: true`, in the root layout, where they
   preload on every route.
-- **Per-project faces are applied, not preloaded.** A project's slot face (behind a `/[slug]` click)
+- **Per-entry faces are applied, not preloaded.** A project's slot face (behind a `/[slug]` click)
   tolerates `font-display: swap`. If a specific above-the-fold project face genuinely must preload,
   emit the `<link rel="preload" as="font" crossorigin>` manually.
 - **Verify empirically:** `pnpm build`, visit `/[slug]`, view-source the `<head>`, count
   `<link rel="preload" as="font">` — confirm the policy holds (expect the editorial face only).
-- **Where the link lands** (initial shell vs streamed hole) is the other axis: keep `ProjectScope`
+- **Where the link lands** (initial shell vs streamed hole) is the other axis: keep `EntryScope`
   in the prerendered shell (see repo & hosting) so its `<head>` contributions are in the initial
   static HTML.
 
@@ -492,8 +492,8 @@ Mapped onto the layers:
 
 - **The editorial face** (the site's global identity — Source Serif 4) → root layout, `preload: true`.
   Every page's chrome uses it. Keep to 1–2 faces.
-- **Per-project fonts** → resolved from the project doc's `fontKey` against the code-side roster,
-  applied at the project's `[data-project]` **slot** scope via `.variable` — they theme the slot,
+- **Per-entry fonts** → resolved from the project doc's `fontKey` against the code-side roster,
+  applied at the project's `[data-entry]` **slot** scope via `.variable` — they theme the slot,
   not the page.
 - **Shared fonts** → the roster _is_ the single declaration point, so a face two projects use is
   declared **once** and resolved by both.
@@ -505,7 +505,7 @@ Practical notes:
 - Prefer **variable fonts** (one file, many weights/optical sizes).
 - The site is **flash-free for _theming_** (color arrives inline with the markup); fonts are
   **zero-CLS with an intentional `swap`** — next/font's size-adjusted fallback kills layout shift but
-  a per-project slot face will visibly swap as its slot mounts, by design. Decide `swap` vs
+  a per-brand slot face will visibly swap as its slot mounts, by design. Decide `swap` vs
   `optional` per face.
 
 ---
@@ -533,13 +533,13 @@ Practical notes:
   tended.
 - **The essay is rich content (portable text), not plain text.** Alongside text it carries typed
   embed blocks — media and live components referenced by key and resolved in code.
-- **`brandColor` is per-project, typed, and validated.** It's a field on the `entry`
+- **`brandColor` is per-entry, typed, and validated.** It's a field on the `entry`
   document (the slot seed), stored as a validated string (hex or `oklch()`). Author-time Sanity
   `validation` runs the engine's own color pipeline (parse → gamut-map → confirm in-spec contrast)
   for editor feedback. Defense-in-depth: the engine itself never throws (see the OKLCH engine) and
-  `ProjectScope` falls back to a safe default. `siteSettings` holds the site title/description and
+  `EntryScope` falls back to a safe default. `siteSettings` holds the site title/description and
   may seed a homepage slot; it does not brand the chrome.
-- **`fontKey` is per-project** — a field on the `entry` document, chosen from the curated roster
+- **`fontKey` is per-entry** — a field on the `entry` document, chosen from the curated roster
   (see fonts). Reference-by-key, exactly like `componentKey` and `brandColor`.
 - **No per-scheme color field.** Dark mode is a render-time axis; one `brandColor` generates
   both schemes. A project needing a hand-tuned dark brand gets an _optional_ `brandColorDark`
@@ -565,7 +565,7 @@ Practical notes:
   `kind`, `stage`, `featuredRank` — **not** the body. That enforces "a few colors per card" at the data
   layer (cards feed `cardSwatches`) and keeps the index payload small
   for CWV.
-- **`ProjectScope` is the resolution keystone.** One server component takes a scope's `brandColor` +
+- **`EntryScope` is the resolution keystone.** One server component takes a scope's `brandColor` +
   `fontKey` and emits the flash-free scoped `<style>` (engine palette, both schemes via
   `light-dark()`) plus the resolved font's `.variable` class. It wraps a project's **interactive
   slot** (and any homepage slot `siteSettings` seeds), not the page chrome. It is
@@ -606,21 +606,21 @@ Practical notes:
 - **Cache Components enabled app-wide.** `export const dynamic`/`force-static` are gone — all
   routes are dynamic-by-default with PPR baked in, and static-vs-dynamic is a **component-level**
   concern (`use cache` + where request-time APIs are touched). A route is a **prerendered shell with
-  dynamic holes**. `ProjectScope` (wrapping a project's slot) renders into the prerendered shell so the scoped theme
+  dynamic holes**. `EntryScope` (wrapping a project's slot) renders into the prerendered shell so the scoped theme
   `<style>` and the resolved font class are in the **initial static HTML** (flash-free, no streamed
   delay), while the essay streams. This is an app-wide rendering model (request APIs need Suspense or
   arg-passing; `<Activity>`-based state preservation across nav).
 - **Error containment is a defensive-engine job, not an error boundary.** A throw in a Server
   Component bubbles to the nearest _parent_ boundary, and a segment's own `error.tsx` does **not**
-  catch a throw from that segment's _layout_ — and `ProjectScope` is a layout-level wrapper. So
+  catch a throw from that segment's _layout_ — and `EntryScope` is a layout-level wrapper. So
   containment is: engine returns a fallback (never throws) + `unstable_catchError` around
-  `ProjectScope`. A caught error would also render _unthemed_, the wrong response to a data-quality
+  `EntryScope`. A caught error would also render _unthemed_, the wrong response to a data-quality
   problem — hence "validate + fall back," not "let it throw and catch."
 - **One Next.js app for the site; the Sanity Studio is a separate workspace package.** The
   repo is a multi-member pnpm workspace: the Next app at the root, a **standalone Sanity Studio in
   `studio/`** (Vite-based, auto-updating, TypeGen watch mode), and the `@garden/oklch` engine in
   `packages/oklch`. The _site_ is still a single app with
-  no project sub-packages — project code lives under `src/projects/*`; shared bits live in shared
+  no project sub-packages — project code lives under `src/entries/*`; shared bits live in shared
   `src/` modules. Boundaries are **lint-import rules**: a project can't import another project;
   shared can't import a project; plus the `packages/oklch/**` isomorphism boundary (see the OKLCH
   engine) and the every-CSS-module-declares-its-`@layer` rule (see the token & theming architecture).
@@ -647,7 +647,7 @@ Before shipping a **shared** unit (the litmus is for shared primitives, not ever
 - [ ] If it has a CSS Module, does that module **declare its `@layer`** (or stay strictly
       var-consuming)?
 - [ ] If it registers an embed, is the key **namespaced with the project's prefix** so a
-      project-local embed can't silently shadow a shared one?
+      entry-local embed can't silently shadow a shared one?
 
 The litmus is an **advisory** PR checklist for shared primitives; the parts that can be a lint rule
 (import boundaries, `@layer` declaration) are enforced automatically, not left to human review.
