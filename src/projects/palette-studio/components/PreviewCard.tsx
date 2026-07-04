@@ -37,7 +37,7 @@ export default function PreviewCard({
       <Kicker>{scheme}</Kicker>
 
       <div className={styles.card}>
-        <h4 className={styles.cardTitle}>A card on this palette</h4>
+        <p className={styles.cardTitle}>A card on this palette</p>
         <p className={styles.body}>
           Body text sits on the elevated surface.{" "}
           <a className={styles.link}>An accent link</a> carries the brand.
