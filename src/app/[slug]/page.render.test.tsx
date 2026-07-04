@@ -117,6 +117,37 @@ const foundBoth = () =>
 // data can produce it at runtime; the page must degrade to prose-only, never crash, never 404.
 const foundEmptyModule = () => found(async () => ({ default: {} }));
 
+// A PROVIDER-ONLY module that declares `layout: "wide"` (#139) — the studio's real composition
+// (Provider + interleaved liveEmbed slots, NO Experience). The wide page width must apply to
+// THIS shape with no recomposition: the acceptance case the owner correction turns on.
+const foundWideProvider = () =>
+  found(async () => ({
+    default: {
+      layout: "wide" as const,
+      Provider: ({
+        slug,
+        children,
+      }: {
+        slug: string;
+        children: React.ReactNode;
+      }) => (
+        <div data-testid="provider" data-slug={slug}>
+          {children}
+        </div>
+      ),
+    },
+  }));
+
+// An Experience module that also declares `layout: "wide"` — proves the width switch is
+// composition-agnostic (works for a lone Experience too, not only the Provider path).
+const foundWideExperience = () =>
+  found(async () => ({
+    default: {
+      layout: "wide" as const,
+      Experience: () => <div data-testid="experience">experience slot</div>,
+    },
+  }));
+
 interface EntryOverrides {
   [key: string]: unknown;
 }
@@ -525,5 +556,308 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       "data-has-scope",
       "no",
     );
+  });
+
+  // ── #139: module-declared page WIDTH — narrow (default) vs wide ──
+  //
+  // The observable server-side contract is `<main data-layout>` — "narrow" (today's editorial
+  // max-width) unless a resolved module declares `layout: "wide"`. jsdom computes no layout, so
+  // these pin WHICH width the page selects; the actual screen-filling geometry (no horizontal
+  // overflow at 390/1440/1920) is the browser check's job.
+
+  it("defaults a prose-only entry to the narrow layout (no module → no width declaration)", async () => {
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "note", componentKey: null, ...withBody }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    expect(container.querySelector("main")).toHaveAttribute(
+      "data-layout",
+      "narrow",
+    );
+  });
+
+  it("keeps a module that declares NO layout on the narrow default (absent === narrow; no leak)", async () => {
+    // Regression: the wide option must not widen existing modules. A resolvable module with no
+    // `layout` renders exactly as before — narrow page.
+    resolveComponentKeyMock.mockReturnValue(foundExperience());
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "project", componentKey: "palette-studio" }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    expect(container.querySelector("main")).toHaveAttribute(
+      "data-layout",
+      "narrow",
+    );
+    expect(screen.getByTestId("experience")).toBeInTheDocument();
+  });
+
+  it('widens a PROVIDER-ONLY module that declares `layout: "wide"` — the studio\'s real shape, no Experience, no recomposition', async () => {
+    // THE acceptance case: the studio composes as Provider + interleaved liveEmbed slots with no
+    // monolithic Experience. `layout: "wide"` must widen the page for that shape as-is — the width
+    // switch is on the page container, independent of any slot. Article still renders in the frame.
+    resolveComponentKeyMock.mockReturnValue(foundWideProvider());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "project",
+        componentKey: "palette-studio",
+        slug: "palette-studio",
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("palette-studio") }),
+    );
+    expect(container.querySelector("main")).toHaveAttribute(
+      "data-layout",
+      "wide",
+    );
+    const frame = screen.getByTestId("provider");
+    expect(frame).toHaveAttribute("data-slug", "palette-studio");
+    // The article (its title) still renders inside the Provider frame — the wide page did not
+    // disturb the composition, only the container width.
+    expect(frame.querySelector("h1")).not.toBeNull();
+    // No Experience needed for the wide page to apply.
+    expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
+  });
+
+  it('widens an Experience module that declares `layout: "wide"` too (composition-agnostic)', async () => {
+    resolveComponentKeyMock.mockReturnValue(foundWideExperience());
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "note", componentKey: "palette-studio" }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    expect(container.querySelector("main")).toHaveAttribute(
+      "data-layout",
+      "wide",
+    );
+    expect(screen.getByTestId("experience")).toBeInTheDocument();
+  });
+
+  it("renders a wide entry with NO body cleanly — a prose-less article (the studio's future state) still mounts, no EntryBody", async () => {
+    // The prose-removed studio (#20) will have `body: null`: a wide page whose article carries no
+    // prose at all. The article must still render (its header) and mount nothing spurious — no
+    // EntryBody, no crash — so the wide grid has a clean, header-only content column. (jsdom can't
+    // measure the box; the "no collapsed/zero-height artifacts, no stray margins" property is the
+    // browser check's job — this pins the structural contract.)
+    resolveComponentKeyMock.mockReturnValue(foundWideProvider());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "project",
+        componentKey: "palette-studio",
+        slug: "palette-studio",
+        body: null,
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("palette-studio") }),
+    );
+    expect(container.querySelector("main")).toHaveAttribute(
+      "data-layout",
+      "wide",
+    );
+    // Article present (rendered inside the Provider frame) with its header, but NO prose body.
+    const frame = screen.getByTestId("provider");
+    expect(frame.querySelector("article")).not.toBeNull();
+    expect(frame.querySelector("h1")).not.toBeNull();
+    expect(screen.queryByTestId("essay-body")).not.toBeInTheDocument();
+  });
+
+  it("never widens a `now` (excluded kind never resolves a module, so it can carry no width)", async () => {
+    // `now` never consults the resolver, so even a doc pointing at a wide module stays narrow —
+    // an editorial status update is always the narrow editorial page.
+    resolveComponentKeyMock.mockReturnValue(foundWideProvider());
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "now", componentKey: "palette-studio", ...withBody }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    expect(container.querySelector("main")).toHaveAttribute(
+      "data-layout",
+      "narrow",
+    );
+    expect(resolveComponentKeyMock).not.toHaveBeenCalled();
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // QA — adversarial (#139 page width): mechanism, type honesty & isolation.
+  //
+  // The author's 5 width tests assert ONLY `data-layout`. But `data-layout` is a
+  // MARKER — the thing that actually widens the page is the `.wide` CSS class on
+  // `<main>`, set from the SAME `isWide` boolean but by a SEPARATE expression (the
+  // `className` ternary). A mutation that broke the className half while leaving
+  // `data-layout` intact would ship a page that *reports* "wide" but *renders* narrow —
+  // and every existing test would still pass. These pin the class mechanism itself, the
+  // strict `=== "wide"` type gate (degrade, never emit a foreign token, never throw),
+  // and per-<main> isolation under Activity.
+  //
+  // NOTE on CSS-module resolution under this Vitest config: `styles.<anything>` returns
+  // a synthesized `_<name>_<hash>` string for ANY key access (verified empirically), so
+  // these assert the className COMPOSITION (which classes the JSX puts on <main>), not
+  // that the CSS itself widens — that geometry is the browser check's job.
+  describe("QA — adversarial: width mechanism, type honesty & isolation", () => {
+    const classesOf = (el: Element | null): string[] =>
+      el ? Array.from(el.classList) : [];
+
+    it("wide <main> carries a MODIFIER class the narrow <main> does not (pins the className half, not just data-layout)", async () => {
+      // Render a narrow prose-only page and a wide Provider page and compare their <main>
+      // class lists. The wide page must add EXACTLY ONE class on top of the base — the `.wide`
+      // modifier. If the className ternary regressed (e.g. always `styles.module`), data-layout
+      // would still say "wide" but this assertion would fail — which is the whole point.
+      fetchMock.mockResolvedValueOnce(
+        entry({ kind: "note", componentKey: null, ...withBody }),
+      );
+      const narrow = render(await EntryPage({ params: params("an-entry") }));
+      const narrowClasses = classesOf(narrow.container.querySelector("main"));
+
+      resolveComponentKeyMock.mockReturnValue(foundWideProvider());
+      fetchMock.mockResolvedValueOnce(
+        entry({
+          kind: "project",
+          componentKey: "palette-studio",
+          slug: "palette-studio",
+        }),
+      );
+      const wide = render(
+        await EntryPage({ params: params("palette-studio") }),
+      );
+      const wideClasses = classesOf(wide.container.querySelector("main"));
+
+      // Narrow is the single base class; wide is base + one modifier.
+      expect(narrowClasses).toHaveLength(1);
+      expect(wideClasses).toHaveLength(2);
+      // Wide is a strict superset: it keeps the base class and adds a NEW one.
+      for (const c of narrowClasses) expect(wideClasses).toContain(c);
+      const modifier = wideClasses.filter((c) => !narrowClasses.includes(c));
+      expect(modifier).toHaveLength(1);
+      // The modifier is genuinely absent from the narrow page (no leak of the wide class).
+      expect(narrowClasses).not.toContain(modifier[0]);
+    });
+
+    it("narrow <main> is EXACTLY the base class — no `.wide` modifier, no stray/empty tokens (crown-jewel: className unchanged)", async () => {
+      resolveComponentKeyMock.mockReturnValue(foundExperience());
+      fetchMock.mockResolvedValueOnce(
+        entry({ kind: "project", componentKey: "palette-studio" }),
+      );
+      const { container } = render(
+        await EntryPage({ params: params("an-entry") }),
+      );
+      const main = container.querySelector("main");
+      expect(classesOf(main)).toHaveLength(1);
+      // No "undefined"/empty-string tokens leaked into the class attribute.
+      expect(main?.className).not.toMatch(/undefined|\s{2,}|^\s|\s$/);
+    });
+
+    it.each([
+      { label: "a foreign string (banana)", layout: "banana" },
+      { label: "null (bad runtime data)", layout: null },
+      { label: "undefined (explicit)", layout: undefined },
+      { label: "a boolean true", layout: true },
+      { label: "the number 1", layout: 1 },
+    ])(
+      'degrades a module whose `layout` is $label to narrow — strict `=== "wide"`, never emits a foreign data-layout, never throws',
+      async ({ layout }) => {
+        // Type honesty at the runtime boundary: the contract says `layout?: "wide"`, but drift /
+        // bad data can hand the page anything. `isWide` is a strict `=== "wide"`, so every
+        // non-"wide" value must fall through to the narrow default — and data-layout must be
+        // exactly "narrow", never the foreign token echoed back.
+        resolveComponentKeyMock.mockReturnValue(
+          found(async () => ({
+            default: {
+              layout,
+              Experience: () => <div data-testid="experience">slot</div>,
+            },
+          })),
+        );
+        fetchMock.mockResolvedValueOnce(
+          entry({ kind: "project", componentKey: "palette-studio" }),
+        );
+        const { container } = render(
+          await EntryPage({ params: params("an-entry") }),
+        );
+        const main = container.querySelector("main");
+        expect(main).toHaveAttribute("data-layout", "narrow");
+        // The foreign token never reaches the markup.
+        expect(main?.getAttribute("data-layout")).toBe("narrow");
+        // …and the wide modifier class is not applied (single base class only).
+        expect(classesOf(main)).toHaveLength(1);
+        expect(screen.getByTestId("experience")).toBeInTheDocument();
+      },
+    );
+
+    it("applies wide to a MALFORMED wide module that exports neither Experience nor Provider (drift: layout-only) — wide + prose-only, no crash, no 404", async () => {
+      // The compile-time union forbids a member-less module, but drift can produce
+      // `{ layout: "wide" }` at runtime. `isWide` reads `layout` independent of any slot, so the
+      // page must still widen AND degrade to prose-only — never throw.
+      resolveComponentKeyMock.mockReturnValue(
+        found(async () => ({ default: { layout: "wide" as const } })),
+      );
+      fetchMock.mockResolvedValueOnce(
+        entry({ kind: "project", componentKey: "palette-studio", ...withBody }),
+      );
+      const { container } = render(
+        await EntryPage({ params: params("an-entry") }),
+      );
+      const main = container.querySelector("main");
+      expect(main).toHaveAttribute("data-layout", "wide");
+      expect(classesOf(main)).toHaveLength(2);
+      // Prose-only: nothing mounted, but the article (its header) is present.
+      expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("provider")).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { level: 1, name: /an entry/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("keeps two simultaneously-mounted <main>s (Activity) from bleeding width into each other, and touches nothing global", async () => {
+      // Cache Components can keep several /[slug] routes mounted at once (React <Activity>).
+      // Mount a WIDE entry and a NARROW entry together; each <main> must keep its own
+      // data-layout + class, and NOTHING global (document.body) may be re-styled — the width
+      // switch is strictly per-<main>.
+      resolveComponentKeyMock.mockReturnValue(foundWideProvider());
+      fetchMock.mockResolvedValueOnce(
+        entry({
+          kind: "project",
+          componentKey: "palette-studio",
+          slug: "palette-studio",
+        }),
+      );
+      render(await EntryPage({ params: params("palette-studio") }));
+
+      resolveComponentKeyMock.mockReturnValue(
+        notFoundResolution("component", "x"),
+      );
+      fetchMock.mockResolvedValueOnce(
+        entry({
+          kind: "note",
+          componentKey: null,
+          slug: "a-note",
+          ...withBody,
+        }),
+      );
+      render(await EntryPage({ params: params("a-note") }));
+
+      const mains = Array.from(document.querySelectorAll("main"));
+      expect(mains).toHaveLength(2);
+      const layouts = mains.map((m) => m.getAttribute("data-layout")).sort();
+      expect(layouts).toEqual(["narrow", "wide"]);
+      // Each main's class count matches its own mode — wide=2, narrow=1 — proving no bleed.
+      const wideMain = mains.find(
+        (m) => m.getAttribute("data-layout") === "wide",
+      );
+      const narrowMain = mains.find(
+        (m) => m.getAttribute("data-layout") === "narrow",
+      );
+      expect(classesOf(wideMain ?? null)).toHaveLength(2);
+      expect(classesOf(narrowMain ?? null)).toHaveLength(1);
+      // Nothing global was touched: the body carries no data-layout and no injected class.
+      expect(document.body).not.toHaveAttribute("data-layout");
+      expect(document.body.classList).toHaveLength(0);
+    });
   });
 });

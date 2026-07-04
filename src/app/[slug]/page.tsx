@@ -39,6 +39,12 @@ import styles from "./page.module.css";
 // never a module — even if it happens to carry `brandColor`/`componentKey`, because a `now`
 // note is an editorial status update, not an interactive slot. The keystone stays defensive:
 // the scope never throws on a bad brandColor/fontKey, so an empty seed field is always safe.
+//
+// PAGE WIDTH (#139) — a module MAY declare `layout: "wide"` to widen the page's content
+// container from the narrow editorial max-width to a screen-filling one (owner directive).
+// It's a page-level max-width switch on `<main>`, not a per-slot breakout, so it applies to
+// the WHOLE composition regardless of shape (Provider + interleaved slots, or an Experience).
+// Absent → today's narrow layout, unchanged.
 
 interface EntryPageProps {
   params: Promise<{ slug: string }>;
@@ -121,6 +127,12 @@ export default async function EntryPage({ params }: EntryPageProps) {
   const Experience = entryModule?.Experience ?? null;
   const Provider = entryModule?.Provider ?? null;
 
+  // Page width is a MODULE contract (#139): a module may ask for a screen-filling page instead
+  // of the narrow editorial column. Absent → narrow (every existing module + every prose-only
+  // entry). Widening happens on the `<main>` container, so the whole composition benefits — no
+  // dependence on a particular slot shape.
+  const isWide = entryModule?.layout === "wide";
+
   // The brand seed, threaded to the body so each `liveEmbed` — and the `Experience` slot —
   // mounts in its own scoped container. Built whenever this entry either themes (`brandColor`)
   // OR mounts a module: keyed on the REAL `slug` so a scope never collapses to the shared
@@ -148,7 +160,13 @@ export default async function EntryPage({ params }: EntryPageProps) {
   );
 
   return (
-    <main className={styles.module}>
+    // `.module` caps the page at the editorial measure; the `.wide` modifier (module-declared)
+    // overrides that cap with a screen-filling width. `data-layout` records the mode in the
+    // markup (the repo's `data-*` vocabulary — cf. `data-entry`/`data-theme`).
+    <main
+      className={isWide ? `${styles.module} ${styles.wide}` : styles.module}
+      data-layout={isWide ? "wide" : "narrow"}
+    >
       {/* The provider is a state frame, not a theme: prose inside stays server-rendered
           editorial content (children pass-through). Rendered as deep as possible per the
           bundled composition docs. */}

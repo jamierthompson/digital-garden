@@ -66,4 +66,20 @@
     max-width: var(--width-text);
     margin-inline: auto;
   }
+
+  /* Wide page (#139): a module-declared modifier ON TOP of `.module` (applied as
+     `module wide`), so every base rule above still holds — this lifts the editorial max-width
+     cap to a screen-filling one. `<main>` is a flex ITEM (of the `body` column), and `.module`'s
+     `margin: 0 auto` centers it — but auto inline margins on a flex item SUPPRESS `stretch` and
+     size the item to its content, so `max-width: 100%` alone leaves the page at its intrinsic
+     content width, not the viewport. `width: 100%` forces it to fill; with the global
+     `box-sizing: border-box` the `--space-6` gutters sit inside that width, so there is no
+     horizontal overflow at any width. Prose still caps at `--width-text` via the article grid
+     and `.module > :not(.article)`; the extra room goes to the article's `[full]` breakout
+     slots — a module's full-width surface fills the window, the reading measure is preserved.
+     Placed after `.module` so this equal-specificity, same-layer override wins on source order. */
+  .wide {
+    max-width: 100%;
+    width: 100%;
+  }
 }
