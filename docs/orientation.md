@@ -122,7 +122,7 @@ These are the things that silently break this specific stack, or that the owner 
 ## Which doc for which task
 
 | Your task is about…                                               | Read                                                                       |
-| ----------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | The system model / what the architecture _is_ / why we chose X    | [`./architecture.md`](./architecture.md) (the system model)                |
 | What to do next / the work backlog                                | [GitHub issues](https://github.com/jamierthompson/digital-garden/issues)   |
 | Code style, TS rules, the `@layer` trap, import boundaries        | [`./engineering-standards.md`](./engineering-standards.md)                 |
