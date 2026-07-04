@@ -40,11 +40,11 @@ vi.mock("@/lib/resolvers/components", () => ({
   resolveComponentKey: resolveComponentKeyMock,
 }));
 
-// Mock EssayBody to CAPTURE the `scope` seed the page threads to the body. The real
+// Mock EntryBody to CAPTURE the `scope` seed the page threads to the body. The real
 // serializer's `liveEmbed` → EmbedBlock path is async and jsdom-untestable (async RSC), so
 // the theming contract we assert HERE is "does the page hand the body the right scope?" — the
 // rendered scoped embed itself is the integration test's / browser check's job.
-vi.mock("@/components/portable-text/EssayBody", () => ({
+vi.mock("@/components/portable-text/EntryBody", () => ({
   default: ({
     scope,
   }: {
@@ -138,7 +138,7 @@ function entry(over: EntryOverrides = {}): Record<string, unknown> {
   };
 }
 
-// A truthy body so the (mocked) EssayBody mounts and we can read the threaded scope.
+// A truthy body so the (mocked) EntryBody mounts and we can read the threaded scope.
 const withBody = { body: [] as unknown[] };
 
 const params = (slug: string) => Promise.resolve({ slug });
@@ -455,7 +455,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     // The keystone contract at the PAGE seam: a garbage `brandColor` reaching the real
     // `EntryScope` → `resolveScope` → OKLCH engine must degrade to the fallback palette, never
     // throw, and the slot stays keyed on the vetted real slug (injection-safe). Uses a
-    // resolvable Experience so the real EntryScope actually mounts (not the mocked EssayBody).
+    // resolvable Experience so the real EntryScope actually mounts (not the mocked EntryBody).
     resolveComponentKeyMock.mockReturnValue(foundExperience());
     fetchMock.mockResolvedValueOnce(
       entry({

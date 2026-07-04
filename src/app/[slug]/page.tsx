@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import EssayBody from "@/components/portable-text/EssayBody";
+import EntryBody from "@/components/portable-text/EntryBody";
 import EntryScope from "@/components/entry-scope/EntryScope";
 import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
@@ -143,7 +143,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
         <h1 className={styles.title}>{entry.title}</h1>
         {entry.blurb ? <p className={styles.blurb}>{entry.blurb}</p> : null}
       </header>
-      {entry.body ? <EssayBody value={entry.body} scope={scope} /> : null}
+      {entry.body ? <EntryBody value={entry.body} scope={scope} /> : null}
     </article>
   );
 

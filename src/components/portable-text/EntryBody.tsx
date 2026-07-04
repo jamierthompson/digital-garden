@@ -7,13 +7,13 @@ import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 import type { ENTRY_DETAIL_QUERY_RESULT } from "../../../sanity.types";
 
 import EmbedBlock from "./EmbedBlock";
-import EssayFigure from "./EssayFigure";
+import EntryFigure from "./EntryFigure";
 
 // Lifted off the typed detail query so serializer and query can't drift. `NonNullable`
 // drops the `body: … | null` arm — the caller only renders this when a body exists.
 type Body = NonNullable<NonNullable<ENTRY_DETAIL_QUERY_RESULT>["body"]>;
 
-interface EssayBodyProps {
+interface EntryBodyProps {
   value: Body;
   /**
    * The host entry's brand-scope seed — set whenever a non-`now` entry themes OR mounts a
@@ -31,10 +31,10 @@ interface EssayBodyProps {
  * The Portable Text serializer for an entry's body. Renders the body's
  * blocks plus the two authored embed kinds — `liveEmbed` → `EmbedBlock` (resolves the
  * `embedKey`, falls back to a visible placeholder on a miss) and `figure` →
- * `EssayFigure`; standard text blocks use the library defaults. The serializer is the
+ * `EntryFigure`; standard text blocks use the library defaults. The serializer is the
  * ONE place the body meets code, so the embed-resolution seam lives here, not in the route.
  */
-export default function EssayBody({ value, scope }: EssayBodyProps) {
+export default function EntryBody({ value, scope }: EntryBodyProps) {
   const components: PortableTextComponents = {
     types: {
       liveEmbed: ({ value: block }) => (
@@ -44,7 +44,7 @@ export default function EssayBody({ value, scope }: EssayBodyProps) {
           scope={scope}
         />
       ),
-      figure: ({ value: block }) => <EssayFigure value={block} />,
+      figure: ({ value: block }) => <EntryFigure value={block} />,
     },
   };
   return <PortableText value={value} components={components} />;

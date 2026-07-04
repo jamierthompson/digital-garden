@@ -1,4 +1,4 @@
-// QA #131 — EssayBody threads the host entry's brand-scope seed to EVERY liveEmbed
+// QA #131 — EntryBody threads the host entry's brand-scope seed to EVERY liveEmbed
 // while the prose blocks stay plain editorial markup. EmbedBlock (an async RSC) is
 // mocked at the module seam so the serializer's prop threading is what's under test.
 
@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 
-import EssayBody from "./EssayBody";
+import EntryBody from "./EntryBody";
 
 interface CapturedEmbedProps {
   embedKey?: string;
@@ -24,7 +24,7 @@ vi.mock("./EmbedBlock", () => ({
   },
 }));
 
-type Body = Parameters<typeof EssayBody>[0]["value"];
+type Body = Parameters<typeof EntryBody>[0]["value"];
 
 const BODY = [
   {
@@ -55,10 +55,10 @@ const SCOPE: ScopeSeed = {
   fontKey: "jetbrains-mono",
 };
 
-describe("EssayBody", () => {
+describe("EntryBody", () => {
   it("threads the scope seed to every liveEmbed in the body", () => {
     captured.length = 0;
-    render(<EssayBody value={BODY} scope={SCOPE} />);
+    render(<EntryBody value={BODY} scope={SCOPE} />);
     expect(screen.getAllByTestId("embed")).toHaveLength(2);
     expect(captured.map((p) => p.embedKey)).toEqual([
       "palette-studio-seed",
@@ -74,14 +74,14 @@ describe("EssayBody", () => {
 
   it("leaves embeds unscoped for a non-project entry (no scope prop)", () => {
     captured.length = 0;
-    render(<EssayBody value={BODY} />);
+    render(<EntryBody value={BODY} />);
     for (const props of captured) {
       expect(props.scope).toBeUndefined();
     }
   });
 
   it("renders the prose blocks as plain paragraphs alongside the embeds", () => {
-    render(<EssayBody value={BODY} scope={SCOPE} />);
+    render(<EntryBody value={BODY} scope={SCOPE} />);
     const p = screen.getByText("Editorial prose.");
     expect(p.closest("p")).not.toBeNull();
   });
