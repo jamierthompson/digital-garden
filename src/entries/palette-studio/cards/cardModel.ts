@@ -4,7 +4,7 @@
 //
 // It only READS the engine's output: token values and their solve-time provenance come from
 // `DerivedPalette`, the mini-ramp steps from the per-scheme ramps, and the contrast receipt
-// from a LIVE `checkContrast` re-measurement of the baked literals (guide §4/§7 — real
+// from a LIVE `checkContrast` re-measurement of the baked literals (the engine guide's derivation stories + headline claim — real
 // receipts, re-measured, never hardcoded). Pure, React-free, DOM-free; never throws.
 
 import {
@@ -46,7 +46,7 @@ export interface SchemeFacet {
   readonly boundStep: BindingStep | null;
   /** The token's role ramp for this scheme (for the mini-ramp), or `null` for the co-solves. */
   readonly ramp: Ramp | null;
-  /** True when the bound ramp step had to desaturate to fit the gamut (guide §6). */
+  /** True when the bound ramp step had to desaturate to fit the gamut (the engine guide's callout map). */
   readonly oog: boolean;
   /** The live contrast measurement, or `null` for a surface (a canvas, not a foreground). */
   readonly measured: ContrastCheck | null;

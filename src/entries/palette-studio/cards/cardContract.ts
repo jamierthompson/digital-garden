@@ -13,14 +13,14 @@
 import type { BrandTokenName, ContrastTarget, RampRole } from "@garden/oklch";
 
 /**
- * Which of the four derivation stories (guide §4) a token follows. A pure function of the
+ * Which of the four derivation stories (the engine guide's derivation stories) a token follows. A pure function of the
  * token name — the engine's `TokenBinding.kind`. `step` = a pinned surface, `auto` = a
  * `minPass` solve, `accent`/`on-accent` = the continuous co-solve (their provenance is
  * `null`, so the card copy for them lives behind the #151 seam in `derivationCopy`).
  */
 export type BindingKind = "step" | "auto" | "accent" | "on-accent";
 
-/** The contrast pair a foreground token is re-measured against (guide §4 `auto` receipt). */
+/** The contrast pair a foreground token is re-measured against (the engine guide's `auto` derivation story). */
 export interface ContrastAgainst {
   /** The background token the foreground is measured against (its worst-case surface). */
   readonly bg: BrandTokenName;
@@ -146,7 +146,7 @@ export const CARD_CONTRACT: Record<BrandTokenName, CardContract> = {
 
 /**
  * The target as a human phrase — "4.5:1 and Lc 75". Derived from the numbers so the card
- * copy can never disagree with the target it names (guide §4: the copy must NAME its target).
+ * copy can never disagree with the target it names (the engine guide: the copy must NAME its target).
  */
 export function describeTarget(target: ContrastTarget): string {
   return `${formatRatio(target.wcag)}:1 and Lc ${target.apca}`;

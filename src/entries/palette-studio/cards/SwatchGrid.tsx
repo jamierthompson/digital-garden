@@ -21,11 +21,15 @@ export default function SwatchGrid({
   scheme,
 }: SwatchGridProps): React.ReactElement {
   return (
-    // Explicit role: `list-style: none` drops list semantics in some engines (Safari/VoiceOver).
-    <ul className={styles.grid} role="list">
-      {cards.map((card) => (
-        <SwatchCard key={card.name} card={card} scheme={scheme} />
-      ))}
-    </ul>
+    <div className={styles.wrap}>
+      {/* Each card face shows one scheme (the viewer's); name it so the face is unambiguous. */}
+      <p className={styles.caption}>Showing the {scheme} scheme</p>
+      {/* Explicit role: `list-style: none` drops list semantics in some engines (Safari/VoiceOver). */}
+      <ul className={styles.grid} role="list">
+        {cards.map((card) => (
+          <SwatchCard key={card.name} card={card} scheme={scheme} />
+        ))}
+      </ul>
+    </div>
   );
 }

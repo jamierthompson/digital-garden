@@ -23,7 +23,7 @@ interface SwatchCardProps {
   readonly scheme: "light" | "dark";
 }
 
-/** A one-word badge for the binding kind (guide §4) — the derivation story at a glance. */
+/** A one-word badge for the binding kind (the engine guide's derivation stories) — the derivation story at a glance. */
 const KIND_BADGE: Record<BindingKind, string> = {
   step: "surface",
   auto: "solved",

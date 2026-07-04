@@ -1,4 +1,4 @@
-// The mini ramp strip (#154, guide §5) — the 11 steps of a token's role ramp with the bound
+// The mini ramp strip (#154 — the engine guide's ramp-coordinate thread) — the 11 steps of a token's role ramp with the bound
 // step marked. The visual thread that teaches the two-tier model with zero prose: "this
 // token IS that step". Display-only; every step is a baked engine literal painted inline,
 // and the highlighted step comes from the engine's solve-time provenance, never a value scan.

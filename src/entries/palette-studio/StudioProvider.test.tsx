@@ -35,12 +35,12 @@ function renderStudio(slug = "demo") {
   );
 }
 
-/** Read the resolved value text of one semantic-token row in the token table. */
+/** Read the resolved value text off one token's swatch card (the active-scheme face). */
 function tokenValue(name: string): string {
-  const header = screen.getByRole("rowheader", { name: `--${name}` });
-  const row = header.closest("tr");
-  if (!row) throw new Error(`no row for --${name}`);
-  return within(row).getByText(/oklch\(/).textContent ?? "";
+  const heading = screen.getByRole("heading", { name: `--${name}` });
+  const card = heading.closest("li");
+  if (!card) throw new Error(`no card for --${name}`);
+  return within(card).getByText(/oklch\(/).textContent ?? "";
 }
 
 const ALL_SLOTS = [
@@ -70,7 +70,7 @@ describe("Palette Studio (Provider + slots)", () => {
   it("re-derives across slots when a new seed is typed (shared state)", () => {
     renderStudio();
     const before = tokenValue("accent");
-    // The input lives in the seed slot; the token table is a DIFFERENT slot — the change
+    // The input lives in the seed slot; the card grid is a DIFFERENT slot — the change
     // must cross the provider, not component-local state.
     fireEvent.change(screen.getByLabelText("Seed color"), {
       target: { value: "#16a34a" },
@@ -95,7 +95,7 @@ describe("Palette Studio (Provider + slots)", () => {
     for (const name of [
       "Seed",
       "Primitive ramps",
-      "Semantic tokens",
+      "Swatch cards",
       "Live preview",
       "Contrast receipt",
       "Export",
@@ -112,8 +112,8 @@ describe("Palette Studio (Provider + slots)", () => {
     fireEvent.change(input, { target: { value: "definitely-not-a-color" } });
     expect(input).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByText(/can.t read that color/i)).toBeInTheDocument();
-    // The palette still renders — a full token table survives a garbage seed.
-    expect(screen.getByRole("rowheader", { name: "--accent" })).toBeVisible();
+    // The palette still renders — the full card grid survives a garbage seed.
+    expect(screen.getByRole("heading", { name: "--accent" })).toBeVisible();
   });
 
   it("applies a preset chip's seed on click", () => {
@@ -356,8 +356,8 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
 
       fireEvent.change(input(), { target: { value: "" } });
       expect(input()).toHaveAttribute("aria-invalid", "true");
-      // Even empty, the token table is intact — the tool never blanks out.
-      expect(screen.getByRole("rowheader", { name: "--accent" })).toBeVisible();
+      // Even empty, the card grid is intact — the tool never blanks out.
+      expect(screen.getByRole("heading", { name: "--accent" })).toBeVisible();
     },
   );
 

@@ -1,12 +1,12 @@
 // The derivation sentence — "how this color was derived", the receipt at the heart of the
-// swatch card (#154). A pure template function switching on the four binding kinds (guide
-// §4). Because every input is a pure function of the engine's `TokenSet`, the copy
+// swatch card (#154). A pure template function switching on the four binding kinds (the engine
+// guide's derivation stories). Because every input is a pure function of the engine's `TokenSet`, the copy
 // regenerates on every seed/rules change for free — "the message changes with the seed".
 //
 // SEAM (task #13): the `accent` / `on-accent` stories are the two whose engine provenance
 // is still `null` (#151). Their copy here is derived from the resolved VALUES (ΔL vs the
 // seed, which extreme won) — the reverse-engineering the provenance principle warns against
-// (guide §3). It is deliberately quarantined in `accentDerivation` / `onAccentDerivation`
+// (the engine guide's provenance principle). It is deliberately quarantined in `accentDerivation` / `onAccentDerivation`
 // so #151's first-class co-solve report swaps straight in without touching the `step`/`auto`
 // stories, which are already provenance-truthful. Pure, React-free, DOM-free.
 
@@ -54,7 +54,7 @@ function formatMeasured(measured: ContrastCheck): string {
 }
 
 /**
- * `step` — a pinned surface (guide §4). Chosen directly rather than contrast-solved; the
+ * `step` — a pinned surface (the engine guide's derivation stories). Chosen directly rather than contrast-solved; the
  * per-scheme flip IS the dark-mode re-solve, so the sentence names both ends.
  */
 function stepDerivation(input: DerivationInput): string {
@@ -66,7 +66,7 @@ function stepDerivation(input: DerivationInput): string {
 }
 
 /**
- * `auto` — a `minPass` token (guide §4). Binds to the least-extreme ramp step that clears
+ * `auto` — a `minPass` token (the engine guide's derivation stories). Binds to the least-extreme ramp step that clears
  * its target against the worst-case surface; the sentence names the target and the live
  * measurement, so it is honest proof, not a claim.
  */
@@ -80,7 +80,7 @@ function autoDerivation(input: DerivationInput): string {
 }
 
 /**
- * `accent` — the one continuous co-solve (guide §4). SEAM: branches on `direction` +
+ * `accent` — the one continuous co-solve (the engine guide's derivation stories). SEAM: branches on `direction` +
  * `accentFidelity` (phase-1 value-derived; #151 replaces `accentFidelity` with the engine's
  * co-solve report). The most chromatic lightness that stays visible on the surface AND can
  * host a legible label.
@@ -97,7 +97,7 @@ export function accentDerivation(input: DerivationInput): string {
 }
 
 /**
- * `on-accent` — the label with headroom (guide §4). SEAM: the winning pole is read from the
+ * `on-accent` — the label with headroom (the engine guide's derivation stories). SEAM: the winning pole is read from the
  * resolved value today (achromatic-only); #153 makes it chromatic and #151 carries its
  * provenance. Whichever extreme has MORE contrast on the fill, so the label clears with margin.
  */
@@ -126,7 +126,7 @@ export function derivationSentence(input: DerivationInput): string {
 }
 
 /**
- * The out-of-gamut aside (guide §6) — shown only when this token's bound step had to
+ * The out-of-gamut aside (the engine guide's callout map) — shown only when this token's bound step had to
  * desaturate to fit the screen. The engine's sharpest "no black box" line.
  */
 export function oogNote(): string {
