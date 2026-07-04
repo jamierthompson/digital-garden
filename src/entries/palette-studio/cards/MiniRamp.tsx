@@ -94,7 +94,7 @@ export default function MiniRamp({
       <div
         className={styles.strip}
         role="group"
-        aria-label={`${boundStep.role} scale — arrow keys inspect each shade`}
+        aria-label={`--${tokenName}: ${boundStep.role} scale — arrow keys inspect each shade`}
         onKeyDown={onKeyDown}
       >
         {ramp.map((step, index) => (

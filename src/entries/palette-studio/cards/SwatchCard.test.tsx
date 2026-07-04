@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { derivePalette } from "../core/derive";
@@ -34,7 +34,7 @@ function renderCard(name: string, scheme: "light" | "dark" = "light") {
 }
 
 describe("SwatchCard — face (single scheme, plain language)", () => {
-  it("shows the token name, a plain-language badge, value, derivation, contrast, usage, and counterpart", () => {
+  it("shows the token name, a plain-language badge, value, derivation, contrast, and usage", () => {
     renderCard("text");
     expect(screen.getByRole("heading", { name: "--text" })).toBeInTheDocument();
     // Plain badge, not "solved" jargon.
@@ -49,21 +49,20 @@ describe("SwatchCard — face (single scheme, plain language)", () => {
     // The live contrast reads as passing, with a plain lead word.
     expect(screen.getByText(/measured contrast/i)).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "passes" })).toBeInTheDocument();
-    // The usage line and the one-line counterpart hint.
+    // The usage line.
     expect(screen.getByText(/anything meant to be read/i)).toBeInTheDocument();
+    // The shared glossary is NOT repeated on the card — it lives once in the sidebar.
+    expect(screen.queryByText(/Scale \(ramp\)/i)).not.toBeInTheDocument();
+    // The counterpart hint is behind the disclosure, not on the face.
     expect(
-      screen.getByText(/in dark mode, this switches to the/i),
-    ).toBeInTheDocument();
+      screen.queryByText(/in dark mode, this switches to the/i),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the active scheme's face only — dark differs from light, no both-scheme block", () => {
     renderCard("text", "dark");
     expect(screen.getByText(textCard.dark.oklch)).toBeInTheDocument();
     expect(screen.queryByText(textCard.light.oklch)).not.toBeInTheDocument();
-    // The counterpart now points back at light.
-    expect(
-      screen.getByText(/in light mode, this switches to the/i),
-    ).toBeInTheDocument();
   });
 
   it("renders the accent card without a mini-ramp (it is a continuous co-solve)", () => {
@@ -74,26 +73,24 @@ describe("SwatchCard — face (single scheme, plain language)", () => {
   });
 });
 
-describe("SwatchCard — disclosure (plain-language glossary)", () => {
-  it("exposes the glossary behind a real button", () => {
+describe("SwatchCard — disclosure (this color's own receipt)", () => {
+  it("exposes the card's own details behind a real button", () => {
     renderCard("text");
     expect(
-      screen.getByRole("button", { name: /what do these terms mean/i }),
+      screen.getByRole("button", { name: /more about this color/i }),
     ).toBeInTheDocument();
   });
 
-  it("opens plain-language definitions of the terms the card uses", () => {
+  it("opens the counterpart hint for the other scheme (not the shared glossary)", () => {
     renderCard("text");
     fireEvent.click(
-      screen.getByRole("button", { name: /what do these terms mean/i }),
+      screen.getByRole("button", { name: /more about this color/i }),
     );
-    expect(screen.getByText("--text — in plain terms")).toBeInTheDocument();
-    const panel = screen.getByText("--text — in plain terms").closest("div")!;
-    // A measured token's glossary defines the scale + both contrast scores.
-    expect(within(panel).getByText(/Scale \(ramp\)/i)).toBeInTheDocument();
+    // The other-scheme counterpart is the card's OWN detail…
     expect(
-      within(panel).getByText(/Contrast ratio \(WCAG\)/i),
+      screen.getByText(/in dark mode, this switches to the/i),
     ).toBeInTheDocument();
-    expect(within(panel).getByText(/Lc \(APCA\)/i)).toBeInTheDocument();
+    // …but the shared term definitions are NOT here (they live in the sidebar).
+    expect(screen.queryByText(/Scale \(ramp\)/i)).not.toBeInTheDocument();
   });
 });

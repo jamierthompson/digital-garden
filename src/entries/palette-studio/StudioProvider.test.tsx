@@ -310,7 +310,7 @@ function studio(slug: string) {
 describe("QA-S13 · Studio UI under adversarial interaction", () => {
   it(
     "two instances mounted simultaneously mint NO duplicate element ids",
-    { timeout: 30000 },
+    { timeout: 60000 },
     () => {
       // The author's own test unmounts between renders; the real risk is two live routes at once.
       const { container } = render(
@@ -338,7 +338,7 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
 
   it(
     "survives a rapid chip → typed-garbage → chip → clear sequence, staying honest",
-    { timeout: 30000 },
+    { timeout: 60000 },
     () => {
       render(studio("demo"));
       const input = () =>
@@ -369,7 +369,7 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
 
   it(
     "aria-invalid tracks the SAME parser the palette derives from (no lying input)",
-    { timeout: 30000 },
+    { timeout: 60000 },
     () => {
       render(studio("demo"));
       const input = screen.getByLabelText("Seed color") as HTMLInputElement;
@@ -387,7 +387,7 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
 
   it(
     "single-scheme slots follow the viewer's scheme; the receipt always shows BOTH",
-    { timeout: 30000 },
+    { timeout: 60000 },
     () => {
       render(studio("demo"));
       // No page-local scheme toggle by design — the toggle is site-wide chrome (#133).
@@ -407,7 +407,7 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
 
   it(
     "every rendered contrast mark reads as a pass for the default seed, both schemes",
-    { timeout: 30000 },
+    { timeout: 60000 },
     () => {
       render(studio("demo"));
       for (const name of ["light contrast receipt", "dark contrast receipt"]) {

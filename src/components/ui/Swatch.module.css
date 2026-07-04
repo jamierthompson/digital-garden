@@ -44,4 +44,12 @@
     background: var(--bg);
     box-shadow: 0 0 0 1px var(--text-muted);
   }
+
+  /* Seed-change morph — the fill cross-fades to its new color instead of snapping (#154).
+     Color only (no layout → zero CLS); reduced-motion users get the snap. */
+  @media (prefers-reduced-motion: no-preference) {
+    .fill {
+      transition: background-color 400ms ease;
+    }
+  }
 }

@@ -13,7 +13,6 @@ import Swatch from "@/components/ui/Swatch";
 import type { BindingKind } from "./cardContract";
 import type { SwatchCardData } from "./cardModel";
 import { oogNote } from "./derivationCopy";
-import { glossaryFor } from "./glossary";
 import CardDisclosure from "./CardDisclosure";
 import ContrastChip from "./ContrastChip";
 import MiniRamp from "./MiniRamp";
@@ -38,10 +37,6 @@ export default function SwatchCard({
   scheme,
 }: SwatchCardProps): React.ReactElement {
   const facet = scheme === "light" ? card.light : card.dark;
-  const glossary = glossaryFor({
-    measured: facet.measured !== null,
-    oog: facet.oog,
-  });
   return (
     <li className={styles.card}>
       <div className={styles.header}>
@@ -78,21 +73,12 @@ export default function SwatchCard({
 
       <p className={styles.usage}>{card.usage}</p>
 
-      <p className={styles.counterpart}>{facet.counterpart}</p>
-
       <CardDisclosure
-        label="What do these terms mean?"
-        title={`--${card.name} — in plain terms`}
+        label="More about this color"
+        title={`--${card.name} — the details`}
       >
         <div className={styles.disclosure}>
-          <dl className={styles.glossary}>
-            {glossary.map((entry) => (
-              <div key={entry.term}>
-                <dt>{entry.term}</dt>
-                <dd>{entry.definition}</dd>
-              </div>
-            ))}
-          </dl>
+          <p className={styles.counterpart}>{facet.counterpart}</p>
           {facet.oog ? <p className={styles.oogNote}>{oogNote()}</p> : null}
         </div>
       </CardDisclosure>

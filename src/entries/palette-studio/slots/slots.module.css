@@ -2,6 +2,22 @@
    generated palette appears only as child swatch data). The panel frame itself is the
    shared ui/Panel primitive; this module holds only slot-internal layout. */
 @layer components {
+  /* Swatch-card grid beside its shared glossary sidebar. Stacks on narrow widths; on wider,
+     the grid takes the room and the glossary is a fixed sidebar column. (Transitional — #20
+     recomposes the whole studio into one named-area grid.) */
+  .cardsLayout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 60rem) {
+    .cardsLayout {
+      grid-template-columns: minmax(0, 1fr) 15rem;
+      align-items: start;
+    }
+  }
+
   /* Anchor receipt — a READOUT of the engine's automatic anchoring, not a control. */
   .anchor {
     display: flex;

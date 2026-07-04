@@ -26,4 +26,12 @@
   .mark[data-pass] {
     color: var(--success);
   }
+
+  /* Seed-change morph — the numbers + pass mark ease to their new colors (#154). Color only. */
+  @media (prefers-reduced-motion: no-preference) {
+    .chip,
+    .mark {
+      transition: color 400ms ease;
+    }
+  }
 }
