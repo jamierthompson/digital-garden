@@ -34,10 +34,15 @@ export {
 export {
   tokenSetToTailwindTheme,
   tokenSetToDesignTokens,
+  harmonyTierToCss,
+  harmonyTierToTailwindTheme,
+  harmonyTierToDesignTokens,
   type ExportOptions,
   type DesignToken,
   type DesignTokenScheme,
   type DesignTokensExport,
+  type HarmonyDesignTokenGroup,
+  type HarmonyDesignTokensExport,
 } from "./export";
 
 export {
@@ -69,6 +74,20 @@ export {
   type HarmonyPalette,
   type HarmonyOptions,
 } from "./harmony";
+
+export {
+  buildHarmonyTier,
+  resolveHarmonyTier,
+  HARMONY_HUES,
+  type HarmonyHue,
+  type HarmonyStepProvenance,
+  type HarmonyPick,
+  type HarmonyHueResult,
+  type HarmonySchemeResult,
+  type HarmonyPickPair,
+  type HarmonyHueTier,
+  type HarmonyTier,
+} from "./harmony-tier";
 
 export {
   parseColor,

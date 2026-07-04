@@ -63,6 +63,17 @@ import type {
   RampSpec,
   // binding surface
   TokenBinding,
+  // harmony tier (#152) — decorative annex
+  HarmonyHue,
+  HarmonyStepProvenance,
+  HarmonyPick,
+  HarmonyHueResult,
+  HarmonySchemeResult,
+  HarmonyPickPair,
+  HarmonyHueTier,
+  HarmonyTier,
+  HarmonyDesignTokenGroup,
+  HarmonyDesignTokensExport,
 } from "./index";
 
 /** Every runtime export of `@garden/oklch`, alphabetized. Type-only exports don't exist
@@ -71,11 +82,13 @@ const RUNTIME_EXPORTS = [
   "BRAND_TOKEN_NAMES",
   "CONTRAST_TARGETS",
   "DEFAULT_BINDING_SCHEMA",
+  "HARMONY_HUES",
   "HARMONY_KINDS",
   "RAMP_LABELS",
   "RAMP_ROLES",
   "apcaLc",
   "buildHarmonyPalette",
+  "buildHarmonyTier",
   "buildLightnessRamp",
   "buildRamp",
   "buildTokenSet",
@@ -88,6 +101,9 @@ const RUNTIME_EXPORTS = [
   "formatOklch",
   "formatRgb",
   "gamutMap",
+  "harmonyTierToCss",
+  "harmonyTierToDesignTokens",
+  "harmonyTierToTailwindTheme",
   "inGamut",
   "minPass",
   "oklabToOklch",
@@ -96,6 +112,7 @@ const RUNTIME_EXPORTS = [
   "oklchToSrgb",
   "parseColor",
   "rampSetToDeclarations",
+  "resolveHarmonyTier",
   "resolveTheme",
   "solveForeground",
   "srgbToOklch",
@@ -262,11 +279,21 @@ type PublicTypeSurface = {
   RampOptions: RampOptions;
   RampSpec: RampSpec;
   TokenBinding: TokenBinding;
+  HarmonyHue: HarmonyHue;
+  HarmonyStepProvenance: HarmonyStepProvenance;
+  HarmonyPick: HarmonyPick;
+  HarmonyHueResult: HarmonyHueResult;
+  HarmonySchemeResult: HarmonySchemeResult;
+  HarmonyPickPair: HarmonyPickPair;
+  HarmonyHueTier: HarmonyHueTier;
+  HarmonyTier: HarmonyTier;
+  HarmonyDesignTokenGroup: HarmonyDesignTokenGroup;
+  HarmonyDesignTokensExport: HarmonyDesignTokensExport;
 };
 
 describe("frozen public TYPE surface (#99) — completeness guard", () => {
   it("every documented public type is exported from the barrel", () => {
-    // If this file compiled, all 30 type exports resolved. Assert the map is inhabited
+    // If this file compiled, every listed type export resolved. Assert the map is inhabited
     // so the test is not empty; the real guard is compile-time.
     expectTypeOf<PublicTypeSurface>().toBeObject();
   });
