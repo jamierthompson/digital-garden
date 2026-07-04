@@ -2,16 +2,16 @@
    model (foundation primitives → semantic role tokens → brand scoped override).
    Loaded before every other sheet so the cascade-layer order is established first. */
 
-/* Cascade order: foundation < semantic < brand < project. Declaring it up front means
+/* Cascade order: foundation < semantic < brand < components. Declaring it up front means
    later sheets slot into named layers instead of fighting source order / specificity.
    - foundation: raw primitives (scales + the editorial neutral palette) + resets.
    - semantic:   the generic role-token contract components read (`--surface`, `--text`,
                  `--accent`, … `--success`), bound to the GLOBAL EDITORIAL default here.
-   - brand:      a `[data-project]` slot re-binds those same semantic tokens with the
+   - brand:      a `[data-entry]` slot re-binds those same semantic tokens with the
                  OKLCH engine's solved brand values (baked `light-dark()` literals).
-   - project:    a project module's own var-consuming rules.
+   - components: every component's own var-consuming rules (routes, shell, ui, entry modules).
    Every CSS Module must opt into one of these layers (or stay var-consuming). */
-@layer foundation, semantic, brand, project;
+@layer foundation, semantic, brand, components;
 
 /* Primitives live INSIDE @layer foundation — an unlayered :root would out-rank every
    layered re-declaration (the "@layer trap"); keeping them layered means a future layered
@@ -60,7 +60,7 @@
        modules instead of hand-picking a per-route `max-width` (which drifted: the nav and
        home used to disagree, so the wordmark didn't align with the hero). Foundation
        primitives like the spacing/type ramps: dimensional, house-style, NOT brand-themeable
-       (a project slot re-binds color/font, never the page frame). Ordered by content density:
+       (a brand slot re-binds color/font, never the page frame). Ordered by content density:
        - --width-prose:   narrow pure-reading column (about, system).
        - --width-text:    reading page with a little more room (entry pages, now).
        - --width-content: the default modern page frame + the shell nav (home, index) — the
@@ -104,7 +104,7 @@
 }
 
 /* Semantic tier — the generic role-token contract every component reads. Bound here to the
-   GLOBAL EDITORIAL default (neutral chrome, no brand hue); a `[data-project]` slot re-binds
+   GLOBAL EDITORIAL default (neutral chrome, no brand hue); a `[data-entry]` slot re-binds
    these SAME names in @layer brand with the engine's solved brand values. `light-dark()`
    makes each role scheme-aware, following `color-scheme` (globals.css sets `light dark`). */
 @layer semantic {
@@ -119,7 +119,7 @@
     --text-muted: light-dark(var(--neutral-600), var(--neutral-400));
     --border: light-dark(var(--neutral-200), var(--neutral-700));
 
-    /* Editorial "accent" is ink — the chrome carries no brand hue; a project slot supplies
+    /* Editorial "accent" is ink — the chrome carries no brand hue; a brand slot supplies
        the only accent color, scoped to its interactive island. */
     --accent: light-dark(var(--neutral-900), var(--neutral-100));
     --accent-text: light-dark(var(--neutral-900), var(--neutral-100));
@@ -152,7 +152,7 @@
        - --font-face    body / long-form editorial serif (Source Serif 4).
        - --font-display headings, the `folio_` logo, and nav (Space Grotesk).
        - --font-mono    metadata + token readouts (JetBrains Mono).
-       A project slot overrides `--font-face` with its own roster face; `--font-display` /
+       A brand slot overrides `--font-face` with its own roster face; `--font-display` /
        `--font-mono` stay global editorial chrome (the shell is never brand-scoped). */
     --font-face: var(--font-source-serif-4), Georgia, "Times New Roman", serif;
     --font-display:

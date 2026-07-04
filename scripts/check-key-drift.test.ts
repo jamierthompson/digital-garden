@@ -73,7 +73,7 @@ describe("check-key-drift.mjs — drift detection (fixtures)", () => {
     write(
       "src/lib/resolvers/components.ts",
       overrides.components ??
-        `const PROJECT_LOADERS = {} satisfies Record<ComponentKey, ProjectLoader>;`,
+        `const ENTRY_LOADERS = {} satisfies Record<ComponentKey, EntryLoader>;`,
     );
     write(
       "src/lib/resolvers/embeds.ts",

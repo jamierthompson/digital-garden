@@ -1,5 +1,5 @@
-/* Live-embed wrapper. @layer project — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by its own scoped container). */
-@layer project {
+/* Live-embed wrapper. @layer components — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by its own scoped container). */
+@layer components {
   .embed {
     margin: var(--space-6) 0;
     /* Breakout: inside the entry article's named-column grid, a slot spans the full wide

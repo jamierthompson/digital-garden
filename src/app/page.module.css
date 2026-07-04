@@ -1,7 +1,7 @@
-/* Home (featured front door). @layer project — declares its layer (an unlayered module
+/* Home (featured front door). @layer components — declares its layer (an unlayered module
    outranks every layered rule). Var-consuming editorial frame only (reads the global semantic
    tokens); the branded card slots live in `EntryCard` (its own module + inline swatches). */
-@layer project {
+@layer components {
   .main {
     display: flex;
     flex-direction: column;

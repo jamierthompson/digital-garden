@@ -10,8 +10,8 @@ Sanity; the site renders on Next.js.
 > **Status:** the shared foundation, the OKLCH theming engine (`@garden/oklch`), the Sanity
 > content model, and the real garden entries are **live on Vercel** — with the editorial
 > garden shell, an RSS feed, Sanity draft mode + live preview wired to publish→production
-> revalidation, and the first coded project module: the **OKLCH Palette Studio**
-> (`src/projects/palette-studio/`), an interactive one-seed palette generator that re-runs
+> revalidation, and the first coded entry module: the **OKLCH Palette Studio**
+> (`src/entries/palette-studio/`), an interactive one-seed palette generator that re-runs
 > the engine live with a measured contrast receipt and CSS/Tailwind/JSON export. Remaining
 > work is tracked in [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
@@ -86,13 +86,13 @@ CI runs all of the above (plus a TypeGen drift check) on every PR.
 
 - **Foundation** (`src/app/foundation.css`, global `:root`) — the raw primitives + the reset:
   the neutral ramp, Source Serif 4, spacing, type scale, motion, z-index, focus-ring geometry,
-  breakpoint constants. Loaded first, and it declares the `@layer foundation, semantic, brand, project;` order.
+  breakpoint constants. Loaded first, and it declares the `@layer foundation, semantic, brand, components;` order.
 - **Semantic** (global `:root`) — the generic role tokens components read (`--surface`, `--text`,
   `--accent`, `--font-face`, `--space-*`, …), mapped from the primitives. Their editorial default
   mapping **is** the site's global look; this layer is the public token contract.
 - **Brand** (project-slot scope, engine-driven) — a full scoped override of the semantic tokens for
-  one slot (color, font, and anything else it differs on), baked flash-free by `ProjectScope` from
-  the `@garden/oklch` engine. No project-prefixed token names — the `[data-project]` scope provides
+  one slot (color, font, and anything else it differs on), baked flash-free by `EntryScope` from
+  the `@garden/oklch` engine. No project-prefixed token names — the `[data-entry]` scope provides
   isolation, so components everywhere read the same generic semantic names.
 
 Every CSS Module wraps its rules in an `@layer` (lint-enforced), because Next does
@@ -112,9 +112,9 @@ src/
     api/revalidate/     # signed Sanity webhook → revalidateTag (publish→prod)
     rss.xml/            # RSS feed route handler
     foundation.css      # foundation primitives + semantic editorial defaults + @layer order + reset
-  projects/             # self-contained project modules; types.ts = the ProjectModule contract; palette-studio/ = the OKLCH Palette Studio
+  entries/              # self-contained entry modules; types.ts = the EntryModule contract; palette-studio/ = the OKLCH Palette Studio
   embeds/               # shared in-essay embed components (key → component)
-  components/           # shell/ (SiteNav · SiteFooter), entry/ (EntryCard), project-scope (keystone), portable-text
+  components/           # shell/ (SiteNav · SiteFooter), entry/ (EntryCard), entry-scope (keystone), portable-text
   fonts/roster.ts       # curated next/font faces, one per key
   lib/                  # keys.ts (key contracts), resolvers/, cardSwatches.ts, breakpoints.ts
   sanity/lib/           # Sanity client + defineLive (live.ts) + stega + env + typed GROQ queries
@@ -127,10 +127,10 @@ tests/                  # shared Vitest setup/infra; suites co-locate beside the
 docs/                   # handbook (incl. architecture.md, the system model)
 ```
 
-Each project under `src/projects/<slug>/` is a self-contained module — its pages, its
+Each project under `src/entries/<slug>/` is a self-contained module — its pages, its
 interactive experience, scoped tokens. A thin route file at the flat root-level `/[slug]` mounts
 it, and a typed reference-by-key resolver maps a Sanity `componentKey` to a literal dynamic import.
-Dependencies point **projects → shared, never back** (lint-enforced). The OKLCH engine
+Dependencies point **entry modules → shared, never back** (lint-enforced). The OKLCH engine
 lives in its own `packages/oklch` workspace package (`@garden/oklch`), so the standalone
 Studio can import it too.
 

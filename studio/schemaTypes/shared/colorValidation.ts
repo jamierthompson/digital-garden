@@ -10,7 +10,7 @@
  * rejected ones it can).
  *
  * The engine is shared via a workspace package precisely so the standalone Studio can
- * import it — the same parse path the app's `ProjectScope` and `cardSwatches`
+ * import it — the same parse path the app's `EntryScope` and `cardSwatches`
  * run, so all three agree on what "valid" means. The engine never throws, so this
  * never throws; layers 1 (engine fallback) and 3 (`unstable_catchError`) still backstop
  * any value that slips through (e.g. edited via the API, not the Studio UI).

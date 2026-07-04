@@ -11,8 +11,8 @@
  *
  * `tokenSetToDeclarations` emits just the semantic tier; `rampSetToDeclarations` just the
  * ramp tier; `tokenSetToCss` emits both, wrapped in the scoped rule. Adding the
- * `--focus-ring-color` alias and the `--font-face` mapping is the project scope's job, not
- * the engine's. `ProjectScope` (owned elsewhere) composes the declarations it wants into its
+ * `--focus-ring-color` alias and the `--font-face` mapping is the entry scope's job, not
+ * the engine's. `EntryScope` (owned elsewhere) composes the declarations it wants into its
  * scoped `<style>`; this serializer is the convenience that produces them.
  */
 
@@ -30,7 +30,7 @@ import type {
 export interface CssOptions {
   /**
    * Value serialization (#99). Defaults to `oklch` — the native, lossless literal
-   * `ProjectScope` bakes. `hex`/`rgb` exist for the export surface (#107): identical
+   * `EntryScope` bakes. `hex`/`rgb` exist for the export surface (#107): identical
    * paint for the default `srgb` gamut, clamped for `p3`.
    */
   format?: ColorFormat;
@@ -39,7 +39,7 @@ export interface CssOptions {
 /**
  * Public custom-property prefix. The engine's token names ARE the generic semantic role
  * names, so the prefix is bare `--` (`--surface`, `--accent`, …) — no `--brand-`/project
- * namespace, because the `[data-project]` scope provides the isolation.
+ * namespace, because the `[data-entry]` scope provides the isolation.
  */
 const PREFIX = "--";
 
@@ -66,7 +66,7 @@ function rampProperty(role: RampRole, step: RampStep): string {
 /**
  * Just the SEMANTIC declaration lines (no selector, no layer) — the generic role contract
  * components read (`--surface`, `--accent`, … `--success`). For a caller that controls
- * placement and wants only the semantic tier (e.g. `ProjectScope`, which hand-assembles the
+ * placement and wants only the semantic tier (e.g. `EntryScope`, which hand-assembles the
  * block and adds its own aliases). Includes `color-scheme: light dark` so `light-dark()`
  * resolves and the scheme follows `prefers-color-scheme` by default. Each line is
  * `\n`-joined. The primitive ramp tier is a separate opt-in — see `rampSetToDeclarations`.
@@ -112,8 +112,8 @@ export function rampSetToDeclarations(
 /**
  * A complete, ready-to-inline scoped rule wrapped in `@layer brand` — the semantic role
  * tokens AND the per-role `50…950` ramp primitives (#98). `selector` is typically
- * `[data-project="<slug>"]`. Indentation is cosmetic. A caller wanting only the semantic
- * tier composes `tokenSetToDeclarations` itself (as `ProjectScope` does).
+ * `[data-entry="<slug>"]`. Indentation is cosmetic. A caller wanting only the semantic
+ * tier composes `tokenSetToDeclarations` itself (as `EntryScope` does).
  */
 export function tokenSetToCss(
   set: TokenSet,

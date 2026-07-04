@@ -1,12 +1,12 @@
 /* Base shell styling — layered into `@layer foundation` so it never out-ranks the semantic /
-   brand / project tiers. An UNLAYERED rule wins over every `@layer` (the "@layer trap"), which
+   brand / components tiers. An UNLAYERED rule wins over every `@layer` (the "@layer trap"), which
    is exactly what broke here: a stock unlayered `body { font-family: Arial }` from
    create-next-app was out-ranking the editorial tiers, and whether the editorial look showed
-   depended on which per-component `@layer project` font rule happened to win the cascade — so
+   depended on which per-component `@layer components` font rule happened to win the cascade — so
    it flipped on soft navigation as CSS chunks reordered.
 
    The body now reads the editorial SEMANTIC tokens (`--font-face`, `--text`, `--bg`), set once
-   here and inherited everywhere. A `[data-project]` slot re-binds those same tokens inside its
+   here and inherited everywhere. A `[data-entry]` slot re-binds those same tokens inside its
    scope; components that must pick up the slot's re-bound value re-assert `var(--font-face)`
    themselves. `light-dark()` follows the `color-scheme: light dark` set on the semantic `:root`
    (foundation.css), so no dark-mode media query is needed. */
@@ -29,7 +29,7 @@
     color: var(--text);
     /* The editorial "engineering journal" column ruler: a faint 1px vertical hairline every
        `--grid-column`, fixed so it stays put on scroll. `background-color` sits under the
-       `background-image` gradient (a project slot re-binds `--bg`; its own `--surface` blocks
+       `background-image` gradient (a brand slot re-binds `--bg`; its own `--surface` blocks
        cover the ruler where they paint). Decorative + incidental — see `--grid-line`. */
     background-color: var(--bg);
     background-image: repeating-linear-gradient(

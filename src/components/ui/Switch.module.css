@@ -1,6 +1,6 @@
-/* Toggle switch — @layer project, var-consuming only. Off reads as a hairline pill; on
+/* Toggle switch — @layer components, var-consuming only. Off reads as a hairline pill; on
    fills with the ambient accent. */
-@layer project {
+@layer components {
   .switch {
     position: relative;
     width: 2.5rem;

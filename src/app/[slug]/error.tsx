@@ -10,7 +10,7 @@ import styles from "./states.module.css";
 //
 // This catches an unexpected throw from the PAGE'S OWN render (e.g. a Sanity fetch failure),
 // NOT a throw from the route's layout/scope — a segment `error.tsx` cannot catch its own
-// layout's throw, which is exactly why `ProjectScope` is wrapped in `unstable_catchError`
+// layout's throw, which is exactly why `EntryScope` is wrapped in `unstable_catchError`
 // instead. The defensive engine means the common theming path never reaches here.
 export default function WorkError({
   error,
@@ -27,7 +27,7 @@ export default function WorkError({
   return (
     <main className={styles.state} role="alert">
       <h1 className={styles.heading}>Something went wrong</h1>
-      <p className={styles.body}>This project couldn’t be loaded right now.</p>
+      <p className={styles.body}>This entry couldn’t be loaded right now.</p>
       <button
         type="button"
         className={styles.link}

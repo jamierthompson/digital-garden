@@ -40,7 +40,7 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  *
  * The full entry document for one slug — UNLIKE the index query, it DOES pull the `body`
  * (the detail route renders it through the Portable Text serializer) plus the theming seeds
- * (`brandColor`, `brandColorDark`, `fontKey`, `componentKey`) that drive `ProjectScope` and
+ * (`brandColor`, `brandColorDark`, `fontKey`, `componentKey`) that drive `EntryScope` and
  * module resolution, the facets (`kind`, `stage`, `iterated`, `featuredRank`), and the
  * surrounding `title` / `blurb`. Backlinks resolve both directions: `related[]->`
  * is the outgoing edge; `backlinks` is the INCOMING edge (every entry that references this
@@ -50,9 +50,9 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  *
  * `$slug` is a GROQ parameter — the caller passes `{ slug }` to `.fetch`, never string
  * interpolation, so a hostile slug can't inject into the query. Typed by TypeGen as
- * `PROJECT_DETAIL_QUERYResult` in the root `sanity.types.ts`.
+ * `ENTRY_DETAIL_QUERYResult` in the root `sanity.types.ts`.
  */
-export const PROJECT_DETAIL_QUERY = defineQuery(`
+export const ENTRY_DETAIL_QUERY = defineQuery(`
   *[_type == "entry" && slug.current == $slug][0] {
     _id,
     title,
@@ -145,7 +145,7 @@ export const NOW_QUERY = defineQuery(`
  * `siteSettings` is intended as a singleton (one document, enforced via Studio Structure
  * in a separate slice). `[0]` guards that intent at the query layer: it returns the single
  * settings document (or `null` if none is published) so the shell can fall back defensively
- * rather than assume an array. Pulls the shell's brand seed + identity for `ProjectScope`
+ * rather than assume an array. Pulls the shell's brand seed + identity for `EntryScope`
  * (slug="garden") and default metadata. Typed as `SITE_SETTINGS_QUERYResult`.
  */
 export const SITE_SETTINGS_QUERY = defineQuery(`

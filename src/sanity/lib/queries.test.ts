@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  PROJECT_DETAIL_QUERY,
+  ENTRY_DETAIL_QUERY,
   SITE_SETTINGS_QUERY,
   WORK_INDEX_QUERY,
 } from "./queries";
@@ -55,11 +55,11 @@ describe("WORK_INDEX_QUERY", () => {
  * incoming `references()`), fetches by `$slug` parameter (never interpolation), and `[0]`s
  * to a single doc so the route can `notFound()` on a miss.
  */
-describe("PROJECT_DETAIL_QUERY", () => {
+describe("ENTRY_DETAIL_QUERY", () => {
   it("filters by the $slug parameter and collapses to one document", () => {
-    expect(PROJECT_DETAIL_QUERY).toContain('_type == "entry"');
-    expect(PROJECT_DETAIL_QUERY).toContain("slug.current == $slug");
-    expect(PROJECT_DETAIL_QUERY).toContain("[0]");
+    expect(ENTRY_DETAIL_QUERY).toContain('_type == "entry"');
+    expect(ENTRY_DETAIL_QUERY).toContain("slug.current == $slug");
+    expect(ENTRY_DETAIL_QUERY).toContain("[0]");
   });
 
   it("pulls the body, the theming seeds, and both directions of the backlink graph", () => {
@@ -76,10 +76,10 @@ describe("PROJECT_DETAIL_QUERY", () => {
       "related",
       "backlinks",
     ]) {
-      expect(PROJECT_DETAIL_QUERY).toContain(field);
+      expect(ENTRY_DETAIL_QUERY).toContain(field);
     }
     // Incoming backlinks resolve via references() against this document's id.
-    expect(PROJECT_DETAIL_QUERY).toContain("references(^._id)");
+    expect(ENTRY_DETAIL_QUERY).toContain("references(^._id)");
   });
 
   it("scopes the incoming backlinks to an aliased entry subquery, not a stray root filter", () => {
@@ -87,20 +87,20 @@ describe("PROJECT_DETAIL_QUERY", () => {
     // OTHER entries that reference it — not a `references()` predicate applied to the
     // matched doc itself. Assert the alias, the entry-typed subquery, and that both the
     // outgoing edge and the incoming edge carry the `kind` needed for the card label.
-    expect(PROJECT_DETAIL_QUERY).toContain('"backlinks": *[_type == "entry"');
-    expect(PROJECT_DETAIL_QUERY).toContain("related[]->{");
+    expect(ENTRY_DETAIL_QUERY).toContain('"backlinks": *[_type == "entry"');
+    expect(ENTRY_DETAIL_QUERY).toContain("related[]->{");
     // Both graph directions project a resolvable slug (never the raw reference) + kind.
-    expect(PROJECT_DETAIL_QUERY).toMatch(
+    expect(ENTRY_DETAIL_QUERY).toMatch(
       /related\[\]->\{[^}]*"slug": slug\.current[^}]*kind/,
     );
-    expect(PROJECT_DETAIL_QUERY).toMatch(
+    expect(ENTRY_DETAIL_QUERY).toMatch(
       /"backlinks":[^}]*"slug": slug\.current[^}]*kind/,
     );
   });
 
   it("uses a query parameter, never string interpolation (injection guard)", () => {
-    expect(PROJECT_DETAIL_QUERY).toContain("$slug");
-    expect(PROJECT_DETAIL_QUERY).not.toContain("${");
+    expect(ENTRY_DETAIL_QUERY).toContain("$slug");
+    expect(ENTRY_DETAIL_QUERY).not.toContain("${");
   });
 });
 

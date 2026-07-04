@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 
 // LOAD-BEARING IMPORT ORDER — do not reorder, and do not enable an import-sorter.
 // These global sheets establish the cascade-layer order (`@layer foundation, semantic, brand,
-// project;` in foundation.css) and MUST be imported before `next/font` and every component below.
+// components;` in foundation.css) and MUST be imported before `next/font` and every component below.
 // Turbopack anchors the route's FIRST emitted stylesheet to whatever is imported first; if a
-// `next/font`/component chunk lands first it registers `@layer project` as the LOWEST layer, so
-// the foundation reset out-ranks every project rule and zeroes their padding/margin. Pinned by
+// `next/font`/component chunk lands first it registers `@layer components` as the LOWEST layer, so
+// the foundation reset out-ranks every component rule and zeroes their padding/margin. Pinned by
 // layout.import-order.test.ts.
 import "./foundation.css";
 import "./globals.css";
@@ -25,9 +25,9 @@ import VisualEditingControls from "@/sanity/VisualEditingControls";
 // The shell's own body face. Source Serif 4 is the GLOBAL EDITORIAL body font — the semantic
 // `--font-face` default (foundation.css) maps to `var(--font-source-serif-4)`, so mounting its
 // `.variable` on <html> brings that variable into scope for all chrome. Its size-adjusted
-// fallback keeps CLS at zero. A project slot overrides `--font-face` with its own roster face.
+// fallback keeps CLS at zero. A brand slot overrides `--font-face` with its own roster face.
 // The shell's display face (Space Grotesk → `--font-display`, the `folio_` logo + nav) and
-// mono face (JetBrains Mono → `--font-mono`, metadata/readouts) are ALSO in the per-project
+// mono face (JetBrains Mono → `--font-mono`, metadata/readouts) are ALSO in the per-entry
 // roster, so the shell reuses those roster `.variable`s (mounted below) rather than declaring
 // duplicate loaders.
 //
@@ -40,7 +40,7 @@ const sourceSerif = Source_Serif_4({
   preload: false,
 });
 
-// Geist Mono is the project scope's shell-font FALLBACK (`--font-geist-mono`, used only when a
+// Geist Mono is the entry scope's shell-font FALLBACK (`--font-geist-mono`, used only when a
 // project's `fontKey` doesn't resolve — see scopeSeed.ts). Kept mounted so that fallback
 // resolves. Never above the fold on the shell routes, so `preload: false`. (Geist Sans was
 // removed — nothing read `--font-geist-sans`, so its preload was pure waste competing with LCP.)

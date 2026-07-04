@@ -25,7 +25,7 @@ interface SegmentedControlProps<T extends string> {
  * under the hood, so roving arrow-key navigation and `aria-checked` come for free).
  * Generic UI primitive: themes off the ambient semantic tokens (`--accent`,
  * `--on-accent`, `--border`, …) so it reads editorial by default and brand inside a
- * project slot. Provide `label` or `labelledBy`, not both.
+ * brand slot. Provide `label` or `labelledBy`, not both.
  */
 export default function SegmentedControl<T extends string>({
   label,

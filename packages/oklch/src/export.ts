@@ -1,7 +1,7 @@
 /**
  * Portable export formats (#99, consumed by the studio export UI #107): serialize a
  * `TokenSet` for use OUTSIDE this codebase — a Tailwind v4 `@theme` block and a W3C-DTCG
- * design-tokens JSON tree. The in-repo CSS serialization lives in `css.ts` (`ProjectScope`
+ * design-tokens JSON tree. The in-repo CSS serialization lives in `css.ts` (`EntryScope`
  * consumes that); these formats exist so a generated palette can leave the garden.
  *
  * Naming per format:

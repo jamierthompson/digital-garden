@@ -5,7 +5,7 @@ import { apcaLc, contrastWCAG, parseColor } from "@garden/oklch";
 /**
  * Accessibility guard for the GLOBAL EDITORIAL default tokens in `foundation.css`.
  *
- * The engine solves each project slot's tokens above the contrast floor (with a baked-in
+ * The engine solves each brand slot's tokens above the contrast floor (with a baked-in
  * `SOLVE_MARGIN`), and has its own contrast suite. But the editorial defaults the chrome
  * reads are **hand-authored hex** — nothing else measures them, so a future edit to a
  * neutral step or a status hue could silently drop an editorial text pair under WCAG 2.2

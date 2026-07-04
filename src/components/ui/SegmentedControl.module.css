@@ -1,7 +1,7 @@
-/* Segmented pill control — @layer project, var-consuming only (generic semantic tokens,
-   editorial by default, brand inside a project slot). ≥24px min target (WCAG 2.5.8); the
+/* Segmented pill control — @layer components, var-consuming only (generic semantic tokens,
+   editorial by default, brand inside a brand slot). ≥24px min target (WCAG 2.5.8); the
    checked pill fills with the ambient accent so the current choice reads at a glance. */
-@layer project {
+@layer components {
   .root {
     display: flex;
     flex-wrap: wrap;

@@ -6,7 +6,7 @@
  *   • `resolveTheme(brandColor, scheme, opts)` → one scheme's ramps + tokens
  *     (`cardSwatches`, and the interactive studio #70 — they want one scheme).
  *   • `buildTokenSet(brandColor, opts)` → both schemes zipped into `light-dark()` pairs
- *     (`ProjectScope`, which emits a single block carrying both schemes).
+ *     (`EntryScope`, which emits a single block carrying both schemes).
  *
  * The model (#98): the engine emits a **per-role generative ramp** — `brand`, `neutral`,
  * and the four status ramps — as 11 `50…950` steps (a pure perceptual-lightness primitive,
@@ -506,7 +506,7 @@ function zipRamps(
 }
 
 /**
- * Build the dual-scheme token set for `ProjectScope`: resolves both
+ * Build the dual-scheme token set for `EntryScope`: resolves both
  * schemes and zips each token — and each ramp step — into a `{ light, dark }` pair for
  * `light-dark()`. Pure, deterministic, never throws.
  */

@@ -1,7 +1,7 @@
 /**
  * `cardSwatches(brandColor)` — derives a card's engine-solved palette.
  *
- * Derives a project card's full engine-solved palette from its `brandColor`, as inline
+ * Derives an entry card's full engine-solved palette from its `brandColor`, as inline
  * overrides of the GENERIC semantic tokens (`--surface`, `--text`, `--border`, `--accent`) —
  * the same role names every component already reads. Spread straight onto a card's `style={…}`
  * they re-bind those tokens for that card's subtree (scope-isolation via the inline cascade),
@@ -14,7 +14,7 @@
  * *is* the solver's output — exercised and visible at every brand value across the grid. A
  * card is a project's own scoped slot (not chrome), so a fully-branded card is exactly "brand
  * scoped to the slot"; the editorial-chrome inversion (#58) governs the shell and page frame,
- * not the project slots.
+ * not the brand slots.
  *
  * Total and defensive: delegates to `buildTokenSet`, which on bad/missing/hostile input
  * returns the safe fallback palette — so this NEVER throws and always returns a valid swatch

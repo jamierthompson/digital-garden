@@ -1,5 +1,5 @@
-/* Mono micro-kicker — @layer project, var-consuming only. */
-@layer project {
+/* Mono micro-kicker — @layer components, var-consuming only. */
+@layer components {
   .kicker {
     font-family: var(--font-mono);
     font-size: 0.6875rem;

@@ -1,7 +1,7 @@
-/* Panel primitive — @layer project, var-consuming only. The framed demo-panel surface:
+/* Panel primitive — @layer components, var-consuming only. The framed demo-panel surface:
    hairline border, soft radius, ambient surface/text (editorial by default, brand inside
-   a project slot). */
-@layer project {
+   a brand slot). */
+@layer components {
   .panel {
     display: flex;
     flex-direction: column;

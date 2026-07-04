@@ -1,5 +1,5 @@
-/* Pill action button — @layer project, var-consuming only. */
-@layer project {
+/* Pill action button — @layer components, var-consuming only. */
+@layer components {
   .button {
     display: inline-flex;
     align-items: center;

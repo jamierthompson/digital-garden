@@ -16,7 +16,7 @@ describe("key contracts", () => {
     for (const key of FONT_KEYS) expect(typeof key).toBe("string");
   });
 
-  it("COMPONENT_KEYS is a unique set holding the landed project modules", () => {
+  it("COMPONENT_KEYS is a unique set holding the landed entry modules", () => {
     // The first real coded module is the Palette Studio (#70); its key is registered here
     // and mapped to a literal dynamic import in the components resolver.
     expect(new Set(COMPONENT_KEYS).size).toBe(COMPONENT_KEYS.length);

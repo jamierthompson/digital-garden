@@ -1,7 +1,7 @@
-/* Site navigation — the "engineering journal" masthead. @layer project — declares its layer
+/* Site navigation — the "engineering journal" masthead. @layer components — declares its layer
    (unlayered modules outrank every layered rule); var-consuming only. Reads the global
    editorial semantic tokens (the shell is never brand-scoped). */
-@layer project {
+@layer components {
   .header {
     /* The signature journal rule: a heavy ink hairline under the masthead. */
     border-bottom: 2px solid var(--text);

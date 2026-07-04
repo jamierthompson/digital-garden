@@ -1,0 +1,39 @@
+/* Studio slot chrome — @layer components, var-consuming (ambient EntryScope tokens; the
+   generated palette appears only as child swatch data). The panel frame itself is the
+   shared ui/Panel primitive; this module holds only slot-internal layout. */
+@layer components {
+  /* Anchor receipt — a READOUT of the engine's automatic anchoring, not a control. */
+  .anchor {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+
+  /* Light + dark side by side (preview panels, receipt cards) — both schemes always shown. */
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  @media (--xs-down) {
+    .pair {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* The no-frame placeholder — same honest-degradation voice as MissingEmbed. */
+  .missing {
+    margin: 0;
+    padding: var(--space-4);
+    border: 1px dashed var(--border);
+    border-radius: 0.5rem;
+    font-style: italic;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+}

@@ -5,7 +5,7 @@
 // regardless of specificity (the "@layer trap" — a stock unlayered `body{…}` from
 // create-next-app once broke editorial theming this way, uncaught because this
 // script only scanned `*.module.css`). Wrap rules in the appropriate @layer
-// (foundation | semantic | brand | project). `@layer` statements/blocks, `@import`,
+// (foundation | semantic | brand | components). `@layer` statements/blocks, `@import`,
 // and `@media`/`@supports` wrapping layered rules are all fine — only a bare
 // top-level style rule is a violation.
 import { readdirSync, readFileSync } from "node:fs";
@@ -60,7 +60,7 @@ if (violations.length) {
   console.error("CSS with rules outside an @layer block:\n");
   for (const v of violations) console.error(`  ${v}`);
   console.error(
-    `\n${violations.length} violation(s). Wrap rules in @layer (foundation | semantic | brand | project).`,
+    `\n${violations.length} violation(s). Wrap rules in @layer (foundation | semantic | brand | components).`,
   );
   process.exit(1);
 }

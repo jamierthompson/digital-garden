@@ -126,7 +126,7 @@ describe("visual contrast harness", () => {
     // Scope the write to the `node` project only: it's where the engine's pure
     // output lives most naturally, and node's `fs` avoids jsdom's URL-global quirk
     // (see fileURLToPath note below). `task.file.projectName` is Vitest's public
-    // per-project name; under jsdom this returns early and only asserts.
+    // per-entry name; under jsdom this returns early and only asserts.
     if (ctx.task.file.projectName !== "node") return;
     // Deterministic engine → identical bytes on every run, so this never dirties git
     // unless the engine's output actually changed (which is meaningful signal).

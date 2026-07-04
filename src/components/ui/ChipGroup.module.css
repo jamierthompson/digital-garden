@@ -1,5 +1,5 @@
-/* Single-select pill-chip group — @layer project, var-consuming only. */
-@layer project {
+/* Single-select pill-chip group — @layer components, var-consuming only. */
+@layer components {
   .group {
     display: flex;
     flex-wrap: wrap;

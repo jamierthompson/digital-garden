@@ -92,7 +92,7 @@ describe("check-css-layers.mjs — global sheets", () => {
   it("PASSES a correctly layered global sheet (mirrors foundation.css)", () => {
     const { status, stdout } = run({
       "foundation.css": [
-        "@layer foundation, semantic, brand, project;",
+        "@layer foundation, semantic, brand, components;",
         "",
         "@layer foundation {",
         "  :root {",
@@ -109,7 +109,7 @@ describe("check-css-layers.mjs — global sheets", () => {
   it("PASSES the bare `@layer a, b, c;` statement form (no block) alongside a layered rule", () => {
     const { status, stdout } = run({
       "globals.css": [
-        "@layer foundation, semantic, brand, project;",
+        "@layer foundation, semantic, brand, components;",
         "",
         "@layer foundation {",
         "  .foo { color: red; }",

@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // next/font/google is a build-time transform, untransformed under Vitest — mock the faces
-// pulled in transitively via ProjectScope → resolveScope → FONT_FACES (same shape as the
-// integration test / ProjectScope.test.tsx).
+// pulled in transitively via EntryScope → resolveScope → FONT_FACES (same shape as the
+// integration test / EntryScope.test.tsx).
 vi.mock("next/font/google", () => ({
   Inter: () => ({ variable: "mock-inter" }),
   Newsreader: () => ({ variable: "mock-newsreader" }),
@@ -31,7 +31,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Control component-key resolution so we exercise the PAGE's kind-gating branch without
-// importing a real, heavy project module. `found`/`notFound` come from the real resolution
+// importing a real, heavy entry module. `found`/`notFound` come from the real resolution
 // module (unmocked) so `isNotFound` in the page narrows correctly.
 const { resolveComponentKeyMock } = vi.hoisted(() => ({
   resolveComponentKeyMock: vi.fn(),
@@ -113,8 +113,8 @@ describe("EntryPage — kind-aware detail", () => {
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("A blurb.")).toBeInTheDocument();
-    // No interactive project slot for a non-project.
-    expect(container.querySelector("[data-project]")).toBeNull();
+    // No interactive brand slot for a non-project.
+    expect(container.querySelector("[data-entry]")).toBeNull();
     expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
   });
 
@@ -129,7 +129,7 @@ describe("EntryPage — kind-aware detail", () => {
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
     );
-    expect(container.querySelector("[data-project]")).toBeNull();
+    expect(container.querySelector("[data-entry]")).toBeNull();
     expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
   });
 
@@ -159,7 +159,7 @@ describe("EntryPage — kind-aware detail", () => {
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("A sketch blurb.")).toBeInTheDocument();
-    expect(container.querySelector("[data-project]")).toBeNull();
+    expect(container.querySelector("[data-entry]")).toBeNull();
     expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
     // The key resolver must never even be consulted when there is no componentKey.
     expect(resolveComponentKeyMock).not.toHaveBeenCalled();
@@ -201,7 +201,7 @@ describe("EntryPage — kind-aware detail", () => {
     const { container } = render(
       await EntryPage({ params: params("palette-studio") }),
     );
-    const slot = container.querySelector("[data-project]");
+    const slot = container.querySelector("[data-entry]");
     expect(slot).not.toBeNull();
     expect(screen.getByTestId("experience")).toBeInTheDocument();
   });
@@ -233,6 +233,6 @@ describe("EntryPage — kind-aware detail", () => {
     expect(frame.querySelector("h1")).not.toBeNull();
     // No monolithic slot, no page-level brand scope from the frame itself.
     expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
-    expect(container.querySelector("[data-project]")).toBeNull();
+    expect(container.querySelector("[data-entry]")).toBeNull();
   });
 });

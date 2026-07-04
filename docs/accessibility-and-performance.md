@@ -101,11 +101,11 @@ The architecture already buys most of this — don't undo it:
 - **Keep the featured / Index queries essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `blurb` / `brandColor` /
   `fontKey`, never the essay. Small index payload protects **LCP**. Don't add the essay to
   the card query "for convenience."
-- **Keep the slot's `ProjectScope` in the prerendered shell** (PPR via Cache Components — see the repo & hosting section of [`./architecture.md`](./architecture.md)):
+- **Keep the slot's `EntryScope` in the prerendered shell** (PPR via Cache Components — see the repo & hosting section of [`./architecture.md`](./architecture.md)):
   the slot's theme `<style>` + font class land in the **initial static HTML** (flash-free); the
   essay/notes stream. Don't push the slot scope into a streamed hole.
 - **Don't introduce layout shift.** `next/font`'s size-adjusted fallback gives zero CLS; a
-  per-project display face swaps _intentionally_ on navigation (see the Fonts section of [`./architecture.md`](./architecture.md)) — that's by design, not
+  per-entry display face swaps _intentionally_ on navigation (see the Fonts section of [`./architecture.md`](./architecture.md)) — that's by design, not
   a CLS bug. Reserve space for media; size embeds.
 
 **CWV is verified by a dedicated budget pass** (tracked in the issue backlog), **not
@@ -124,14 +124,14 @@ before touching the roster.
   must set `false` **explicitly** on each face in `src/fonts/roster.ts`.
 - **`preload: true` only on the 1–2 shell faces** declared in the **root layout** — they
   apply on every route.
-- **Why per-project faces can't be preloaded:** `next/font` preload injection is a
+- **Why per-entry faces can't be preloaded:** `next/font` preload injection is a
   **build-time static transform** keyed to a _statically referenced_ font object.
   `roster[fontKey].variable` is a **runtime index** Next can't target. This is a
   _static-analyzability_ question — **not** SSG-vs-dynamic. Under Cache Components the
   static-vs-dynamic boundary is component-level (`use cache` placement), not a route toggle.
   Caching bakes the resolved className into the HTML but emits **no**
   `<link rel=preload as=font>` for a face it couldn't statically identify.
-- **Per-project faces are applied, not preloaded:** `.variable` on the `[data-project]`
+- **Per-entry faces are applied, not preloaded:** `.variable` on the `[data-entry]`
   scope, where the slot's generic `--font-face` maps to it; they tolerate `font-display: swap`
   below the fold.
 - **If an above-the-fold project face genuinely must preload,** emit
@@ -147,10 +147,10 @@ sleep 3                           # let the server come up
 curl -s http://localhost:3000/<slug> \
   | grep -o '<link rel="preload"[^>]*as="font"[^>]*>'
 # Expect ONLY your 1–2 shell faces (match the filenames from src/fonts/roster.ts).
-# A resolved per-project face in this output = the policy is defeated → investigate.
+# A resolved per-entry face in this output = the policy is defeated → investigate.
 ```
 
-Diff the output against the known shell-face filenames. If a per-project face appears,
+Diff the output against the known shell-face filenames. If a per-entry face appears,
 `preload: false` is missing somewhere or a face is being statically referenced where it
 shouldn't be.
 
@@ -162,7 +162,7 @@ Unit tests run in **jsdom**: it doesn't paint, can't render async RSCs
 ([`./testing.md`](./testing.md)), and measures nothing about focus visibility, tap-target size,
 layout shift, or paint timing. So a green `pnpm test` + `pnpm build` is **not** evidence a
 surface is accessible or unbroken in a real browser. **When a task ships or changes a rendered,
-user-facing surface** — a route, a component's visual output, theming / `ProjectScope`, or any
+user-facing surface** — a route, a component's visual output, theming / `EntryScope`, or any
 focus/interaction state — **verify it in a real browser with the `chrome-devtools` MCP before
 calling it done.** No login needed; serve the page first (`pnpm dev`, or `pnpm build &&
 pnpm start` for production-faithful output), then drive the MCP.
@@ -174,10 +174,10 @@ pnpm start` for production-faithful output), then drive the MCP.
   featured-home cards / embed controls (2.5.8 — the Focus & interaction section above), and a Lighthouse a11y pass surfaces no
   semantics/contrast regression. The engine harness owns the **numeric** contrast proof
   (the Contrast section above, [`./testing.md`](./testing.md)); this is the in-browser cross-check on the assembled page.
-- **Layout & paint** — no unexpected **CLS** on load, and none on the _intentional_ per-project
+- **Layout & paint** — no unexpected **CLS** on load, and none on the _intentional_ per-entry
   font swap (the Core Web Vitals budgets section above); media has reserved space; embeds are sized.
 - **Flash-free theme** — the scoped theme `<style>` and the font `.variable` class are
-  in the **initial HTML** (no FOUC on first paint), confirming `ProjectScope` rendered in the
+  in the **initial HTML** (no FOUC on first paint), confirming `EntryScope` rendered in the
   prerendered shell, not a streamed hole. The browser counterpart to the Font-preload policy section's empirical `<head>` check.
 - **Console** — no errors or warnings on the surface you touched.
 
@@ -202,7 +202,7 @@ the Font-preload policy section's `<head>` check. Committed automated coverage s
    Don't claim "WCAG 3 compliant."
 5. **`outline: none` without a visible replacement fails 2.4.7** — always pair with a
    `:focus-visible` ring ≥ 3:1.
-6. **Don't expect per-project fonts to preload** — runtime `fontKey` defeats static
+6. **Don't expect per-entry fonts to preload** — runtime `fontKey` defeats static
    analysis. Set `preload: false` and verify the `<head>` empirically.
 7. **Sticky nav can obscure focus** (2.4.11); **tap targets ≥ 24×24px** (2.5.8) on
    nav / cards / embed controls.

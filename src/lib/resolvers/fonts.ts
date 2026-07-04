@@ -9,7 +9,7 @@ import { found, notFound, type Resolution } from "./resolution";
 /**
  * Resolve a `fontKey` (an arbitrary string from Sanity) to its roster face.
  * Returns `NotFound` when the key is not in `FONT_KEYS` — the caller
- * (`ProjectScope`) falls back to the shell font on a miss.
+ * (`EntryScope`) falls back to the shell font on a miss.
  */
 export function resolveFontKey(key: string): Resolution<FontFace> {
   return isFontKey(key) ? found(FONT_FACES[key]) : notFound("font", key);

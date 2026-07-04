@@ -1,8 +1,8 @@
-/* Branded entry card — a solid brand PLATE (mockup 4a). @layer project — declares its layer
+/* Branded entry card — a solid brand PLATE (mockup 4a). @layer components — declares its layer
    (an unlayered module outranks every layered rule). Reads ONLY the semantic tokens
    `cardSwatches` re-binds on this card's element: the plate is `--accent`, its text the
    engine-solved contrast pair `--on-accent`, so each plate is legible by construction. */
-@layer project {
+@layer components {
   .card {
     display: flex;
     background: var(--accent);

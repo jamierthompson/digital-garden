@@ -1,7 +1,7 @@
 /**
  * The public-surface FREEZE GUARD (#99). The engine's exported names — the module's
  * runtime exports, the canonical token/role/label lists, and the custom properties the
- * serializers emit — are the frozen contract that `ProjectScope`, `cardSwatches`, Sanity
+ * serializers emit — are the frozen contract that `EntryScope`, `cardSwatches`, Sanity
  * author-time validation, and the studio (#70/#107) depend on.
  *
  * A failure here means the contract changed. That is allowed to happen only as a

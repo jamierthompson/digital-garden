@@ -49,7 +49,7 @@ training data.
 5. **Never throws — returns a safe fallback.** `brandColor` comes from an editor and may be invalid or
    out-of-gamut. The engine parses / clamps / gamut-validates and **returns a safe fallback palette**;
    it must never throw or return `NaN`/`undefined` tokens. This is the first layer of a three-layer
-   defense (engine fallback + Sanity author-time validation + a `ProjectScope` backstop). Throw garbage
+   defense (engine fallback + Sanity author-time validation + an `EntryScope` backstop). Throw garbage
    input at the change in your head: empty string, `null`, a non-color, an out-of-P3 color, a wildly
    out-of-range L/C/H — each must yield the fallback, not a crash. If tests don't cover these, that's a
    finding.

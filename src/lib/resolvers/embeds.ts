@@ -3,8 +3,8 @@
 // typed `NotFound` for an unknown key — the caller renders a "missing embed"
 // placeholder in the serializer rather than crashing the essay.
 //
-// Single-tier registry by design: a project-local tier is added only when a
-// second project reuses a widget.
+// Single-tier registry by design: an entry-local tier is added only when a
+// second entry module reuses a widget.
 
 import { type EmbedKey } from "@/lib/keys";
 
@@ -18,19 +18,19 @@ export type EmbedLoader = () => Promise<unknown>;
 // lazy import per key — never templated (a templated import defeats bundler static analysis).
 const EMBED_LOADERS = {
   "palette-studio-seed": () =>
-    import("@/projects/palette-studio/slots/SeedSlot"),
+    import("@/entries/palette-studio/slots/SeedSlot"),
   "palette-studio-rules": () =>
-    import("@/projects/palette-studio/slots/RulesSlot"),
+    import("@/entries/palette-studio/slots/RulesSlot"),
   "palette-studio-primitives": () =>
-    import("@/projects/palette-studio/slots/PrimitivesSlot"),
+    import("@/entries/palette-studio/slots/PrimitivesSlot"),
   "palette-studio-tokens": () =>
-    import("@/projects/palette-studio/slots/TokensSlot"),
+    import("@/entries/palette-studio/slots/TokensSlot"),
   "palette-studio-preview": () =>
-    import("@/projects/palette-studio/slots/PreviewSlot"),
+    import("@/entries/palette-studio/slots/PreviewSlot"),
   "palette-studio-receipt": () =>
-    import("@/projects/palette-studio/slots/ReceiptSlot"),
+    import("@/entries/palette-studio/slots/ReceiptSlot"),
   "palette-studio-export": () =>
-    import("@/projects/palette-studio/slots/ExportSlot"),
+    import("@/entries/palette-studio/slots/ExportSlot"),
 } satisfies Record<EmbedKey, EmbedLoader>;
 
 // Two variables, two jobs. `EMBED_LOADERS` keeps its literal type so `satisfies`

@@ -7,11 +7,11 @@ import { describe, expect, it } from "vitest";
  * Guards the load-bearing global-CSS import order in `layout.tsx` (foundation.css imported first).
  *
  * The global stylesheets (`foundation.css`, which declares
- * `@layer foundation, brand, project;`) MUST be imported before `next/font` and the
+ * `@layer foundation, semantic, brand, components;`) MUST be imported before `next/font` and the
  * component imports. Turbopack anchors the route's first emitted stylesheet to whatever
  * is imported first; if a `next/font`/component-module chunk loads first, the browser
- * registers `@layer project` as the lowest cascade layer and the foundation reset
- * out-ranks every project rule — the cascade inversion that zeroes project padding/margin.
+ * registers `@layer components` as the lowest cascade layer and the foundation reset
+ * out-ranks every component rule — the cascade inversion that zeroes component padding/margin.
  *
  * This is a SOURCE-ORDER invariant with no runtime API to assert against (the harm only
  * shows in the bundled CSS / live browser), so we pin it at the source: the foundation/
