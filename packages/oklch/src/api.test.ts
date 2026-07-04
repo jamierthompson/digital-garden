@@ -13,7 +13,52 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import * as api from "./index";
-import type { ColorFormat, Scheme, SchemeResult, TokenSet } from "./types";
+// Import every type from the BARREL (not "./types") — resolving these is the freeze guard
+// for the type-only public surface: the signature checks below only reach the ~6 types
+// transitively named in the checked function signatures, so a STANDALONE exported type
+// (e.g. `RampPair`, `SchemeTokens`) could be dropped from `index.ts` and this suite would
+// stay green. VERIFIED gap: deleting `export type { RampPair }` left the signature checks
+// passing (10/10); importing each barrel type here makes such a drop fail `pnpm typecheck`.
+import type {
+  // color primitives
+  OkLCH,
+  OkLab,
+  RGB,
+  Scheme,
+  Gamut,
+  ColorFormat,
+  // token/ramp vocabulary
+  BrandTokenName,
+  RampLabel,
+  RampRole,
+  RampStep,
+  Ramp,
+  RampPair,
+  SchemePair,
+  SchemeTokens,
+  BindingStep,
+  BindingProvenance,
+  BindingPair,
+  SchemeResult,
+  TokenSet,
+  // palette options
+  EngineOptions,
+  // css options
+  CssOptions,
+  // export surface
+  ExportOptions,
+  DesignToken,
+  DesignTokenScheme,
+  DesignTokensExport,
+  // contrast surface
+  ContrastTarget,
+  SolveOptions,
+  // ramp surface
+  RampOptions,
+  RampSpec,
+  // binding surface
+  TokenBinding,
+} from "./index";
 
 /** Every runtime export of `@garden/oklch`, alphabetized. Type-only exports don't exist
  *  at runtime; the signature checks below guard those. */
@@ -142,5 +187,52 @@ describe("the frozen public surface (#99)", () => {
       [api.OkLCH, api.OkLCH, api.ContrastTarget]
     >();
     expectTypeOf(api.checkContrast).returns.toEqualTypeOf<api.ContrastCheck>();
+  });
+});
+
+/**
+ * A compile-time roll-call of every public type. If any import above disappears from the
+ * barrel, this file fails to type-check → `pnpm typecheck` fails. The runtime body is a
+ * no-op; the guard is the import list resolving. If a type is intentionally added to the
+ * public surface, add it to the barrel import above in the same commit.
+ */
+type PublicTypeSurface = {
+  OkLCH: OkLCH;
+  OkLab: OkLab;
+  RGB: RGB;
+  Scheme: Scheme;
+  Gamut: Gamut;
+  ColorFormat: ColorFormat;
+  BrandTokenName: BrandTokenName;
+  RampLabel: RampLabel;
+  RampRole: RampRole;
+  RampStep: RampStep;
+  Ramp: Ramp;
+  RampPair: RampPair;
+  SchemePair: SchemePair;
+  SchemeTokens: SchemeTokens;
+  BindingStep: BindingStep;
+  BindingProvenance: BindingProvenance;
+  BindingPair: BindingPair;
+  SchemeResult: SchemeResult;
+  TokenSet: TokenSet;
+  EngineOptions: EngineOptions;
+  CssOptions: CssOptions;
+  ExportOptions: ExportOptions;
+  DesignToken: DesignToken;
+  DesignTokenScheme: DesignTokenScheme;
+  DesignTokensExport: DesignTokensExport;
+  ContrastTarget: ContrastTarget;
+  SolveOptions: SolveOptions;
+  RampOptions: RampOptions;
+  RampSpec: RampSpec;
+  TokenBinding: TokenBinding;
+};
+
+describe("frozen public TYPE surface (#99) — completeness guard", () => {
+  it("every documented public type is exported from the barrel", () => {
+    // If this file compiled, all 30 type exports resolved. Assert the map is inhabited
+    // so the test is not empty; the real guard is compile-time.
+    expectTypeOf<PublicTypeSurface>().toBeObject();
   });
 });

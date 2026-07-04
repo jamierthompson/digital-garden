@@ -8,6 +8,12 @@ import {requiredForNonSketchProject, requiredForProject} from './entryValidators
 type Ctx = Parameters<typeof requiredForProject>[1]
 const ctx = (document: unknown): Ctx => ({document}) as unknown as Ctx
 
+// The theming seeds are CAPABILITY fields: required only on a `project` (the floor these
+// validators enforce), but honored downstream for any kind except `now`. So the contract has
+// two halves per kind — the required floor (below) AND that a value set on an optional kind
+// is accepted, never rejected. Both halves are pinned here.
+const OPTIONAL_KINDS = ['note', 'essay', 'now'] as const
+
 describe('requiredForProject — brandColor: required for EVERY project', () => {
   it('is required for a project with no value (any stage)', () => {
     expect(requiredForProject(undefined, ctx({kind: 'project', stage: 'sketch'}))).toMatch(/Required/)
@@ -19,14 +25,42 @@ describe('requiredForProject — brandColor: required for EVERY project', () => 
     expect(requiredForProject('oklch(0.6 0.1 200)', ctx({kind: 'project', stage: 'prototype'}))).toBe(true)
   })
 
-  it('is never required for a note/essay/now, value or not', () => {
-    for (const kind of ['note', 'essay', 'now']) {
+  it('is never required for a note/essay/now, whatever the stage', () => {
+    for (const kind of OPTIONAL_KINDS) {
       expect(requiredForProject(undefined, ctx({kind}))).toBe(true)
+    }
+  })
+
+  it('ACCEPTS a brandColor set on a note/essay/now — optional means honored, not rejected', () => {
+    for (const kind of OPTIONAL_KINDS) {
+      expect(requiredForProject('#4f46e5', ctx({kind}))).toBe(true)
     }
   })
 
   it('passes when the document is missing (no kind to read)', () => {
     expect(requiredForProject(undefined, ctx(undefined))).toBe(true)
+  })
+
+  // --- QA hardening: cleared-field, unknown-kind, and half-created-draft edges ---
+
+  it('treats a cleared field (null) as missing — required for a project', () => {
+    // Clearing a field in Studio can yield null (not just undefined); the required floor
+    // must still fire, otherwise an editor can "empty" a project's brandColor and ship it.
+    expect(requiredForProject(null, ctx({kind: 'project', stage: 'sketch'}))).toMatch(/Required/)
+  })
+
+  it('is NOT required for an unknown/future kind — the floor is project-ONLY, not an allowlist', () => {
+    // Guards against a refactor to an optional-kind allowlist (['note','essay','now']):
+    // that would falsely require any kind outside the list. The contract is "required iff
+    // project", so any non-project kind — even one not yet invented — must pass.
+    expect(requiredForProject(undefined, ctx({kind: 'bookmark'}))).toBe(true)
+  })
+
+  it('is NOT required for a draft whose kind is not yet chosen (document present, no kind)', () => {
+    // A brand-new draft exists before the editor picks a kind; it must not throw a required
+    // error on brandColor the instant it is created.
+    expect(requiredForProject(undefined, ctx({stage: 'prototype'}))).toBe(true)
+    expect(requiredForProject(undefined, ctx({}))).toBe(true)
   })
 })
 
@@ -55,12 +89,37 @@ describe('requiredForNonSketchProject — componentKey/fontKey: required only PA
   })
 
   it('is never required for a note/essay/now, whatever the stage', () => {
-    for (const kind of ['note', 'essay', 'now']) {
+    for (const kind of OPTIONAL_KINDS) {
       expect(requiredForNonSketchProject(undefined, ctx({kind, stage: 'prototype'}))).toBe(true)
+    }
+  })
+
+  it('ACCEPTS a componentKey/fontKey set on a note/essay/now — honored, not rejected', () => {
+    for (const kind of OPTIONAL_KINDS) {
+      expect(requiredForNonSketchProject('palette-studio', ctx({kind, stage: 'prototype'}))).toBe(true)
     }
   })
 
   it('passes when the document is missing', () => {
     expect(requiredForNonSketchProject(undefined, ctx(undefined))).toBe(true)
+  })
+
+  // --- QA hardening: cleared-field, unknown-kind, and half-created-draft edges ---
+
+  it('treats a cleared field (null) as missing on a non-sketch project', () => {
+    expect(requiredForNonSketchProject(null, ctx({kind: 'project', stage: 'shipped'}))).toMatch(
+      /past the sketch stage/,
+    )
+  })
+
+  it('is NOT required for an unknown/future kind past sketch — floor is project-ONLY', () => {
+    expect(requiredForNonSketchProject(undefined, ctx({kind: 'bookmark', stage: 'prototype'}))).toBe(
+      true,
+    )
+  })
+
+  it('is NOT required for a draft whose kind is not yet chosen, whatever the stage', () => {
+    expect(requiredForNonSketchProject(undefined, ctx({stage: 'prototype'}))).toBe(true)
+    expect(requiredForNonSketchProject(undefined, ctx({}))).toBe(true)
   })
 })

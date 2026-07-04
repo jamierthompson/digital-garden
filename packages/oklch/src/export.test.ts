@@ -44,6 +44,19 @@ describe("tokenSetToTailwindTheme", () => {
       /--color-brand-500: light-dark\(rgb\(\d+ \d+ \d+\), rgb\(\d+ \d+ \d+\)\);/,
     );
   });
+
+  it("emits no duplicate --color-* custom properties (#99)", () => {
+    const props = [...theme.matchAll(/(--color-[\w-]+):/g)].map((m) => m[1]);
+    expect(new Set(props).size).toBe(props.length);
+  });
+
+  it("p3-gamut hex export clamps to valid 6-digit sRGB hex — no overflow literals (#99)", () => {
+    const set = buildTokenSet("oklch(0.7 0.37 145)", { gamut: "p3" });
+    const p3 = tokenSetToTailwindTheme(set, { format: "hex" });
+    const hexes = [...p3.matchAll(/#[0-9a-fA-F]+/g)].map((m) => m[0]);
+    expect(hexes.length).toBeGreaterThan(0);
+    for (const h of hexes) expect(h).toMatch(/^#[0-9a-f]{6}$/);
+  });
 });
 
 describe("tokenSetToDesignTokens", () => {
@@ -111,5 +124,20 @@ describe("tokenSetToDesignTokens", () => {
     expect(tokens.light.semantic.text.$value).not.toEqual(
       tokens.dark.semantic.text.$value,
     );
+  });
+
+  it("shapes EVERY token in every group as an object $value — no CSS string anywhere (#99)", () => {
+    // Completeness beyond the single-accent shape check above: a DTCG color token's `$value`
+    // must be an object, never a CSS string, for every semantic token AND every ramp step.
+    for (const scheme of ["light", "dark"] as const) {
+      for (const token of Object.values(tokens[scheme].semantic)) {
+        expect(typeof token.$value).toBe("object");
+      }
+      for (const ramp of Object.values(tokens[scheme].ramps)) {
+        for (const token of Object.values(ramp)) {
+          expect(typeof token.$value).toBe("object");
+        }
+      }
+    }
   });
 });

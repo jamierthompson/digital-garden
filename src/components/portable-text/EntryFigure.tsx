@@ -1,4 +1,4 @@
-import styles from "./EssayFigure.module.css";
+import styles from "./EntryFigure.module.css";
 
 interface FigureValue {
   alt?: string;
@@ -15,7 +15,7 @@ interface FigureValue {
  * "name the destination, instantiate late" discipline), this renders the authored alt
  * + caption as a labelled placeholder. Var-consuming, themed by the surrounding scope.
  */
-export default function EssayFigure({ value }: { value: FigureValue }) {
+export default function EntryFigure({ value }: { value: FigureValue }) {
   const label = value.alt ?? value.caption ?? "Figure";
   return (
     <figure className={styles.figure}>
