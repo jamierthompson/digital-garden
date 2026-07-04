@@ -56,4 +56,15 @@ describe("resolveComponentKey", () => {
       }
     }
   });
+  // DEFECT (QA #131, documented — do not delete): same prototype-lookup hole as
+  // resolveEmbedKey — `loaders[key]` on a plain object resolves inherited members, so a
+  // componentKey of "__proto__"/"constructor" returns Found. EntryPage then passes its
+  // notFound() drift guard and crashes on `resolution.value()`. Must be NotFound; guard
+  // with `Object.hasOwn` or a null-prototype map. Flip `it.fails` to `it` on fix.
+  it.fails.each(["__proto__", "constructor"])(
+    "treats the prototype-inherited name '%s' as NotFound",
+    (key) => {
+      expect(isNotFound(resolveComponentKey(key))).toBe(true);
+    },
+  );
 });
