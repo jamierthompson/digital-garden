@@ -1,0 +1,16 @@
+/* Root loading boundary. @layer project — declares its layer (an unlayered module outranks
+   every layered rule). Editorial chrome only: var-consuming from foundation scales, matching
+   the [slug] state boundaries' treatment. */
+@layer project {
+  .state {
+    max-width: var(--width-prose);
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-6);
+    text-align: center;
+  }
+
+  .body {
+    margin: 0;
+    color: color-mix(in oklab, currentColor 70%, transparent);
+  }
+}
