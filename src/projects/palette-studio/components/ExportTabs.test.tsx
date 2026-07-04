@@ -95,9 +95,9 @@ describe("ExportTabs — clipboard error paths", () => {
     ).not.toThrow();
   });
 
-  // DEFECT (QA-S4-1): handleCopy chains `.then()` with NO `.catch`, so a rejected writeText
-  // (denied clipboard permission — common) becomes an UNHANDLED promise rejection and the
-  // user gets no signal at all. A copy that fails must fail visibly-but-gracefully.
+  // Pins the QA-S4-1 fix: a rejected writeText (denied clipboard permission — common)
+  // must surface on the button via the `.catch`, never as an unhandled promise
+  // rejection. A copy that fails must fail visibly-but-gracefully.
   it("handles a rejected clipboard write without an unhandled rejection or silent failure", async () => {
     const writeText = vi.fn().mockRejectedValue(new Error("clipboard denied"));
     Object.assign(navigator, { clipboard: { writeText } });

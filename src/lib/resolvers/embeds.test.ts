@@ -36,12 +36,10 @@ describe("resolveEmbedKey", () => {
     expect(() => resolveEmbedKey("anything-at-all")).not.toThrow();
   });
 
-  // DEFECT (QA #131, documented — do not delete): the widened `Record<string, …>` view
-  // is a plain object, so `loaders[key]` resolves INHERITED prototype members —
-  // "__proto__" (→ Object.prototype) and "constructor" (→ Object) are truthy and come
-  // back as Found. Downstream, EmbedBlock calls `.value()` on them and throws, crashing
-  // the entry page. These keys must be NotFound. Guard the lookup with
-  // `Object.hasOwn(loaders, key)` (or hold the loaders in a null-prototype object/Map).
+  // Pins the Object.hasOwn guard (QA-131 D1): the widened `Record<string, …>` view is
+  // a plain object, so an unguarded index would resolve INHERITED prototype members
+  // ("__proto__", "constructor") as Found and crash the entry page downstream. These
+  // keys must stay NotFound.
   it.each(["__proto__", "constructor", "toString"])(
     "treats the prototype-inherited name '%s' as NotFound",
     (key) => {

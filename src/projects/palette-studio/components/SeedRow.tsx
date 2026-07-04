@@ -54,7 +54,7 @@ export default function SeedRow({
             autoCapitalize="off"
             aria-invalid={parsed.isFallback}
             aria-describedby={readoutId}
-            placeholder="#3b82f6, rgb(…), oklch(…)"
+            placeholder="#3b82f6, rgb(…), hsl(…), oklch(…)"
           />
         </div>
         <p
