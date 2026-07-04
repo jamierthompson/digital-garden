@@ -1,6 +1,6 @@
 "use client";
 
-import Note from "@/components/ui/Note";
+import Aside from "@/components/ui/Aside";
 import Panel from "@/components/ui/Panel";
 
 import { useStudio } from "../StudioProvider";
@@ -14,10 +14,10 @@ export default function ReceiptSlot(): React.ReactElement {
   if (!studio) return <MissingFrame name="contrast receipt" />;
   return (
     <Panel label="Contrast receipt" style={studio.slotStyle}>
-      <Note>
+      <Aside>
         Measured on the generated tokens — every readable pair clears its WCAG
         floor and APCA target, in both schemes. That&rsquo;s the guarantee.
-      </Note>
+      </Aside>
       <div className={styles.pair}>
         <ContrastReceipt scheme="light" tokens={studio.palette.light.tokens} />
         <ContrastReceipt scheme="dark" tokens={studio.palette.dark.tokens} />

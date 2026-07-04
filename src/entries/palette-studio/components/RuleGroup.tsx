@@ -4,7 +4,7 @@
 // so distribution, chroma, hue, and gamut all share it.
 
 import Kicker from "@/components/ui/Kicker";
-import Note from "@/components/ui/Note";
+import Aside from "@/components/ui/Aside";
 import SegmentedControl from "@/components/ui/SegmentedControl";
 
 import type { RuleOption } from "../core/ruleOptions";
@@ -41,7 +41,7 @@ export default function RuleGroup<T extends string>({
         onValueChange={onValueChange}
         options={options}
       />
-      {hint ? <Note>{hint}</Note> : null}
+      {hint ? <Aside>{hint}</Aside> : null}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import Note from "@/components/ui/Note";
+import Aside from "@/components/ui/Aside";
 import Panel from "@/components/ui/Panel";
 
 import { useStudio } from "../StudioProvider";
@@ -13,10 +13,10 @@ export default function ExportSlot(): React.ReactElement {
   if (!studio) return <MissingFrame name="export" />;
   return (
     <Panel label="Export" style={studio.slotStyle}>
-      <Note>
+      <Aside>
         The same tokens, serialized by the engine — never re-typed here, so the
         export can&rsquo;t drift from what you see above.
-      </Note>
+      </Aside>
       <ExportTabs tokenSet={studio.palette.tokenSet} />
     </Panel>
   );

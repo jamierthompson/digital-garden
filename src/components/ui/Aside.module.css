@@ -1,6 +1,6 @@
 /* Serif-italic aside — @layer components, var-consuming only. */
 @layer components {
-  .note {
+  .aside {
     margin: 0;
     max-width: 60ch;
     font-family: var(--font-face);

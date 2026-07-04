@@ -4,7 +4,7 @@
 // inside its slot Panel (#131); it only sets rule state, never any generated color.
 
 import Kicker from "@/components/ui/Kicker";
-import Note from "@/components/ui/Note";
+import Aside from "@/components/ui/Aside";
 import Switch from "@/components/ui/Switch";
 
 import type { Gamut } from "@garden/oklch";
@@ -43,10 +43,10 @@ export default function RulesBoard({
     : TINTED_NEUTRALS_HINT.off;
   return (
     <div className={styles.board} role="group" aria-label="Palette rules">
-      <Note>
+      <Aside>
         Rules shape the ramp before the tokens bind to it. Every default is on —
         the palette is legible before you touch a thing.
-      </Note>
+      </Aside>
 
       <RuleGroup
         label="Distribution"
@@ -87,7 +87,7 @@ export default function RulesBoard({
             {rules.tintedNeutrals ? "on" : "off"}
           </span>
         </div>
-        <Note>{tintedHint}</Note>
+        <Aside>{tintedHint}</Aside>
       </div>
 
       <RuleGroup

@@ -1,6 +1,6 @@
 /* One rule group — declares @layer components (an unlayered module outranks every layered
    rule). Layout only: the label, pills, and hint are the ui/ primitives (Kicker,
-   SegmentedControl, Note). */
+   SegmentedControl, Aside). */
 @layer components {
   .group {
     display: flex;

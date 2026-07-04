@@ -25,7 +25,7 @@
   }
 
   /* Format honesty note — mono-meta register: quiet, monospaced, muted (deliberately NOT
-     the serif ui/Note voice; this is machine-adjacent metadata). */
+     the serif ui/Aside voice; this is machine-adjacent metadata). */
   .formatNote {
     margin: 0;
     color: var(--text-muted);
