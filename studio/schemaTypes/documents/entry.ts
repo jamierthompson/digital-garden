@@ -13,13 +13,16 @@ import {requiredForNonSketchProject, requiredForProject} from './entryValidators
  * emphasis, not fields. See docs/architecture.md → Content model.
  *
  * Theming seeds (`brandColor` / `fontKey` / `componentKey`) are reference-by-key values
- * consumed by code, NOT prose — see the stega exclusions in src/sanity/lib/client.ts.
+ * consumed by code, NOT prose — see the stega exclusions in src/sanity/lib/client.ts. They
+ * are CAPABILITY fields: the route themes / mounts a module on their PRESENCE, for any kind
+ * except `now` — not on `kind === 'project'`. The required rules below are only a floor:
  * `brandColor` is required for EVERY `project` (the card plate consumes it, even for a
- * sketch). `fontKey` / `componentKey` name a coded module + its face, so they are required
+ * sketch); `fontKey` / `componentKey` name a coded module + its face, so they are required
  * only for a `project` PAST the sketch stage — a `stage: sketch` project is an honest
  * placeholder with no module yet, so it carries a brandColor but no fontKey/componentKey.
- * All three are optional for a note/essay (a note only needs them when it themes an
- * embedded component).
+ * All three are OPTIONAL for a note/essay — but honored, not dead: a note/essay that sets
+ * `brandColor` gets its own brand scope, and one that sets `componentKey` mounts that module.
+ * `now` is chrome + prose by design — it may carry these fields but they are ignored downstream.
  *
  * NOTE: `componentKey` / `fontKey` are plain string fields here on purpose — the
  * standalone Studio bundle must not import app code (keys.ts / next/font / lazy project
@@ -136,7 +139,7 @@ export const entry = defineType({
       title: 'Brand color',
       type: 'string',
       description:
-        'Per-slot seed for the OKLCH engine — hex or oklch(). One value generates BOTH light & dark ramps. Required for every project (the card plate consumes it, even a sketch); optional for a note/essay that themes an embedded component.',
+        'Per-slot seed for the OKLCH engine — hex or oklch(). One value generates BOTH light & dark ramps. Required for every project (the card plate consumes it, even a sketch). Optional for a note or essay — but set it and this entry gets its own brand scope (theming is gated on this field, not on kind). A “now” update ignores it.',
       validation: (rule) => rule.custom(requiredForProject).custom(isBrandColorString),
     }),
     defineField({
@@ -152,7 +155,7 @@ export const entry = defineType({
       title: 'Font key',
       type: 'string',
       description:
-        'Key of the curated roster face, resolved in app code (fonts/roster.ts). Required for a project past the sketch stage (a sketch has no coded module yet); optional otherwise.',
+        'Key of the curated roster face, resolved in app code (fonts/roster.ts). Required for a project past the sketch stage (a sketch has no coded module yet). Optional for a note or essay — but honored when set: it themes the entry’s mounted module. A “now” update ignores it.',
       validation: (rule) => rule.custom(requiredForNonSketchProject),
     }),
     defineField({
@@ -160,7 +163,7 @@ export const entry = defineType({
       title: 'Component key',
       type: 'string',
       description:
-        'Key of the coded module this entry mounts, resolved in app code (src/lib/resolvers/components.ts). Required for a project past the sketch stage (a sketch renders prose-only, no module); optional for a note/essay.',
+        'Key of the coded module this entry mounts, resolved in app code (src/lib/resolvers/components.ts). Required for a project past the sketch stage (a sketch renders prose-only, no module). Optional for a note or essay — but set it and that entry mounts the module too (mounting is gated on this field, not on kind). A “now” update ignores it.',
       validation: (rule) => rule.custom(requiredForNonSketchProject),
     }),
 
