@@ -33,7 +33,13 @@ covers it — `acceptEdits` then auto-accepts every edit there and you never bab
 ```bash
 git worktree add -b feat/<slug> .claude/worktrees/<slug> main   # creates the path + branch off main
 (cd .claude/worktrees/<slug> && pnpm install)                    # worktrees don't inherit the gitignored node_modules
+cp .env.local .claude/worktrees/<slug>/.env.local                # nor gitignored env — the build's page-data step fails without it
 ```
+
+Branch off `main` **unless the slice depends on another slice's content** — a follow-up that edits
+text or code a sibling slice just rewrote must branch off the **curated integration tip**, or you are
+manufacturing merge conflicts (verified twice on 2026-07-04: a schema-description trim and a
+test-suite merge both had to build on the curated branch, not `main`).
 
 Brief the teammate that **its working directory is `.claude/worktrees/<slug>/`** — every edit, build,
 test, and `git` command happens there. **Do not** use the harness `isolation: "worktree"` spawn flag:
@@ -78,6 +84,17 @@ QA outcome** — what was probed, verdict, each defect → fix → re-check, tes
 **not team-only** — a solo session does exactly one author→one QA; here you just run one per coding agent.
 Full mechanics: [`docs/working-with-agents.md`](../../../../docs/working-with-agents.md).
 
+Two harvest rules that keep the loop from stalling (both bitten in practice):
+
+- **Put the report-file protocol in the QA brief up front**: "write your full report to
+  `<worktree>/QA-REPORT.md` (uncommitted) before finishing; append a `## Re-check` section on the
+  re-check round." The `adversarial-qa` agent type has **no SendMessage** — a findings-only review
+  (a docs slice, a pass with no tests) otherwise strands its verdict in a transcript you can't read,
+  costing a resume round-trip per reviewer.
+- **QA's new tests go INTO the subject's existing co-located `*.test.ts(x)` suite** (nested
+  `describe`), never a sibling `.qa.test` / `qa-*.test` file — the owner rule behind issue #134.
+  A new co-located suite is right only when the subject has none.
+
 **7. Lead curates history & merges.** You do **not** inherit an unfinished slice (it bounces back
 to its owner). Your job is _history_: rebase onto latest `main`, squash an agent's fix-ups, reorder
 slices, drop a false start, then **merge-commit** (the default) with a deliberate PR body — the
@@ -85,6 +102,15 @@ branch's commits and the body tell the story together.
 Push curated history with `--force-with-lease`, never plain `--force`, so a teammate's concurrent
 push isn't clobbered. **Never commit to `main`** (merge = production deploy on Vercel). Full
 mechanics: [`git-and-pr-workflow.md`](../../../../docs/git-and-pr-workflow.md).
+
+The mechanics that work: curate in a **dedicated integration worktree**
+(`git worktree add -b feat/<feature> .claude/worktrees/curation-<n> main`) — never the owner's main
+checkout, which stays on `main` running their dev server. Cherry-pick slice commits in **story
+order** (feature → its QA tests → sibling slice → its tests → docs), squashing a slice's fixups as
+you go (`git cherry-pick <base> && git cherry-pick -n <fixup…> && git commit --amend --no-edit -a`).
+File-disjoint follow-up branches land with `merge --ff-only`. A **cross-cutting rename** (one that
+touches multiple slices' files) always goes **last, on the integrated branch** — decline a
+teammate's well-meant offer to do it on their slice branch; that guarantees conflicts.
 
 ## Cautions specific to parallel coding
 
@@ -96,3 +122,19 @@ mechanics: [`git-and-pr-workflow.md`](../../../../docs/git-and-pr-workflow.md).
   teammates must pull/rebase before pushing and the lead reconciles.
 - **Monitor for premature "done."** Watch task status (it can lag); confirm the slice actually
   passes the gate before you curate it in.
+- **Idle notifications are unreliable — verify git state before acting on one.** Teammates emit
+  idle mid-gate (a buffered vitest run looks quiet), duplicates arrive, and messages cross. Before
+  nudging or respawning, check the slice branch for commits and `git status` its worktree; for a
+  bounded wait, arm a background poll on the branch (`git log main..<branch> | grep -q .` in a
+  sleep loop) instead of pinging the teammate repeatedly.
+- **Read every completion report against the OTHER slices' binding decisions**, not just its own
+  brief. Parallel slices drift: one teammate's implementation decision (e.g. "a module mount always
+  implies a scope seed") must reach the teammate writing the docs/schema for it, and their wording
+  must be checked against it on hand-off. Cross-slice contract relay is the lead's highest-value
+  mid-flight job.
+- **A wrong premise in a brief gets competently executed, not questioned.** Before briefing a
+  removal/cleanup slice ("sweep X for Y"), verify Y exists and isn't shared infrastructure — and run
+  a cheap read-only audit agent (`Explore`) in parallel with cleanup slices. On 2026-07-04 a brief
+  said to remove "siteSettings stega exclusions"; the exclusion list was a field-name denylist
+  shared with the entry document, and removing it would have shipped a silent Draft-Mode theming
+  break (the never-throws fallback keeps the gate green). The parallel audit caught it mid-flight.
