@@ -44,6 +44,9 @@ const loaders: Readonly<Record<string, EmbedLoader>> = EMBED_LOADERS;
  * Resolve an `embedKey` to its embed loader. Returns `NotFound` for an unknown key.
  */
 export function resolveEmbedKey(key: string): Resolution<EmbedLoader> {
-  const loader = loaders[key];
+  // Own-property guard: a plain-object index resolves prototype members
+  // ("__proto__", "constructor", "toString") to truthy non-loaders, which would
+  // crash the page as a Found resolution (QA-131 D1).
+  const loader = Object.hasOwn(loaders, key) ? loaders[key] : undefined;
   return loader ? found(loader) : notFound("embed", key);
 }

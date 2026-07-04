@@ -42,8 +42,7 @@ describe("resolveEmbedKey", () => {
   // back as Found. Downstream, EmbedBlock calls `.value()` on them and throws, crashing
   // the entry page. These keys must be NotFound. Guard the lookup with
   // `Object.hasOwn(loaders, key)` (or hold the loaders in a null-prototype object/Map).
-  // `it.fails` documents the gap without breaking the suite; flip to `it` on fix.
-  it.fails.each(["__proto__", "constructor", "toString"])(
+  it.each(["__proto__", "constructor", "toString"])(
     "treats the prototype-inherited name '%s' as NotFound",
     (key) => {
       expect(isNotFound(resolveEmbedKey(key))).toBe(true);

@@ -38,6 +38,9 @@ const loaders: Readonly<Record<string, ProjectLoader>> = PROJECT_LOADERS;
  * unknown key (the caller renders `not-found.tsx`).
  */
 export function resolveComponentKey(key: string): Resolution<ProjectLoader> {
-  const loader = loaders[key];
+  // Own-property guard: a plain-object index resolves prototype members
+  // ("__proto__", "constructor", "toString") to truthy non-loaders, which would
+  // crash the page as a Found resolution (QA-131 D1).
+  const loader = Object.hasOwn(loaders, key) ? loaders[key] : undefined;
   return loader ? found(loader) : notFound("component", key);
 }

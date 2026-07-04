@@ -40,22 +40,15 @@ describe("EmbedBlock", () => {
     expect(note).toHaveTextContent("retired-widget");
   });
 
-  // DEFECT (QA #131, documented — do not delete): `resolveEmbedKey` indexes a plain
-  // object (`loaders[key]`), so inherited prototype properties ("__proto__",
-  // "constructor", "toString", …) come back TRUTHY and are returned as a Found loader.
-  // EmbedBlock then calls `resolution.value()` → TypeError → the throw escapes the
-  // figure (it is NOT inside ProjectScopeBoundary) and blanks the whole entry via the
-  // route error boundary. An editor-typed embedKey of "constructor" crashes the page.
-  // Fix belongs in src/lib/resolvers/embeds.ts (guard with Object.hasOwn or a
-  // null-prototype map); same pattern in components.ts. `it.fails` keeps the suite
-  // green until the owner fixes it — then it flips to `it`.
-  it.fails(
-    "never throws on a hostile embedKey (prototype-inherited name)",
-    async () => {
-      render(await EmbedBlock({ embedKey: "__proto__" }));
-      expect(screen.getByRole("note")).toHaveTextContent("Embed unavailable");
-    },
-  );
+  // QA-131 D1 (fixed): a prototype-inherited embedKey ("__proto__", "constructor", …)
+  // must resolve to NotFound → the visible placeholder, never a Found non-loader whose
+  // `.value()` throw would escape the figure and blank the entry via the route error
+  // boundary. Guarded with Object.hasOwn in src/lib/resolvers/embeds.ts (same pattern
+  // in components.ts).
+  it("never throws on a hostile embedKey (prototype-inherited name)", async () => {
+    render(await EmbedBlock({ embedKey: "__proto__" }));
+    expect(screen.getByRole("note")).toHaveTextContent("Embed unavailable");
+  });
 
   it("mounts a resolved embed inside its OWN [data-project] scope when given one", async () => {
     const { container } = render(
