@@ -1,13 +1,10 @@
 /**
- * QA #101 — adversarial coverage for the generative-rules slice.
- *
- * The committed matrix (palette.test.ts "contrast guarantees hold under every policy") only
- * varies ONE rule at a time. These tests attack the FULL cross-product
- * (distribution × chromaPolicy × huePolicy × tintedNeutrals), the taper/hold × anchor
- * interaction the "seed lands on the ramp" claim glosses, the runtime garbage-input posture
- * of the public `buildRamp`, and direction stability across rule configs.
- *
- * Independent fresh-eyes QA — no prior context of the implementation.
+ * The generative-rules slice (#101): the `EngineRules` cross-product
+ * (distribution × chromaPolicy × huePolicy × tintedNeutrals) applied through `resolveTheme` /
+ * `buildTokenSet` / `buildRamp`. `palette.test.ts`'s policy matrix varies ONE rule at a time;
+ * this suite pins the FULL cross-product, the taper/hold × anchor interaction behind the
+ * "seed lands on the ramp" claim, the runtime garbage-input posture of the public `buildRamp`,
+ * and direction stability across rule configs.
  */
 
 import { describe, expect, it } from "vitest";
@@ -70,7 +67,7 @@ const SEEDS: unknown[] = [
 
 const GAMUTS: Gamut[] = ["srgb", "p3"];
 
-describe("generative rules (#101) — QA: full policy cross-product", () => {
+describe("generative rules (#101) — full policy cross-product", () => {
   it(
     "AA holds for EVERY distribution × chromaPolicy × huePolicy × tintedNeutrals combination, both schemes, both gamuts",
     () => {
@@ -171,7 +168,7 @@ describe("generative rules (#101) — QA: full policy cross-product", () => {
   );
 });
 
-describe("generative rules (#101) — QA: bit-identity of every default permutation", () => {
+describe("generative rules (#101) — bit-identity of every default permutation", () => {
   // The committed test asserts ONE all-default object. A partial rules object with any
   // subset of the defaults must ALSO reproduce the un-ruled output exactly.
   it("every partial-default rules subset reproduces the optionless output, both schemes", () => {
@@ -203,7 +200,7 @@ describe("generative rules (#101) — QA: bit-identity of every default permutat
   });
 });
 
-describe("generative rules (#101) — QA: taper/hold vs the 'seed lands on the ramp' claim", () => {
+describe("generative rules (#101) — taper/hold vs the 'seed lands on the ramp' claim", () => {
   // types.ts/README: "that step's lightness is the seed's … so the seed's own color lands
   // on the ramp." Under taper/hold, chromaCurve multiplies nominal chroma by sin(πt)^k.
   // For a LIGHT-native seed the anchor is "500" (t=0.5 → sin=1 → ×1), so chroma is
@@ -240,7 +237,7 @@ describe("generative rules (#101) — QA: taper/hold vs the 'seed lands on the r
   });
 });
 
-describe("generative rules (#101) — QA: public buildRamp runtime posture", () => {
+describe("generative rules (#101) — public buildRamp runtime posture", () => {
   // buildRamp is a PUBLIC export (index.ts). The author explicitly hardened the sibling
   // "non-finite anchor L" case (ramp.ts: Number.isFinite guard → treat as no anchor), on
   // the engine's documented "never throws, never garbage" posture. QA-101 found an unknown
@@ -286,7 +283,7 @@ describe("generative rules (#101) — QA: public buildRamp runtime posture", () 
   });
 });
 
-describe("generative rules (#101) — QA: direction & monotonicity invariants", () => {
+describe("generative rules (#101) — direction & monotonicity invariants", () => {
   // detectDirection now threads `rules`; tintedNeutrals:false zeroes surface-2's chroma.
   // Direction MAY legitimately differ if the surface changed — but surfaces are
   // shoulder-pinned and chroma barely moves lightness, so within a single buildTokenSet
@@ -343,7 +340,7 @@ describe("generative rules (#101) — QA: direction & monotonicity invariants", 
   );
 });
 
-describe("generative rules (#101) — QA: hue-drift wrap correctness at both seams", () => {
+describe("generative rules (#101) — hue-drift wrap correctness at both seams", () => {
   // The default path skips hue arithmetic entirely (delta === 0) so no modulo rounding
   // sneaks in; a real drift normalizes into [0,360). Verify both seam directions land in
   // range and don't leave the circle (hue near 0 drifting negative, hue near 360 drifting
