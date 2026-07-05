@@ -12,6 +12,7 @@
 import GlossarySidebar from "./cards/GlossarySidebar";
 import HarmonyGroup from "./cards/HarmonyGroup";
 import ExportSlot from "./slots/ExportSlot";
+import PreviewSlot from "./slots/PreviewSlot";
 import RulesSlot from "./slots/RulesSlot";
 import SeedSlot from "./slots/SeedSlot";
 import TokensSlot from "./slots/TokensSlot";
@@ -31,6 +32,9 @@ export default function StudioCanvas(): React.ReactElement {
       </div>
       <div className={styles.glossary}>
         <GlossarySidebar />
+      </div>
+      <div className={styles.preview}>
+        <PreviewSlot />
       </div>
       <div className={styles.exports}>
         <ExportSlot />

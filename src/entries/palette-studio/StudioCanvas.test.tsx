@@ -22,6 +22,9 @@ describe("StudioCanvas — prose-less composition", () => {
       screen.getByRole("region", { name: "Swatch cards" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Rules" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Live preview" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Export" })).toBeInTheDocument();
     expect(
       screen.getByRole("complementary", { name: /glossary/i }),

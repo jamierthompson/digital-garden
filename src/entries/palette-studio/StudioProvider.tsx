@@ -15,10 +15,8 @@ import {
 } from "react";
 
 import {
-  buildHarmonyPalette,
   buildHarmonyTier,
   type Gamut,
-  type HarmonyPalette,
   type HarmonyTier,
   type Scheme,
 } from "@garden/oklch";
@@ -57,8 +55,6 @@ export interface StudioState {
   readonly palette: DerivedPalette;
   /** The displayed scheme's view of `palette`. */
   readonly view: SchemeView;
-  /** Decorative harmony sets — seed + gamut only, scheme-independent. */
-  readonly harmony: HarmonyPalette;
   /**
    * The batteries-included decorative harmony TIER (#152) — the 7 derived hues, each with its
    * own `50…950` ramp + receipt-grade text/fill picks, per scheme. Rules- and gamut-treated
@@ -126,10 +122,6 @@ export default function StudioProvider({
     () => derivePalette(seed, rules, gamut),
     [seed, rules, gamut],
   );
-  const harmony = useMemo(
-    () => buildHarmonyPalette(seed, { gamut }),
-    [seed, gamut],
-  );
   // The decorative tier reads the same rules as the palette (its ramps are shaped like brand).
   const harmonyTier = useMemo(
     () => buildHarmonyTier(seed, { gamut, rules }),
@@ -150,11 +142,10 @@ export default function StudioProvider({
       scheme,
       palette,
       view,
-      harmony,
       harmonyTier,
       slotStyle: { ...tokensToScopeVars(view.tokens), colorScheme: scheme },
     };
-  }, [slug, seed, parsed, rules, gamut, scheme, palette, harmony, harmonyTier]);
+  }, [slug, seed, parsed, rules, gamut, scheme, palette, harmonyTier]);
 
   return (
     <StudioContext.Provider value={value}>{children}</StudioContext.Provider>

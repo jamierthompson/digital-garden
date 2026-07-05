@@ -12,6 +12,7 @@
       "rules"
       "cards"
       "glossary"
+      "preview"
       "exports"
       "harmony";
   }
@@ -23,8 +24,9 @@
       grid-template-columns: 20rem minmax(0, 1fr) 16rem;
       align-items: start;
       grid-template-areas:
-        "seed   cards glossary"
-        "rules  cards glossary"
+        "seed    cards glossary"
+        "rules   cards glossary"
+        "preview cards glossary"
         "exports cards glossary"
         "harmony harmony harmony";
     }
@@ -46,6 +48,10 @@
     grid-area: glossary;
     position: sticky;
     inset-block-start: var(--space-4);
+  }
+
+  .preview {
+    grid-area: preview;
   }
 
   .exports {

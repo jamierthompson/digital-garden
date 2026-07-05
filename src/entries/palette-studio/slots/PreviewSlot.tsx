@@ -4,21 +4,20 @@ import Panel from "@/components/ui/Panel";
 
 import { useStudio } from "../StudioProvider";
 import PreviewCard from "../components/PreviewCard";
-import HarmonyStrip from "../components/HarmonyStrip";
 import MissingFrame from "./MissingFrame";
-import styles from "./slots.module.css";
 
-/** The live preview — both schemes side by side, plus the decorative harmony strip. */
+/**
+ * The live preview — the generated palette on real component shapes (a card, controls, status
+ * badges), for the ACTIVE scheme, matching the single-scheme cards (the site-wide toggle flips
+ * it, which IS the light-dark() demo). The decorative harmony is its own canvas region now
+ * (`HarmonyGroup`), so it's no longer bundled here.
+ */
 export default function PreviewSlot(): React.ReactElement {
   const studio = useStudio();
   if (!studio) return <MissingFrame name="live preview" />;
   return (
     <Panel label="Live preview" style={studio.slotStyle}>
-      <div className={styles.pair}>
-        <PreviewCard scheme="light" tokens={studio.palette.light.tokens} />
-        <PreviewCard scheme="dark" tokens={studio.palette.dark.tokens} />
-      </div>
-      <HarmonyStrip harmony={studio.harmony} />
+      <PreviewCard scheme={studio.scheme} tokens={studio.view.tokens} />
     </Panel>
   );
 }
