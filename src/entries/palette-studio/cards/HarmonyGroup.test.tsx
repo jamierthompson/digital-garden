@@ -14,7 +14,7 @@ function renderGroup() {
   );
 }
 
-describe("HarmonyGroup — opt-in, clearly separated", () => {
+describe("HarmonyGroup — a clearly separated region", () => {
   it("renders one card per derived harmony hue", () => {
     renderGroup();
     const region = screen.getByRole("region", { name: "Harmony hues" });
@@ -23,13 +23,12 @@ describe("HarmonyGroup — opt-in, clearly separated", () => {
     );
   });
 
-  it("frames the group's two safe picks and its extra-colors purpose", () => {
+  it("carries no prose blurb — the 'Harmony hues' region label names it (owner authors copy separately)", () => {
     renderGroup();
     const region = screen.getByRole("region", { name: "Harmony hues" });
-    expect(within(region).getByText(/two safe picks/i)).toBeInTheDocument();
     expect(
-      within(region).getByText(/charts, gradients, and accents/i),
-    ).toBeInTheDocument();
+      within(region).queryByText(/two safe picks|check the contrast|built from your seed/i),
+    ).not.toBeInTheDocument();
   });
 
   it("shows each hue's relationship, offset, and receipt-backed picks", () => {

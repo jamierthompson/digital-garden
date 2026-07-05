@@ -6,7 +6,6 @@
 // so it never reads as part of the guaranteed semantic palette. Mounted in the studio canvas's
 // reserved `harmony` grid region; shows the active scheme's picks, like the semantic cards.
 
-import Aside from "@/components/ui/Aside";
 import Panel from "@/components/ui/Panel";
 
 import { HARMONY_HUES } from "@garden/oklch";
@@ -22,12 +21,8 @@ export default function HarmonyGroup(): React.ReactElement {
   const { harmonyTier, scheme } = studio;
   return (
     <Panel label="Harmony hues" variant="plain" style={studio.slotStyle}>
-      <Aside>
-        Harmony hues — extra colors built from your seed, for charts, gradients,
-        and accents. Each hue comes with two safe picks: one for text, one for
-        fills — each checked on every background for its own job. Any other color
-        you take off a ramp, check the contrast yourself.
-      </Aside>
+      {/* No blurb — the owner is authoring the harmony copy separately; the heading (the Panel's
+          "Harmony hues" region label) carries the naming until then. */}
       <ul className={styles.grid}>
         {HARMONY_HUES.map((hue) => (
           <HarmonyHueCard
