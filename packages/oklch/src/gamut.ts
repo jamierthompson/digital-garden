@@ -62,14 +62,53 @@ function clippedOklab(linear: RGB): OkLab {
 }
 
 /**
+ * Memo of `gamutMap` results, keyed by the exact `(L, C, H, gamut)` (#41). The engine calls
+ * `gamutMap` with heavily-REPEATED inputs — most of all since #153, whose accent co-solve
+ * scans a fixed `(seed.C, seed.H)` across a lightness grid on EVERY solve, so the same
+ * out-of-gamut binary search recurs across ramp builds, schemes, and (in the rules
+ * cross-product) all policy combinations of a fixed seed. This turns those repeats into a
+ * lookup. BIT-IDENTICAL by construction: a hit returns exactly what a fresh compute would for
+ * the same deterministic inputs, so it is a transparent memo of a pure function — no observable
+ * behavior changes. Bounded (a long-running process solving many distinct seeds cannot grow it
+ * without limit); a full clear on overflow is safe because every value is recomputable.
+ * Isomorphic (a plain Map), no deps.
+ */
+const GAMUT_CACHE = new Map<string, OkLCH>();
+const GAMUT_CACHE_MAX = 100_000;
+
+/**
  * Map an OKLCH color into the target gamut by reducing chroma (L, H fixed), per the
- * CSS Color 4 binary-search algorithm. Returns an in-gamut OKLCH. Pure, never throws.
+ * CSS Color 4 binary-search algorithm. Returns an in-gamut OKLCH. Deterministic and
+ * observably pure, never throws — but INTERNALLY MEMOIZED (#41; see `GAMUT_CACHE`) so a
+ * repeated `(L, C, H, gamut)` is a lookup instead of a re-search. Every returned result is
+ * bit-identical to a fresh compute (`computeGamutMap`, the cache-miss path below).
  */
 export function gamutMap(color: OkLCH, gamut: Gamut): OkLCH {
+  const key = `${color.L}|${color.C}|${color.H}|${gamut}`;
+  let value = GAMUT_CACHE.get(key);
+  if (value === undefined) {
+    value = computeGamutMap(color, gamut);
+    // Bounded: a full clear on overflow keeps memory flat and stays correct (recomputable).
+    if (GAMUT_CACHE.size >= GAMUT_CACHE_MAX) GAMUT_CACHE.clear();
+    GAMUT_CACHE.set(key, value);
+  }
+  // Hand back a FRESH copy every call — never the cached canonical object. The engine treats
+  // colors as immutable, but `gamutMap` is public (`index.ts`): an external consumer owns and
+  // may mutate what it gets back, and `computeGamutMap`'s in-gamut path never returns the
+  // caller's input (below), so the cache can hold no caller-owned reference either. Together
+  // that keeps the memo a truly transparent, bit-identical optimization — a mutated result can
+  // never poison a later hit. One tiny allocation, dwarfed by the binary search it replaces.
+  return { L: value.L, C: value.C, H: value.H };
+}
+
+/** The CSS Color 4 binary-search map itself — the `gamutMap` cache-miss path. */
+function computeGamutMap(color: OkLCH, gamut: Gamut): OkLCH {
   // Trivial extremes: pure black/white are always in gamut.
   if (color.L <= 0) return { L: 0, C: 0, H: color.H };
   if (color.L >= 1) return { L: 1, C: 0, H: color.H };
-  if (inGamut(color, gamut)) return color;
+  // Already in gamut → a fresh copy of the input (NOT the input itself, so the memo above can
+  // never cache — and later hand out — a reference the caller still owns and might mutate).
+  if (inGamut(color, gamut)) return { L: color.L, C: color.C, H: color.H };
 
   let lo = 0;
   let hi = color.C;

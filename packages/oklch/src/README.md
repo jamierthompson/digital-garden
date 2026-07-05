@@ -7,6 +7,12 @@ DOM, Node, or projects — its isomorphism is lint-enforced (`eslint.config.mjs`
 test-enforced (dual-env Vitest), and it must **never** import `next`/`react`/`react-dom`
 or carry `server-only`/`client-only`.
 
+"Pure" here means **deterministic and observably side-effect-free** to callers, not
+allocation-free: `gamutMap` is **internally memoized** (#41 — a bounded module-level cache
+keyed by exact `(L, C, H, gamut)`) so the interactive Studio's repeated re-solves stay
+cheap. The memo is a transparent optimization of a pure function — every result is
+bit-identical to a fresh compute — so the purity/determinism contract is unchanged.
+
 ## Decisions baked in
 
 - **Ramp primitive + bound semantic tokens.** The engine emits a per-role generative ramp
