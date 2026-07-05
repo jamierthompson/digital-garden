@@ -67,7 +67,10 @@ export function serializeExport(
 ): string {
   switch (id) {
     case "css":
-      return tokenSetToCss(set, ":root", { format });
+      // A ROOT-level export establishes the scheme (`colorScheme: true`, the #159 opt-in) — the
+      // pasted stylesheet must carry `color-scheme: light dark;` for its `light-dark()` values to
+      // resolve. This is the inverse of a scoped `[data-entry]` slot, which inherits it (#159).
+      return tokenSetToCss(set, ":root", { format, colorScheme: true });
     case "tailwind":
       return tokenSetToTailwindTheme(set, { format });
     case "json":
