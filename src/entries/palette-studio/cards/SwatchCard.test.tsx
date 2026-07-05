@@ -67,8 +67,8 @@ describe("SwatchCard — face (single scheme, plain language)", () => {
 
   it("renders the accent card without a mini-ramp (it is a continuous co-solve)", () => {
     renderCard("accent");
-    // No ramp on the face for a co-solve; the plain "brand color" badge is shown.
-    expect(screen.getByText("brand color")).toBeInTheDocument();
+    // No ramp on the face for a co-solve; the plain "signal fill" badge is shown (#160).
+    expect(screen.getByText("signal fill")).toBeInTheDocument();
     expect(screen.queryByRole("group")).not.toBeInTheDocument();
   });
 });

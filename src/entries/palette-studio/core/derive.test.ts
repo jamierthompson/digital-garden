@@ -143,11 +143,16 @@ describe("token rows", () => {
 
   it("reports the accent + on-accent co-solve stories, not a discrete step", () => {
     const { rows } = derivePalette(SEED, DEFAULT_RULES, DEFAULT_GAMUT);
-    for (const name of ["accent", "on-accent"] as const) {
+    // The co-solve provenance kinds are `fill`/`on-fill` (#160 generalized the accent co-solve
+    // across the brand + status fills); the token NAMES stay accent/on-accent.
+    for (const [name, kind] of [
+      ["accent", "fill"],
+      ["on-accent", "on-fill"],
+    ] as const) {
       const row = rows.find((r) => r.name === name)!;
-      // No longer null — each carries a first-class co-solve report tagged by kind (#151).
-      expect(row.light.boundTo?.kind).toBe(name);
-      expect(row.dark.boundTo?.kind).toBe(name);
+      // No longer null — each carries a first-class co-solve report tagged by kind (#151/#160).
+      expect(row.light.boundTo?.kind).toBe(kind);
+      expect(row.dark.boundTo?.kind).toBe(kind);
       expect(asStep(row.light.boundTo)).toBeNull();
     }
   });
