@@ -75,6 +75,26 @@ describe("buildLightnessRamp", () => {
     expect(buildLightnessRamp(260, { steps: 1.9 })).toHaveLength(2);
   });
 
+  it("degrades a non-finite steps count to the default instead of hanging", () => {
+    // Infinity would run the stop loop forever; NaN emitted an empty ramp — both
+    // degrade to the documented default (11), the never-hangs posture (#160 QA).
+    expect(buildLightnessRamp(260, { steps: Infinity })).toHaveLength(11);
+    expect(buildLightnessRamp(260, { steps: NaN })).toHaveLength(11);
+  });
+
+  it("terminates on a non-finite chroma, degrading to the achromatic axis (#160 QA)", () => {
+    // buildRamp/buildLightnessRamp forward chroma into gamutMap, whose choke-point guard
+    // lands Infinity on the same achromatic axis as NaN.
+    for (const chroma of [Infinity, NaN]) {
+      for (const stop of buildLightnessRamp(260, { steps: 3, chroma })) {
+        expect(stop.C).toBe(0);
+      }
+      for (const step of buildRamp({ hue: 260, chroma, gamut: "srgb" })) {
+        expect(step.color.C).toBe(0);
+      }
+    }
+  });
+
   it("is deterministic — same input yields identical output", () => {
     const opts = { steps: 8, chroma: 0.2, minL: 0.1, maxL: 0.95 };
     expect(buildLightnessRamp(195, opts)).toEqual(

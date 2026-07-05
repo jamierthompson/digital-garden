@@ -200,10 +200,14 @@ export function solveForeground(opts: SolveOptions): OkLCH {
   return gamutMap({ L: goDarker ? 0 : 1, C: 0, H: hue }, gamut);
 }
 
-/** Descending chroma candidates from `start` down to 0. */
+/** Descending chroma candidates from `start` down to 0. A non-finite `start` degrades to
+ *  the achromatic axis — `solveForeground`'s input boundary for the one value that never
+ *  reaches `gamutMap`'s own guard: an Infinity would grow this array until V8 throws
+ *  (NaN already fell through the loop guard to the same `[0]`). */
 function chromaBackoff(start: number): number[] {
   const steps: number[] = [];
-  for (let C = Math.max(0, start); C > 0.001; C -= 0.02) steps.push(C);
+  const from = Number.isFinite(start) ? Math.max(0, start) : 0;
+  for (let C = from; C > 0.001; C -= 0.02) steps.push(C);
   steps.push(0);
   return steps;
 }

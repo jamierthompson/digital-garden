@@ -151,12 +151,16 @@ describe("QA — adversarial: gamutMap public-API hardening (#160)", () => {
     });
   });
 
-  // gamutMap({ C: Infinity }) never terminates: the binary search's `hi` stays Infinity
-  // (mid = (0 + Infinity) / 2 = Infinity), so `hi - lo > 1e-5` never turns false — and
-  // buildRamp forwards a caller's Infinity chroma straight into it (`Math.max(0, Infinity)`).
-  // CONFIRMED DEFECT (QA-REPORT.md, defect 3). A live test would hang the whole suite, so
-  // it stays skipped until the non-finite guard lands; unskip it to prove the fix.
-  it.skip("terminates on an Infinity chroma (currently infinite-loops — defect 3)", () => {
-    expect(gamutMap({ L: 0.5, C: Infinity, H: 30 }, "srgb").C).toBeLessThan(1);
+  // An unguarded Infinity chroma would pin the binary search's `hi` forever
+  // (mid = (0 + Infinity) / 2 = Infinity) — the choke-point guard degrades it to the
+  // achromatic axis instead, the same landing spot as NaN, so every caller that funnels
+  // chroma through gamutMap (buildRamp, buildLightnessRamp, the solves) terminates too.
+  it("terminates on an Infinity chroma, degrading to the achromatic axis", () => {
+    expect(gamutMap({ L: 0.5, C: Infinity, H: 30 }, "srgb")).toEqual({
+      L: 0.5,
+      C: 0,
+      H: 30,
+    });
+    expect(gamutMap({ L: 0.5, C: -Infinity, H: 30 }, "srgb").C).toBe(0);
   });
 });

@@ -85,10 +85,15 @@ const GAMUT_CACHE_MAX = 100_000;
  * bit-identical to a fresh compute (`computeGamutMap`, the cache-miss path below).
  */
 export function gamutMap(color: OkLCH, gamut: Gamut): OkLCH {
-  const key = `${color.L}|${color.C}|${color.H}|${gamut}`;
+  // Non-finite chroma degrades to the achromatic axis HERE, the single choke point every
+  // ramp/solve funnels colors through: NaN already fell through the binary search to C 0;
+  // an Infinity would pin the search's `hi` so it never terminates (the never-throws,
+  // never-hangs posture). Non-finite L/H keep their garbage-in/garbage-out NaN behavior.
+  const C = Number.isFinite(color.C) ? color.C : 0;
+  const key = `${color.L}|${C}|${color.H}|${gamut}`;
   let value = GAMUT_CACHE.get(key);
   if (value === undefined) {
-    value = computeGamutMap(color, gamut);
+    value = computeGamutMap({ L: color.L, C, H: color.H }, gamut);
     // Bounded: a full clear on overflow keeps memory flat and stays correct (recomputable).
     if (GAMUT_CACHE.size >= GAMUT_CACHE_MAX) GAMUT_CACHE.clear();
     GAMUT_CACHE.set(key, value);

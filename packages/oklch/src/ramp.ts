@@ -254,7 +254,13 @@ export function buildLightnessRamp(
   hue: number,
   opts: RampOptions = {},
 ): OkLCH[] {
-  const steps = Math.max(2, Math.floor(opts.steps ?? 11));
+  // A non-finite `steps` count would loop forever (Infinity) or emit an empty ramp (NaN);
+  // the never-hangs posture degrades it to the documented default, like the other guards.
+  const rawSteps = opts.steps ?? 11;
+  const steps = Math.max(
+    2,
+    Math.floor(Number.isFinite(rawSteps) ? rawSteps : 11),
+  );
   const chroma = Math.max(0, opts.chroma ?? 0.12);
   const minL = opts.minL ?? 0.05;
   const maxL = opts.maxL ?? 0.98;
