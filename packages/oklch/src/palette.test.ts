@@ -1343,29 +1343,24 @@ describe("QA — adversarial: interaction-state + un-mirror invariants (#160)", 
 
   // #160 acceptance: "accent-hover — perceptibly distinct from accent (both schemes)". The
   // solver's own HOVER_DELTA_L (accent.ts) documents ~0.05 L as the minimum perceptible
-  // nudge — but at the lightness extremes clamp01 eats the nudge and the scan still accepts
-  // the pinned candidate, so a pure-black seed ships accent-hover ≡ accent (ΔL = 0, light
-  // scheme) and near-white seeds ship ΔL ≈ 0.003–0.03 in dark. An invisible hover state.
-  // CONFIRMED DEFECT (QA-REPORT.md, defect 1) — flip `.fails` off once the solver rejects
-  // candidates the clamp left unmoved.
-  it.fails(
-    "accent-hover stays perceptibly distinct from accent at extreme seeds",
-    () => {
-      const PERCEPTIBLE = 0.02; // conservative floor, well under the documented 0.05 nudge
-      const cases = [
-        ["#000000", "light"],
-        ["#ffffff", "dark"],
-        ["#fefefe", "dark"],
-      ] as const;
-      for (const [seed, scheme] of cases) {
-        const { tokens } = resolveTheme(seed, scheme);
-        expect(
-          Math.abs(tokens["accent-hover"].L - tokens.accent.L),
-          `${seed}/${scheme}`,
-        ).toBeGreaterThanOrEqual(PERCEPTIBLE);
-      }
-    },
-  );
+  // nudge; at the lightness extremes clamp01 can eat it (pure black can't get darker), so
+  // the solver rejects clamp-pinned candidates and takes the direction that has room — an
+  // extreme seed still gets a visible hover state.
+  it("accent-hover stays perceptibly distinct from accent at extreme seeds", () => {
+    const PERCEPTIBLE = 0.02; // conservative floor, well under the documented 0.05 nudge
+    const cases = [
+      ["#000000", "light"],
+      ["#ffffff", "dark"],
+      ["#fefefe", "dark"],
+    ] as const;
+    for (const [seed, scheme] of cases) {
+      const { tokens } = resolveTheme(seed, scheme);
+      expect(
+        Math.abs(tokens["accent-hover"].L - tokens.accent.L),
+        `${seed}/${scheme}`,
+      ).toBeGreaterThanOrEqual(PERCEPTIBLE);
+    }
+  });
 
   // The "clears on EVERY surface" guarantee is proven transitively (every foreground solves
   // against `surface-selected`, the worst case). Lock it empirically: each solved foreground

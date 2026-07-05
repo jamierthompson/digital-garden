@@ -272,8 +272,10 @@ export function solveStatusFill(
  * surface (darker on a light surface, lighter on a dark one): that direction only ever RAISES
  * both the fill's surface contrast and `on-accent`'s contrast on it (the label sits on the
  * far-from-surface pole), so the perceptible move never costs legibility. Scans outward from
- * `HOVER_DELTA_L`; falls back to the opposite direction, then to a minimal nudge, so it always
- * returns a fill perceptibly off the accent. Pure, deterministic, never throws.
+ * `HOVER_DELTA_L`, rejecting candidates the lightness clamp left sub-perceptibly moved (an
+ * extreme accent pins the preferred direction — pure black can't get darker); falls back to
+ * the opposite direction, then to a minimal nudge on whichever side has clamp room, so it
+ * always returns a fill perceptibly off the accent. Pure, deterministic, never throws.
  */
 export function solveAccentHover(
   accent: OkLCH,
@@ -295,6 +297,11 @@ export function solveAccentHover(
   const scan = (dir: number): OkLCH | null => {
     for (let delta = HOVER_DELTA_L; delta <= 0.5 + 1e-9; delta += 0.01) {
       const L = clamp01(accent.L + dir * delta);
+      // An unclamped candidate realizes exactly `delta` (≥ HOVER_DELTA_L); anything less means
+      // the clamp pinned L at an extreme and ATE the nudge — a sub-perceptible "hover" is not
+      // a hover state, and a pinned L can't move any further in this direction. Stop, so the
+      // caller falls through to the direction that still has room.
+      if (Math.abs(L - accent.L) < HOVER_DELTA_L - 1e-9) break;
       const fill = gamutMap({ L, C: seed.C, H: hue }, gamut);
       if (usable(fill)) return fill;
       if (L <= 0 || L >= 1) break;
@@ -304,13 +311,14 @@ export function solveAccentHover(
 
   const fill = scan(sign) ?? scan(-sign);
   if (fill) return { fill };
-  // Never throw: a minimal nudge in the preferred direction (still perceptibly off the accent).
-  return {
-    fill: gamutMap(
-      { L: clamp01(accent.L + sign * HOVER_DELTA_L), C: seed.C, H: hue },
-      gamut,
-    ),
-  };
+  // Never throw: a minimal perceptible nudge — preferred direction when the clamp leaves it
+  // room, else the opposite (accent.L is in [0,1], so at least one side always has ≥ delta).
+  const preferred = accent.L + sign * HOVER_DELTA_L;
+  const L =
+    preferred >= 0 && preferred <= 1
+      ? preferred
+      : clamp01(accent.L - sign * HOVER_DELTA_L);
+  return { fill: gamutMap({ L, C: seed.C, H: hue }, gamut) };
 }
 
 /**
