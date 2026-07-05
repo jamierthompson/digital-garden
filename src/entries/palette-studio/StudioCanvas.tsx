@@ -10,6 +10,7 @@
 // interleaved through prose as `liveEmbed`s.
 
 import GlossarySidebar from "./cards/GlossarySidebar";
+import HarmonyGroup from "./cards/HarmonyGroup";
 import ExportSlot from "./slots/ExportSlot";
 import RulesSlot from "./slots/RulesSlot";
 import SeedSlot from "./slots/SeedSlot";
@@ -34,9 +35,11 @@ export default function StudioCanvas(): React.ReactElement {
       <div className={styles.exports}>
         <ExportSlot />
       </div>
-      {/* Reserved region for the #14 harmony decorative card group — named so it slots in
-          without reshaping the grid. Empty (its auto row collapses) until #14 fills it. */}
-      <div className={styles.harmony} />
+      {/* The #14 decorative harmony card group — its own named region, separated from the
+          contract-bearing semantic cards. */}
+      <div className={styles.harmony}>
+        <HarmonyGroup />
+      </div>
     </div>
   );
 }

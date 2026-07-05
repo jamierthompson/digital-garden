@@ -16,8 +16,10 @@ import {
 
 import {
   buildHarmonyPalette,
+  buildHarmonyTier,
   type Gamut,
   type HarmonyPalette,
+  type HarmonyTier,
   type Scheme,
 } from "@garden/oklch";
 
@@ -57,6 +59,13 @@ export interface StudioState {
   readonly view: SchemeView;
   /** Decorative harmony sets — seed + gamut only, scheme-independent. */
   readonly harmony: HarmonyPalette;
+  /**
+   * The batteries-included decorative harmony TIER (#152) — the 7 derived hues, each with its
+   * own `50…950` ramp + receipt-grade text/fill picks, per scheme. Rules- and gamut-treated
+   * like the brand; the harmony card group reads the active scheme's picks. Non-contract-bearing
+   * (kept out of the frozen token set), so it lives alongside `palette`, not inside it.
+   */
+  readonly harmonyTier: HarmonyTier;
   /**
    * Inline semantic-token re-bind for a slot's container: the CURRENT seed's generated
    * palette (displayed scheme), as CSS custom properties. Every slot passes this to its
@@ -121,6 +130,11 @@ export default function StudioProvider({
     () => buildHarmonyPalette(seed, { gamut }),
     [seed, gamut],
   );
+  // The decorative tier reads the same rules as the palette (its ramps are shaped like brand).
+  const harmonyTier = useMemo(
+    () => buildHarmonyTier(seed, { gamut, rules }),
+    [seed, gamut, rules],
+  );
 
   const value = useMemo<StudioState>(() => {
     const view = scheme === "light" ? palette.light : palette.dark;
@@ -137,9 +151,10 @@ export default function StudioProvider({
       palette,
       view,
       harmony,
+      harmonyTier,
       slotStyle: { ...tokensToScopeVars(view.tokens), colorScheme: scheme },
     };
-  }, [slug, seed, parsed, rules, gamut, scheme, palette, harmony]);
+  }, [slug, seed, parsed, rules, gamut, scheme, palette, harmony, harmonyTier]);
 
   return (
     <StudioContext.Provider value={value}>{children}</StudioContext.Provider>
