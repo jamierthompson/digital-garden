@@ -14,6 +14,7 @@ import type { BindingKind } from "./cardContract";
 import type { SwatchCardData } from "./cardModel";
 import { oogNote } from "./derivationCopy";
 import CardDisclosure from "./CardDisclosure";
+import ClampReceipt from "./ClampReceipt";
 import ContrastChip from "./ContrastChip";
 import MiniRamp from "./MiniRamp";
 import styles from "./SwatchCard.module.css";
@@ -70,6 +71,8 @@ export default function SwatchCard({
       ) : null}
 
       <ContrastChip measured={facet.measured} />
+
+      <ClampReceipt clamp={facet.clamp} />
 
       <p className={styles.usage}>{card.usage}</p>
 

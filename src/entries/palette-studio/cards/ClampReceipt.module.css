@@ -1,0 +1,18 @@
+/* sRGB clamp receipt — @layer components, var-consuming. Amber caution role (AA-solved). */
+@layer components {
+  .clamp {
+    margin: 0;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    /* Contrast-solved warning role — AA (4.5:1) small text, and a caution register fits. */
+    color: var(--warning);
+  }
+
+  /* Only an sRGB screen clamps the color — a Display-P3-or-wider screen paints it as specified,
+     so the receipt is irrelevant there. Pure-CSS hide, no JS, no flash. */
+  @media (color-gamut: p3) {
+    .clamp {
+      display: none;
+    }
+  }
+}

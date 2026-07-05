@@ -87,3 +87,23 @@ describe("buildCards", () => {
     expect(byName("accent").light.counterpart).toMatch(/re-solved/i);
   });
 });
+
+describe("buildCards — sRGB clamp receipt (#155)", () => {
+  it("attaches NO clamp to an sRGB-target palette (every color already fits sRGB)", () => {
+    for (const card of cards) {
+      expect(card.light.clamp).toBeNull();
+      expect(card.dark.clamp).toBeNull();
+    }
+  });
+
+  it("flags the P3-target colors that exceed sRGB, with the trimmed chroma", () => {
+    const p3 = buildCards(derivePalette(SEED, DEFAULT_RULES, "p3"));
+    const clamped = p3.flatMap((c) => [c.light, c.dark]).filter((f) => f.clamp);
+    // A saturated violet at P3 pushes some tokens past sRGB — at least one is flagged.
+    expect(clamped.length).toBeGreaterThan(0);
+    // Every flag reports a POSITIVE chroma trim (the amount sRGB clips).
+    for (const facet of clamped) {
+      expect(facet.clamp!.deltaC).toBeGreaterThan(0);
+    }
+  });
+});

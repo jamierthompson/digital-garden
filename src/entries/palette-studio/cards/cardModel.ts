@@ -11,6 +11,8 @@ import {
   checkContrast,
   formatHex,
   formatOklch,
+  gamutMap,
+  inGamut,
   type BindingProvenance,
   type BrandTokenName,
   type ContrastCheck,
@@ -48,6 +50,19 @@ export interface SchemeFacet {
   readonly sentence: string;
   /** One-line hint of what this token becomes in the OTHER scheme (from that scheme's provenance). */
   readonly counterpart: string;
+  /**
+   * The sRGB clamp receipt (#155): non-null only when this baked color is MORE saturated than
+   * sRGB can show (a P3-target palette). `deltaC` is the chroma an sRGB screen trims off. Always
+   * `null` for an sRGB-target palette (every color is already in sRGB). The card surfaces it
+   * only on an sRGB screen (CSS `color-gamut` toggle) — a P3 screen paints the color as-is.
+   */
+  readonly clamp: { readonly deltaC: number } | null;
+}
+
+/** The sRGB clamp for a baked color: `null` when it fits sRGB, else the chroma trimmed to fit. */
+function srgbClamp(value: OkLCH): { readonly deltaC: number } | null {
+  if (inGamut(value, "srgb")) return null;
+  return { deltaC: value.C - gamutMap(value, "srgb").C };
 }
 
 /**
@@ -131,6 +146,7 @@ function buildFacet(
     measured,
     sentence,
     counterpart: counterpartHint(contract.kind, scheme, otherProvenance),
+    clamp: srgbClamp(value),
   };
 }
 

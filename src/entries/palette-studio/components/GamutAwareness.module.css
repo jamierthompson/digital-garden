@@ -1,0 +1,45 @@
+/* Screen-gamut awareness — @layer components, var-consuming. The sRGB/P3 states are toggled
+   by the `color-gamut` media feature (pure CSS): sRGB shows by default, P3 shows on a
+   wide-gamut screen. Both are in the HTML, so there is no hydration mismatch and no flash. */
+@layer components {
+  .awareness {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .chip {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--text);
+  }
+
+  .screenLabel {
+    color: var(--text-muted);
+  }
+
+  .message {
+    margin: 0;
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    /* Contrast-solved muted role — AA (4.5:1) even for small text. */
+    color: var(--text-muted);
+  }
+
+  /* Default (no wide-gamut screen): show the sRGB copy, hide the P3 copy. */
+  .p3Only {
+    display: none;
+  }
+
+  /* A Display-P3-or-wider screen: swap to the P3 copy. */
+  @media (color-gamut: p3) {
+    .srgbOnly {
+      display: none;
+    }
+
+    .p3Only {
+      display: inline;
+    }
+  }
+}
