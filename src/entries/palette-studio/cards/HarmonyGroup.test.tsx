@@ -23,14 +23,12 @@ describe("HarmonyGroup — opt-in, clearly separated", () => {
     );
   });
 
-  it("frames the group as opt-in and outside the token contract", () => {
+  it("frames the group's two safe picks and its extra-colors purpose", () => {
     renderGroup();
     const region = screen.getByRole("region", { name: "Harmony hues" });
+    expect(within(region).getByText(/two safe picks/i)).toBeInTheDocument();
     expect(
-      within(region).getByText(/outside the token contract/i),
-    ).toBeInTheDocument();
-    expect(
-      within(region).getByText(/charts, gradients, and secondary accents/i),
+      within(region).getByText(/charts, gradients, and accents/i),
     ).toBeInTheDocument();
   });
 

@@ -23,10 +23,10 @@ export default function HarmonyGroup(): React.ReactElement {
   return (
     <Panel label="Harmony hues" variant="plain" style={studio.slotStyle}>
       <Aside>
-        Harmony hues — mathematical companions to your seed, for charts,
-        gradients, and secondary accents. Opt-in, outside the token contract —
-        but every pick ships receipt-solved on every surface. Only pairings you
-        invent yourself need the contrast check.
+        Harmony hues — extra colors built from your seed, for charts, gradients,
+        and accents. Each hue comes with two safe picks: one for text, one for
+        fills — each checked on every background for its own job. Any other color
+        you take off a ramp, check the contrast yourself.
       </Aside>
       <ul className={styles.grid}>
         {HARMONY_HUES.map((hue) => (
