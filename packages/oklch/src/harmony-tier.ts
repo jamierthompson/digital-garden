@@ -162,10 +162,10 @@ function rotate(hue: number, delta: number): number {
 function landPick(
   hue: HarmonyHue,
   ramp: Ramp,
-  surface2: OkLCH,
+  worstSurface: OkLCH,
   target: (typeof CONTRAST_TARGETS)[keyof typeof CONTRAST_TARGETS],
 ): HarmonyPick {
-  const step = minPass(ramp, surface2, target);
+  const step = minPass(ramp, worstSurface, target);
   return {
     color: step.color,
     provenance: { kind: "step", role: hue, label: step.label },
@@ -187,9 +187,11 @@ export function resolveHarmonyTier(
 ): HarmonySchemeResult {
   const base = resolveTheme(brandColor, scheme, opts);
   const { seed, gamut, isFallback } = base;
-  // The worst-case surface (`surface-2`) the semantic `auto` tokens solved against — read
-  // straight off the resolved token so it can never diverge from the shipped surface.
-  const surface2 = base.tokens["surface-2"];
+  // The worst-case surface the semantic `auto` tokens solved against — `surface-selected`,
+  // the darkest (light) / lightest (dark) text-bearing surface of the 5-surface band (#160),
+  // so a pick that clears its target here clears it on EVERY surface. Read straight off the
+  // resolved token so it can never diverge from the shipped surface.
+  const worstSurface = base.tokens["surface-selected"];
   // Anchor every harmony ramp to the seed's own lightness at the brand ramp's anchor step
   // (#108), so the derived hue's identity color lands ON its ramp exactly as brand's does.
   const anchor = { label: base.anchorLabel, L: seed.L };
@@ -211,8 +213,8 @@ export function resolveHarmonyTier(
       relationship,
       offset,
       ramp,
-      text: landPick(hue, ramp, surface2, CONTRAST_TARGETS.accentText),
-      fill: landPick(hue, ramp, surface2, CONTRAST_TARGETS.ui),
+      text: landPick(hue, ramp, worstSurface, CONTRAST_TARGETS.accentText),
+      fill: landPick(hue, ramp, worstSurface, CONTRAST_TARGETS.ui),
     };
   }
 

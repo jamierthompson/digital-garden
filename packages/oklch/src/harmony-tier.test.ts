@@ -208,18 +208,18 @@ describe("harmony tier — receipt-grade picks clear their targets as shipped", 
       for (const gamut of ["srgb", "p3"] as const) {
         for (const scheme of ["light", "dark"] as const) {
           const base = resolveTheme(seed, scheme, { gamut });
-          const surface2 = bake(base.tokens["surface-2"]);
+          const worstSurface = bake(base.tokens["surface-selected"]);
           const tier = resolveHarmonyTier(seed, scheme, { gamut });
           for (const hue of HARMONY_HUES) {
             const h = tier.hues[hue];
             const text = checkContrast(
               bake(h.text.color),
-              surface2,
+              worstSurface,
               CONTRAST_TARGETS.accentText,
             );
             const fill = checkContrast(
               bake(h.fill.color),
-              surface2,
+              worstSurface,
               CONTRAST_TARGETS.ui,
             );
             expect(
@@ -343,9 +343,16 @@ describe("harmony tier — opt-in, separated export group", () => {
 // literal before it is measured — the check is on what the browser actually paints.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** The three surface tokens a harmony pick can sit on; `surface-2` is the derivation's
- *  declared worst case, so a pick that clears it must also clear the other two. */
-const SURFACE_TOKENS = ["bg", "surface", "surface-2"] as const;
+/** The five surface tokens a harmony pick can sit on (#160's full band, state surfaces
+ *  included); `surface-selected` is the derivation's declared worst case, so a pick that
+ *  clears it must also clear the other four. */
+const SURFACE_TOKENS = [
+  "bg",
+  "surface",
+  "surface-2",
+  "surface-hover",
+  "surface-selected",
+] as const;
 
 /** True when every OKLCH component is a finite number (no NaN/Infinity leak). */
 function allFinite(c: OkLCH): boolean {
@@ -354,7 +361,7 @@ function allFinite(c: OkLCH): boolean {
 
 describe("QA — adversarial (#152)", () => {
   it.each(SEEDS)(
-    "%s: each pick clears its target on EVERY surface, not just surface-2 (both schemes/gamuts, baked)",
+    "%s: each pick clears its target on EVERY surface, not just surface-selected (both schemes/gamuts, baked)",
     (_l, seed) => {
       for (const gamut of ["srgb", "p3"] as const) {
         for (const scheme of ["light", "dark"] as const) {
@@ -490,7 +497,7 @@ describe("QA — adversarial (#152)", () => {
       ).not.toThrow();
       for (const scheme of ["light", "dark"] as const) {
         const base = resolveTheme("oklch(0.6 0.4 300)", scheme, { gamut });
-        const surface2 = bake(base.tokens["surface-2"]);
+        const worstSurface = bake(base.tokens["surface-selected"]);
         for (const hue of HARMONY_HUES) {
           const h = tier.hues[hue];
           for (const step of h.ramp[scheme]) {
@@ -499,14 +506,14 @@ describe("QA — adversarial (#152)", () => {
           expect(
             checkContrast(
               bake(h.text[scheme].color),
-              surface2,
+              worstSurface,
               CONTRAST_TARGETS.accentText,
             ).passes,
           ).toBe(true);
           expect(
             checkContrast(
               bake(h.fill[scheme].color),
-              surface2,
+              worstSurface,
               CONTRAST_TARGETS.ui,
             ).passes,
           ).toBe(true);
