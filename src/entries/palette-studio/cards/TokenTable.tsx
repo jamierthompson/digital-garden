@@ -30,7 +30,6 @@ export default function TokenTable({
 }: TokenTableProps): React.ReactElement {
   return (
     <div className={styles.wrap}>
-      <p className={styles.caption}>Showing the {scheme} scheme</p>
       <table className={styles.table}>
         <thead>
           <tr>

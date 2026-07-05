@@ -24,13 +24,6 @@ describe("TokenTable", () => {
     }
   });
 
-  it("captions which scheme the table is showing", () => {
-    const { rerender } = render(<TokenTable cards={cards} scheme="light" />);
-    expect(screen.getByText(/showing the light scheme/i)).toBeInTheDocument();
-    rerender(<TokenTable cards={cards} scheme="dark" />);
-    expect(screen.getByText(/showing the dark scheme/i)).toBeInTheDocument();
-  });
-
   it("marks a co-solved token (no ramp step) as 'solved', not a step coordinate", () => {
     render(<TokenTable cards={cards} scheme="light" />);
     // `accent` is a continuous co-solve — it has no (role, label) ramp step.
