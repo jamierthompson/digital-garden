@@ -10,22 +10,35 @@ interface PanelProps {
    * children read (custom properties + `color-scheme`) for live downward theming.
    */
   readonly style?: CSSProperties;
+  /**
+   * Visual treatment. `framed` (default) is the bordered surface card. `plain` drops ALL
+   * chrome (surface, border, radius, padding) so a group of self-chromed cards sits directly on
+   * the wash instead of on an island — the section, its `region` label, and the `style` token
+   * binding are UNCHANGED, so scoped-token resolution and a11y hold either way.
+   */
+  readonly variant?: "framed" | "plain";
   readonly children: ReactNode;
 }
 
 /**
- * A bordered surface panel — the framed card every interactive slot and demo board sits
- * in (the module-page "demo panel" treatment). Generic UI primitive: reads the ambient
- * semantic tokens, so it renders editorial by default and brand-tinted inside a project
- * slot. Pair with `Aside` for the italic aside voice inside a panel.
+ * A surface panel — the labelled `region` every interactive slot and demo board sits in.
+ * Generic UI primitive: reads the ambient semantic tokens, so it renders editorial by default
+ * and brand-tinted inside a project slot. `framed` gives it the bordered demo-panel surface;
+ * `plain` is chrome-free (for a grid of already-carded content). Pair with `Aside` for the
+ * italic aside voice inside a panel.
  */
 export default function Panel({
   label,
   style,
+  variant = "framed",
   children,
 }: PanelProps): React.ReactElement {
+  const className =
+    variant === "plain"
+      ? styles.panel
+      : `${styles.panel} ${styles.framed}`;
   return (
-    <section aria-label={label} className={styles.panel} style={style}>
+    <section aria-label={label} className={className} style={style}>
       {children}
     </section>
   );

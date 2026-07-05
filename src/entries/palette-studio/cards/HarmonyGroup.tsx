@@ -21,7 +21,7 @@ export default function HarmonyGroup(): React.ReactElement {
   if (!studio) return <MissingFrame name="harmony" />;
   const { harmonyTier, scheme } = studio;
   return (
-    <Panel label="Harmony hues" style={studio.slotStyle}>
+    <Panel label="Harmony hues" variant="plain" style={studio.slotStyle}>
       <Aside>
         Harmony hues — mathematical companions to your seed, for charts,
         gradients, and secondary accents. Opt-in, outside the token contract —

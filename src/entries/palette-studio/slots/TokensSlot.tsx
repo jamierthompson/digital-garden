@@ -23,7 +23,7 @@ export default function TokensSlot(): React.ReactElement {
   const cards = useMemo(() => (palette ? buildCards(palette) : []), [palette]);
   if (!studio) return <MissingFrame name="swatch cards" />;
   return (
-    <Panel label="Swatch cards" style={studio.slotStyle}>
+    <Panel label="Swatch cards" variant="plain" style={studio.slotStyle}>
       <SwatchGrid cards={cards} scheme={studio.scheme} />
     </Panel>
   );
