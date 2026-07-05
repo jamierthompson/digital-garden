@@ -22,6 +22,11 @@
     /* Stacked on narrow screens — one column. The seed+starters control bar leads (owner: the
        play controls are the first thing on screen), the harmony hues next, then the working
        surfaces in source order. */
+    /* One column at every width (owner's linearized canvas, #139): the seed+starters and the
+       definitions are horizontal BARS, and the working surfaces (rules, harmony, cards, table,
+       preview, exports) are full-width sections that wrap their own contents. Wide screens just
+       give every row more room — the old left/right control rails are gone now that seed+rules
+       lead and exports+definitions close the flow, so there is no breakpoint-specific template. */
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       "seed"
@@ -32,25 +37,6 @@
       "preview"
       "exports"
       "glossary";
-  }
-
-  /* Wide canvas (the module declares `layout: "wide"`): controls rail on the left, the cards
-     grid taking the room, the glossary as a quiet right sidebar. The preview (now several
-     specimens, not one) and the palette table are each a full-width row of their own — the
-     20rem left rail is sized for controls, not for either of those. */
-  @media (min-width: 64rem) {
-    .canvas {
-      grid-template-columns: 20rem minmax(0, 1fr);
-      align-items: start;
-      grid-template-areas:
-        "seed     seed"
-        "rules    rules"
-        "harmony  harmony"
-        "exports  cards"
-        "preview  preview"
-        "table    table"
-        "glossary glossary";
-    }
   }
 
   .seed {
