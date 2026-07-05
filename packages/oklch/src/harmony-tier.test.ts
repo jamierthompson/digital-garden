@@ -10,8 +10,11 @@ import {
   harmonyTierToCss,
   harmonyTierToTailwindTheme,
   harmonyTierToDesignTokens,
+  tokenSetToTailwindTheme,
+  tokenSetToDesignTokens,
 } from "./export";
-import { resolveTheme } from "./palette";
+import { tokenSetToCss } from "./css";
+import { buildTokenSet, resolveTheme } from "./palette";
 import { CONTRAST_TARGETS } from "./targets";
 import { checkContrast } from "./contrast";
 import { inGamut } from "./gamut";
@@ -580,5 +583,169 @@ describe("QA — adversarial (#152)", () => {
         typeof buildHarmonyTier
       >[1]),
     ).toEqual(buildHarmonyTier("#3b82f6"));
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fresh-eyes adversarial QA (second pass, #152 × #160) — the seams the suite above
+// doesn't reach: the generative-rules interaction with the picks, DIRECT per-scheme
+// scale evidence (not brand-relative), the alpha × harmony export seam, opt-in purity
+// of the core serializers, and byte-level exporter determinism.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("QA — fresh-eyes adversarial: rules × picks (#101 interaction)", () => {
+  // The suite above never varies EngineRules against the pick floors. A distribution
+  // reshapes the text-zone interior the picks land in; chroma/hue policies move every
+  // candidate step — the picks must re-solve and still clear on the worst-case surface
+  // under EVERY policy combination (the same guarantee rules.test.ts pins for the 34
+  // semantic tokens).
+  it("text + fill picks clear their floors under every rules combination (both schemes)", () => {
+    const distributions = [
+      "tailwind",
+      "linear",
+      "eased",
+      "punchy",
+      "soft",
+    ] as const;
+    const chromaPolicies = ["flat", "taper", "hold"] as const;
+    const huePolicies = [
+      "constant",
+      "warm-shadows",
+      "cool-highlights",
+    ] as const;
+    for (const distribution of distributions)
+      for (const chromaPolicy of chromaPolicies)
+        for (const huePolicy of huePolicies)
+          for (const tintedNeutrals of [true, false])
+            for (const scheme of ["light", "dark"] as const) {
+              const rules = {
+                distribution,
+                chromaPolicy,
+                huePolicy,
+                tintedNeutrals,
+              };
+              const base = resolveTheme("#3b82f6", scheme, { rules });
+              const worstSurface = bake(base.tokens["surface-selected"]);
+              const tier = resolveHarmonyTier("#3b82f6", scheme, { rules });
+              for (const hue of HARMONY_HUES) {
+                const h = tier.hues[hue];
+                const where = `${hue} ${scheme} ${distribution}/${chromaPolicy}/${huePolicy}/tinted:${tintedNeutrals}`;
+                expect(
+                  checkContrast(
+                    bake(h.text.color),
+                    worstSurface,
+                    CONTRAST_TARGETS.accentText,
+                  ).passes,
+                  `text ${where}`,
+                ).toBe(true);
+                expect(
+                  checkContrast(
+                    bake(h.fill.color),
+                    worstSurface,
+                    CONTRAST_TARGETS.ui,
+                  ).passes,
+                  `fill ${where}`,
+                ).toBe(true);
+              }
+            }
+  }, 60_000);
+});
+
+describe("QA — fresh-eyes adversarial: per-scheme scale, proven directly (#160)", () => {
+  // The "shares the brand ramp's profile" test above is RELATIVE — if brand and harmony
+  // were both label-flipped, it would still pass. Pin the scales ABSOLUTELY: the anchor
+  // bend preserves the ramp endpoints and the gamut map may nudge L by at most one JND,
+  // so each scheme's harmony ramps must end at ITS OWN scale extremes (light 950 → 0.145,
+  // dark 950 → 0.165, dark 50 → 0.985 — ramp.ts RAMP_L), and dark must not be a flip.
+  it("harmony ramps carry each scheme's own endpoint lightness (not a mirror flip)", () => {
+    const tier = buildHarmonyTier("#3b82f6");
+    for (const hue of HARMONY_HUES) {
+      const light = tier.hues[hue].ramp.light;
+      const dark = tier.hues[hue].ramp.dark;
+      expect(
+        Math.abs(light[10].color.L - 0.145),
+        `${hue} light 950`,
+      ).toBeLessThan(JND);
+      expect(
+        Math.abs(dark[10].color.L - 0.165),
+        `${hue} dark 950`,
+      ).toBeLessThan(JND);
+      expect(Math.abs(dark[0].color.L - 0.985), `${hue} dark 50`).toBeLessThan(
+        JND,
+      );
+      expect(dark.map((s) => s.color.L)).not.toEqual(
+        [...light.map((s) => s.color.L)].reverse(),
+      );
+    }
+  });
+});
+
+describe("QA — fresh-eyes adversarial: export seams (#152 × scrim-alpha #160)", () => {
+  const tier = buildHarmonyTier("#3b82f6");
+
+  it("no harmony token ever carries a DTCG alpha field (opaque tier, shared builder)", () => {
+    // The DTCG builder is shared with the semantic export, whose scrim DOES carry alpha —
+    // the seam must not leak it into the (all-opaque) harmony annex.
+    for (const format of ["oklch", "hex", "rgb"] as const) {
+      const dt = harmonyTierToDesignTokens(tier, { format });
+      for (const scheme of ["light", "dark"] as const)
+        for (const hue of HARMONY_HUES) {
+          const group = dt[scheme].harmony[hue];
+          for (const token of [
+            group.text,
+            group.fill,
+            ...Object.values(group.ramp),
+          ]) {
+            expect("alpha" in token.$value, `${hue}/${scheme}/${format}`).toBe(
+              false,
+            );
+          }
+        }
+    }
+  });
+
+  it("the CORE serializers emit no harmony output — the tier is opt-in by construction", () => {
+    // The reverse direction (harmony emits no semantic names) is pinned above; this pins
+    // that opting OUT costs nothing: the frozen tokenSetTo* surfaces never mention the tier.
+    const set = buildTokenSet("#3b82f6");
+    expect(tokenSetToCss(set, ":root")).not.toContain("harmony");
+    expect(tokenSetToTailwindTheme(set)).not.toContain("harmony");
+    expect(JSON.stringify(tokenSetToDesignTokens(set))).not.toContain(
+      "harmony",
+    );
+  });
+
+  it("harmony exporters are byte-deterministic across independent builds", () => {
+    const again = buildHarmonyTier("#3b82f6");
+    expect(harmonyTierToCss(again)).toBe(harmonyTierToCss(tier));
+    expect(harmonyTierToTailwindTheme(again)).toBe(
+      harmonyTierToTailwindTheme(tier),
+    );
+    expect(JSON.stringify(harmonyTierToDesignTokens(again))).toBe(
+      JSON.stringify(harmonyTierToDesignTokens(tier)),
+    );
+  });
+
+  it("harmony DTCG is plain JSON (survives a stringify round-trip)", () => {
+    const dt = harmonyTierToDesignTokens(tier);
+    expect(JSON.parse(JSON.stringify(dt))).toEqual(dt);
+  });
+});
+
+describe("QA — fresh-eyes adversarial: exotic hostile inputs (#152)", () => {
+  it("non-primitive and pathological inputs fall back without throwing", () => {
+    const inputs: unknown[] = [
+      new String("#ff0000"), // a String OBJECT is not a string primitive
+      { toString: () => "#ff0000" },
+      "a".repeat(100_000),
+      true,
+      -0,
+    ];
+    for (const input of inputs) {
+      const t = buildHarmonyTier(input);
+      expect(t.meta.isFallback).toBe(true);
+      for (const hue of HARMONY_HUES)
+        expect(inGamut(t.hues[hue].text.light.color, "srgb")).toBe(true);
+    }
   });
 });
