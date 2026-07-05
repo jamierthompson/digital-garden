@@ -132,11 +132,9 @@ describe("gamutMap is memoized without changing behavior (#41)", () => {
 
 describe("QA — adversarial: gamutMap public-API hardening (#160)", () => {
   // types.ts documents alpha as "a serialization concern: it rides through gamut-mapping
-  // and contrast math untouched" — but gamutMap rebuilds every result as a bare {L,C,H},
-  // silently DROPPING alpha on both the in-gamut and the mapped path. CONFIRMED DEFECT
-  // (QA-REPORT.md, defect 2): either preserve alpha or correct the types.ts claim; flip
-  // `.fails` off (or delete this test) with that decision.
-  it.fails("preserves alpha through the map, as types.ts documents", () => {
+  // and contrast math untouched" — the map itself is pure L/C/H (alpha can't affect it),
+  // so gamutMap reattaches the input's alpha verbatim on both the in-gamut and mapped paths.
+  it("preserves alpha through the map, as types.ts documents", () => {
     expect(gamutMap({ L: 0.13, C: 0, H: 0, alpha: 0.6 }, "srgb").alpha).toBe(
       0.6,
     );

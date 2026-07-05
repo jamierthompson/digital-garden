@@ -78,7 +78,8 @@ const GAMUT_CACHE_MAX = 100_000;
 
 /**
  * Map an OKLCH color into the target gamut by reducing chroma (L, H fixed), per the
- * CSS Color 4 binary-search algorithm. Returns an in-gamut OKLCH. Deterministic and
+ * CSS Color 4 binary-search algorithm. Returns an in-gamut OKLCH; `alpha` rides through
+ * untouched (a serialization concern — `types.ts`). Deterministic and
  * observably pure, never throws — but INTERNALLY MEMOIZED (#41; see `GAMUT_CACHE`) so a
  * repeated `(L, C, H, gamut)` is a lookup instead of a re-search. Every returned result is
  * bit-identical to a fresh compute (`computeGamutMap`, the cache-miss path below).
@@ -98,7 +99,11 @@ export function gamutMap(color: OkLCH, gamut: Gamut): OkLCH {
   // caller's input (below), so the cache can hold no caller-owned reference either. Together
   // that keeps the memo a truly transparent, bit-identical optimization — a mutated result can
   // never poison a later hit. One tiny allocation, dwarfed by the binary search it replaces.
-  return { L: value.L, C: value.C, H: value.H };
+  // The input's alpha is reattached verbatim on the way out: the map itself is pure L/C/H
+  // (alpha can't affect it), so the memo stays keyed — and cached — alpha-free.
+  return color.alpha === undefined
+    ? { L: value.L, C: value.C, H: value.H }
+    : { L: value.L, C: value.C, H: value.H, alpha: color.alpha };
 }
 
 /** The CSS Color 4 binary-search map itself — the `gamutMap` cache-miss path. */
