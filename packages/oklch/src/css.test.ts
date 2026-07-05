@@ -123,3 +123,25 @@ describe("tokenSetToCss", () => {
     ).toContain("color-scheme: light dark;");
   });
 });
+
+describe("QA — adversarial: scrim + determinism through the CSS serializers (#160)", () => {
+  const set = buildTokenSet("#3b82f6");
+
+  it("carries the scrim alpha in every ColorFormat", () => {
+    expect(tokenSetToDeclarations(set)).toContain(
+      "--scrim: light-dark(oklch(0.13 0 0 / 0.6), oklch(0.13 0 0 / 0.6));",
+    );
+    expect(tokenSetToDeclarations(set, { format: "hex" })).toMatch(
+      /--scrim: light-dark\(#[0-9a-f]{6}99, #[0-9a-f]{6}99\);/,
+    );
+    expect(tokenSetToDeclarations(set, { format: "rgb" })).toMatch(
+      /--scrim: light-dark\(rgb\(\d+ \d+ \d+ \/ 0\.6\), rgb\(\d+ \d+ \d+ \/ 0\.6\)\);/,
+    );
+  });
+
+  it("two independent builds serialize byte-identically", () => {
+    expect(tokenSetToCss(buildTokenSet("#3b82f6"), ":root")).toBe(
+      tokenSetToCss(set, ":root"),
+    );
+  });
+});

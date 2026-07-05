@@ -129,3 +129,36 @@ describe("gamutMap is memoized without changing behavior (#41)", () => {
     expect(again).toEqual(canonical);
   });
 });
+
+describe("QA — adversarial: gamutMap public-API hardening (#160)", () => {
+  // types.ts documents alpha as "a serialization concern: it rides through gamut-mapping
+  // and contrast math untouched" — but gamutMap rebuilds every result as a bare {L,C,H},
+  // silently DROPPING alpha on both the in-gamut and the mapped path. CONFIRMED DEFECT
+  // (QA-REPORT.md, defect 2): either preserve alpha or correct the types.ts claim; flip
+  // `.fails` off (or delete this test) with that decision.
+  it.fails("preserves alpha through the map, as types.ts documents", () => {
+    expect(gamutMap({ L: 0.13, C: 0, H: 0, alpha: 0.6 }, "srgb").alpha).toBe(
+      0.6,
+    );
+    expect(gamutMap({ L: 0.5, C: 0.9, H: 30, alpha: 0.3 }, "srgb").alpha).toBe(
+      0.3,
+    );
+  });
+
+  it("degrades a NaN chroma to the achromatic axis without throwing", () => {
+    expect(gamutMap({ L: 0.5, C: NaN, H: 30 }, "srgb")).toEqual({
+      L: 0.5,
+      C: 0,
+      H: 30,
+    });
+  });
+
+  // gamutMap({ C: Infinity }) never terminates: the binary search's `hi` stays Infinity
+  // (mid = (0 + Infinity) / 2 = Infinity), so `hi - lo > 1e-5` never turns false — and
+  // buildRamp forwards a caller's Infinity chroma straight into it (`Math.max(0, Infinity)`).
+  // CONFIRMED DEFECT (QA-REPORT.md, defect 3). A live test would hang the whole suite, so
+  // it stays skipped until the non-finite guard lands; unskip it to prove the fix.
+  it.skip("terminates on an Infinity chroma (currently infinite-loops — defect 3)", () => {
+    expect(gamutMap({ L: 0.5, C: Infinity, H: 30 }, "srgb").C).toBeLessThan(1);
+  });
+});

@@ -1331,3 +1331,210 @@ describe("seed anchor-step (#108) — QA edge hardening", () => {
     );
   });
 });
+
+describe("QA — adversarial: interaction-state + un-mirror invariants (#160)", () => {
+  const SURFACES = [
+    "bg",
+    "surface",
+    "surface-2",
+    "surface-hover",
+    "surface-selected",
+  ] as const;
+
+  // #160 acceptance: "accent-hover — perceptibly distinct from accent (both schemes)". The
+  // solver's own HOVER_DELTA_L (accent.ts) documents ~0.05 L as the minimum perceptible
+  // nudge — but at the lightness extremes clamp01 eats the nudge and the scan still accepts
+  // the pinned candidate, so a pure-black seed ships accent-hover ≡ accent (ΔL = 0, light
+  // scheme) and near-white seeds ship ΔL ≈ 0.003–0.03 in dark. An invisible hover state.
+  // CONFIRMED DEFECT (QA-REPORT.md, defect 1) — flip `.fails` off once the solver rejects
+  // candidates the clamp left unmoved.
+  it.fails(
+    "accent-hover stays perceptibly distinct from accent at extreme seeds",
+    () => {
+      const PERCEPTIBLE = 0.02; // conservative floor, well under the documented 0.05 nudge
+      const cases = [
+        ["#000000", "light"],
+        ["#ffffff", "dark"],
+        ["#fefefe", "dark"],
+      ] as const;
+      for (const [seed, scheme] of cases) {
+        const { tokens } = resolveTheme(seed, scheme);
+        expect(
+          Math.abs(tokens["accent-hover"].L - tokens.accent.L),
+          `${seed}/${scheme}`,
+        ).toBeGreaterThanOrEqual(PERCEPTIBLE);
+      }
+    },
+  );
+
+  // The "clears on EVERY surface" guarantee is proven transitively (every foreground solves
+  // against `surface-selected`, the worst case). Lock it empirically: each solved foreground
+  // clears its floor on ALL FIVE surfaces — bg, surface, surface-2 and the two #160 state
+  // surfaces — in both schemes and both gamuts, incl. the yellow/cyan stressers + fallback.
+  const FG_FLOORS: Array<[BrandTokenName, number, number]> = [
+    ["text", 4.5, 75],
+    ["text-muted", 4.5, 60],
+    ["border", 3, 30],
+    ["accent-text", 4.5, 60],
+    ["focus-ring", 3, 45],
+    ["accent", 3, 45],
+    ["accent-hover", 3, 45],
+    ["error", 3, 45],
+    ["error-text", 4.5, 60],
+    ["warning", 3, 45],
+    ["warning-text", 4.5, 60],
+    ["success", 3, 45],
+    ["success-text", 4.5, 60],
+    ["info", 3, 45],
+    ["info-text", 4.5, 60],
+  ];
+  it(
+    "every solved foreground clears its floor on ALL FIVE surfaces (schemes × gamuts)",
+    () => {
+      const seeds = [
+        "#3b82f6",
+        "#eab308", // yellow stresser
+        "#06b6d4", // cyan stresser
+        "oklch(0.55 0.35 330)",
+        "garbage", // → fallback
+      ];
+      for (const gamut of ["srgb", "p3"] as const)
+        for (const scheme of SCHEMES)
+          for (const seed of seeds) {
+            const { tokens } = resolveTheme(seed, scheme, { gamut });
+            for (const [name, wcag, apca] of FG_FLOORS)
+              for (const s of SURFACES) {
+                const where = `${name} on ${s} ${scheme}/${gamut}/${seed}`;
+                expect(
+                  contrastWCAG(tokens[name], tokens[s]),
+                  `${where} WCAG`,
+                ).toBeGreaterThanOrEqual(wcag);
+                expect(
+                  apcaLc(tokens[name], tokens[s]),
+                  `${where} APCA`,
+                ).toBeGreaterThanOrEqual(apca);
+              }
+          }
+    },
+    SWEEP_TIMEOUT,
+  );
+
+  it("the five surfaces are strictly ordered by lightness (pairwise distinct), per scheme", () => {
+    for (const scheme of SCHEMES)
+      for (const seed of ["#3b82f6", "#eab308", "garbage"])
+        for (const tintedNeutrals of [true, false]) {
+          const { tokens } = resolveTheme(seed, scheme, {
+            rules: { tintedNeutrals },
+          });
+          const Ls = SURFACES.map((s) => tokens[s].L);
+          for (let i = 1; i < Ls.length; i++) {
+            const where = `${SURFACES[i]} ${scheme}/${seed}/tinted:${tintedNeutrals}`;
+            // Light: bg is lightest, each state surface strictly darker; dark mirrors ROLES.
+            if (scheme === "light")
+              expect(Ls[i], where).toBeLessThan(Ls[i - 1]);
+            else expect(Ls[i], where).toBeGreaterThan(Ls[i - 1]);
+          }
+        }
+  });
+
+  // The neutral ramp (which text/text-muted/border bind to) depends only on the seed's HUE
+  // and tintedNeutrals — so a hue sweep at both settings covers the whole input domain.
+  it(
+    "text / text-muted / border are pairwise-distinct colors in each scheme (hue sweep)",
+    () => {
+      for (const scheme of SCHEMES)
+        for (let H = 0; H < 360; H += 30)
+          for (const tintedNeutrals of [true, false]) {
+            const { tokens } = resolveTheme(`oklch(0.55 0.2 ${H})`, scheme, {
+              rules: { tintedNeutrals },
+            });
+            const fgs = [tokens.text, tokens["text-muted"], tokens.border];
+            const names = ["text", "text-muted", "border"];
+            for (let i = 0; i < fgs.length; i++)
+              for (let j = i + 1; j < fgs.length; j++)
+                expect(
+                  sameColor(fgs[i], fgs[j]),
+                  `${names[i]}≡${names[j]} H${H} ${scheme} tinted:${tintedNeutrals}`,
+                ).toBe(false);
+          }
+    },
+    SWEEP_TIMEOUT,
+  );
+
+  it("dark is generated on its OWN scale — not a mirror-label flip of light (#160)", () => {
+    const light = resolveTheme("#3b82f6", "light");
+    const dark = resolveTheme("#3b82f6", "dark");
+    const lightLs = light.ramps.neutral.map((s) => s.color.L);
+    const darkLs = dark.ramps.neutral.map((s) => s.color.L);
+    // A mirror-label flip would make dark's scale the reverse of light's. It is not.
+    expect(darkLs).not.toEqual([...lightLs].reverse());
+    // Dark's bg (step 950) carries dark's OWN value, not light's 950 read upside down.
+    expect(
+      Math.abs(dark.tokens.bg.L - lightLs[lightLs.length - 1]),
+    ).toBeGreaterThan(0.01);
+    // Each scheme carries its own neutral chroma (light 0.04, dark 0.045) — read at a mid
+    // step, far from the gamut boundary, where the nominal chroma survives the map.
+    const midLight = light.ramps.neutral.find((s) => s.label === "600")!;
+    const midDark = dark.ramps.neutral.find((s) => s.label === "300")!;
+    expect(midLight.color.C).toBeCloseTo(0.04, 3);
+    expect(midDark.color.C).toBeCloseTo(0.045, 3);
+  });
+
+  it("scrim is a seed-independent translucent literal in BOTH schemes (alpha 0.6)", () => {
+    for (const seed of ["#3b82f6", "#000000", "garbage"]) {
+      const set = buildTokenSet(seed);
+      for (const scheme of SCHEMES) {
+        const scrim = set.tokens.scrim[scheme];
+        expect(scrim.alpha, `${seed}/${scheme}`).toBeCloseTo(0.6, 5);
+        expect(scrim.L, `${seed}/${scheme}`).toBeLessThan(0.2); // dims toward black
+        expect(scrim.C, `${seed}/${scheme}`).toBe(0);
+        expect(set.meta.bindings.scrim[scheme]).toEqual({
+          kind: "literal",
+          alpha: 0.6,
+        });
+      }
+    }
+  });
+});
+
+describe("QA — adversarial: hostile brandColor inputs (never-throws, #160)", () => {
+  it("non-string exotics fall back without throwing", () => {
+    const inputs: unknown[] = [
+      {},
+      [],
+      true,
+      0.5,
+      -1,
+      Symbol("x"),
+      () => {},
+      new String("#ff0000"), // a String OBJECT is not a string primitive
+      { toString: () => "#ff0000" },
+    ];
+    for (const input of inputs) {
+      const set = buildTokenSet(input);
+      expect(set.meta.isFallback).toBe(true);
+      expect(Number.isFinite(set.tokens.text.light.L)).toBe(true);
+    }
+  });
+
+  it.each([
+    "oklch(-0.5 0.1 30)", // negative L — the parser's regex rejects it
+    "oklch(1e5 0.1 30)", // exponent form — rejected, never NaN
+    "rgb(-5, 0, 0)", // negative channel — rejected
+  ])("rejects %j to the fallback palette without throwing", (input) => {
+    expect(buildTokenSet(input).meta.isFallback).toBe(true);
+  });
+
+  it("clamps parseable numeric extremes instead of falling back", () => {
+    // L clamps into [0,1], C floors at 0, H normalizes mod 360 — then the gamut map
+    // absorbs the huge chroma. Parseable-but-wild input is themed, not rejected.
+    const set = buildTokenSet("oklch(99 99 99999)");
+    expect(set.meta.isFallback).toBe(false);
+    expect(Number.isFinite(set.tokens.accent.light.L)).toBe(true);
+    expect(inGamut(set.tokens.accent.light, "srgb")).toBe(true);
+  });
+
+  it("a pathologically long string falls back without throwing", () => {
+    expect(buildTokenSet("a".repeat(100_000)).meta.isFallback).toBe(true);
+  });
+});

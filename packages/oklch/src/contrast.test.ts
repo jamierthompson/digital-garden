@@ -305,3 +305,39 @@ describe("checkContrast — identical semantics with the primitives it consolida
     );
   }
 });
+
+describe("QA — adversarial: solveForeground non-finite chroma (never-throws contract)", () => {
+  const target: ContrastTarget = { wcag: 4.5, apca: 75 };
+  const bg: OkLCH = { L: 0.95, C: 0.01, H: 30 };
+
+  // chromaBackoff steps `Infinity - 0.02 → Infinity` forever, growing its candidate array
+  // until V8 dies with `RangeError: Invalid array length` — on the engine's documented
+  // never-throws path (solveForeground is public, #99). CONFIRMED DEFECT (QA-REPORT.md,
+  // defect 3); flip `.fails` off once non-finite chroma is guarded.
+  it.fails(
+    "never throws for chroma: Infinity (documented 'never throws')",
+    () => {
+      expect(() =>
+        solveForeground({
+          bg,
+          hue: 30,
+          chroma: Infinity,
+          target,
+          gamut: "srgb",
+        }),
+      ).not.toThrow();
+    },
+  );
+
+  it("degrades a NaN chroma to an achromatic solve that still meets the target", () => {
+    const out = solveForeground({
+      bg,
+      hue: 30,
+      chroma: NaN,
+      target,
+      gamut: "srgb",
+    });
+    expect(out.C).toBe(0);
+    expect(checkContrast(out, bg, target).passes).toBe(true);
+  });
+});

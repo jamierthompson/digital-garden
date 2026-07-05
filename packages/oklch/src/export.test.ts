@@ -171,3 +171,14 @@ describe("tokenSetToDesignTokens", () => {
     }
   });
 });
+
+describe("QA — adversarial: export determinism (#160)", () => {
+  it("two independent builds serialize byte-identically in both portable exporters", () => {
+    const a = buildTokenSet(SEED);
+    const b = buildTokenSet(SEED);
+    expect(tokenSetToTailwindTheme(a)).toBe(tokenSetToTailwindTheme(b));
+    expect(JSON.stringify(tokenSetToDesignTokens(a))).toBe(
+      JSON.stringify(tokenSetToDesignTokens(b)),
+    );
+  });
+});
