@@ -9,10 +9,8 @@ import { describe, expect, it, vi } from "vitest";
 import StudioProvider from "./StudioProvider";
 import SeedSlot from "./slots/SeedSlot";
 import RulesSlot from "./slots/RulesSlot";
-import PrimitivesSlot from "./slots/PrimitivesSlot";
 import TokensSlot from "./slots/TokensSlot";
 import PreviewSlot from "./slots/PreviewSlot";
-import ReceiptSlot from "./slots/ReceiptSlot";
 import ExportSlot from "./slots/ExportSlot";
 
 /**
@@ -26,10 +24,8 @@ function renderStudio(slug = "demo") {
     <StudioProvider slug={slug}>
       <SeedSlot />
       <RulesSlot />
-      <PrimitivesSlot />
       <TokensSlot />
       <PreviewSlot />
-      <ReceiptSlot />
       <ExportSlot />
     </StudioProvider>,
   );
@@ -52,10 +48,8 @@ function tokenValue(name: string): string {
 const ALL_SLOTS = [
   ["seed", SeedSlot],
   ["rules", RulesSlot],
-  ["primitives", PrimitivesSlot],
   ["tokens", TokensSlot],
   ["preview", PreviewSlot],
-  ["receipt", ReceiptSlot],
   ["export", ExportSlot],
 ] as const;
 
@@ -98,14 +92,7 @@ describe("Palette Studio (Provider + slots)", () => {
     const after = rulesPanel.style.getPropertyValue("--accent");
     expect(after).not.toBe(before);
     // Every slot panel carries the SAME live binding.
-    for (const name of [
-      "Seed",
-      "Primitive ramps",
-      "Swatch cards",
-      "Live preview",
-      "Contrast receipt",
-      "Export",
-    ]) {
+    for (const name of ["Seed", "Swatch cards", "Live preview", "Export"]) {
       expect(
         screen.getByRole("region", { name }).style.getPropertyValue("--accent"),
       ).toBe(after);
@@ -164,10 +151,11 @@ describe("Palette Studio (Provider + slots)", () => {
     expect(tokenValue("surface")).not.toBe(before);
   });
 
-  it("displays the viewer's preferred color scheme — no page-local toggle (#133)", () => {
-    // the setup stub's matchMedia never matches, so the default render reads as light…
+  it("follows the viewer's preferred color scheme — no page-local toggle (#133)", () => {
+    // The scheme is observed through the derived tokens (the ambient "showing the X scheme"
+    // caption was removed, #owner): the setup stub's matchMedia never matches, so the default
+    // render reads as light…
     renderStudio();
-    expect(screen.getByText(/light scheme/i)).toBeInTheDocument();
     const lightBg = tokenValue("bg");
     cleanup();
     // …and a dark-preferring viewer gets the dark view of the SAME derivation.
@@ -183,8 +171,8 @@ describe("Palette Studio (Provider + slots)", () => {
     );
     try {
       renderStudio();
-      expect(screen.getByText(/dark scheme/i)).toBeInTheDocument();
-      // Dark bg differs from light bg — both schemes are always derived.
+      // Dark bg differs from light bg — both schemes are always derived, and the studio paints
+      // the viewer's (no page-local toggle).
       expect(tokenValue("bg")).not.toBe(lightBg);
     } finally {
       vi.unstubAllGlobals();
@@ -211,37 +199,17 @@ describe("Palette Studio (Provider + slots)", () => {
     expect(checked[0]).toHaveAccessibleName("Tailwind");
   });
 
-  it("renders one scheme-neutral live preview and the contrast receipt for BOTH schemes", () => {
+  it("renders one scheme-neutral live preview", () => {
     renderStudio();
-    // The preview is a SINGLE scheme-neutral group now — the specimens inherit the slot's
+    // The preview is a SINGLE scheme-neutral group — the specimens inherit the slot's
     // light-dark() palette and paint the viewer's scheme via CSS (no scheme in the name, no
-    // light-first lie). The receipt still shows both schemes (baked light-dark literals).
+    // light-first lie).
     expect(
       screen.getByRole("group", { name: "palette preview" }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("group", { name: /light preview|dark preview/ }),
     ).not.toBeInTheDocument();
-    // The receipt is the guarantee: every measured pair passes, in both schemes.
-    for (const name of ["light contrast receipt", "dark contrast receipt"]) {
-      const card = screen.getByRole("group", { name });
-      const marks = within(card).getAllByRole("img");
-      expect(marks.length).toBeGreaterThan(0);
-      for (const mark of marks) {
-        expect(mark).toHaveAccessibleName("passes");
-      }
-    }
-  });
-
-  it("re-measures the receipt when the seed changes", () => {
-    renderStudio();
-    const receipt = () =>
-      screen.getByRole("group", { name: "light contrast receipt" }).textContent;
-    const before = receipt();
-    fireEvent.change(screen.getByLabelText("Seed color"), {
-      target: { value: "#06b6d4" },
-    });
-    expect(receipt()).not.toBe(before);
   });
 
   it("exports the live palette and re-serializes when the seed changes", () => {
@@ -299,10 +267,8 @@ function studio(slug: string) {
     <StudioProvider slug={slug}>
       <SeedSlot />
       <RulesSlot />
-      <PrimitivesSlot />
       <TokensSlot />
       <PreviewSlot />
-      <ReceiptSlot />
       <ExportSlot />
     </StudioProvider>
   );
@@ -387,7 +353,7 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
   );
 
   it(
-    "single-scheme slots follow the viewer's scheme; the receipt always shows BOTH",
+    "single-scheme slots follow the viewer's scheme — no page-local toggle",
     { timeout: 60000 },
     () => {
       render(studio("demo"));
@@ -395,29 +361,6 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
       expect(
         screen.queryByRole("radio", { name: /^(light|dark)$/ }),
       ).not.toBeInTheDocument();
-      // The receipt shows BOTH schemes irrespective of the viewer's scheme.
-      expect(
-        screen.getByRole("group", { name: "light contrast receipt" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("group", { name: "dark contrast receipt" }),
-      ).toBeInTheDocument();
-    },
-  );
-
-  it(
-    "every rendered contrast mark reads as a pass for the default seed, both schemes",
-    { timeout: 60000 },
-    () => {
-      render(studio("demo"));
-      for (const name of ["light contrast receipt", "dark contrast receipt"]) {
-        const card = screen.getByRole("group", { name });
-        const marks = within(card).getAllByRole("img");
-        expect(marks.length).toBeGreaterThan(0);
-        for (const mark of marks) {
-          expect(mark).toHaveAccessibleName("passes");
-        }
-      }
     },
   );
 });
