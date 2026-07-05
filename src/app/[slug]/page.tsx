@@ -173,13 +173,19 @@ export default async function EntryPage({ params }: EntryPageProps) {
       {Provider ? <Provider slug={slug}>{article}</Provider> : article}
       {/* Brand is scoped to the interactive slot ONLY — the engine theme wraps
           <Experience/>, not the editorial article/related around it. Rendered only when a
-          module resolved (any kind but `now`); an entry without one is prose-only. */}
+          module resolved (any kind but `now`); an entry without one is prose-only. The
+          `.experience` wrapper is the direct `.module` child: it holds the reading-measure cap
+          on narrow entries (like every non-article child) but is exempted under `.wide` so a
+          module-declared wide Experience fills the frame — the article's `[full]` slots aren't
+          the only wide-mode path (a lone Experience is a direct child, not inside the article). */}
       {Experience ? (
-        <EntryScopeBoundary>
-          <EntryScope seed={scope}>
-            <Experience slug={slug} />
-          </EntryScope>
-        </EntryScopeBoundary>
+        <div className={styles.experience}>
+          <EntryScopeBoundary>
+            <EntryScope seed={scope}>
+              <Experience slug={slug} />
+            </EntryScope>
+          </EntryScopeBoundary>
+        </div>
       ) : null}
       <RelatedEntries
         currentId={entry._id}

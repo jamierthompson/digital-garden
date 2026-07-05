@@ -82,4 +82,16 @@
     max-width: 100%;
     width: 100%;
   }
+
+  /* A lone `Experience` is a direct `.module` child, so the reading-measure cap above
+     (`.module > :not(.article)`) pins it to `--width-text` — which would leave a `layout:"wide"`
+     module reporting wide but rendering at content width (the same class of bug QA killed on the
+     article/`[full]` path, which only browser checks surface). Under `.wide` only, exempt the
+     Experience wrapper so it fills the frame like the article's breakout slots do. Narrow entries
+     are unchanged (the wrapper keeps the reading-measure cap); RelatedEntries stays capped in
+     both modes. `.wide > .experience` (0,2,0) outranks `.module > :where(:not(.article))` (0,1,0). */
+  .wide > .experience {
+    max-width: 100%;
+    margin-inline: 0;
+  }
 }

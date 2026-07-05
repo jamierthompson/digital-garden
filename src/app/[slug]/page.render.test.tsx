@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import pageStyles from "./page.module.css";
+
 // next/font/google is a build-time transform, untransformed under Vitest — mock the faces
 // pulled in transitively via EntryScope → resolveScope → FONT_FACES (same shape as the
 // integration test / EntryScope.test.tsx).
@@ -636,6 +638,55 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       "wide",
     );
     expect(screen.getByTestId("experience")).toBeInTheDocument();
+  });
+
+  // The MECHANISM behind the wide Experience, pinned as class composition (not just
+  // `data-layout`): jsdom computes no width, so the bug — a lone Experience "reports wide but
+  // renders at content width" because `.module > :not(.article)` pins its wrapper to
+  // `--width-text` — is only catchable by asserting the classes the CSS rule keys off. The fix
+  // wraps the Experience in a `.experience` element that is a DIRECT child of `main`, exempted
+  // under `.wide` by `.wide > .experience`. Two browser paths of this class of bug (article
+  // slots, then Experience) have escaped jsdom; this locks the Experience path structurally.
+  it("wraps the wide Experience in a `.experience` direct-child of main that `.wide` can exempt", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundWideExperience());
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "note", componentKey: "palette-studio" }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    const main = container.querySelector("main")!;
+    // Both classes the exemption selector `.wide > .experience` depends on are present…
+    expect(main.className).toContain(pageStyles.module);
+    expect(main.className).toContain(pageStyles.wide);
+    // …on a wrapper that is a DIRECT child of main (so the `>` combinator matches).
+    const wrapper = [...main.children].find((child) =>
+      child.querySelector('[data-testid="experience"]'),
+    );
+    expect(
+      wrapper,
+      "Experience wrapper must be a direct child of main",
+    ).toBeDefined();
+    expect(wrapper!.className).toContain(pageStyles.experience);
+  });
+
+  it("keeps the same `.experience` wrapper on a NARROW Experience, without `.wide` (byte-identical narrow path)", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundExperience());
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "note", componentKey: "palette-studio" }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    const main = container.querySelector("main")!;
+    // Narrow: main carries `.module` but NOT `.wide`, so the wrapper keeps the reading-measure
+    // cap (`.module > :not(.article)`) — narrow entries are unchanged by the wide exemption.
+    expect(main.className).toContain(pageStyles.module);
+    expect(main.className).not.toContain(pageStyles.wide);
+    const wrapper = [...main.children].find((child) =>
+      child.querySelector('[data-testid="experience"]'),
+    );
+    expect(wrapper!.className).toContain(pageStyles.experience);
   });
 
   it("renders a wide entry with NO body cleanly — a prose-less article (the studio's future state) still mounts, no EntryBody", async () => {
