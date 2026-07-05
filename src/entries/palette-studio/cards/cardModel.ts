@@ -27,6 +27,7 @@ import type { DerivedPalette, SchemeView } from "../core/derive";
 import {
   CARD_CONTRACT,
   describeTarget,
+  isNeutralFamily,
   type BindingKind,
 } from "./cardContract";
 import { counterpartHint, derivationSentence, stepOf } from "./derivationCopy";
@@ -159,9 +160,16 @@ function buildFacet(
   };
 }
 
-/** Reshape a derived palette into the swatch-card records, in canonical token order. */
+/** Reshape a derived palette into the swatch-card records. Owner-directed order: the chromatic
+ *  brand + status cards first, the neutral family (surfaces, near-neutral text/border, the state
+ *  surfaces, and the scrim overlay) last — a STABLE partition on the engine schema role
+ *  (`isNeutralFamily`), never a hand-list, so a new token sorts by its own role and the count
+ *  stays `BRAND_TOKEN_NAMES`-driven. `derive`'s `rows` keep canonical emission order; only the
+ *  card presentation is re-sorted. */
 export function buildCards(palette: DerivedPalette): SwatchCardData[] {
-  return palette.rows.map((row) => {
+  const chromatic = palette.rows.filter((row) => !isNeutralFamily(row.name));
+  const neutral = palette.rows.filter((row) => isNeutralFamily(row.name));
+  return [...chromatic, ...neutral].map((row) => {
     const contract = CARD_CONTRACT[row.name];
     const light = buildFacet(row.name, "light", palette);
     const dark = buildFacet(row.name, "dark", palette);

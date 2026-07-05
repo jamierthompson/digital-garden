@@ -19,17 +19,18 @@
   .canvas {
     display: grid;
     gap: var(--space-6);
-    /* Stacked on narrow screens — one column, source order. */
+    /* Stacked on narrow screens — one column. Harmony leads (owner: the harmony hues should be
+       visible without scrolling), then the working surfaces in source order. */
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
+      "harmony"
       "seed"
       "rules"
       "cards"
       "table"
       "glossary"
       "preview"
-      "exports"
-      "harmony";
+      "exports";
   }
 
   /* Wide canvas (the module declares `layout: "wide"`): controls rail on the left, the cards
@@ -41,12 +42,12 @@
       grid-template-columns: 20rem minmax(0, 1fr) 16rem;
       align-items: start;
       grid-template-areas:
+        "harmony harmony  harmony"
         "seed    cards    glossary"
         "rules   cards    glossary"
         "exports cards    glossary"
         "preview preview  preview"
-        "table   table    table"
-        "harmony harmony  harmony";
+        "table   table    table";
     }
   }
 

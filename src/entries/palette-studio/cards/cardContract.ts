@@ -185,6 +185,19 @@ function againstOf(name: BrandTokenName): ContrastAgainst | null {
   return target ? { bg, target } : null;
 }
 
+/**
+ * Whether a token belongs to the NEUTRAL family — the greys the card grid sorts to the bottom
+ * (owner: chromatic brand + status cards first, neutrals last). Metadata-driven off the engine
+ * schema, never a hand-list: the chromatic families (brand + status) each carry their own
+ * non-neutral ramp role, the neutral surfaces carry role `"neutral"`, and the scrim is a
+ * roleless neutral-hued literal — so "neutral family" is exactly "a neutral role, or no role at
+ * all". A new token sorts by its own schema role with no edit here.
+ */
+export function isNeutralFamily(name: BrandTokenName): boolean {
+  const binding = DEFAULT_BINDING_SCHEMA[name];
+  return !("role" in binding) || binding.role === "neutral";
+}
+
 /** The 34-token card contract, derived from the engine schema in canonical emission order. */
 export const CARD_CONTRACT: Record<BrandTokenName, CardContract> =
   Object.fromEntries(

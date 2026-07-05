@@ -5,6 +5,7 @@ import { BRAND_TOKEN_NAMES } from "@garden/oklch";
 import { derivePalette } from "../core/derive";
 import { DEFAULT_RULES } from "../core/rules";
 import { buildCards } from "./cardModel";
+import { isNeutralFamily } from "./cardContract";
 
 const SEED = "#7c3aed"; // a saturated violet — light-native, exercises every kind
 const cards = buildCards(derivePalette(SEED, DEFAULT_RULES, "srgb"));
@@ -15,9 +16,21 @@ const byName = (name: string) => {
 };
 
 describe("buildCards", () => {
-  it("returns one card per token, in canonical emission order", () => {
-    expect(cards).toHaveLength(BRAND_TOKEN_NAMES.length);
-    expect(cards.map((c) => c.name)).toEqual([...BRAND_TOKEN_NAMES]);
+  it("returns one card per token — count BRAND_TOKEN_NAMES-driven, chromatic first then neutral", () => {
+    const names = cards.map((c) => c.name);
+    // Count + membership stay driven by the full token contract — no card dropped or duplicated.
+    expect(names).toHaveLength(BRAND_TOKEN_NAMES.length);
+    expect([...names].sort()).toEqual([...BRAND_TOKEN_NAMES].sort());
+    // Owner order: the neutral family (surfaces + scrim) sits at the BOTTOM, a clean partition —
+    // every card before the first neutral is chromatic, every card from it on is neutral.
+    const firstNeutral = names.findIndex((n) => isNeutralFamily(n));
+    expect(firstNeutral).toBeGreaterThan(0);
+    expect(names.slice(0, firstNeutral).every((n) => !isNeutralFamily(n))).toBe(
+      true,
+    );
+    expect(names.slice(firstNeutral).every((n) => isNeutralFamily(n))).toBe(
+      true,
+    );
   });
 
   it("carries both scheme facets with formatted oklch + hex values", () => {
