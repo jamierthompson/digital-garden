@@ -9,10 +9,9 @@ interface SwatchProps {
 }
 
 /**
- * A color swatch tile with the Adobe-style cut corner (top-right notch) — the site's
- * shared swatch language. Decorative by default (`aria-hidden`); the consumer owns any
- * accessible name (a visible label, a radio's text). Size comes from the consumer;
- * the notch scales via `--swatch-notch`.
+ * A plain color swatch tile — the site's shared swatch language. Decorative by default
+ * (`aria-hidden`); the consumer owns any accessible name (a visible label, a radio's
+ * text). Size comes from the consumer.
  */
 export default function Swatch({
   color,

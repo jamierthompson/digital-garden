@@ -12,6 +12,7 @@
 import GlossarySidebar from "./cards/GlossarySidebar";
 import HarmonyGroup from "./cards/HarmonyGroup";
 import ExportSlot from "./slots/ExportSlot";
+import PaletteTableSlot from "./slots/PaletteTableSlot";
 import PreviewSlot from "./slots/PreviewSlot";
 import RulesSlot from "./slots/RulesSlot";
 import SeedSlot from "./slots/SeedSlot";
@@ -29,6 +30,11 @@ export default function StudioCanvas(): React.ReactElement {
       </div>
       <div className={styles.cards}>
         <TokensSlot />
+      </div>
+      {/* The restored palette table (#154 companion) — a compact row-per-token scan of the
+          same data the cards show, alongside them rather than replacing them. */}
+      <div className={styles.table}>
+        <PaletteTableSlot />
       </div>
       <div className={styles.glossary}>
         <GlossarySidebar />

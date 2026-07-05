@@ -11,6 +11,7 @@
       "seed"
       "rules"
       "cards"
+      "table"
       "glossary"
       "preview"
       "exports"
@@ -18,17 +19,20 @@
   }
 
   /* Wide canvas (the module declares `layout: "wide"`): controls rail on the left, the cards
-     grid taking the room, the glossary as a quiet right sidebar, export under the controls. */
+     grid taking the room, the glossary as a quiet right sidebar. The preview (now several
+     specimens, not one) and the palette table are each a full-width row of their own — the
+     20rem left rail is sized for controls, not for either of those. */
   @media (min-width: 64rem) {
     .canvas {
       grid-template-columns: 20rem minmax(0, 1fr) 16rem;
       align-items: start;
       grid-template-areas:
-        "seed    cards glossary"
-        "rules   cards glossary"
-        "preview cards glossary"
-        "exports cards glossary"
-        "harmony harmony harmony";
+        "seed    cards    glossary"
+        "rules   cards    glossary"
+        "exports cards    glossary"
+        "preview preview  preview"
+        "table   table    table"
+        "harmony harmony  harmony";
     }
   }
 
@@ -42,6 +46,10 @@
 
   .cards {
     grid-area: cards;
+  }
+
+  .table {
+    grid-area: table;
   }
 
   .glossary {

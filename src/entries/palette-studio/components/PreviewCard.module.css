@@ -60,6 +60,7 @@
   }
 
   .button,
+  .buttonHover,
   .chip,
   .input,
   .focusInput {
@@ -75,6 +76,15 @@
 
   .button {
     background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+  }
+
+  /* Static hover specimen — no real pointer, so the darken-on-hover treatment is baked into
+     its own class instead of a `:hover` rule. Mixed toward `--text` (not a fixed black) so it
+     stays legible-in-spirit across both schemes and every hue the engine can generate. */
+  .buttonHover {
+    background: color-mix(in oklab, var(--accent) 82%, var(--text) 18%);
     color: var(--on-accent);
     font-weight: 600;
   }

@@ -24,6 +24,9 @@ export default function PreviewCard(): React.ReactElement {
 
       <div className={styles.controls}>
         <span className={styles.button}>Primary</span>
+        {/* Static hover specimen — no real pointer, so the hover treatment is baked in as its
+            own class (same trick as `.focusInput` below: show the state, don't require it). */}
+        <span className={styles.buttonHover}>Hover</span>
         <span className={styles.chip}>chip</span>
         <span className={styles.input}>input field</span>
         <span className={styles.focusInput}>focused</span>

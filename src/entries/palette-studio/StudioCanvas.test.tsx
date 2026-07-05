@@ -21,6 +21,10 @@ describe("StudioCanvas — prose-less composition", () => {
     expect(
       screen.getByRole("region", { name: "Swatch cards" }),
     ).toBeInTheDocument();
+    // The restored palette table — a companion region alongside the cards, not a replacement.
+    expect(
+      screen.getByRole("region", { name: "Palette table" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Rules" })).toBeInTheDocument();
     expect(
       screen.getByRole("region", { name: "Live preview" }),
