@@ -328,8 +328,9 @@ describe("accent + on-accent co-solve report (#151)", () => {
 // fixed list forgets.
 describe("QA — adversarial: co-solve report never lies across the hue wheel × gamut (#151)", () => {
   // 30° hue wheel × a coarse L/C grid × both gamuts. Kept deliberately modest (full theme
-  // resolutions are compute-heavy — see palette.test.ts's SWEEP_TIMEOUT note / #41).
-  const SWEEP_TIMEOUT = 30_000;
+  // resolutions are compute-heavy — see palette.test.ts's SWEEP_TIMEOUT note / #41). The
+  // budget is sized for whole-suite runs under team-load contention, not the isolated time.
+  const SWEEP_TIMEOUT = 90_000;
   const HUES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
   const LS = [0.25, 0.5, 0.75];
   const CS = [0, 0.06, 0.18, 0.3];

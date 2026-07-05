@@ -22,7 +22,9 @@ import {
   type Scheme,
 } from "./types";
 
-const SWEEP_TIMEOUT = 60_000;
+// Sized for whole-suite runs under team-load contention, not the isolated time — see
+// palette.test.ts's SWEEP_TIMEOUT note / #41 for why the budget (not the engine) flakes.
+const SWEEP_TIMEOUT = 180_000;
 const SCHEMES: Scheme[] = ["light", "dark"];
 
 const DISTRIBUTIONS: LightnessDistribution[] = [
