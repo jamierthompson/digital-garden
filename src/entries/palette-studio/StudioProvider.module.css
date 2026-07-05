@@ -1,21 +1,19 @@
-/* The studio's own working surface — @layer components, var-consuming only. The studio
-   re-runs the engine in-browser and floats its cards/boards (each painting the derived
-   `--surface`) over whatever sits behind them. Left unthemed, that "behind" was the SITE's
-   editorial `--bg` (a near-black neutral, `globals.css`) — two unrelated color systems
-   touching. This wrapper re-binds `--bg` (via the SAME `slotStyle` every Panel already
-   uses) and paints it, so the whole canvas — the gaps between cards, not just the cards
-   themselves — is the DERIVED palette's own background. No `color-scheme` here: it must
-   inherit the ambient scheme (#159) rather than shadow the site-wide toggle. */
+/* The studio's own working surface — @layer components, var-consuming only. It no longer
+   paints its own `background` here: the page-spanning wash (`EntryScopeWash` /
+   `scopedWashCss`, bridged live by `StudioProvider`'s effect — see that file) already
+   covers the whole canvas with this SAME `--bg`, painted at `body` (`globals.css`). A
+   second same-color box here was a redundant, same-color boxed edge sitting on top of the
+   wash — this wrapper now only reserves the reading gutter; the color comes from the
+   ancestor wash showing straight through. No `color-scheme` here: it must inherit the
+   ambient scheme (#159) rather than shadow the site-wide toggle. */
 @layer components {
   .surface {
-    background: var(--bg);
     /* Inline-end is zero, not `var(--space-6)`: the studio's branded ScrollArea (see
        `StudioCanvas`) sits inside this surface and should hug the screen's inline-end edge,
        not inset behind a panel margin. The other three sides keep the reading-measure padding. */
     padding-block: var(--space-6);
     padding-inline-start: var(--space-6);
     padding-inline-end: 0;
-    border-radius: 0.75rem;
     /* Two-scrollbar fix (`page.module.css`'s canvas flex-fill chain, `StudioCanvas.module.css`'s
        `.scrollArea`): this is the ONE wrapper that chain missed — `StudioProvider` (this
        component) sits between `EntryScope`'s `[data-entry]` div (already flex-filled to the

@@ -9,6 +9,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   useSyncExternalStore,
@@ -21,6 +22,7 @@ import {
   type Scheme,
 } from "@garden/oklch";
 
+import { washBgValue } from "@/components/entry-scope/washBg";
 import type { ProviderProps } from "@/entries/types";
 
 import {
@@ -154,11 +156,44 @@ export default function StudioProvider({
     };
   }, [slug, seed, parsed, rules, gamut, scheme, palette, harmonyTier]);
 
+  // Bridge the live seed to the page-spanning wash (`EntryScopeWash` / `scopedWashCss`,
+  // `/[slug]/page.tsx`'s CANVAS template). CSS structurally can't do this on its own: the
+  // wash's `--bg` lives on `body`, an ANCESTOR of this provider, and the cascade only flows
+  // downward — a value computed inside the studio's own scope can never reach back UP to an
+  // ancestor via a stylesheet rule (unlike the scrollbar thumb, which reads `--accent` from
+  // INSIDE the studio scope and so gets the live value "for free"). This effect is the
+  // explicit push the cascade can't provide.
+  //
+  // Reuses `washBgValue` (`@/components/entry-scope/washBg`) — the SAME chroma treatment
+  // `scopedWashCss` bakes into the server-rendered wash from that identical helper (see its
+  // STOPGAP note re #160) — so the client-updated wash can never visibly jump from the
+  // server one; the Studio's `DEFAULT_SEED` equalling the entry's own `brandColor`
+  // (`core/presets.ts`) is what makes this effect's FIRST write match the server-rendered
+  // wash exactly, so there is no hydration flash. Imported from `./washBg` directly, NOT
+  // from `scopeSeed.ts` — see `washBg.ts`'s file-header comment for why a CLIENT component
+  // can't go through `scopeSeed.ts` (its font-resolution import chain isn't mocked here).
+  useEffect(() => {
+    // Defensive guard matching the rest of this codebase's SSR posture (`resolveScope`'s own
+    // never-throw contract) — Next never runs an effect during SSR, so this never actually
+    // trips, but it keeps the invariant structural rather than vigilance-dependent.
+    if (typeof document === "undefined") return;
+    document.body.style.setProperty("--bg", washBgValue(palette.tokenSet));
+    return () => {
+      // Leak guard: on true unmount (navigating off this canvas route) this clears the
+      // inline override so it can never bleed onto a route that never asked for it. On every
+      // OTHER re-run (a seed/rules/gamut change) this cleanup fires immediately before the
+      // effect re-sets the property to the new value in the same commit — no visible gap.
+      document.body.style.removeProperty("--bg");
+    };
+  }, [palette]);
+
   return (
     <StudioContext.Provider value={value}>
       {/* The studio's own working surface: re-binds `--bg` (the same `slotStyle` every Panel
-          already reads) and paints it, so the canvas itself — not just each card — sits on
-          the DERIVED palette instead of the site's editorial near-black. Confined to the
+          already reads) for its own descendants, so cards/boards still resolve `--bg` if any
+          of them read it directly. It no longer PAINTS a background itself (see
+          `StudioProvider.module.css`'s `.surface` comment) — the page-spanning wash (bridged
+          live above) already covers the whole canvas in this same color. Confined to the
           studio's own subtree; the page-level chrome around it is untouched here (a
           dedicated wide-canvas page template is the planned home for that). */}
       <div className={styles.surface} style={value.slotStyle}>
