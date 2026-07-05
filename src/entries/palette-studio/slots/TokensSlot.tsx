@@ -6,16 +6,14 @@ import Panel from "@/components/ui/Panel";
 
 import { useStudio } from "../StudioProvider";
 import { buildCards } from "../cards/cardModel";
-import GlossarySidebar from "../cards/GlossarySidebar";
 import SwatchGrid from "../cards/SwatchGrid";
-import styles from "./slots.module.css";
 import MissingFrame from "./MissingFrame";
 
 /**
  * The swatch-card grid slot — one derivation card per semantic color (#154). Owns the single
  * reshape of the studio's engine run into card records (keyed on the palette, so a scheme
- * toggle re-picks each card's face without rebuilding), then lays them out beside the shared
- * plain-language glossary (defined once, not repeated per card). Replaces the old token table.
+ * toggle re-picks each card's face without rebuilding), then hands them to the grid. The shared
+ * glossary is a separate region of the studio canvas (`StudioCanvas`), not part of this slot.
  */
 export default function TokensSlot(): React.ReactElement {
   const studio = useStudio();
@@ -26,10 +24,7 @@ export default function TokensSlot(): React.ReactElement {
   if (!studio) return <MissingFrame name="swatch cards" />;
   return (
     <Panel label="Swatch cards" style={studio.slotStyle}>
-      <div className={styles.cardsLayout}>
-        <SwatchGrid cards={cards} scheme={studio.scheme} />
-        <GlossarySidebar />
-      </div>
+      <SwatchGrid cards={cards} scheme={studio.scheme} />
     </Panel>
   );
 }

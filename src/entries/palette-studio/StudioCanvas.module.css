@@ -1,0 +1,58 @@
+/* Studio canvas grid — @layer components, var-consuming. The layout is expressed entirely in
+   NAMED grid-template-areas so it can be reshaped by editing the template strings alone. Each
+   surface region just claims its area name; add/move a region by renaming areas here. */
+@layer components {
+  .canvas {
+    display: grid;
+    gap: var(--space-6);
+    /* Stacked on narrow screens — one column, source order. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "seed"
+      "rules"
+      "cards"
+      "glossary"
+      "exports"
+      "harmony";
+  }
+
+  /* Wide canvas (the module declares `layout: "wide"`): controls rail on the left, the cards
+     grid taking the room, the glossary as a quiet right sidebar, export under the controls. */
+  @media (min-width: 64rem) {
+    .canvas {
+      grid-template-columns: 20rem minmax(0, 1fr) 16rem;
+      align-items: start;
+      grid-template-areas:
+        "seed   cards glossary"
+        "rules  cards glossary"
+        "exports cards glossary"
+        "harmony harmony harmony";
+    }
+  }
+
+  .seed {
+    grid-area: seed;
+  }
+
+  .rules {
+    grid-area: rules;
+  }
+
+  .cards {
+    grid-area: cards;
+  }
+
+  .glossary {
+    grid-area: glossary;
+    position: sticky;
+    inset-block-start: var(--space-4);
+  }
+
+  .exports {
+    grid-area: exports;
+  }
+
+  .harmony {
+    grid-area: harmony;
+  }
+}
