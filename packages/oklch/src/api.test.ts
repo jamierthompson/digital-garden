@@ -38,8 +38,9 @@ import type {
   SchemeTokens,
   BindingStep,
   StepProvenance,
-  AccentProvenance,
-  OnAccentProvenance,
+  FillProvenance,
+  OnFillProvenance,
+  LiteralProvenance,
   BindingProvenance,
   BindingPair,
   SchemeResult,
@@ -219,8 +220,9 @@ type PublicTypeSurface = {
   SchemeTokens: SchemeTokens;
   BindingStep: BindingStep;
   StepProvenance: StepProvenance;
-  AccentProvenance: AccentProvenance;
-  OnAccentProvenance: OnAccentProvenance;
+  FillProvenance: FillProvenance;
+  OnFillProvenance: OnFillProvenance;
+  LiteralProvenance: LiteralProvenance;
   BindingProvenance: BindingProvenance;
   BindingPair: BindingPair;
   SchemeResult: SchemeResult;
@@ -266,7 +268,7 @@ describe("the exported derivation contract (#150)", () => {
     );
     // Shape: every binding declares a kind the receipt copy switches on.
     for (const name of api.BRAND_TOKEN_NAMES) {
-      expect(["step", "auto", "literal", "accent", "on-accent"]).toContain(
+      expect(["step", "auto", "literal", "fill", "on-fill"]).toContain(
         api.DEFAULT_BINDING_SCHEMA[name].kind,
       );
     }

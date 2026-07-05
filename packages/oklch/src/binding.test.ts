@@ -98,9 +98,15 @@ describe("resolveBinding", () => {
     onAccent: { L: 0.99, C: 0, H: 260 },
     // The co-solve reports are computed by palette.ts and passed in verbatim; resolveBinding
     // just forwards them as the accent/on-accent provenance (identity — asserted below).
-    accentProvenance: { kind: "accent", native: true, deltaL: 0 },
+    accentProvenance: {
+      kind: "fill",
+      role: "brand",
+      hue: 260,
+      seed: { native: true, deltaL: 0 },
+    },
     onAccentProvenance: {
-      kind: "on-accent",
+      kind: "on-fill",
+      role: "brand",
       pole: "white",
       hue: 260,
       chroma: 0,
@@ -141,28 +147,29 @@ describe("resolveBinding", () => {
     expect(reported.color).toEqual(got.color);
   });
 
-  it("`literal` bakes a fixed value per scheme, with null provenance (not a step)", () => {
+  it("`literal` bakes a fixed value per scheme, reporting a literal provenance with its alpha (#160)", () => {
     const light: OkLCH = { L: 1, C: 0, H: 0 };
-    const dark: OkLCH = { L: 0.15, C: 0, H: 0 };
+    const dark: OkLCH = { L: 0.15, C: 0, H: 0, alpha: 0.6 };
     const b: TokenBinding = { kind: "literal", light, dark };
     const l = resolveBinding(b, { ...baseCtx, scheme: "light" });
     expect(l.color).toBe(light);
-    expect(l.step).toBeNull();
+    // Opaque literal → alpha 1; a literal makes no contrast claim, so alpha is its only story.
+    expect(l.step).toEqual({ kind: "literal", alpha: 1 });
     const d = resolveBinding(b, { ...baseCtx, scheme: "dark" });
     expect(d.color).toBe(dark);
-    expect(d.step).toBeNull();
+    expect(d.step).toEqual({ kind: "literal", alpha: 0.6 });
   });
 
   it("`accent` / `on-accent` defer to the co-solve, forwarding its provenance report (#151)", () => {
     const a = resolveBinding(
-      { kind: "accent" },
+      { kind: "fill", role: "brand" },
       { ...baseCtx, scheme: "light" },
     );
     expect(a.color).toBe(baseCtx.accent);
     // Not null any more — the accent reports the co-solve story it was handed, verbatim.
     expect(a.step).toBe(baseCtx.accentProvenance);
     const on = resolveBinding(
-      { kind: "on-accent" },
+      { kind: "on-fill", role: "brand" },
       { ...baseCtx, scheme: "light" },
     );
     expect(on.color).toBe(baseCtx.onAccent);
@@ -173,7 +180,7 @@ describe("resolveBinding", () => {
     const schema = {
       bg: { kind: "step", role: "neutral", light: "50", dark: "950" },
       text: { kind: "auto", role: "neutral", target: BODY },
-      accent: { kind: "accent" },
+      accent: { kind: "fill", role: "brand" },
     } as unknown as Record<"bg" | "text" | "accent", TokenBinding>;
     const { tokens, bindings } = resolveTokens(schema as never, {
       ...baseCtx,

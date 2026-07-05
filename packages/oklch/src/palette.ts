@@ -147,8 +147,8 @@ export const DEFAULT_BINDING_SCHEMA: Readonly<
   },
   border: { kind: "auto", role: "neutral", target: CONTRAST_TARGETS.border },
   // Brand identity — the faithful continuous accent + its on-accent label.
-  accent: { kind: "accent" },
-  "on-accent": { kind: "on-accent" },
+  accent: { kind: "fill", role: "brand" },
+  "on-accent": { kind: "on-fill", role: "brand" },
   // Brand-colored foregrounds — bound to the full-chroma brand ramp.
   "accent-text": {
     kind: "auto",

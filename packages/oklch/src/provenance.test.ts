@@ -177,8 +177,11 @@ describe("truthful provenance (#70): reports the schema role, not a value-scan",
         for (const name of CONTINUOUS) {
           const p = set.meta.bindings[name][scheme];
           expect(p, `${name}/${scheme}`).not.toBeNull();
-          // The report's kind matches the token: `accent` → "accent", `on-accent` → "on-accent".
-          expect(p!.kind, `${name}/${scheme}`).toBe(name);
+          // The co-solve report kind: the `accent` token → "fill", `on-accent` → "on-fill"
+          // (generalized #160 — the SHAPE is the discriminant; `role` carries the identity).
+          expect(p!.kind, `${name}/${scheme}`).toBe(
+            name === "accent" ? "fill" : "on-fill",
+          );
         }
     },
   );
@@ -275,17 +278,17 @@ describe("accent + on-accent co-solve report (#151)", () => {
         const s = set.meta.seed[scheme];
 
         const accentP = set.meta.bindings.accent[scheme];
-        if (accentP?.kind !== "accent")
+        if (accentP?.kind !== "fill")
           throw new Error(`accent/${scheme}: expected accent report`);
         // `native` is the faithful-path flag — true iff the fill came from the native solve.
         // For every seed here that solve succeeds when this scheme is the seed's direction,
         // so it equals `scheme === direction`. `deltaL` is exactly the fill's L delta off the
         // seed — both recoverable without any value-scan of the ramps.
-        expect(accentP.native).toBe(scheme === set.meta.direction);
-        expect(accentP.deltaL).toBe(accent.L - s.L);
+        expect(accentP.seed!.native).toBe(scheme === set.meta.direction);
+        expect(accentP.seed!.deltaL).toBe(accent.L - s.L);
 
         const labelP = set.meta.bindings["on-accent"][scheme];
-        if (labelP?.kind !== "on-accent")
+        if (labelP?.kind !== "on-fill")
           throw new Error(`on-accent/${scheme}: expected on-accent report`);
         expect(labelP.hue).toBe(s.H);
         expect(labelP.chroma).toBe(onAccent.C);
@@ -303,7 +306,7 @@ describe("accent + on-accent co-solve report (#151)", () => {
       const set = buildTokenSet(seed);
       const nativeFlags = SCHEMES.map((scheme) => {
         const p = set.meta.bindings.accent[scheme];
-        return p?.kind === "accent" ? p.native : null;
+        return p?.kind === "fill" ? p.seed!.native : null;
       });
       expect(nativeFlags, seed).toEqual(
         SCHEMES.map((scheme) => scheme === set.meta.direction),
@@ -316,7 +319,7 @@ describe("accent + on-accent co-solve report (#151)", () => {
     // Navy fill in dark mode hosts a chromatic light label — the report carries its REAL
     // chroma (not 0), exactly the baked token's, with backedOff = carries less than the seed's.
     const p = set.meta.bindings["on-accent"].dark;
-    if (p?.kind !== "on-accent") throw new Error("expected on-accent report");
+    if (p?.kind !== "on-fill") throw new Error("expected on-accent report");
     expect(p.chroma).toBeGreaterThan(0.03);
     expect(p.chroma).toBe(set.tokens["on-accent"].dark.C);
     expect(p.backedOff).toBe(p.chroma + 1e-4 < set.meta.seed.dark.C);
@@ -326,7 +329,7 @@ describe("accent + on-accent co-solve report (#151)", () => {
     const set = buildTokenSet("#808080");
     for (const scheme of SCHEMES) {
       const p = set.meta.bindings["on-accent"][scheme];
-      if (p?.kind !== "on-accent") throw new Error("expected on-accent report");
+      if (p?.kind !== "on-fill") throw new Error("expected on-accent report");
       expect(p.backedOff).toBe(false);
     }
   });
@@ -365,16 +368,16 @@ describe("QA — adversarial: co-solve report never lies across the hue wheel ×
                 const where = `${seed}/${scheme}/${gamut}`;
 
                 const aP = set.meta.bindings.accent[scheme];
-                if (aP?.kind !== "accent")
+                if (aP?.kind !== "fill")
                   throw new Error(`${where}: expected accent report`);
                 // native is the solve-path flag; off-scheme it can NEVER be true (no faithful
                 // solve runs there). deltaL is exactly the fill's L offset from the seed.
                 if (scheme !== set.meta.direction)
-                  expect(aP.native, `${where} native`).toBe(false);
-                expect(aP.deltaL, `${where} deltaL`).toBe(accent.L - s.L);
+                  expect(aP.seed!.native, `${where} native`).toBe(false);
+                expect(aP.seed!.deltaL, `${where} deltaL`).toBe(accent.L - s.L);
 
                 const oP = set.meta.bindings["on-accent"][scheme];
-                if (oP?.kind !== "on-accent")
+                if (oP?.kind !== "on-fill")
                   throw new Error(`${where}: expected on-accent report`);
                 // Every reported field must match the baked label, not an approximation.
                 expect(oP.hue, `${where} hue`).toBe(s.H);

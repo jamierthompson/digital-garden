@@ -226,32 +226,39 @@ export interface StepProvenance extends BindingStep {
 }
 
 /**
- * Provenance for the accent FILL co-solve (#151) — the story the receipt tells instead of
- * reverse-engineering it from `meta.seed` vs `tokens.accent`. `native` is true when the fill
- * was solved on its FAITHFUL native path (this scheme is the seed's direction AND a faithful
- * accent that hosts a legible label existed) — the fill then honors `seed.L`. It is `false`
- * both off-scheme and on the rare native seed whose faithful solve finds no hostable label
- * and falls through to the derived scan, so that edge reads "derived", not a phantom nudge.
- * `deltaL` is the signed `accent.L − seed.L` (0 = perfectly faithful; a small magnitude when
- * native = the minimal legibility nudge; when not native it is just the derived L delta).
- * Together they drive the three copy branches: faithful / nudged / derived.
+ * Provenance for a co-solved FILL (#151, generalized #160): the brand `accent`, `accent-hover`,
+ * and every status fill (`error`/`warning`/`success`/`info`) share this one shape — a fill that
+ * is co-solved for UI visibility AND to host a legible label. `role` names the identity so the
+ * receipt is truthful (a status fill reports its status role, NEVER "accent"/"brand" by accident;
+ * a brand fill reports `"brand"`). `hue` is the fill's own hue (the seed's for brand fills; the
+ * fixed canonical hue for status).
+ *
+ * `seed` is the brand-seed faithfulness story, present ONLY for the brand-hue fills (`accent`,
+ * `accent-hover`) and `null` for the fixed-canonical-hue status fills (which have no seed
+ * relationship): `native` is true when the fill was solved on its FAITHFUL native path (this
+ * scheme is the seed's direction AND a faithful fill hosting a label existed) — `false`
+ * off-scheme, on the derived-fallback edge, and for `accent-hover` (a derived hover, not the
+ * seed anchor). `deltaL` is the signed `fill.L − seed.L`, so a consumer narrates a hover as
+ * `accentHover.deltaL − accent.deltaL` (provenance-to-provenance, never a color comparison).
  */
-export interface AccentProvenance {
-  kind: "accent";
-  native: boolean;
-  deltaL: number;
+export interface FillProvenance {
+  kind: "fill";
+  role: RampRole;
+  hue: number;
+  seed: { native: boolean; deltaL: number } | null;
 }
 
 /**
- * Provenance for the on-accent LABEL co-solve (#151, carrying the label solve #153 rides).
- * `pole` is which extreme the label sits toward relative to the fill — near-white vs
- * near-black, the headroom polarity (#95). `hue`/`chroma` are the label's own: `chroma` is 0
- * for the achromatic extreme, `> 0` for the chromatic color-on-color solve (#153 — gold on
- * navy). `backedOff` is true when the label carries LESS chroma than the seed's, i.e. the
- * target/gamut forced it toward grey (the achromatic extreme is the C→0 limit → `true`).
+ * Provenance for a co-solved LABEL on a fill (#151/#153, generalized #160): `on-accent` and
+ * every `on-<status>`. `role` names which fill it labels (truthful receipts). `pole` is which
+ * extreme the label sits toward relative to the fill — near-white vs near-black, the headroom
+ * polarity (#95). `hue`/`chroma` are the label's own: `chroma` 0 for the achromatic extreme,
+ * `> 0` for the chromatic color-on-color solve (#153). `backedOff` is true when the label
+ * carries LESS chroma than the fill's seed asked for (the achromatic extreme is the C→0 limit).
  */
-export interface OnAccentProvenance {
-  kind: "on-accent";
+export interface OnFillProvenance {
+  kind: "on-fill";
+  role: RampRole;
   pole: "white" | "black";
   hue: number;
   chroma: number;
@@ -259,18 +266,31 @@ export interface OnAccentProvenance {
 }
 
 /**
- * A token's binding provenance (#70, #151): the solve-time story the receipt reads instead
- * of reverse-engineering it. A discriminated union on `kind`: `step` for a discrete ramp
- * step (surfaces + `auto` tokens), `accent`/`on-accent` for the continuous brand co-solves
- * (which are NOT a ramp step but still carry a first-class report), and `null` ONLY for a
- * `literal` binding (a fixed value — no derivation to report). Reported by the binding layer
- * AT SOLVE TIME — never value-matched (a scan lies when the brand and neutral ramps converge,
- * e.g. an achromatic seed or `tintedNeutrals: false`).
+ * Provenance for a `literal` binding — a fixed value with no derivation to solve (#160). The
+ * only field that carries a story is `alpha` (the scrim's opacity; 1 for an opaque literal); a
+ * literal makes NO contrast claim, so there is nothing else to receipt. Replaces the old bare
+ * `null` for literals — every token now carries a first-class report (the batteries-included
+ * constitution). `null` remains in the union only as the reserved "no binding" sentinel.
+ */
+export interface LiteralProvenance {
+  kind: "literal";
+  alpha: number;
+}
+
+/**
+ * A token's binding provenance (#70/#151, generalized #160): the solve-time story the receipt
+ * reads instead of reverse-engineering it. A discriminated union on `kind`: `step` for a
+ * discrete ramp step (surfaces + `auto` tokens + containers + state steps), `fill`/`on-fill`
+ * for the co-solved brand+status fills and their labels, `literal` for a fixed value (scrim).
+ * Reported by the binding layer AT SOLVE TIME — never value-matched (a scan lies when the brand
+ * and neutral ramps converge, e.g. an achromatic seed or `tintedNeutrals: false`). `null` is a
+ * reserved sentinel; no default token binds to it.
  */
 export type BindingProvenance =
   | StepProvenance
-  | AccentProvenance
-  | OnAccentProvenance
+  | FillProvenance
+  | OnFillProvenance
+  | LiteralProvenance
   | null;
 
 /** One token's binding provenance for both schemes — zipped like the token values. */

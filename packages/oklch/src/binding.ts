@@ -17,11 +17,11 @@ import {
   type ContrastTarget,
 } from "./contrast";
 import type {
-  AccentProvenance,
   BindingProvenance,
   BrandTokenName,
+  FillProvenance,
   OkLCH,
-  OnAccentProvenance,
+  OnFillProvenance,
   Ramp,
   RampLabel,
   RampRole,
@@ -73,16 +73,16 @@ export function minPass(
 /**
  * A semantic token's binding. `step` pins a fixed ramp step (per scheme — e.g. surfaces);
  * `auto` runs `minPass` against the scheme's worst-case surface; `literal` bakes a fixed
- * value per scheme (e.g. a pure-white surface); `accent`/`on-accent` defer to the brand
- * co-solve (the faithful continuous accent + its near-white/near-black label). The default
+ * value per scheme (scrim's alpha literal); `fill`/`on-fill` defer to a co-solve — the
+ * continuous fill (brand accent + status fills, #160) and its chromatic label. The default
  * schema lives in `palette.ts`, which owns the contrast targets.
  */
 export type TokenBinding =
   | { kind: "step"; role: RampRole; light: RampLabel; dark: RampLabel }
   | { kind: "auto"; role: RampRole; target: ContrastTarget }
   | { kind: "literal"; light: OkLCH; dark: OkLCH }
-  | { kind: "accent" }
-  | { kind: "on-accent" };
+  | { kind: "fill"; role: RampRole }
+  | { kind: "on-fill"; role: RampRole };
 
 /** Everything a binding needs to resolve, for one scheme. */
 export interface BindingContext {
@@ -91,15 +91,16 @@ export interface BindingContext {
   ramps: Record<RampRole, Ramp>;
   /** The worst-case surface `auto` tokens are solved against (this scheme's `surface-2`). */
   surface2: OkLCH;
-  /** The faithful brand accent fill (continuous co-solve) and its on-accent label. */
+  /** The co-solved fill (continuous) and its label. (#160 will key these per role/token;
+   *  today's single brand pair is `role: "brand"`.) */
   accent: OkLCH;
   onAccent: OkLCH;
-  /** The `accent` co-solve story (#151) — reported verbatim as the `accent` token's
-   *  provenance so the receipt never reverse-engineers native/nudged/derived from values. */
-  accentProvenance: AccentProvenance;
-  /** The `on-accent` label solve story (#151/#153) — pole + hue/chroma/backoff, reported
-   *  verbatim as the `on-accent` token's provenance. */
-  onAccentProvenance: OnAccentProvenance;
+  /** The fill co-solve story (#151/#160) — reported verbatim as the fill token's provenance
+   *  so the receipt never reverse-engineers faithful/nudged/derived from values. */
+  accentProvenance: FillProvenance;
+  /** The label solve story (#151/#153) — pole + hue/chroma/backoff, reported verbatim as the
+   *  on-fill token's provenance. */
+  onAccentProvenance: OnFillProvenance;
 }
 
 /** Find a ramp step by label (the ramp is a fixed 11-entry array, so this is a scan). */
@@ -148,14 +149,14 @@ export function resolveBinding(
         step: { kind: "step", role: binding.role, label: chosen.label },
       };
     }
-    case "literal":
-      return {
-        color: ctx.scheme === "light" ? binding.light : binding.dark,
-        step: null,
-      };
-    case "accent":
+    case "literal": {
+      const color = ctx.scheme === "light" ? binding.light : binding.dark;
+      // A literal carries no contrast claim; its only story is opacity (scrim, #160).
+      return { color, step: { kind: "literal", alpha: color.alpha ?? 1 } };
+    }
+    case "fill":
       return { color: ctx.accent, step: ctx.accentProvenance };
-    case "on-accent":
+    case "on-fill":
       return { color: ctx.onAccent, step: ctx.onAccentProvenance };
   }
 }

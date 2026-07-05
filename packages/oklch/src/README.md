@@ -94,14 +94,16 @@ the brand and neutral ramps converge (an achromatic seed, `tintedNeutrals: false
 order, not the schema, would pick the role. `SchemeResult.bindings` is
 `Record<BrandTokenName, BindingProvenance>` for that scheme; `TokenSet.meta.bindings` is
 `Record<BrandTokenName, BindingPair>` (`{ light, dark }`). `BindingProvenance` is a
-discriminated union on `kind`: `StepProvenance` (`{ kind: "step", role, label }`) for a
-discrete ramp step (surfaces + every `auto` token); `AccentProvenance`
-(`{ kind: "accent", native, deltaL }`) and `OnAccentProvenance`
-(`{ kind: "on-accent", pole, hue, chroma, backedOff }`) — the first-class co-solve reports
-for the continuous brand pair (#151), so the receipt tells the accent's faithful/nudged/
-derived story and the label's pole/chroma-backoff without comparing color values; and `null`
-**only** for a `literal` binding. It is **reporting, not re-solving** — every baked color is
-byte-identical with or without it.
+discriminated union on `kind` (generalized #160 — the kind is the derivation SHAPE, `role`
+carries the identity so a status fill's receipt never says "accent"): `StepProvenance`
+(`{ kind: "step", role, label }`) for a discrete ramp step (surfaces, every `auto` token,
+containers, state steps); `FillProvenance` (`{ kind: "fill", role, hue, seed }`) for a
+co-solved fill (the brand `accent`/`accent-hover` — `seed` non-null with the faithful/nudged/
+derived story — and every status fill — `seed: null`, fixed canonical hue); `OnFillProvenance`
+(`{ kind: "on-fill", role, pole, hue, chroma, backedOff }`) for a chromatic label on a fill
+(`on-accent`, `on-<status>`); and `LiteralProvenance` (`{ kind: "literal", alpha }`) for a
+fixed value (scrim — no contrast claim, only opacity). `null` is a reserved sentinel. It is
+**reporting, not re-solving** — every baked color is byte-identical with or without it.
 
 The derivation contract (the receipt's other half, #150): `CONTRAST_TARGETS` — the named
 tiers each pair is measured against (`bodyText` 4.5/75, `mutedText`/`accentText`/`onAccent`

@@ -15,12 +15,7 @@ import { clamp01 } from "./convert";
 import { gamutMap } from "./gamut";
 import { apcaLc, checkContrast, withSolveMargin } from "./contrast";
 import { CONTRAST_TARGETS } from "./targets";
-import type {
-  AccentProvenance,
-  Gamut,
-  OkLCH,
-  OnAccentProvenance,
-} from "./types";
+import type { FillProvenance, Gamut, OkLCH, OnFillProvenance } from "./types";
 
 /** Chroma resolution for the on-accent label solve (#153) and the "backed off below the
  *  seed's chroma" flag (#151) — well above the 4-dp bake error, so both are stable. */
@@ -247,8 +242,13 @@ export function describeAccent(
   accent: OkLCH,
   seed: OkLCH,
   native: boolean,
-): AccentProvenance {
-  return { kind: "accent", native, deltaL: accent.L - seed.L };
+): FillProvenance {
+  return {
+    kind: "fill",
+    role: "brand",
+    hue: seed.H,
+    seed: { native, deltaL: accent.L - seed.L },
+  };
 }
 
 /**
@@ -262,9 +262,10 @@ export function describeOnAccent(
   onAccent: OkLCH,
   accent: OkLCH,
   seed: OkLCH,
-): OnAccentProvenance {
+): OnFillProvenance {
   return {
-    kind: "on-accent",
+    kind: "on-fill",
+    role: "brand",
     pole: onAccent.L >= accent.L ? "white" : "black",
     hue: seed.H,
     chroma: onAccent.C,
