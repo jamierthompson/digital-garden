@@ -27,7 +27,12 @@
     height: 1.125rem;
     transform: translateX(0.1875rem);
     border-radius: 99px;
-    background: var(--bg);
+    /* --text-muted, not --bg or --border: the unchecked state must stay perceptible
+       (WCAG 1.4.11 ≥3:1) in BOTH token tiers this primitive renders under — the editorial
+       foundation (nav/footer chrome, where --border is an incidental hairline with no
+       receipt) and engine brand scopes. text-muted is a solved ink token in both; measured
+       6.0–7.9:1 vs track, page bg, and the canvas wash extremes, both schemes. */
+    background: var(--text-muted);
     transition: transform var(--duration-fast) var(--ease-standard);
     will-change: transform;
   }

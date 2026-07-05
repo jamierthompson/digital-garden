@@ -9,18 +9,24 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   useSyncExternalStore,
 } from "react";
 
 import {
-  buildHarmonyPalette,
+  buildHarmonyTier,
   type Gamut,
-  type HarmonyPalette,
+  type HarmonyTier,
   type Scheme,
 } from "@garden/oklch";
 
+import { washBgValue } from "@/components/entry-scope/washBg";
+import {
+  getResolvedScheme,
+  subscribe as subscribeToScheme,
+} from "@/lib/scheme";
 import type { ProviderProps } from "@/entries/types";
 
 import {
@@ -32,7 +38,8 @@ import {
 } from "./core/derive";
 import { DEFAULT_GAMUT, DEFAULT_RULES, type StudioRules } from "./core/rules";
 import { DEFAULT_SEED } from "./core/presets";
-import { tokensToScopeVars } from "./core/scope";
+import { tokensPairToScopeVars } from "./core/scope";
+import styles from "./StudioProvider.module.css";
 
 export interface StudioState {
   /** Slug-derived id namespace — ids must not collide across Activity-kept routes. */
@@ -55,8 +62,13 @@ export interface StudioState {
   readonly palette: DerivedPalette;
   /** The displayed scheme's view of `palette`. */
   readonly view: SchemeView;
-  /** Decorative harmony sets — seed + gamut only, scheme-independent. */
-  readonly harmony: HarmonyPalette;
+  /**
+   * The batteries-included decorative harmony TIER (#152) — the 7 derived hues, each with its
+   * own `50…950` ramp + receipt-grade text/fill picks, per scheme. Rules- and gamut-treated
+   * like the brand; the harmony card group reads the active scheme's picks. Non-contract-bearing
+   * (kept out of the frozen token set), so it lives alongside `palette`, not inside it.
+   */
+  readonly harmonyTier: HarmonyTier;
   /**
    * Inline semantic-token re-bind for a slot's container: the CURRENT seed's generated
    * palette (displayed scheme), as CSS custom properties. Every slot passes this to its
@@ -71,18 +83,6 @@ export interface StudioState {
 // Null default on purpose: a slot can be authored into any entry's body, so it must
 // degrade to a visible placeholder when no studio frame is mounted (see `useStudio`).
 const StudioContext = createContext<StudioState | null>(null);
-
-const DARK_SCHEME_QUERY = "(prefers-color-scheme: dark)";
-
-function subscribeToScheme(onChange: () => void): () => void {
-  const query = window.matchMedia(DARK_SCHEME_QUERY);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-}
-
-function readScheme(): Scheme {
-  return window.matchMedia(DARK_SCHEME_QUERY).matches ? "dark" : "light";
-}
 
 /**
  * Read the studio frame's shared state. Returns `null` when the slot is mounted with no
@@ -101,10 +101,11 @@ export default function StudioProvider({
   const [rules, setRules] = useState<StudioRules>(DEFAULT_RULES);
   const [gamut, setGamut] = useState<Gamut>(DEFAULT_GAMUT);
   // Server snapshot is "light" (the shell's default); the client corrects on mount and
-  // tracks live scheme changes. Replaced by the site-wide toggle's signal when #133 lands.
+  // tracks the site-wide RESOLVED scheme (#162) — the toggle's override when set, else
+  // the OS preference — so the receipts always describe the scheme actually painted.
   const scheme = useSyncExternalStore(
     subscribeToScheme,
-    readScheme,
+    getResolvedScheme,
     () => "light" as const,
   );
 
@@ -117,9 +118,10 @@ export default function StudioProvider({
     () => derivePalette(seed, rules, gamut),
     [seed, rules, gamut],
   );
-  const harmony = useMemo(
-    () => buildHarmonyPalette(seed, { gamut }),
-    [seed, gamut],
+  // The decorative tier reads the same rules as the palette (its ramps are shaped like brand).
+  const harmonyTier = useMemo(
+    () => buildHarmonyTier(seed, { gamut, rules }),
+    [seed, gamut, rules],
   );
 
   const value = useMemo<StudioState>(() => {
@@ -136,12 +138,60 @@ export default function StudioProvider({
       scheme,
       palette,
       view,
-      harmony,
-      slotStyle: { ...tokensToScopeVars(view.tokens), colorScheme: scheme },
+      harmonyTier,
+      // Both schemes baked into `light-dark()` and NO inline `color-scheme` — the browser picks
+      // the scheme at first paint (following the inherited root `color-scheme`, #159), so the
+      // studio never paints light-first-then-corrects. Depends on `palette` only, not `scheme`.
+      slotStyle: tokensPairToScopeVars(
+        palette.light.tokens,
+        palette.dark.tokens,
+      ),
     };
-  }, [slug, seed, parsed, rules, gamut, scheme, palette, harmony]);
+  }, [slug, seed, parsed, rules, gamut, scheme, palette, harmonyTier]);
+
+  // Bridge the live seed to the page-spanning wash (`EntryScopeWash` / `scopedWashCss`,
+  // `/[slug]/page.tsx`'s CANVAS template). CSS structurally can't do this on its own: the
+  // wash's `--bg` lives on `body`, an ANCESTOR of this provider, and the cascade only flows
+  // downward — a value computed inside the studio's own scope can never reach back UP to an
+  // ancestor via a stylesheet rule (unlike the scrollbar thumb, which reads `--accent` from
+  // INSIDE the studio scope and so gets the live value "for free"). This effect is the
+  // explicit push the cascade can't provide.
+  //
+  // Reuses `washBgValue` (`@/components/entry-scope/washBg`) — the SAME chroma treatment
+  // `scopedWashCss` bakes into the server-rendered wash from that identical helper (see its
+  // STOPGAP note re #160) — so the client-updated wash can never visibly jump from the
+  // server one; the Studio's `DEFAULT_SEED` equalling the entry's own `brandColor`
+  // (`core/presets.ts`) is what makes this effect's FIRST write match the server-rendered
+  // wash exactly, so there is no hydration flash. Imported from `./washBg` directly, NOT
+  // from `scopeSeed.ts` — see `washBg.ts`'s file-header comment for why a CLIENT component
+  // can't go through `scopeSeed.ts` (its font-resolution import chain isn't mocked here).
+  useEffect(() => {
+    // Defensive guard matching the rest of this codebase's SSR posture (`resolveScope`'s own
+    // never-throw contract) — Next never runs an effect during SSR, so this never actually
+    // trips, but it keeps the invariant structural rather than vigilance-dependent.
+    if (typeof document === "undefined") return;
+    document.body.style.setProperty("--bg", washBgValue(palette.tokenSet));
+    return () => {
+      // Leak guard: on true unmount (navigating off this canvas route) this clears the
+      // inline override so it can never bleed onto a route that never asked for it. On every
+      // OTHER re-run (a seed/rules/gamut change) this cleanup fires immediately before the
+      // effect re-sets the property to the new value in the same commit — no visible gap.
+      document.body.style.removeProperty("--bg");
+    };
+  }, [palette]);
 
   return (
-    <StudioContext.Provider value={value}>{children}</StudioContext.Provider>
+    <StudioContext.Provider value={value}>
+      {/* The studio's own working surface: re-binds `--bg` (the same `slotStyle` every Panel
+          already reads) for its own descendants, so cards/boards still resolve `--bg` if any
+          of them read it directly. It no longer PAINTS a background itself (see
+          `StudioProvider.module.css`'s `.surface` comment) — the page-spanning wash (bridged
+          live above) already covers the whole canvas in this same color. Confined to the
+          studio's own subtree; the page-level chrome around it is untouched here (a
+          dedicated wide-canvas page template is the planned home for that). */}
+      <div className={styles.surface} style={value.slotStyle}>
+        {children}
+      </div>
+    </StudioContext.Provider>
   );
 }

@@ -19,6 +19,7 @@ import {
 } from "@garden/oklch";
 import { resolveFontKey } from "@/lib/resolvers/fonts";
 import type { FontFace } from "@/fonts/roster";
+import { washBgValue } from "./washBg";
 
 /** A resolved scope: the vetted slug it is keyed on + everything needed to emit its theme. */
 export interface ResolvedScope {
@@ -159,8 +160,10 @@ export function resolveScope(seed: unknown): ResolvedScope {
  * wrapper here pairs with `EntryScope`'s `precedence={BRAND_LAYER}` — see `BRAND_LAYER`.
  */
 export function scopedStyleCss(scope: ResolvedScope): string {
-  // Engine declarations: `color-scheme: light dark;` + each `--<name>: light-dark(…)`
-  // (the generic semantic role tokens, incl. the #66 status tokens).
+  // Engine declarations: each `--<name>: light-dark(…)` (the generic semantic role tokens, the
+  // full 34-token contract incl. the #66 status tokens). NO `color-scheme` (#159 default): a
+  // scoped `[data-entry]` slot must NOT re-declare it — `color-scheme` is inherited, so a slot
+  // that re-declares it would shadow the site toggle's `:root` override (the flash redline).
   const brandDecls = tokenSetToDeclarations(scope.tokenSet)
     .split("\n")
     .map((line) => `    ${line}`)
@@ -175,4 +178,49 @@ export function scopedStyleCss(scope: ResolvedScope): string {
 
   const body = [brandDecls, focusRing, fontFace].join("\n");
   return `@layer ${BRAND_LAYER} {\n  [data-entry="${scope.slug}"] {\n${body}\n  }\n}`;
+}
+
+/**
+ * The CANVAS template's page-spanning background wash (the `kind === "project"` composition,
+ * `/[slug]/page.tsx`). Re-binds ONLY `--bg` — never `--text`/`--border`/`--accent` — at `body`,
+ * so SiteNav's ink hairline and SiteFooter's mono row (both read the global editorial tokens,
+ * `docs/architecture.md`) stay untouched; just the wash color living behind them changes.
+ *
+ * Selector: `body:has(> main[data-template="canvas"]:not([style]) [data-entry="<slug>"])` —
+ * NOT a bare `:root`/`body`, and NOT the simpler `body:has([data-entry="<slug>"])` an earlier
+ * revision shipped. Both were proven unsafe by an ACTUAL browser repro (soft-navigating from
+ * this canvas route to `/browse` left the pink wash on `/browse`'s body), not a hypothetical:
+ *
+ * - A bare `:root`/`body` override is unsafe because `<html>`/`<body>` never unmount across a
+ *   client-side navigation — an orphaned rule would keep matching every future route forever.
+ * - `body:has([data-entry="<slug>"])` alone is ALSO unsafe, because Cache Components keeps the
+ *   previous `/[slug]` route mounted via React's `<Activity>` (`docs/architecture.md`) instead
+ *   of unmounting it — confirmed live: this route's `<main>` got `style="display: none
+ *   !important"` on it, not removed from the DOM, so its `[data-entry]` descendant was STILL
+ *   present and `:has()` — which does not consider rendered visibility, only DOM structure —
+ *   kept matching, leaking the wash forward onto the next route.
+ *
+ * The fix keys off the ONE thing that reliably tells the active copy from a hidden one:
+ * react.dev/reference/react/Activity's own documented mechanism — "React will visually hide
+ * its children using the `display: "none"` CSS property" — applies that inline `style` to the
+ * hidden boundary and ONLY the hidden one. This component's own `<main data-template="canvas">`
+ * IS that boundary (`/[slug]/page.tsx` never sets a `style` prop on it), so `:not([style])`
+ * is true exactly while this route is the one actually on screen, and false the instant
+ * Cache Components deactivates it — regardless of whether the DOM node or the hoisted
+ * `<style>` tag itself lingers (see also `EntryScope.tsx`'s href-reuse comment: React's
+ * hoisted styles aren't guaranteed removed on unmount either). Verified against the installed
+ * react-dom 19.2.7 source and a live repro after the fix (see the browser QA notes in the PR).
+ */
+/**
+ * The wash's `--bg` color math — the chroma constant, the per-scheme ramp derivation, and the
+ * `light-dark()` assembly — lives in `./washBg`, NOT inline in this file: `washBg.ts`'s
+ * file-header comment explains why it had to move out from beside `resolveScope` (this
+ * module's font-resolution import chain breaks a CLIENT component that imports it under
+ * vitest — `StudioProvider`'s live wash bridge imports `washBgValue` straight from
+ * `./washBg`, bypassing this module entirely, for exactly that reason).
+ */
+export function scopedWashCss(scope: ResolvedScope): string {
+  const bgDecl = `--bg: ${washBgValue(scope.tokenSet)};`;
+  const selector = `body:has(> main[data-template="canvas"]:not([style]) [data-entry="${scope.slug}"])`;
+  return `@layer ${BRAND_LAYER} {\n  ${selector} {\n    ${bgDecl}\n  }\n}`;
 }

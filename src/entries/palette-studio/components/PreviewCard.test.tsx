@@ -1,44 +1,42 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { formatOklch } from "@garden/oklch";
-
-import { derivePalette } from "../core/derive";
-import { DEFAULT_GAMUT, DEFAULT_RULES } from "../core/rules";
 import PreviewCard from "./PreviewCard";
 
 describe("PreviewCard", () => {
-  it("scopes the generated tokens inline so specimens paint them, not the ambient theme", () => {
-    const { light } = derivePalette("#7c3aed", DEFAULT_RULES, DEFAULT_GAMUT);
-    render(<PreviewCard scheme="light" tokens={light.tokens} />);
-    const panel = screen.getByRole("group", { name: "light preview" });
-    // The container re-binds the semantic tokens to the GENERATED values — the specimens read
-    // these via var(), never re-deriving color.
-    expect(panel.style.getPropertyValue("--accent")).toBe(
-      formatOklch(light.tokens.accent),
-    );
-    expect(panel.style.getPropertyValue("--surface")).toBe(
-      formatOklch(light.tokens.surface),
-    );
-    expect(panel.style.getPropertyValue("--focus-ring-color")).toBe(
-      formatOklch(light.tokens["focus-ring"]),
-    );
-    expect(panel.style.colorScheme).toBe("light");
+  it("renders the specimens as a scheme-neutral 'palette preview' group", () => {
+    render(<PreviewCard />);
+    const panel = screen.getByRole("group", { name: "palette preview" });
+    // Real component shapes reading the semantic tokens (which the SLOT re-binds).
+    expect(screen.getByText("A card on this palette")).toBeInTheDocument();
+    expect(screen.getByText("Primary")).toBeInTheDocument();
+    // No scheme in the accessible name (single-scheme studio; the viewer's scheme is CSS-resolved).
+    expect(
+      screen.queryByRole("group", { name: /light preview|dark preview/ }),
+    ).not.toBeInTheDocument();
+    // Sets NO inline color-scheme — it inherits (the #159 contract), so the toggle isn't shadowed
+    // and the specimens follow the browser's resolved scheme at first paint.
+    expect(panel.style.colorScheme).toBe("");
   });
 
-  it("re-scopes when the tokens change (live re-theme)", () => {
-    const first = derivePalette("#7c3aed", DEFAULT_RULES, DEFAULT_GAMUT).light;
-    const { rerender } = render(
-      <PreviewCard scheme="light" tokens={first.tokens} />,
-    );
-    const before = screen
-      .getByRole("group", { name: "light preview" })
-      .style.getPropertyValue("--accent");
-    const second = derivePalette("#eab308", DEFAULT_RULES, DEFAULT_GAMUT).light;
-    rerender(<PreviewCard scheme="light" tokens={second.tokens} />);
-    const after = screen
-      .getByRole("group", { name: "light preview" })
-      .style.getPropertyValue("--accent");
-    expect(after).not.toBe(before);
+  it("does NOT re-bind tokens inline — it inherits the slot's light-dark() palette", () => {
+    render(<PreviewCard />);
+    const panel = screen.getByRole("group", { name: "palette preview" });
+    // The old per-scheme inline re-bind is gone; the slot owns the palette binding now.
+    expect(panel.style.getPropertyValue("--accent")).toBe("");
+    expect(panel.style.getPropertyValue("--surface")).toBe("");
+  });
+
+  it("shows the 34-token specimens — status badges, a container alert, state rows, and the scrim dialog", () => {
+    render(<PreviewCard />);
+    // Status badge text is the text-legible `--<status>-text`, the outline the fill `--<status>`.
+    const failed = screen.getByText("Failed");
+    expect(failed.style.color).toBe("var(--error-text)");
+    expect(failed.style.borderColor).toBe("var(--error)");
+    // The new container / interaction-state / overlay specimens are present.
+    expect(screen.getByText(/soft error container/i)).toBeInTheDocument();
+    expect(screen.getByText("Hovered row")).toBeInTheDocument();
+    expect(screen.getByText("Selected row")).toBeInTheDocument();
+    expect(screen.getByText("Dialog")).toBeInTheDocument();
   });
 });

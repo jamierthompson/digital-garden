@@ -85,7 +85,7 @@ const CHECKS: PairCheck[] = [
     fg: (t) => t.border,
     bg: (t) => t["surface-2"],
     wcag: 3,
-    // The engine's own TARGET.border is Lc 30 (palette.ts) — assert it delivers that.
+    // The engine's own CONTRAST_TARGETS.border is Lc 30 (palette.ts) — assert it delivers that.
     apca: 30,
   },
   {

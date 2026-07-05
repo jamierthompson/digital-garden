@@ -57,10 +57,8 @@ export type ComponentKey = (typeof COMPONENT_KEYS)[number];
 export const EMBED_KEYS = [
   "palette-studio-seed",
   "palette-studio-rules",
-  "palette-studio-primitives",
   "palette-studio-tokens",
   "palette-studio-preview",
-  "palette-studio-receipt",
   "palette-studio-export",
 ] as const satisfies readonly string[];
 export type EmbedKey = (typeof EMBED_KEYS)[number];

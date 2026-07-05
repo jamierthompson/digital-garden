@@ -37,12 +37,17 @@ import type {
   SchemePair,
   SchemeTokens,
   BindingStep,
+  StepProvenance,
+  FillProvenance,
+  OnFillProvenance,
+  LiteralProvenance,
   BindingProvenance,
   BindingPair,
   SchemeResult,
   TokenSet,
   // palette options
   EngineOptions,
+  ContrastTargetName,
   // css options
   CssOptions,
   // export surface
@@ -58,17 +63,32 @@ import type {
   RampSpec,
   // binding surface
   TokenBinding,
+  // harmony tier (#152) — decorative annex
+  HarmonyHue,
+  HarmonyStepProvenance,
+  HarmonyPick,
+  HarmonyHueResult,
+  HarmonySchemeResult,
+  HarmonyPickPair,
+  HarmonyHueTier,
+  HarmonyTier,
+  HarmonyDesignTokenGroup,
+  HarmonyDesignTokensExport,
 } from "./index";
 
 /** Every runtime export of `@garden/oklch`, alphabetized. Type-only exports don't exist
  *  at runtime; the signature checks below guard those. */
 const RUNTIME_EXPORTS = [
   "BRAND_TOKEN_NAMES",
+  "CONTRAST_TARGETS",
+  "DEFAULT_BINDING_SCHEMA",
+  "HARMONY_HUES",
   "HARMONY_KINDS",
   "RAMP_LABELS",
   "RAMP_ROLES",
   "apcaLc",
   "buildHarmonyPalette",
+  "buildHarmonyTier",
   "buildLightnessRamp",
   "buildRamp",
   "buildTokenSet",
@@ -81,6 +101,9 @@ const RUNTIME_EXPORTS = [
   "formatOklch",
   "formatRgb",
   "gamutMap",
+  "harmonyTierToCss",
+  "harmonyTierToDesignTokens",
+  "harmonyTierToTailwindTheme",
   "inGamut",
   "minPass",
   "oklabToOklch",
@@ -89,6 +112,7 @@ const RUNTIME_EXPORTS = [
   "oklchToSrgb",
   "parseColor",
   "rampSetToDeclarations",
+  "resolveHarmonyTier",
   "resolveTheme",
   "solveForeground",
   "srgbToOklch",
@@ -99,6 +123,7 @@ const RUNTIME_EXPORTS = [
 ] as const;
 
 const SEMANTIC_NAMES = [
+  // Core (10).
   "bg",
   "surface",
   "surface-2",
@@ -109,10 +134,32 @@ const SEMANTIC_NAMES = [
   "accent-text",
   "on-accent",
   "focus-ring",
-  "success",
+  // Status blocks (×4): fill · on-fill · text · container · on-container.
   "error",
+  "on-error",
+  "error-text",
+  "error-container",
+  "on-error-container",
   "warning",
+  "on-warning",
+  "warning-text",
+  "warning-container",
+  "on-warning-container",
+  "success",
+  "on-success",
+  "success-text",
+  "success-container",
+  "on-success-container",
   "info",
+  "on-info",
+  "info-text",
+  "info-container",
+  "on-info-container",
+  // Interaction states (×3) + overlay.
+  "accent-hover",
+  "surface-hover",
+  "surface-selected",
+  "scrim",
 ] as const;
 
 const ROLE_NAMES = [
@@ -212,11 +259,16 @@ type PublicTypeSurface = {
   SchemePair: SchemePair;
   SchemeTokens: SchemeTokens;
   BindingStep: BindingStep;
+  StepProvenance: StepProvenance;
+  FillProvenance: FillProvenance;
+  OnFillProvenance: OnFillProvenance;
+  LiteralProvenance: LiteralProvenance;
   BindingProvenance: BindingProvenance;
   BindingPair: BindingPair;
   SchemeResult: SchemeResult;
   TokenSet: TokenSet;
   EngineOptions: EngineOptions;
+  ContrastTargetName: ContrastTargetName;
   CssOptions: CssOptions;
   ExportOptions: ExportOptions;
   DesignToken: DesignToken;
@@ -227,12 +279,126 @@ type PublicTypeSurface = {
   RampOptions: RampOptions;
   RampSpec: RampSpec;
   TokenBinding: TokenBinding;
+  HarmonyHue: HarmonyHue;
+  HarmonyStepProvenance: HarmonyStepProvenance;
+  HarmonyPick: HarmonyPick;
+  HarmonyHueResult: HarmonyHueResult;
+  HarmonySchemeResult: HarmonySchemeResult;
+  HarmonyPickPair: HarmonyPickPair;
+  HarmonyHueTier: HarmonyHueTier;
+  HarmonyTier: HarmonyTier;
+  HarmonyDesignTokenGroup: HarmonyDesignTokenGroup;
+  HarmonyDesignTokensExport: HarmonyDesignTokensExport;
 };
 
 describe("frozen public TYPE surface (#99) — completeness guard", () => {
   it("every documented public type is exported from the barrel", () => {
-    // If this file compiled, all 30 type exports resolved. Assert the map is inhabited
+    // If this file compiled, every listed type export resolved. Assert the map is inhabited
     // so the test is not empty; the real guard is compile-time.
     expectTypeOf<PublicTypeSurface>().toBeObject();
+  });
+});
+
+describe("the exported derivation contract (#150)", () => {
+  it("exposes the named contrast tiers with their WCAG floor + APCA target", () => {
+    expect(api.CONTRAST_TARGETS).toEqual({
+      bodyText: { wcag: 4.5, apca: 75 },
+      mutedText: { wcag: 4.5, apca: 60 },
+      accentText: { wcag: 4.5, apca: 60 },
+      onAccent: { wcag: 4.5, apca: 60 },
+      ui: { wcag: 3, apca: 45 },
+      border: { wcag: 3, apca: 30 },
+    });
+  });
+
+  it("binds every semantic token — the studio can answer kind/role/target for each", () => {
+    // Coverage: exactly the frozen token names, no more, no fewer.
+    expect(Object.keys(api.DEFAULT_BINDING_SCHEMA).sort()).toEqual(
+      [...api.BRAND_TOKEN_NAMES].sort(),
+    );
+    // Shape: every binding declares a kind the receipt copy switches on.
+    for (const name of api.BRAND_TOKEN_NAMES) {
+      expect([
+        "step",
+        "auto",
+        "auto-on",
+        "literal",
+        "fill",
+        "on-fill",
+        "fill-hover",
+      ]).toContain(api.DEFAULT_BINDING_SCHEMA[name].kind);
+    }
+  });
+
+  it("each auto binding's target IS a CONTRAST_TARGETS tier (one source, no restatement)", () => {
+    // Identity, not deep-equality: a drifted copy of the table would fail this. This is the
+    // single-source guarantee #150 exists to make — the receipt names the solver's own tier.
+    const tiers = Object.values(api.CONTRAST_TARGETS);
+    for (const name of api.BRAND_TOKEN_NAMES) {
+      const binding = api.DEFAULT_BINDING_SCHEMA[name];
+      if (binding.kind === "auto" || binding.kind === "auto-on") {
+        expect(tiers).toContain(binding.target);
+      }
+    }
+  });
+});
+
+describe("QA — adversarial: #150 exports are a READ-ONLY contract, not a mutable singleton", () => {
+  // #150 asks for the schema "or a READ-ONLY view of it". The solver reads these exact
+  // objects at runtime — `resolveTheme` resolves `DEFAULT_BINDING_SCHEMA` directly, and each
+  // `auto` binding references a `CONTRAST_TARGETS` tier BY IDENTITY. A `Readonly<…>` type and
+  // `as const` are COMPILE-TIME ONLY: they vanish at runtime, leaving a shared, writable
+  // singleton every consumer of `@garden/oklch` holds a live reference to. A single stray
+  // `CONTRAST_TARGETS.bodyText.wcag = …` (or a schema reassignment) in the Studio — or any
+  // other importer — silently corrupts EVERY subsequent solve process-wide. The contract has
+  // to be enforced at runtime (`Object.freeze`, deeply), not just described in the types.
+
+  it("CONTRAST_TARGETS is deeply frozen — a stray write cannot corrupt the solver's tiers", () => {
+    expect(Object.isFrozen(api.CONTRAST_TARGETS)).toBe(true);
+    for (const [name, tier] of Object.entries(api.CONTRAST_TARGETS)) {
+      expect(Object.isFrozen(tier), `tier ${name}`).toBe(true);
+    }
+  });
+
+  it("DEFAULT_BINDING_SCHEMA is deeply frozen — the exported schema cannot be reassigned", () => {
+    expect(Object.isFrozen(api.DEFAULT_BINDING_SCHEMA)).toBe(true);
+    for (const [name, binding] of Object.entries(api.DEFAULT_BINDING_SCHEMA)) {
+      expect(Object.isFrozen(binding), `binding ${name}`).toBe(true);
+    }
+  });
+
+  it("mutating a CONTRAST_TARGETS tier does NOT corrupt a later solve (proves the shared-singleton risk)", () => {
+    // Demonstrates the concrete blast radius: `text` binds `auto` against `bodyText`, so
+    // raising that tier's floor at runtime moves the shipped `--text` color. Restored in a
+    // `finally` so the demonstration can't poison sibling tests — but a frozen table would
+    // make the write a silent no-op (loose mode) or throw (strict), and this would pass.
+    const tier = api.CONTRAST_TARGETS.bodyText as {
+      wcag: number;
+      apca: number;
+    };
+    const before = api.buildTokenSet("#3b82f6").tokens.text.light;
+    const original = { wcag: tier.wcag, apca: tier.apca };
+    // On a deeply-frozen table this write throws in ESM strict mode (or silently no-ops in
+    // loose mode) — both mean the tier is immutable. Tolerate the throw so we can still assert
+    // the real payload: a later solve is UNCHANGED. The finally restore (also throw-tolerant)
+    // keeps a regression from poisoning sibling tests if the freeze ever comes off.
+    try {
+      try {
+        tier.wcag = 21;
+        tier.apca = 108;
+      } catch {
+        /* frozen property → strict-mode TypeError: the immutability we want */
+      }
+      const after = api.buildTokenSet("#3b82f6").tokens.text.light;
+      // A read-only contract keeps the solve stable regardless of the attempted write.
+      expect(after).toEqual(before);
+    } finally {
+      try {
+        tier.wcag = original.wcag;
+        tier.apca = original.apca;
+      } catch {
+        /* frozen — nothing to restore */
+      }
+    }
   });
 });

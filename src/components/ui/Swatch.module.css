@@ -1,0 +1,36 @@
+@layer components {
+  .swatch {
+    position: relative;
+    display: block;
+    block-size: 100%;
+    min-block-size: 24px;
+    border-radius: var(--radius-1, 4px);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  .fill {
+    position: absolute;
+    inset: 1px;
+    background: transparent;
+    border-radius: calc(var(--radius-1, 4px) - 1px);
+  }
+
+  .oog {
+    position: absolute;
+    inset-block-start: 4px;
+    inset-inline-start: 4px;
+    inline-size: 5px;
+    block-size: 5px;
+    border-radius: 99px;
+    background: var(--bg);
+    box-shadow: 0 0 0 1px var(--text-muted);
+  }
+
+  /* Seed-change morph — the fill cross-fades to its new color instead of snapping (#154).
+     Color only (no layout → zero CLS); reduced-motion users get the snap. */
+  @media (prefers-reduced-motion: no-preference) {
+    .fill {
+      transition: background-color 400ms ease;
+    }
+  }
+}

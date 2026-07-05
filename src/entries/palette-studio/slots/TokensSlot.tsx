@@ -1,18 +1,30 @@
 "use client";
 
+import { useMemo } from "react";
+
 import Panel from "@/components/ui/Panel";
 
 import { useStudio } from "../StudioProvider";
-import TokenTable from "../components/TokenTable";
+import { buildCards } from "../cards/cardModel";
+import SwatchGrid from "../cards/SwatchGrid";
 import MissingFrame from "./MissingFrame";
 
-/** The semantic-token table — true bindings from the engine's provenance, per scheme. */
+/**
+ * The swatch-card grid slot — one derivation card per semantic color (#154). Owns the single
+ * reshape of the studio's engine run into card records (keyed on the palette, so a scheme
+ * toggle re-picks each card's face without rebuilding), then hands them to the grid. The shared
+ * glossary is a separate region of the studio canvas (`StudioCanvas`), not part of this slot.
+ */
 export default function TokensSlot(): React.ReactElement {
   const studio = useStudio();
-  if (!studio) return <MissingFrame name="semantic tokens" />;
+  // Key on the palette, not the whole studio value: a scheme toggle changes the studio
+  // object identity but not the palette, so the cards (which carry both schemes) are reused.
+  const palette = studio?.palette;
+  const cards = useMemo(() => (palette ? buildCards(palette) : []), [palette]);
+  if (!studio) return <MissingFrame name="swatch cards" />;
   return (
-    <Panel label="Semantic tokens" style={studio.slotStyle}>
-      <TokenTable rows={studio.palette.rows} scheme={studio.scheme} />
+    <Panel label="Swatch cards" variant="plain" style={studio.slotStyle}>
+      <SwatchGrid cards={cards} scheme={studio.scheme} />
     </Panel>
   );
 }

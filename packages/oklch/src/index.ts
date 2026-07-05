@@ -15,7 +15,14 @@
  * never touch DOM/Node globals — lint-enforced.
  */
 
-export { resolveTheme, buildTokenSet, type EngineOptions } from "./palette";
+export {
+  resolveTheme,
+  buildTokenSet,
+  DEFAULT_BINDING_SCHEMA,
+  type EngineOptions,
+} from "./palette";
+
+export { CONTRAST_TARGETS, type ContrastTargetName } from "./targets";
 
 export {
   tokenSetToCss,
@@ -27,10 +34,15 @@ export {
 export {
   tokenSetToTailwindTheme,
   tokenSetToDesignTokens,
+  harmonyTierToCss,
+  harmonyTierToTailwindTheme,
+  harmonyTierToDesignTokens,
   type ExportOptions,
   type DesignToken,
   type DesignTokenScheme,
   type DesignTokensExport,
+  type HarmonyDesignTokenGroup,
+  type HarmonyDesignTokensExport,
 } from "./export";
 
 export {
@@ -62,6 +74,20 @@ export {
   type HarmonyPalette,
   type HarmonyOptions,
 } from "./harmony";
+
+export {
+  buildHarmonyTier,
+  resolveHarmonyTier,
+  HARMONY_HUES,
+  type HarmonyHue,
+  type HarmonyStepProvenance,
+  type HarmonyPick,
+  type HarmonyHueResult,
+  type HarmonySchemeResult,
+  type HarmonyPickPair,
+  type HarmonyHueTier,
+  type HarmonyTier,
+} from "./harmony-tier";
 
 export {
   parseColor,
@@ -100,6 +126,10 @@ export type {
   SchemePair,
   SchemeTokens,
   BindingStep,
+  StepProvenance,
+  FillProvenance,
+  OnFillProvenance,
+  LiteralProvenance,
   BindingProvenance,
   BindingPair,
   SchemeResult,

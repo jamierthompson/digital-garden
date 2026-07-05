@@ -1,0 +1,11 @@
+/* Swatch-card grid — @layer components, var-consuming. Layout only; cards own their chrome. */
+@layer components {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}

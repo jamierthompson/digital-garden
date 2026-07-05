@@ -18,27 +18,51 @@ import {
   type Ramp,
   type RampLabel,
   type RampRules,
+  type Scheme,
 } from "./types";
 
 /**
- * The lightness of each `50…950` step. NOT an even split: it is denser near the two
- * extremes (Tailwind-shaped) so the light end yields three close-spaced page/elevated
- * surfaces and the dark end yields three more for dark mode, while the mid-range spreads
- * out for accents and text. A single perceptual-lightness scale, shared by every role
- * ramp; only the chroma (and hue) differ per role/scheme. Monotonic, lightest → darkest.
+ * The lightness of each `50…950` step — a SEPARATE, independently-tuned scale per scheme
+ * (#160). The engine does NOT mirror one scale into the other (a mirror-label flip gives
+ * muddy dark neutrals — architecture.md: "Dark re-generates each ramp and re-solves every
+ * binding against dark's OWN surfaces"). Each scale reserves its FIVE-surface band at its own
+ * end — light: `50…400` at the light end (bg · surface · surface-2 · surface-hover ·
+ * surface-selected, ~0.028 apart); dark: `600…950` at the dark end (mirror ROLES, not values)
+ * — then spreads the remaining steps into that scheme's text zone so `text`/`text-muted`/
+ * `border` land on THREE distinct steps. Monotonic, lightest → darkest.
  */
-const RAMP_L: Record<RampLabel, number> = {
-  "50": 0.985,
-  "100": 0.967,
-  "200": 0.922,
-  "300": 0.87,
-  "400": 0.708,
-  "500": 0.556,
-  "600": 0.439,
-  "700": 0.371,
-  "800": 0.269,
-  "900": 0.205,
-  "950": 0.145,
+const RAMP_L: Record<Scheme, Record<RampLabel, number>> = {
+  // LIGHT: five tight surfaces at the top (50…400); a spread text zone below (500…950) so
+  // border/muted/text separate against the worst-case light surface (`surface-selected`, 400).
+  light: {
+    "50": 0.985,
+    "100": 0.958,
+    "200": 0.93,
+    "300": 0.902,
+    "400": 0.874,
+    "500": 0.62,
+    "600": 0.49,
+    "700": 0.38,
+    "800": 0.29,
+    "900": 0.215,
+    "950": 0.145,
+  },
+  // DARK: five tight surfaces at the bottom (600…950); a spread text zone above (50…500) so
+  // border/muted/text separate against the worst-case dark surface (`surface-selected`, 600).
+  // Tuned independently for clean (not muddy) dark neutrals — not a flip of the light scale.
+  dark: {
+    "50": 0.985,
+    "100": 0.93,
+    "200": 0.85,
+    "300": 0.76,
+    "400": 0.67,
+    "500": 0.56,
+    "600": 0.34,
+    "700": 0.3,
+    "800": 0.26,
+    "900": 0.21,
+    "950": 0.165,
+  },
 };
 
 /** `t` for step index `i` — 0 at the lightest step, 1 at the darkest. */
@@ -47,17 +71,17 @@ function tOf(i: number): number {
 }
 
 /**
- * The lightness scale per distribution (#101): the 11 step lightnesses, lightest →
- * darkest. `tailwind` is the hand-shaped `RAMP_L` table (the default — reproduces the
- * un-ruled engine exactly). The named curves reshape ONLY the five interior steps
- * (`300…700`) between the pinned shoulders (`50/100/200` and `800/900/950` keep their
- * `RAMP_L` values): the shoulders host the surfaces and the extreme-fallback steps, so
- * pinning them is what makes the engine's contrast guarantees hold under EVERY policy —
- * the acceptance criterion the prototype's full-span curves could not meet (a full-span
- * `linear`/`soft` darkens `surface-2` past what any neutral step can host Lc-75 text
- * on). The curves are the prototype's easings, remapped over the interior span.
+ * The lightness scale per distribution (#101), for one scheme. `tailwind` is the hand-shaped
+ * per-scheme `RAMP_L` table (the default — reproduces the un-ruled engine exactly). The named
+ * curves reshape ONLY that scheme's TEXT-ZONE interior — the contiguous run of non-surface
+ * steps between the innermost surface and the far text extreme (`INTERIOR_RANGE`) — while the
+ * five surface steps AND the extreme text step stay PINNED at their `RAMP_L` values. Pinning
+ * the surfaces is what makes the contrast guarantees hold under EVERY policy: a floated surface
+ * that a distribution darkens into a mid-tone can host NO body text at Lc 75 (the exact bug the
+ * prototype's full-span curves hit). Because the scales are per-scheme, the reshapeable interior
+ * differs by scheme — light's text zone is BELOW its surfaces (`500…900`), dark's is ABOVE
+ * (`100…500`). The curves are the prototype's easings, remapped over that span.
  */
-// Interior easings e(t): t = 0 at the 200 shoulder, 1 at the 800 shoulder.
 const INTERIOR_EASE: Partial<
   Record<LightnessDistribution, (t: number) => number>
 > = {
@@ -67,18 +91,39 @@ const INTERIOR_EASE: Partial<
   soft: (t) => 0.5 + (t - 0.5) * 0.6, // interior huddles toward the mid — low-contrast band
 };
 
-function scaleOf(distribution: LightnessDistribution): number[] {
-  const base = RAMP_LABELS.map((label) => RAMP_L[label]);
+/**
+ * The reshapeable text-zone interior per scheme: `[lo, hi]` step indexes. Everything outside
+ * is pinned (the five surfaces + the far text extreme). Light: surfaces `50…400` (indexes 0–4)
+ * and the extreme `950` (10) pin; reshape `500…900` (5–9). Dark: surfaces `600…950` (6–10) and
+ * the extreme `50` (0) pin; reshape `100…500` (1–5).
+ */
+const INTERIOR_RANGE: Record<Scheme, { lo: number; hi: number }> = {
+  light: { lo: 5, hi: 9 },
+  dark: { lo: 1, hi: 5 },
+};
+
+function scaleOf(
+  distribution: LightnessDistribution,
+  scheme: Scheme,
+): number[] {
+  const base = RAMP_LABELS.map((label) => RAMP_L[scheme][label]);
   // `tailwind` — and, defensively, any out-of-union string reaching here from JS — uses
   // the default scale rather than producing NaN interior lightness: the same posture as
   // the anchor's non-finite guard (QA-101).
   const ease = INTERIOR_EASE[distribution];
   if (!ease) return base;
-  const light = RAMP_L["200"];
-  const dark = RAMP_L["800"];
-  // Steps 300…700 sit at indexes 3…7; t spans the open interior of [200 … 800].
+  const { lo, hi } = INTERIOR_RANGE[scheme];
+  // The pinned steps bounding the interior: the surface just lighter than it, and the text
+  // extreme just darker. `t` spans that open interior; `ease(0)→light`, `ease(1)→dark`.
+  const lightIdx = lo - 1;
+  const darkIdx = hi + 1;
+  const light = base[lightIdx];
+  const dark = base[darkIdx];
+  const span = darkIdx - lightIdx;
   return base.map((L, i) =>
-    i >= 3 && i <= 7 ? light - ease((i - 2) / 6) * (light - dark) : L,
+    i >= lo && i <= hi
+      ? light - ease((i - lightIdx) / span) * (light - dark)
+      : L,
   );
 }
 
@@ -105,12 +150,16 @@ export interface RampSpec {
   /** Nominal chroma held across the ramp; gamut-mapped per step, so extremes desaturate. */
   chroma: number;
   gamut: Gamut;
+  /** Which scheme's independent lightness scale to build on (#160). Defaults to `light` — the
+   *  engine's `resolveTheme` always passes it explicitly; the public low-level API stays
+   *  back-compatible for callers that only want the light ramp. */
+  scheme?: Scheme;
   /**
    * Seed anchor (#108): pin `label`'s step to lightness `L` EXACTLY and bend the rest of
    * the scale around it — a per-side shift+scale that keeps both endpoints, so the seed's
    * own color lands ON the ramp instead of drifting between steps. The engine anchors
-   * only the `brand` ramp (see `palette.ts`); neutral/status ramps stay on the shared
-   * scale. `L` is clamped into the scale's open interval so the ramp stays monotonic.
+   * only the `brand` ramp (see `palette.ts`); neutral/status ramps stay on the scheme's
+   * own scale. `L` is clamped into the scale's open interval so the ramp stays monotonic.
    */
   anchor?: { label: RampLabel; L: number };
   /** Generative ramp-tier rules (#101). Omitted/partial → the documented defaults
@@ -160,7 +209,7 @@ export function buildRamp(spec: RampSpec): Ramp {
   const distribution = spec.rules?.distribution ?? "tailwind";
   const chromaPolicy = spec.rules?.chromaPolicy ?? "flat";
   const huePolicy = spec.rules?.huePolicy ?? "constant";
-  const scale = scaleOf(distribution);
+  const scale = scaleOf(distribution, spec.scheme ?? "light");
   // A non-finite anchor L would propagate NaN into every step (QA-108); the never-throws,
   // never-garbage posture treats it as "no anchor". Unreachable via resolveTheme (a parsed
   // seed L is always finite) — this defends the public low-level API.
@@ -205,7 +254,13 @@ export function buildLightnessRamp(
   hue: number,
   opts: RampOptions = {},
 ): OkLCH[] {
-  const steps = Math.max(2, Math.floor(opts.steps ?? 11));
+  // A non-finite `steps` count would loop forever (Infinity) or emit an empty ramp (NaN);
+  // the never-hangs posture degrades it to the documented default, like the other guards.
+  const rawSteps = opts.steps ?? 11;
+  const steps = Math.max(
+    2,
+    Math.floor(Number.isFinite(rawSteps) ? rawSteps : 11),
+  );
   const chroma = Math.max(0, opts.chroma ?? 0.12);
   const minL = opts.minL ?? 0.05;
   const maxL = opts.maxL ?? 0.98;

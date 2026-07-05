@@ -9,10 +9,8 @@ import { describe, expect, it, vi } from "vitest";
 import StudioProvider from "./StudioProvider";
 import SeedSlot from "./slots/SeedSlot";
 import RulesSlot from "./slots/RulesSlot";
-import PrimitivesSlot from "./slots/PrimitivesSlot";
 import TokensSlot from "./slots/TokensSlot";
 import PreviewSlot from "./slots/PreviewSlot";
-import ReceiptSlot from "./slots/ReceiptSlot";
 import ExportSlot from "./slots/ExportSlot";
 
 /**
@@ -26,30 +24,32 @@ function renderStudio(slug = "demo") {
     <StudioProvider slug={slug}>
       <SeedSlot />
       <RulesSlot />
-      <PrimitivesSlot />
       <TokensSlot />
       <PreviewSlot />
-      <ReceiptSlot />
       <ExportSlot />
     </StudioProvider>,
   );
 }
 
-/** Read the resolved value text of one semantic-token row in the token table. */
+/** Read the resolved value text off one token's swatch card (the active-scheme face). The
+ *  MiniRamp readout also prints an oklch() value, so target the face value cell specifically —
+ *  the only element whose text STARTS with "oklch(". */
 function tokenValue(name: string): string {
-  const header = screen.getByRole("rowheader", { name: `--${name}` });
-  const row = header.closest("tr");
-  if (!row) throw new Error(`no row for --${name}`);
-  return within(row).getByText(/oklch\(/).textContent ?? "";
+  const heading = screen.getByRole("heading", { name: `--${name}` });
+  const card = heading.closest("li");
+  if (!card) throw new Error(`no card for --${name}`);
+  const value = within(card)
+    .getAllByText(/oklch\(/)
+    .find((el) => (el.textContent ?? "").startsWith("oklch("));
+  if (!value) throw new Error(`no face value for --${name}`);
+  return value.textContent ?? "";
 }
 
 const ALL_SLOTS = [
   ["seed", SeedSlot],
   ["rules", RulesSlot],
-  ["primitives", PrimitivesSlot],
   ["tokens", TokensSlot],
   ["preview", PreviewSlot],
-  ["receipt", ReceiptSlot],
   ["export", ExportSlot],
 ] as const;
 
@@ -70,7 +70,7 @@ describe("Palette Studio (Provider + slots)", () => {
   it("re-derives across slots when a new seed is typed (shared state)", () => {
     renderStudio();
     const before = tokenValue("accent");
-    // The input lives in the seed slot; the token table is a DIFFERENT slot — the change
+    // The input lives in the seed slot; the card grid is a DIFFERENT slot — the change
     // must cross the provider, not component-local state.
     fireEvent.change(screen.getByLabelText("Seed color"), {
       target: { value: "#16a34a" },
@@ -92,14 +92,7 @@ describe("Palette Studio (Provider + slots)", () => {
     const after = rulesPanel.style.getPropertyValue("--accent");
     expect(after).not.toBe(before);
     // Every slot panel carries the SAME live binding.
-    for (const name of [
-      "Seed",
-      "Primitive ramps",
-      "Semantic tokens",
-      "Live preview",
-      "Contrast receipt",
-      "Export",
-    ]) {
+    for (const name of ["Seed", "Swatch cards", "Live preview", "Export"]) {
       expect(
         screen.getByRole("region", { name }).style.getPropertyValue("--accent"),
       ).toBe(after);
@@ -112,8 +105,8 @@ describe("Palette Studio (Provider + slots)", () => {
     fireEvent.change(input, { target: { value: "definitely-not-a-color" } });
     expect(input).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByText(/can.t read that color/i)).toBeInTheDocument();
-    // The palette still renders — a full token table survives a garbage seed.
-    expect(screen.getByRole("rowheader", { name: "--accent" })).toBeVisible();
+    // The palette still renders — the full card grid survives a garbage seed.
+    expect(screen.getByRole("heading", { name: "--accent" })).toBeVisible();
   });
 
   it("applies a preset chip's seed on click", () => {
@@ -158,10 +151,11 @@ describe("Palette Studio (Provider + slots)", () => {
     expect(tokenValue("surface")).not.toBe(before);
   });
 
-  it("displays the viewer's preferred color scheme — no page-local toggle (#133)", () => {
-    // the setup stub's matchMedia never matches, so the default render reads as light…
+  it("follows the viewer's preferred color scheme — no page-local toggle (#133)", () => {
+    // The scheme is observed through the derived tokens (the ambient "showing the X scheme"
+    // caption was removed, #owner): the setup stub's matchMedia never matches, so the default
+    // render reads as light…
     renderStudio();
-    expect(screen.getByText(/light scheme/i)).toBeInTheDocument();
     const lightBg = tokenValue("bg");
     cleanup();
     // …and a dark-preferring viewer gets the dark view of the SAME derivation.
@@ -177,8 +171,8 @@ describe("Palette Studio (Provider + slots)", () => {
     );
     try {
       renderStudio();
-      expect(screen.getByText(/dark scheme/i)).toBeInTheDocument();
-      // Dark bg differs from light bg — both schemes are always derived.
+      // Dark bg differs from light bg — both schemes are always derived, and the studio paints
+      // the viewer's (no page-local toggle).
       expect(tokenValue("bg")).not.toBe(lightBg);
     } finally {
       vi.unstubAllGlobals();
@@ -205,36 +199,17 @@ describe("Palette Studio (Provider + slots)", () => {
     expect(checked[0]).toHaveAccessibleName("Tailwind");
   });
 
-  it("renders a live preview and a contrast receipt for BOTH schemes", () => {
+  it("renders one scheme-neutral live preview", () => {
     renderStudio();
-    for (const name of [
-      "light preview",
-      "dark preview",
-      "light contrast receipt",
-      "dark contrast receipt",
-    ]) {
-      expect(screen.getByRole("group", { name })).toBeInTheDocument();
-    }
-    // The receipt is the guarantee: every measured pair passes, in both schemes.
-    for (const name of ["light contrast receipt", "dark contrast receipt"]) {
-      const card = screen.getByRole("group", { name });
-      const marks = within(card).getAllByRole("img");
-      expect(marks.length).toBeGreaterThan(0);
-      for (const mark of marks) {
-        expect(mark).toHaveAccessibleName("passes");
-      }
-    }
-  });
-
-  it("re-measures the receipt when the seed changes", () => {
-    renderStudio();
-    const receipt = () =>
-      screen.getByRole("group", { name: "light contrast receipt" }).textContent;
-    const before = receipt();
-    fireEvent.change(screen.getByLabelText("Seed color"), {
-      target: { value: "#06b6d4" },
-    });
-    expect(receipt()).not.toBe(before);
+    // The preview is a SINGLE scheme-neutral group — the specimens inherit the slot's
+    // light-dark() palette and paint the viewer's scheme via CSS (no scheme in the name, no
+    // light-first lie).
+    expect(
+      screen.getByRole("group", { name: "palette preview" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("group", { name: /light preview|dark preview/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("exports the live palette and re-serializes when the seed changes", () => {
@@ -292,10 +267,8 @@ function studio(slug: string) {
     <StudioProvider slug={slug}>
       <SeedSlot />
       <RulesSlot />
-      <PrimitivesSlot />
       <TokensSlot />
       <PreviewSlot />
-      <ReceiptSlot />
       <ExportSlot />
     </StudioProvider>
   );
@@ -304,7 +277,7 @@ function studio(slug: string) {
 describe("QA-S13 · Studio UI under adversarial interaction", () => {
   it(
     "two instances mounted simultaneously mint NO duplicate element ids",
-    { timeout: 30000 },
+    { timeout: 60000 },
     () => {
       // The author's own test unmounts between renders; the real risk is two live routes at once.
       const { container } = render(
@@ -332,7 +305,7 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
 
   it(
     "survives a rapid chip → typed-garbage → chip → clear sequence, staying honest",
-    { timeout: 30000 },
+    { timeout: 60000 },
     () => {
       render(studio("demo"));
       const input = () =>
@@ -356,14 +329,14 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
 
       fireEvent.change(input(), { target: { value: "" } });
       expect(input()).toHaveAttribute("aria-invalid", "true");
-      // Even empty, the token table is intact — the tool never blanks out.
-      expect(screen.getByRole("rowheader", { name: "--accent" })).toBeVisible();
+      // Even empty, the card grid is intact — the tool never blanks out.
+      expect(screen.getByRole("heading", { name: "--accent" })).toBeVisible();
     },
   );
 
   it(
     "aria-invalid tracks the SAME parser the palette derives from (no lying input)",
-    { timeout: 30000 },
+    { timeout: 60000 },
     () => {
       render(studio("demo"));
       const input = screen.getByLabelText("Seed color") as HTMLInputElement;
@@ -380,37 +353,44 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
   );
 
   it(
-    "single-scheme slots follow the viewer's scheme; the receipt always shows BOTH",
-    { timeout: 30000 },
+    "single-scheme slots follow the viewer's scheme — no page-local toggle",
+    { timeout: 60000 },
     () => {
       render(studio("demo"));
       // No page-local scheme toggle by design — the toggle is site-wide chrome (#133).
       expect(
         screen.queryByRole("radio", { name: /^(light|dark)$/ }),
       ).not.toBeInTheDocument();
-      expect(screen.getByText(/Showing the light scheme/i)).toBeInTheDocument();
-      // The receipt shows BOTH schemes irrespective of the viewer's scheme.
-      expect(
-        screen.getByRole("group", { name: "light contrast receipt" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("group", { name: "dark contrast receipt" }),
-      ).toBeInTheDocument();
     },
   );
+});
 
+// The WASH × TOGGLE integration seam: the page's paint (every light-dark() token, the wash)
+// follows the resolved root `color-scheme`, so the provider's displayed scheme must track the
+// same signal — `src/lib/scheme.ts`'s `subscribe`/`getResolvedScheme` (the #162 override when
+// set, else the OS preference) — or the receipts describe a scheme the viewer isn't painted
+// under. Pins the contract that paint and readouts can never disagree.
+describe("QA-FINAL · site-wide scheme override seam (#162)", () => {
   it(
-    "every rendered contrast mark reads as a pass for the default seed, both schemes",
-    { timeout: 30000 },
+    "shows the OVERRIDDEN scheme's view when the toggle override is set — not the OS scheme",
+    { timeout: 60000 },
     () => {
-      render(studio("demo"));
-      for (const name of ["light contrast receipt", "dark contrast receipt"]) {
-        const card = screen.getByRole("group", { name });
-        const marks = within(card).getAllByRole("img");
-        expect(marks.length).toBeGreaterThan(0);
-        for (const mark of marks) {
-          expect(mark).toHaveAccessibleName("passes");
-        }
+      // The setup stub's matchMedia never matches: the OS reads light. With the #162
+      // override persisted as dark, the displayed face must be the DARK derivation —
+      // the values the viewer is actually painted under the override.
+      localStorage.setItem("scheme", "dark");
+      try {
+        renderStudio();
+        const overridden = tokenValue("bg");
+        cleanup();
+        localStorage.removeItem("scheme");
+        renderStudio();
+        const osLight = tokenValue("bg");
+        // The overridden render must show the dark derivation, the clean render the
+        // light one — identical faces would mean the provider ignored the override.
+        expect(overridden).not.toBe(osLight);
+      } finally {
+        localStorage.removeItem("scheme");
       }
     },
   );

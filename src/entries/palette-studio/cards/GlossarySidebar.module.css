@@ -1,0 +1,41 @@
+/* Glossary sidebar — @layer components, var-consuming. Small, muted, friendly. */
+@layer components {
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    align-self: start;
+  }
+
+  /* A horizontal row of term+definition items that WRAP (owner: the definitions live at the
+     bottom of the canvas as a row, not a right-edge column). Each item is a bounded column so
+     the definitions stay readable; the row wraps at narrow — never a page-level horizontal
+     scroll. */
+  .terms {
+    display: flex;
+    flex-flow: row wrap;
+    gap: var(--space-3) var(--space-6);
+    margin: 0;
+  }
+
+  .terms > div {
+    flex: 1 1 14rem;
+    min-width: 0;
+    max-width: 22rem;
+  }
+
+  .terms dt {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .terms dd {
+    margin: var(--space-1) 0 0;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    /* Contrast-solved muted role — quiet but AA (4.5:1) for small text. */
+    color: var(--text-muted);
+  }
+}

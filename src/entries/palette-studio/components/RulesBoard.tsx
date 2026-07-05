@@ -43,11 +43,8 @@ export default function RulesBoard({
     : TINTED_NEUTRALS_HINT.off;
   return (
     <div className={styles.board} role="group" aria-label="Palette rules">
-      <Aside>
-        Rules shape the ramp before the tokens bind to it. Every default is on —
-        the palette is legible before you touch a thing.
-      </Aside>
-
+      {/* No blurb — the owner authors the rules copy separately; the "Palette rules" group label
+          names it until then. */}
       <RuleGroup
         label="Distribution"
         name="distribution"

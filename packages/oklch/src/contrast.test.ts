@@ -305,3 +305,36 @@ describe("checkContrast — identical semantics with the primitives it consolida
     );
   }
 });
+
+describe("QA — adversarial: solveForeground non-finite chroma (never-throws contract)", () => {
+  const target: ContrastTarget = { wcag: 4.5, apca: 75 };
+  const bg: OkLCH = { L: 0.95, C: 0.01, H: 30 };
+
+  // chromaBackoff would step `Infinity - 0.02 → Infinity` forever, growing its candidate
+  // array until V8 dies — so a non-finite chroma degrades to the achromatic axis at the
+  // input boundary, upholding the documented never-throws contract (solveForeground is
+  // public, #99).
+  it("never throws for chroma: Infinity (documented 'never throws')", () => {
+    expect(() =>
+      solveForeground({
+        bg,
+        hue: 30,
+        chroma: Infinity,
+        target,
+        gamut: "srgb",
+      }),
+    ).not.toThrow();
+  });
+
+  it("degrades a NaN chroma to an achromatic solve that still meets the target", () => {
+    const out = solveForeground({
+      bg,
+      hue: 30,
+      chroma: NaN,
+      target,
+      gamut: "srgb",
+    });
+    expect(out.C).toBe(0);
+    expect(checkContrast(out, bg, target).passes).toBe(true);
+  });
+});

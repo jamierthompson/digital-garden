@@ -21,14 +21,10 @@ const EMBED_LOADERS = {
     import("@/entries/palette-studio/slots/SeedSlot"),
   "palette-studio-rules": () =>
     import("@/entries/palette-studio/slots/RulesSlot"),
-  "palette-studio-primitives": () =>
-    import("@/entries/palette-studio/slots/PrimitivesSlot"),
   "palette-studio-tokens": () =>
     import("@/entries/palette-studio/slots/TokensSlot"),
   "palette-studio-preview": () =>
     import("@/entries/palette-studio/slots/PreviewSlot"),
-  "palette-studio-receipt": () =>
-    import("@/entries/palette-studio/slots/ReceiptSlot"),
   "palette-studio-export": () =>
     import("@/entries/palette-studio/slots/ExportSlot"),
 } satisfies Record<EmbedKey, EmbedLoader>;

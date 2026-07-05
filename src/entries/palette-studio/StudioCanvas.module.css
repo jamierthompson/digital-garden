@@ -1,0 +1,75 @@
+/* Studio canvas grid — @layer components, var-consuming. The layout is expressed entirely in
+   NAMED grid-template-areas so it can be reshaped by editing the template strings alone. Each
+   surface region just claims its area name; add/move a region by renaming areas here. */
+@layer components {
+  /* The Radix ScrollArea wrapper (#139) needs a DEFINITE block-size to establish its own
+     scroll region — see `ScrollArea`'s own doc comment ("give it a bounded block-size ... in
+     grid/flex cells"). Previously a `min(75dvh, 56rem)` cap — but the canvas `<main>` sizes
+     to its CONTENT, not the viewport, so on a typical screen the page grew taller than the
+     viewport and the DOCUMENT scrolled too: two scrollbars, only one of them the intended
+     brand-colored one. `page.module.css`'s canvas-only rules now flex-fill `<main>` down to
+     this component's `[data-entry]` parent so it carries a DEFINITE height equal to the
+     viewport space between SiteNav/SiteFooter; `block-size: 100%` here resolves against that,
+     making this ScrollArea the ONLY scrolling surface on the route. */
+  .scrollArea {
+    block-size: 100%;
+    min-block-size: 0;
+  }
+
+  .canvas {
+    display: grid;
+    gap: var(--space-6);
+    /* The content's own spacing lives HERE, inside the ScrollArea viewport (owner's scroll-
+       container pattern) — NOT on the `<main>` wrapper or `StudioProvider .surface`, both now
+       zero-padding. Symmetric on every side so the content is centered with equal gutters while
+       the Radix scrollbar hugs the viewport's right edge, outside this padding. */
+    padding: var(--space-6);
+    /* One column at every width (owner's linearized canvas, #139): the seed+starters and the
+       definitions are horizontal BARS, and the working surfaces (rules, harmony, cards, table,
+       preview, exports) are full-width sections that wrap their own contents. Wide screens just
+       give every row more room — the old left/right control rails are gone now that seed+rules
+       lead and exports+definitions close the flow, so there is no breakpoint-specific template. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "seed"
+      "rules"
+      "harmony"
+      "cards"
+      "table"
+      "preview"
+      "exports"
+      "glossary";
+  }
+
+  .seed {
+    grid-area: seed;
+  }
+
+  .rules {
+    grid-area: rules;
+  }
+
+  .cards {
+    grid-area: cards;
+  }
+
+  .table {
+    grid-area: table;
+  }
+
+  .glossary {
+    grid-area: glossary;
+  }
+
+  .preview {
+    grid-area: preview;
+  }
+
+  .exports {
+    grid-area: exports;
+  }
+
+  .harmony {
+    grid-area: harmony;
+  }
+}

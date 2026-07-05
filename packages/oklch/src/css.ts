@@ -34,6 +34,15 @@ export interface CssOptions {
    * paint for the default `srgb` gamut, clamped for `p3`.
    */
   format?: ColorFormat;
+  /**
+   * Emit a leading `color-scheme: light dark;` (#159). Default `false` — a SCOPED slot
+   * (`[data-entry]`) must NOT re-declare it: `color-scheme` is inherited, so a slot with none
+   * follows the foundation root's used scheme, and a forced root override (the site-wide
+   * light/dark toggle) then reaches inside the slot instead of being shadowed. Set `true` only
+   * for a self-contained rule that establishes the scheme at its own root — e.g. the pasteable
+   * `:root` CSS export (#107).
+   */
+  colorScheme?: boolean;
 }
 
 /**
@@ -67,16 +76,18 @@ function rampProperty(role: RampRole, step: RampStep): string {
  * Just the SEMANTIC declaration lines (no selector, no layer) — the generic role contract
  * components read (`--surface`, `--accent`, … `--success`). For a caller that controls
  * placement and wants only the semantic tier (e.g. `EntryScope`, which hand-assembles the
- * block and adds its own aliases). Includes `color-scheme: light dark` so `light-dark()`
- * resolves and the scheme follows `prefers-color-scheme` by default. Each line is
- * `\n`-joined. The primitive ramp tier is a separate opt-in — see `rampSetToDeclarations`.
+ * block and adds its own aliases). By default emits NO `color-scheme` (#159): a scoped slot
+ * inherits it from the foundation root, so the site-wide toggle's forced root override is not
+ * shadowed. A caller establishing the scheme at its own root opts in with
+ * `{ colorScheme: true }` (see `CssOptions`). Each line is `\n`-joined. The primitive ramp
+ * tier is a separate opt-in — see `rampSetToDeclarations`.
  */
 export function tokenSetToDeclarations(
   set: TokenSet,
   opts: CssOptions = {},
 ): string {
   const format = opts?.format ?? "oklch";
-  const lines = ["color-scheme: light dark;"];
+  const lines = opts?.colorScheme ? ["color-scheme: light dark;"] : [];
   for (const name of Object.keys(set.tokens) as BrandTokenName[]) {
     lines.push(
       `${customProperty(name)}: ${lightDark(set.tokens[name], format)};`,

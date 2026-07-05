@@ -1,17 +1,21 @@
-/* Panel primitive — @layer components, var-consuming only. The framed demo-panel surface:
-   hairline border, soft radius, ambient surface/text (editorial by default, brand inside
-   a brand slot). */
+/* Panel primitive — @layer components, var-consuming only. `.panel` is the structural base
+   (layout + ambient text); `.framed` adds the demo-panel surface (hairline border, soft radius,
+   ambient surface — editorial by default, brand inside a brand slot). `plain` panels omit
+   `.framed` so a grid of self-chromed cards sits directly on the wash. */
 @layer components {
   .panel {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
     min-width: 0;
+    color: var(--text);
+    font-family: var(--font-face);
+  }
+
+  .framed {
     padding: var(--space-5);
     border: 1px solid var(--border);
     border-radius: 0.75rem;
     background: var(--surface);
-    color: var(--text);
-    font-family: var(--font-face);
   }
 }

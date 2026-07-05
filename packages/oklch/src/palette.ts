@@ -16,7 +16,8 @@
  * that clears its contrast target (`minPass`). The one exception is the accent FILL: it is
  * the brand's own identity, so it stays a faithful continuous co-solve anchored at the
  * seed's lightness (the rare exact solve `solveForeground` exists for), with its on-accent
- * label a near-white/near-black extreme that clears with headroom.
+ * label the most chromatic color that clears on the fill (#153 — degrading to a near-white/
+ * near-black extreme when the gamut allows no chroma there).
  *
  * Order of operations is fixed: parse defensively → detect the seed's native scheme
  * (auto-direction) → per-scheme seed (dark = reduced chroma) → build the per-scheme ramps →
@@ -31,15 +32,27 @@
  */
 
 import { buildRamp } from "./ramp";
-import { resolveTokens, type TokenBinding } from "./binding";
-import { gamutMap } from "./gamut";
-import { clamp01, parseColor } from "./convert";
 import {
-  apcaLc,
-  checkContrast,
-  withSolveMargin,
-  type ContrastTarget,
-} from "./contrast";
+  resolveTokens,
+  type CoSolvedFill,
+  type CoSolvedHover,
+  type TokenBinding,
+} from "./binding";
+import {
+  solveAccent,
+  solveNativeAccent,
+  solveStatusFill,
+  solveAccentHover,
+  describeAccent,
+  describeOnAccent,
+  describeFill,
+  describeOnFill,
+} from "./accent";
+import { gamutMap } from "./gamut";
+import { parseColor } from "./convert";
+import { checkContrast } from "./contrast";
+import { CONTRAST_TARGETS } from "./targets";
+import { deepFreeze } from "./freeze";
 import {
   BRAND_TOKEN_NAMES,
   RAMP_ROLES,
@@ -75,25 +88,6 @@ export interface EngineOptions {
  */
 const FALLBACK_SEED: OkLCH = { L: 0.55, C: 0.11, H: 264 };
 
-// Contrast targets mirror accessibility-and-performance.md table.
-const TARGET = {
-  /** Body text: WCAG 4.5 floor, APCA Lc 75 quality target. */
-  bodyText: { wcag: 4.5, apca: 75 } satisfies ContrastTarget,
-  /** Muted/secondary text: still small-text AA (4.5), lower APCA tier (Lc 60). */
-  mutedText: { wcag: 4.5, apca: 60 } satisfies ContrastTarget,
-  /** Link/accent text: AA small-text floor (4.5), Lc 60 — the yellow/cyan stresser. */
-  accentText: { wcag: 4.5, apca: 60 } satisfies ContrastTarget,
-  /** Text on the accent fill: AA small-text (4.5) + APCA "non-body" tier (Lc 60). A
-   *  mid-tone fill cannot host Lc-75 body text in either polarity, so the on-brand
-   *  label target is the non-body tier; the accent fill is co-solved to host it. */
-  onAccent: { wcag: 4.5, apca: 60 } satisfies ContrastTarget,
-  /** Accent fill, borders, focus ring: non-text 3:1 (1.4.11), Lc 45 spot-readable. The
-   *  focus-ring color is an engine token (contrast-solved per slot); ring geometry stays global. */
-  ui: { wcag: 3, apca: 45 } satisfies ContrastTarget,
-  /** Subtle borders: non-text 3:1 floor. */
-  border: { wcag: 3, apca: 30 } satisfies ContrastTarget,
-} as const;
-
 // Status signal colors. The hues are FIXED canonical anchors — NOT derived from the brand
 // — because a status color's job is to signal meaning at a glance, and that depends on
 // recognizability (error=red is a usability requirement, not a stylistic choice). What
@@ -113,6 +107,34 @@ const STATUS_HUE: Record<"success" | "error" | "warning" | "info", number> = {
 // gamut-mapped ramp rather than a uniform ΔL step.
 const STATUS_CHROMA = 0.15;
 
+// The four status roles, in the token EMISSION order of the 34-token contract (#160): each
+// contributes a fill + on-fill + text + container + on-container block.
+const STATUS_ROLES = ["error", "warning", "success", "info"] as const;
+
+/**
+ * The ramp steps a `<status>-container` pins per scheme (#160): a soft tinted alert surface —
+ * a light tint in light mode, a dark tint in dark mode. Mirrors the neutral `surface` step
+ * (`100`/`900`) on the status hue's own ramp, so a container reads as a tinted sibling of the
+ * elevated surface. Exported as one constant so the `on-<status>-container` label solves
+ * against the EXACT step the container ships (`auto-on`'s `against`), never an assumed color.
+ */
+const CONTAINER_STEP: { light: RampLabel; dark: RampLabel } = {
+  light: "100",
+  dark: "900",
+};
+
+/** The scrim's fixed opacity (#160) — the engine's first alpha-carrying literal. A dialog
+ *  overlay dims toward black; 0.6 reads as a clear modal veil without fully hiding the page. */
+const SCRIM_ALPHA = 0.6;
+
+/**
+ * The `scrim` literal (#160): a near-black neutral at a fixed alpha, the dialog/overlay dim
+ * layer. Seed-independent (overlays dim toward black in both schemes) and carries NO contrast
+ * claim — its only story is opacity. The engine's first translucent token; serializes as
+ * `oklch(L C H / a)` (CSS), the `--color-scrim` Tailwind var, and the DTCG `alpha` field.
+ */
+const SCRIM_COLOR: OkLCH = { L: 0.13, C: 0, H: 0, alpha: SCRIM_ALPHA };
+
 interface SchemeConfig {
   /** Chroma multiplier applied to the brand seed for this scheme (dark dampens). */
   seedChroma: number;
@@ -123,11 +145,16 @@ interface SchemeConfig {
 const SCHEMES: Record<Scheme, SchemeConfig> = {
   light: {
     seedChroma: 1,
-    neutralChroma: 0.01,
+    // A BOLD default neutral tint (#160): the owner wants visibly-tinted surfaces and a
+    // deep-brand-tone `text` (not near-black), not a whisper. Held flat across the ramp and
+    // gamut-mapped per step, so the light surfaces desaturate to a soft tint while the dark
+    // text steps keep the full chroma — a deep brand-toned foreground. Owner dials the exact
+    // amount; this is the sensibly-bold starting point.
+    neutralChroma: 0.04,
   },
   dark: {
     seedChroma: 0.82, // reduced chroma in dark
-    neutralChroma: 0.016,
+    neutralChroma: 0.045,
   },
 };
 
@@ -139,46 +166,157 @@ const SCHEMES: Record<Scheme, SchemeConfig> = {
  * The accent fill / on-accent label defer to the faithful brand co-solve. A `literal`
  * binding (a fixed value per scheme, e.g. a pure-white surface) is supported by the schema
  * for a brand that wants one; the default uses stepped surfaces so they carry the tint.
+ *
+ * EXPORTED read-only (#150) so the Studio can answer, for any `BrandTokenName`, WHICH kind
+ * of binding it is, against WHICH role's ramp, to WHICH `CONTRAST_TARGETS` tier — reading
+ * the one mapping the engine solves against rather than hardcoding the 14-row table.
  */
-const DEFAULT_SCHEMA: Record<BrandTokenName, TokenBinding> = {
+export const DEFAULT_BINDING_SCHEMA: Readonly<
+  Record<BrandTokenName, TokenBinding>
+> = deepFreeze({
   // Surfaces: page → elevated → higher, from the near-neutral ramp. Light end in light,
-  // dark end in dark; `surface-2` is the worst-case surface the `auto` tokens solve on.
+  // dark end in dark. Five surfaces in increasing darkness (light mode): bg > surface >
+  // surface-2 > surface-hover > surface-selected; `surface-selected` — the darkest
+  // text-bearing surface — is the worst-case background every `auto` token solves against
+  // (see `WORST_SURFACE_LABEL`). `surface-hover`/`surface-selected` (#160) pin interior steps,
+  // so they float with the #101 distribution; the worst-case solve reads their ACTUAL step.
   bg: { kind: "step", role: "neutral", light: "50", dark: "950" },
   surface: { kind: "step", role: "neutral", light: "100", dark: "900" },
   "surface-2": { kind: "step", role: "neutral", light: "200", dark: "800" },
   // Near-neutral foregrounds — bound to the neutral ramp (the brand tint desaturates at the
   // dark steps via gamut-mapping, so any hue clears body-text contrast).
-  text: { kind: "auto", role: "neutral", target: TARGET.bodyText },
-  "text-muted": { kind: "auto", role: "neutral", target: TARGET.mutedText },
-  border: { kind: "auto", role: "neutral", target: TARGET.border },
+  text: { kind: "auto", role: "neutral", target: CONTRAST_TARGETS.bodyText },
+  "text-muted": {
+    kind: "auto",
+    role: "neutral",
+    target: CONTRAST_TARGETS.mutedText,
+  },
+  border: { kind: "auto", role: "neutral", target: CONTRAST_TARGETS.border },
   // Brand identity — the faithful continuous accent + its on-accent label.
-  accent: { kind: "accent" },
-  "on-accent": { kind: "on-accent" },
+  accent: { kind: "fill", role: "brand" },
+  "on-accent": { kind: "on-fill", role: "brand" },
   // Brand-colored foregrounds — bound to the full-chroma brand ramp.
-  "accent-text": { kind: "auto", role: "brand", target: TARGET.accentText },
-  "focus-ring": { kind: "auto", role: "brand", target: TARGET.ui },
-  // Status signals — each bound to its own canonical-hue ramp at the accent-text tier.
-  success: { kind: "auto", role: "success", target: TARGET.accentText },
-  error: { kind: "auto", role: "error", target: TARGET.accentText },
-  warning: { kind: "auto", role: "warning", target: TARGET.accentText },
-  info: { kind: "auto", role: "info", target: TARGET.accentText },
-};
+  "accent-text": {
+    kind: "auto",
+    role: "brand",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "focus-ring": { kind: "auto", role: "brand", target: CONTRAST_TARGETS.ui },
+  // Status TRIOS + CONTAINERS (#160), one block per status role. The FILL is the co-solved
+  // signal color (visible on the surface + hosts a label); `on-<status>` its chromatic label;
+  // `<status>-text` keeps TODAY's status semantics under the honest name (accent-text tier
+  // against surface-2 — the rename-with-guarantee); `<status>-container` a soft tinted alert
+  // surface; `on-<status>-container` its label, solved against the container's actual color.
+  error: { kind: "fill", role: "error" },
+  "on-error": { kind: "on-fill", role: "error" },
+  "error-text": {
+    kind: "auto",
+    role: "error",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "error-container": {
+    kind: "step",
+    role: "error",
+    light: CONTAINER_STEP.light,
+    dark: CONTAINER_STEP.dark,
+  },
+  "on-error-container": {
+    kind: "auto-on",
+    role: "error",
+    against: CONTAINER_STEP,
+    target: CONTRAST_TARGETS.accentText,
+  },
+  warning: { kind: "fill", role: "warning" },
+  "on-warning": { kind: "on-fill", role: "warning" },
+  "warning-text": {
+    kind: "auto",
+    role: "warning",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "warning-container": {
+    kind: "step",
+    role: "warning",
+    light: CONTAINER_STEP.light,
+    dark: CONTAINER_STEP.dark,
+  },
+  "on-warning-container": {
+    kind: "auto-on",
+    role: "warning",
+    against: CONTAINER_STEP,
+    target: CONTRAST_TARGETS.accentText,
+  },
+  success: { kind: "fill", role: "success" },
+  "on-success": { kind: "on-fill", role: "success" },
+  "success-text": {
+    kind: "auto",
+    role: "success",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "success-container": {
+    kind: "step",
+    role: "success",
+    light: CONTAINER_STEP.light,
+    dark: CONTAINER_STEP.dark,
+  },
+  "on-success-container": {
+    kind: "auto-on",
+    role: "success",
+    against: CONTAINER_STEP,
+    target: CONTRAST_TARGETS.accentText,
+  },
+  info: { kind: "fill", role: "info" },
+  "on-info": { kind: "on-fill", role: "info" },
+  "info-text": {
+    kind: "auto",
+    role: "info",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "info-container": {
+    kind: "step",
+    role: "info",
+    light: CONTAINER_STEP.light,
+    dark: CONTAINER_STEP.dark,
+  },
+  "on-info-container": {
+    kind: "auto-on",
+    role: "info",
+    against: CONTAINER_STEP,
+    target: CONTRAST_TARGETS.accentText,
+  },
+  // Interaction states (#160). `accent-hover` is a perceptibly-nudged brand fill that still
+  // hosts on-accent. `surface-hover`/`surface-selected` pin the two neutral state surfaces —
+  // interior steps just darker than `surface-2` (light) / lighter than `surface-2` (dark);
+  // `surface-selected` is the worst-case surface `text`/`text-muted`/`border` are solved on.
+  "accent-hover": { kind: "fill-hover", role: "brand" },
+  "surface-hover": { kind: "step", role: "neutral", light: "300", dark: "700" },
+  "surface-selected": {
+    kind: "step",
+    role: "neutral",
+    light: "400",
+    dark: "600",
+  },
+  // Scrim (#160): the translucent overlay literal.
+  scrim: { kind: "literal", light: SCRIM_COLOR, dark: SCRIM_COLOR },
+});
 
 /**
- * The label the `surface-2` step binds to in each scheme — the WORST-CASE surface the `auto`
- * tokens are solved against. Derived from `DEFAULT_SCHEMA["surface-2"]` itself, so the
- * surface those tokens solve on can never drift from the `surface-2` token that actually
- * ships (single source of truth; the "AA on every surface" guarantee rests on their being
- * identical). The fallback only fires if the schema retypes `surface-2` off a step binding —
- * a design change a test would catch.
+ * The label the `surface-selected` step binds to in each scheme — the WORST-CASE surface the
+ * `auto` tokens are solved against (#160). `surface-selected` is the DARKEST text-bearing
+ * surface (light mode) / lightest (dark mode), so a foreground that clears its target there
+ * clears it on EVERY surface — bg, surface, surface-2, surface-hover included, with no APCA-miss
+ * exception. Derived from `DEFAULT_BINDING_SCHEMA["surface-selected"]` itself, so the surface
+ * those tokens solve on can never drift from the `surface-selected` token that actually ships
+ * (single source of truth; the "AA on every surface" guarantee rests on their being identical).
+ * The fallback only fires if the schema retypes `surface-selected` off a step binding — a design
+ * change a test would catch.
  */
-const SURFACE2_LABEL: { light: RampLabel; dark: RampLabel } =
-  DEFAULT_SCHEMA["surface-2"].kind === "step"
+const WORST_SURFACE_LABEL: { light: RampLabel; dark: RampLabel } =
+  DEFAULT_BINDING_SCHEMA["surface-selected"].kind === "step"
     ? {
-        light: DEFAULT_SCHEMA["surface-2"].light,
-        dark: DEFAULT_SCHEMA["surface-2"].dark,
+        light: DEFAULT_BINDING_SCHEMA["surface-selected"].light,
+        dark: DEFAULT_BINDING_SCHEMA["surface-selected"].dark,
       }
-    : { light: "200", dark: "800" };
+    : { light: "400", dark: "600" };
 
 /**
  * The default step the seed anchors to, keyed off its native direction (#108): a
@@ -190,12 +328,14 @@ const ANCHOR_LABEL: Record<Scheme, RampLabel> = {
   dark: "300",
 };
 
-/** Build all six role ramps for one scheme from a per-scheme seed. Only the `brand`
- *  ramp is anchored to the seed (#108); neutral/status stay on the shared scale. The
+/** Build all six role ramps for one scheme from a per-scheme seed, on that scheme's OWN
+ *  independent lightness scale (#160 — not a mirror of the other scheme). Only the `brand`
+ *  ramp is anchored to the seed (#108); neutral/status stay on the scheme scale. The
  *  ramp-tier rules (#101) shape every role; `tintedNeutrals: false` zeroes the neutral
  *  chroma for pure achromatic greys (default `true` — the brand-tinted signature). */
 function buildRamps(
   seed: OkLCH,
+  scheme: Scheme,
   cfg: SchemeConfig,
   gamut: Gamut,
   rules: EngineRules = {},
@@ -204,38 +344,42 @@ function buildRamps(
   const hue = seed.H;
   const neutralChroma = (rules.tintedNeutrals ?? true) ? cfg.neutralChroma : 0;
   return {
-    brand: buildRamp({ hue, chroma: seed.C, gamut, anchor, rules }),
-    neutral: buildRamp({ hue, chroma: neutralChroma, gamut, rules }),
+    brand: buildRamp({ hue, chroma: seed.C, gamut, scheme, anchor, rules }),
+    neutral: buildRamp({ hue, chroma: neutralChroma, gamut, scheme, rules }),
     success: buildRamp({
       hue: STATUS_HUE.success,
       chroma: STATUS_CHROMA,
       gamut,
+      scheme,
       rules,
     }),
     error: buildRamp({
       hue: STATUS_HUE.error,
       chroma: STATUS_CHROMA,
       gamut,
+      scheme,
       rules,
     }),
     warning: buildRamp({
       hue: STATUS_HUE.warning,
       chroma: STATUS_CHROMA,
       gamut,
+      scheme,
       rules,
     }),
     info: buildRamp({
       hue: STATUS_HUE.info,
       chroma: STATUS_CHROMA,
       gamut,
+      scheme,
       rules,
     }),
   };
 }
 
-/** The worst-case surface (`surface-2`) a scheme's neutral ramp resolves to. */
-function surface2Of(ramps: Record<RampRole, Ramp>, scheme: Scheme): OkLCH {
-  const label = SURFACE2_LABEL[scheme];
+/** The worst-case surface (`surface-selected`, #160) a scheme's neutral ramp resolves to. */
+function worstSurfaceOf(ramps: Record<RampRole, Ramp>, scheme: Scheme): OkLCH {
+  const label = WORST_SURFACE_LABEL[scheme];
   const step = ramps.neutral.find((s) => s.label === label);
   return (step ?? ramps.neutral[ramps.neutral.length - 1]).color;
 }
@@ -244,9 +388,9 @@ function surface2Of(ramps: Record<RampRole, Ramp>, scheme: Scheme): OkLCH {
  * Detect the seed's NATIVE scheme from the seed alone (independent of the scheme being
  * resolved, so both scheme calls agree). The seed is `light`-native when — at its own
  * L/C/H, gamut-mapped, using the LIGHT per-scheme seed (`seedChroma` = 1, so base chroma)
- * — it clears the UI contrast floor (`TARGET.ui`) as an accent fill against the light
- * scheme's WORST-CASE surface (`surface-2` light, the neutral ramp step `resolveTheme`
- * uses). If it clears it can serve as a light-mode primary → `light`; if it is too light to
+ * — it clears the UI contrast floor (`CONTRAST_TARGETS.ui`) as an accent fill against the light
+ * scheme's WORST-CASE surface (`surface-selected` light, the neutral ramp step
+ * `resolveTheme` uses). If it clears it can serve as a light-mode primary → `light`; if it is too light to
  * read on a light surface → `dark` (the seed is the dark-mode brand, light-mode derived).
  * Deterministic; reuses the same ramp/contrast/gamut primitives as the solve. Never throws.
  */
@@ -261,146 +405,13 @@ function detectDirection(
     { L: base.L, C: base.C * cfg.seedChroma, H: base.H },
     gamut,
   );
-  const ramps = buildRamps(seed, cfg, gamut, rules);
-  const surface2 = surface2Of(ramps, "light");
+  const ramps = buildRamps(seed, "light", cfg, gamut, rules);
+  const worstSurface = worstSurfaceOf(ramps, "light");
   // The candidate light-mode primary is the accent anchored at the seed's own lightness.
   const accent = gamutMap({ L: seed.L, C: seed.C, H: seed.H }, gamut);
-  return checkContrast(accent, surface2, TARGET.ui).passes ? "light" : "dark";
-}
-
-/**
- * The on-accent label for a chosen accent fill: the HIGHER-contrast of a near-white and a
- * near-black extreme against the fill. Picking the better polarity (rather than the first
- * that merely clears the floor) is what gives on-accent real headroom — this is how the
- * ramp model absorbs #95: the label is an extreme step, so it clears with margin, not a
- * floor-hugging continuous solve. Both candidates are gamut-mapped so the math matches paint.
- */
-function onAccentLabel(accent: OkLCH, hue: number, gamut: Gamut): OkLCH {
-  const white = gamutMap({ L: 0.99, C: 0, H: hue }, gamut);
-  const black = gamutMap({ L: 0.1, C: 0, H: hue }, gamut);
-  return apcaLc(white, accent) >= apcaLc(black, accent) ? white : black;
-}
-
-/**
- * Co-solve the accent FILL and the text that sits ON it. A mid-tone fill can host no
- * high-Lc text in either polarity, so we scan the brand hue across lightness for the
- * fill that (a) stays visible on the worst-case surface (≥3:1 + Lc 45, non-text)
- * and (b) lets a near-white OR near-black label clear the on-accent target — preferring
- * the MOST chromatic (most brand-faithful) such fill. The on-accent label is then the
- * higher-contrast extreme for the chosen fill (`onAccentLabel`), so it clears with headroom
- * (#95). Deterministic, always returns a usable pair (a saturated fill hosts a legible label).
- */
-function solveAccent(
-  seed: OkLCH,
-  surfaceBg: OkLCH,
-  gamut: Gamut,
-): { accent: OkLCH; onAccent: OkLCH } {
-  const hue = seed.H;
-  // Solve to a hair above the floors (#79) so the 4-dp-rounded baked fill + label still
-  // clear their true floors — this scan bakes literals just like `solveForeground`.
-  const target = withSolveMargin(TARGET.onAccent);
-  const ui = withSolveMargin(TARGET.ui);
-  const labels = [
-    gamutMap({ L: 0.99, C: 0, H: hue }, gamut), // near-white
-    gamutMap({ L: 0.1, C: 0, H: hue }, gamut), // near-black
-  ];
-
-  let best: {
-    accent: OkLCH;
-    onAccent: OkLCH;
-    chroma: number;
-    lc: number;
-  } | null = null;
-  let fallback: { accent: OkLCH; onAccent: OkLCH; lc: number } | null = null;
-
-  for (let L = 0.3; L <= 0.8 + 1e-9; L += 0.01) {
-    const accent = gamutMap({ L, C: seed.C, H: hue }, gamut);
-    // The fill must read as a UI element against the surface (non-text 3:1 / Lc 45).
-    if (!checkContrast(accent, surfaceBg, ui).passes) continue;
-
-    for (const label of labels) {
-      const check = checkContrast(label, accent, target);
-      const lc = check.apca;
-      // Track the overall best label/fill in case nothing meets target (unreachable).
-      if (!fallback || lc > fallback.lc)
-        fallback = { accent, onAccent: label, lc };
-
-      if (check.passes) {
-        // Prefer the most chromatic fill; tie-break on label contrast margin.
-        if (
-          !best ||
-          accent.C > best.chroma + 1e-4 ||
-          (Math.abs(accent.C - best.chroma) <= 1e-4 && lc > best.lc)
-        ) {
-          best = { accent, onAccent: label, chroma: accent.C, lc };
-        }
-      }
-    }
-  }
-
-  if (best)
-    return {
-      accent: best.accent,
-      onAccent: onAccentLabel(best.accent, hue, gamut),
-    };
-  // Should be unreachable, but never return undefined — defensive.
-  if (fallback)
-    return {
-      accent: fallback.accent,
-      onAccent: onAccentLabel(fallback.accent, hue, gamut),
-    };
-  const accent = gamutMap(
-    { L: surfaceBg.L >= 0.5 ? 0.45 : 0.7, C: seed.C, H: hue },
-    gamut,
-  );
-  return { accent, onAccent: onAccentLabel(accent, hue, gamut) };
-}
-
-/**
- * NATIVE-scheme accent — FAITHFUL to the seed's own lightness. Anchor the fill at
- * `seed.L` (the per-scheme dampened `seed.C`), verify it still reads as a UI element on
- * the worst-case surface, and host a legible near-white/near-black on-accent label. When
- * a mid-lightness `seed.L` can host no label, nudge L minimally toward the nearer extreme
- * (away from mid) — staying as close to `seed.L` as possible — until a label clears while
- * the UI floor still holds. Returns `null` if nothing works (so the caller falls back to
- * the derived scan); this should not happen for a genuinely native seed. Never throws.
- */
-function solveNativeAccent(
-  seed: OkLCH,
-  surfaceBg: OkLCH,
-  gamut: Gamut,
-): { accent: OkLCH; onAccent: OkLCH } | null {
-  const hue = seed.H;
-  // Solve to a hair above the floors (#79) so the rounded baked fill + label still clear.
-  const target = withSolveMargin(TARGET.onAccent);
-  const ui = withSolveMargin(TARGET.ui);
-  const labels = [
-    gamutMap({ L: 0.99, C: 0, H: hue }, gamut), // near-white
-    gamutMap({ L: 0.1, C: 0, H: hue }, gamut), // near-black
-  ];
-  // Nudge toward the pole OPPOSITE the surface — darker on a light surface, lighter on a
-  // dark one — so the fill keeps contrast against its worst-case surface (the constraint
-  // that actually binds) while a near-white/near-black label gains contrast on it. This
-  // mirrors solveForeground's polarity (contrast.ts). delta 0 = fully faithful to seed.L.
-  const sign = surfaceBg.L >= 0.5 ? -1 : 1;
-
-  for (let delta = 0; delta <= 0.5 + 1e-9; delta += 0.01) {
-    const L = clamp01(seed.L + sign * delta);
-    const accent = gamutMap({ L, C: seed.C, H: hue }, gamut);
-    // The fill must still read as a UI element against the worst-case surface.
-    if (checkContrast(accent, surfaceBg, ui).passes) {
-      // Accept this (faithful) fill as soon as SOME extreme label clears the floor, but
-      // ship the higher-contrast extreme so on-accent has headroom (#95).
-      const hosts = labels.some(
-        (label) => checkContrast(label, accent, target).passes,
-      );
-      if (hosts) return { accent, onAccent: onAccentLabel(accent, hue, gamut) };
-    }
-    // Once L pins to an extreme, further deltas can't move it — stop scanning.
-    if (L <= 0 || L >= 1) break;
-  }
-
-  return null;
+  return checkContrast(accent, worstSurface, CONTRAST_TARGETS.ui).passes
+    ? "light"
+    : "dark";
 }
 
 /**
@@ -437,33 +448,91 @@ export function resolveTheme(
   const anchorLabel = ANCHOR_LABEL[direction];
 
   // The per-role generative ramps for this scheme — the primitive the tokens bind to.
-  const ramps = buildRamps(seed, cfg, gamut, rules, {
+  const ramps = buildRamps(seed, scheme, cfg, gamut, rules, {
     label: anchorLabel,
     L: seed.L,
   });
 
-  // Foregrounds are solved against the WORST-CASE surface — the one whose lightness is
-  // closest to the foreground (surface-2 in both schemes) — so a token that clears its
-  // target there also clears it on bg and surface. This guarantees AA on EVERY surface.
-  const surface2 = surface2Of(ramps, scheme);
+  // Foregrounds are solved against the WORST-CASE surface — `surface-selected`, the darkest
+  // text-bearing surface (light) / lightest (dark), the one whose lightness is closest to the
+  // foreground (#160) — so a token that clears its target there also clears it on bg, surface,
+  // surface-2, and surface-hover. This guarantees AA on EVERY surface, state surfaces included.
+  const worstSurface = worstSurfaceOf(ramps, scheme);
 
   // Native scheme → faithful to seed.L (fall back to the derived scan if no faithful
   // accent hosts a label). Off scheme → derive the brand from the seed by scanning.
+  // `usedNative` records which path ACTUALLY produced the fill — so the report says
+  // "derived" (not a huge phantom "nudge") on the rare native seed whose faithful solve
+  // found no hostable label and fell through to the scan.
+  const nativeSolve =
+    scheme === direction ? solveNativeAccent(seed, worstSurface, gamut) : null;
+  const usedNative = nativeSolve !== null;
   const { accent, onAccent } =
-    scheme === direction
-      ? (solveNativeAccent(seed, surface2, gamut) ??
-        solveAccent(seed, surface2, gamut))
-      : solveAccent(seed, surface2, gamut);
+    nativeSolve ?? solveAccent(seed, worstSurface, gamut);
 
-  // Resolve the binding schema: surfaces pin fixed steps, readable tokens run `minPass`,
-  // the accent/on-accent defer to the co-solve above. `bindings` reports the winning step
-  // per token (the receipt's truthful source), computed at solve time — not re-derived.
-  const { tokens, bindings } = resolveTokens(DEFAULT_SCHEMA, {
-    scheme,
-    ramps,
-    surface2,
+  // The accent/on-accent co-solve provenance (#151): the receipt's truthful source for the
+  // brand pair, reported at solve time so the Studio never reverse-engineers native/nudged/
+  // derived (or the label pole) by comparing `seed` to `tokens.accent`. Pure functions of the
+  // solved colors + which solve path ran — reporting only, no value is perturbed.
+  const accentProvenance = describeAccent(accent, seed, usedNative);
+  const onAccentProvenance = describeOnAccent(onAccent, accent, seed);
+
+  // Status fills (#160): the same co-solve as the accent, at each FIXED canonical status hue
+  // (seed-independent). `seed: null` in provenance — a status fill has no brand-seed story.
+  const fills: Partial<Record<RampRole, CoSolvedFill>> = {
+    brand: {
+      fill: accent,
+      onFill: onAccent,
+      fillProvenance: accentProvenance,
+      onFillProvenance: onAccentProvenance,
+    },
+  };
+  for (const role of STATUS_ROLES) {
+    const hue = STATUS_HUE[role];
+    const { fill, onFill } = solveStatusFill(
+      hue,
+      STATUS_CHROMA,
+      worstSurface,
+      gamut,
+    );
+    fills[role] = {
+      fill,
+      onFill,
+      fillProvenance: describeFill(role, hue, null),
+      onFillProvenance: describeOnFill(onFill, fill, role, hue, STATUS_CHROMA),
+    };
+  }
+
+  // Interaction-state fills (#160): accent-hover — a perceptibly-nudged brand fill that still
+  // reads as UI on the surface AND still hosts on-accent. Provenance is a brand fill flagged
+  // `native: false` (a derived hover, not the seed anchor), with `deltaL` referenced from the
+  // seed so a consumer narrates the shift-from-accent provenance-to-provenance.
+  const hoverFill = solveAccentHover(
     accent,
     onAccent,
+    seed,
+    worstSurface,
+    gamut,
+  ).fill;
+  const hovers: Partial<Record<RampRole, CoSolvedHover>> = {
+    brand: {
+      fill: hoverFill,
+      provenance: describeFill("brand", seed.H, {
+        native: false,
+        deltaL: hoverFill.L - seed.L,
+      }),
+    },
+  };
+
+  // Resolve the binding schema: surfaces pin fixed steps, readable tokens run `minPass`,
+  // the fills/labels defer to the co-solves above. `bindings` reports the winning step per
+  // token (the receipt's truthful source), computed at solve time — not re-derived.
+  const { tokens, bindings } = resolveTokens(DEFAULT_BINDING_SCHEMA, {
+    scheme,
+    ramps,
+    worstSurface,
+    fills,
+    hovers,
   });
 
   return {
