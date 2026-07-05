@@ -6,6 +6,7 @@ import { inGamut } from "./gamut";
 import { apcaLc, contrastWCAG } from "./contrast";
 import { formatOklch, parseColor } from "./convert";
 import {
+  BRAND_TOKEN_NAMES,
   RAMP_LABELS,
   type BrandTokenName,
   type OkLCH,
@@ -15,40 +16,10 @@ import {
   type SchemeResult,
 } from "./types";
 
-const TOKEN_NAMES: BrandTokenName[] = [
-  "bg",
-  "surface",
-  "surface-2",
-  "text",
-  "text-muted",
-  "border",
-  "accent",
-  "accent-text",
-  "on-accent",
-  "focus-ring",
-  "error",
-  "on-error",
-  "error-text",
-  "error-container",
-  "on-error-container",
-  "warning",
-  "on-warning",
-  "warning-text",
-  "warning-container",
-  "on-warning-container",
-  "success",
-  "on-success",
-  "success-text",
-  "success-container",
-  "on-success-container",
-  "info",
-  "on-info",
-  "info-text",
-  "info-container",
-  "on-info-container",
-  "accent-hover",
-  "scrim",
-];
+// Derived from the engine's own contract, so this list can never silently drift from it
+// (a hand-maintained copy once shipped 32 entries, dropping the two state surfaces from
+// every sweep it drives — QA nit, #160).
+const TOKEN_NAMES: readonly BrandTokenName[] = BRAND_TOKEN_NAMES;
 
 const SCHEMES: Scheme[] = ["light", "dark"];
 
@@ -274,10 +245,11 @@ describe("ramp primitives + binding (#98)", () => {
     }
   });
 
-  // Guards that the surface the `auto` tokens are SOLVED against is exactly the `surface-2`
-  // that SHIPS — the "AA on every surface" guarantee rests on those being identical. If the
-  // internal worst-case surface ever drifted from the surface-2 token, `text` would be
-  // minPass'd against a different background than it renders on, and this equality breaks.
+  // Guards that the surface the `auto` tokens are SOLVED against is exactly the
+  // `surface-selected` that SHIPS — the "AA on every surface" guarantee rests on those being
+  // identical. If the internal worst-case surface ever drifted from the surface-selected
+  // token, `text` would be minPass'd against a different background than it renders on, and
+  // this equality breaks.
   it("solves `text` against exactly the surface-selected token it ships (no worst-case-surface drift)", () => {
     for (const scheme of SCHEMES) {
       const { tokens, ramps } = resolveTheme("#3b82f6", scheme);
@@ -376,8 +348,9 @@ const UI_FLOOR = { wcag: 3, apca: 45 } as const;
 const ON_ACCENT_FLOOR = { wcag: 4.5, apca: 60 } as const;
 
 /**
- * Prove a resolved scheme is accessible: its accent reads as a UI element on the
- * worst-case surface (`surface-2`) and its on-accent label reads on the accent fill.
+ * Prove a resolved scheme is accessible: its accent reads as a UI element on `surface-2`
+ * (implied a fortiori by the `surface-selected` worst-case solve, #160) and its on-accent
+ * label reads on the accent fill.
  */
 function expectAccessibleAccent(result: SchemeResult, label: string): void {
   const surface2 = result.tokens["surface-2"];
@@ -576,7 +549,7 @@ describe("status colors (trios + containers, #160)", () => {
   ];
 
   // `<status>-text` keeps TODAY's status semantics — an accessible signal FOREGROUND at the
-  // accent-text tier (WCAG 4.5 + APCA Lc 60 vs the worst-case surface surface-2).
+  // accent-text tier (WCAG 4.5 + APCA Lc 60 vs the worst-case surface, surface-selected).
   const TEXT_FLOOR = { wcag: 4.5, apca: 60 } as const;
   // The FILL is a co-solved signal color: it reads as a UI element on the surface (non-text
   // 3:1 / Lc 45)…
@@ -640,7 +613,8 @@ describe("status colors (trios + containers, #160)", () => {
     },
   );
 
-  // The FILL co-solve, measured live: visible on the worst-case surface AND hosting its label.
+  // The FILL co-solve, measured live on `surface-2` (implied a fortiori by the
+  // `surface-selected` worst-case solve, #160): visible AND hosting its label.
   it.each(SCHEMES)(
     "the fill reads as UI on surface-2 AND hosts its on-<status> label across brands + fallback (%s)",
     (scheme) => {

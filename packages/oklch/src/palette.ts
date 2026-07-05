@@ -389,8 +389,8 @@ function worstSurfaceOf(ramps: Record<RampRole, Ramp>, scheme: Scheme): OkLCH {
  * resolved, so both scheme calls agree). The seed is `light`-native when — at its own
  * L/C/H, gamut-mapped, using the LIGHT per-scheme seed (`seedChroma` = 1, so base chroma)
  * — it clears the UI contrast floor (`CONTRAST_TARGETS.ui`) as an accent fill against the light
- * scheme's WORST-CASE surface (`surface-2` light, the neutral ramp step `resolveTheme`
- * uses). If it clears it can serve as a light-mode primary → `light`; if it is too light to
+ * scheme's WORST-CASE surface (`surface-selected` light, the neutral ramp step
+ * `resolveTheme` uses). If it clears it can serve as a light-mode primary → `light`; if it is too light to
  * read on a light surface → `dark` (the seed is the dark-mode brand, light-mode derived).
  * Deterministic; reuses the same ramp/contrast/gamut primitives as the solve. Never throws.
  */
