@@ -5,14 +5,15 @@
  * Where `buildHarmonyPalette` emits single decorative colors (seed L/C held, hue rotated,
  * gamut-mapped) and hands the contrast homework to the consumer, this tier gives each
  * derived harmony hue the SAME treatment the brand hue gets, composed from the existing
- * machinery: a full `50…950` ramp per scheme (`buildRamp`, #101 — same generative rules,
- * same per-scheme seed-chroma dampening, same per-step gamut map + `oog` flags, anchored to
+ * machinery: a full `50…950` ramp per scheme (`buildRamp`, #101 — built on that scheme's
+ * own INDEPENDENT lightness scale (#160, not a mirror flip), same generative rules, same
+ * per-scheme seed-chroma dampening, same per-step gamut map + `oog` flags, anchored to
  * the seed's own lightness exactly like the brand ramp, #108), plus two receipt-backed
  * picks per hue — a text-grade pick (`accentText`: 4.5:1 + Lc 60) and a UI-grade fill pick
  * (`ui`: 3:1 + Lc 45) — each landed by `minPass` against the scheme's worst-case surface and
  * carrying solve-time step provenance, exactly like the semantic `auto` tokens.
  *
- * DECORATIVE, still outside the frozen 14-token semantic contract: this is a separated
+ * DECORATIVE, still outside the frozen 34-token semantic contract: this is a separated
  * annex the studio opts into (the `includeHarmony` export surface in `export.ts`), never a
  * growth of the semantic token list. Status hues stay fixed-hue and are NOT part of this
  * tier (`error` stays red — #66). Built by reusing `resolveTheme` so the seed, the
@@ -201,6 +202,7 @@ export function resolveHarmonyTier(
       hue: rotate(seed.H, offset),
       chroma: seed.C,
       gamut,
+      scheme,
       anchor,
       rules,
     });
