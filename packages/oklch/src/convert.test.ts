@@ -234,3 +234,34 @@ describe("serializers — sRGB round-trip losslessness (the documented guarantee
     );
   });
 });
+
+describe("alpha serialization (#160 — scrim)", () => {
+  const opaque: OkLCH = { L: 0.5, C: 0.1, H: 260 };
+  const translucent: OkLCH = { L: 0.2, C: 0.02, H: 260, alpha: 0.6 };
+
+  it("formatOklch appends `/ a` ONLY when translucent", () => {
+    expect(formatOklch(opaque)).toBe("oklch(0.5 0.1 260)");
+    expect(formatOklch(translucent)).toBe("oklch(0.2 0.02 260 / 0.6)");
+    // alpha 1 / omitted → opaque, byte-identical to the no-alpha form.
+    expect(formatOklch({ ...opaque, alpha: 1 })).toBe("oklch(0.5 0.1 260)");
+  });
+
+  it("formatHex appends an 8-digit alpha byte ONLY when translucent", () => {
+    expect(formatHex(opaque)).toMatch(/^#[0-9a-f]{6}$/);
+    const hex = formatHex(translucent);
+    expect(hex).toMatch(/^#[0-9a-f]{8}$/);
+    expect(hex.slice(-2)).toBe("99"); // round(0.6 * 255) = 153 = 0x99
+  });
+
+  it("formatRgb emits `/ a` ONLY when translucent", () => {
+    expect(formatRgb(opaque)).toMatch(/^rgb\(\d+ \d+ \d+\)$/);
+    expect(formatRgb(translucent)).toMatch(/^rgb\(\d+ \d+ \d+ \/ 0\.6\)$/);
+  });
+
+  it("clamps a stray out-of-range alpha and treats >=1 as opaque", () => {
+    expect(formatOklch({ ...opaque, alpha: -0.3 })).toBe(
+      "oklch(0.5 0.1 260 / 0)",
+    );
+    expect(formatOklch({ ...opaque, alpha: 1.5 })).toBe("oklch(0.5 0.1 260)");
+  });
+});

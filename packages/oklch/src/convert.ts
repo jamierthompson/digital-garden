@@ -201,9 +201,20 @@ function fmt(n: number, places: number): string {
   return parseFloat(n.toFixed(places)).toString();
 }
 
-/** Format an OKLCH as a literal `oklch(L C H)` string for baking into CSS. */
-export function formatOklch({ L, C, H }: OkLCH): string {
-  return `oklch(${fmt(L, 4)} ${fmt(C, 4)} ${fmt(H, 2)})`;
+/** The color's opacity for SERIALIZATION: a finite alpha in `[0, 1)`, else `null` (opaque —
+ *  omit the alpha channel entirely). Omitted / `1` / non-finite / out-of-range all serialize
+ *  opaque, so an ordinary solved color (no `alpha`) formats exactly as before (#160). */
+function alphaOf(color: OkLCH): number | null {
+  const a = color.alpha;
+  if (a === undefined || !Number.isFinite(a) || a >= 1) return null;
+  return clamp01(a);
+}
+
+/** Format an OKLCH as a literal `oklch(L C H)` (or `oklch(L C H / a)`) string for CSS. */
+export function formatOklch(color: OkLCH): string {
+  const base = `${fmt(color.L, 4)} ${fmt(color.C, 4)} ${fmt(color.H, 2)}`;
+  const a = alphaOf(color);
+  return a === null ? `oklch(${base})` : `oklch(${base} / ${fmt(a, 4)})`;
 }
 
 /** OKLCH → gamma sRGB channels quantized to 0–255. Channels are clamped, so a color the
@@ -219,16 +230,25 @@ function srgb255(color: OkLCH): [number, number, number] {
   return [q(r), q(g), q(b)];
 }
 
-/** Format an OKLCH as a lowercase `#rrggbb` hex literal (sRGB, clamped). */
+/** Format an OKLCH as a lowercase `#rrggbb` (or 8-digit `#rrggbbaa`) hex literal (sRGB,
+ *  clamped). The alpha channel is appended only when the color is translucent (#160). */
 export function formatHex(color: OkLCH): string {
   const [r, g, b] = srgb255(color);
-  return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
+  const hex6 = ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+  const a = alphaOf(color);
+  if (a === null) return `#${hex6}`;
+  return `#${hex6}${Math.round(a * 255)
+    .toString(16)
+    .padStart(2, "0")}`;
 }
 
-/** Format an OKLCH as a modern `rgb(r g b)` literal (sRGB, clamped). */
+/** Format an OKLCH as a modern `rgb(r g b)` (or `rgb(r g b / a)`) literal (sRGB, clamped). */
 export function formatRgb(color: OkLCH): string {
   const [r, g, b] = srgb255(color);
-  return `rgb(${r} ${g} ${b})`;
+  const a = alphaOf(color);
+  return a === null
+    ? `rgb(${r} ${g} ${b})`
+    : `rgb(${r} ${g} ${b} / ${fmt(a, 4)})`;
 }
 
 /** Format an OKLCH in the requested `ColorFormat` — the one value-serialization switch

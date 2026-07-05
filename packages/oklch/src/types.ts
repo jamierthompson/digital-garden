@@ -14,6 +14,14 @@ export interface OkLCH {
   C: number;
   /** Hue angle in degrees, 0–360. Undefined for greys (C === 0); kept for stability. */
   H: number;
+  /**
+   * Optional opacity, 0 (transparent) → 1 (opaque). Omitted means fully opaque — every
+   * solved token is opaque; only a `literal` alpha token (`scrim`, #160) sets it. Alpha is
+   * a SERIALIZATION concern: it rides through gamut-mapping and contrast math untouched
+   * (both read L/C/H only — a scrim carries no contrast claim), and the format layer emits it
+   * as `oklch(L C H / a)` / 8-digit hex / `rgb(r g b / a)` / the DTCG `alpha` field.
+   */
+  alpha?: number;
 }
 
 /** A color in the OKLab rectangular space. */

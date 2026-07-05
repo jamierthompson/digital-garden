@@ -70,7 +70,12 @@ export function tokenSetToTailwindTheme(
 export interface DesignTokenColorValue {
   colorSpace: "oklch" | "srgb";
   components: [number, number, number];
-  /** Lowercase `#rrggbb` sRGB fallback — always present. */
+  /**
+   * Optional opacity 0–1 (DTCG Color module `alpha`) — present ONLY for a translucent token
+   * (`scrim`, #160); an ordinary opaque token omits it, exactly as before.
+   */
+  alpha?: number;
+  /** Lowercase `#rrggbb` (or 8-digit `#rrggbbaa` when translucent) sRGB fallback — always present. */
   hex: string;
 }
 
@@ -126,6 +131,11 @@ export function tokenSetToDesignTokens(
             })(),
             hex: formatHex(color),
           };
+    // Carry opacity for a translucent token (scrim, #160); opaque tokens omit `alpha`.
+    const a = color.alpha;
+    if (a !== undefined && Number.isFinite(a) && a < 1) {
+      value.alpha = round(clamp01(a), 4);
+    }
     return { $type: "color", $value: value };
   };
 
