@@ -23,6 +23,10 @@ import {
 } from "@garden/oklch";
 
 import { washBgValue } from "@/components/entry-scope/washBg";
+import {
+  getResolvedScheme,
+  subscribe as subscribeToScheme,
+} from "@/lib/scheme";
 import type { ProviderProps } from "@/entries/types";
 
 import {
@@ -80,18 +84,6 @@ export interface StudioState {
 // degrade to a visible placeholder when no studio frame is mounted (see `useStudio`).
 const StudioContext = createContext<StudioState | null>(null);
 
-const DARK_SCHEME_QUERY = "(prefers-color-scheme: dark)";
-
-function subscribeToScheme(onChange: () => void): () => void {
-  const query = window.matchMedia(DARK_SCHEME_QUERY);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-}
-
-function readScheme(): Scheme {
-  return window.matchMedia(DARK_SCHEME_QUERY).matches ? "dark" : "light";
-}
-
 /**
  * Read the studio frame's shared state. Returns `null` when the slot is mounted with no
  * `StudioProvider` above it (a `liveEmbed` authored outside the studio entry) — the slot
@@ -109,10 +101,11 @@ export default function StudioProvider({
   const [rules, setRules] = useState<StudioRules>(DEFAULT_RULES);
   const [gamut, setGamut] = useState<Gamut>(DEFAULT_GAMUT);
   // Server snapshot is "light" (the shell's default); the client corrects on mount and
-  // tracks live scheme changes. Replaced by the site-wide toggle's signal when #133 lands.
+  // tracks the site-wide RESOLVED scheme (#162) — the toggle's override when set, else
+  // the OS preference — so the receipts always describe the scheme actually painted.
   const scheme = useSyncExternalStore(
     subscribeToScheme,
-    readScheme,
+    getResolvedScheme,
     () => "light" as const,
   );
 

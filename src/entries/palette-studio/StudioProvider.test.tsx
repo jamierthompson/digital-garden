@@ -364,3 +364,40 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
     },
   );
 });
+
+// Final-sweep adversarial QA (2026-07-05) — the WASH × TOGGLE integration seam no per-slice
+// pass could see: main's #162 landed the site-wide scheme toggle (an inline `color-scheme`
+// override on <html> + a localStorage override), and `src/lib/scheme.ts` documents its
+// `subscribe`/`getResolvedScheme` pair as "the single signal the Palette Studio's
+// StudioProvider swaps its matchMedia read for". The provider still reads the raw
+// `prefers-color-scheme` media query, so with an override active the PAINTED page (every
+// light-dark() token, the page wash) follows the toggle while the studio's single-scheme
+// readouts — token table values, receipt ratios, which face each card shows — follow the OS.
+// Browser repro on the prod build: set the toggle to dark with the OS light; the page paints
+// the dark wash while the token table prints the LIGHT `--accent` and its light-scheme
+// ratio next to a chip painting the dark accent.
+describe("QA-FINAL · site-wide scheme override seam (#162)", () => {
+  it(
+    "shows the OVERRIDDEN scheme's view when the toggle override is set — not the OS scheme",
+    { timeout: 60000 },
+    () => {
+      // The setup stub's matchMedia never matches: the OS reads light. With the #162
+      // override persisted as dark, the displayed face must be the DARK derivation —
+      // the values the viewer is actually painted under the override.
+      localStorage.setItem("scheme", "dark");
+      try {
+        renderStudio();
+        const overridden = tokenValue("bg");
+        cleanup();
+        localStorage.removeItem("scheme");
+        renderStudio();
+        const osLight = tokenValue("bg");
+        // Today both render the light face — the provider never rebound to the
+        // override-aware signal `scheme.ts` promises it consumes.
+        expect(overridden).not.toBe(osLight);
+      } finally {
+        localStorage.removeItem("scheme");
+      }
+    },
+  );
+});
