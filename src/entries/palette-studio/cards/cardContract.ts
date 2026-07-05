@@ -1,13 +1,13 @@
-// The per-token card contract (#154). For each of the 14 semantic tokens it answers three
-// things the card copy needs but the token VALUE doesn't carry: the binding KIND (which of
-// the four derivation stories applies), the contrast pair the receipt re-measures (which
-// background, against which target), and a short human usage line.
+// The per-token card contract (#154, extended to the 34-token model in #160). For each
+// semantic token it answers three things the card copy needs but the token VALUE doesn't
+// carry: the binding KIND (which of the seven derivation stories applies), the contrast pair
+// the receipt re-measures (which background, against which target), and a short human usage line.
 //
-// The kind, the ramp role, and each `auto` token's target are READ from the engine's
+// The kind, the ramp role, and each `auto`/`auto-on` token's target are READ from the engine's
 // exported `DEFAULT_BINDING_SCHEMA` + `CONTRAST_TARGETS` (#150) — by identity, never restated,
 // so the card and the solver can never drift. Only the card-presentation facts the engine
 // schema doesn't hold live here: the usage line, which background a foreground is measured
-// against, and the two co-solve measurement targets. Pure, React-free, DOM-free.
+// against, and the tier the co-solved fills/labels are measured at. Pure, React-free, DOM-free.
 
 import {
   CONTRAST_TARGETS,
@@ -19,11 +19,20 @@ import {
 } from "@garden/oklch";
 
 /**
- * Which of the four derivation stories a token follows — the engine binding's `kind`, minus
- * `literal` (no default token is a literal; the card system has no template for one, so we
- * assert against it rather than silently render nothing).
+ * Which derivation story a token follows — the engine binding's `kind` (the schema's seven,
+ * #160). `step` pins a ramp step; `auto`/`auto-on` land the least-extreme readable step (against
+ * the worst surface / a pinned container); `fill`/`on-fill` are the co-solved fills and their
+ * labels; `fill-hover` a co-solved interaction-state fill (accent-hover); `literal` a fixed value
+ * with no contrast claim (scrim). The card renders every one — no kind is asserted-against.
  */
-export type BindingKind = "step" | "auto" | "accent" | "on-accent";
+export type BindingKind =
+  | "step"
+  | "auto"
+  | "auto-on"
+  | "literal"
+  | "fill"
+  | "on-fill"
+  | "fill-hover";
 
 /** The contrast pair a foreground token is re-measured against (the `auto`/co-solve receipt). */
 export interface ContrastAgainst {
@@ -48,8 +57,7 @@ export interface CardContract {
 const USAGE: Record<BrandTokenName, string> = {
   bg: "The page canvas — the surface everything else sits on.",
   surface: "Raised surfaces — cards, panels, and wells above the page.",
-  "surface-2":
-    "The highest surface — popovers and nested cards. Also the worst-case background every foreground is solved against.",
+  "surface-2": "The highest surface — popovers and nested cards.",
   text: "Body copy and headings — anything meant to be read.",
   "text-muted": "Secondary text — captions, metadata, timestamps.",
   border: "Hairlines, dividers, and input outlines.",
@@ -57,65 +65,127 @@ const USAGE: Record<BrandTokenName, string> = {
   "accent-text": "Brand-colored text — inline links and emphasized labels.",
   "on-accent": "Text and icons that sit on the accent fill.",
   "focus-ring": "The keyboard focus indicator around interactive elements.",
-  success: "Success messages, valid states, confirmations.",
-  error: "Error messages, invalid input, destructive warnings.",
-  warning: "Caution states and non-blocking warnings.",
-  info: "Informational notices, tips, and neutral callouts.",
+  error: "The error signal fill — destructive buttons, invalid field borders.",
+  "on-error": "Text and icons that sit on the error fill.",
+  "error-text": "Inline error text on a page surface — validation messages.",
+  "error-container": "A soft error-tinted surface — alert and banner backgrounds.",
+  "on-error-container": "Text and icons inside an error container.",
+  warning: "The warning signal fill — caution buttons and badges.",
+  "on-warning": "Text and icons that sit on the warning fill.",
+  "warning-text": "Inline warning text on a page surface.",
+  "warning-container": "A soft warning-tinted surface — caution banners.",
+  "on-warning-container": "Text and icons inside a warning container.",
+  success: "The success signal fill — confirm buttons and valid badges.",
+  "on-success": "Text and icons that sit on the success fill.",
+  "success-text": "Inline success text on a page surface — confirmations.",
+  "success-container": "A soft success-tinted surface — success banners.",
+  "on-success-container": "Text and icons inside a success container.",
+  info: "The info signal fill — informational buttons and badges.",
+  "on-info": "Text and icons that sit on the info fill.",
+  "info-text": "Inline info text on a page surface — neutral notices.",
+  "info-container": "A soft info-tinted surface — informational banners.",
+  "on-info-container": "Text and icons inside an info container.",
+  "accent-hover": "The accent fill on hover — a perceptibly nudged state.",
+  "surface-hover":
+    "A row or control on hover — one step darker than surface-2 (light).",
+  "surface-selected":
+    "A selected row or control — the darkest text-bearing surface, and the worst-case background every readable foreground is solved against.",
+  scrim: "The dim overlay behind dialogs and drawers.",
 };
+
+// The worst-case surface every readable foreground is solved against (#160): the darkest
+// text-bearing surface, `surface-selected`. Read from the schema by identity so the card's
+// receipt background can never drift from the one the engine actually guaranteed against.
+const WORST_SURFACE: BrandTokenName = "surface-selected";
 
 // Which background each foreground is measured against (a card-display choice, not in the
-// schema). Absent → a surface: a canvas, not a foreground, so it has no contrast receipt.
+// schema). Absent → a surface / canvas / literal: not a foreground, so no contrast receipt.
+// Foregrounds solved against the worst surface use `WORST_SURFACE`; a label on a fill or a
+// container is measured on the thing it sits on.
 const MEASURE_BG: Partial<Record<BrandTokenName, BrandTokenName>> = {
-  text: "surface-2",
-  "text-muted": "surface-2",
-  border: "surface-2",
-  "accent-text": "surface-2",
-  "focus-ring": "surface-2",
-  success: "surface-2",
-  error: "surface-2",
-  warning: "surface-2",
-  info: "surface-2",
-  // The accent FILL reads as a UI element on the worst-case surface (UI floor)…
-  accent: "surface-2",
-  // …and its label is measured on the fill it sits on.
+  // Near-neutral + brand foregrounds — solved against the worst surface.
+  text: WORST_SURFACE,
+  "text-muted": WORST_SURFACE,
+  border: WORST_SURFACE,
+  "accent-text": WORST_SURFACE,
+  "focus-ring": WORST_SURFACE,
+  // Fills read as UI elements on the worst surface (UI floor)…
+  accent: WORST_SURFACE,
+  "accent-hover": WORST_SURFACE,
+  error: WORST_SURFACE,
+  warning: WORST_SURFACE,
+  success: WORST_SURFACE,
+  info: WORST_SURFACE,
+  // …and each fill's label is measured on the fill it sits on.
   "on-accent": "accent",
+  "on-error": "error",
+  "on-warning": "warning",
+  "on-success": "success",
+  "on-info": "info",
+  // Status "-text" tokens are inline text on the worst surface (the honest accent-text tier).
+  "error-text": WORST_SURFACE,
+  "warning-text": WORST_SURFACE,
+  "success-text": WORST_SURFACE,
+  "info-text": WORST_SURFACE,
+  // A container's label is measured on its own container surface.
+  "on-error-container": "error-container",
+  "on-warning-container": "warning-container",
+  "on-success-container": "success-container",
+  "on-info-container": "info-container",
 };
 
-// The measurement target for the continuous co-solves (the `auto` tokens read their own
-// schema target). Both reference `CONTRAST_TARGETS` by identity — no restated numbers.
-const COSOLVE_TARGET: Partial<Record<BrandTokenName, ContrastTarget>> = {
-  accent: CONTRAST_TARGETS.ui,
-  "on-accent": CONTRAST_TARGETS.onAccent,
-};
-
-/** The engine binding's kind, narrowed to the four the card system renders. */
-function kindOf(name: BrandTokenName): BindingKind {
-  const kind = DEFAULT_BINDING_SCHEMA[name].kind;
-  if (kind === "literal") {
-    throw new Error(
-      `no card derivation template for a literal binding: ${name}`,
-    );
+// The tier the co-solved fills/labels are measured at — the fixed targets the engine's own
+// co-solve uses (a fill lands the `ui` floor, a label the `onAccent` tier). Keyed off the
+// KIND, not per-token, and read from `CONTRAST_TARGETS` by identity — no restated numbers.
+function cosolveTarget(kind: BindingKind): ContrastTarget | null {
+  switch (kind) {
+    case "fill":
+    case "fill-hover":
+      return CONTRAST_TARGETS.ui;
+    case "on-fill":
+      return CONTRAST_TARGETS.onAccent;
+    default:
+      return null;
   }
-  return kind;
 }
 
-/** The ramp role the token binds to, or `null` for the roleless co-solves. */
+/** The engine binding's kind — every schema kind maps 1:1 to a card derivation story. */
+function kindOf(name: BrandTokenName): BindingKind {
+  return DEFAULT_BINDING_SCHEMA[name].kind;
+}
+
+/**
+ * The ramp role the token binds to for its mini-ramp — the roles of `step`/`auto`/`auto-on`,
+ * which land a discrete step. A co-solved fill (`fill`/`on-fill`/`fill-hover`) carries a role for
+ * IDENTITY but does NOT step into that ramp (its provenance is a continuous solve, not a step),
+ * so the card shows no mini-ramp for it — `null`, like the roleless `literal`.
+ */
 function roleOf(name: BrandTokenName): RampRole | null {
   const binding = DEFAULT_BINDING_SCHEMA[name];
+  if (
+    binding.kind === "fill" ||
+    binding.kind === "on-fill" ||
+    binding.kind === "fill-hover"
+  ) {
+    return null;
+  }
   return "role" in binding ? binding.role : null;
 }
 
-/** The contrast pair to re-measure, sourced from the schema target (auto) or the co-solve tier. */
+/** The contrast pair to re-measure, sourced from the schema target (auto/auto-on) or the
+ *  co-solve tier (fill/on-fill/fill-hover). `null` for surfaces, containers, and the literal. */
 function againstOf(name: BrandTokenName): ContrastAgainst | null {
   const bg = MEASURE_BG[name];
   if (!bg) return null;
   const binding = DEFAULT_BINDING_SCHEMA[name];
   const target =
-    binding.kind === "auto" ? binding.target : COSOLVE_TARGET[name];
+    binding.kind === "auto" || binding.kind === "auto-on"
+      ? binding.target
+      : cosolveTarget(binding.kind);
   return target ? { bg, target } : null;
 }
 
-/** The 14-token card contract, derived from the engine schema in canonical emission order. */
+/** The 34-token card contract, derived from the engine schema in canonical emission order. */
 export const CARD_CONTRACT: Record<BrandTokenName, CardContract> =
   Object.fromEntries(
     BRAND_TOKEN_NAMES.map((name) => [

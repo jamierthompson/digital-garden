@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import { BRAND_TOKEN_NAMES } from "@garden/oklch";
+
 import StudioProvider from "./StudioProvider";
 import StudioCanvas from "./StudioCanvas";
 
@@ -33,8 +35,10 @@ describe("StudioCanvas — prose-less composition", () => {
     expect(
       screen.getByRole("complementary", { name: /glossary/i }),
     ).toBeInTheDocument();
-    // One derivation card grid (not the old primitives/receipt islands).
-    expect(screen.getAllByRole("heading", { name: /^--/ }).length).toBe(14);
+    // One derivation card grid (not the old primitives/receipt islands) — one heading per token.
+    expect(screen.getAllByRole("heading", { name: /^--/ }).length).toBe(
+      BRAND_TOKEN_NAMES.length,
+    );
   });
 
   it("shares one seed store across surfaces — no MissingFrame placeholders", () => {

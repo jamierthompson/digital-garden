@@ -51,7 +51,7 @@ describe("buildCards", () => {
 
   it("gives the accent co-solve no bound step and no ramp, but a real measurement", () => {
     const accent = byName("accent");
-    expect(accent.kind).toBe("accent");
+    expect(accent.kind).toBe("fill");
     expect(accent.light.boundStep).toBeNull();
     expect(accent.light.ramp).toBeNull();
     // The fill is still measured against the worst-case surface (UI floor).
@@ -60,7 +60,7 @@ describe("buildCards", () => {
 
   it("measures on-accent against the accent fill", () => {
     const onAccent = byName("on-accent");
-    expect(onAccent.kind).toBe("on-accent");
+    expect(onAccent.kind).toBe("on-fill");
     expect(onAccent.light.boundStep).toBeNull();
     expect(onAccent.light.measured?.passes).toBe(true);
   });

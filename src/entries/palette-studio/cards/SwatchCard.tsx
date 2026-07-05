@@ -29,8 +29,11 @@ interface SwatchCardProps {
 const KIND_BADGE: Record<BindingKind, string> = {
   step: "background",
   auto: "auto-picked",
-  accent: "brand color",
-  "on-accent": "label",
+  "auto-on": "auto-picked",
+  literal: "overlay",
+  fill: "signal fill",
+  "on-fill": "label",
+  "fill-hover": "hover state",
 };
 
 export default function SwatchCard({

@@ -1,6 +1,7 @@
 // The card view-model — reshapes the Studio's single engine run (`DerivedPalette`) into the
-// 14 swatch-card records the UI paints (#154). One record per semantic token, each carrying
-// BOTH schemes so a card can show its active face and drill into the other on disclosure.
+// swatch-card records the UI paints (#154, one per semantic token — the full 34-token contract
+// since #160). Each carries BOTH schemes so a card can show its active face and drill into the
+// other on disclosure.
 //
 // It only READS the engine's output: token values and their solve-time provenance (#151) come
 // from `DerivedPalette`, the mini-ramp steps from the per-scheme ramps, and the contrast
@@ -125,6 +126,13 @@ function buildFacet(
     scheme === "light" ? "dark" : "light",
   );
 
+  // A `fill-hover` (only accent-hover today) narrates against its RESTING fill — the base
+  // `accent`'s provenance for this scheme — a provenance-to-provenance move, never a compare.
+  const companionProvenance =
+    contract.kind === "fill-hover"
+      ? provenanceOf(palette, "accent", scheme)
+      : undefined;
+
   const sentence = derivationSentence({
     cardKind: contract.kind,
     scheme,
@@ -133,6 +141,7 @@ function buildFacet(
       ? describeTarget(contract.against.target)
       : null,
     direction: palette.direction,
+    companionProvenance,
   });
 
   return {
@@ -150,7 +159,7 @@ function buildFacet(
   };
 }
 
-/** Reshape a derived palette into the 14 swatch-card records, in canonical token order. */
+/** Reshape a derived palette into the swatch-card records, in canonical token order. */
 export function buildCards(palette: DerivedPalette): SwatchCardData[] {
   return palette.rows.map((row) => {
     const contract = CARD_CONTRACT[row.name];
