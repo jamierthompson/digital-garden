@@ -12,7 +12,11 @@
 
   .scrollbar {
     display: flex;
-    padding: 2px;
+    /* No padding on the SCROLL axis — the thumb travels flush to both ends of the track (owner:
+       the vertical track reaches the footer seam at the bottom and the nav seam at the top). The
+       2px cross-axis inset stays, centering the 6px thumb in the 10px track. */
+    padding-block: 0;
+    padding-inline: 2px;
     /* Radix requires touch-action none on the scrollbar for pointer dragging. */
     touch-action: none;
     user-select: none;
@@ -21,11 +25,6 @@
 
   .scrollbar[data-orientation="vertical"] {
     inline-size: 10px;
-  }
-
-  .scrollbar[data-orientation="horizontal"] {
-    flex-direction: column;
-    block-size: 10px;
   }
 
   .thumb {

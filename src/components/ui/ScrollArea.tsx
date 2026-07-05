@@ -42,19 +42,20 @@ export default function ScrollArea({
       <RadixScrollArea.Viewport className={styles.viewport}>
         {children}
       </RadixScrollArea.Viewport>
+      {/* VERTICAL ONLY — no horizontal Scrollbar + no Corner (owner: the vertical track must run
+          flush to the footer). Radix insets the vertical scrollbar by `bottom:
+          var(--radix-scroll-area-corner-height)` — the horizontal scrollbar's reserved corner —
+          so an always-mounted (`type="always"`) horizontal bar stopped the vertical thumb ~10px
+          short of the footer even though the canvas never scrolls sideways. It doesn't need to:
+          the canvas is a single full-width column, and the only wide elements (the palette table,
+          the mini-ramp strips) scroll INTERNALLY (`overflow-x: auto`). Dropping the horizontal
+          bar removes the corner reservation, so the vertical track spans the full viewport. */}
       <RadixScrollArea.Scrollbar
         orientation="vertical"
         className={styles.scrollbar}
       >
         <RadixScrollArea.Thumb className={styles.thumb} />
       </RadixScrollArea.Scrollbar>
-      <RadixScrollArea.Scrollbar
-        orientation="horizontal"
-        className={styles.scrollbar}
-      >
-        <RadixScrollArea.Thumb className={styles.thumb} />
-      </RadixScrollArea.Scrollbar>
-      <RadixScrollArea.Corner />
     </RadixScrollArea.Root>
   );
 }
