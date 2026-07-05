@@ -24,10 +24,4 @@ describe("SwatchGrid", () => {
     }
   });
 
-  it("captions which scheme the card faces are showing", () => {
-    const { rerender } = render(<SwatchGrid cards={cards} scheme="light" />);
-    expect(screen.getByText(/showing the light scheme/i)).toBeInTheDocument();
-    rerender(<SwatchGrid cards={cards} scheme="dark" />);
-    expect(screen.getByText(/showing the dark scheme/i)).toBeInTheDocument();
-  });
 });

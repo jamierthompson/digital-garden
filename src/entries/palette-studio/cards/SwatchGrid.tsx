@@ -20,16 +20,14 @@ export default function SwatchGrid({
   cards,
   scheme,
 }: SwatchGridProps): React.ReactElement {
+  // No scheme caption: the card faces follow the viewer's scheme (the site-wide toggle, #133),
+  // so an ambient "showing the X scheme" line just restated the page state — removed (owner).
+  // Explicit role: `list-style: none` drops list semantics in some engines (Safari/VoiceOver).
   return (
-    <div className={styles.wrap}>
-      {/* Each card face shows one scheme (the viewer's); name it so the face is unambiguous. */}
-      <p className={styles.caption}>Showing the {scheme} scheme</p>
-      {/* Explicit role: `list-style: none` drops list semantics in some engines (Safari/VoiceOver). */}
-      <ul className={styles.grid} role="list">
-        {cards.map((card) => (
-          <SwatchCard key={card.name} card={card} scheme={scheme} />
-        ))}
-      </ul>
-    </div>
+    <ul className={styles.grid} role="list">
+      {cards.map((card) => (
+        <SwatchCard key={card.name} card={card} scheme={scheme} />
+      ))}
+    </ul>
   );
 }

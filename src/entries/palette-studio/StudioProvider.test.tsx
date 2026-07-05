@@ -395,7 +395,6 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
       expect(
         screen.queryByRole("radio", { name: /^(light|dark)$/ }),
       ).not.toBeInTheDocument();
-      expect(screen.getByText(/Showing the light scheme/i)).toBeInTheDocument();
       // The receipt shows BOTH schemes irrespective of the viewer's scheme.
       expect(
         screen.getByRole("group", { name: "light contrast receipt" }),
