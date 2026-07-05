@@ -19,12 +19,13 @@
   .canvas {
     display: grid;
     gap: var(--space-6);
-    /* Stacked on narrow screens — one column. Harmony leads (owner: the harmony hues should be
-       visible without scrolling), then the working surfaces in source order. */
+    /* Stacked on narrow screens — one column. The seed+starters control bar leads (owner: the
+       play controls are the first thing on screen), the harmony hues next, then the working
+       surfaces in source order. */
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      "harmony"
       "seed"
+      "harmony"
       "rules"
       "cards"
       "table"
@@ -42,8 +43,8 @@
       grid-template-columns: 20rem minmax(0, 1fr) 16rem;
       align-items: start;
       grid-template-areas:
+        "seed    seed     seed"
         "harmony harmony  harmony"
-        "seed    cards    glossary"
         "rules   cards    glossary"
         "exports cards    glossary"
         "preview preview  preview"

@@ -32,8 +32,17 @@ export default function StudioCanvas(): React.ReactElement {
     // visible when colors change", not a mandated fixed viewport stage).
     <ScrollArea className={styles.scrollArea}>
       <div className={styles.canvas}>
+        {/* DOM (= keyboard / reading) order follows the visual grid order the owner set: the
+            seed+starters control bar leads, the decorative harmony group next, then the working
+            surfaces. `grid-template-areas` (StudioCanvas.module.css) places each region; this
+            source order keeps focus tracking what the eye sees. */}
         <div className={styles.seed}>
           <SeedSlot />
+        </div>
+        {/* The #14 decorative harmony card group — its own named region, separated from the
+            contract-bearing semantic cards. */}
+        <div className={styles.harmony}>
+          <HarmonyGroup />
         </div>
         <div className={styles.rules}>
           <RulesSlot />
@@ -54,11 +63,6 @@ export default function StudioCanvas(): React.ReactElement {
         </div>
         <div className={styles.exports}>
           <ExportSlot />
-        </div>
-        {/* The #14 decorative harmony card group — its own named region, separated from the
-            contract-bearing semantic cards. */}
-        <div className={styles.harmony}>
-          <HarmonyGroup />
         </div>
       </div>
     </ScrollArea>
