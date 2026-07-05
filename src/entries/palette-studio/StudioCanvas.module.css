@@ -64,8 +64,6 @@
 
   .glossary {
     grid-area: glossary;
-    position: sticky;
-    inset-block-start: var(--space-4);
   }
 
   .preview {

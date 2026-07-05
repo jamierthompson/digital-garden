@@ -1,23 +1,10 @@
-/* Glossary sidebar — @layer components, var-consuming. Small, muted, friendly; sticks near
-   the top so it stays a glance away while the card grid scrolls. */
+/* Glossary sidebar — @layer components, var-consuming. Small, muted, friendly. */
 @layer components {
   .sidebar {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
     align-self: start;
-    position: sticky;
-    inset-block-start: var(--space-4);
-  }
-
-  .heading {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted);
   }
 
   .terms {

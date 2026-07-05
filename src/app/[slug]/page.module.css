@@ -99,4 +99,13 @@
     max-width: 100%;
     margin-inline: 0;
   }
+
+  /* CANVAS template only (`data-template="canvas"`, set on THIS `<main>` — see the file-header
+     comment above): the tool's own branded Radix ScrollArea (`StudioCanvas`) should hug the
+     screen's inline-end edge, so the canvas main's own inline-end inset is removed here. Scoped
+     to the attribute so the shared `.wide`/`.module` classes stay untouched for the EDITORIAL
+     template's breakout `[full]` slots. */
+  .module[data-template="canvas"] {
+    padding-inline-end: 0;
+  }
 }

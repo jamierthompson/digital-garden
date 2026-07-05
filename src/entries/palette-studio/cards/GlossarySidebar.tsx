@@ -8,19 +8,12 @@
 
 import { memo } from "react";
 
-import Aside from "@/components/ui/Aside";
-
 import { GLOSSARY } from "./glossary";
 import styles from "./GlossarySidebar.module.css";
 
 function GlossarySidebar(): React.ReactElement {
   return (
     <aside className={styles.sidebar} aria-label="Glossary — the words we use">
-      <p className={styles.heading}>The words we use</p>
-      <Aside>
-        Plain definitions for the terms on the cards — skim whatever&apos;s
-        unfamiliar.
-      </Aside>
       <dl className={styles.terms}>
         {GLOSSARY.map((entry) => (
           <div key={entry.term}>

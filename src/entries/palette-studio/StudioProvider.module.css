@@ -9,7 +9,12 @@
 @layer components {
   .surface {
     background: var(--bg);
-    padding: var(--space-6);
+    /* Inline-end is zero, not `var(--space-6)`: the studio's branded ScrollArea (see
+       `StudioCanvas`) sits inside this surface and should hug the screen's inline-end edge,
+       not inset behind a panel margin. The other three sides keep the reading-measure padding. */
+    padding-block: var(--space-6);
+    padding-inline-start: var(--space-6);
+    padding-inline-end: 0;
     border-radius: 0.75rem;
   }
 }
