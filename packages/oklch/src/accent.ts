@@ -15,7 +15,13 @@ import { clamp01 } from "./convert";
 import { gamutMap } from "./gamut";
 import { apcaLc, checkContrast, withSolveMargin } from "./contrast";
 import { CONTRAST_TARGETS } from "./targets";
-import type { FillProvenance, Gamut, OkLCH, OnFillProvenance } from "./types";
+import type {
+  FillProvenance,
+  Gamut,
+  OkLCH,
+  OnFillProvenance,
+  RampRole,
+} from "./types";
 
 /** Chroma resolution for the on-accent label solve (#153) and the "backed off below the
  *  seed's chroma" flag (#151) — well above the 4-dp bake error, so both are stable. */
@@ -24,6 +30,11 @@ const CHROMA_BACKOFF_EPS = 1e-4;
 /** Chroma step for the on-accent label backoff (#153): coarse is fine — chroma barely moves
  *  luminance, so the label's lightness (not this step) dominates whether it clears. */
 const LABEL_CHROMA_STEP = 0.02;
+
+/** The minimum perceptible lightness nudge for `accent-hover` (#160): where the hover fill
+ *  starts scanning off the accent's lightness. ~0.05 OKLCH L reads as a distinct-but-related
+ *  state (real hover states move ~3–5% L), while staying anchored to the brand identity. */
+const HOVER_DELTA_L = 0.05;
 
 /**
  * The on-accent label for a chosen accent fill: the HIGHER-contrast of a near-white and a
@@ -232,43 +243,138 @@ export function solveNativeAccent(
 }
 
 /**
- * Report the accent FILL co-solve (#151): whether the fill came from the FAITHFUL native
- * solve (`native` — it then honors `seed.L`, nudged at most minimally) vs the derived scan,
- * and the signed `accent.L − seed.L` (0 = perfectly faithful; a small magnitude when native
- * = the legibility nudge; just the L delta when derived). A pure function of the
- * already-solved colors + which path ran — reporting only, no value is perturbed.
+ * Co-solve a STATUS fill (#160) — `error`/`warning`/`success`/`info` — exactly like the brand
+ * accent, but at a FIXED canonical hue that does NOT depend on the brand seed. Delegates to
+ * `solveAccent` with a synthetic seed carrying the status hue + the status ramp's nominal
+ * chroma (the derived scan ignores the seed's lightness, so any L works): the fill is the most
+ * chromatic lightness that stays visible on the worst-case surface (3:1 / Lc 45) AND hosts a
+ * legible chromatic label (4.5 / Lc 60), per scheme. Pure, deterministic, never throws.
+ */
+export function solveStatusFill(
+  hue: number,
+  chroma: number,
+  surfaceBg: OkLCH,
+  gamut: Gamut,
+): { fill: OkLCH; onFill: OkLCH } {
+  const { accent, onAccent } = solveAccent(
+    { L: 0.5, C: chroma, H: hue },
+    surfaceBg,
+    gamut,
+  );
+  return { fill: accent, onFill: onAccent };
+}
+
+/**
+ * The `accent-hover` fill (#160): the brand accent, nudged a PERCEPTIBLE step in lightness so
+ * it reads as a distinct interaction state, while still (a) reading as a UI element on the
+ * worst-case surface (3:1 / Lc 45) and (b) hosting the SAME `on-accent` label at its floor
+ * (4.5 / Lc 60) — the accent's co-solve constraint carries onto its hover. Nudge away from the
+ * surface (darker on a light surface, lighter on a dark one): that direction only ever RAISES
+ * both the fill's surface contrast and `on-accent`'s contrast on it (the label sits on the
+ * far-from-surface pole), so the perceptible move never costs legibility. Scans outward from
+ * `HOVER_DELTA_L`; falls back to the opposite direction, then to a minimal nudge, so it always
+ * returns a fill perceptibly off the accent. Pure, deterministic, never throws.
+ */
+export function solveAccentHover(
+  accent: OkLCH,
+  onAccent: OkLCH,
+  seed: OkLCH,
+  surfaceBg: OkLCH,
+  gamut: Gamut,
+): { fill: OkLCH } {
+  const hue = seed.H;
+  const ui = withSolveMargin(CONTRAST_TARGETS.ui);
+  const label = withSolveMargin(CONTRAST_TARGETS.onAccent);
+  // A hover candidate is usable when it still reads as UI on the surface AND still hosts the
+  // ACTUAL on-accent label (not merely some extreme) at its floor.
+  const usable = (fill: OkLCH): boolean =>
+    checkContrast(fill, surfaceBg, ui).passes &&
+    checkContrast(onAccent, fill, label).passes;
+  const sign = surfaceBg.L >= 0.5 ? -1 : 1;
+
+  const scan = (dir: number): OkLCH | null => {
+    for (let delta = HOVER_DELTA_L; delta <= 0.5 + 1e-9; delta += 0.01) {
+      const L = clamp01(accent.L + dir * delta);
+      const fill = gamutMap({ L, C: seed.C, H: hue }, gamut);
+      if (usable(fill)) return fill;
+      if (L <= 0 || L >= 1) break;
+    }
+    return null;
+  };
+
+  const fill = scan(sign) ?? scan(-sign);
+  if (fill) return { fill };
+  // Never throw: a minimal nudge in the preferred direction (still perceptibly off the accent).
+  return {
+    fill: gamutMap(
+      { L: clamp01(accent.L + sign * HOVER_DELTA_L), C: seed.C, H: hue },
+      gamut,
+    ),
+  };
+}
+
+/**
+ * Report a co-solved FILL (#151, generalized #160): the SHAPE of a fill's provenance is shared
+ * across the brand accent, `accent-hover`, and every status fill; `role` carries the identity
+ * and `seed` the brand-faithfulness story (`null` for the fixed-hue status fills, which have no
+ * seed relationship). A pure function of the solved color + the solve path — reporting only.
+ */
+export function describeFill(
+  role: RampRole,
+  hue: number,
+  seed: { native: boolean; deltaL: number } | null,
+): FillProvenance {
+  return { kind: "fill", role, hue, seed };
+}
+
+/**
+ * Report a co-solved LABEL on a fill (#151/#153, generalized #160): which extreme the label
+ * sits toward relative to the fill (`pole`, #95), the label's own hue/chroma, and whether its
+ * chroma was backed off below the fill's NOMINAL chroma (the seed's for the brand accent, the
+ * status ramp's for a status label — the achromatic extreme is the C→0 limit, so a chromatic
+ * fill's achromatic label reports `true`). A pure function of the solved colors — reporting only.
+ */
+export function describeOnFill(
+  onFill: OkLCH,
+  fill: OkLCH,
+  role: RampRole,
+  hue: number,
+  nominalChroma: number,
+): OnFillProvenance {
+  return {
+    kind: "on-fill",
+    role,
+    pole: onFill.L >= fill.L ? "white" : "black",
+    hue,
+    chroma: onFill.C,
+    backedOff: onFill.C + CHROMA_BACKOFF_EPS < nominalChroma,
+  };
+}
+
+/**
+ * Report the brand accent FILL co-solve (#151) — the `describeFill` specialization for the
+ * brand: whether the fill came from the FAITHFUL native solve (`native` — it then honors
+ * `seed.L`, nudged at most minimally) vs the derived scan, and the signed `accent.L − seed.L`.
  */
 export function describeAccent(
   accent: OkLCH,
   seed: OkLCH,
   native: boolean,
 ): FillProvenance {
-  return {
-    kind: "fill",
-    role: "brand",
-    hue: seed.H,
-    seed: { native, deltaL: accent.L - seed.L },
-  };
+  return describeFill("brand", seed.H, {
+    native,
+    deltaL: accent.L - seed.L,
+  });
 }
 
 /**
- * Report the on-accent LABEL co-solve (#151, carrying the #153 label solve): which extreme
- * the label sits toward relative to the fill (`pole` — near-white vs near-black headroom
- * polarity, #95), the label's own hue/chroma, and whether its chroma was backed off below
- * the seed's (the achromatic extreme is the C→0 limit, so a chromatic seed's achromatic
- * label reports `true`). A pure function of the solved colors — reporting only.
+ * Report the on-accent LABEL co-solve (#151/#153) — the `describeOnFill` specialization for the
+ * brand accent's label, measured against the seed's own chroma.
  */
 export function describeOnAccent(
   onAccent: OkLCH,
   accent: OkLCH,
   seed: OkLCH,
 ): OnFillProvenance {
-  return {
-    kind: "on-fill",
-    role: "brand",
-    pole: onAccent.L >= accent.L ? "white" : "black",
-    hue: seed.H,
-    chroma: onAccent.C,
-    backedOff: onAccent.C + CHROMA_BACKOFF_EPS < seed.C,
-  };
+  return describeOnFill(onAccent, accent, "brand", seed.H, seed.C);
 }

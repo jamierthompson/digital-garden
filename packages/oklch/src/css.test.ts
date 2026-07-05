@@ -29,14 +29,21 @@ describe("tokenSetToDeclarations", () => {
     expect(decls).toContain("--bg:");
     expect(decls).toContain("--accent:");
     expect(decls).toContain("--focus-ring:");
+    // The 34-token contract (#160): status trios/containers, interaction states, scrim.
+    expect(decls).toContain("--on-error:");
+    expect(decls).toContain("--error-container:");
+    expect(decls).toContain("--on-success-container:");
+    expect(decls).toContain("--accent-hover:");
+    expect(decls).toContain("--surface-selected:");
+    expect(decls).toContain("--scrim:");
     // The semantic tier is generic and self-contained: no `--brand-` namespace of any kind
     // (neither a prefixed role nor a ramp primitive — the `--<role>-<step>` ramp tier is a
     // separate opt-in, `rampSetToDeclarations`).
     expect(decls).not.toContain("--brand-");
     // No project-internal alias leaks out of the engine.
     expect(decls).not.toContain("--logx-");
-    // Exactly the 14 semantic tokens — nothing else (no color-scheme by default, #159).
-    expect(decls.split("\n")).toHaveLength(14);
+    // Exactly the 34 semantic tokens — nothing else (no color-scheme by default, #159).
+    expect(decls.split("\n")).toHaveLength(34);
   });
 
   it("bakes literal oklch() values inside light-dark()", () => {

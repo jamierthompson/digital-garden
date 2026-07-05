@@ -112,12 +112,22 @@ export interface EngineRules extends RampRules {
 
 /**
  * The generic, public token names the engine emits, in canonical emission order — the
- * FROZEN semantic contract (#99). Exported so consumers (the freeze-guard test, Sanity
- * author-time validation, the studio receipt) read the one list rather than restating it.
- * The last four are status signal colors — accessible foregrounds at FIXED canonical hues
- * (not brand-derived), harmonized with the slot only through the shared treatment.
+ * FROZEN semantic contract (#99, completed to the 34-token model in #160). Exported so
+ * consumers (the freeze-guard test, Sanity author-time validation, the studio receipt) read
+ * the one list rather than restating it.
+ *
+ * Emission order: the core 10, then a per-status block ×4 (`error`/`warning`/`success`/`info`)
+ * of fill · on-fill · text · container · on-container, then the three interaction states
+ * (`accent-hover`, `surface-hover`, `surface-selected`), then the `scrim` overlay literal. The
+ * status roles carry FIXED canonical hues (not brand-derived), harmonized with the slot only
+ * through the shared contrast treatment. The two neutral interaction surfaces pin darker steps
+ * of the neutral ramp (light mode: bg > surface > surface-2 > surface-hover > surface-selected
+ * by increasing darkness; dark mode mirrors), and `surface-selected` — the darkest text-bearing
+ * surface — is the worst-case background every `auto` foreground is solved against, so `text`/
+ * `text-muted`/`border` clear their targets on EVERY surface including the state ones.
  */
 export const BRAND_TOKEN_NAMES = [
+  // Core (10) — unchanged.
   "bg",
   "surface",
   "surface-2",
@@ -128,10 +138,32 @@ export const BRAND_TOKEN_NAMES = [
   "accent-text",
   "on-accent",
   "focus-ring",
-  "success",
+  // Status blocks (×4): fill · on-fill · text · container · on-container.
   "error",
+  "on-error",
+  "error-text",
+  "error-container",
+  "on-error-container",
   "warning",
+  "on-warning",
+  "warning-text",
+  "warning-container",
+  "on-warning-container",
+  "success",
+  "on-success",
+  "success-text",
+  "success-container",
+  "on-success-container",
   "info",
+  "on-info",
+  "info-text",
+  "info-container",
+  "on-info-container",
+  // Interaction states (×3) + overlay.
+  "accent-hover",
+  "surface-hover",
+  "surface-selected",
+  "scrim",
 ] as const;
 
 /** One generic, public token name. */

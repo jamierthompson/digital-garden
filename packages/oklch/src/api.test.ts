@@ -106,6 +106,7 @@ const RUNTIME_EXPORTS = [
 ] as const;
 
 const SEMANTIC_NAMES = [
+  // Core (10).
   "bg",
   "surface",
   "surface-2",
@@ -116,10 +117,32 @@ const SEMANTIC_NAMES = [
   "accent-text",
   "on-accent",
   "focus-ring",
-  "success",
+  // Status blocks (×4): fill · on-fill · text · container · on-container.
   "error",
+  "on-error",
+  "error-text",
+  "error-container",
+  "on-error-container",
   "warning",
+  "on-warning",
+  "warning-text",
+  "warning-container",
+  "on-warning-container",
+  "success",
+  "on-success",
+  "success-text",
+  "success-container",
+  "on-success-container",
   "info",
+  "on-info",
+  "info-text",
+  "info-container",
+  "on-info-container",
+  // Interaction states (×3) + overlay.
+  "accent-hover",
+  "surface-hover",
+  "surface-selected",
+  "scrim",
 ] as const;
 
 const ROLE_NAMES = [
@@ -268,9 +291,15 @@ describe("the exported derivation contract (#150)", () => {
     );
     // Shape: every binding declares a kind the receipt copy switches on.
     for (const name of api.BRAND_TOKEN_NAMES) {
-      expect(["step", "auto", "literal", "fill", "on-fill"]).toContain(
-        api.DEFAULT_BINDING_SCHEMA[name].kind,
-      );
+      expect([
+        "step",
+        "auto",
+        "auto-on",
+        "literal",
+        "fill",
+        "on-fill",
+        "fill-hover",
+      ]).toContain(api.DEFAULT_BINDING_SCHEMA[name].kind);
     }
   });
 
@@ -280,7 +309,7 @@ describe("the exported derivation contract (#150)", () => {
     const tiers = Object.values(api.CONTRAST_TARGETS);
     for (const name of api.BRAND_TOKEN_NAMES) {
       const binding = api.DEFAULT_BINDING_SCHEMA[name];
-      if (binding.kind === "auto") {
+      if (binding.kind === "auto" || binding.kind === "auto-on") {
         expect(tiers).toContain(binding.target);
       }
     }

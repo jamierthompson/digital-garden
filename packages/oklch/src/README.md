@@ -37,7 +37,7 @@ bit-identical to a fresh compute — so the purity/determinism contract is uncha
   (~0.15…0.98), so its pin is close-to rather than exact. Under a non-`flat` **chroma
   policy** the pin is **lightness-only** — the anchored step's chroma follows the policy's
   curve like every other step, so full seed-color fidelity holds under the default `flat`
-  policy (QA-101). Neutral/status ramps stay on the shared scale.
+  policy (QA-101). Neutral/status ramps stay on the scheme's own scale.
 - **Brand-harmony palette** (`buildHarmonyPalette`, #102): decorative hue sets in
   mathematical harmony with the seed — analogous (±30°), complementary (180°), triadic
   (±120°), split-complementary (150°/210°) — each at the seed's own L/C, gamut-mapped, for
@@ -46,15 +46,19 @@ bit-identical to a fresh compute — so the purity/determinism contract is uncha
   default** — a consumer that puts text on one runs `checkContrast` (or `solveForeground`)
   itself.
 - **Generative rules** (`EngineOptions.rules`, surfaced by the Studio #73): **lightness
-  distribution** (`tailwind` default · `linear` · `eased` · `punchy` · `soft`) reshapes the
-  five interior steps `300…700` — the surface-bearing shoulders (`50/100/200`,
-  `800/900/950`) are **pinned**, which is what keeps every contrast guarantee intact under
-  every policy; **chroma policy** (`flat` default · `taper` · `hold`); **hue policy**
-  (`constant` default · `warm-shadows` · `cool-highlights`, ±9° drift); **tinted neutrals**
-  (default `true`; `false` = pure achromatic greys). Every default reproduces the un-ruled
-  output bit-for-bit.
-- **Scheme-aware** `(brandColor, scheme) → { ramps, tokens }`; dark **re-generates** each
-  ramp (reduced chroma) and **re-solves** every binding against dark's own surfaces, emitted
+  distribution** (`tailwind` default · `linear` · `eased` · `punchy` · `soft`) reshapes only
+  the scheme's **text-zone interior** — the five **surface** steps and the far text-extreme
+  step are **pinned**, which is what keeps every contrast guarantee intact under every policy
+  (a floated surface a distribution darkens into a mid-tone can host no body text at Lc 75);
+  **chroma policy** (`flat` default · `taper` · `hold`); **hue policy** (`constant` default ·
+  `warm-shadows` · `cool-highlights`, ±9° drift); **tinted neutrals** (default `true`;
+  `false` = pure achromatic greys). Every default reproduces the un-ruled output bit-for-bit.
+- **Scheme-aware, independent per-scheme scales** (#160): `(brandColor, scheme) →
+{ ramps, tokens }`. Light and dark are **not** a mirror-label flip of one shared scale —
+  each has its **own** lightness distribution (surfaces reserved at its own end: light `50…400`,
+  dark `600…950`) and its own neutral chroma, so dark neutrals read clean rather than muddy.
+  Dark **re-generates** each ramp (reduced chroma) and **re-solves** every binding against
+  dark's own surfaces — foregrounds against the worst-case surface `surface-selected` — emitted
   via `light-dark()`.
 - **Contrast is solved, not stepped** — APCA Lc (quality) + WCAG 2.x ratio (floor), solved
   against the _relevant background_ (binary-searched on `L` for the accent co-solve; the
@@ -76,9 +80,12 @@ const set = buildTokenSet("#3b82f6"); // { gamut: "p3" } to opt into wide gamut
 const css = tokenSetToCss(set, '[data-entry="garden"]'); // @layer brand, tokens + ramps
 ```
 
-Tokens (generic semantic contract, emitted as bare `--<name>`): `bg`, `surface`,
-`surface-2`, `text`, `text-muted`, `border`, `accent`, `accent-text`, `on-accent`,
-`focus-ring`, plus the status signals `success`, `error`, `warning`, `info`. The canonical
+Tokens (generic semantic contract, emitted as bare `--<name>`) — the **34-token** model
+(#160): the core 10 (`bg`, `surface`, `surface-2`, `text`, `text-muted`, `border`, `accent`,
+`accent-text`, `on-accent`, `focus-ring`); a status **trio + container** block ×4
+(`error`/`warning`/`success`/`info` × `<status>` fill · `on-<status>` label · `<status>-text` ·
+`<status>-container` · `on-<status>-container`); the interaction states `accent-hover`,
+`surface-hover`, `surface-selected`; and the translucent `scrim` overlay literal. The canonical
 lists are exported (`BRAND_TOKEN_NAMES`, `RAMP_ROLES`, `RAMP_LABELS`) — import them, don't
 restate them.
 

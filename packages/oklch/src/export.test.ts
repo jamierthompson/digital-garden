@@ -50,12 +50,32 @@ describe("tokenSetToTailwindTheme", () => {
     expect(new Set(props).size).toBe(props.length);
   });
 
-  it("p3-gamut hex export clamps to valid 6-digit sRGB hex — no overflow literals (#99)", () => {
+  it("p3-gamut hex export clamps to valid sRGB hex — no overflow literals (#99)", () => {
     const set = buildTokenSet("oklch(0.7 0.37 145)", { gamut: "p3" });
     const p3 = tokenSetToTailwindTheme(set, { format: "hex" });
     const hexes = [...p3.matchAll(/#[0-9a-fA-F]+/g)].map((m) => m[0]);
     expect(hexes.length).toBeGreaterThan(0);
-    for (const h of hexes) expect(h).toMatch(/^#[0-9a-f]{6}$/);
+    // 6 digits for opaque tokens; the alpha-carrying `scrim` (#160) bakes to 8 (#RRGGBBAA).
+    // Either way, no out-of-gamut overflow literal (each channel is a valid 2-hex byte).
+    for (const h of hexes) expect(h).toMatch(/^#[0-9a-f]{6}([0-9a-f]{2})?$/);
+  });
+
+  it("scrim exports validly in all three color formats (#160)", () => {
+    const set = buildTokenSet(SEED);
+    // oklch (default): the translucent literal carries its alpha via `/ a`.
+    const oklch = tokenSetToTailwindTheme(set);
+    expect(oklch).toMatch(
+      /--color-scrim: light-dark\(oklch\([^)]+ \/ [0-9.]+\)/,
+    );
+    // hex: an 8-digit #RRGGBBAA literal (opaque tokens stay 6-digit).
+    const hex = tokenSetToTailwindTheme(set, { format: "hex" });
+    expect(hex).toMatch(
+      /--color-scrim: light-dark\(#[0-9a-f]{8}, #[0-9a-f]{8}\)/,
+    );
+    // rgb: a valid rgb()/rgba() literal (no oklch leakage).
+    const rgb = tokenSetToTailwindTheme(set, { format: "rgb" });
+    expect(rgb).toMatch(/--color-scrim: light-dark\(rgba?\([^)]+\)/);
+    expect(rgb).not.toContain("--color-scrim: light-dark(oklch");
   });
 });
 
@@ -98,6 +118,16 @@ describe("tokenSetToDesignTokens", () => {
 
   it("is plain JSON (survives a stringify round-trip)", () => {
     expect(JSON.parse(JSON.stringify(tokens))).toEqual(tokens);
+  });
+
+  it("carries scrim's opacity as the DTCG `alpha` field — opaque tokens omit it (#160)", () => {
+    // #160 acceptance: scrim (the engine's first alpha-carrying literal) exports its opacity
+    // via the DTCG Color-module `alpha` field, not baked into the components.
+    const scrim = tokens.light.semantic.scrim;
+    expect(scrim.$value.alpha).toBeGreaterThan(0);
+    expect(scrim.$value.alpha).toBeLessThan(1);
+    // An ordinary opaque token has no `alpha` key at all (exactly as before the scrim work).
+    expect("alpha" in tokens.light.semantic.text.$value).toBe(false);
   });
 
   it("serializes srgb components on the hex / rgb formats", () => {

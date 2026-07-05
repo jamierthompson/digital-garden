@@ -26,10 +26,28 @@ const TOKEN_NAMES: BrandTokenName[] = [
   "accent-text",
   "on-accent",
   "focus-ring",
-  "success",
   "error",
+  "on-error",
+  "error-text",
+  "error-container",
+  "on-error-container",
   "warning",
+  "on-warning",
+  "warning-text",
+  "warning-container",
+  "on-warning-container",
+  "success",
+  "on-success",
+  "success-text",
+  "success-container",
+  "on-success-container",
   "info",
+  "on-info",
+  "info-text",
+  "info-container",
+  "on-info-container",
+  "accent-hover",
+  "scrim",
 ];
 
 const SCHEMES: Scheme[] = ["light", "dark"];
@@ -46,7 +64,10 @@ const SCHEMES: Scheme[] = ["light", "dark"];
 const SWEEP_TIMEOUT = 30_000;
 
 // The ramp role each ramp-bound semantic token derives from (the default binding schema).
-// `accent`/`on-accent` are the faithful co-solve, not ramp steps, so they are excluded.
+// The co-solved FILLS (`accent`, `accent-hover`, and every `<status>` + `on-<status>`) and the
+// `scrim` literal are NOT ramp steps, so they are excluded. Each status contributes three
+// ramp-bound tokens: `<status>-text` (auto), `<status>-container` (pinned step), and
+// `on-<status>-container` (auto-on) — all steps of that status's ramp (#160).
 const TOKEN_ROLE: Partial<Record<BrandTokenName, RampRole>> = {
   bg: "neutral",
   surface: "neutral",
@@ -56,10 +77,18 @@ const TOKEN_ROLE: Partial<Record<BrandTokenName, RampRole>> = {
   border: "neutral",
   "accent-text": "brand",
   "focus-ring": "brand",
-  success: "success",
-  error: "error",
-  warning: "warning",
-  info: "info",
+  "error-text": "error",
+  "error-container": "error",
+  "on-error-container": "error",
+  "warning-text": "warning",
+  "warning-container": "warning",
+  "on-warning-container": "warning",
+  "success-text": "success",
+  "success-container": "success",
+  "on-success-container": "success",
+  "info-text": "info",
+  "info-container": "info",
+  "on-info-container": "info",
 };
 
 const RAMP_ROLES: RampRole[] = [
@@ -249,11 +278,12 @@ describe("ramp primitives + binding (#98)", () => {
   // that SHIPS — the "AA on every surface" guarantee rests on those being identical. If the
   // internal worst-case surface ever drifted from the surface-2 token, `text` would be
   // minPass'd against a different background than it renders on, and this equality breaks.
-  it("solves `text` against exactly the surface-2 token it ships (no worst-case-surface drift)", () => {
+  it("solves `text` against exactly the surface-selected token it ships (no worst-case-surface drift)", () => {
     for (const scheme of SCHEMES) {
       const { tokens, ramps } = resolveTheme("#3b82f6", scheme);
-      // CONTRAST_TARGETS.bodyText — the documented body-text floor (palette.ts).
-      const expected = minPass(ramps.neutral, tokens["surface-2"], {
+      // Worst-case surface is `surface-selected` (#160 — the darkest text-bearing surface);
+      // CONTRAST_TARGETS.bodyText is the documented body-text floor (palette.ts).
+      const expected = minPass(ramps.neutral, tokens["surface-selected"], {
         wcag: 4.5,
         apca: 75,
       }).color;
@@ -510,10 +540,10 @@ describe("seed-lightness auto-direction", () => {
   });
 
   it("honors seed.L in the native scheme for a light-native upper-mid seed", () => {
-    // The (~0.5, ~0.63] light-native band is where the nudge must go TOWARD the surface's
-    // opposite pole (darker, here) to stay faithful — not away-from-mid. direction "light"
-    // is a promise the accent is anchored near seed.L, not dropped to the derived scan.
-    const r = resolveTheme("oklch(0.60 0.15 260)", "light");
+    // Inside the light-native band (seed L up to ~0.56 against the worst-case light surface
+    // `surface-selected`, #160), direction "light" is a promise the accent is anchored near
+    // seed.L, not dropped to the derived scan.
+    const r = resolveTheme("oklch(0.52 0.15 260)", "light");
     expect(r.direction).toBe("light");
     expect(Math.abs(r.tokens.accent.L - r.seed.L)).toBeLessThanOrEqual(0.1);
   });
@@ -521,46 +551,41 @@ describe("seed-lightness auto-direction", () => {
   it("has no jarring accent-L discontinuity within one direction", () => {
     // A 0.02 step in seed L, both sides light-native, must not swing accent.L by ~0.19 —
     // the symptom of the native path silently falling through to the derived scan.
-    const a = resolveTheme("oklch(0.56 0.15 260)", "light");
-    const b = resolveTheme("oklch(0.58 0.15 260)", "light");
+    const a = resolveTheme("oklch(0.52 0.15 260)", "light");
+    const b = resolveTheme("oklch(0.54 0.15 260)", "light");
     expect(a.direction).toBe(b.direction);
     expect(Math.abs(a.tokens.accent.L - b.tokens.accent.L)).toBeLessThan(0.1);
   });
 });
 
-describe("status colors", () => {
-  const STATUS_TOKENS: BrandTokenName[] = [
-    "success",
-    "error",
-    "warning",
-    "info",
+describe("status colors (trios + containers, #160)", () => {
+  const STATUS = ["success", "error", "warning", "info"] as const;
+  const fillName = (s: string): BrandTokenName => s as BrandTokenName;
+  const onFillName = (s: string): BrandTokenName => `on-${s}` as BrandTokenName;
+  const textName = (s: string): BrandTokenName => `${s}-text` as BrandTokenName;
+  const containerName = (s: string): BrandTokenName =>
+    `${s}-container` as BrandTokenName;
+  const onContainerName = (s: string): BrandTokenName =>
+    `on-${s}-container` as BrandTokenName;
+  const allOf = (s: string): BrandTokenName[] => [
+    fillName(s),
+    onFillName(s),
+    textName(s),
+    containerName(s),
+    onContainerName(s),
   ];
-  // Status colors are accessible signal FOREGROUNDS solved at the accent-text tier, so
-  // they clear WCAG 4.5 + APCA Lc 60 against the worst-case surface (surface-2) — the same
-  // floor `accent-text` clears. Measured with the REAL contrast fns, both schemes.
-  const STATUS_FLOOR = { wcag: 4.5, apca: 60 } as const;
 
-  it.each(SCHEMES)(
-    "emits all four status tokens, finite + in gamut, for the %s scheme",
-    (scheme) => {
-      const { tokens } = resolveTheme("#3b82f6", scheme);
-      for (const name of STATUS_TOKENS) {
-        const c = tokens[name];
-        expect(c, name).toBeDefined();
-        expect(
-          Number.isFinite(c.L) && Number.isFinite(c.C) && Number.isFinite(c.H),
-          name,
-        ).toBe(true);
-        expect(inGamut(c, "srgb"), name).toBe(true);
-      }
-    },
-  );
+  // `<status>-text` keeps TODAY's status semantics — an accessible signal FOREGROUND at the
+  // accent-text tier (WCAG 4.5 + APCA Lc 60 vs the worst-case surface surface-2).
+  const TEXT_FLOOR = { wcag: 4.5, apca: 60 } as const;
+  // The FILL is a co-solved signal color: it reads as a UI element on the surface (non-text
+  // 3:1 / Lc 45)…
+  const FILL_FLOOR = { wcag: 3, apca: 45 } as const;
+  // …and hosts its label at 4.5 / Lc 60 — the same floor a container's label clears.
+  const LABEL_FLOOR = { wcag: 4.5, apca: 60 } as const;
 
-  // The per-hue solve is the whole point: a fixed ΔL that passes for red fails for yellow.
-  // Prove EACH canonical hue clears the floor — warning (yellow) + success (green) + info
-  // (cyan-ish blue) are the stressers — across hue-spanning brand seeds AND the fallback,
-  // in BOTH schemes. Status colors don't depend on the brand hue, so a garbage seed (which
-  // routes through the fallback surface) must still emit accessible status colors.
+  // Status colors don't depend on the brand hue, so a garbage seed (→ fallback surface) must
+  // still emit accessible status colors. Hue-spanning brands cover the per-hue solve.
   const SEEDS: unknown[] = [
     "#e11d48", // crimson
     "#eab308", // amber brand
@@ -573,55 +598,143 @@ describe("status colors", () => {
   ];
 
   it.each(SCHEMES)(
-    "every status color clears its floor on surface-2 across brands + fallback (%s)",
+    "emits all five tokens per status, finite + in gamut, for the %s scheme",
+    (scheme) => {
+      const { tokens } = resolveTheme("#3b82f6", scheme);
+      for (const s of STATUS)
+        for (const name of allOf(s)) {
+          const c = tokens[name];
+          expect(c, name).toBeDefined();
+          expect(
+            Number.isFinite(c.L) &&
+              Number.isFinite(c.C) &&
+              Number.isFinite(c.H),
+            name,
+          ).toBe(true);
+          expect(inGamut(c, "srgb"), name).toBe(true);
+        }
+    },
+  );
+
+  // The rename-with-guarantee, measured live: `<status>-text` clears the accent-text floor on
+  // surface-2 — the exact promise the OLD `<status>` token made (goldens prove bit-identity).
+  it.each(SCHEMES)(
+    "<status>-text clears the accent-text floor on surface-2 across brands + fallback (%s)",
     (scheme) => {
       for (const seed of SEEDS) {
         const { tokens } = resolveTheme(seed, scheme);
         const surface2 = tokens["surface-2"];
-        for (const name of STATUS_TOKENS) {
-          const c = tokens[name];
-          const where = `${name}/${scheme}/${String(seed)}`;
+        for (const s of STATUS) {
+          const c = tokens[textName(s)];
+          const where = `${s}-text/${scheme}/${String(seed)}`;
           expect(inGamut(c, "srgb"), where).toBe(true);
           expect(
             contrastWCAG(c, surface2),
             `${where} WCAG`,
-          ).toBeGreaterThanOrEqual(STATUS_FLOOR.wcag);
+          ).toBeGreaterThanOrEqual(TEXT_FLOOR.wcag);
           expect(apcaLc(c, surface2), `${where} APCA`).toBeGreaterThanOrEqual(
-            STATUS_FLOOR.apca,
+            TEXT_FLOOR.apca,
           );
         }
       }
     },
   );
 
-  it("garbage brandColor → isFallback true AND all four status colors present + accessible", () => {
-    const result = resolveTheme("not-a-color", "light");
-    expect(result.isFallback).toBe(true);
-    const surface2 = result.tokens["surface-2"];
-    for (const name of STATUS_TOKENS) {
-      const c = result.tokens[name];
-      expect(c, name).toBeDefined();
-      expect(contrastWCAG(c, surface2), name).toBeGreaterThanOrEqual(
-        STATUS_FLOOR.wcag,
-      );
-      expect(apcaLc(c, surface2), name).toBeGreaterThanOrEqual(
-        STATUS_FLOOR.apca,
-      );
+  // The FILL co-solve, measured live: visible on the worst-case surface AND hosting its label.
+  it.each(SCHEMES)(
+    "the fill reads as UI on surface-2 AND hosts its on-<status> label across brands + fallback (%s)",
+    (scheme) => {
+      for (const seed of SEEDS) {
+        const { tokens } = resolveTheme(seed, scheme);
+        const surface2 = tokens["surface-2"];
+        for (const s of STATUS) {
+          const fill = tokens[fillName(s)];
+          const onFill = tokens[onFillName(s)];
+          const where = `${s}/${scheme}/${String(seed)}`;
+          expect(inGamut(fill, "srgb"), `${where} fill gamut`).toBe(true);
+          expect(
+            contrastWCAG(fill, surface2),
+            `${where} fill WCAG`,
+          ).toBeGreaterThanOrEqual(FILL_FLOOR.wcag);
+          expect(
+            apcaLc(fill, surface2),
+            `${where} fill APCA`,
+          ).toBeGreaterThanOrEqual(FILL_FLOOR.apca);
+          expect(
+            contrastWCAG(onFill, fill),
+            `${where} label WCAG`,
+          ).toBeGreaterThanOrEqual(LABEL_FLOOR.wcag);
+          expect(
+            apcaLc(onFill, fill),
+            `${where} label APCA`,
+          ).toBeGreaterThanOrEqual(LABEL_FLOOR.apca);
+        }
+      }
+    },
+  );
+
+  // on-container solved against the ACTUAL container color (not surface-2) — the acceptance
+  // criterion. Measured on the container that actually ships.
+  it.each(SCHEMES)(
+    "on-<status>-container clears its floor against the actual container across brands + fallback (%s)",
+    (scheme) => {
+      for (const seed of SEEDS) {
+        const { tokens } = resolveTheme(seed, scheme);
+        for (const s of STATUS) {
+          const container = tokens[containerName(s)];
+          const onContainer = tokens[onContainerName(s)];
+          const where = `on-${s}-container/${scheme}/${String(seed)}`;
+          expect(inGamut(container, "srgb"), `${s}-container ${where}`).toBe(
+            true,
+          );
+          expect(
+            contrastWCAG(onContainer, container),
+            `${where} WCAG`,
+          ).toBeGreaterThanOrEqual(LABEL_FLOOR.wcag);
+          expect(
+            apcaLc(onContainer, container),
+            `${where} APCA`,
+          ).toBeGreaterThanOrEqual(LABEL_FLOOR.apca);
+        }
+      }
+    },
+  );
+
+  it("garbage brandColor → isFallback true AND every status token accessible", () => {
+    const { isFallback, tokens } = resolveTheme("not-a-color", "light");
+    expect(isFallback).toBe(true);
+    const surface2 = tokens["surface-2"];
+    for (const s of STATUS) {
+      expect(
+        contrastWCAG(tokens[textName(s)], surface2),
+        `${s}-text`,
+      ).toBeGreaterThanOrEqual(TEXT_FLOOR.wcag);
+      expect(
+        contrastWCAG(tokens[fillName(s)], surface2),
+        s,
+      ).toBeGreaterThanOrEqual(FILL_FLOOR.wcag);
+      expect(
+        contrastWCAG(tokens[onFillName(s)], tokens[fillName(s)]),
+        `on-${s}`,
+      ).toBeGreaterThanOrEqual(LABEL_FLOOR.wcag);
+      expect(
+        contrastWCAG(tokens[onContainerName(s)], tokens[containerName(s)]),
+        `on-${s}-container`,
+      ).toBeGreaterThanOrEqual(LABEL_FLOOR.wcag);
     }
   });
 
-  it("is deterministic — same input → identical status colors", () => {
-    const a = resolveTheme("#3b82f6", "dark");
-    const b = resolveTheme("#3b82f6", "dark");
-    for (const name of STATUS_TOKENS) {
-      expect(a.tokens[name], name).toEqual(b.tokens[name]);
-    }
+  it("is deterministic — same input → identical status tokens", () => {
+    const a = resolveTheme("#3b82f6", "dark").tokens;
+    const b = resolveTheme("#3b82f6", "dark").tokens;
+    for (const s of STATUS)
+      for (const name of allOf(s)) expect(a[name], name).toEqual(b[name]);
   });
 
-  // Locks the accessibility promise the docs make ("any brand, both schemes, both gamuts"):
-  // a dense hue × L × chroma sweep in sRGB AND P3, measured with the real contrast fns.
+  // Locks the accessibility promise ("any brand, both schemes, both gamuts") across a dense
+  // hue × L × chroma sweep in sRGB AND P3, for text, the fill+label, and on-container.
   it(
-    "every status color clears its floor across a hue/L/chroma sweep (sRGB + P3)",
+    "every status token clears its floor across a hue/L/chroma sweep (sRGB + P3)",
     () => {
       const gamuts = ["srgb", "p3"] as const;
       const Hs = [0, 27, 80, 145, 250, 330];
@@ -640,35 +753,78 @@ describe("status colors", () => {
                   },
                 );
                 const surface2 = tokens["surface-2"];
-                for (const name of STATUS_TOKENS) {
-                  const c = tokens[name];
-                  const where = `${name}/${scheme}/${gamut}/H${H}L${L}C${C}`;
-                  expect(inGamut(c, gamut), where).toBe(true);
+                for (const s of STATUS) {
+                  const where = `${s}/${scheme}/${gamut}/H${H}L${L}C${C}`;
+                  const text = tokens[textName(s)];
+                  const fill = tokens[fillName(s)];
+                  const onFill = tokens[onFillName(s)];
+                  const container = tokens[containerName(s)];
+                  const onContainer = tokens[onContainerName(s)];
+                  expect(inGamut(fill, gamut), `${where} fill`).toBe(true);
+                  // <status>-text on surface-2
                   expect(
-                    contrastWCAG(c, surface2),
-                    `${where} WCAG`,
-                  ).toBeGreaterThanOrEqual(STATUS_FLOOR.wcag);
+                    contrastWCAG(text, surface2),
+                    `${where} text WCAG`,
+                  ).toBeGreaterThanOrEqual(TEXT_FLOOR.wcag);
                   expect(
-                    apcaLc(c, surface2),
-                    `${where} APCA`,
-                  ).toBeGreaterThanOrEqual(STATUS_FLOOR.apca);
+                    apcaLc(text, surface2),
+                    `${where} text APCA`,
+                  ).toBeGreaterThanOrEqual(TEXT_FLOOR.apca);
+                  // fill reads as UI + hosts its label
+                  expect(
+                    contrastWCAG(fill, surface2),
+                    `${where} fill WCAG`,
+                  ).toBeGreaterThanOrEqual(FILL_FLOOR.wcag);
+                  expect(
+                    apcaLc(fill, surface2),
+                    `${where} fill APCA`,
+                  ).toBeGreaterThanOrEqual(FILL_FLOOR.apca);
+                  expect(
+                    contrastWCAG(onFill, fill),
+                    `${where} label WCAG`,
+                  ).toBeGreaterThanOrEqual(LABEL_FLOOR.wcag);
+                  expect(
+                    apcaLc(onFill, fill),
+                    `${where} label APCA`,
+                  ).toBeGreaterThanOrEqual(LABEL_FLOOR.apca);
+                  // on-container against the actual container
+                  expect(
+                    contrastWCAG(onContainer, container),
+                    `${where} on-container WCAG`,
+                  ).toBeGreaterThanOrEqual(LABEL_FLOOR.wcag);
+                  expect(
+                    apcaLc(onContainer, container),
+                    `${where} on-container APCA`,
+                  ).toBeGreaterThanOrEqual(LABEL_FLOOR.apca);
                 }
               }
     },
     SWEEP_TIMEOUT,
   );
 
-  // Documents the intended design: because the hue is fixed-canonical and surface-2's brand
-  // tint is capped tiny, status colors are near brand-invariant — two wildly different brands
-  // land within a hair. Guards against an accidental brand-hue leak into the status solve.
-  it("status colors are near brand-invariant (fixed canonical hue, only the surface-tint whisper varies)", () => {
+  // The container + on-container are pinned/solved on the SEED-INDEPENDENT status ramp, so they
+  // are EXACTLY brand-invariant; `<status>-text` (solved vs the brand-tinted surface-2) is only
+  // near-invariant. Guards against a brand-hue leak into the status solve.
+  it("status containers are brand-invariant; status text is near-invariant (fixed canonical hue)", () => {
     const a = resolveTheme("#e11d48", "light").tokens; // crimson brand
     const b = resolveTheme("#06b6d4", "light").tokens; // cyan brand
-    for (const name of STATUS_TOKENS) {
-      // L barely moves and the hue stays within a sub-2° wobble (from gamut-mapping against
-      // the brand-tinted surface) — the canonical anchor dominates, no brand-hue leak.
-      expect(Math.abs(a[name].L - b[name].L), `${name} L`).toBeLessThan(0.02);
-      expect(Math.abs(a[name].H - b[name].H), `${name} H`).toBeLessThan(2);
+    for (const s of STATUS) {
+      // Container + on-container: identical across brands (seed-independent ramp).
+      expect(a[containerName(s)], `${s}-container`).toEqual(
+        b[containerName(s)],
+      );
+      expect(a[onContainerName(s)], `on-${s}-container`).toEqual(
+        b[onContainerName(s)],
+      );
+      // <status>-text: barely moves (surface-tint whisper only).
+      expect(
+        Math.abs(a[textName(s)].L - b[textName(s)].L),
+        `${s}-text L`,
+      ).toBeLessThan(0.02);
+      expect(
+        Math.abs(a[textName(s)].H - b[textName(s)].H),
+        `${s}-text H`,
+      ).toBeLessThan(2);
     }
   });
 });
@@ -732,27 +888,46 @@ describe("brandColor validation contract (the Studio's isFallback oracle)", () =
   });
 });
 
-describe("baked literals clear the TRUE contrast floor (#79)", () => {
-  // Each solved foreground token, the worst-case background it is solved against, and the
-  // TRUE floor (no margin) it must clear. The engine solves with a small margin
-  // (`withSolveMargin`, contrast.ts) so the 4-dp-rounded SHIPPED literal — not just the
-  // pre-round math — still clears these floors. Surfaces (bg/surface/surface-2) are
-  // near-neutral fills, not contrast-solved, so they have no floor of their own.
+describe("baked literals clear the TRUE contrast floor (#79, 34-token contract #160)", () => {
+  // Each solved foreground token, the background it is solved against, and the TRUE floor
+  // (no margin) it must clear. The engine solves with a small margin (`withSolveMargin`,
+  // contrast.ts) so the 4-dp-rounded SHIPPED literal — not just the pre-round math — still
+  // clears these floors. The worst-case surface is `surface-selected` (#160 — the darkest
+  // text-bearing surface, so a pass there holds on bg/surface/surface-2/surface-hover too);
+  // labels are solved against their ACTUAL fill/container. Surfaces, containers, and the
+  // scrim are near-neutral fills, not contrast-solved foregrounds — no floor of their own.
   const CONTRACT: Record<
     string,
     { bg: BrandTokenName; wcag: number; apca: number }
   > = {
-    text: { bg: "surface-2", wcag: 4.5, apca: 75 },
-    "text-muted": { bg: "surface-2", wcag: 4.5, apca: 60 },
-    border: { bg: "surface-2", wcag: 3, apca: 30 },
-    "accent-text": { bg: "surface-2", wcag: 4.5, apca: 60 },
-    "focus-ring": { bg: "surface-2", wcag: 3, apca: 45 },
-    accent: { bg: "surface-2", wcag: 3, apca: 45 }, // fill reads as UI on the surface
-    "on-accent": { bg: "accent", wcag: 4.5, apca: 60 }, // label on the fill
-    success: { bg: "surface-2", wcag: 4.5, apca: 60 },
-    error: { bg: "surface-2", wcag: 4.5, apca: 60 },
-    warning: { bg: "surface-2", wcag: 4.5, apca: 60 },
-    info: { bg: "surface-2", wcag: 4.5, apca: 60 },
+    // Neutral + brand foregrounds — solved against the worst-case surface.
+    text: { bg: "surface-selected", wcag: 4.5, apca: 75 },
+    "text-muted": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+    border: { bg: "surface-selected", wcag: 3, apca: 30 },
+    "accent-text": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+    "focus-ring": { bg: "surface-selected", wcag: 3, apca: 45 },
+    // Fills read as UI on the surface (3:1 / Lc 45); their labels sit on the fill (4.5 / Lc 60).
+    accent: { bg: "surface-selected", wcag: 3, apca: 45 },
+    "accent-hover": { bg: "surface-selected", wcag: 3, apca: 45 },
+    "on-accent": { bg: "accent", wcag: 4.5, apca: 60 },
+    // Status TRIOS: fill (UI) · on-fill (label on fill) · text (accent-text tier on surface).
+    error: { bg: "surface-selected", wcag: 3, apca: 45 },
+    "on-error": { bg: "error", wcag: 4.5, apca: 60 },
+    "error-text": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+    warning: { bg: "surface-selected", wcag: 3, apca: 45 },
+    "on-warning": { bg: "warning", wcag: 4.5, apca: 60 },
+    "warning-text": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+    success: { bg: "surface-selected", wcag: 3, apca: 45 },
+    "on-success": { bg: "success", wcag: 4.5, apca: 60 },
+    "success-text": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+    info: { bg: "surface-selected", wcag: 3, apca: 45 },
+    "on-info": { bg: "info", wcag: 4.5, apca: 60 },
+    "info-text": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+    // Status CONTAINERS: the on-container label solved against its ACTUAL container color.
+    "on-error-container": { bg: "error-container", wcag: 4.5, apca: 60 },
+    "on-warning-container": { bg: "warning-container", wcag: 4.5, apca: 60 },
+    "on-success-container": { bg: "success-container", wcag: 4.5, apca: 60 },
+    "on-info-container": { bg: "info-container", wcag: 4.5, apca: 60 },
   };
   // Round-trip a token through the exact bake path (formatOklch → parseColor) to measure
   // what actually ships, not the precise solver output.
@@ -793,6 +968,18 @@ describe("baked literals clear the TRUE contrast floor (#79)", () => {
                 c.apca,
               );
             }
+            // #160: the accent co-solve constraint CARRIES onto its hover — the SAME on-accent
+            // label must still clear its floor on the nudged `accent-hover` fill.
+            const onAccent = bake(tokens["on-accent"]);
+            const hover = bake(tokens["accent-hover"]);
+            const w = `on-accent/accent-hover/${scheme}/${gamut}/${String(seed)}`;
+            expect(
+              contrastWCAG(onAccent, hover),
+              `${w} WCAG`,
+            ).toBeGreaterThanOrEqual(4.5);
+            expect(apcaLc(onAccent, hover), `${w} APCA`).toBeGreaterThanOrEqual(
+              60,
+            );
           }
     },
     SWEEP_TIMEOUT,
@@ -958,8 +1145,10 @@ describe("generative rules threading (#101)", () => {
       const ruled = resolveTheme("#2563eb", "light", {
         rules: { distribution },
       });
-      // The surface trio binds shoulder steps — identical under every distribution
-      // (this is what keeps the worst-case surface, and so the AA guarantee, intact).
+      // bg/surface/surface-2 bind pinned shoulder steps — identical under every distribution.
+      // (surface-hover/surface-selected pin interior steps and DO move with the distribution,
+      // #160; the AA guarantee still holds because foregrounds solve against surface-selected's
+      // ACTUAL per-policy step, not an assumed one.)
       expect(ruled.tokens.bg).toEqual(plain.tokens.bg);
       expect(ruled.tokens.surface).toEqual(plain.tokens.surface);
       expect(ruled.tokens["surface-2"]).toEqual(plain.tokens["surface-2"]);
@@ -984,26 +1173,42 @@ describe("generative rules threading (#101)", () => {
         { huePolicy: "cool-highlights" },
         { tintedNeutrals: false },
       ];
-      // Foreground tokens vs the worst-case surface they are solved against, at their
-      // schema targets (palette.ts CONTRAST_TARGETS table).
-      const FLOORS: Array<[BrandTokenName, number, number]> = [
-        ["text", 4.5, 75],
-        ["text-muted", 4.5, 60],
-        ["border", 3, 30],
-        ["accent-text", 4.5, 60],
-        ["focus-ring", 3, 45],
-        ["success", 4.5, 60],
-        ["error", 4.5, 60],
-        ["warning", 4.5, 60],
-        ["info", 4.5, 60],
+      // Foreground token, the background it is solved against, and its schema target
+      // (palette.ts CONTRAST_TARGETS): fills read as UI (3:1/Lc45) on the worst-case surface
+      // `surface-selected` (#160); labels sit on their actual fill/container (4.5/Lc60).
+      const FLOORS: Array<[BrandTokenName, BrandTokenName, number, number]> = [
+        ["text", "surface-selected", 4.5, 75],
+        ["text-muted", "surface-selected", 4.5, 60],
+        ["border", "surface-selected", 3, 30],
+        ["accent-text", "surface-selected", 4.5, 60],
+        ["focus-ring", "surface-selected", 3, 45],
+        ["accent", "surface-selected", 3, 45],
+        ["accent-hover", "surface-selected", 3, 45],
+        ["on-accent", "accent", 4.5, 60],
+        ["error", "surface-selected", 3, 45],
+        ["on-error", "error", 4.5, 60],
+        ["error-text", "surface-selected", 4.5, 60],
+        ["on-error-container", "error-container", 4.5, 60],
+        ["warning", "surface-selected", 3, 45],
+        ["on-warning", "warning", 4.5, 60],
+        ["warning-text", "surface-selected", 4.5, 60],
+        ["on-warning-container", "warning-container", 4.5, 60],
+        ["success", "surface-selected", 3, 45],
+        ["on-success", "success", 4.5, 60],
+        ["success-text", "surface-selected", 4.5, 60],
+        ["on-success-container", "success-container", 4.5, 60],
+        ["info", "surface-selected", 3, 45],
+        ["on-info", "info", 4.5, 60],
+        ["info-text", "surface-selected", 4.5, 60],
+        ["on-info-container", "info-container", 4.5, 60],
       ];
       for (const rules of VARIATIONS)
         for (const seed of ["#2563eb", "#eab308", "#06b6d4"])
           for (const scheme of SCHEMES) {
             const { tokens } = resolveTheme(seed, scheme, { rules });
-            const bg = tokens["surface-2"];
-            for (const [name, wcag, apca] of FLOORS) {
+            for (const [name, bgName, wcag, apca] of FLOORS) {
               const label = `${name} ${JSON.stringify(rules)} ${seed}/${scheme}`;
+              const bg = tokens[bgName];
               expect(
                 contrastWCAG(tokens[name], bg),
                 label,
@@ -1012,14 +1217,14 @@ describe("generative rules threading (#101)", () => {
                 apca,
               );
             }
-            // The accent fill + its label keep their co-solved guarantees too.
+            // #160: on-accent's guarantee carries onto the nudged accent-hover fill too.
             expect(
-              contrastWCAG(tokens["on-accent"], tokens.accent),
-              `on-accent ${JSON.stringify(rules)} ${seed}/${scheme}`,
+              contrastWCAG(tokens["on-accent"], tokens["accent-hover"]),
+              `on-accent/hover ${JSON.stringify(rules)} ${seed}/${scheme}`,
             ).toBeGreaterThanOrEqual(4.5);
             expect(
-              apcaLc(tokens["on-accent"], tokens.accent),
-              `on-accent ${JSON.stringify(rules)} ${seed}/${scheme}`,
+              apcaLc(tokens["on-accent"], tokens["accent-hover"]),
+              `on-accent/hover ${JSON.stringify(rules)} ${seed}/${scheme}`,
             ).toBeGreaterThanOrEqual(60);
           }
     },
@@ -1035,12 +1240,12 @@ describe("seed anchor-step (#108) — QA edge hardening", () => {
   const bake = (c: OkLCH): OkLCH => parseColor(formatOklch(c))!;
   const AA: Record<string, { bg: BrandTokenName; wcag: number; apca: number }> =
     {
-      text: { bg: "surface-2", wcag: 4.5, apca: 75 },
-      "text-muted": { bg: "surface-2", wcag: 4.5, apca: 60 },
-      border: { bg: "surface-2", wcag: 3, apca: 30 },
-      "accent-text": { bg: "surface-2", wcag: 4.5, apca: 60 },
-      "focus-ring": { bg: "surface-2", wcag: 3, apca: 45 },
-      accent: { bg: "surface-2", wcag: 3, apca: 45 },
+      text: { bg: "surface-selected", wcag: 4.5, apca: 75 },
+      "text-muted": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+      border: { bg: "surface-selected", wcag: 3, apca: 30 },
+      "accent-text": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+      "focus-ring": { bg: "surface-selected", wcag: 3, apca: 45 },
+      accent: { bg: "surface-selected", wcag: 3, apca: 45 },
       "on-accent": { bg: "accent", wcag: 4.5, apca: 60 },
     };
 

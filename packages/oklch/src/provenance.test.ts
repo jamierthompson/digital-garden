@@ -3,10 +3,10 @@
  * `neutral · 800`" receipt.
  *
  * Two obligations proven here:
- *   1. BYTE-IDENTICAL. The report is reporting, not re-solving: every pre-existing output
- *      value (`tokens`, `ramps`, `meta` sans the new field) is bit-for-bit what the engine
- *      baked BEFORE this addition. Proven against a golden fixture generated from the
- *      pre-change engine (`__fixtures__/pre-provenance-tokensets.json`).
+ *   1. DETERMINISTIC SNAPSHOT. The full `buildTokenSet` output (every token, ramp, and the
+ *      `meta.bindings` receipt) is bit-for-bit stable — pinned against a committed golden
+ *      snapshot (`__fixtures__/tokenset-golden.json`, regenerated wholesale with the 34-token
+ *      contract, #160). Any accidental value drift in a future change fails here.
  *   2. TRUTHFUL. The report names the binding SCHEMA's role — not whatever a value-scan
  *      across the ramps would find. In the reachable states where the brand and neutral
  *      ramps CONVERGE (an achromatic seed with `tintedNeutrals: false` collapses both to the
@@ -16,7 +16,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import goldenFixture from "./__fixtures__/pre-provenance-tokensets.json";
+import goldenFixture from "./__fixtures__/tokenset-golden.json";
 import { buildTokenSet } from "./palette";
 import {
   BRAND_TOKEN_NAMES,
@@ -53,81 +53,64 @@ const CASES: Array<{
 
 const golden = goldenFixture as Record<string, unknown>;
 
-/**
- * The pre-change surface of a TokenSet, minus the two intentional post-fixture changes:
- * `meta.bindings` (added by the #70/#151 provenance report) and the `on-accent` token (moved
- * by #153's chromatic label for chromatic seeds). Everything that REMAINS — the accent FILL,
- * all six ramps, the surfaces, every other token, and the rest of `meta` — must still be
- * bit-identical to the pre-change engine. Applied to both the live set and the golden JSON.
- */
-function stableSurface(view: unknown): unknown {
-  const v = view as {
-    tokens: Record<string, unknown>;
-    ramps: unknown;
-    meta: Record<string, unknown>;
-  };
-  const meta = { ...v.meta };
-  delete meta.bindings; // #70 / #151 — reported provenance, not a baked value
-  const tokens = { ...v.tokens };
-  delete tokens["on-accent"]; // #153 — the chromatic label legitimately moved
-  return { tokens, ramps: v.ramps, meta };
-}
-
-/** The cases whose seed is achromatic — where #153 degrades to today's white/black label, so
- *  even `on-accent` stays bit-identical (the C→0 limit / strict-generalization guarantee). */
-const ACHROMATIC_KEYS = new Set(["achromatic", "achromatic-p3"]);
-
 const SCHEMES: Scheme[] = ["light", "dark"];
 const sameColor = (a: OkLCH, b: OkLCH): boolean =>
   a.L === b.L && a.C === b.C && a.H === b.H;
 
-// The documented default schema's role per ramp-bound token (accent/on-accent excluded —
-// they are the continuous co-solve). Mirrors palette.ts DEFAULT_BINDING_SCHEMA.
+// The documented default schema's role per STEP-reporting token — the `step`/`auto`/`auto-on`
+// bindings that resolve to a discrete ramp step (#160). The co-solved fills (`accent`,
+// `accent-hover`, the four status fills), their labels (`on-*`), and the `scrim` literal are
+// excluded — they report `fill`/`on-fill`/`literal`, not `step`. Mirrors DEFAULT_BINDING_SCHEMA.
 const EXPECTED_ROLE: Partial<Record<BrandTokenName, RampRole>> = {
+  // Surfaces (step) + neutral foregrounds (auto).
   bg: "neutral",
   surface: "neutral",
   "surface-2": "neutral",
+  "surface-hover": "neutral",
+  "surface-selected": "neutral",
   text: "neutral",
   "text-muted": "neutral",
   border: "neutral",
+  // Brand foregrounds (auto).
   "accent-text": "brand",
   "focus-ring": "brand",
-  success: "success",
-  error: "error",
-  warning: "warning",
-  info: "info",
+  // Status `<status>-text` (auto), `<status>-container` (step), `on-<status>-container` (auto-on).
+  "error-text": "error",
+  "error-container": "error",
+  "on-error-container": "error",
+  "warning-text": "warning",
+  "warning-container": "warning",
+  "on-warning-container": "warning",
+  "success-text": "success",
+  "success-container": "success",
+  "on-success-container": "success",
+  "info-text": "info",
+  "info-container": "info",
+  "on-info-container": "info",
 };
 
 const CONTINUOUS: BrandTokenName[] = ["accent", "on-accent"];
 
-describe("byte-identical (#70, #153): only the report + the #153 label ever move", () => {
+describe("deterministic snapshot (#70/#160): the full token set is bit-for-bit stable", () => {
   it.each(CASES)(
-    "$key — the fill, ramps, surfaces, other tokens + meta match the pre-change engine bit-for-bit",
+    "$key — every token, ramp, and the meta.bindings receipt match the committed golden",
     ({ key, seed, opts }) => {
-      const set = buildTokenSet(seed, opts);
-      // The provenance report (#70/#151) and the #153 on-accent label are the ONLY intended
-      // changes; everything else is proven unchanged against the pre-change golden fixture.
-      expect(stableSurface(set)).toEqual(stableSurface(golden[key]));
+      // The engine is a pure, deterministic function of its inputs — the FULL output (values +
+      // the reported provenance) is pinned to the committed golden (regenerated wholesale for
+      // the 34-token contract). A future change that accidentally perturbs any baked value or
+      // any receipt fails here. Round-tripped through JSON so the compare matches the fixture's
+      // shape exactly (no `undefined` / prototype differences).
+      const set = JSON.parse(JSON.stringify(buildTokenSet(seed, opts)));
+      expect(set).toEqual(golden[key]);
     },
   );
 
-  it.each(CASES.filter((c) => ACHROMATIC_KEYS.has(c.key)))(
-    "$key — on-accent is ALSO bit-identical (achromatic seed = #153's C→0 limit)",
-    ({ key, seed, opts }) => {
-      // Strict generalization: an achromatic seed has no chroma to spend, so #153's label is
-      // the same near-white/near-black extreme as before — the on-accent token cannot move.
-      const set = buildTokenSet(seed, opts);
-      const ref = golden[key] as { tokens: Record<string, unknown> };
-      expect(set.tokens["on-accent"]).toEqual(ref.tokens["on-accent"]);
-    },
-  );
-
-  it("the golden fixture predates the field (guards the proof itself)", () => {
-    // If the fixture ever carried `meta.bindings`, the byte-identical check above would be
-    // vacuous. Prove the reference truly lacks the new field.
+  it("the golden carries the #160 provenance receipt (guards the snapshot is complete)", () => {
+    // If the fixture ever LOST `meta.bindings`, the snapshot check above would silently stop
+    // covering the receipt. Prove the reference includes it for every case.
     for (const key of Object.keys(golden)) {
       const ref = golden[key] as { meta: Record<string, unknown> };
-      expect(ref.meta).not.toHaveProperty("bindings");
+      expect(ref.meta).toHaveProperty("bindings");
     }
   });
 });

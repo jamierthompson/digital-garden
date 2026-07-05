@@ -16,6 +16,7 @@ import {
   withSolveMargin,
   type ContrastTarget,
 } from "./contrast";
+import { CONTRAST_TARGETS } from "./targets";
 import type {
   BindingProvenance,
   BrandTokenName,
@@ -72,35 +73,58 @@ export function minPass(
 
 /**
  * A semantic token's binding. `step` pins a fixed ramp step (per scheme — e.g. surfaces);
- * `auto` runs `minPass` against the scheme's worst-case surface; `literal` bakes a fixed
- * value per scheme (scrim's alpha literal); `fill`/`on-fill` defer to a co-solve — the
- * continuous fill (brand accent + status fills, #160) and its chromatic label. The default
+ * `auto` runs `minPass` against the scheme's worst-case surface; `auto-on` runs `minPass`
+ * against a pinned step of the SAME role (a solved label on a status container, #160);
+ * `literal` bakes a fixed value per scheme (scrim's alpha literal); `fill`/`on-fill` defer to
+ * a co-solve — a continuous fill (brand accent + the status fills, #160) and its chromatic
+ * label; `fill-hover` defers to a co-solved interaction-state fill (accent-hover). The default
  * schema lives in `palette.ts`, which owns the contrast targets.
  */
 export type TokenBinding =
   | { kind: "step"; role: RampRole; light: RampLabel; dark: RampLabel }
   | { kind: "auto"; role: RampRole; target: ContrastTarget }
+  | {
+      kind: "auto-on";
+      role: RampRole;
+      against: { light: RampLabel; dark: RampLabel };
+      target: ContrastTarget;
+    }
   | { kind: "literal"; light: OkLCH; dark: OkLCH }
   | { kind: "fill"; role: RampRole }
-  | { kind: "on-fill"; role: RampRole };
+  | { kind: "on-fill"; role: RampRole }
+  | { kind: "fill-hover"; role: RampRole };
+
+/** A role's co-solved fill + its label, with the provenance the receipt reads (#151/#160). */
+export interface CoSolvedFill {
+  fill: OkLCH;
+  onFill: OkLCH;
+  fillProvenance: FillProvenance;
+  onFillProvenance: OnFillProvenance;
+}
+
+/** A role's co-solved interaction-state fill (e.g. accent-hover) + its provenance (#160). */
+export interface CoSolvedHover {
+  fill: OkLCH;
+  provenance: FillProvenance;
+}
 
 /** Everything a binding needs to resolve, for one scheme. */
 export interface BindingContext {
   scheme: Scheme;
   /** The per-role ramps for this scheme. */
   ramps: Record<RampRole, Ramp>;
-  /** The worst-case surface `auto` tokens are solved against (this scheme's `surface-2`). */
-  surface2: OkLCH;
-  /** The co-solved fill (continuous) and its label. (#160 will key these per role/token;
-   *  today's single brand pair is `role: "brand"`.) */
-  accent: OkLCH;
-  onAccent: OkLCH;
-  /** The fill co-solve story (#151/#160) — reported verbatim as the fill token's provenance
-   *  so the receipt never reverse-engineers faithful/nudged/derived from values. */
-  accentProvenance: FillProvenance;
-  /** The label solve story (#151/#153) — pole + hue/chroma/backoff, reported verbatim as the
-   *  on-fill token's provenance. */
-  onAccentProvenance: OnFillProvenance;
+  /** The worst-case surface `auto` tokens are solved against (this scheme's `surface-selected`
+   *  — the darkest text-bearing surface, so a pass here holds on every surface, #160). */
+  worstSurface: OkLCH;
+  /**
+   * The co-solved fills keyed by role (#160): the brand accent (`role: "brand"`) plus the four
+   * status fills (`error`/`warning`/`success`/`info`). A `fill`/`on-fill` binding reads its
+   * role's entry, so an error fill's receipt reports its status role, never "accent".
+   */
+  fills: Partial<Record<RampRole, CoSolvedFill>>;
+  /** The co-solved interaction-state fills keyed by role (#160) — today just brand
+   *  `accent-hover`. A `fill-hover` binding reads its role's entry. */
+  hovers: Partial<Record<RampRole, CoSolvedHover>>;
 }
 
 /** Find a ramp step by label (the ramp is a fixed 11-entry array, so this is a scan). */
@@ -124,6 +148,21 @@ export interface ResolvedBinding {
   step: BindingProvenance;
 }
 
+/** A defensive fallback for a `fill`/`on-fill`/`fill-hover` binding whose role has no co-solve
+ *  in the context — unreachable for the default schema (which always provides them), but keeps
+ *  a hand-authored schema never-throwing: bind the role's `minPass` UI step against surface-selected. */
+function fillFallback(ctx: BindingContext, role: RampRole): ResolvedBinding {
+  const chosen = minPass(
+    ctx.ramps[role],
+    ctx.worstSurface,
+    CONTRAST_TARGETS.ui,
+  );
+  return {
+    color: chosen.color,
+    step: { kind: "step", role, label: chosen.label },
+  };
+}
+
 /** Resolve one token's binding to a concrete OKLCH — and report which ramp step it bound
  *  to — for the context's scheme. */
 export function resolveBinding(
@@ -141,7 +180,24 @@ export function resolveBinding(
     case "auto": {
       const chosen = minPass(
         ctx.ramps[binding.role],
-        ctx.surface2,
+        ctx.worstSurface,
+        binding.target,
+      );
+      return {
+        color: chosen.color,
+        step: { kind: "step", role: binding.role, label: chosen.label },
+      };
+    }
+    case "auto-on": {
+      // A label solved against a PINNED step of the same role (a status container) — not the
+      // worst-case surface. `minPass` lands the least-extreme step clearing the target on that
+      // container's ACTUAL color, so the guarantee holds against what actually ships.
+      const containerLabel =
+        ctx.scheme === "light" ? binding.against.light : binding.against.dark;
+      const container = stepAt(ctx.ramps[binding.role], containerLabel);
+      const chosen = minPass(
+        ctx.ramps[binding.role],
+        container,
         binding.target,
       );
       return {
@@ -154,10 +210,27 @@ export function resolveBinding(
       // A literal carries no contrast claim; its only story is opacity (scrim, #160).
       return { color, step: { kind: "literal", alpha: color.alpha ?? 1 } };
     }
-    case "fill":
-      return { color: ctx.accent, step: ctx.accentProvenance };
-    case "on-fill":
-      return { color: ctx.onAccent, step: ctx.onAccentProvenance };
+    case "fill": {
+      const co = ctx.fills[binding.role];
+      return co
+        ? { color: co.fill, step: co.fillProvenance }
+        : fillFallback(ctx, binding.role);
+    }
+    case "on-fill": {
+      const co = ctx.fills[binding.role];
+      return co
+        ? { color: co.onFill, step: co.onFillProvenance }
+        : fillFallback(ctx, binding.role);
+    }
+    case "fill-hover": {
+      const hover = ctx.hovers[binding.role];
+      if (hover) return { color: hover.fill, step: hover.provenance };
+      // No hover co-solve → fall back to the role's base fill, then to a ramp step.
+      const co = ctx.fills[binding.role];
+      return co
+        ? { color: co.fill, step: co.fillProvenance }
+        : fillFallback(ctx, binding.role);
+    }
   }
 }
 

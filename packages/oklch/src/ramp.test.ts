@@ -248,17 +248,18 @@ describe("generative rules (#101)", () => {
     (distribution) => {
       const ramp = buildRamp({ ...BASE, chroma: 0, rules: { distribution } });
       const plain = buildRamp({ ...BASE, chroma: 0 });
-      // The surface-bearing shoulders never move — this is what keeps the contrast
-      // guarantees intact under every policy (see scaleOf).
-      for (const i of [0, 1, 2, 8, 9, 10]) {
+      // The surface-bearing steps + the far text extreme never move — this is what keeps the
+      // contrast guarantees intact under every policy (see scaleOf). buildRamp defaults to the
+      // LIGHT scale, whose five surfaces sit at 50…400 (indexes 0–4) and text extreme at 950 (10).
+      for (const i of [0, 1, 2, 3, 4, 10]) {
         expect(ramp[i].color.L, `shoulder ${ramp[i].label}`).toBeCloseTo(
           plain[i].color.L,
           9,
         );
       }
-      // …the interior genuinely differs from the default scale…
-      expect(ramp.slice(3, 8).map((s) => s.color.L)).not.toEqual(
-        plain.slice(3, 8).map((s) => s.color.L),
+      // …the text-zone interior (light: 500…900, indexes 5–9) genuinely differs from default…
+      expect(ramp.slice(5, 10).map((s) => s.color.L)).not.toEqual(
+        plain.slice(5, 10).map((s) => s.color.L),
       );
       // …and the whole scale stays strictly monotonic across the shoulder boundaries.
       for (let i = 1; i < ramp.length; i++) {
