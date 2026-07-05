@@ -2,6 +2,16 @@
    NAMED grid-template-areas so it can be reshaped by editing the template strings alone. Each
    surface region just claims its area name; add/move a region by renaming areas here. */
 @layer components {
+  /* The Radix ScrollArea wrapper (#139) needs a DEFINITE block-size to establish its own
+     scroll region — see `ScrollArea`'s own doc comment ("give it a bounded block-size ... in
+     grid/flex cells"). Capped so most of the grid stays in view on a typical screen (the owner
+     constraint driving #139's canvas: a seed change should repaint the whole surface in view)
+     without forcing a fixed viewport-filling stage, which #139 explicitly said not to
+     over-specify. First-pass value — the owner tunes it live on the dev server. */
+  .scrollArea {
+    block-size: min(75dvh, 56rem);
+  }
+
   .canvas {
     display: grid;
     gap: var(--space-6);

@@ -1,0 +1,51 @@
+@layer components {
+  .root {
+    overflow: hidden;
+    block-size: 100%;
+    min-block-size: 0;
+  }
+
+  .viewport {
+    block-size: 100%;
+    inline-size: 100%;
+  }
+
+  .scrollbar {
+    display: flex;
+    padding: 2px;
+    /* Radix requires touch-action none on the scrollbar for pointer dragging. */
+    touch-action: none;
+    user-select: none;
+    background: transparent;
+  }
+
+  .scrollbar[data-orientation="vertical"] {
+    inline-size: 10px;
+  }
+
+  .scrollbar[data-orientation="horizontal"] {
+    flex-direction: column;
+    block-size: 10px;
+  }
+
+  .thumb {
+    position: relative;
+    flex: 1;
+    border-radius: 999px;
+    /* The brand hook: inside [data-entry] this is the entry's accent. */
+    background: var(--accent);
+  }
+
+  /* Radix's 44px touch-target expansion on the thumb. */
+  .thumb::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    transform: translate(-50%, -50%);
+    inline-size: 100%;
+    block-size: 100%;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+}

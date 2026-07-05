@@ -9,6 +9,8 @@
 // state via `useStudio`); they are just mounted directly here in a grid instead of being
 // interleaved through prose as `liveEmbed`s.
 
+import ScrollArea from "@/components/ui/ScrollArea";
+
 import GlossarySidebar from "./cards/GlossarySidebar";
 import HarmonyGroup from "./cards/HarmonyGroup";
 import ExportSlot from "./slots/ExportSlot";
@@ -21,35 +23,44 @@ import styles from "./StudioCanvas.module.css";
 
 export default function StudioCanvas(): React.ReactElement {
   return (
-    <div className={styles.canvas}>
-      <div className={styles.seed}>
-        <SeedSlot />
+    // The scroll container (#139): mounted INSIDE the entry's brand scope (this component is
+    // rendered under `EntryScope` by `StudioExperience`/`[slug]/page.tsx`), so its thumb's
+    // `var(--accent)` (see `ScrollArea.module.css`) resolves to the derived brand color, not
+    // the editorial default — re-themes per route automatically, no per-use wiring. `.scrollArea`
+    // gives it the bounded block-size a Radix ScrollArea needs (see `ScrollArea`'s own doc
+    // comment); the exact bound is a first-pass the owner tunes live (#139: "most of the tool
+    // visible when colors change", not a mandated fixed viewport stage).
+    <ScrollArea className={styles.scrollArea}>
+      <div className={styles.canvas}>
+        <div className={styles.seed}>
+          <SeedSlot />
+        </div>
+        <div className={styles.rules}>
+          <RulesSlot />
+        </div>
+        <div className={styles.cards}>
+          <TokensSlot />
+        </div>
+        {/* The restored palette table (#154 companion) — a compact row-per-token scan of the
+            same data the cards show, alongside them rather than replacing them. */}
+        <div className={styles.table}>
+          <PaletteTableSlot />
+        </div>
+        <div className={styles.glossary}>
+          <GlossarySidebar />
+        </div>
+        <div className={styles.preview}>
+          <PreviewSlot />
+        </div>
+        <div className={styles.exports}>
+          <ExportSlot />
+        </div>
+        {/* The #14 decorative harmony card group — its own named region, separated from the
+            contract-bearing semantic cards. */}
+        <div className={styles.harmony}>
+          <HarmonyGroup />
+        </div>
       </div>
-      <div className={styles.rules}>
-        <RulesSlot />
-      </div>
-      <div className={styles.cards}>
-        <TokensSlot />
-      </div>
-      {/* The restored palette table (#154 companion) — a compact row-per-token scan of the
-          same data the cards show, alongside them rather than replacing them. */}
-      <div className={styles.table}>
-        <PaletteTableSlot />
-      </div>
-      <div className={styles.glossary}>
-        <GlossarySidebar />
-      </div>
-      <div className={styles.preview}>
-        <PreviewSlot />
-      </div>
-      <div className={styles.exports}>
-        <ExportSlot />
-      </div>
-      {/* The #14 decorative harmony card group — its own named region, separated from the
-          contract-bearing semantic cards. */}
-      <div className={styles.harmony}>
-        <HarmonyGroup />
-      </div>
-    </div>
+    </ScrollArea>
   );
 }
