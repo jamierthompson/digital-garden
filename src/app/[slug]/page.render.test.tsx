@@ -360,7 +360,11 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(screen.queryByText("leftover")).not.toBeInTheDocument();
   });
 
-  it("mounts the brand slot for a project with a resolvable componentKey (existing behavior unchanged)", async () => {
+  // ── #139: kind-driven CANVAS template — a `project` with a resolved `Experience` gets the
+  // tool-first composition (no editorial article/title/RelatedEntries); every other case
+  // (essay/note/now, or a `project` with no Experience yet) keeps the editorial template.
+
+  it("CANVAS: a project with a resolvable Experience renders the tool-first template — no article, no RelatedEntries, `data-template='canvas'`", async () => {
     resolveComponentKeyMock.mockReturnValue(foundExperience());
     fetchMock.mockResolvedValueOnce(
       entry({
@@ -374,9 +378,78 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     const { container } = render(
       await EntryPage({ params: params("palette-studio") }),
     );
+    const main = container.querySelector("main");
+    expect(main).toHaveAttribute("data-template", "canvas");
+    // The bounded brand scope still mounts (same slot as the editorial template's).
     const slot = container.querySelector("[data-entry]");
     expect(slot).not.toBeNull();
+    expect(slot).toHaveAttribute("data-entry", "palette-studio");
     expect(screen.getByTestId("experience")).toBeInTheDocument();
+    // No editorial surfaces: no template-rendered title/blurb, no article, no related region.
+    expect(container.querySelector("article")).toBeNull();
+    expect(
+      screen.queryByRole("heading", { level: 1 }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("A blurb.")).not.toBeInTheDocument();
+  });
+
+  it("CANVAS: does not render `<RelatedEntries>` even when the entry carries related/backlinks", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundExperience());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "project",
+        componentKey: "palette-studio",
+        slug: "palette-studio",
+        related: [{ _id: "r1", title: "Related", slug: "related", kind: "note" }],
+        backlinks: [
+          { _id: "b1", title: "Backlink", slug: "backlink", kind: "note" },
+        ],
+      }),
+    );
+    render(await EntryPage({ params: params("palette-studio") }));
+    expect(screen.queryByText("Related")).not.toBeInTheDocument();
+    expect(screen.queryByText("Backlink")).not.toBeInTheDocument();
+  });
+
+  it("does NOT canvas a `project` with a Provider-only module (no Experience) — falls back to the editorial template", async () => {
+    // A Provider frames the article for shared client state; it never composes the page as a
+    // canvas by itself — only a resolved `Experience` does.
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "project",
+        componentKey: "palette-studio",
+        brandColor: "oklch(0.7 0.15 70)",
+        fontKey: "newsreader",
+        slug: "palette-studio",
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("palette-studio") }),
+    );
+    expect(container.querySelector("main")).not.toHaveAttribute(
+      "data-template",
+    );
+    expect(screen.getByTestId("provider")).toBeInTheDocument();
+    expect(container.querySelector("article")).not.toBeNull();
+  });
+
+  it("does NOT canvas a NOTE/ESSAY with a resolvable Experience — `kind` gates the template, not the capability", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundExperience());
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "note", componentKey: "palette-studio" }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    expect(container.querySelector("main")).not.toHaveAttribute(
+      "data-template",
+    );
+    expect(screen.getByTestId("experience")).toBeInTheDocument();
+    expect(container.querySelector("article")).not.toBeNull();
+    expect(
+      screen.getByRole("heading", { level: 1, name: /an entry/i }),
+    ).toBeInTheDocument();
   });
 
   it("wraps the article in the module's Provider when it exports one (no after-prose slot)", async () => {
