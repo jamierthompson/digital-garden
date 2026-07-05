@@ -140,8 +140,10 @@ describe("scopedStyleCss", () => {
     expect(css).toContain('[data-entry="oklch-engine"]');
   });
 
-  it("emits baked semantic-token light-dark() literals + the color-scheme", () => {
-    expect(css).toContain("color-scheme: light dark;");
+  it("emits baked semantic-token light-dark() literals but NOT color-scheme (#159 — inherited on a scoped slot)", () => {
+    // A scoped `[data-entry]` slot must inherit `color-scheme` from root, never re-declare it —
+    // re-declaring would shadow the site toggle's `:root` override (the flash redline, #159).
+    expect(css).not.toContain("color-scheme:");
     expect(css).toMatch(
       /--accent: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
     );

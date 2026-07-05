@@ -160,8 +160,10 @@ export function resolveScope(seed: unknown): ResolvedScope {
  * wrapper here pairs with `EntryScope`'s `precedence={BRAND_LAYER}` — see `BRAND_LAYER`.
  */
 export function scopedStyleCss(scope: ResolvedScope): string {
-  // Engine declarations: `color-scheme: light dark;` + each `--<name>: light-dark(…)`
-  // (the generic semantic role tokens, incl. the #66 status tokens).
+  // Engine declarations: each `--<name>: light-dark(…)` (the generic semantic role tokens, the
+  // full 34-token contract incl. the #66 status tokens). NO `color-scheme` (#159 default): a
+  // scoped `[data-entry]` slot must NOT re-declare it — `color-scheme` is inherited, so a slot
+  // that re-declares it would shadow the site toggle's `:root` override (the flash redline).
   const brandDecls = tokenSetToDeclarations(scope.tokenSet)
     .split("\n")
     .map((line) => `    ${line}`)
