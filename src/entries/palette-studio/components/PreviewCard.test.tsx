@@ -26,4 +26,17 @@ describe("PreviewCard", () => {
     expect(panel.style.getPropertyValue("--accent")).toBe("");
     expect(panel.style.getPropertyValue("--surface")).toBe("");
   });
+
+  it("shows the 34-token specimens — status badges, a container alert, state rows, and the scrim dialog", () => {
+    render(<PreviewCard />);
+    // Status badge text is the text-legible `--<status>-text`, the outline the fill `--<status>`.
+    const failed = screen.getByText("Failed");
+    expect(failed.style.color).toBe("var(--error-text)");
+    expect(failed.style.borderColor).toBe("var(--error)");
+    // The new container / interaction-state / overlay specimens are present.
+    expect(screen.getByText(/soft error container/i)).toBeInTheDocument();
+    expect(screen.getByText("Hovered row")).toBeInTheDocument();
+    expect(screen.getByText("Selected row")).toBeInTheDocument();
+    expect(screen.getByText("Dialog")).toBeInTheDocument();
+  });
 });

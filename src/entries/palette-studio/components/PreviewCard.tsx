@@ -38,13 +38,32 @@ export default function PreviewCard(): React.ReactElement {
             key={s.token}
             className={styles.badge}
             style={{
-              color: `var(--${s.token})`,
+              // The text-legible status token (4.5:1) for the label; the fill (3:1 UI) for the
+              // outline — the two are distinct tokens in the 34-token model (#160).
+              color: `var(--${s.token}-text)`,
               borderColor: `var(--${s.token})`,
             }}
           >
             {s.label}
           </span>
         ))}
+      </div>
+
+      <div className={styles.alert}>
+        <p className={styles.alertText}>
+          Heads up — this alert sits on the soft error container, not the
+          saturated fill.
+        </p>
+      </div>
+
+      <ul className={styles.rows}>
+        <li className={styles.row}>A resting row</li>
+        <li className={styles.rowHover}>Hovered row</li>
+        <li className={styles.rowSelected}>Selected row</li>
+      </ul>
+
+      <div className={styles.scrimDemo}>
+        <div className={styles.scrimDialog}>Dialog</div>
       </div>
     </div>
   );
