@@ -8,12 +8,13 @@
    ambient scheme (#159) rather than shadow the site-wide toggle. */
 @layer components {
   .surface {
-    /* Inline-end is zero, not `var(--space-6)`: the studio's branded ScrollArea (see
-       `StudioCanvas`) sits inside this surface and should hug the screen's inline-end edge,
-       not inset behind a panel margin. The other three sides keep the reading-measure padding. */
-    padding-block: var(--space-6);
-    padding-inline-start: var(--space-6);
-    padding-inline-end: 0;
+    /* NO padding, any side (owner's scroll-container pattern): the spacing lives INSIDE the
+       branded ScrollArea's content (`.canvas` in `StudioCanvas.module.css`), not on this wrapper
+       or the page module — so the ScrollArea spans full-bleed and the scrollbar hugs the viewport
+       edge, with content centered by symmetric inner gutters. An earlier one-sided
+       `padding-inline-end: 0` here (to let the scrollbar hug the edge) off-centered the layout;
+       zeroing all sides and moving the gutters inward is the fix. `block-size`/`min-block-size`
+       below are the LOAD-BEARING height-chain rules and stay. */
     /* Two-scrollbar fix (`page.module.css`'s canvas flex-fill chain, `StudioCanvas.module.css`'s
        `.scrollArea`): this is the ONE wrapper that chain missed — `StudioProvider` (this
        component) sits between `EntryScope`'s `[data-entry]` div (already flex-filled to the

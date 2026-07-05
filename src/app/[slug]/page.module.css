@@ -101,19 +101,19 @@
   }
 
   /* CANVAS template only (`data-template="canvas"`, set on THIS `<main>` — see the file-header
-     comment above): the tool's own branded Radix ScrollArea (`StudioCanvas`) should hug the
-     screen's inline-end edge, so the canvas main's own inline-end inset is removed here. Scoped
-     to the attribute so the shared `.wide`/`.module` classes stay untouched for the EDITORIAL
-     template's breakout `[full]` slots.
+     comment above). Scoped to the attribute so the shared `.wide`/`.module` classes stay
+     untouched for the EDITORIAL template's breakout `[full]` slots.
 
-     `padding-block-end: 0` is the VERTICAL twin of that inline-end hug (owner-reported dead space
-     above SiteFooter): `.module`'s base `padding: var(--space-7) …` gives every entry an
-     EDITORIAL bottom rhythm — breathing room before the footer on an essay — but the canvas
-     manages its own vertical space through the flex height chain below, so that inherited bottom
-     padding becomes a dead band between the ScrollArea's end and the footer. Editorial (and
-     editorial-`wide`, which lacks this attribute) keep their full block padding; only the
-     canvas drops the bottom. The block-START padding stays — it's the breathing room below
-     SiteNav, not a dead band.
+     `padding: 0` (all sides) is the owner's scroll-container pattern: the editorial `.module`'s
+     `padding: var(--space-7) var(--space-6)` is essay rhythm the canvas doesn't want on the
+     WRAPPER at all. A one-sided `padding-inline-end: 0` (to let the Radix scrollbar hug the right
+     edge) only OFF-CENTERED the layout, and a `padding-block-end: 0` still left the other three.
+     So the canvas wrapper carries ZERO padding on every side: the branded ScrollArea spans
+     full-bleed nav→footer, edge→edge, and the scrollbar hugs the viewport's right edge naturally.
+     The canvas's own spacing lives INSIDE the scroll container (`.canvas` padding in
+     `StudioCanvas.module.css`), where content stays centered with symmetric gutters and the
+     scrollbar sits outside it. Editorial (and editorial-`wide`, which lacks this attribute) keep
+     their full block+inline padding — untouched.
 
      It also owns the "one scroll surface" fix (two-scrollbar defect): `<main>` FLEXES to fill
      exactly the space `body`'s selector below carves out between SiteNav/SiteFooter — `flex: 1
@@ -123,8 +123,7 @@
      direction: column` turns it into the SAME kind of flex parent for `.experience` below, so
      the definite height propagates all the way down to the Radix ScrollArea. */
   .module[data-template="canvas"] {
-    padding-inline-end: 0;
-    padding-block-end: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;

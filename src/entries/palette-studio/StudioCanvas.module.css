@@ -19,9 +19,11 @@
   .canvas {
     display: grid;
     gap: var(--space-6);
-    /* Stacked on narrow screens — one column. The seed+starters control bar leads (owner: the
-       play controls are the first thing on screen), the harmony hues next, then the working
-       surfaces in source order. */
+    /* The content's own spacing lives HERE, inside the ScrollArea viewport (owner's scroll-
+       container pattern) — NOT on the `<main>` wrapper or `StudioProvider .surface`, both now
+       zero-padding. Symmetric on every side so the content is centered with equal gutters while
+       the Radix scrollbar hugs the viewport's right edge, outside this padding. */
+    padding: var(--space-6);
     /* One column at every width (owner's linearized canvas, #139): the seed+starters and the
        definitions are horizontal BARS, and the working surfaces (rules, harmony, cards, table,
        preview, exports) are full-width sections that wrap their own contents. Wide screens just
