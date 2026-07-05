@@ -68,7 +68,8 @@ const USAGE: Record<BrandTokenName, string> = {
   error: "The error signal fill — destructive buttons, invalid field borders.",
   "on-error": "Text and icons that sit on the error fill.",
   "error-text": "Inline error text on a page surface — validation messages.",
-  "error-container": "A soft error-tinted surface — alert and banner backgrounds.",
+  "error-container":
+    "A soft error-tinted surface — alert and banner backgrounds.",
   "on-error-container": "Text and icons inside an error container.",
   warning: "The warning signal fill — caution buttons and badges.",
   "on-warning": "Text and icons that sit on the warning fill.",

@@ -52,7 +52,9 @@ describe("washBgValue — the single source for the page wash (#160)", () => {
     // a constant baked into washBg. A local chroma override would make both cases identical.
     const tinted = washBgValue(buildTokenSet("#06b6d4", { gamut: "srgb" }));
     const rules: EngineRules = { tintedNeutrals: false };
-    const flat = washBgValue(buildTokenSet("#06b6d4", { gamut: "srgb", rules }));
+    const flat = washBgValue(
+      buildTokenSet("#06b6d4", { gamut: "srgb", rules }),
+    );
     expect(tinted).not.toBe(flat);
     // The wash IS `light-dark(<bg.light>, <bg.dark>)` of the token set, nothing else.
     const set = buildTokenSet("#06b6d4", { gamut: "srgb" });

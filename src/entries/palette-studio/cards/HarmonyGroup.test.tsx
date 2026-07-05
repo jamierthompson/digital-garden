@@ -27,7 +27,9 @@ describe("HarmonyGroup — a clearly separated region", () => {
     renderGroup();
     const region = screen.getByRole("region", { name: "Harmony hues" });
     expect(
-      within(region).queryByText(/two safe picks|check the contrast|built from your seed/i),
+      within(region).queryByText(
+        /two safe picks|check the contrast|built from your seed/i,
+      ),
     ).not.toBeInTheDocument();
   });
 

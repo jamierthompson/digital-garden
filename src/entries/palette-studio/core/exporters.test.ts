@@ -251,9 +251,9 @@ describe("no-drift — p3 out-of-gamut colors export as their clamped sRGB rende
     // Both forms may carry ALPHA (the scrim, #160): 8-digit `#rrggbbaa` / `rgb(r g b / a)`. Match
     // either shape and compare the RGB channels (the clamped-sRGB agreement this test guards);
     // the alpha rides through both serializers untouched and is a format concern, not a channel one.
-    const hexLiterals = [...cssHex.matchAll(/#[0-9a-f]{6}(?:[0-9a-f]{2})?/g)].map(
-      (m) => m[0],
-    );
+    const hexLiterals = [
+      ...cssHex.matchAll(/#[0-9a-f]{6}(?:[0-9a-f]{2})?/g),
+    ].map((m) => m[0]);
     const rgbLiterals = [
       ...cssRgb.matchAll(/rgb\((\d+) (\d+) (\d+)(?: \/ [\d.]+)?\)/g),
     ];
@@ -261,7 +261,9 @@ describe("no-drift — p3 out-of-gamut colors export as their clamped sRGB rende
     for (let i = 0; i < hexLiterals.length; i++) {
       const rgbHex = hexLiterals[i].slice(1, 7); // the rrggbb channels, alpha aside
       const [r, g, b] = [1, 2, 3].map((k) => Number(rgbLiterals[i][k]));
-      const rebuilt = ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+      const rebuilt = ((1 << 24) | (r << 16) | (g << 8) | b)
+        .toString(16)
+        .slice(1);
       expect(rebuilt).toBe(rgbHex);
     }
   });

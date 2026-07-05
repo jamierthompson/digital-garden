@@ -34,9 +34,7 @@ export default function Panel({
   children,
 }: PanelProps): React.ReactElement {
   const className =
-    variant === "plain"
-      ? styles.panel
-      : `${styles.panel} ${styles.framed}`;
+    variant === "plain" ? styles.panel : `${styles.panel} ${styles.framed}`;
   return (
     <section aria-label={label} className={className} style={style}>
       {children}

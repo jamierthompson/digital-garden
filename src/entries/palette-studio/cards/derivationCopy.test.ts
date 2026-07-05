@@ -101,7 +101,10 @@ describe("derivationSentence — plain language first", () => {
 
   it("literal: unmeasured by design — names the opacity, makes no contrast claim", () => {
     const sentence = derivationSentence(
-      input({ cardKind: "literal", provenance: { kind: "literal", alpha: 0.5 } }),
+      input({
+        cardKind: "literal",
+        provenance: { kind: "literal", alpha: 0.5 },
+      }),
     );
     expect(sentence).toMatch(/unmeasured by design/i);
     expect(sentence).toContain("50% opacity");
@@ -204,7 +207,9 @@ describe("onFillDerivation — pole + chroma (#151/#153), plain", () => {
       backedOff: true,
     };
     expect(onFillDerivation(white)).toMatch(/near-white/i);
-    expect(onFillDerivation({ ...white, pole: "black" })).toMatch(/near-black/i);
+    expect(onFillDerivation({ ...white, pole: "black" })).toMatch(
+      /near-black/i,
+    );
   });
 
   it("chromatic (chroma > 0): a colorful color-on-color label (#153)", () => {
@@ -236,9 +241,9 @@ describe("counterpartHint — the other scheme, one line", () => {
   });
 
   it("literal: unchanged across modes", () => {
-    expect(counterpartHint("literal", "light", { kind: "literal", alpha: 0.5 })).toMatch(
-      /in dark mode, this overlay is unchanged/i,
-    );
+    expect(
+      counterpartHint("literal", "light", { kind: "literal", alpha: 0.5 }),
+    ).toMatch(/in dark mode, this overlay is unchanged/i);
   });
 
   it("on-fill: names the other scheme's pole", () => {
@@ -256,7 +261,11 @@ describe("counterpartHint — the other scheme, one line", () => {
 
   it("brand fill: re-solved for the other background", () => {
     expect(
-      counterpartHint("fill", "light", brandFill({ native: false, deltaL: 0.1 })),
+      counterpartHint(
+        "fill",
+        "light",
+        brandFill({ native: false, deltaL: 0.1 }),
+      ),
     ).toMatch(/in dark mode, your color is re-solved/i);
   });
 
@@ -344,18 +353,24 @@ describe("derivationSentence — real-engine hostile-seed sweep never lies or em
     "not-a-color", // engine fallback palette
   ];
 
-  it.each(HOSTILE)("every card sentence is real and specific for %s", (seed) => {
-    const palette = derivePalette(seed, DEFAULT_RULES, DEFAULT_GAMUT);
-    const cards = buildCards(palette);
-    expect(cards).toHaveLength(BRAND_TOKEN_NAMES.length);
-    for (const card of cards) {
-      for (const facet of [card.light, card.dark]) {
-        const where = `${card.name}/${facet.scheme}: "${facet.sentence}"`;
-        expect(facet.sentence.trim(), where).not.toBe("");
-        expect(facet.sentence.trim().endsWith("."), where).toBe(true);
-        expect(GENERIC.has(facet.sentence.trim()), where).toBe(false);
-        expect(facet.counterpart.trim(), `${card.name}/${facet.scheme} hint`).not.toBe("");
+  it.each(HOSTILE)(
+    "every card sentence is real and specific for %s",
+    (seed) => {
+      const palette = derivePalette(seed, DEFAULT_RULES, DEFAULT_GAMUT);
+      const cards = buildCards(palette);
+      expect(cards).toHaveLength(BRAND_TOKEN_NAMES.length);
+      for (const card of cards) {
+        for (const facet of [card.light, card.dark]) {
+          const where = `${card.name}/${facet.scheme}: "${facet.sentence}"`;
+          expect(facet.sentence.trim(), where).not.toBe("");
+          expect(facet.sentence.trim().endsWith("."), where).toBe(true);
+          expect(GENERIC.has(facet.sentence.trim()), where).toBe(false);
+          expect(
+            facet.counterpart.trim(),
+            `${card.name}/${facet.scheme} hint`,
+          ).not.toBe("");
+        }
       }
-    }
-  });
+    },
+  );
 });
