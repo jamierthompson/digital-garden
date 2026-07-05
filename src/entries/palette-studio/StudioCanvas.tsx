@@ -39,13 +39,13 @@ export default function StudioCanvas(): React.ReactElement {
         <div className={styles.seed}>
           <SeedSlot />
         </div>
+        <div className={styles.rules}>
+          <RulesSlot />
+        </div>
         {/* The #14 decorative harmony card group — its own named region, separated from the
             contract-bearing semantic cards. */}
         <div className={styles.harmony}>
           <HarmonyGroup />
-        </div>
-        <div className={styles.rules}>
-          <RulesSlot />
         </div>
         <div className={styles.cards}>
           <TokensSlot />
