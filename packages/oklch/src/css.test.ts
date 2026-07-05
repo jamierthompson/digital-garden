@@ -12,8 +12,17 @@ describe("tokenSetToDeclarations", () => {
   const set = buildTokenSet("#3b82f6");
   const decls = tokenSetToDeclarations(set);
 
-  it("sets color-scheme so light-dark() resolves and follows prefers-color-scheme", () => {
-    expect(decls).toContain("color-scheme: light dark;");
+  it("omits color-scheme by DEFAULT so a scoped slot inherits it (#159)", () => {
+    // A slot must not re-declare color-scheme: it's inherited, so re-declaring `light dark`
+    // shadows a forced root override (the site-wide toggle) and the slot follows the OS.
+    expect(decls).not.toContain("color-scheme");
+  });
+
+  it("emits color-scheme only when the caller opts in (#159 — e.g. a :root export)", () => {
+    const withScheme = tokenSetToDeclarations(set, { colorScheme: true });
+    expect(withScheme).toContain("color-scheme: light dark;");
+    // It leads the block so the scheme is established before the tokens resolve.
+    expect(withScheme.split("\n")[0]).toBe("color-scheme: light dark;");
   });
 
   it("emits the generic semantic public contract as bare -- names (no ramp tier)", () => {
@@ -26,8 +35,8 @@ describe("tokenSetToDeclarations", () => {
     expect(decls).not.toContain("--brand-");
     // No project-internal alias leaks out of the engine.
     expect(decls).not.toContain("--logx-");
-    // color-scheme + exactly the 14 semantic tokens — nothing else.
-    expect(decls.split("\n")).toHaveLength(1 + 14);
+    // Exactly the 14 semantic tokens — nothing else (no color-scheme by default, #159).
+    expect(decls.split("\n")).toHaveLength(14);
   });
 
   it("bakes literal oklch() values inside light-dark()", () => {
@@ -94,5 +103,16 @@ describe("tokenSetToCss", () => {
     const hex = tokenSetToCss(set, selector, { format: "hex" });
     expect(hex).toMatch(/--accent: light-dark\(#[0-9a-f]{6}, #[0-9a-f]{6}\);/);
     expect(hex).not.toContain("oklch(");
+  });
+
+  it("forwards colorScheme through to tokenSetToDeclarations (#159 — the :root export path)", () => {
+    // A scoped slot rule defaults to NO color-scheme (inherits from the root).
+    expect(
+      tokenSetToCss(buildTokenSet("#3b82f6"), '[data-entry="garden"]'),
+    ).not.toContain("color-scheme");
+    // The self-contained :root export opts in — the flag must reach the inner serializer.
+    expect(
+      tokenSetToCss(buildTokenSet("#3b82f6"), ":root", { colorScheme: true }),
+    ).toContain("color-scheme: light dark;");
   });
 });

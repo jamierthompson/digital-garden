@@ -153,8 +153,12 @@ stops), `minPass` (discrete step binding), and the color conversions/parsers.
   there are no project-prefixed aliases (isolation comes from the `[data-entry]` scope).
   Mapping to `--focus-ring-color` (foundation's `:focus-visible` reads that) is the
   **scope's** job, not the engine's. Suggested: `--focus-ring-color: var(--focus-ring)`.
-- `tokenSetToCss` already emits `color-scheme: light dark;` so `light-dark()` resolves and
-  follows `prefers-color-scheme`. Use `tokenSetToDeclarations` if you control placement.
+- **`color-scheme` is NOT emitted by default (#159).** `color-scheme` is inherited, so a
+  scoped `[data-entry]` slot must let it fall through from the foundation `:root` — otherwise
+  re-declaring `light dark` shadows a forced root override (the site-wide light/dark toggle)
+  and the slot silently follows the OS. The foundation layer establishes it once at `:root`.
+  A caller that establishes the scheme at its OWN root — e.g. the pasteable `:root` CSS export
+  (#107) — opts in with `tokenSetToCss(set, ":root", { colorScheme: true })`.
 - `resolveTheme(...).isFallback` / `buildTokenSet(...).meta.isFallback` is `true` when the
   input failed to parse — surface it if you want a visible signal; the palette is always safe.
 
