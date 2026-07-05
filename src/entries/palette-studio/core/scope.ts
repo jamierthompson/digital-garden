@@ -14,18 +14,6 @@ import {
 } from "@garden/oklch";
 import type { CSSProperties } from "react";
 
-/** Build the inline `style` that re-binds every semantic token to a scheme's generated value. */
-export function tokensToScopeVars(tokens: SchemeTokens): CSSProperties {
-  const vars: Record<string, string> = {};
-  for (const name of BRAND_TOKEN_NAMES) {
-    vars[`--${name}`] = formatOklch(tokens[name]);
-  }
-  // The alias foundation's `:focus-visible` reads — so a previewed focus ring uses the
-  // generated ring, exactly as EntryScope maps it for the real slot.
-  vars["--focus-ring-color"] = formatOklch(tokens["focus-ring"]);
-  return vars as CSSProperties;
-}
-
 /**
  * Re-bind every semantic token to a `light-dark()` of BOTH schemes' generated values — so the
  * BROWSER picks the scheme at first paint (following the inherited `color-scheme`, never a JS-
