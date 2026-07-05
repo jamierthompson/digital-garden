@@ -14,20 +14,20 @@ function renderGroup() {
   );
 }
 
-describe("HarmonyGroup — decorative, clearly separated", () => {
+describe("HarmonyGroup — opt-in, clearly separated", () => {
   it("renders one card per derived harmony hue", () => {
     renderGroup();
-    const region = screen.getByRole("region", { name: "Decorative harmony" });
+    const region = screen.getByRole("region", { name: "Harmony hues" });
     expect(within(region).getAllByRole("listitem")).toHaveLength(
       HARMONY_HUES.length,
     );
   });
 
-  it("frames the group as decorative and NOT part of the token contract", () => {
+  it("frames the group as opt-in and outside the token contract", () => {
     renderGroup();
-    const region = screen.getByRole("region", { name: "Decorative harmony" });
+    const region = screen.getByRole("region", { name: "Harmony hues" });
     expect(
-      within(region).getByText(/not part of the token contract/i),
+      within(region).getByText(/outside the token contract/i),
     ).toBeInTheDocument();
     expect(
       within(region).getByText(/charts, gradients, and secondary accents/i),
@@ -36,7 +36,7 @@ describe("HarmonyGroup — decorative, clearly separated", () => {
 
   it("shows each hue's relationship, offset, and receipt-backed picks", () => {
     renderGroup();
-    const region = screen.getByRole("region", { name: "Decorative harmony" });
+    const region = screen.getByRole("region", { name: "Harmony hues" });
     // The relationships (exact strings — "complementary" ≠ "split-complementary"): analogous
     // ×2, complementary ×1, split-complementary ×2, triadic ×2.
     expect(within(region).getAllByText("analogous")).toHaveLength(2);

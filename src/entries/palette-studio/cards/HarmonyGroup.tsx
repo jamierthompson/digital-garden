@@ -21,12 +21,12 @@ export default function HarmonyGroup(): React.ReactElement {
   if (!studio) return <MissingFrame name="harmony" />;
   const { harmonyTier, scheme } = studio;
   return (
-    <Panel label="Decorative harmony" style={studio.slotStyle}>
+    <Panel label="Harmony hues" style={studio.slotStyle}>
       <Aside>
-        Decorative harmony hues — colors in mathematical harmony with your seed,
-        for charts, gradients, and secondary accents. NOT part of the token
-        contract: each pick is receipt-backed, but run any new pairing through
-        the contrast check before you put text on one.
+        Harmony hues — mathematical companions to your seed, for charts,
+        gradients, and secondary accents. Opt-in, outside the token contract —
+        but every pick ships receipt-solved on every surface. Only pairings you
+        invent yourself need the contrast check.
       </Aside>
       <ul className={styles.grid}>
         {HARMONY_HUES.map((hue) => (
