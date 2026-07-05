@@ -78,28 +78,29 @@ describe("measureReceipt", () => {
 const HUE_SPAN = ["#7c3aed", "#e11d48", "#eab308", "#06b6d4", "#16a34a"];
 const STATUS_TOKENS = ["success", "error", "warning", "info"] as const;
 
-// The engine solves the status signals as `auto` tokens against `surface-2` with the SAME
-// target as accent text ({ wcag: 4.5, apca: 60 } — palette.ts TARGET.accentText). So they
-// are a genuine "readable-on-surface" guarantee, identical in kind to the accent-text pair
-// the receipt already shows.
+// The engine solves the status TEXT tokens (`<status>-text`, #160) as `auto` tokens against the
+// worst surface (`surface-selected`) with the SAME target as accent text ({ wcag: 4.5, apca: 60 }
+// — CONTRAST_TARGETS.accentText). So they are a genuine "readable-on-surface" guarantee,
+// identical in kind to the accent-text pair the receipt already shows. (The `<status>` FILLS are
+// 3:1 UI signals, not readable text — audited on the card, not here.)
 const STATUS_TARGET = { wcag: 4.5, apca: 60 };
 
 describe("QA-S13 · the status signals ARE a readable guarantee the engine makes", () => {
-  it("every status token clears its text target on surface-2, all hues, both schemes", () => {
-    // This is the safety half: proving the fix (adding status rows to the receipt) is sound
-    // because the engine already guarantees these pairs.
+  it("every status TEXT token clears its target on surface-selected, all hues, both schemes", () => {
+    // This is the safety half: proving the fix (auditing the status-text rows) is sound because
+    // the engine already guarantees these pairs.
     for (const seed of HUE_SPAN) {
       const palette = derivePalette(seed, DEFAULT_RULES, DEFAULT_GAMUT);
       for (const view of [palette.light, palette.dark]) {
         for (const token of STATUS_TOKENS) {
           const { wcag, apca, passes } = checkContrast(
-            view.tokens[token],
-            view.tokens["surface-2"],
+            view.tokens[`${token}-text`],
+            view.tokens["surface-selected"],
             STATUS_TARGET,
           );
           expect(
             passes,
-            `${seed} ${view.scheme} ${token} — ${wcag.toFixed(2)}:1 / Lc ${apca.toFixed(1)}`,
+            `${seed} ${view.scheme} ${token}-text — ${wcag.toFixed(2)}:1 / Lc ${apca.toFixed(1)}`,
           ).toBe(true);
         }
       }
@@ -107,11 +108,11 @@ describe("QA-S13 · the status signals ARE a readable guarantee the engine makes
   });
 });
 
-describe("QA-S13 · FINDING QA-S13-1 — the receipt omits the status text pairs", () => {
-  // The Preview panel paints all four status signals as colored TEXT (`color: var(--success)`
-  // …) on the generated surface, and the receipt claims to audit "every readable pair". Yet
-  // measureReceipt reports NO row for any status signal. The audit under-reports what the tool
-  // visibly renders as text. FAILS until the receipt covers the status pairs.
+describe("QA-S13 · FINDING QA-S13-1 — the receipt covers the status text pairs", () => {
+  // The Preview panel paints all four status signals as colored TEXT (`color: var(--<status>-
+  // text)`) on the generated surface, and the receipt claims to audit "every readable pair" —
+  // so measureReceipt must report a row for each. This guards against the audit under-reporting
+  // what the tool visibly renders as text.
   it("reports a receipt row for every status signal the preview paints as text", () => {
     const { light } = derivePalette("#7c3aed", DEFAULT_RULES, DEFAULT_GAMUT);
     const labels = measureReceipt(light.tokens).map((r) =>

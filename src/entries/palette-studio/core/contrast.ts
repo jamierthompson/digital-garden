@@ -25,33 +25,35 @@ interface ReceiptPair {
 
 /**
  * The pairs the receipt reports — every readable-on-surface token measured against the
- * worst-case surface (`surface-2`, what the engine solves against), plus the on-accent label
- * on its fill and the focus ring. Foregrounds solved against `surface-2` also clear on `bg`
- * and `surface`, so `surface-2` is the honest worst case to show. The four status signals
- * belong here too: the engine solves them as `auto` readable-on-surface tokens against
- * `surface-2` at the accent-text target (`CONTRAST_TARGETS.accentText`), and the preview
- * paints them as colored text — so they are part of the guarantee this receipt exists to
- * prove (QA-S13-1).
+ * worst-case surface (`surface-selected`, the darkest text-bearing surface the engine now
+ * solves every `auto` foreground against, #160), plus the on-accent label on its fill and the
+ * focus ring. A foreground solved against `surface-selected` also clears on every lighter
+ * surface (`bg`/`surface`/`surface-2`/`surface-hover`), so it is the honest worst case to show.
+ * The four status TEXT tokens (`<status>-text`) belong here too: the engine solves them as
+ * `auto` readable-on-surface tokens at the accent-text target, and the preview paints them as
+ * colored text — so they are part of the guarantee this receipt exists to prove (QA-S13-1). The
+ * status FILLS (`error`/…) are UI signals (3:1), not readable text, and are audited on the card.
  */
 // Every target is the engine's own `CONTRAST_TARGETS` tier read by identity (#150) — the
 // solver and this receipt can never disagree on the numbers.
+const WORST_SURFACE: BrandTokenName = "surface-selected";
 const RECEIPT_PAIRS: readonly ReceiptPair[] = [
   {
     label: "body text",
     fg: "text",
-    bg: "surface-2",
+    bg: WORST_SURFACE,
     target: CONTRAST_TARGETS.bodyText,
   },
   {
     label: "muted text",
     fg: "text-muted",
-    bg: "surface-2",
+    bg: WORST_SURFACE,
     target: CONTRAST_TARGETS.mutedText,
   },
   {
     label: "accent text",
     fg: "accent-text",
-    bg: "surface-2",
+    bg: WORST_SURFACE,
     target: CONTRAST_TARGETS.accentText,
   },
   {
@@ -63,33 +65,34 @@ const RECEIPT_PAIRS: readonly ReceiptPair[] = [
   {
     label: "focus ring",
     fg: "focus-ring",
-    bg: "surface-2",
+    bg: WORST_SURFACE,
     target: CONTRAST_TARGETS.ui,
   },
-  // Status signals — colored text the preview paints on the surface; solved on `surface-2`
-  // at the accent-text target, so they clear it exactly like `accent text` above.
+  // Status TEXT — the readable status color the preview paints as text (`color: var(--<status>-
+  // text)`); solved on the worst surface at the accent-text target, so it clears exactly like
+  // `accent text` above. (The saturated `--<status>` fills are 3:1 UI, audited on the card.)
   {
     label: "success",
-    fg: "success",
-    bg: "surface-2",
+    fg: "success-text",
+    bg: WORST_SURFACE,
     target: CONTRAST_TARGETS.accentText,
   },
   {
     label: "error",
-    fg: "error",
-    bg: "surface-2",
+    fg: "error-text",
+    bg: WORST_SURFACE,
     target: CONTRAST_TARGETS.accentText,
   },
   {
     label: "warning",
-    fg: "warning",
-    bg: "surface-2",
+    fg: "warning-text",
+    bg: WORST_SURFACE,
     target: CONTRAST_TARGETS.accentText,
   },
   {
     label: "info",
-    fg: "info",
-    bg: "surface-2",
+    fg: "info-text",
+    bg: WORST_SURFACE,
     target: CONTRAST_TARGETS.accentText,
   },
 ];
