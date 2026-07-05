@@ -23,6 +23,13 @@
     align-items: end;
     padding-block-start: 1.1rem;
     overflow-x: auto;
+    /* Establish a stacking context so RampStep's local raises (`.step[data-bound]` z-index:1,
+       `:focus-visible` z-index:2) stay SCOPED to the strip. `overflow-x: auto` scrolls but does
+       NOT create a stacking context, so without this those step z-indexes resolve against the
+       ROOT and outrank the CardDisclosure Popover — which is portaled to `<body>` at z-index auto
+       (0) — making "More about this color" render BENEATH the scales. Isolating the strip contains
+       the raises; the portaled popover (later in body DOM) then paints above the card as intended. */
+    isolation: isolate;
   }
 
   .readout {
