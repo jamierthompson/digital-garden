@@ -14,8 +14,8 @@
  * carrying solve-time step provenance, exactly like the semantic `auto` tokens.
  *
  * DECORATIVE, still outside the frozen 34-token semantic contract: this is a separated
- * annex the studio opts into (the `includeHarmony` export surface in `export.ts`), never a
- * growth of the semantic token list. Status hues stay fixed-hue and are NOT part of this
+ * annex the studio opts into by calling the dedicated `harmonyTierTo*` serializers in
+ * `export.ts`, never a growth of the semantic token list. Status hues stay fixed-hue and are NOT part of this
  * tier (`error` stays red — #66). Built by reusing `resolveTheme` so the seed, the
  * dark-scheme dampening, the anchor, and the worst-case surface each pick is solved against
  * are IDENTICAL to what the brand ramp ships — one source of truth, no re-derived drift.

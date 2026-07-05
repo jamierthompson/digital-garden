@@ -14,6 +14,7 @@ import {
   tokenSetToDesignTokens,
 } from "./export";
 import { tokenSetToCss } from "./css";
+import { formatOklch, parseColor } from "./convert";
 import { buildTokenSet, resolveTheme } from "./palette";
 import { CONTRAST_TARGETS } from "./targets";
 import { checkContrast } from "./contrast";
@@ -40,12 +41,13 @@ const SEEDS: Array<[label: string, seed: unknown]> = [
   ["fallback (garbage)", "not-a-color"],
 ];
 
-/** Bake an OKLCH to the shipped literal's precision (formatOklch: 4/4/2 dp), so the
- *  "clears the floor as SHIPPED" checks measure what the browser actually paints. */
+/** Bake an OKLCH to the shipped literal's precision by round-tripping the REAL serializer
+ *  (`formatOklch` → `parseColor`), so the "clears the floor as SHIPPED" checks measure what
+ *  the browser actually paints and can never drift from the formatter's rounding. */
 function bake(c: OkLCH): OkLCH {
-  const r = (n: number, p: number): number =>
-    Number.isFinite(n) ? parseFloat(n.toFixed(p)) : 0;
-  return { L: r(c.L, 4), C: r(c.C, 4), H: r(c.H, 2) };
+  const baked = parseColor(formatOklch(c));
+  if (!baked) throw new Error(`unbakeable literal: ${formatOklch(c)}`);
+  return baked;
 }
 
 describe("harmony tier — structure & determinism (#152)", () => {
