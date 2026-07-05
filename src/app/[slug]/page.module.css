@@ -104,8 +104,79 @@
      comment above): the tool's own branded Radix ScrollArea (`StudioCanvas`) should hug the
      screen's inline-end edge, so the canvas main's own inline-end inset is removed here. Scoped
      to the attribute so the shared `.wide`/`.module` classes stay untouched for the EDITORIAL
-     template's breakout `[full]` slots. */
+     template's breakout `[full]` slots.
+
+     It also owns the "one scroll surface" fix (two-scrollbar defect): `<main>` FLEXES to fill
+     exactly the space `body`'s selector below carves out between SiteNav/SiteFooter — `flex: 1
+     1 auto` lets it grow/shrink to that remainder instead of sizing to its content, and
+     `min-block-size: 0` overrides the flex default `min-height: auto`, which would otherwise
+     floor it at its content's natural height and defeat the shrink. `display: flex; flex-
+     direction: column` turns it into the SAME kind of flex parent for `.experience` below, so
+     the definite height propagates all the way down to the Radix ScrollArea. */
   .module[data-template="canvas"] {
     padding-inline-end: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-block-size: 0;
+  }
+
+  /* Same flex-fill chain, one level down: under the canvas template `.experience` is
+     `.module[data-template="canvas"]`'s only box child (`EntryScopeWash` hoists just a
+     `<style>`, no box), so it flex-fills `<main>` in turn. `display: flex; flex-direction:
+     column` makes `EntryScope`'s `[data-entry]` wrapper (the next rule) a flex item too, so
+     the chain keeps propagating a DEFINITE height down to `StudioCanvas`'s `ScrollArea`, whose
+     own `block-size: 100%` (`ScrollArea.module.css`) needs one to resolve against instead of
+     falling back to `auto`. Scoped to `data-template="canvas"` so the EDITORIAL template's
+     `.experience` (and its `.wide > .experience` width override, above) is untouched. */
+  .module[data-template="canvas"] > .experience {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-block-size: 0;
+  }
+
+  /* Last link in the chain: `EntryScope`'s `[data-entry]` div (`EntryScope.tsx`) is
+     `.experience`'s only child here (`EntryScopeBoundary`'s `unstable_catchError` boundary
+     renders no DOM wrapper of its own — verified against the installed
+     `next/dist/client/components/catch-error.js`). Flex-filling it gives `StudioCanvas`'s
+     `ScrollArea` root a parent with a DEFINITE content-box height, so its `block-size: 100%`
+     actually constrains it instead of resolving to `auto`. */
+  .module[data-template="canvas"] > .experience > [data-entry] {
+    flex: 1 1 auto;
+    min-block-size: 0;
+  }
+}
+
+/* Canvas-only document-scroll lock (two-scrollbar defect, #139 follow-up): the CANVAS
+   template's own branded Radix ScrollArea (`StudioCanvas`) should be the ONLY scrolling
+   surface on the route — without this, `<main>` sized to its content (the studio's full
+   grid) taller than the viewport, so the document ALSO scrolled natively alongside the
+   ScrollArea's own bounded internal scroll. Locking `overflow` on `body` alone is enough to
+   stop the document scrolling: `html` is left at its default `overflow: visible`
+   (`foundation.css` only sets its `height`), and per the CSS overflow-propagation rule an
+   `html` at `visible` defers the VIEWPORT's own scrollability to `body`'s value.
+
+   Also folds in the pinstripe-suppression fix (separate defect, same selector): the base
+   hairline texture (`globals.css` `body`, `@layer foundation` — a faint white
+   `repeating-linear-gradient`) reads as stark white lines over the wash's near-black default
+   in dark mode, visible through the transparent SiteNav/SiteFooter above/below this `<main>`
+   — decorative on the light editorial site, a defect on the themed canvas. `@layer
+   components` outranks `@layer foundation` regardless of selector specificity (the "@layer
+   trap" — see `AGENTS.md`), so `background-image: none` here wins without `!important`.
+
+   Selector: the SAME Activity-safe `:not([style])` guard `scopedWashCss` uses
+   (`scopeSeed.ts`) — a `<Activity>`-hidden PREVIOUS canvas route must not keep the NEXT
+   route's document locked/pinstripe-free forever; this only matches while a canvas `<main>`
+   is the one ACTUALLY on screen. Bare `body` (no `.module`/`.experience` class) is
+   deliberate — CSS Modules only scope class/id selectors, so this plain element selector
+   passes through unchanged, exactly like the existing `.article > :is(h2, h3)` element
+   selector above. Editorial routes never carry `data-template="canvas"`, so they never
+   match — unchanged scroll + pinstripe, as required. */
+@layer components {
+  body:has(> main[data-template="canvas"]:not([style])) {
+    block-size: 100dvh;
+    overflow: hidden;
+    background-image: none;
   }
 }

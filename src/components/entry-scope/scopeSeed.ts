@@ -13,7 +13,9 @@
 // guarantee directly in jsdom instead of fighting an async RSC.
 
 import {
+  buildRamp,
   buildTokenSet,
+  formatOklch,
   tokenSetToDeclarations,
   type TokenSet,
 } from "@garden/oklch";
@@ -208,15 +210,53 @@ export function scopedStyleCss(scope: ResolvedScope): string {
  * hoisted styles aren't guaranteed removed on unmount either). Verified against the installed
  * react-dom 19.2.7 source and a live repro after the fix (see the browser QA notes in the PR).
  */
-export function scopedWashCss(scope: ResolvedScope): string {
-  // `buildTokenSet` unconditionally emits every `BrandTokenName` (see `BRAND_TOKEN_NAMES`),
-  // so `--bg` is always present — the fallback below is defensive scaffolding, not a real
+/**
+ * Nominal chroma for the wash's OWN `--bg`, deliberately bolder than the engine's neutral-
+ * ramp default (`SCHEMES.{light,dark}.neutralChroma`, `packages/oklch/src/palette.ts` —
+ * 0.01 / 0.016, "a whisper of tint" by design for a SURFACE that body text sits on). The
+ * wash has no text painted directly on it — SiteNav/SiteFooter/the studio panels all supply
+ * their own `--surface` on top — so it can carry far more chroma and still read as a wash,
+ * not a surface. This is an APP-LAYER override: it calls the engine's public low-level
+ * `buildRamp` directly with a bespoke chroma rather than changing the engine's own neutral-
+ * ramp default (`packages/oklch` core is off-limits here — a parallel engine worktree has
+ * uncommitted work there). Deliberately high enough to push past the sRGB gamut boundary at
+ * the extreme lightness `--bg` sits at (the "50"/"950" steps): the per-step gamut map in
+ * `buildRamp` then reduces it to whatever the boundary allows, so the wash always lands on
+ * the MOST saturated color that lightness can host for this hue, rather than an arbitrary
+ * partial value — the owner then dials the constant, not the mechanism.
+ */
+const WASH_NEUTRAL_CHROMA = 0.12;
+
+/**
+ * The wash's own `--bg` for one scheme: the resolved scope's per-scheme seed hue (already
+ * gamut-mapped + chroma-adjusted by the engine, `meta.seed`), at `WASH_NEUTRAL_CHROMA`,
+ * landed on the exact ramp step `bg` binds to (`DEFAULT_BINDING_SCHEMA.bg` — light "50" /
+ * dark "950").
+ *
+ * `chromaPolicy` is left at its engine default (`"flat"`, omitted here) rather than set to
+ * `"hold"`: `buildRamp`'s `chromaCurve` is `sin(pi * t) ** exponent` for every non-`"flat"`
+ * policy, and `t` is EXACTLY 0 at the "50" step and EXACTLY 1 at the "950" step — the two
+ * steps this override lands on — so `sin(0) = sin(pi) = 0` and any `"taper"`/`"hold"` policy
+ * would zero out chroma at precisely the step being boosted. `"flat"` is the one policy that
+ * holds the nominal chroma at the extremes instead of curving it away from them.
+ */
+function washBgLiteral(scope: ResolvedScope, scheme: "light" | "dark"): string {
+  const seed = scope.tokenSet.meta.seed[scheme];
+  const label = scheme === "light" ? "50" : "950";
+  const ramp = buildRamp({
+    hue: seed.H,
+    chroma: WASH_NEUTRAL_CHROMA,
+    gamut: scope.tokenSet.meta.gamut,
+  });
+  const step = ramp.find((s) => s.label === label);
+  // `buildRamp` always returns every `RAMP_LABELS` entry (11 steps, `"50"`…`"950"`), so
+  // `step` is always found — the fallback below is defensive scaffolding, not a real
   // branch, matching `resolveScope`'s own never-throw posture.
-  const bgDecl =
-    tokenSetToDeclarations(scope.tokenSet)
-      .split("\n")
-      .find((line) => line.startsWith("--bg:")) ??
-    "--bg: light-dark(#ffffff, #0a0a0a);";
+  return formatOklch(step?.color ?? seed);
+}
+
+export function scopedWashCss(scope: ResolvedScope): string {
+  const bgDecl = `--bg: light-dark(${washBgLiteral(scope, "light")}, ${washBgLiteral(scope, "dark")});`;
   const selector = `body:has(> main[data-template="canvas"]:not([style]) [data-entry="${scope.slug}"])`;
   return `@layer ${BRAND_LAYER} {\n  ${selector} {\n    ${bgDecl}\n  }\n}`;
 }

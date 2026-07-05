@@ -177,7 +177,9 @@ export default async function EntryPage({ params }: EntryPageProps) {
   // overrides that cap with a screen-filling width. `data-layout` records the mode in the
   // markup (the repo's `data-*` vocabulary — cf. `data-entry`/`data-theme`). Shared by BOTH
   // templates: page width is a module contract, orthogonal to which template a `kind` selects.
-  const mainClassName = isWide ? `${styles.module} ${styles.wide}` : styles.module;
+  const mainClassName = isWide
+    ? `${styles.module} ${styles.wide}`
+    : styles.module;
   const mainDataLayout = isWide ? "wide" : "narrow";
 
   // CANVAS template (#139, kind-driven): a `project` whose module resolved an `Experience` gets

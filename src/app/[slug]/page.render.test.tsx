@@ -387,9 +387,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(screen.getByTestId("experience")).toBeInTheDocument();
     // No editorial surfaces: no template-rendered title/blurb, no article, no related region.
     expect(container.querySelector("article")).toBeNull();
-    expect(
-      screen.queryByRole("heading", { level: 1 }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
     expect(screen.queryByText("A blurb.")).not.toBeInTheDocument();
   });
 
@@ -400,7 +398,9 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
         kind: "project",
         componentKey: "palette-studio",
         slug: "palette-studio",
-        related: [{ _id: "r1", title: "Related", slug: "related", kind: "note" }],
+        related: [
+          { _id: "r1", title: "Related", slug: "related", kind: "note" },
+        ],
         backlinks: [
           { _id: "b1", title: "Backlink", slug: "backlink", kind: "note" },
         ],
