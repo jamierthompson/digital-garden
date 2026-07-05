@@ -33,6 +33,7 @@ import {
 import { DEFAULT_GAMUT, DEFAULT_RULES, type StudioRules } from "./core/rules";
 import { DEFAULT_SEED } from "./core/presets";
 import { tokensPairToScopeVars } from "./core/scope";
+import styles from "./StudioProvider.module.css";
 
 export interface StudioState {
   /** Slug-derived id namespace — ids must not collide across Activity-kept routes. */
@@ -154,6 +155,15 @@ export default function StudioProvider({
   }, [slug, seed, parsed, rules, gamut, scheme, palette, harmonyTier]);
 
   return (
-    <StudioContext.Provider value={value}>{children}</StudioContext.Provider>
+    <StudioContext.Provider value={value}>
+      {/* The studio's own working surface: re-binds `--bg` (the same `slotStyle` every Panel
+          already reads) and paints it, so the canvas itself — not just each card — sits on
+          the DERIVED palette instead of the site's editorial near-black. Confined to the
+          studio's own subtree; the page-level chrome around it is untouched here (a
+          dedicated wide-canvas page template is the planned home for that). */}
+      <div className={styles.surface} style={value.slotStyle}>
+        {children}
+      </div>
+    </StudioContext.Provider>
   );
 }

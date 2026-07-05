@@ -1,0 +1,15 @@
+/* The studio's own working surface — @layer components, var-consuming only. The studio
+   re-runs the engine in-browser and floats its cards/boards (each painting the derived
+   `--surface`) over whatever sits behind them. Left unthemed, that "behind" was the SITE's
+   editorial `--bg` (a near-black neutral, `globals.css`) — two unrelated color systems
+   touching. This wrapper re-binds `--bg` (via the SAME `slotStyle` every Panel already
+   uses) and paints it, so the whole canvas — the gaps between cards, not just the cards
+   themselves — is the DERIVED palette's own background. No `color-scheme` here: it must
+   inherit the ambient scheme (#159) rather than shadow the site-wide toggle. */
+@layer components {
+  .surface {
+    background: var(--bg);
+    padding: var(--space-6);
+    border-radius: 0.75rem;
+  }
+}
