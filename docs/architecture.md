@@ -87,7 +87,7 @@ token & theming architecture).
 Tokens are organized in **three layers**, each consuming the one before it:
 
 | Layer          | Lives at                                             | Contents                                                                                                                                                                                                                                                                                                 |
-| -------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| -------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Foundation** | global `:root`                                       | the raw primitives + the reset: the neutral B/W/gray ramp, the Source Serif 4 face, the spacing ramp, content-width measures (`--width-prose`/`-text`/`-content`), motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles.          |
 | **Semantic**   | global `:root` (the editorial default mapping)       | the **generic role tokens components read** — `--surface`, `--text`, `--text-muted`, `--accent`, `--font-face`, the status roles (`--success` … `--info`), etc. — mapped from the primitives. The editorial look **is** this default mapping at `:root`.                                                 |
 | **Brand**      | the themed entry's interactive slot (`[data-entry]`) | a **scoped override** of the semantic layer for one slot — the engine's contrast-solved color tokens (incl. focus-ring _color_ and status colors), driven by the slot's `brandColor`, plus `--font-face` from its `fontKey`. Open-ended by design: a slot may override any semantic token it differs on. |
@@ -425,8 +425,8 @@ src/entries/<slug>/   its pages (experience + any essay/hero/other) + embeddable
   content→code direction (a saved Sanity key whose code was renamed/deleted) degrades to a visible
   fallback instead of crashing — `not-found.tsx` for a `componentKey`/slug miss, a "missing embed"
   placeholder in the Portable Text serializer for an `embedKey` miss. (A CI check that GROQs all
-  _published_ keys and asserts each exists in code is an additive safety net, tracked in the issue
-  backlog — not a schema decision.)
+  _published_ keys and asserts each exists in code is an additive safety net — the `published-keys`
+  CI job, `scripts/check-published-keys.mjs` / `pnpm lint:keys:published` — not a schema decision.)
 - **Lazy-load each module** via a **literal** dynamic import per key
   (`() => import("@/entries/<slug>")`, never a templated `import(\`…/${slug}\`)`, which defeats
   bundler static analysis). Server Components are auto-split already; the manual lazy import
