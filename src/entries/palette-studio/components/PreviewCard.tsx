@@ -1,41 +1,18 @@
-// Live component preview (#106) for ONE scheme. The container re-binds the semantic tokens to
-// this scheme's GENERATED palette (tokensToScopeVars) and sets `color-scheme`; every specimen
-// inside reads the standard semantic tokens, so it paints the generated palette without ever
-// re-deriving color. Specimens are visual only (non-interactive) — a demo of the palette on
-// real component shapes, not working controls. Re-themes live because its tokens are props.
+// Live component preview (#106) — the generated palette on real component shapes (a card,
+// controls, status badges). It reads the STANDARD semantic tokens and inherits them from its
+// slot, which re-binds them to the generated palette as `light-dark()` literals — so every
+// specimen paints the generated palette AND follows the browser's resolved scheme at first
+// paint (flash-free), never a JS-resolved one. Specimens are visual only (non-interactive).
+//
+// Scheme-agnostic by construction: it sets no `color-scheme` (inherits, #159) and carries no
+// scheme in its accessible name (the single-scheme studio's scheme is the viewer's, resolved
+// by CSS) — so there is no light-first lie and nothing to correct on the client.
 
-import Kicker from "@/components/ui/Kicker";
-
-import type { Scheme, SchemeTokens } from "@garden/oklch";
-
-import { tokensToScopeVars } from "../core/scope";
 import styles from "./PreviewCard.module.css";
 
-interface PreviewCardProps {
-  readonly scheme: Scheme;
-  readonly tokens: SchemeTokens;
-}
-
-const STATUS: readonly { token: string; label: string }[] = [
-  { token: "success", label: "Saved" },
-  { token: "error", label: "Failed" },
-  { token: "warning", label: "Review" },
-  { token: "info", label: "Syncing" },
-];
-
-export default function PreviewCard({
-  scheme,
-  tokens,
-}: PreviewCardProps): React.ReactElement {
+export default function PreviewCard(): React.ReactElement {
   return (
-    <div
-      className={styles.root}
-      style={{ ...tokensToScopeVars(tokens), colorScheme: scheme }}
-      role="group"
-      aria-label={`${scheme} preview`}
-    >
-      <Kicker>{scheme}</Kicker>
-
+    <div className={styles.root} role="group" aria-label="palette preview">
       <div className={styles.card}>
         <p className={styles.cardTitle}>A card on this palette</p>
         <p className={styles.body}>
@@ -69,3 +46,10 @@ export default function PreviewCard({
     </div>
   );
 }
+
+const STATUS: readonly { token: string; label: string }[] = [
+  { token: "success", label: "Saved" },
+  { token: "error", label: "Failed" },
+  { token: "warning", label: "Review" },
+  { token: "info", label: "Syncing" },
+];

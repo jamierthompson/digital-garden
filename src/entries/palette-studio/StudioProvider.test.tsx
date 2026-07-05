@@ -211,15 +211,16 @@ describe("Palette Studio (Provider + slots)", () => {
     expect(checked[0]).toHaveAccessibleName("Tailwind");
   });
 
-  it("renders the live preview for the ACTIVE scheme and the contrast receipt for BOTH", () => {
+  it("renders one scheme-neutral live preview and the contrast receipt for BOTH schemes", () => {
     renderStudio();
-    // The preview is single-scheme now (the active scheme — light by default), matching the
-    // single-scheme cards; the site-wide toggle flips it. The receipt still shows both schemes.
+    // The preview is a SINGLE scheme-neutral group now — the specimens inherit the slot's
+    // light-dark() palette and paint the viewer's scheme via CSS (no scheme in the name, no
+    // light-first lie). The receipt still shows both schemes (baked light-dark literals).
     expect(
-      screen.getByRole("group", { name: "light preview" }),
+      screen.getByRole("group", { name: "palette preview" }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("group", { name: "dark preview" }),
+      screen.queryByRole("group", { name: /light preview|dark preview/ }),
     ).not.toBeInTheDocument();
     // The receipt is the guarantee: every measured pair passes, in both schemes.
     for (const name of ["light contrast receipt", "dark contrast receipt"]) {

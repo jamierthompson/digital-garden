@@ -32,7 +32,7 @@ import {
 } from "./core/derive";
 import { DEFAULT_GAMUT, DEFAULT_RULES, type StudioRules } from "./core/rules";
 import { DEFAULT_SEED } from "./core/presets";
-import { tokensToScopeVars } from "./core/scope";
+import { tokensPairToScopeVars } from "./core/scope";
 
 export interface StudioState {
   /** Slug-derived id namespace — ids must not collide across Activity-kept routes. */
@@ -143,7 +143,13 @@ export default function StudioProvider({
       palette,
       view,
       harmonyTier,
-      slotStyle: { ...tokensToScopeVars(view.tokens), colorScheme: scheme },
+      // Both schemes baked into `light-dark()` and NO inline `color-scheme` — the browser picks
+      // the scheme at first paint (following the inherited root `color-scheme`, #159), so the
+      // studio never paints light-first-then-corrects. Depends on `palette` only, not `scheme`.
+      slotStyle: tokensPairToScopeVars(
+        palette.light.tokens,
+        palette.dark.tokens,
+      ),
     };
   }, [slug, seed, parsed, rules, gamut, scheme, palette, harmonyTier]);
 

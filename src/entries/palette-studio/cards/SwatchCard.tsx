@@ -38,6 +38,9 @@ export default function SwatchCard({
   scheme,
 }: SwatchCardProps): React.ReactElement {
   const facet = scheme === "light" ? card.light : card.dark;
+  // The swatch paints per the browser's resolved scheme (light-dark()), NOT the JS-resolved
+  // `facet` — so it lands on the right color at first paint instead of light-first-then-correct.
+  const fill = `light-dark(${card.light.oklch}, ${card.dark.oklch})`;
   return (
     <li className={styles.card}>
       <div className={styles.header}>
@@ -46,7 +49,7 @@ export default function SwatchCard({
       </div>
 
       <div className={styles.swatch}>
-        <Swatch color={facet.oklch} oog={facet.oog} />
+        <Swatch color={fill} oog={facet.oog} />
       </div>
 
       <dl className={styles.values}>

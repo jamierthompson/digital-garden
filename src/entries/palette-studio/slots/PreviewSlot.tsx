@@ -17,7 +17,9 @@ export default function PreviewSlot(): React.ReactElement {
   if (!studio) return <MissingFrame name="live preview" />;
   return (
     <Panel label="Live preview" style={studio.slotStyle}>
-      <PreviewCard scheme={studio.scheme} tokens={studio.view.tokens} />
+      {/* No scheme prop — the specimens inherit the slot's `light-dark()` tokens and paint the
+          viewer's scheme at first paint (flash-free). */}
+      <PreviewCard />
     </Panel>
   );
 }

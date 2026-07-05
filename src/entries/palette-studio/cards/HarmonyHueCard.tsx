@@ -42,6 +42,10 @@ export default function HarmonyHueCard({
 }: HarmonyHueCardProps): React.ReactElement {
   const fill = scheme === "light" ? hue.fill.light : hue.fill.dark;
   const text = scheme === "light" ? hue.text.light : hue.text.dark;
+  // Swatch/chip fills paint per the browser's resolved scheme (light-dark()), flash-free; the
+  // oklch/step text is still `facet`-resolved (the text CSS-toggle rides a follow-up).
+  const fillLD = `light-dark(${formatOklch(hue.fill.light.color)}, ${formatOklch(hue.fill.dark.color)})`;
+  const textLD = `light-dark(${formatOklch(hue.text.light.color)}, ${formatOklch(hue.text.dark.color)})`;
   return (
     <li className={styles.card}>
       <div className={styles.header}>
@@ -51,7 +55,7 @@ export default function HarmonyHueCard({
       <p className={styles.gloss}>{RELATIONSHIP_GLOSS[hue.relationship]}</p>
 
       <div className={styles.fill}>
-        <Swatch color={formatOklch(fill.color)} />
+        <Swatch color={fillLD} />
       </div>
 
       <dl className={styles.picks}>
@@ -60,7 +64,7 @@ export default function HarmonyHueCard({
           <dd>
             <span
               className={styles.chip}
-              style={{ background: formatOklch(fill.color) }}
+              style={{ background: fillLD }}
               aria-hidden="true"
             />
             {formatOklch(fill.color)} · step {fill.provenance.label}
@@ -71,7 +75,7 @@ export default function HarmonyHueCard({
           <dd>
             <span
               className={styles.chip}
-              style={{ background: formatOklch(text.color) }}
+              style={{ background: textLD }}
               aria-hidden="true"
             />
             {formatOklch(text.color)} · step {text.provenance.label}
