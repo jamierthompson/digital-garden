@@ -17,6 +17,7 @@ import { Geist_Mono, Source_Serif_4 } from "next/font/google";
 import SiteNav from "@/components/shell/SiteNav";
 import SiteFooter from "@/components/shell/SiteFooter";
 import { FONT_FACES } from "@/fonts/roster";
+import { SCHEME_INIT_SCRIPT } from "@/lib/scheme";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
 import SanityLiveMount from "@/sanity/SanityLiveMount";
@@ -81,11 +82,21 @@ export default function RootLayout({
   // `[slug]/page.tsx`), never the shell. `siteSettings` still feeds `generateMetadata`
   // (title/description); it no longer themes the chrome.
   return (
+    // `suppressHydrationWarning` (one level, `<html>` only): the inline scheme script below
+    // may set `color-scheme` on <html> before React hydrates, an attribute the server markup
+    // doesn't carry — without this, React flags that one expected mismatch. The script only
+    // ever touches this element's attribute, so the suppression is scoped exactly to it.
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistMono.variable} ${sourceSerif.variable} ${FONT_FACES["space-grotesk"].variable} ${FONT_FACES["jetbrains-mono"].variable}`}
     >
       <body>
+        {/* Flash-free scheme: apply the persisted light/dark override before first paint.
+            First child of <body> so it runs during parse, ahead of any painted content;
+            "system"/no-override do nothing (the CSS `light dark` default already follows the
+            OS). See `@/lib/scheme`. */}
+        <script dangerouslySetInnerHTML={{ __html: SCHEME_INIT_SCRIPT }} />
         <SiteNav />
         {children}
         <SiteFooter />

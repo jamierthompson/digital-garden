@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import NavLinks from "./NavLinks";
+import SchemeToggle from "./SchemeToggle";
 import styles from "./SiteNav.module.css";
 
 /**
@@ -39,7 +40,12 @@ export default function SiteNav() {
             _
           </span>
         </Link>
-        <NavLinks />
+        {/* Right cluster: the primary links plus the site-wide scheme toggle (the shell's
+            one client island). Grouped so `folio_` stays hard-left and both sit hard-right. */}
+        <div className={styles.navEnd}>
+          <NavLinks />
+          <SchemeToggle />
+        </div>
       </nav>
     </header>
   );
