@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import type {
-  FillProvenance,
-  OnFillProvenance,
-  RampLabel,
-  RampRole,
-  StepProvenance,
+import {
+  BRAND_TOKEN_NAMES,
+  type FillProvenance,
+  type OnFillProvenance,
+  type RampLabel,
+  type RampRole,
+  type StepProvenance,
 } from "@garden/oklch";
 
+import { derivePalette } from "../core/derive";
+import { DEFAULT_GAMUT, DEFAULT_RULES } from "../core/rules";
+import { buildCards } from "./cardModel";
 import {
   counterpartHint,
   derivationSentence,
@@ -310,5 +314,48 @@ describe("oogNote", () => {
   it("explains the gamut-map-before-contrast ordering in plain words", () => {
     expect(oogNote()).toMatch(/more color than your screen can show/i);
     expect(oogNote()).toMatch(/backwards/i);
+  });
+});
+
+// The unit tests above feed hand-crafted provenance. This integration sweep runs the REAL
+// engine on hostile seeds — where the brand and neutral ramps converge (achromatic), where the
+// seed is label-hostile, and the low-chroma light-yellow class — and asserts every one of the
+// 34 cards, in BOTH schemes, produces a real sentence and hint. It is the guard against a
+// provenance/kind mismatch producing a lying or empty sentence, which synthetic inputs can hide.
+describe("derivationSentence — real-engine hostile-seed sweep never lies or empties", () => {
+  // The generic branch fallbacks: each signals a provenance that didn't match its card kind. A
+  // real palette must never surface one, so seeing any of them is the failure this sweep catches.
+  const GENERIC = new Set([
+    "A fixed background shade.",
+    "Auto-picked to stay readable on the background.",
+    "Auto-picked to stay readable on its container.",
+    "A signal color, chosen to stand out on the background.",
+    "The text that sits on the fill.",
+    "A hover state of your accent.",
+  ]);
+
+  const HOSTILE = [
+    "#faf3c0", // low-chroma light yellow
+    "#808080", // achromatic mid grey (brand ≈ neutral)
+    "#000000", // pure black
+    "#ffffff", // pure white
+    "#7f7f00", // dark mid-tone yellow (label-hostile)
+    "oklch(0.999 0.2 90)", // extreme L + chroma
+    "not-a-color", // engine fallback palette
+  ];
+
+  it.each(HOSTILE)("every card sentence is real and specific for %s", (seed) => {
+    const palette = derivePalette(seed, DEFAULT_RULES, DEFAULT_GAMUT);
+    const cards = buildCards(palette);
+    expect(cards).toHaveLength(BRAND_TOKEN_NAMES.length);
+    for (const card of cards) {
+      for (const facet of [card.light, card.dark]) {
+        const where = `${card.name}/${facet.scheme}: "${facet.sentence}"`;
+        expect(facet.sentence.trim(), where).not.toBe("");
+        expect(facet.sentence.trim().endsWith("."), where).toBe(true);
+        expect(GENERIC.has(facet.sentence.trim()), where).toBe(false);
+        expect(facet.counterpart.trim(), `${card.name}/${facet.scheme} hint`).not.toBe("");
+      }
+    }
   });
 });

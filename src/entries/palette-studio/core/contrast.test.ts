@@ -150,3 +150,31 @@ describe("QA-S13 · measureReceipt survives hostile & fallback input", () => {
     }
   });
 });
+
+// The receipt exists to prove the palette can never ship a failing readable combination. The
+// HUE_SPAN above is chromatic; these are the seeds that break naive contrast systems — an
+// achromatic seed (where brand ≈ neutral), the low-chroma light-yellow class, and extreme
+// lightness — where the engine's per-hue solve must still clear every readable pair in BOTH
+// schemes. If any receipt row fails here, the tool would be printing a false "passes" badge.
+describe("QA-34 · the receipt clears every readable pair on hostile hues", () => {
+  const HOSTILE = [
+    "#faf3c0", // low-chroma light yellow
+    "#808080", // achromatic mid grey
+    "#010101", // near-black
+    "#fefefe", // near-white
+    "oklch(0.5 0 0)", // achromatic via oklch
+    "oklch(0.999 0.2 90)", // extreme L + chroma yellow
+  ];
+
+  it.each(HOSTILE)("no failing row, either scheme, for %s", (seed) => {
+    const palette = derivePalette(seed, DEFAULT_RULES, DEFAULT_GAMUT);
+    for (const view of [palette.light, palette.dark]) {
+      for (const row of measureReceipt(view.tokens)) {
+        expect(
+          row.passes,
+          `${seed} ${view.scheme} ${row.label} — ${row.wcag.toFixed(2)}:1 / Lc ${row.apca.toFixed(1)}`,
+        ).toBe(true);
+      }
+    }
+  });
+});
