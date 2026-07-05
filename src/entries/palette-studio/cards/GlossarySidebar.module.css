@@ -7,11 +7,21 @@
     align-self: start;
   }
 
+  /* A horizontal row of term+definition items that WRAP (owner: the definitions live at the
+     bottom of the canvas as a row, not a right-edge column). Each item is a bounded column so
+     the definitions stay readable; the row wraps at narrow — never a page-level horizontal
+     scroll. */
   .terms {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
+    flex-flow: row wrap;
+    gap: var(--space-3) var(--space-6);
     margin: 0;
+  }
+
+  .terms > div {
+    flex: 1 1 14rem;
+    min-width: 0;
+    max-width: 22rem;
   }
 
   .terms dt {

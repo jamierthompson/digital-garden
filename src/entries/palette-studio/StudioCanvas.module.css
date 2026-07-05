@@ -29,9 +29,9 @@
       "rules"
       "cards"
       "table"
-      "glossary"
       "preview"
-      "exports";
+      "exports"
+      "glossary";
   }
 
   /* Wide canvas (the module declares `layout: "wide"`): controls rail on the left, the cards
@@ -40,15 +40,16 @@
      20rem left rail is sized for controls, not for either of those. */
   @media (min-width: 64rem) {
     .canvas {
-      grid-template-columns: 20rem minmax(0, 1fr) 16rem;
+      grid-template-columns: 20rem minmax(0, 1fr);
       align-items: start;
       grid-template-areas:
-        "seed    seed     seed"
-        "harmony harmony  harmony"
-        "rules   cards    glossary"
-        "exports cards    glossary"
-        "preview preview  preview"
-        "table   table    table";
+        "seed     seed"
+        "harmony  harmony"
+        "rules    cards"
+        "exports  cards"
+        "preview  preview"
+        "table    table"
+        "glossary glossary";
     }
   }
 

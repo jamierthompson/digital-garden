@@ -55,14 +55,16 @@ export default function StudioCanvas(): React.ReactElement {
         <div className={styles.table}>
           <PaletteTableSlot />
         </div>
-        <div className={styles.glossary}>
-          <GlossarySidebar />
-        </div>
         <div className={styles.preview}>
           <PreviewSlot />
         </div>
         <div className={styles.exports}>
           <ExportSlot />
+        </div>
+        {/* The shared glossary (#154) — a bottom full-width row of definitions, last in the
+            canvas above the footer. */}
+        <div className={styles.glossary}>
+          <GlossarySidebar />
         </div>
       </div>
     </ScrollArea>
