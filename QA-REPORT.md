@@ -22,11 +22,11 @@ GROQ `coalesce(a, b)` returns the **first non-null** operand. An empty string `"
 **not null**, so `coalesce("", …)` returns `""` — it does **not** fall through to the `/now`
 page seed. Verified by executing the real query with `groq-js`:
 
-| `now` entry `brandColor` | `themeSeed` | Expected (per code comments) |
-|---|---|---|
-| absent | `"#NOWSEED"` ✅ | `/now` seed |
-| `null` | `"#NOWSEED"` ✅ | `/now` seed |
-| `""` (empty) | **`""`** ❌ | `/now` seed |
+| `now` entry `brandColor` | `themeSeed`     | Expected (per code comments) |
+| ------------------------ | --------------- | ---------------------------- |
+| absent                   | `"#NOWSEED"` ✅ | `/now` seed                  |
+| `null`                   | `"#NOWSEED"` ✅ | `/now` seed                  |
+| `""` (empty)             | **`""`** ❌     | `/now` seed                  |
 
 **Reachability — `""` is a valid, unblocked value for a `now` entry.** Both author-time
 guards on `brandColor` pass an empty string for `kind: "now"`:
@@ -44,8 +44,8 @@ clean and renders an **unthemed page** with `themeSeed === ""`. The query's own 
 defeated silently: no error, no fallback, an empty seed handed to the downstream consumer (#175).
 
 **Pinned by (fails first):**
-`src/sanity/lib/queries.test.ts` → *"a now entry with an EMPTY-STRING brandColor still
-inherits the /now seed (empty-string coalesce hole)"* — `expected '' to be '#105060'`.
+`src/sanity/lib/queries.test.ts` → _"a now entry with an EMPTY-STRING brandColor still
+inherits the /now seed (empty-string coalesce hole)"_ — `expected '' to be '#105060'`.
 
 ---
 
@@ -60,20 +60,20 @@ design requires a `now` entry to **always** wear the `/now` seed regardless of i
 
 The query does **not** ignore them. Verified with `groq-js`:
 
-| `now` entry `brandColor` | `themeSeed` | Design contract |
-|---|---|---|
-| `"#OWNCOLOR"` | **`"#OWNCOLOR"`** ❌ | `/now` seed ("ignored downstream") |
+| `now` entry `brandColor` | `themeSeed`          | Design contract                    |
+| ------------------------ | -------------------- | ---------------------------------- |
+| `"#OWNCOLOR"`            | **`"#OWNCOLOR"`** ❌ | `/now` seed ("ignored downstream") |
 
 A `now` entry carrying a `brandColor` is not hypothetical: the schema field is neither
 `hidden` nor forbidden for `now`, and the existing suite explicitly blesses it
-(`entryValidators.test.ts` → *"ACCEPTS a brandColor set on a now update — set-but-ignored,
-never rejected"*). "set-but-ignored" is the stated contract; the query makes it
+(`entryValidators.test.ts` → _"ACCEPTS a brandColor set on a now update — set-but-ignored,
+never rejected"_). "set-but-ignored" is the stated contract; the query makes it
 **set-and-used**, so such a `now` update wears a **different** theme than the `/now` index —
 breaking the "a now update wears the same theme as the `/now` index" promise in `queries.ts`.
 
 **Pinned by (fails first):**
-`src/sanity/lib/queries.test.ts` → *"a now entry that carries its OWN brandColor still wears
-the /now seed (now theming is 'ignored downstream')"* — `expected '#f97316' to be '#105060'`.
+`src/sanity/lib/queries.test.ts` → _"a now entry that carries its OWN brandColor still wears
+the /now seed (now theming is 'ignored downstream')"_ — `expected '#f97316' to be '#105060'`.
 
 **Shared fix (author's call).** Both F1 and F2 are closed by making the `now` seed
 **kind-gated** instead of presence-gated, e.g.:
@@ -84,7 +84,7 @@ the /now seed (now theming is 'ignored downstream')"* — `expected '#f97316' to
 ```
 
 or by preventing a `now` entry from persisting a `brandColor` at all. **Alternatively**, if the
-team decides a `now` entry *may* opt into its own color and empty is truly unreachable, then the
+team decides a `now` entry _may_ opt into its own color and empty is truly unreachable, then the
 fix is to the **comments/tests** (they currently over-promise) — but that leaves F1's silent-`""`
 hole, which should still be closed. Either way the two failing tests force the decision.
 (Reviewer did not touch source — author fixes, QA re-checks.)
@@ -95,6 +95,7 @@ hole, which should still be closed. Either way the two failing tests force the d
 
 **`src/sanity/lib/stega.test.ts`** — the ancestor exclusion is a global
 `sourcePath.some(seg => seg === "pageThemes")`; pinned its edges:
+
 - deep (non-immediate) `pageThemes` ancestor → excluded;
 - numeric array-index segments tolerated without throwing;
 - leaf-name field (`brandColor`) excluded at arbitrary depth;
@@ -104,11 +105,12 @@ hole, which should still be closed. Either way the two failing tests force the d
 - empty source path `[]` → `false`, no crash.
 
 **`studio/schemaTypes/documents/entryValidators.test.ts`** —
+
 - non-string `kind` (number/object/boolean/null) fails **open** via the allowlist `includes`,
   never requires a color or throws.
 
 **`src/sanity/lib/queries.test.ts`** — the 4 passing executed-GROQ cases (absent/null → inherit,
-themed → own color, no-settings → null) pin the *good* coalesce paths alongside the 2 failing ones.
+themed → own color, no-settings → null) pin the _good_ coalesce paths alongside the 2 failing ones.
 
 ---
 
@@ -121,27 +123,27 @@ themed → own color, no-settings → null) pin the *good* coalesce paths alongs
   `null`/`""` as missing. Allowlist (not `≠ now` denylist) is deliberate and well-tested. ✅
 - **`pageThemes` required semantics (#4):** object + each of the 5 seeds carry `.required()`
   (schema-level; verified via the spy-Rule test that `.required()`/`.custom()` fire). Note:
-  Sanity `.required()` rejects `""` for a string, so a *seed* cannot publish empty — the
+  Sanity `.required()` rejects `""` for a string, so a _seed_ cannot publish empty — the
   empty-string hazard is **only** on the entry-side `brandColor` (F1), not the seeds. ✅
 - **TypeGen fidelity (#5):** `pnpm --filter studio typegen` + `git diff --exit-code
-  sanity.types.ts` is **clean**. `themeSeed: string | null` and `pageThemes?` (optional,
+sanity.types.ts` is **clean**. `themeSeed: string | null` and `pageThemes?` (optional,
   nullable inner) accurately model the query returns. ✅
 
 ---
 
 ## Gate results (honest exit codes; `pnpm test` not piped)
 
-| Stage | Result |
-|---|---|
-| `pnpm lint` | ✅ pass |
-| `pnpm lint:css` | ✅ pass (all rules layered) |
-| `pnpm lint:keys` | ✅ pass |
-| `pnpm lint:docs` | ✅ pass |
-| `pnpm format:check` | ✅ pass |
-| `pnpm typecheck` | ✅ pass |
-| `pnpm test` | ❌ **2 failed / 63 passed** — the F1 + F2 fail-first defect tests (intended) |
-| `pnpm --filter studio typegen` + `git diff --exit-code sanity.types.ts` | ✅ clean |
-| `pnpm build` | ✅ pass |
+| Stage                                                                   | Result                                                                       |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `pnpm lint`                                                             | ✅ pass                                                                      |
+| `pnpm lint:css`                                                         | ✅ pass (all rules layered)                                                  |
+| `pnpm lint:keys`                                                        | ✅ pass                                                                      |
+| `pnpm lint:docs`                                                        | ✅ pass                                                                      |
+| `pnpm format:check`                                                     | ✅ pass                                                                      |
+| `pnpm typecheck`                                                        | ✅ pass                                                                      |
+| `pnpm test`                                                             | ❌ **2 failed / 63 passed** — the F1 + F2 fail-first defect tests (intended) |
+| `pnpm --filter studio typegen` + `git diff --exit-code sanity.types.ts` | ✅ clean                                                                     |
+| `pnpm build`                                                            | ✅ pass                                                                      |
 
 The **only** red is the two fail-first defect tests. Every other stage — including my
 hardening additions — is green. The gate goes green once the author closes F1/F2.
@@ -149,4 +151,5 @@ hardening additions — is green. The gate goes green once the author closes F1/
 ---
 
 ## Re-check
+
 _(pending author fix)_

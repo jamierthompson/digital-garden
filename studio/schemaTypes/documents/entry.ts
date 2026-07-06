@@ -136,6 +136,11 @@ export const entry = defineType({
       type: 'string',
       description:
         'Hex or oklch() accent that themes this entry’s page and interactive component. Required for every note, essay, and project. (A “now” update inherits the /now page seed instead.)',
+      // Hidden for a `now` update, mirroring `stage`: `now` is theming-ignored downstream and
+      // inherits the /now seed, so surfacing the field would invite an author to set a value the
+      // resolver deliberately drops. The write path still ACCEPTS a value (the API/import contract
+      // is accept-but-ignore) — this only removes it from the `now` Studio form.
+      hidden: ({document}) => document?.kind === 'now',
       validation: (rule) => rule.custom(requiredForThemedKind).custom(isBrandColorString),
     }),
     defineField({
@@ -144,6 +149,9 @@ export const entry = defineType({
       type: 'string',
       description:
         'Optional dark-mode override. Leave empty to derive it automatically from the brand color.',
+      // Hidden for `now` alongside its paired `brandColor` — a dark override with no base color to
+      // override makes no sense on a kind that inherits the /now seed.
+      hidden: ({document}) => document?.kind === 'now',
       validation: (rule) => rule.custom(isBrandColorString),
     }),
     defineField({
