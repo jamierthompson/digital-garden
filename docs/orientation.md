@@ -38,14 +38,15 @@ scripts/
   check-css-layers.mjs     the @layer-declaration lint (pnpm lint:css)
   check-key-drift.mjs      the key-drift guard (pnpm lint:keys)
   check-doc-gate-sync.mjs  the gate-doc sync guard (pnpm lint:docs; keeps the gate chain ≡ across the DoD one command, ci.yml)
-  check-doc-links.mjs      the markdown link & anchor checker (the other half of pnpm lint:docs)
+  check-doc-links.mjs      the markdown link & anchor checker (also part of pnpm lint:docs)
+  check-retired-citations.mjs  the retired-citation guard (the third piece of pnpm lint:docs)
+  check-published-keys.mjs the published-keys → code drift net (pnpm lint:keys:published; CI job published-keys)
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
     layout.tsx             root layout (shell nav skeleton, shell fonts preload:true)
     foundation.css         foundation primitives + semantic editorial defaults + the @layer foundation, semantic, brand, components order
   lib/                     resolvers, keys, cardSwatches, breakpoints (build-time, NOT :root vars)
   entries/<slug>/          self-contained entry modules (registry-resolved, literal imports)
-  embeds/                  shared cross-entry embed components (componentKey/embedKey resolved in lib/resolvers/)
   fonts/roster.ts          curated next/font faces, one per key (preload:false)
   sanity/lib/              Sanity client + env + the defineLive read path
 packages/
