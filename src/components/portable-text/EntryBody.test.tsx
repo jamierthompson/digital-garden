@@ -51,7 +51,6 @@ const BODY = [
 
 const SCOPE: ScopeSeed = {
   slug: "palette-studio",
-  brandColor: "oklch(0.66 0.2 350)",
   fontKey: "jetbrains-mono",
 };
 

@@ -13,7 +13,7 @@ interface PanelProps {
   /**
    * Visual treatment. `framed` (default) is the bordered surface card. `plain` drops ALL
    * chrome (surface, border, radius, padding) so a group of self-chromed cards sits directly on
-   * the wash instead of on an island — the section, its `region` label, and the `style` token
+   * the themed ground (the page `--bg`) instead of on an island — the section, its `region` label, and the `style` token
    * binding are UNCHANGED, so scoped-token resolution and a11y hold either way.
    */
   readonly variant?: "framed" | "plain";

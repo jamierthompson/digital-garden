@@ -12,7 +12,7 @@ const ORANGE = "#c2410c";
 const BLUE = "#1d4ed8";
 
 // The semantic role names components actually read — the generic contract the engine themes
-// and `foundation.css` binds as the editorial default.
+// and `foundation.css` binds as the engine fallback token set.
 const CORE_ROLES = [
   "--surface",
   "--accent",

@@ -1,65 +1,46 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
-import {
-  BRAND_LAYER,
-  hashCss,
-  resolveScope,
-  scopedStyleCss,
-} from "./scopeSeed";
+import { FONT_STACK, resolveScope } from "./scopeSeed";
 
 interface EntryScopeProps {
-  /** Untrusted scope seed (e.g. `{ slug }` from route params). Resolved defensively. */
+  /** Untrusted scope seed (e.g. `{ slug, fontKey }` from the entry doc). Resolved defensively. */
   seed: unknown;
   children: ReactNode;
 }
 
 /**
- * The keystone. A **synchronous** server component that turns a scope seed into a
- * flash-free scoped theme:
+ * The entry's bounded font slot. A **synchronous** server component that mounts its subtree
+ * under `[data-entry="<slug>"]` wearing the entry's brand typeface.
  *
- * 1. Emits the scoped `<style>`: the OKLCH engine's baked semantic-token `light-dark()`
- *    literals (`--surface`, `--accent`, … `--success`), the `--focus-ring-color` alias, and
- *    the resolved font's `--font-face` mapping — all in one block declared `@layer brand`.
- *    The slot re-binds the generic semantic tokens for this island, overriding the global
- *    editorial defaults from `@layer semantic`.
- * 2. Wraps its subtree in `[data-entry="<slug>"]`, mounting the resolved roster face's
- *    `.variable` className so `var(--font-face)` has its variable in scope.
+ * Color is NOT re-bound here: the page stamps its authored seed on `<html>` (see `PageTheme`),
+ * and the slot inherits every color token from it — the page and its slot are one seed. The only
+ * per-slot override is the font, so this maps `--font-face` to the resolved roster face as an
+ * **inline style** on the wrapper (alongside that face's `.variable` class, which brings
+ * `var(<cssVariable>)` into scope). Inline on a server-rendered div → the value is in the initial
+ * shell HTML (flash-free) and is per-element, so distinct slots can never collide.
  *
- * Flash-free mechanics: the `<style>` uses React 19's `precedence` + a slug `href`.
- * React hoists it into `<head>`, de-dupes by `href`, and orders by precedence — so even when
- * the route streams, the theme is in the initial shell HTML **before** the body paints (no
- * FOUC). The `precedence` and the `@layer` wrapper from `scopedStyleCss` both read the single
- * `BRAND_LAYER` const so they cannot desync — see `scopeSeed.ts`.
- *
- * Defensive by construction: `resolveScope` never throws — it collapses any bad seed
- * to a safe fallback palette + shell font. It is ALSO wrapped at the route in
- * `unstable_catchError` (see `EntryScopeBoundary`) as the last-resort backstop: `error.tsx`
- * can't catch a layout-level throw, so a component boundary is the correct containment.
+ * Defensive by construction: `resolveScope` never throws — it collapses any bad seed to a safe
+ * slug + the shell mono face. It is ALSO wrapped at the route in `unstable_catchError` (see
+ * `EntryScopeBoundary`) as the last-resort backstop: `error.tsx` can't catch a layout-level
+ * throw, so a component boundary is the correct containment.
  *
  * Synchronous on purpose: it awaits nothing, so it prerenders into the static shell with no
- * `use cache` needed (`node_modules/next/dist/docs/01-app/01-getting-started/08-caching.md`),
- * and stays unit-testable in jsdom (async RSCs do not render there).
+ * `use cache` needed, and stays unit-testable in jsdom (async RSCs do not render there).
  */
 export default function EntryScope({ seed, children }: EntryScopeProps) {
   const scope = resolveScope(seed);
-  const css = scopedStyleCss(scope);
-  // Key the hoisted <style> on the slug AND a hash of its CONTENT. React 19 de-dupes hoisted
-  // styles by `href`: the content hash means distinct themes never share one <style> (no
-  // cross-slot bleed), and a SAME-slug re-render with an edited brand gets a new href so the
-  // preview shows the fresh theme instead of the stale first-committed one.
-  const href = `entry-theme-${scope.slug}-${hashCss(css)}`;
+  const style = {
+    "--font-face": `var(${scope.font.cssVariable}), ${FONT_STACK}`,
+  } as CSSProperties;
   return (
-    <>
-      {/* `precedence` and the `@layer` in `scopedStyleCss` read the SAME `BRAND_LAYER`
-          const, so hoist order and cascade layer cannot desync. */}
-      <style href={href} precedence={BRAND_LAYER}>
-        {css}
-      </style>
-      {/* Shell-mono fallback has no roster class (its variable is already on `<html>`), so
-          `className` is omitted to avoid an empty class attribute. */}
-      <div data-entry={scope.slug} className={scope.font.variable || undefined}>
-        {children}
-      </div>
-    </>
+    // Shell-mono fallback has no roster class (its variable is already on `<html>`), so
+    // `className` is omitted to avoid an empty class attribute.
+    <div
+      data-entry={scope.slug}
+      className={scope.font.variable || undefined}
+      style={style}
+    >
+      {children}
+    </div>
   );
 }

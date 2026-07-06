@@ -16,13 +16,13 @@ type Body = NonNullable<NonNullable<ENTRY_DETAIL_QUERY_RESULT>["body"]>;
 interface EntryBodyProps {
   value: Body;
   /**
-   * The host entry's brand-scope seed — set whenever a non-`now` entry themes OR mounts a
+   * The host entry's font-scope seed — set whenever a non-`now` entry themes OR mounts a
    * module (`brandColor || componentKey`), not just for a project. Keyed on the entry's own
-   * slug, so a module-only entry (no `brandColor`) still scopes its embeds under its own
-   * `[data-entry]` with the engine's fallback palette. Threaded to each `liveEmbed` so every
-   * embed mounts in its own scoped container while the prose between them stays editorial. The
-   * serializer is per-render because the components map closes over it; the map is tiny, so
-   * rebuilding it costs nothing measurable.
+   * slug, so a module-only entry still scopes its embeds under its own `[data-entry]`. Threaded
+   * to each `liveEmbed` so every embed mounts in its own container wearing the entry's brand
+   * font while the prose between them keeps the editorial body face (color comes from the page's
+   * `<html>` theme, inherited by both). The serializer is per-render because the components map
+   * closes over it; the map is tiny, so rebuilding it costs nothing measurable.
    */
   scope?: ScopeSeed;
 }

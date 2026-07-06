@@ -1,7 +1,7 @@
 /* Panel primitive — @layer components, var-consuming only. `.panel` is the structural base
    (layout + ambient text); `.framed` adds the demo-panel surface (hairline border, soft radius,
    ambient surface — editorial by default, brand inside a brand slot). `plain` panels omit
-   `.framed` so a grid of self-chromed cards sits directly on the wash. */
+   `.framed` so a grid of self-chromed cards sits directly on the themed ground (the page `--bg`). */
 @layer components {
   .panel {
     display: flex;

@@ -20,19 +20,19 @@ const SEEDS = [
   "not-a-color", // fallback path
 ];
 
-// washBg's whole reason to exist post-#160: it is the ONE derivation of the page wash, reading
+// washBg's whole reason to exist post-#160: it is the ONE derivation of the page's `--bg`, reading
 // the engine's `--bg` token directly with NO app-layer chroma constant (the b2982a8 stopgap
 // removal). These tests lock that single-source invariant — re-introducing a local chroma
 // override, or drifting the format, would fail here.
-describe("washBgValue — the single source for the page wash (#160)", () => {
+describe("washBgValue — the single source for the page's --bg (#160)", () => {
   it.each(SEEDS)(
     "equals the engine's own baked --bg declaration for %s",
     (seed) => {
       const set = buildTokenSet(seed, { gamut: "srgb" });
       const wash = washBgValue(set);
 
-      // The value the engine serializes into every surface's `--bg` — the wash must be byte-
-      // identical to it, so the page-spanning wash can never disagree with the surfaces on it.
+      // The value the engine serializes into every surface's `--bg` — this must be byte-
+      // identical to it, so the page's `--bg` can never disagree with the surfaces on it.
       const bgLine = tokenSetToCss(set, ":root")
         .split("\n")
         .find((line) => line.trim().startsWith("--bg:"));
@@ -47,8 +47,8 @@ describe("washBgValue — the single source for the page wash (#160)", () => {
   );
 
   it("carries the engine's neutral chroma directly — no app-layer override", () => {
-    // A tinted seed's wash is chromatic (the engine's raised neutral chroma), and turning
-    // tinted neutrals OFF makes the wash achromatic — proof the tint comes from the engine, not
+    // A tinted seed's `--bg` is chromatic (the engine's raised neutral chroma), and turning
+    // tinted neutrals OFF makes it achromatic — proof the tint comes from the engine, not
     // a constant baked into washBg. A local chroma override would make both cases identical.
     const tinted = washBgValue(buildTokenSet("#06b6d4", { gamut: "srgb" }));
     const rules: EngineRules = { tintedNeutrals: false };
@@ -56,7 +56,7 @@ describe("washBgValue — the single source for the page wash (#160)", () => {
       buildTokenSet("#06b6d4", { gamut: "srgb", rules }),
     );
     expect(tinted).not.toBe(flat);
-    // The wash IS `light-dark(<bg.light>, <bg.dark>)` of the token set, nothing else.
+    // The value IS `light-dark(<bg.light>, <bg.dark>)` of the token set, nothing else.
     const set = buildTokenSet("#06b6d4", { gamut: "srgb" });
     expect(washBgValue(set)).toBe(
       `light-dark(${formatOklch(set.tokens.bg.light)}, ${formatOklch(set.tokens.bg.dark)})`,

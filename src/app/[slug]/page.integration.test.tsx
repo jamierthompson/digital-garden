@@ -46,41 +46,35 @@ vi.mock("@/sanity/lib/client", () => ({
 }));
 
 describe("/[slug] primary flow (Sanity mocked)", () => {
-  it("drives a real, non-fallback themed scope from the doc's brandColor + slug", () => {
-    // EntryScope is handed { slug, brandColor, fontKey }. The slug passes through
-    // `vetSlug` (sanitized `[a-z0-9-]`, unique per entry) to its OWN scope — it does not
-    // collapse to `fallback` for a valid slug.
+  it("drives a real scope from the doc's slug + fontKey", () => {
+    // EntryScope is handed { slug, fontKey }. The slug passes through `vetSlug` (sanitized
+    // `[a-z0-9-]`, unique per entry) to its OWN scope — it does not collapse to `fallback` for a
+    // valid slug — and the roster resolves the requested face.
     const scope = resolveScope({
       slug: THEMED_ENTRY.slug,
-      brandColor: THEMED_ENTRY.brandColor,
       fontKey: THEMED_ENTRY.fontKey,
     });
     expect(scope.slug).toBe("themed-slot");
-    // A parseable brand color yields a real engine palette, not the fallback.
-    expect(scope.tokenSet.meta.isFallback).toBe(false);
     // The roster font resolved (newsreader is a real key), so its variable class is present.
     expect(scope.font.variable).not.toBe("");
+    expect(scope.font.cssVariable).toBe("--font-newsreader");
   });
 
-  it("renders the slot themed with its own brand under its data-entry scope", () => {
+  it("renders the slot under its data-entry scope wearing the entry's brand font", () => {
     const { container } = render(
       <EntryScope
-        seed={{
-          slug: THEMED_ENTRY.slug,
-          brandColor: THEMED_ENTRY.brandColor,
-          fontKey: THEMED_ENTRY.fontKey,
-        }}
+        seed={{ slug: THEMED_ENTRY.slug, fontKey: THEMED_ENTRY.fontKey }}
       >
         <p>essay</p>
       </EntryScope>,
     );
-    const wrapper = container.querySelector("[data-entry]");
+    const wrapper = container.querySelector("[data-entry]") as HTMLElement;
     expect(wrapper).toHaveAttribute("data-entry", "themed-slot");
-    // React 19 hoists the `<style precedence>` into <head> (see EntryScope.test.tsx); the
-    // scoped block re-binds the generic semantic tokens with baked literals on THIS island.
-    const style = document.head.querySelector("style[data-precedence]");
-    expect(style?.textContent).toContain('[data-entry="themed-slot"]');
-    expect(style?.textContent).toContain("--accent: light-dark(");
+    // Color is inherited from the page's `<html>` theme; the only per-slot override is the
+    // entry's font, mapped onto `--font-face` inline on this island.
+    expect(wrapper.style.getPropertyValue("--font-face")).toContain(
+      "var(--font-newsreader)",
+    );
   });
 
   it("shows the missing-embed placeholder for an unresolved embed key (no crash)", async () => {

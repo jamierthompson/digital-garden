@@ -5,7 +5,6 @@ import EntryBody from "@/components/portable-text/EntryBody";
 import PageTheme from "@/components/theme/PageTheme";
 import EntryScope from "@/components/entry-scope/EntryScope";
 import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
-import EntryScopeWash from "@/components/entry-scope/EntryScopeWash";
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 import RelatedEntries from "@/components/entry/RelatedEntries";
 import { resolveComponentKey } from "@/lib/resolvers/components";
@@ -38,17 +37,12 @@ import styles from "./page.module.css";
 //   CANVAS (new): the `Experience` module IS the page — no editorial <article>, no
 //   template-rendered title (the module renders its own if it needs one), no <RelatedEntries>.
 //     <main data-template="canvas">
-//       ├ EntryScopeWash — hoists a page-spanning `--bg` re-bind (see `scopedWashCss`'s doc
-//       │   comment for why this can't just be a bare `:root`/`body` override, or even a naive
-//       │   `:has([data-entry])` — Cache Components' `<Activity>` keeps the PREVIOUS `/[slug]`
-//       │   route mounted-but-hidden rather than unmounting it) so SiteNav and SiteFooter —
-//       │   mounted above this route in the ROOT layout — share the entry's derived wash even
-//       │   though this component never touches them directly. The `data-template="canvas"`
-//       │   marker on `<main>` below is part of that selector's contract — don't rename it
-//       │   without updating `scopedWashCss`.
-//       └ EntryScopeBoundary + EntryScope + <Experience/> — same bounded brand scope as the
-//           editorial template's slot; ITS `[data-entry]` div is also what EntryScopeWash's
-//           `:has()` selector keys off.
+//       └ EntryScopeBoundary + EntryScope + <Experience/> — the bounded font slot. The page's
+//           `<html>` theme (via <PageTheme>) supplies `--bg` and every color token, which
+//           SiteNav/SiteFooter (in the ROOT layout) and this canvas both inherit; EntryScope
+//           adds only the entry's brand font on its `[data-entry]` div. The `data-template=
+//           "canvas"` marker on `<main>` below is the hook for the canvas scroll-lock rule
+//           (`page.module.css`) — don't rename it without updating that selector.
 //
 // CAPABILITY-gated (independent of the kind gate above): which slot an entry gets is decided
 // by the capability fields it carries, not solely by its `kind` (any kind of entry can be
@@ -165,20 +159,15 @@ export default async function EntryPage({ params }: EntryPageProps) {
   // dependence on a particular slot shape.
   const isWide = entryModule?.layout === "wide";
 
-  // The brand seed, threaded to the body so each `liveEmbed` — and the `Experience` slot —
-  // mounts in its own scoped container. Built whenever this entry either themes (`brandColor`)
-  // OR mounts a module: keyed on the REAL `slug` so a scope never collapses to the shared
-  // `data-entry="fallback"` (which would cross-contaminate two such entries via one hoisted
-  // `<style>` — see `vetSlug`). An absent `brandColor`/`fontKey` is a safe empty string: the
-  // keystone falls back to the engine palette + shell font without throwing. The prose between
-  // slots reads the editorial tiers — brand never wraps the article itself.
+  // The font seed for the entry's slot(s), threaded to the body so each `liveEmbed` — and the
+  // `Experience` slot — mounts in its own `[data-entry]` wearing the entry's brand font. Built
+  // whenever this entry either themes (`brandColor`) OR mounts a module: keyed on the REAL `slug`
+  // so a scope never collapses to the shared `data-entry="fallback"`. An absent `fontKey` is a
+  // safe empty string: the keystone falls back to the shell font without throwing. The slot's
+  // COLOR comes from the page's `<html>` theme (inherited); this seed carries only the font.
   const scope: ScopeSeed | undefined =
     !isNow && (entry.brandColor || entryModule)
-      ? {
-          slug,
-          brandColor: entry.brandColor ?? "",
-          fontKey: entry.fontKey ?? "",
-        }
+      ? { slug, fontKey: entry.fontKey ?? "" }
       : undefined;
 
   // `.module` caps the page at the editorial measure; the `.wide` modifier (module-declared)
@@ -205,15 +194,10 @@ export default async function EntryPage({ params }: EntryPageProps) {
           data-layout={mainDataLayout}
           data-template="canvas"
         >
-          {/* Page-spanning background wash: re-binds `--bg` at `body` so SiteNav/SiteFooter (in
-            the ROOT layout, above this route) share the entry's derived wash — see
-            `scopedWashCss`'s doc comment for the mechanism and why a bare `:root`/`body`
-            override (or a naive `:has([data-entry])`) isn't safe here. The `data-template`
-            attribute on THIS `<main>` is load-bearing for that selector — see the file-header
-            comment above. */}
-          <EntryScopeWash seed={scope} />
-          {/* Same bounded brand scope as the editorial template's slot (below) — its
-            `[data-entry]` div is also what `EntryScopeWash`'s `:has()` selector keys off. */}
+          {/* The bounded font slot: `<html>`'s theme supplies `--bg` and every color token
+            (inherited by SiteNav/SiteFooter and this canvas alike); EntryScope adds only the
+            entry's brand font. `data-template="canvas"` on THIS `<main>` is the hook for the
+            canvas scroll-lock rule (`page.module.css`). */}
           <div className={styles.experience}>
             <EntryScopeBoundary>
               <EntryScope seed={scope}>
