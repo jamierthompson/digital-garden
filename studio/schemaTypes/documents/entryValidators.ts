@@ -39,6 +39,21 @@ export function requiredForThemedKind(value: unknown, context: ValidationContext
 }
 
 /**
+ * A `now` entry may NOT carry its own color. A now update inherits the single `/now` page seed
+ * (`siteSettings.pageThemes.now`), which themes the `/now` index and every `now` entry alike — so a
+ * now entry has no color of its own to set. This REJECTS a non-empty `brandColor` / `brandColorDark`
+ * on a `now` (empty/absent is fine); the field is also hidden for a `now` in the Studio, so this is
+ * the belt to that suspenders — it guards the API/import path a hidden field can't. The
+ * complementary `requiredForThemedKind` floor never touches `now`.
+ */
+export function forbiddenForNow(value: unknown, context: ValidationContext): true | string {
+  const kind = (context.document as {kind?: unknown} | undefined)?.kind
+  return kind === 'now' && value
+    ? 'A “now” entry inherits the /now page seed and can’t set its own color.'
+    : true
+}
+
+/**
  * `componentKey` / `fontKey` are required only for a `project` PAST the sketch stage: they
  * name a coded module + face, and a `stage: sketch` project has no module yet, so it carries
  * a `brandColor` but no componentKey/fontKey until it graduates to prototype/shipped.

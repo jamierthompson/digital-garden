@@ -1,6 +1,10 @@
 import {describe, expect, it} from 'vitest'
 
-import {requiredForNonSketchProject, requiredForThemedKind} from './entryValidators'
+import {
+  forbiddenForNow,
+  requiredForNonSketchProject,
+  requiredForThemedKind,
+} from './entryValidators'
 
 // The validators only read `context.document.{kind,stage}`; build a minimal context and
 // cast to the real parameter type (derived from the function itself, so no `sanity` type
@@ -32,12 +36,12 @@ describe('requiredForThemedKind — brandColor: required for note/essay/project 
     expect(requiredForThemedKind('#abc', ctx({kind: 'note'}))).toBe(true)
   })
 
-  it('is never required for a now update (chrome + prose — inherits the /now seed)', () => {
+  it('is never required for a now update — the floor exempts now (forbiddenForNow owns the ban)', () => {
+    // requiredForThemedKind is ONLY the required floor; it never fires for now, whether the value
+    // is absent or (irrelevantly to this validator) present. The now PROHIBITION lives in the
+    // sibling `forbiddenForNow` — tested in its own block below — so the two concerns stay split.
     expect(requiredForThemedKind(undefined, ctx({kind: 'now'}))).toBe(true)
     expect(requiredForThemedKind(null, ctx({kind: 'now'}))).toBe(true)
-  })
-
-  it('ACCEPTS a brandColor set on a now update — set-but-ignored, never rejected', () => {
     expect(requiredForThemedKind('#4f46e5', ctx({kind: 'now'}))).toBe(true)
   })
 
@@ -75,6 +79,30 @@ describe('requiredForThemedKind — brandColor: required for note/essay/project 
     expect(requiredForThemedKind(undefined, ctx({kind: {_type: 'x'}}))).toBe(true)
     expect(requiredForThemedKind(undefined, ctx({kind: true}))).toBe(true)
     expect(requiredForThemedKind(undefined, ctx({kind: null}))).toBe(true)
+  })
+})
+
+describe('forbiddenForNow — a now entry cannot set its own color (#173)', () => {
+  it('REJECTS a non-empty color on a now entry (the /now seed themes all now content)', () => {
+    expect(forbiddenForNow('#4f46e5', ctx({kind: 'now'}))).toMatch(/set its own color/)
+    expect(forbiddenForNow('oklch(0.6 0.1 200)', ctx({kind: 'now'}))).toMatch(/set its own color/)
+  })
+
+  it('allows an empty/absent color on a now entry — nothing to reject', () => {
+    expect(forbiddenForNow('', ctx({kind: 'now'}))).toBe(true)
+    expect(forbiddenForNow(undefined, ctx({kind: 'now'}))).toBe(true)
+    expect(forbiddenForNow(null, ctx({kind: 'now'}))).toBe(true)
+  })
+
+  it('never touches a non-now kind — a themed (or unknown) entry sets its own color freely', () => {
+    for (const kind of ['note', 'essay', 'project', 'bookmark']) {
+      expect(forbiddenForNow('#4f46e5', ctx({kind}))).toBe(true)
+    }
+  })
+
+  it('passes when the document/kind is missing (no kind to gate on)', () => {
+    expect(forbiddenForNow('#4f46e5', ctx(undefined))).toBe(true)
+    expect(forbiddenForNow('#4f46e5', ctx({}))).toBe(true)
   })
 })
 

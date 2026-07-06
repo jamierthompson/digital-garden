@@ -596,8 +596,10 @@ componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fon
   `brandColor` is **required for every themed kind** — note, essay, and project (each page derives its
   theme from an authored seed). `componentKey`/`fontKey` stay **conditionally required for a
   `project`** (past the sketch stage) and **optional-but-honored** for a `note`/`essay`. A `now`
-  update is chrome + prose by design: it carries no `brandColor` (the field is hidden for a `now` in
-  the Studio and ignored on write) and **inherits the `/now` page seed** instead. `stage` does not
+  update is chrome + prose by design: it **cannot set its own `brandColor`** (the field is hidden for
+  a `now` in the Studio and rejected on write by `forbiddenForNow`) and **inherits the `/now` page
+  seed** instead — the single `/now` seed themes the `/now` index and every `now` entry alike. `stage`
+  does not
   apply to a `now`. A second document type is deferred until a kind genuinely proves divergent fields.
 - **`stage` is maturity; `iterated` is freshness.** **`stage`** (sketch → prototype → shipped —
   stable stored values, labels re-wordable in the UI) is the honesty badge on every entry, independent
