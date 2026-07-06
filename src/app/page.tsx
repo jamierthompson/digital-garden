@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { VisuallyHidden } from "radix-ui";
 
 import EntryCard from "@/components/entry/EntryCard";
+import PageTheme from "@/components/theme/PageTheme";
+import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
 import { FEATURED_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
 
@@ -20,32 +22,42 @@ export const metadata: Metadata = {
  * own `brandColor` (see `EntryCard`), while the surrounding shell stays editorial ink.
  */
 export default async function Home() {
+  // Both reads are `use cache`, so they resolve into the prerendered static shell — the theme
+  // seed on the page's own awaited path, fed to a synchronous `<PageTheme>` mounted first so its
+  // inline `<html>` script bakes into the initial HTML (flash-free; #172 streamed-shell rule).
+  const themeSeed = await sitePageThemeSeed("home");
   const featured = await sanityFetch(FEATURED_QUERY);
 
   return (
-    <main className={styles.main}>
-      <section className={styles.hero}>
-        <h1 className={styles.title}>
-          Notes, essays, and things I&rsquo;m building in the open.
-        </h1>
-      </section>
+    <>
+      <PageTheme seed={themeSeed} />
+      <main className={styles.main}>
+        <section className={styles.hero}>
+          <h1 className={styles.title}>
+            Notes, essays, and things I&rsquo;m building in the open.
+          </h1>
+        </section>
 
-      {featured.length > 0 ? (
-        <section className={styles.featured} aria-labelledby="featured-heading">
-          {/* The visual design (mockup 4a) omits a "Featured" label — the plates follow the
+        {featured.length > 0 ? (
+          <section
+            className={styles.featured}
+            aria-labelledby="featured-heading"
+          >
+            {/* The visual design (mockup 4a) omits a "Featured" label — the plates follow the
               hero directly. The heading is kept but visually hidden (Radix VisuallyHidden via
               `asChild`, so it stays a real <h2>) — the section keeps its accessible name and
               the document outline stays intact. */}
-          <VisuallyHidden.Root asChild>
-            <h2 id="featured-heading">Featured</h2>
-          </VisuallyHidden.Root>
-          <ul className={styles.grid}>
-            {featured.map((entry) => (
-              <EntryCard key={entry._id} entry={entry} />
-            ))}
-          </ul>
-        </section>
-      ) : null}
-    </main>
+            <VisuallyHidden.Root asChild>
+              <h2 id="featured-heading">Featured</h2>
+            </VisuallyHidden.Root>
+            <ul className={styles.grid}>
+              {featured.map((entry) => (
+                <EntryCard key={entry._id} entry={entry} />
+              ))}
+            </ul>
+          </section>
+        ) : null}
+      </main>
+    </>
   );
 }

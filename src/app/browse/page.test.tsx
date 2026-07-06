@@ -1,10 +1,22 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // IndexPage is an async Server Component reading INDEX_QUERY. Mock the single read path;
 // `vi.hoisted` lets a per-test fixture be swapped before the hoisted factory runs.
 const { fetchMock } = vi.hoisted(() => ({ fetchMock: vi.fn() }));
 vi.mock("@/sanity/lib/sanityFetch", () => ({ sanityFetch: fetchMock }));
+
+// The page also resolves its own `pageThemes.browse` seed via `sitePageThemeSeed`. These tests
+// cover the Index's CONTENT rendering, so stub the seed helper to a fixed null — its resolution is
+// covered by `sitePageSeed.test.ts`. Kept as a HOISTED spy (not an inline fn) so a nested suite can
+// pin that `IndexPage` asks for its OWN `browse` key. Stubbing also keeps the helper's `server-only`
+// import out of this suite.
+const { seedSpy } = vi.hoisted(() => ({
+  seedSpy: vi.fn(async () => null),
+}));
+vi.mock("@/components/theme/sitePageSeed", () => ({
+  sitePageThemeSeed: seedSpy,
+}));
 
 import IndexPage from "./page";
 
@@ -207,5 +219,27 @@ describe("IndexPage (/browse) — the folded Index", () => {
     const h1s = screen.getAllByRole("heading", { level: 1 });
     expect(h1s).toHaveLength(1);
     expect(h1s[0]).toHaveTextContent("Index");
+  });
+});
+
+describe("IndexPage (/browse) — theme mount wiring", () => {
+  beforeEach(() => {
+    seedSpy.mockClear();
+  });
+
+  it("resolves its OWN `browse` seed key and mounts a PageTheme init script", async () => {
+    // #175: every site route stamps its authored seed on `<html>`. The `SitePageKey` type keeps
+    // the key a valid `pageThemes` field, but NOT the RIGHT one — a copy-paste ("about"/"system")
+    // would still compile. Pin that IndexPage asks for `browse`, and that the (synchronous)
+    // PageTheme actually mounts its parse-time init script in the rendered shell.
+    fetchMock.mockResolvedValueOnce([
+      row({ _id: "p", kind: "project", title: "P", slug: "p" }),
+    ]);
+    const { container } = render(await IndexPage());
+    expect(seedSpy).toHaveBeenCalledWith("browse");
+    const initScript = [...container.querySelectorAll("script")].find((s) =>
+      s.innerHTML.includes("setProperty"),
+    );
+    expect(initScript).toBeDefined();
   });
 });

@@ -26,6 +26,18 @@ const { NOW_FIXTURE, fetchMock } = vi.hoisted(() => ({
 
 vi.mock("@/sanity/lib/sanityFetch", () => ({ sanityFetch: fetchMock }));
 
+// The page also resolves its own `pageThemes.now` seed via `sitePageThemeSeed`. These tests cover
+// the Now stream's CONTENT rendering, so stub the seed helper to a fixed null — its resolution is
+// covered by `sitePageSeed.test.ts`. Kept as a HOISTED spy (not an inline fn) so a nested suite can
+// pin that `NowPage` asks for its OWN `now` key. Stubbing also keeps the helper's `server-only`
+// import out of this suite.
+const { seedSpy } = vi.hoisted(() => ({
+  seedSpy: vi.fn(async () => null),
+}));
+vi.mock("@/components/theme/sitePageSeed", () => ({
+  sitePageThemeSeed: seedSpy,
+}));
+
 import NowPage from "./page";
 
 // Each test starts from a clean mock (no leftover queued resolutions between suites).
@@ -150,5 +162,22 @@ describe("NowPage — edges & boundaries", () => {
     const h1s = screen.getAllByRole("heading", { level: 1 });
     expect(h1s).toHaveLength(1);
     expect(h1s[0]).toHaveTextContent("Now");
+  });
+});
+
+describe("NowPage (/now) — theme mount wiring", () => {
+  it("resolves its OWN `now` seed key and mounts a PageTheme init script", async () => {
+    // #175: the `/now` INDEX stamps `pageThemes.now` on `<html>` — the SAME seed a `now`-kind
+    // entry inherits (ENTRY_DETAIL_QUERY's kind-gated `themeSeed`), so an update wears its index's
+    // theme. Pin that NowPage asks for `now` (not a sibling key the type would also accept) and
+    // that the synchronous PageTheme mounts its parse-time init script.
+    seedSpy.mockClear();
+    fetchMock.mockResolvedValueOnce([row({ _id: "a" })]);
+    const { container } = render(await NowPage());
+    expect(seedSpy).toHaveBeenCalledWith("now");
+    const initScript = [...container.querySelectorAll("script")].find((s) =>
+      s.innerHTML.includes("setProperty"),
+    );
+    expect(initScript).toBeDefined();
   });
 });
