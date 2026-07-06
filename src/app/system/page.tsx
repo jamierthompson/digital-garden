@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 
+import PageTheme from "@/components/theme/PageTheme";
+import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
+
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -14,17 +17,25 @@ export const metadata: Metadata = {
  * complete; the real content (token tiers, the OKLCH engine, the type system, the stack)
  * lands in a later slice. Static editorial chrome — reads the global semantic tokens, no
  * brand scope of its own.
+ *
+ * `async` so it can resolve its authored `pageThemes.system` seed on its own awaited path — a
+ * `use cache` read, so the page stays fully prerendered (no dynamic hole) and the theme script
+ * bakes into the static shell (flash-free).
  */
-export default function SystemPage() {
+export default async function SystemPage() {
+  const themeSeed = await sitePageThemeSeed("system");
   return (
-    <main className={styles.main}>
-      <p className={styles.eyebrow}>colophon</p>
-      <h1 className={styles.title}>System</h1>
-      <p className={styles.lede}>
-        The design system behind the garden — the token tiers, the OKLCH color
-        engine, the type system, and the stack, documented in the open. This
-        page is being written.
-      </p>
-    </main>
+    <>
+      <PageTheme seed={themeSeed} />
+      <main className={styles.main}>
+        <p className={styles.eyebrow}>colophon</p>
+        <h1 className={styles.title}>System</h1>
+        <p className={styles.lede}>
+          The design system behind the garden — the token tiers, the OKLCH color
+          engine, the type system, and the stack, documented in the open. This
+          page is being written.
+        </p>
+      </main>
+    </>
   );
 }

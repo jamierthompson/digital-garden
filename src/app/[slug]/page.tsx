@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import EntryBody from "@/components/portable-text/EntryBody";
+import PageTheme from "@/components/theme/PageTheme";
 import EntryScope from "@/components/entry-scope/EntryScope";
 import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
 import EntryScopeWash from "@/components/entry-scope/EntryScopeWash";
@@ -121,6 +122,13 @@ export default async function EntryPage({ params }: EntryPageProps) {
     notFound();
   }
 
+  // The page's authored theme, stamped on `<html>` flash-free (#166). `themeSeed` is resolved
+  // KIND-GATED in the query (a `now` update wears the `/now` seed; every other kind wears its
+  // own required `brandColor`), so the page never branches on `kind` here. `entry` is already
+  // awaited above, so the synchronous `<PageTheme>` bakes its inline script into the prerendered
+  // static shell — mounted first in BOTH templates below, ahead of the page body.
+  const pageTheme = <PageTheme seed={entry.themeSeed} />;
+
   // `now` is excluded from BOTH capabilities by design (an editorial status update, never an
   // interactive slot) — so it never resolves a key and never builds a scope, even if the doc
   // happens to carry `componentKey`/`brandColor`.
@@ -190,28 +198,31 @@ export default async function EntryPage({ params }: EntryPageProps) {
   // template every other entry gets, unchanged — never a blank page.
   if (entry.kind === "project" && Experience) {
     return (
-      <main
-        className={mainClassName}
-        data-layout={mainDataLayout}
-        data-template="canvas"
-      >
-        {/* Page-spanning background wash: re-binds `--bg` at `body` so SiteNav/SiteFooter (in
+      <>
+        {pageTheme}
+        <main
+          className={mainClassName}
+          data-layout={mainDataLayout}
+          data-template="canvas"
+        >
+          {/* Page-spanning background wash: re-binds `--bg` at `body` so SiteNav/SiteFooter (in
             the ROOT layout, above this route) share the entry's derived wash — see
             `scopedWashCss`'s doc comment for the mechanism and why a bare `:root`/`body`
             override (or a naive `:has([data-entry])`) isn't safe here. The `data-template`
             attribute on THIS `<main>` is load-bearing for that selector — see the file-header
             comment above. */}
-        <EntryScopeWash seed={scope} />
-        {/* Same bounded brand scope as the editorial template's slot (below) — its
+          <EntryScopeWash seed={scope} />
+          {/* Same bounded brand scope as the editorial template's slot (below) — its
             `[data-entry]` div is also what `EntryScopeWash`'s `:has()` selector keys off. */}
-        <div className={styles.experience}>
-          <EntryScopeBoundary>
-            <EntryScope seed={scope}>
-              <Experience slug={slug} />
-            </EntryScope>
-          </EntryScopeBoundary>
-        </div>
-      </main>
+          <div className={styles.experience}>
+            <EntryScopeBoundary>
+              <EntryScope seed={scope}>
+                <Experience slug={slug} />
+              </EntryScope>
+            </EntryScopeBoundary>
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -226,32 +237,35 @@ export default async function EntryPage({ params }: EntryPageProps) {
   );
 
   return (
-    <main className={mainClassName} data-layout={mainDataLayout}>
-      {/* The provider is a state frame, not a theme: prose inside stays server-rendered
+    <>
+      {pageTheme}
+      <main className={mainClassName} data-layout={mainDataLayout}>
+        {/* The provider is a state frame, not a theme: prose inside stays server-rendered
           editorial content (children pass-through). Rendered as deep as possible per the
           bundled composition docs. */}
-      {Provider ? <Provider slug={slug}>{article}</Provider> : article}
-      {/* Brand is scoped to the interactive slot ONLY — the engine theme wraps
+        {Provider ? <Provider slug={slug}>{article}</Provider> : article}
+        {/* Brand is scoped to the interactive slot ONLY — the engine theme wraps
           <Experience/>, not the editorial article/related around it. Rendered only when a
           module resolved (any kind but `now`); an entry without one is prose-only. The
           `.experience` wrapper is the direct `.module` child: it holds the reading-measure cap
           on narrow entries (like every non-article child) but is exempted under `.wide` so a
           module-declared wide Experience fills the frame — the article's `[full]` slots aren't
           the only wide-mode path (a lone Experience is a direct child, not inside the article). */}
-      {Experience ? (
-        <div className={styles.experience}>
-          <EntryScopeBoundary>
-            <EntryScope seed={scope}>
-              <Experience slug={slug} />
-            </EntryScope>
-          </EntryScopeBoundary>
-        </div>
-      ) : null}
-      <RelatedEntries
-        currentId={entry._id}
-        related={entry.related}
-        backlinks={entry.backlinks}
-      />
-    </main>
+        {Experience ? (
+          <div className={styles.experience}>
+            <EntryScopeBoundary>
+              <EntryScope seed={scope}>
+                <Experience slug={slug} />
+              </EntryScope>
+            </EntryScopeBoundary>
+          </div>
+        ) : null}
+        <RelatedEntries
+          currentId={entry._id}
+          related={entry.related}
+          backlinks={entry.backlinks}
+        />
+      </main>
+    </>
   );
 }

@@ -27,19 +27,9 @@
     flex-direction: column;
     font-family: var(--font-face);
     color: var(--text);
-    /* The editorial "engineering journal" column ruler: a faint 1px vertical hairline every
-       `--grid-column`, fixed so it stays put on scroll. `background-color` sits under the
-       `background-image` gradient (a brand slot re-binds `--bg`; its own `--surface` blocks
-       cover the ruler where they paint). Decorative + incidental — see `--grid-line`. */
+    /* The page's themed ground: `--bg` from the page's `<html>` theme (a brand slot re-binds it
+       inside its scope). */
     background-color: var(--bg);
-    background-image: repeating-linear-gradient(
-      to right,
-      var(--grid-line) 0,
-      var(--grid-line) 1px,
-      transparent 1px,
-      transparent var(--grid-column)
-    );
-    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

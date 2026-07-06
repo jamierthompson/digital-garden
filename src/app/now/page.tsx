@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import PageTheme from "@/components/theme/PageTheme";
+import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
 import { NOW_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
 
@@ -43,62 +45,68 @@ function formatDate(iso: string | null): string | null {
  * updates fold into the Index's "Now" section.
  */
 export default async function NowPage() {
+  // Seed on the awaited path → synchronous `<PageTheme>` first in the tree (prerendered static
+  // shell, flash-free). See `sitePageThemeSeed`.
+  const themeSeed = await sitePageThemeSeed("now");
   const updates = await sanityFetch(NOW_QUERY);
 
   return (
-    <main className={styles.main}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Now</h1>
-        <p className={styles.intro}>
-          What I&apos;m focused on at the moment. Newest first.
+    <>
+      <PageTheme seed={themeSeed} />
+      <main className={styles.main}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>Now</h1>
+          <p className={styles.intro}>
+            What I&apos;m focused on at the moment. Newest first.
+          </p>
+        </header>
+
+        {updates.length === 0 ? (
+          <p className={styles.empty}>No now-updates yet — check back soon.</p>
+        ) : (
+          <ul className={styles.list}>
+            {updates.map((update) => {
+              const date = formatDate(update.iterated);
+              return (
+                <li key={update._id} className={styles.item}>
+                  {date ? (
+                    <time
+                      className={styles.date}
+                      dateTime={update.iterated ?? undefined}
+                    >
+                      {date}
+                    </time>
+                  ) : null}
+                  {update.slug ? (
+                    <Link href={`/${update.slug}`} className={styles.itemTitle}>
+                      {update.title ?? "Untitled update"}
+                    </Link>
+                  ) : (
+                    <span className={styles.itemTitle}>
+                      {update.title ?? "Untitled update"}
+                    </span>
+                  )}
+                  {update.blurb ? (
+                    <p className={styles.blurb}>{update.blurb}</p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        <p className={styles.footnote}>
+          This is a{" "}
+          <a
+            className={styles.link}
+            href="https://nownownow.com/about"
+            rel="noopener noreferrer"
+          >
+            now page
+          </a>
+          , and you could make one too.
         </p>
-      </header>
-
-      {updates.length === 0 ? (
-        <p className={styles.empty}>No now-updates yet — check back soon.</p>
-      ) : (
-        <ul className={styles.list}>
-          {updates.map((update) => {
-            const date = formatDate(update.iterated);
-            return (
-              <li key={update._id} className={styles.item}>
-                {date ? (
-                  <time
-                    className={styles.date}
-                    dateTime={update.iterated ?? undefined}
-                  >
-                    {date}
-                  </time>
-                ) : null}
-                {update.slug ? (
-                  <Link href={`/${update.slug}`} className={styles.itemTitle}>
-                    {update.title ?? "Untitled update"}
-                  </Link>
-                ) : (
-                  <span className={styles.itemTitle}>
-                    {update.title ?? "Untitled update"}
-                  </span>
-                )}
-                {update.blurb ? (
-                  <p className={styles.blurb}>{update.blurb}</p>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      <p className={styles.footnote}>
-        This is a{" "}
-        <a
-          className={styles.link}
-          href="https://nownownow.com/about"
-          rel="noopener noreferrer"
-        >
-          now page
-        </a>
-        , and you could make one too.
-      </p>
-    </main>
+      </main>
+    </>
   );
 }

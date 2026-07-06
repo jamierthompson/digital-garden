@@ -51,11 +51,6 @@
     --duration-base: 200ms;
     --duration-slow: 320ms;
 
-    /* Editorial grid — the "engineering journal" column ruler. A faint 1px line every
-       `--grid-column`, painted on the body background (globals.css). Foundation primitive:
-       the column measure is house-style, the line COLOR is a semantic token below. */
-    --grid-column: 5rem;
-
     /* Layout measures — house-style content-frame widths, read directly by route/shell
        modules instead of hand-picking a per-route `max-width` (which drifted: the nav and
        home used to disagree, so the wordmark didn't align with the hero). Foundation
@@ -141,11 +136,6 @@
 
     /* Alias the foundation `:focus-visible` reads (see @layer foundation). */
     --focus-ring-color: var(--focus-ring);
-
-    /* Faint column-ruler line for the editorial grid (globals.css paints it on <body>).
-       Scheme-aware so it reads as a hairline on both the light and dark editorial surfaces;
-       kept incidental (well under any text). */
-    --grid-line: light-dark(rgba(10, 10, 10, 0.05), rgba(255, 255, 255, 0.06));
 
     /* The "engineering journal" editorial type system — three shell faces, all mounted on
        <html> by the root layout, each with a system fallback stack:

@@ -161,8 +161,8 @@ export const NOW_QUERY = defineQuery(`
  * rather than assume an array. Pulls the shell identity — `title` / `description` for
  * `generateMetadata` (layout.tsx) — AND the per-page theme seeds: under the site-wide
  * engine-theming model (#166) the site-owned pages (`/`, `/browse`, `/about`, `/now`,
- * `/system`) have no backing `entry`, so they seed from `pageThemes` here. Consuming those
- * seeds to theme each page is a later slice (#175); this query exposes the data. Typed as
+ * `/system`) have no backing `entry`, so they seed from `pageThemes` here. Each site page
+ * consumes its seed (via `sitePageThemeSeed`) to theme the page. Typed as
  * `SITE_SETTINGS_QUERYResult`.
  */
 export const SITE_SETTINGS_QUERY = defineQuery(`

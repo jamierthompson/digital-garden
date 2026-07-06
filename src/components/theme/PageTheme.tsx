@@ -24,8 +24,9 @@ interface PageThemeProps {
  * There is deliberately no per-route `<style>` block: the theme is a single imperative write to
  * `<html>`, which cannot collide across `<Activity>`-kept routes the way a `:root` block does.
  *
- * Additive by design — nothing renders it into the live layout yet (that flip is #175). Its
- * seed source and the persistent themed chrome it pairs with arrive in later slices.
+ * Every route mounts this to wear its authored theme: site pages resolve their seed from
+ * `siteSettings.pageThemes` via `sitePageThemeSeed`, entry pages from `themeSeed`. The persistent
+ * chrome (`SiteNav`/`SiteFooter`) inherits the `<html>` binding, so it re-matches the visible page.
  */
 export default function PageTheme({ seed }: PageThemeProps) {
   const declarations = resolveThemeDeclarations(seed);

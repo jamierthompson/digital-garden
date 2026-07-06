@@ -67,8 +67,12 @@ import {
   found,
   notFound as notFoundResolution,
 } from "@/lib/resolvers/resolution";
+import { resolveThemeDeclarations } from "@/lib/theme";
 
 import EntryPage from "./page";
+
+const accentOf = (seed: unknown): string =>
+  Object.fromEntries(resolveThemeDeclarations(seed))["--accent"];
 
 // Fake resolvable modules whose members mark themselves, so a mounted brand slot / frame
 // is unambiguously detectable in the rendered tree.
@@ -164,8 +168,11 @@ function entry(over: EntryOverrides = {}): Record<string, unknown> {
     kind: "note",
     blurb: "A blurb.",
     brandColor: null,
+    brandColorDark: null,
     fontKey: null,
     componentKey: null,
+    // The kind-gated seed the page themes from (query-resolved: `now`→/now seed, else brandColor).
+    themeSeed: null,
     body: null,
     related: null,
     backlinks: null,
@@ -345,6 +352,23 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     await expect(EntryPage({ params: params("ghost") })).rejects.toThrow(
       "NEXT_NOT_FOUND",
     );
+  });
+
+  // #175: the entry page delivers its OWN authored theme onto `<html>` — a synchronous
+  // `<PageTheme>` mounted first in BOTH templates, baking the kind-gated `themeSeed`'s
+  // engine-solved `--accent` into the parse-time init script (the same seed the chrome inherits).
+  it("mounts PageTheme carrying the entry's themeSeed", async () => {
+    const SEED = "oklch(0.62 0.2 265)";
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "note", componentKey: null, themeSeed: SEED, ...withBody }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    const initScript = [...container.querySelectorAll("script")].find((s) =>
+      s.innerHTML.includes("setProperty"),
+    );
+    expect(initScript?.innerHTML).toContain(accentOf(SEED));
   });
 
   it("renders NO Tags region even if the fetched entry carries a stray `tags` array", async () => {

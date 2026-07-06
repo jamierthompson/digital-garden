@@ -33,7 +33,19 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
 
 vi.mock("@/sanity/lib/sanityFetch", () => ({ sanityFetch: fetchMock }));
 
+// Home also pulls in `sitePageSeed.ts` (for the page's own theme seed), which imports
+// `server-only` — it throws outside a react-server condition (vitest sets none). Neutralize it so
+// the module loads; its real guard (failing a client-bundle import) is a build-time concern. The
+// helper still calls the MOCKED `sanityFetch` above, so the real resolution logic is exercised.
+vi.mock("server-only", () => ({}));
+
+import { resolveThemeDeclarations } from "@/lib/theme";
+import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
+
 import Home from "./page";
+
+const accentOf = (seed: unknown): string =>
+  Object.fromEntries(resolveThemeDeclarations(seed))["--accent"];
 
 // Each test starts from a clean mock (no leftover queued resolutions between suites).
 beforeEach(() => {
@@ -64,9 +76,22 @@ function row(over: Partial<FeaturedRow> & { _id: string }): FeaturedRow {
   };
 }
 
+// Home makes TWO cached reads — its `pageThemes.home` seed AND the featured list — so the mock is
+// QUERY-AWARE, not call-order-based (a bare `mockResolvedValueOnce` would feed whichever read fires
+// first). Each test names the `featured` rows it cares about; `settings` defaults to an unauthored
+// home seed (the card assertions don't depend on the page theme).
+function mockReads({
+  featured = FEATURED_FIXTURE as unknown[],
+  settings = { pageThemes: { home: null } } as unknown,
+}: { featured?: unknown[]; settings?: unknown } = {}): void {
+  fetchMock.mockImplementation((query: string) =>
+    Promise.resolve(query === SITE_SETTINGS_QUERY ? settings : featured),
+  );
+}
+
 describe("Home (featured front door)", () => {
   beforeEach(() => {
-    fetchMock.mockResolvedValue(FEATURED_FIXTURE);
+    mockReads();
   });
 
   it("renders the garden's invitation headline as the h1 (not the byline)", async () => {
@@ -89,11 +114,25 @@ describe("Home (featured front door)", () => {
       "/feature-lens",
     );
   });
+
+  // #175: the page delivers its OWN authored theme. Home resolves `pageThemes.home` and mounts
+  // a synchronous `<PageTheme>`, baking the seed's engine-solved `--accent` into the parse-time
+  // init script — in the render output, not deferred behind a boundary (the jsdom-visible half of
+  // the streamed-shell guarantee; the prod-build/browser gate proves it lands in the static HTML).
+  it("mounts PageTheme carrying the resolved pageThemes.home seed", async () => {
+    const HOME_SEED = "#0ea5e9";
+    mockReads({ settings: { pageThemes: { home: HOME_SEED } } });
+    const { container } = render(await Home());
+    const initScript = [...container.querySelectorAll("script")].find((s) =>
+      s.innerHTML.includes("setProperty"),
+    );
+    expect(initScript?.innerHTML).toContain(accentOf(HOME_SEED));
+  });
 });
 
 describe("Home (/) — edges & boundaries", () => {
   it("omits the Featured section entirely when nothing is promoted", async () => {
-    fetchMock.mockResolvedValueOnce([]);
+    mockReads({ featured: [] });
     render(await Home());
     // The hero survives; no "Featured" section heading (visually-hidden or not) when empty.
     // (The onward "browse everything →" link now lives in the global SiteFooter, not Home.)
@@ -106,15 +145,17 @@ describe("Home (/) — edges & boundaries", () => {
   it("brands a featured entry with a NULL brandColor without throwing (fallback swatches)", async () => {
     // featuredRank can promote ANY kind — a featured note/now has no brandColor. The card
     // must still render (fallback palette), never crash the whole front door.
-    fetchMock.mockResolvedValueOnce([
-      row({
-        _id: "a",
-        kind: "note",
-        title: "Featured note",
-        slug: "featured-note",
-        brandColor: null,
-      }),
-    ]);
+    mockReads({
+      featured: [
+        row({
+          _id: "a",
+          kind: "note",
+          title: "Featured note",
+          slug: "featured-note",
+          brandColor: null,
+        }),
+      ],
+    });
     render(await Home());
     const link = screen.getByRole("link", { name: /featured note/i });
     expect(link).toHaveAttribute("href", "/featured-note");
@@ -125,14 +166,16 @@ describe("Home (/) — edges & boundaries", () => {
   });
 
   it("survives a hostile/garbage brandColor on a featured card", async () => {
-    fetchMock.mockResolvedValueOnce([
-      row({
-        _id: "a",
-        title: "Garbage brand",
-        slug: "g",
-        brandColor: "not-a-color",
-      }),
-    ]);
+    mockReads({
+      featured: [
+        row({
+          _id: "a",
+          title: "Garbage brand",
+          slug: "g",
+          brandColor: "not-a-color",
+        }),
+      ],
+    });
     render(await Home());
     expect(
       screen.getByRole("link", { name: /garbage brand/i }),
@@ -140,9 +183,9 @@ describe("Home (/) — edges & boundaries", () => {
   });
 
   it("renders a slugless featured card as a non-link heading, never a dead link", async () => {
-    fetchMock.mockResolvedValueOnce([
-      row({ _id: "a", title: "No route card", slug: null }),
-    ]);
+    mockReads({
+      featured: [row({ _id: "a", title: "No route card", slug: null })],
+    });
     render(await Home());
     expect(screen.queryByRole("link", { name: /no route card/i })).toBeNull();
     expect(
@@ -151,9 +194,7 @@ describe("Home (/) — edges & boundaries", () => {
   });
 
   it("falls back to a neutral label for an untitled featured card", async () => {
-    fetchMock.mockResolvedValueOnce([
-      row({ _id: "a", title: null, slug: "x" }),
-    ]);
+    mockReads({ featured: [row({ _id: "a", title: null, slug: "x" })] });
     render(await Home());
     expect(
       screen.getByRole("link", { name: /untitled entry/i }),
@@ -161,10 +202,12 @@ describe("Home (/) — edges & boundaries", () => {
   });
 
   it("keeps a clean heading hierarchy: one h1, an h2 section, h3 card titles", async () => {
-    fetchMock.mockResolvedValueOnce([
-      row({ _id: "a", title: "Card A", slug: "a" }),
-      row({ _id: "b", title: "Card B", slug: "b" }),
-    ]);
+    mockReads({
+      featured: [
+        row({ _id: "a", title: "Card A", slug: "a" }),
+        row({ _id: "b", title: "Card B", slug: "b" }),
+      ],
+    });
     render(await Home());
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(

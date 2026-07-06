@@ -76,11 +76,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Editorial chrome is GLOBAL: the shell reads the semantic layer's editorial defaults
-  // (foundation.css) — no `siteSettings`-seeded brand scope wraps the shell any more. A
-  // project's brand color + font are scoped to its own interactive slot (see
-  // `[slug]/page.tsx`), never the shell. `siteSettings` still feeds `generateMetadata`
-  // (title/description); it no longer themes the chrome.
+  // `SiteNav`/`SiteFooter` render once here, above the pages, and inherit the page's theme from
+  // the `<html>` binding each page stamps via `<PageTheme>` — so the persistent chrome wears the
+  // visible page's authored theme with no per-component work. `foundation.css`'s editorial token
+  // defaults sit beneath that binding as the fallback. `siteSettings` feeds `generateMetadata`
+  // (title/description) here; its `pageThemes` seeds the pages' themes (see the site pages).
   return (
     // `suppressHydrationWarning` (one level, `<html>` only): the inline scheme script below
     // may set `color-scheme` on <html> before React hydrates, an attribute the server markup
