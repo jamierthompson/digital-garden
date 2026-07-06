@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { apcaLc, contrastWCAG, parseColor } from "@garden/oklch";
 
 /**
- * Accessibility + cascade guards for the GLOBAL EDITORIAL defaults in `src/app/foundation.css`.
+ * Accessibility + cascade guards for the GLOBAL EDITORIAL defaults in `src/styles/foundation.css`.
  *
  * Three concerns, one subject (`foundation.css`), so one co-located suite:
  *  1. The editorial semantic tokens clear WCAG 2.2 AA — asserted against a hand-authored MIRROR
@@ -19,7 +19,7 @@ import { apcaLc, contrastWCAG, parseColor } from "@garden/oklch";
  * non-file scheme, so a file-URL resolution can't be used here.
  */
 const SHEET = readFileSync(
-  resolve(process.cwd(), "src/app/foundation.css"),
+  resolve(process.cwd(), "src/styles/foundation.css"),
   "utf8",
 );
 

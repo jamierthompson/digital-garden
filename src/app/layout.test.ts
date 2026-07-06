@@ -43,7 +43,9 @@ describe("layout.tsx global-CSS import order", () => {
   const nextFont = indexOfImport('from "next/font/google"');
 
   it("imports foundation.css before next/font", () => {
-    expect(indexOfImport('import "./foundation.css"')).toBeLessThan(nextFont);
+    expect(indexOfImport('import "../styles/foundation.css"')).toBeLessThan(
+      nextFont,
+    );
   });
 
   it("imports globals.css before next/font", () => {
@@ -51,7 +53,7 @@ describe("layout.tsx global-CSS import order", () => {
   });
 
   it("imports the global sheets before every component import", () => {
-    const foundation = indexOfImport('import "./foundation.css"');
+    const foundation = indexOfImport('import "../styles/foundation.css"');
     // The first aliased component/module import in the file.
     const firstComponent = indexOfImport('from "@/components/');
     expect(foundation).toBeLessThan(firstComponent);
@@ -68,7 +70,7 @@ describe("layout.tsx global-CSS import order", () => {
     expect(
       firstSideEffect?.[1],
       "expected a side-effect import in layout.tsx",
-    ).toBe("./foundation.css");
+    ).toBe("../styles/foundation.css");
   });
 });
 
