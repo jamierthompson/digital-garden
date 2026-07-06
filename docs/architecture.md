@@ -23,6 +23,17 @@ These are the through-lines; everything else follows from them.
   engine, the odd reused primitive) live in plain shared modules. No fused bundle; no premature
   abstraction either.
 
+- **The routing layer stays thin.** `src/app/` holds only Next.js route files (`page` / `layout` /
+  `route` / … per the App Router file conventions) plus what co-locates with them — their
+  `*.test.*`, the private helpers a route file imports (a `route.ts` can't export non-handlers, so
+  RSS's `escapeXml.ts` lives beside it), `*.module.css`, the root `globals.css`, and static assets.
+  Real logic and shared components live in `src/` modules; design-system CSS in `src/styles/`. The
+  routes wire things together and mount from the source tree — they don't hold the logic. Enforced by
+  `pnpm lint:routes` (`scripts/check-app-routes.mjs`), so the drift that manual review kept missing
+  can't recur. The guard is **deliberately stricter than Next**: Next blesses `_private` folders for
+  co-locating components under `app/`, but here components/logic belong in `src/`, so a module in
+  `app/_components/` is still flagged.
+
 - **Composition over inheritance.** Every page wears its **own authored theme**: the entry's (or
   site page's) brand color runs through the OKLCH engine and is stamped on `<html>`, so all chrome +
   prose + slots wear it. The global typography is fixed house style — Space Grotesk headings +
