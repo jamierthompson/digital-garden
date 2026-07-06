@@ -106,7 +106,14 @@ describe("themeInitScript", () => {
 // path. `parseDeclarations` is private by design, so every pin runs through the public
 // wrapper against the engine's REAL output — if the engine's serialization format drifts
 // (multi-decl lines, a changed joiner, a new non-custom-property line), these fail HERE
-// instead of shipping a silently-collapsed theme. ---
+// instead of shipping a silently-collapsed theme.
+//
+// NOT a frozen contract. `@garden/oklch` is an internal, project-only package — digital-garden
+// is its ONLY consumer — so any of its contracts may be changed or broken at will, up to and
+// including a major-version bump for a new feature. These pins exist ONLY to stop the engine and
+// this parser drifting apart *silently* while features are built in parallel. If you deliberately
+// change the engine's serialization format, UPDATE this pin to match — it is a tripwire against
+// accidental drift, never a reason not to change the engine. ---
 
 describe("engine↔parser serialization contract (QA #172)", () => {
   const raw = tokenSetToDeclarations(buildTokenSet("#c2410c"));
