@@ -111,7 +111,7 @@
      So the canvas wrapper carries ZERO padding on every side: the branded ScrollArea spans
      full-bleed nav→footer, edge→edge, and the scrollbar hugs the viewport's right edge naturally.
      The canvas's own spacing lives INSIDE the scroll container (`.canvas` padding in
-     `StudioCanvas.module.css`), where content stays centered with symmetric gutters and the
+     `ColorEngineCanvas.module.css`), where content stays centered with symmetric gutters and the
      scrollbar sits outside it. Editorial (and editorial-`wide`, which lacks this attribute) keep
      their full block+inline padding — untouched.
 
@@ -134,7 +134,7 @@
      `.module[data-template="canvas"]`'s only box child, so it flex-fills `<main>` in turn.
      `display: flex; flex-direction:
      column` makes `EntryScope`'s `[data-entry]` wrapper (the next rule) a flex item too, so
-     the chain keeps propagating a DEFINITE height down to `StudioCanvas`'s `ScrollArea`, whose
+     the chain keeps propagating a DEFINITE height down to `ColorEngineCanvas`'s `ScrollArea`, whose
      own `block-size: 100%` (`ScrollArea.module.css`) needs one to resolve against instead of
      falling back to `auto`. Scoped to `data-template="canvas"` so the EDITORIAL template's
      `.experience` (and its `.wide > .experience` width override, above) is untouched. */
@@ -148,7 +148,7 @@
   /* Last link in the chain: `EntryScope`'s `[data-entry]` div (`EntryScope.tsx`) is
      `.experience`'s only child here (`EntryScopeBoundary`'s `unstable_catchError` boundary
      renders no DOM wrapper of its own — verified against the installed
-     `next/dist/client/components/catch-error.js`). Flex-filling it gives `StudioCanvas`'s
+     `next/dist/client/components/catch-error.js`). Flex-filling it gives `ColorEngineCanvas`'s
      `ScrollArea` root a parent with a DEFINITE content-box height, so its `block-size: 100%`
      actually constrains it instead of resolving to `auto`. */
   .module[data-template="canvas"] > .experience > [data-entry] {
@@ -158,8 +158,8 @@
 }
 
 /* Canvas-only document-scroll lock (two-scrollbar defect, #139 follow-up): the CANVAS
-   template's own branded Radix ScrollArea (`StudioCanvas`) should be the ONLY scrolling
-   surface on the route — without this, `<main>` sized to its content (the studio's full
+   template's own branded Radix ScrollArea (`ColorEngineCanvas`) should be the ONLY scrolling
+   surface on the route — without this, `<main>` sized to its content (the Color Engine's full
    grid) taller than the viewport, so the document ALSO scrolled natively alongside the
    ScrollArea's own bounded internal scroll. Locking `overflow` on `body` alone is enough to
    stop the document scrolling: `html` is left at its default `overflow: visible`

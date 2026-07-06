@@ -75,10 +75,10 @@ describe("sanityFetch", () => {
   it("forwards query params (so $slug is never string-interpolated)", async () => {
     draftModeSpy.mockResolvedValue({ isEnabled: false });
 
-    await sanityFetch(QUERY, { slug: "palette-studio" });
+    await sanityFetch(QUERY, { slug: "color-engine" });
 
     expect(liveFetchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ params: { slug: "palette-studio" } }),
+      expect.objectContaining({ params: { slug: "color-engine" } }),
     );
   });
 

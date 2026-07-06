@@ -9,8 +9,8 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
   FEATURED_FIXTURE: [
     {
       _id: "1",
-      title: "OKLCH Palette Studio",
-      slug: "palette-studio",
+      title: "Color Engine",
+      slug: "color-engine",
       kind: "project",
       stage: "sketch",
       blurb: "A seed in, a solved palette out.",
@@ -106,9 +106,10 @@ describe("Home (featured front door)", () => {
     expect(
       screen.getByRole("heading", { name: /featured/i }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /oklch palette studio/i }),
-    ).toHaveAttribute("href", "/palette-studio");
+    expect(screen.getByRole("link", { name: /color engine/i })).toHaveAttribute(
+      "href",
+      "/color-engine",
+    );
     expect(screen.getByRole("link", { name: /feature lens/i })).toHaveAttribute(
       "href",
       "/feature-lens",

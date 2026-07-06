@@ -1,5 +1,5 @@
 // QA #131 — Panel contract: every slot's frame is a LABELLED region, so a screen-reader
-// user can jump between the studio's panels by landmark.
+// user can jump between the Color Engine's panels by landmark.
 
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";

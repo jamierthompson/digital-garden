@@ -5,6 +5,7 @@ import {
   applyThemeDeclarations,
   resolveThemeDeclarations,
   themeInitScript,
+  tokenSetToThemeDeclarations,
   type ThemeDeclaration,
 } from "./theme";
 
@@ -54,6 +55,32 @@ describe("resolveThemeDeclarations", () => {
     }).not.toThrow();
     expect(declarations.length).toBeGreaterThan(0);
     expect(Object.fromEntries(declarations)["--accent"]).toBeDefined();
+  });
+});
+
+describe("tokenSetToThemeDeclarations", () => {
+  it("produces the SAME declarations as resolveThemeDeclarations for a seed's default token set", () => {
+    // The client play path holds a live token set and stamps it directly; the server bakes from
+    // the raw seed. Both must land byte-identical declarations, or the ephemeral `/color-engine`
+    // re-stamp would drift from the authored theme it replaces.
+    expect(tokenSetToThemeDeclarations(buildTokenSet(ORANGE))).toEqual(
+      resolveThemeDeclarations(ORANGE),
+    );
+  });
+
+  it("reflects the token set it is handed — a rules-treated set themes differently", () => {
+    // Why the play path passes `palette.tokenSet` (rules-/gamut-treated), not the raw seed:
+    // rule choices must reach the whole-page repaint. Dropping the neutral tint moves the
+    // neutral-derived surfaces.
+    const tinted = tokenSetToThemeDeclarations(
+      buildTokenSet(ORANGE, { rules: { tintedNeutrals: true } }),
+    );
+    const flat = tokenSetToThemeDeclarations(
+      buildTokenSet(ORANGE, { rules: { tintedNeutrals: false } }),
+    );
+    expect(Object.fromEntries(tinted)["--surface"]).not.toBe(
+      Object.fromEntries(flat)["--surface"],
+    );
   });
 });
 

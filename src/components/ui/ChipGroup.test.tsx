@@ -1,5 +1,5 @@
 // QA #131 lineage (rewritten from Chip.test when the preset picker moved to Radix
-// ToggleGroup): the single-select chip-group contract the studio's preset picker — and
+// ToggleGroup): the single-select chip-group contract the Color Engine's preset picker — and
 // any future filter chips — rely on. Radix single-type emits radiogroup/radio +
 // aria-checked (verified against the installed @radix-ui/react-toggle-group source).
 

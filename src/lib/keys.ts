@@ -37,11 +37,11 @@ export type FontKey = (typeof FONT_KEYS)[number];
  * `brandColor` but no key yet, or an unkeyed note/essay); an entry that declares its key
  * here has the resolver map it to a literal dynamic import. A key is required for a project
  * past the sketch stage and optional-but-honored for a note or essay; a declared key that
- * fails to resolve is a `notFound()` for any kind. The first real module is the Palette
- * Studio (#70).
+ * fails to resolve is a `notFound()` for any kind. The first real module is the Color
+ * Engine (#70).
  */
 export const COMPONENT_KEYS = [
-  "palette-studio",
+  "color-engine",
 ] as const satisfies readonly string[];
 export type ComponentKey = (typeof COMPONENT_KEYS)[number];
 
@@ -50,16 +50,16 @@ export type ComponentKey = (typeof COMPONENT_KEYS)[number];
  * `src/lib/resolvers/embeds.ts`. The registry starts single-tier; a
  * entry-local tier is added only on a genuine second use.
  *
- * The `palette-studio-*` keys are the Palette Studio's slots (#131): the studio composes
+ * The `color-engine-*` keys are the Color Engine's slots (#131): the Color Engine composes
  * as an editorial page whose prose interleaves these embeds, each in its own brand-scoped
  * container, sharing state through the module's `Provider`.
  */
 export const EMBED_KEYS = [
-  "palette-studio-seed",
-  "palette-studio-rules",
-  "palette-studio-tokens",
-  "palette-studio-preview",
-  "palette-studio-export",
+  "color-engine-seed",
+  "color-engine-rules",
+  "color-engine-tokens",
+  "color-engine-preview",
+  "color-engine-export",
 ] as const satisfies readonly string[];
 export type EmbedKey = (typeof EMBED_KEYS)[number];
 

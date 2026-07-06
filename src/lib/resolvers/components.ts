@@ -23,7 +23,7 @@ export type EntryLoader = () => Promise<unknown>;
 // Each entry is a LITERAL `import()` per key (never templated) so the bundler can
 // code-split each entry module onto its own chunk.
 const ENTRY_LOADERS = {
-  "palette-studio": () => import("@/entries/palette-studio"),
+  "color-engine": () => import("@/entries/color-engine"),
 } satisfies Record<ComponentKey, EntryLoader>;
 
 // Two variables, two jobs. `ENTRY_LOADERS` keeps its literal type so `satisfies`

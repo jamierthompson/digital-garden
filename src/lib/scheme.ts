@@ -18,7 +18,7 @@
  * Deliberately framework-agnostic and isomorphic (no `use client`, no top-level browser
  * access — every DOM read/write sits inside a function body): the root layout, a Server
  * Component, imports only the `SCHEME_INIT_SCRIPT` string, while the client switch island
- * (and the Palette Studio's `StudioProvider`, which re-binds its displayed scheme to this
+ * (and the Color Engine's `ColorEngineProvider`, which re-binds its displayed scheme to this
  * setting) import the functions.
  */
 
@@ -71,7 +71,7 @@ export function setScheme(scheme: Scheme): void {
  * Subscribe to scheme changes; returns an unsubscribe fn. Fires on a same-tab `setScheme`, on
  * a cross-tab `storage` change (re-applying the new value in this tab), and — so
  * `getResolvedScheme()` stays fresh while no override is set — on an OS `prefers-color-scheme`
- * flip. This is the single signal the Palette Studio's `StudioProvider` swaps its `matchMedia`
+ * flip. This is the single signal the Color Engine's `ColorEngineProvider` swaps its `matchMedia`
  * read for.
  */
 export function subscribe(onChange: () => void): () => void {

@@ -10,8 +10,8 @@ Sanity; the site renders on Next.js.
 > **Status:** the shared foundation, the OKLCH theming engine (`@garden/oklch`), the Sanity
 > content model, and the real garden entries are **live on Vercel** — with the editorial
 > garden shell, an RSS feed, Sanity draft mode + live preview wired to publish→production
-> revalidation, and the first coded entry module: the **OKLCH Palette Studio**
-> (`src/entries/palette-studio/`), an interactive one-seed palette generator that re-runs
+> revalidation, and the first coded entry module: the **OKLCH Color Engine**
+> (`src/entries/color-engine/`), an interactive one-seed palette generator that re-runs
 > the engine live with a measured contrast receipt and CSS/Tailwind/JSON export. Remaining
 > work is tracked in [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
@@ -113,7 +113,7 @@ src/
     api/revalidate/     # signed Sanity webhook → revalidateTag (publish→prod)
     rss.xml/            # RSS feed route handler
     foundation.css      # foundation primitives + semantic editorial defaults + @layer order + reset
-  entries/              # self-contained entry modules; types.ts = the EntryModule contract; palette-studio/ = the OKLCH Palette Studio
+  entries/              # self-contained entry modules; types.ts = the EntryModule contract; color-engine/ = the OKLCH Color Engine
   components/           # shell/ (SiteNav · SiteFooter), entry/ (EntryCard), entry-scope (keystone), portable-text
   fonts/roster.ts       # curated next/font faces, one per key
   lib/                  # keys.ts (key contracts), resolvers/, cardSwatches.ts, breakpoints.ts

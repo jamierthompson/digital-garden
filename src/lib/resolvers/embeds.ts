@@ -17,16 +17,14 @@ export type EmbedLoader = () => Promise<unknown>;
 // error the moment a key is added to `EMBED_KEYS`. Each value is a LITERAL
 // lazy import per key — never templated (a templated import defeats bundler static analysis).
 const EMBED_LOADERS = {
-  "palette-studio-seed": () =>
-    import("@/entries/palette-studio/slots/SeedSlot"),
-  "palette-studio-rules": () =>
-    import("@/entries/palette-studio/slots/RulesSlot"),
-  "palette-studio-tokens": () =>
-    import("@/entries/palette-studio/slots/TokensSlot"),
-  "palette-studio-preview": () =>
-    import("@/entries/palette-studio/slots/PreviewSlot"),
-  "palette-studio-export": () =>
-    import("@/entries/palette-studio/slots/ExportSlot"),
+  "color-engine-seed": () => import("@/entries/color-engine/slots/SeedSlot"),
+  "color-engine-rules": () => import("@/entries/color-engine/slots/RulesSlot"),
+  "color-engine-tokens": () =>
+    import("@/entries/color-engine/slots/TokensSlot"),
+  "color-engine-preview": () =>
+    import("@/entries/color-engine/slots/PreviewSlot"),
+  "color-engine-export": () =>
+    import("@/entries/color-engine/slots/ExportSlot"),
 } satisfies Record<EmbedKey, EmbedLoader>;
 
 // Two variables, two jobs. `EMBED_LOADERS` keeps its literal type so `satisfies`

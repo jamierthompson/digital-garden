@@ -23,17 +23,6 @@ These are the through-lines; everything else follows from them.
   engine, the odd reused primitive) live in plain shared modules. No fused bundle; no premature
   abstraction either.
 
-- **The routing layer stays thin.** `src/app/` holds only Next.js route files (`page` / `layout` /
-  `route` / … per the App Router file conventions) plus what co-locates with them — their
-  `*.test.*`, the private helpers a route file imports (a `route.ts` can't export non-handlers, so
-  RSS's `escapeXml.ts` lives beside it), `*.module.css`, the root `globals.css`, and static assets.
-  Real logic and shared components live in `src/` modules; design-system CSS in `src/styles/`. The
-  routes wire things together and mount from the source tree — they don't hold the logic. Enforced by
-  `pnpm lint:routes` (`scripts/check-app-routes.mjs`), so the drift that manual review kept missing
-  can't recur. The guard is **deliberately stricter than Next**: Next blesses `_private` folders for
-  co-locating components under `app/`, but here components/logic belong in `src/`, so a module in
-  `app/_components/` is still flagged.
-
 - **Composition over inheritance.** Every page wears its **own authored theme**: the entry's (or
   site page's) brand color runs through the OKLCH engine and is stamped on `<html>`, so all chrome +
   prose + slots wear it. The global typography is fixed house style — Space Grotesk headings +
@@ -261,7 +250,7 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 - **Bakes literal `oklch()` values server-side.** The engine emits resolved, gamut-mapped,
   contrast-solved literals — not relative-color CSS. Live per-token CSS override is explicitly
   **not** a goal: no consumer needs the cascade to re-derive a mid-chain token (card swatches
-  re-run the pure function in JS; so does the interactive studio, the `palette-studio` module). Relative-color (`oklch(from …)`) is permitted only
+  re-run the pure function in JS; so does the interactive Color Engine, the `color-engine` module). Relative-color (`oklch(from …)`) is permitted only
   for decorative, non-contrast deltas. This is also what makes server-side validation possible.
 
 - **Focus-ring _color_ is an engine token**; only its geometry is part of the global foundation. The
@@ -317,7 +306,7 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   parameterize how the ramp tier is shaped — lightness distribution, chroma policy, hue policy,
   tinted neutrals — with every default reproducing the un-ruled output; distributions reshape only
   the interior steps (`300…700`) while the surface-bearing shoulders stay pinned, so the engine's
-  contrast guarantees hold under every policy. The Studio (#73) surfaces them ("Rules · set once").
+  contrast guarantees hold under every policy. The Color Engine (#73) surfaces them ("Rules · set once").
   A separate **decorative brand-harmony palette** (`buildHarmonyPalette`) emits analogous /
   complementary / triadic / split-complementary hue sets at the seed's own L/C, gamut-mapped —
   expressly non-semantic and non-contrast-bearing (status colors stay canonical-hue; a consumer
@@ -332,7 +321,7 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   the engine and its consumers — never to forbid change: a deliberate change updates the guard in
   the same PR. Additions extend the guard in the same commit; renames/removals migrate every
   consumer in the same PR (no deprecation window inside a monorepo). Alongside the in-repo CSS serialization, the engine exports **portable formats**
-  for the studio export UI (#107): a Tailwind v4 `@theme` block (`--color-*` namespace, ramps 1:1
+  for the Color Engine export UI (#107): a Tailwind v4 `@theme` block (`--color-*` namespace, ramps 1:1
   to the Tailwind numeric scale) and W3C-DTCG design-tokens JSON (per-scheme groups), each
   serializable as `oklch` (native), `hex`, or `rgb`.
 
@@ -349,28 +338,34 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   (`--surface`/`--text`/`--border`/`--accent`), so each card wears its own entry's `brandColor` with
   no slot scope and no `<style>` block.
 
-The **interactive OKLCH studio** — an entry module whose experience re-runs the pure engine in JS
+The **Color Engine** — an entry module whose experience re-runs the pure engine in JS
 on each control change (type a seed, watch the palette regenerate) — ships as the
-`palette-studio` module (`src/entries/palette-studio/`), the component registry's first real
+`color-engine` module (`src/entries/color-engine/`), the component registry's first real
 key. A showcase module renders its slot's baked tokens by consuming the scope's CSS variables;
-it need not call the engine at runtime (the studio is the exception — it re-runs the pure
+it need not call the engine at runtime (the Color Engine is the exception — it re-runs the pure
 function in JS live, and reports the engine's own receipts: per-token binding provenance,
 measured contrast, the anchor readout).
 
-The studio composes as an **editorial page with branded slots**, not prose-then-app: the entry's
-Portable Text body interleaves explanatory prose with `liveEmbed` slots (seed row, rules rail,
-primitives board, token table, preview, contrast receipt, export), each mounted in its **own**
-scoped container while the prose between them reads the editorial register. The slots share
-state through the module's `Provider` (see the module contract below). Layout is **breakout**:
-the page container runs wide so the page reads as a demo, prose keeps its readable measure, and
-the slots break out to the full container width.
+The Color Engine composes as a **prose-less wide canvas**: its module exports a single
+`Experience` (`ColorEngineExperience`) that mounts the shared-state `ColorEngineProvider` around
+the `ColorEngineCanvas` grid, which lays every surface (seed row, rules rail, primitives board,
+token table, preview, contrast receipt, export, harmony) into one named-area CSS grid. The
+surfaces share state through the provider via context — one engine run per change, every surface
+reading the one result. `layout: "wide"` asks the `/[slug]` route for the screen-filling CANVAS
+template.
+
+It is also the **one place a visitor plays with a seed**. The provider holds the live seed/rules
+in React state and drives the page's `<html>` theme off the generated palette (`ThemeReapplier`,
+the same imperative re-applier that lands the authored theme), so moving a control repaints the
+**whole** page — chrome included — in the palette it generates. The play is **ephemeral**: React
+state only, no `localStorage`, reset on hard reload, and it never bleeds onto authored routes
+(every route re-asserts its own theme on navigation / `<Activity>` reveal).
 
 Two deliberate consequences:
 
-- **It themes itself, on purpose.** An engine-showcase project's slot (the Palette Studio,
-  `palette-studio`) is themed like any other, so its own brand tokens are generated by the
-  engine it showcases. No circular dependency in code
-  (the project depends on the engine; the engine depends on nothing).
+- **It themes itself, on purpose.** The Color Engine's slot (`color-engine`) is themed like any
+  other, so its own brand tokens are generated by the engine it showcases. No circular dependency
+  in code (the project depends on the engine; the engine depends on nothing).
 - **Keep it isomorphic** (enforced — see above).
 
 The anti-pattern to avoid: putting the engine _inside_ an entry module and having the theming
@@ -465,7 +460,7 @@ proactively into `src/components/ui/`, even while single-use**. A primitive (an 
 control, a panel frame, a meta label) is a design-system unit by nature: it reads the generic
 semantic tokens, ships its own defaults, and works composed into any project or none, so it goes
 to `ui/` the moment it's recognized as a primitive, not on its second consumer. A project may
-also _consume_ shared logic without owning it — an engine-showcase module (the Palette Studio)
+also _consume_ shared logic without owning it — an engine-showcase module (the Color Engine)
 showcases the shared engine's output rather than holding the engine (see the OKLCH engine).
 
 ### The CMS ↔ code registry

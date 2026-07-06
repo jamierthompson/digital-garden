@@ -125,7 +125,7 @@ describe('requiredForNonSketchProject — componentKey/fontKey: required only PA
   })
 
   it('passes for a non-sketch project that has a value', () => {
-    expect(requiredForNonSketchProject('palette-studio', ctx({kind: 'project', stage: 'shipped'}))).toBe(
+    expect(requiredForNonSketchProject('color-engine', ctx({kind: 'project', stage: 'shipped'}))).toBe(
       true,
     )
   })
@@ -138,7 +138,7 @@ describe('requiredForNonSketchProject — componentKey/fontKey: required only PA
 
   it('ACCEPTS a componentKey/fontKey set on a note/essay/now — honored, not rejected', () => {
     for (const kind of OPTIONAL_KEY_KINDS) {
-      expect(requiredForNonSketchProject('palette-studio', ctx({kind, stage: 'prototype'}))).toBe(true)
+      expect(requiredForNonSketchProject('color-engine', ctx({kind, stage: 'prototype'}))).toBe(true)
     }
   })
 
