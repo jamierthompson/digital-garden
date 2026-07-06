@@ -1,15 +1,35 @@
 import {defineField, defineType} from 'sanity'
 
+import {isBrandColorString} from '../shared/colorValidation'
+
 /**
- * Shell / digital-garden settings.
+ * Shell / digital-garden settings — a singleton (enforced via Studio Structure in
+ * `sanity.config.ts`).
  *
- * Shell identity only: the site title and default meta description that
- * `generateMetadata` reads (src/app/layout.tsx). The shell is static and
- * monochromatic — it wears the global editorial layer, NOT a Sanity-seeded brand — so
- * this singleton carries no theming fields; brand color + font live on each `entry` and
- * theme only that entry's own slot. Enforced as a singleton via Studio Structure
- * (structureTool config in sanity.config.ts).
+ * Two concerns, kept separate:
+ *   • Shell identity — `title` / `description`, read by `generateMetadata` (src/app/layout.tsx).
+ *   • Per-page theme seeds — `pageThemes`, one authored brand color per site-owned page
+ *     (`/`, `/browse`, `/about`, `/now`, `/system`). Under the site-wide engine-theming model
+ *     (#166), every page derives its theme from an authored OKLCH seed: an `entry` seeds from
+ *     its own `brandColor`, and these site-owned pages — which have no backing `entry` — seed
+ *     from here. A `now`-kind entry has no `brandColor` of its own and inherits the `/now` seed
+ *     (`pageThemes.now`), resolved in `ENTRY_DETAIL_QUERY`. Dark mode is auto-derived by the
+ *     engine, so there is no per-page dark override.
+ *
+ * Each seed is a plain string (hex or `oklch()`) validated by the engine's OWN pipeline
+ * (`isBrandColorString` → `buildTokenSet`), NOT a color-picker: the author-time check is
+ * exactly the render-time contract, and `oklch()` authoring stays available. These are
+ * capability values consumed by code, not prose — stega-excluded alongside the entry seeds.
  */
+const brandSeedField = (name: string, title: string, page: string) =>
+  defineField({
+    name,
+    title,
+    type: 'string',
+    description: `Brand seed color for ${page} — hex or oklch(). The engine derives this page’s theme from it (dark mode auto-derived).`,
+    validation: (rule) => rule.required().custom(isBrandColorString),
+  })
+
 export const siteSettings = defineType({
   name: 'siteSettings',
   title: 'Site settings',
@@ -26,6 +46,22 @@ export const siteSettings = defineType({
       type: 'text',
       rows: 3,
       description: 'Shell tagline / default meta description.',
+    }),
+    defineField({
+      name: 'pageThemes',
+      title: 'Page themes',
+      type: 'object',
+      description:
+        'Authored brand seed color for each site-owned page. The OKLCH engine derives each page’s theme from its seed; a “now” entry inherits the /now seed.',
+      options: {collapsible: true, collapsed: false},
+      fields: [
+        brandSeedField('home', 'Home ( / )', 'the / home page'),
+        brandSeedField('browse', 'Browse ( /browse )', 'the /browse page'),
+        brandSeedField('about', 'About ( /about )', 'the /about page'),
+        brandSeedField('now', 'Now ( /now )', 'the /now page (also inherited by “now” entries)'),
+        brandSeedField('system', 'System ( /system )', 'the /system page'),
+      ],
+      validation: (rule) => rule.required(),
     }),
   ],
   preview: {

@@ -45,6 +45,59 @@ describe("stega exclusions", () => {
       false,
     );
   });
+
+  it.each(["home", "browse", "about", "now", "system"])(
+    "flags the pageThemes.%s seed via its ancestor (leaf names are common words)",
+    (page) => {
+      expect(isStegaExcludedField(["pageThemes", page])).toBe(true);
+    },
+  );
+
+  it("does not flag a same-named prose field OUTSIDE pageThemes", () => {
+    // `now` as a bare leaf (e.g. a hypothetical prose field) must NOT be excluded —
+    // only seeds nested under the pageThemes ancestor are code-consumed.
+    expect(isStegaExcludedField(["now"])).toBe(false);
+    expect(isStegaExcludedField(["home"])).toBe(false);
+  });
+
+  // --- QA hardening (#173): the ancestor match is a global `.some(seg === "pageThemes")` ---
+
+  it("excludes a seed when pageThemes is a DEEP ancestor, not the immediate parent", () => {
+    // The `.some` scans the WHOLE path, so exclusion doesn't depend on pageThemes being the
+    // direct parent — any depth counts.
+    expect(isStegaExcludedField(["root", "pageThemes", "now"])).toBe(true);
+  });
+
+  it("tolerates numeric (array-index) segments in the path without throwing", () => {
+    // Real source paths interleave numbers for array indices; the string-typed `.some`/`.has`
+    // guards must skip them, not choke.
+    expect(isStegaExcludedField(["pageThemes", 0, "now"])).toBe(true);
+    expect(isStegaExcludedField(["body", 3, "children", 0, "text"])).toBe(
+      false,
+    );
+  });
+
+  it("still excludes a leaf-name field nested arbitrarily deep", () => {
+    expect(isStegaExcludedField(["a", "b", "c", "brandColor"])).toBe(true);
+  });
+
+  it("does not over-match a segment that merely CONTAINS 'pageThemes' (exact match only)", () => {
+    // Substring safety: a hypothetical sibling field like `pageThemesArchive` must NOT be
+    // swept in — the ancestor set is matched by equality, not `includes`.
+    expect(isStegaExcludedField(["pageThemesArchive", "title"])).toBe(false);
+  });
+
+  it("documents the intentional over-reach: ANY leaf under a pageThemes ancestor is excluded", () => {
+    // A prose-named leaf (e.g. `title`) nested anywhere under pageThemes is still excluded —
+    // the ancestor match is deliberately broad. Pinned so a future narrowing is a conscious change.
+    expect(isStegaExcludedField(["pageThemes", "subgroup", "title"])).toBe(
+      true,
+    );
+  });
+
+  it("returns false (no crash) for an empty source path", () => {
+    expect(isStegaExcludedField([])).toBe(false);
+  });
 });
 
 describe("stegaFilter", () => {

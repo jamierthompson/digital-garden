@@ -477,8 +477,8 @@ src/entries/<slug>/   its pages (experience + any essay/hero/other) + embeddable
   content→code direction (a saved Sanity key whose code was renamed/deleted) degrades to a visible
   fallback instead of crashing — `not-found.tsx` for a `componentKey`/slug miss, a "missing embed"
   placeholder in the Portable Text serializer for an `embedKey` miss. (A CI check that GROQs all
-  _published_ keys and asserts each exists in code is an additive safety net, tracked in the issue
-  backlog — not a schema decision.)
+  _published_ keys and asserts each exists in code is an additive safety net — the `published-keys`
+  CI job, `scripts/check-published-keys.mjs` / `pnpm lint:keys:published` — not a schema decision.)
 - **Lazy-load each module** via a **literal** dynamic import per key
   (`() => import("@/entries/<slug>")`, never a templated `import(\`…/${slug}\`)`, which defeats
   bundler static analysis). Server Components are auto-split already; the manual lazy import
@@ -576,8 +576,11 @@ Practical notes:
   often single-component piece (and doubles as a shareable social post); an _essay_ is writing-led with
   interactions slotted in; a _project_ is an interactive experience with more slots; a _now_ is a dated
   "now" update that drives the reverse-chronological `/now` stream and also mixes into the Index.
-  **Theming and interactivity are capability-gated, not kind-gated:** every kind but `now` can carry
-  both. A present `brandColor` gives the entry its own brand `[data-entry]` scope (and mounts its
+  **Downstream, theming and interactivity key on capability (presence), not kind:** every kind but
+  `now` scopes on a present `brandColor` and mounts on a present `componentKey`. (`brandColor`
+  additionally carries a required _floor_ for note/essay/project — see below — but the mount/scope
+  logic keys on presence, not kind.) A present `brandColor` gives the entry its own brand
+  `[data-entry]` scope (and mounts its
   `liveEmbed`s in their own scoped containers, exactly as a project's embeds do); a present
   `componentKey` resolves and mounts the coded module — a declared key that fails to resolve is a
   `notFound()` for any kind, and no key at all renders prose-only (a sketch project renders
@@ -590,11 +593,14 @@ componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fon
   share one `data-entry` and cross-contaminate themes — and its empty brand fields resolve to the
   engine's fallback palette + the shell's mono fallback face (Geist Mono, `--font-geist-mono`) — the
   never-throws keystone, unchanged.
-  `brandColor` and `componentKey` are **conditionally required for a
-  `project`** (`brandColor` always; `componentKey`/`fontKey` past the sketch stage) and
-  **optional-but-honored** for a `note`/`essay`; a `now` stays chrome + prose by design and is never
-  themed. `stage` does not apply to a `now`. A second document type is deferred
-  until a kind genuinely proves divergent fields.
+  `brandColor` is **required for every themed kind** — note, essay, and project (each page derives its
+  theme from an authored seed). `componentKey`/`fontKey` stay **conditionally required for a
+  `project`** (past the sketch stage) and **optional-but-honored** for a `note`/`essay`. A `now`
+  update is chrome + prose by design: it **cannot set its own `brandColor`** (the field is hidden for
+  a `now` in the Studio and rejected on write by `forbiddenForNow`) and **inherits the `/now` page
+  seed** instead — the single `/now` seed themes the `/now` index and every `now` entry alike. `stage`
+  does not
+  apply to a `now`. A second document type is deferred until a kind genuinely proves divergent fields.
 - **`stage` is maturity; `iterated` is freshness.** **`stage`** (sketch → prototype → shipped —
   stable stored values, labels re-wordable in the UI) is the honesty badge on every entry, independent
   of scope (`kind`) and of curation (`featuredRank`). **`iterated`** is an _authored_ "last worked on"
@@ -606,8 +612,15 @@ componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fon
   document (the slot seed), stored as a validated string (hex or `oklch()`). Author-time Sanity
   `validation` runs the engine's own color pipeline (parse → gamut-map → confirm in-spec contrast)
   for editor feedback. Defense-in-depth: the engine itself never throws (see the OKLCH engine) and
-  `EntryScope` falls back to a safe default. `siteSettings` holds the site title/description and
-  may seed a homepage slot; it does not brand the chrome.
+  `EntryScope` falls back to a safe default. `siteSettings` holds the site title/description **and the
+  per-page theme seeds**: a `pageThemes` object carries one authored, engine-validated brand seed for
+  each site-owned page (`/`, `/browse`, `/about`, `/now`, `/system`) — the pages with no backing
+  `entry` — exposed by `SITE_SETTINGS_QUERY`. A `now` entry has no `brandColor` of its own, so
+  `ENTRY_DETAIL_QUERY` resolves a **kind-gated** `themeSeed`
+  (`select(kind == "now" => …pageThemes.now, brandColor)`): a `now` update always wears the `/now`
+  seed (its own `brandColor` ignored), every themed kind wears its own — resolved in-query so it lands
+  in the static shell, flash-free. Wiring each page to consume its seed is the site-wide
+  theming-delivery slice.
 - **`fontKey` is per-entry** — a field on the `entry` document, chosen from the curated roster
   (see fonts). Reference-by-key, exactly like `componentKey` and `brandColor`.
 - **No per-scheme color field.** Dark mode is a render-time axis; one `brandColor` generates

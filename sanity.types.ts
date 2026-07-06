@@ -73,6 +73,13 @@ export type SiteSettings = {
   _rev: string;
   title?: string;
   description?: string;
+  pageThemes?: {
+    home?: string;
+    browse?: string;
+    about?: string;
+    now?: string;
+    system?: string;
+  };
 };
 
 export type EntryReference = {
@@ -270,7 +277,7 @@ export type ENTRY_SLUGS_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: ENTRY_DETAIL_QUERY
-// Query: *[_type == "entry" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    featuredRank,    blurb,    brandColor,    brandColorDark,    fontKey,    componentKey,    body,    related[]->{ _id, title, "slug": slug.current, kind },    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }  }
+// Query: *[_type == "entry" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    featuredRank,    blurb,    brandColor,    brandColorDark,    fontKey,    componentKey,    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, brandColor),    body,    related[]->{ _id, title, "slug": slug.current, kind },    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }  }
 export type ENTRY_DETAIL_QUERY_RESULT = {
   _id: string;
   title: string | null;
@@ -284,6 +291,7 @@ export type ENTRY_DETAIL_QUERY_RESULT = {
   brandColorDark: string | null;
   fontKey: string | null;
   componentKey: string | null;
+  themeSeed: string | null;
   body: PortableText | null;
   related: Array<{
     _id: string;
@@ -340,11 +348,18 @@ export type NOW_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: SITE_SETTINGS_QUERY
-// Query: *[_type == "siteSettings"][0] {    _id,    title,    description  }
+// Query: *[_type == "siteSettings"][0] {    _id,    title,    description,    pageThemes { home, browse, about, now, system }  }
 export type SITE_SETTINGS_QUERY_RESULT = {
   _id: string;
   title: string | null;
   description: string | null;
+  pageThemes: {
+    home: string | null;
+    browse: string | null;
+    about: string | null;
+    now: string | null;
+    system: string | null;
+  } | null;
 } | null;
 
 // Query TypeMap
@@ -353,10 +368,10 @@ declare module "@sanity/client" {
   interface SanityQueries {
     '\n  *[_type == "entry" && kind == "project" && defined(slug.current)] | order(_createdAt desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    featuredRank,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': WORK_INDEX_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current)]{ "slug": slug.current }\n': ENTRY_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    blurb,\n    brandColor,\n    brandColorDark,\n    fontKey,\n    componentKey,\n    body,\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }\n  }\n': ENTRY_DETAIL_QUERY_RESULT;
+    '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    blurb,\n    brandColor,\n    brandColorDark,\n    fontKey,\n    componentKey,\n    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, brandColor),\n    body,\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }\n  }\n': ENTRY_DETAIL_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    blurb,\n    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])\n  }\n': INDEX_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    blurb,\n    brandColor,\n    fontKey\n  }\n': FEATURED_QUERY_RESULT;
     '\n  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    iterated,\n    blurb\n  }\n': NOW_QUERY_RESULT;
-    '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description\n  }\n': SITE_SETTINGS_QUERY_RESULT;
+    '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description,\n    pageThemes { home, browse, about, now, system }\n  }\n': SITE_SETTINGS_QUERY_RESULT;
   }
 }
