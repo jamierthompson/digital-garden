@@ -167,6 +167,55 @@ Key points:
   into every compiled sheet and substituted at build time via `postcss.config.mjs` — note a
   custom PostCSS config replaces Next's defaults, so that file re-declares them.
 
+### Site-wide `<html>` theme delivery (#166)
+
+Alongside the per-slot brand model above, the engine is being promoted to theme **every page**
+from an authored seed, with the theme stamped on a **single `<html>` binding** rather than a
+per-slot `[data-entry]` scope. This slice (#172) ships the **delivery primitives**; they are
+**purely additive and not yet mounted** — the flip that mounts persistent themed chrome and
+per-page delivery is #175, and the teardown of the editorial defaults + `EntryScope` wash
+machinery is #176. Until then the per-slot brand model remains the live path.
+
+The mechanism follows Next's _Preventing flash before hydration → Themes_ pattern
+(`node_modules/next/dist/docs/01-app/02-guides/preventing-flash-before-hydration.md`), and mirrors
+`src/lib/scheme.ts`'s split (the light/dark axis) — the one difference being that a page's seed is
+**author-set and server-known**, so theming carries **no `localStorage`**:
+
+- **The `<html>` node _is_ the state.** The theme is a set of semantic custom properties written
+  imperatively on `<html>`. Chrome and page both inherit them, so the persistent chrome re-matches
+  the visible page **without re-rendering** (custom-property inheritance is live). There is **no
+  per-route `:root` `<style>` block** — one would collide across the routes `<Activity>` keeps
+  mounted at once (the #168 wash failure); a single imperative write to one node cannot collide
+  with itself. A per-token `setProperty` layers _alongside_ the scheme toggle's inline
+  `color-scheme` instead of clobbering it.
+- **The serializer** — `resolveThemeDeclarations(brandColor)` in `src/lib/theme.ts` — is a thin,
+  isomorphic wrapper over the engine's `buildTokenSet` + `tokenSetToDeclarations`, returning
+  `[property, value]` pairs. It never throws (the engine collapses a bad seed to a fallback).
+- **Hard load / refresh:** the page renders `themeInitScript(declarations)` (via the `InlineScript`
+  helper) — a parse-time inline `<script>` with the seed's values baked in — which stamps `<html>`
+  before first paint. Flash-free, and the page stays static (no `cookies()`). Empirically the theme
+  lands before first paint under realistic network; only an extreme torture test shows a
+  background-only pre-paint, and `--bg` is near-paper/near-ink in both the editorial default and
+  every theme, so it is imperceptible. (Caveat for streamed `◐` pages: the seed must resolve in the
+  **static shell**, not a dynamic hole, or the script streams in late — a #173/#175 wiring concern.)
+- **Soft navigation & `<Activity>` reveal:** `ThemeReapplier` (client) re-stamps `<html>` from the
+  declarations it holds as a prop. The write lands in a **layout effect** — deliberately **not** an
+  insertion effect: the slice-1 spike proved an insertion effect does _not_ re-run on `<Activity>`
+  reveal (so a back/forward-revealed route kept the previous route's theme), whereas a layout effect
+  participates in Activity's hide/show effect cycle and re-asserts this route's theme before paint.
+
+These primitives (`src/lib/theme.ts` + `src/components/theme/{InlineScript,ThemeReapplier,PageTheme}`)
+compose as `PageTheme` — a synchronous server component a page mounts once with its seed, driving
+both halves.
+
+**Resolved `@layer` taxonomy (the epic's open question).** Binding the theme once on `<html>` and
+dropping the per-slot re-bind means the `brand` cascade layer loses its occupant. The **resolved
+target is `@layer foundation, semantic, components;`** — `brand` deleted. That deletion lands with
+**#176** (which removes the `EntryScope` brand machinery that still occupies the layer); until then
+the live order statement stays `@layer foundation, semantic, brand, components;` (removing `brand`
+now would orphan live rules). The statement documented elsewhere in this file reflects today's live
+value; this is the target it converges to.
+
 ### The OKLCH engine
 
 The engine is the load-bearing, genuinely hard piece of the system — not a lightness ramp but a
