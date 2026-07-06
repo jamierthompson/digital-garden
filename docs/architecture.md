@@ -169,12 +169,13 @@ Key points:
 
 ### Site-wide `<html>` theme delivery (#166)
 
-Alongside the per-slot brand model above, the engine is being promoted to theme **every page**
-from an authored seed, with the theme stamped on a **single `<html>` binding** rather than a
-per-slot `[data-entry]` scope. This slice (#172) ships the **delivery primitives**; they are
-**purely additive and not yet mounted** — the flip that mounts persistent themed chrome and
-per-page delivery is #175, and the teardown of the editorial defaults + `EntryScope` wash
-machinery is #176. Until then the per-slot brand model remains the live path.
+The engine themes **every page** from an authored seed, stamped on a **single `<html>` binding**
+rather than a per-slot `[data-entry]` scope. Each page mounts one `<PageTheme seed>` (a synchronous
+server component): the site-owned pages (`/`, `/browse`, `/about`, `/now`, `/system`) seed from
+`siteSettings.pageThemes.<key>` (resolved by `sitePageThemeSeed`), and entry pages (`/[slug]`) seed
+from the kind-gated `themeSeed`. `SiteNav` and `SiteFooter` render once in the root layout above the
+pages and **inherit** the `<html>` binding, so the persistent chrome wears the visible page's theme
+with no re-render (custom-property inheritance is live).
 
 The mechanism follows Next's _Preventing flash before hydration → Themes_ pattern
 (`node_modules/next/dist/docs/01-app/02-guides/preventing-flash-before-hydration.md`), and mirrors
@@ -182,39 +183,35 @@ The mechanism follows Next's _Preventing flash before hydration → Themes_ patt
 **author-set and server-known**, so theming carries **no `localStorage`**:
 
 - **The `<html>` node _is_ the state.** The theme is a set of semantic custom properties written
-  imperatively on `<html>`. Chrome and page both inherit them, so the persistent chrome re-matches
-  the visible page **without re-rendering** (custom-property inheritance is live). There is **no
-  per-route `:root` `<style>` block** — one would collide across the routes `<Activity>` keeps
-  mounted at once (the #168 wash failure); a single imperative write to one node cannot collide
-  with itself. A per-token `setProperty` layers _alongside_ the scheme toggle's inline
-  `color-scheme` instead of clobbering it.
+  imperatively on `<html>`. There is **no per-route `:root` `<style>` block** — one collides across
+  the routes `<Activity>` keeps mounted at once (the #168 wash failure); a single imperative write to
+  one node cannot collide with itself. A per-token `setProperty` layers _alongside_ the scheme
+  toggle's inline `color-scheme` instead of clobbering it.
 - **The serializer** — `resolveThemeDeclarations(brandColor)` in `src/lib/theme.ts` — is a thin,
   isomorphic wrapper over the engine's `buildTokenSet` + `tokenSetToDeclarations`, returning
   `[property, value]` pairs. It never throws (the engine collapses a bad seed to a fallback).
 - **Hard load / refresh:** the page renders `themeInitScript(declarations)` (via the `InlineScript`
   helper) — a parse-time inline `<script>` with the seed's values baked in — which stamps `<html>`
-  before first paint. Flash-free, and the page stays static (no `cookies()`). Empirically the theme
-  lands before first paint under realistic network; only an extreme torture test shows a
-  background-only pre-paint, and `--bg` is near-paper/near-ink in both the editorial default and
-  every theme, so it is imperceptible. (Caveat for streamed `◐` pages: the seed must resolve in the
-  **static shell**, not a dynamic hole, or the script streams in late — a #173/#175 wiring concern.)
+  before first paint. The read path (`sanityFetch`) is `use cache`, so a public request prerenders
+  the page into the **static shell** and the script is in the initial HTML; the seed resolves on the
+  page's synchronously-awaited path so it never lands in a streamed `◐` dynamic hole (which would
+  deliver the script late). The script runs **after `<SiteNav>` in DOM order** — a page renders
+  inside the shared layout's chrome, not above it — but it is parser-blocking and sits in the static
+  shell, so it executes before first paint (the guarantee the scheme script rests on).
 - **Soft navigation & `<Activity>` reveal:** `ThemeReapplier` (client) re-stamps `<html>` from the
-  declarations it holds as a prop. The write lands in a **layout effect** — deliberately **not** an
-  insertion effect: the slice-1 spike proved an insertion effect does _not_ re-run on `<Activity>`
-  reveal (so a back/forward-revealed route kept the previous route's theme), whereas a layout effect
-  participates in Activity's hide/show effect cycle and re-asserts this route's theme before paint.
+  declarations it holds as a prop, in a **layout effect** — not an insertion effect: an insertion
+  effect does _not_ re-run on `<Activity>` reveal (so a back/forward-revealed route keeps the
+  previous route's theme), whereas a layout effect participates in Activity's hide/show effect cycle
+  and re-asserts this route's theme before paint.
 
-These primitives (`src/lib/theme.ts` + `src/components/theme/{InlineScript,ThemeReapplier,PageTheme}`)
-compose as `PageTheme` — a synchronous server component a page mounts once with its seed, driving
-both halves.
+The primitives live in `src/lib/theme.ts` + `src/components/theme/{InlineScript,ThemeReapplier,PageTheme}`;
+`PageTheme` composes both halves from one seed resolution.
 
-**Resolved `@layer` taxonomy (the epic's open question).** Binding the theme once on `<html>` and
-dropping the per-slot re-bind means the `brand` cascade layer loses its occupant. The **resolved
-target is `@layer foundation, semantic, components;`** — `brand` deleted. That deletion lands with
-**#176** (which removes the `EntryScope` brand machinery that still occupies the layer); until then
-the live order statement stays `@layer foundation, semantic, brand, components;` (removing `brand`
-now would orphan live rules). The statement documented elsewhere in this file reflects today's live
-value; this is the target it converges to.
+The editorial color defaults in `foundation.css` and the `EntryScope` wash sit beneath the
+imperative `<html>` binding as a dormant fallback (their removal is tracked in #176). The live
+cascade order is `@layer foundation, semantic, brand, components;`; the `brand` layer holds the
+`EntryScope` slot machinery, and converges to `@layer foundation, semantic, components;` when #176
+removes it.
 
 ### The OKLCH engine
 
@@ -271,9 +268,10 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   model and repo & hosting sections).
 
 - Runs **per slot** — once per brand slot (seeded by the entry's `brandColor`). Multiple themed
-  slots can coexist on one page; the page chrome around them stays editorial. **Previews are not
-  slots**: an index card or inline preview needs a few colors, not a namespace, so it derives them
-  from the same engine (via `cardSwatches`) and skips the scoped `<style>` block.
+  slots can coexist on one page. **Cards are not slots**: a featured-home card needs a few colors,
+  not a namespace, so it derives them from the same engine (via `cardSwatches`) and spreads them
+  inline as generic semantic-token overrides — its own entry's `brandColor` — with no scoped
+  `<style>` block.
 
 - Emitted as a **server-rendered scoped `<style>` block** (`[data-entry="x"] { … }`), declared
   `@layer brand`. On Vercel this is genuinely **flash-free for color**: the `brandColor` is known
@@ -332,11 +330,13 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 - **Author-time validation (`studio/schemaTypes/shared/colorValidation.ts`)**: the Studio's
   `brandColor` validation runs the same `buildTokenSet` pipeline (parse → gamut-map →
   contrast-solve) for editor feedback (see the content model).
-- **Preview swatches (`cardSwatches`)**: the featured-home cards (and inline previews) call a
-  `cardSwatches(brandColor)` helper that runs the **same engine** and returns just a few stops, spread
-  inline as **generic semantic-token overrides** (`--surface`/`--text`/`--border`/`--accent`, no
-  prefix) on an otherwise-editorial frame — no slot scope, no `<style>` block. It goes through the
-  same parse/validate path as everything else.
+- **Per-page delivery (`resolveThemeDeclarations`)**: `PageTheme` runs the **same engine**
+  (`buildTokenSet` + `tokenSetToDeclarations`) to stamp a page's authored theme on `<html>` (see the
+  site-wide delivery section).
+- **Preview swatches (`cardSwatches`)**: a featured-home card calls `cardSwatches(brandColor)` — the
+  **same engine**, returning a few stops spread inline as generic semantic-token overrides
+  (`--surface`/`--text`/`--border`/`--accent`), so each card wears its own entry's `brandColor` with
+  no slot scope and no `<style>` block.
 
 The **interactive OKLCH studio** — an entry module whose experience re-runs the pure engine in JS
 on each control change (type a seed, watch the palette regenerate) — ships as the
@@ -643,10 +643,10 @@ componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fon
   sizes, initial state) as a block or an untyped `props` blob — default it in the registry, or split
   into two registered keys. Litmus: _editor writes/curates it → typed block; developer decides it →
   registry; neither → it's not an input._
-- **The index query refuses to over-fetch.** The card query pulls `blurb`, `brandColor`, `fontKey`,
-  `kind`, `stage`, `featuredRank` — **not** the body. That enforces "a few colors per card" at the data
-  layer (cards feed `cardSwatches`) and keeps the index payload small
-  for CWV.
+- **The card queries refuse to over-fetch.** The featured-home query pulls the card fields —
+  `title`/`slug`/`blurb`/`stage`/`kind` plus the `brandColor` each card themes its plate from — but
+  **not** the body. That enforces "a few colors per card" at the data layer (cards feed
+  `cardSwatches`) and keeps the front-door payload small for CWV.
 - **`EntryScope` is the resolution keystone.** One server component takes a scope's `brandColor` +
   `fontKey` and emits the flash-free scoped `<style>` (engine palette, both schemes via
   `light-dark()`) plus the resolved font's `.variable` class. It wraps a themed entry's **interactive
@@ -669,10 +669,11 @@ componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fon
   **Index** (at `/browse`) is the full browsable list of every entry, filtered by `kind` and `stage`
   and wired with backlinks, for the wanderer. The portfolio is a _view_ of the graph (a saved
   `featuredRank != null` filter), not a separate section. The **shell frame** of both — plus `/about`
-  and `/now` — is editorial ink (see the token & theming architecture). Their _content_ differs by
-  intent: the Index is a uniform editorial list, but the **featured home's cards are branded slots** —
-  each re-binds its own engine-solved palette inline via `cardSwatches`, because a
-  card is a bounded slot, not chrome. So brand still lives only in slots, never in the frame.
+  and `/now` — wears the page's authored `<html>` theme (see the token & theming architecture). Their
+  _content_ differs by intent: the Index is a uniform editorial list, and the **featured home's cards
+  are branded plates** — each spreads its own entry's engine-solved palette inline via `cardSwatches`,
+  because a card is a bounded slot, not chrome. So a card carries its own `brandColor` while the frame
+  around it wears the page theme.
 - **TypeGen + `defineQuery`**: typed GROQ; run TypeGen after any schema or query change (a committed
   script + a CI `git diff --exit-code` on the generated types keeps it from rotting); `defineQuery`
   must wrap the query literally (no runtime interpolation).
