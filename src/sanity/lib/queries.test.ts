@@ -1,3 +1,4 @@
+import { evaluate, parse } from "groq-js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -112,6 +113,96 @@ describe("ENTRY_DETAIL_QUERY", () => {
   it("uses a query parameter, never string interpolation (injection guard)", () => {
     expect(ENTRY_DETAIL_QUERY).toContain("$slug");
     expect(ENTRY_DETAIL_QUERY).not.toContain("${");
+  });
+});
+
+/**
+ * QA (#173): the `.toContain` tests above pin the query STRING; these EXECUTE the real
+ * ENTRY_DETAIL_QUERY against a synthetic dataset with groq-js (a declared dependency) to pin
+ * its actual `coalesce` SEMANTICS. `coalesce(a, b)` returns the first NON-NULL operand — an
+ * empty string is non-null — so `themeSeed` short-circuits on `brandColor` whenever it is a
+ * string, INCLUDING "". That is the exact hazard the two fail-first cases below expose.
+ */
+const NOW_SEED = "#105060";
+
+async function resolveThemeSeed(
+  entryOverrides: Record<string, unknown>,
+  opts: { withSettings?: boolean } = {},
+): Promise<unknown> {
+  const entry = {
+    _type: "entry",
+    _id: "e-under-test",
+    title: "Under test",
+    slug: { current: "under-test" },
+    ...entryOverrides,
+  };
+  const dataset: unknown[] = [entry];
+  if (opts.withSettings ?? true) {
+    dataset.push({
+      _type: "siteSettings",
+      _id: "settings",
+      pageThemes: {
+        home: "#h",
+        browse: "#b",
+        about: "#a",
+        now: NOW_SEED,
+        system: "#s",
+      },
+    });
+  }
+  const result = await (
+    await evaluate(parse(ENTRY_DETAIL_QUERY), {
+      dataset,
+      params: { slug: "under-test" },
+    })
+  ).get();
+  return (result as { themeSeed?: unknown }).themeSeed;
+}
+
+describe("ENTRY_DETAIL_QUERY themeSeed — executed GROQ coalesce semantics (#173 QA)", () => {
+  // --- The contract that HOLDS (pins the good path) ---
+  it("a now entry with an ABSENT brandColor inherits the /now page seed", async () => {
+    expect(await resolveThemeSeed({ kind: "now" })).toBe(NOW_SEED);
+  });
+
+  it("a now entry with a null brandColor inherits the /now page seed", async () => {
+    expect(await resolveThemeSeed({ kind: "now", brandColor: null })).toBe(
+      NOW_SEED,
+    );
+  });
+
+  it("a themed entry themes from its OWN brandColor, never the /now seed", async () => {
+    expect(
+      await resolveThemeSeed({ kind: "project", brandColor: "#4f46e5" }),
+    ).toBe("#4f46e5");
+  });
+
+  it("falls through to null when no siteSettings singleton is published (defensive)", async () => {
+    expect(
+      await resolveThemeSeed({ kind: "now" }, { withSettings: false }),
+    ).toBeNull();
+  });
+
+  // --- The contract that BREAKS (fail-first: proves the real defect) ---
+  it("a now entry with an EMPTY-STRING brandColor still inherits the /now seed (empty-string coalesce hole)", async () => {
+    // coalesce() only falls through on null; "" is non-null, so themeSeed becomes "" — a
+    // SILENTLY unthemed page. "" is reachable: brandColor is NOT required for `now`
+    // (requiredForThemedKind exempts it) and isBrandColorString("") returns true, so both
+    // author-time guards pass it (the API-write path colorValidation.ts calls out as real).
+    // queries.ts claims a now entry "falls through to the authored /now page seed" — it does not.
+    expect(await resolveThemeSeed({ kind: "now", brandColor: "" })).toBe(
+      NOW_SEED,
+    );
+  });
+
+  it("a now entry that carries its OWN brandColor still wears the /now seed (now theming is 'ignored downstream')", async () => {
+    // entry.ts: "now ... carries no brandColor and inherits the /now page seed (resolved in
+    // ENTRY_DETAIL_QUERY); any theming fields set on it are ignored downstream." The query does
+    // NOT ignore them: coalesce picks up the now entry's own brandColor, so a now update wears a
+    // DIFFERENT theme than the /now index — contradicting the stated single-theme contract.
+    expect(await resolveThemeSeed({ kind: "now", brandColor: "#f97316" })).toBe(
+      NOW_SEED,
+    );
   });
 });
 

@@ -67,6 +67,15 @@ describe('requiredForThemedKind — brandColor: required for note/essay/project 
     expect(requiredForThemedKind(undefined, ctx({stage: 'prototype'}))).toBe(true)
     expect(requiredForThemedKind(undefined, ctx({}))).toBe(true)
   })
+
+  it('does not throw or require on a non-string kind (defensive allowlist)', () => {
+    // `kind` crosses the wire as `unknown`; a malformed doc (number/object/boolean) must
+    // fail OPEN via the allowlist `includes`, never require a brandColor or throw.
+    expect(requiredForThemedKind(undefined, ctx({kind: 123}))).toBe(true)
+    expect(requiredForThemedKind(undefined, ctx({kind: {_type: 'x'}}))).toBe(true)
+    expect(requiredForThemedKind(undefined, ctx({kind: true}))).toBe(true)
+    expect(requiredForThemedKind(undefined, ctx({kind: null}))).toBe(true)
+  })
 })
 
 describe('requiredForNonSketchProject — componentKey/fontKey: required only PAST sketch', () => {
