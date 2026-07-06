@@ -49,16 +49,12 @@ vi.mock("@/lib/resolvers/components", () => ({
 // the theming contract we assert HERE is "does the page hand the body the right scope?" — the
 // rendered scoped embed itself is the integration test's / browser check's job.
 vi.mock("@/components/portable-text/EntryBody", () => ({
-  default: ({
-    scope,
-  }: {
-    scope?: { slug: string; brandColor: string; fontKey: string };
-  }) => (
+  default: ({ scope }: { scope?: { slug: string; fontKey: string } }) => (
     <div
       data-testid="essay-body"
       data-has-scope={scope ? "yes" : "no"}
       data-scope-slug={scope?.slug ?? ""}
-      data-scope-brand={scope?.brandColor ?? ""}
+      data-scope-font={scope?.fontKey ?? ""}
     />
   ),
 }));
@@ -230,7 +226,8 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     const body = screen.getByTestId("essay-body");
     expect(body).toHaveAttribute("data-has-scope", "yes");
     expect(body).toHaveAttribute("data-scope-slug", "an-entry");
-    expect(body).toHaveAttribute("data-scope-brand", "oklch(0.7 0.15 70)");
+    // The scope carries the entry's font — color is on `<html>`, inherited by the embeds.
+    expect(body).toHaveAttribute("data-scope-font", "newsreader");
     // Themed, but no module → no after-prose interactive slot.
     expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
   });
@@ -627,11 +624,11 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(screen.getByTestId("provider")).toBeInTheDocument();
     // Frame introduces no page-level scope wrapper.
     expect(container.querySelector("[data-entry]")).toBeNull();
-    // …but the body was handed the brand scope for its embeds.
+    // …but the body was handed the font scope for its embeds.
     const body = screen.getByTestId("essay-body");
     expect(body).toHaveAttribute("data-has-scope", "yes");
     expect(body).toHaveAttribute("data-scope-slug", "an-essay");
-    expect(body).toHaveAttribute("data-scope-brand", "oklch(0.7 0.15 70)");
+    expect(body).toHaveAttribute("data-scope-font", "newsreader");
   });
 
   it("does NOT build a scope for a lone fontKey (no brandColor, no module) — a fontKey alone has no slot to apply to", async () => {

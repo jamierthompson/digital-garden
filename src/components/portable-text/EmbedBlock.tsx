@@ -15,14 +15,13 @@ interface EmbedBlockProps {
   /** The editor-authored caption shown beneath the embed (optional). */
   caption?: string;
   /**
-   * The host entry's brand-scope seed. Present whenever a non-`now` entry themes OR mounts a
+   * The host entry's font-scope seed. Present whenever a non-`now` entry themes OR mounts a
    * module (`brandColor || componentKey`, not just a project): each embed then mounts inside its
-   * OWN `EntryScope` container, so brand stays scoped to the slot while the prose around it
-   * reads the editorial register. N embeds share ONE hoisted `<style>` (React de-dupes by
-   * `href`), so per-slot scoping costs one extra `[data-entry]` div per slot, not N style
-   * blocks. A module-only entry (no `brandColor`) still gets a seed keyed on its own slug, so
-   * its embeds scope under the engine's fallback palette. Absent (a `now`, or an entry that
-   * neither themes nor mounts a module) → the embed mounts bare.
+   * OWN `EntryScope` container, so it wears the entry's brand font while the prose around it
+   * keeps the editorial body face. Color is inherited from the page's `<html>` theme, so this
+   * seed carries only the slug + `fontKey`. A module-only entry (no `fontKey`) still gets a seed
+   * keyed on its own slug, so its embeds fall back to the shell font. Absent (a `now`, or an
+   * entry that neither themes nor mounts a module) → the embed mounts bare.
    */
   scope?: ScopeSeed;
 }

@@ -23,10 +23,11 @@ import styles from "./StudioCanvas.module.css";
 
 export default function StudioCanvas(): React.ReactElement {
   return (
-    // The scroll container (#139): mounted INSIDE the entry's brand scope (this component is
-    // rendered under `EntryScope` by `StudioExperience`/`[slug]/page.tsx`), so its thumb's
-    // `var(--accent)` (see `ScrollArea.module.css`) resolves to the derived brand color, not
-    // the editorial default — re-themes per route automatically, no per-use wiring. `.scrollArea`
+    // The scroll container (#139): mounted under `EntryScope` by `StudioExperience`/
+    // `[slug]/page.tsx`. Its thumb's `var(--accent)` (see `ScrollArea.module.css`) resolves to the
+    // page's engine-themed accent — the studio route stamps its brand on `<html>`, so the thumb
+    // gets the derived brand color, not the `:root` engine fallback, re-theming per route
+    // automatically with no per-use wiring. `.scrollArea`
     // gives it the bounded block-size a Radix ScrollArea needs (see `ScrollArea`'s own doc
     // comment); the exact bound is a first-pass the owner tunes live (#139: "most of the tool
     // visible when colors change", not a mandated fixed viewport stage).

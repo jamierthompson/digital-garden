@@ -365,8 +365,8 @@ describe("QA-S13 · Studio UI under adversarial interaction", () => {
   );
 });
 
-// The WASH × TOGGLE integration seam: the page's paint (every light-dark() token, the wash)
-// follows the resolved root `color-scheme`, so the provider's displayed scheme must track the
+// The PAINT × TOGGLE integration seam: the page's paint (every light-dark() token, the studio's
+// live `--bg`) follows the resolved root `color-scheme`, so the provider's displayed scheme must track the
 // same signal — `src/lib/scheme.ts`'s `subscribe`/`getResolvedScheme` (the #162 override when
 // set, else the OS preference) — or the receipts describe a scheme the viewer isn't painted
 // under. Pins the contract that paint and readouts can never disagree.

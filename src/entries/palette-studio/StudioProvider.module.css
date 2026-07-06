@@ -1,11 +1,10 @@
 /* The studio's own working surface — @layer components, var-consuming only. It no longer
-   paints its own `background` here: the page-spanning wash (`EntryScopeWash` /
-   `scopedWashCss`, bridged live by `StudioProvider`'s effect — see that file) already
-   covers the whole canvas with this SAME `--bg`, painted at `body` (`globals.css`). A
-   second same-color box here was a redundant, same-color boxed edge sitting on top of the
-   wash — this wrapper now only reserves the reading gutter; the color comes from the
-   ancestor wash showing straight through. No `color-scheme` here: it must inherit the
-   ambient scheme (#159) rather than shadow the site-wide toggle. */
+   paints its own `background` here: the page's `--bg` — from the route's `<html>` theme,
+   painted at `body` (`globals.css`) and live-updated by `StudioProvider`'s effect (see that
+   file) — already covers the whole canvas. A second same-color box here was a redundant boxed
+   edge sitting on top of it — this wrapper now only reserves the reading gutter; the color
+   comes from the ancestor `--bg` showing straight through. No `color-scheme` here: it must
+   inherit the ambient scheme (#159) rather than shadow the site-wide toggle. */
 @layer components {
   .surface {
     /* NO padding, any side (owner's scroll-container pattern): the spacing lives INSIDE the

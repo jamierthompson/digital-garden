@@ -135,15 +135,15 @@ Components read **generic semantic tokens** — `--surface`, `--text`, `--accent
 
 **Next does NOT auto-assign CSS Modules to a cascade layer.** Per the CSS cascade-layers spec (CSS Cascading and Inheritance Level 5; see MDN "Cascade layers"), an **unlayered** declaration **outranks every `@layer` style** regardless of specificity — and Next leaves Modules unlayered. So:
 
-> **Every `*.module.css` MUST wrap its rules in `@layer foundation` / `@layer brand` / `@layer components` — or stay strictly var-consuming (no bare rules).**
+> **Every `*.module.css` MUST wrap its rules in `@layer foundation` / `@layer semantic` / `@layer components` — or stay strictly var-consuming (no bare rules).**
 
 This is enforced by `pnpm lint:css` (`scripts/check-css-layers.mjs`, a CI gate): any rule outside an `@layer` block fails the build. Layer order is declared once, first, in `foundation.css`:
 
 ```css
-@layer foundation, semantic, brand, components; /* foundation < semantic < brand < components */
+@layer foundation, semantic, components; /* foundation < semantic < components */
 ```
 
-The engine's scoped `<style>` declares `@layer brand`. Note: Next's own CSS doc (`…/01-getting-started/11-css.md`) covers only import-order chunking — it never assigns Modules to a layer, which is exactly the gap this rule closes.
+An entry's brand font scopes to its own slot via an inline style on `[data-entry]` (`EntryScope`), not a cascade layer; its color is the page's `<html>` theme, inherited. Note: Next's own CSS doc (`…/01-getting-started/11-css.md`) covers only import-order chunking — it never assigns Modules to a layer, which is exactly the gap this rule closes.
 
 ### Other CSS rules
 

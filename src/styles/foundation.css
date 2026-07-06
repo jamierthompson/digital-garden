@@ -1,17 +1,19 @@
-/* Foundation tier (global, house-style, non-themeable) — the base of the three-layer token
-   model (foundation primitives → semantic role tokens → brand scoped override).
+/* Foundation tier (global, house-style, non-themeable) — the base of the token model
+   (foundation primitives → semantic role tokens → per-slot brand font override).
    Loaded before every other sheet so the cascade-layer order is established first. */
 
-/* Cascade order: foundation < semantic < brand < components. Declaring it up front means
-   later sheets slot into named layers instead of fighting source order / specificity.
-   - foundation: raw primitives (scales + the editorial neutral palette) + resets.
+/* Cascade order: foundation < semantic < components. Declaring it up front means later sheets
+   slot into named layers instead of fighting source order / specificity.
+   - foundation: raw primitives (scales, focus geometry, layout measures) + resets.
    - semantic:   the generic role-token contract components read (`--surface`, `--text`,
-                 `--accent`, … `--success`), bound to the GLOBAL EDITORIAL default here.
-   - brand:      a `[data-entry]` slot re-binds those same semantic tokens with the
-                 OKLCH engine's solved brand values (baked `light-dark()` literals).
+                 `--accent`, `--font-face`, …). Every route stamps its authored theme on
+                 `<html>` imperatively (see `PageTheme`), which out-ranks this layer; the values
+                 here are the neutral fallback for surfaces that render un-themed.
    - components: every component's own var-consuming rules (routes, shell, ui, entry modules).
-   Every CSS Module must opt into one of these layers (or stay var-consuming). */
-@layer foundation, semantic, brand, components;
+   An entry's brand font scopes to its own slot via an inline style on `[data-entry]`
+   (`EntryScope`), not a cascade layer. Every CSS Module must opt into one of these layers (or
+   stay var-consuming). */
+@layer foundation, semantic, components;
 
 /* Primitives live INSIDE @layer foundation — an unlayered :root would out-rank every
    layered re-declaration (the "@layer trap"); keeping them layered means a future layered
@@ -75,75 +77,129 @@
     --z-toast: 600;
 
     /* Focus-ring geometry only — the ring COLOR is a semantic token (`--focus-ring-color`,
-     bound in @layer semantic below and re-bound per slot in @layer brand). */
+     bound in @layer semantic below). */
     --focus-ring-width: 2px;
     --focus-ring-offset: 2px;
     --focus-ring-style: solid;
-
-    /* Editorial neutral palette — the foundation primitives the semantic layer maps the
-     global chrome from. A black/white/gray ramp (the "no brand color" editorial default);
-     values track the widely-used neutral scale so the ramp reads as house-style, not bespoke. */
-    --neutral-0: #ffffff;
-    --neutral-50: #fafafa;
-    --neutral-100: #f5f5f5;
-    --neutral-200: #e5e5e5;
-    --neutral-300: #d4d4d4;
-    --neutral-400: #a3a3a3;
-    --neutral-500: #737373;
-    --neutral-600: #525252;
-    --neutral-700: #404040;
-    --neutral-800: #262626;
-    --neutral-900: #171717;
-    --neutral-950: #0a0a0a;
   }
 }
 
-/* Semantic tier — the generic role-token contract every component reads. Bound here to the
-   GLOBAL EDITORIAL default (neutral chrome, no brand hue); a `[data-entry]` slot re-binds
-   these SAME names in @layer brand with the engine's solved brand values. `light-dark()`
-   makes each role scheme-aware, following `color-scheme` (globals.css sets `light dark`). */
+/* Semantic tier — the generic role-token contract every component reads. Every route stamps
+   its authored theme imperatively on `<html>` (see `PageTheme`), which out-ranks this `:root`;
+   the color values here are the FALLBACK THEME — the full engine token set from the engine's own
+   fallback seed — for the surfaces that render with no page theme (404 / error / loading + the
+   persistent chrome around them, which never mount a `<PageTheme>`). `light-dark()` makes each
+   role scheme-aware, following `color-scheme`. */
 @layer semantic {
   :root {
     color-scheme: light dark;
 
-    /* Neutral surfaces + ink */
-    --bg: light-dark(var(--neutral-0), var(--neutral-950));
-    --surface: light-dark(var(--neutral-0), var(--neutral-900));
-    --surface-2: light-dark(var(--neutral-100), var(--neutral-800));
-    --text: light-dark(var(--neutral-900), var(--neutral-100));
-    --text-muted: light-dark(var(--neutral-600), var(--neutral-400));
-    --border: light-dark(var(--neutral-200), var(--neutral-700));
-
-    /* Editorial "accent" is ink — the chrome carries no brand hue; a brand slot supplies
-       the only accent color, scoped to its interactive island. */
-    --accent: light-dark(var(--neutral-900), var(--neutral-100));
-    --accent-text: light-dark(var(--neutral-900), var(--neutral-100));
-    --on-accent: light-dark(var(--neutral-0), var(--neutral-950));
-    --focus-ring: light-dark(var(--neutral-900), var(--neutral-100));
-
-    /* Status signal colors at fixed, recognizable hues (green/red/amber/blue). These are the
-       editorial defaults for chrome; inside a slot the engine's brand-harmonized,
-       contrast-solved status tokens (#66) re-bind these same names. Light values are
-       700-weight on white, dark values 400-weight on near-black — each clears WCAG 2.2 AA
-       text on its scheme's surface (guarded by foundation.test.ts). Known gap:
-       these hand-authored defaults meet the legal floor but not the APCA Lc-60 quality
-       tier in dark (the engine-solved slot tokens do) — revisit when editorial status UI
-       ships / with the Palette Studio (#78). No status-bearing chrome renders them yet. */
-    --success: light-dark(#15803d, #4ade80);
-    --error: light-dark(#b91c1c, #f87171);
-    --warning: light-dark(#b45309, #fbbf24);
-    --info: light-dark(#1d4ed8, #60a5fa);
+    /* The complete engine token set derived from the engine's own fallback seed color
+       (`buildTokenSet(undefined)` → the FULL semantic tier, both schemes via `light-dark()`),
+       baked as static literals. This is the SAME derivation path every seeded page uses, just
+       with the canonical fallback seed as input — so an un-themed surface (404 / error / loading,
+       or any page with no `<html>` seed of its own) renders a complete, coherent engine theme,
+       structurally identical to a seeded page, not a special minimal case. A themed route's
+       `<html>` imperative write out-ranks this `:root`. Engine-derived, never hand-picked (this
+       closes #161 — status tokens are now solved by the engine, not hand-authored hex);
+       `foundation.test.ts` pins the whole block against the live engine output so drift goes red.
+       The eventual option to author a specific seed for these states in `siteSettings` is #189. */
+    --bg: light-dark(oklch(0.9823 0.0097 235.77), oklch(0.165 0.045 264));
+    --surface: light-dark(oklch(0.958 0.0198 263.78), oklch(0.21 0.045 264));
+    --surface-2: light-dark(oklch(0.9296 0.0336 263.04), oklch(0.26 0.045 264));
+    --text: light-dark(oklch(0.29 0.04 264), oklch(0.9299 0.0334 263.76));
+    --text-muted: light-dark(oklch(0.38 0.04 264), oklch(0.85 0.045 264));
+    --border: light-dark(oklch(0.49 0.04 264), oklch(0.67 0.045 264));
+    --accent: light-dark(oklch(0.55 0.11 264), oklch(0.8 0.0902 264));
+    --accent-text: light-dark(
+      oklch(0.4392 0.11 264),
+      oklch(0.8459 0.0759 263.2)
+    );
+    --on-accent: light-dark(
+      oklch(0.9799 0.0094 262.75),
+      oklch(0.13 0.0902 264)
+    );
+    --focus-ring: light-dark(oklch(0.55 0.11 264), oklch(0.7547 0.0902 264));
+    --error: light-dark(oklch(0.37 0.15 27), oklch(0.767 0.1379 27.07));
+    --on-error: light-dark(
+      oklch(0.8296 0.0947 27.03),
+      oklch(0.112 0.0459 28.91)
+    );
+    --error-text: light-dark(oklch(0.38 0.15 27), oklch(0.8431 0.0861 27.58));
+    --error-container: light-dark(
+      oklch(0.9488 0.0257 31.13),
+      oklch(0.2154 0.0884 29.23)
+    );
+    --on-error-container: light-dark(
+      oklch(0.49 0.15 27),
+      oklch(0.8431 0.0861 27.58)
+    );
+    --warning: light-dark(oklch(0.5615 0.118 75.83), oklch(0.8 0.15 80));
+    --on-warning: light-dark(oklch(0.99 0 80), oklch(0.3201 0.0664 79.69));
+    --warning-text: light-dark(
+      oklch(0.3815 0.0809 73.97),
+      oklch(0.8498 0.1452 80.09)
+    );
+    --warning-container: light-dark(
+      oklch(0.9467 0.0699 90.78),
+      oklch(0.2112 0.0455 70.82)
+    );
+    --on-warning-container: light-dark(
+      oklch(0.4911 0.1029 76.56),
+      oklch(0.8498 0.1452 80.09)
+    );
+    --success: light-dark(oklch(0.54 0.1488 149.98), oklch(0.8 0.15 150));
+    --on-success: light-dark(oklch(0.99 0 150), oklch(0.3412 0.0959 149.16));
+    --success-text: light-dark(
+      oklch(0.3823 0.109 148.57),
+      oklch(0.85 0.15 150)
+    );
+    --success-container: light-dark(
+      oklch(0.9556 0.0732 150.16),
+      oklch(0.2149 0.0674 145.08)
+    );
+    --on-success-container: light-dark(
+      oklch(0.4917 0.1381 149.18),
+      oklch(0.76 0.15 150)
+    );
+    --info: light-dark(oklch(0.53 0.15 250), oklch(0.759 0.1289 249.34));
+    --on-info: light-dark(
+      oklch(0.9499 0.0249 249.26),
+      oklch(0.2012 0.0602 252.01)
+    );
+    --info-text: light-dark(
+      oklch(0.3812 0.1111 251.08),
+      oklch(0.8459 0.0823 244.48)
+    );
+    --info-container: light-dark(
+      oklch(0.9545 0.0268 230.92),
+      oklch(0.2136 0.071 255.27)
+    );
+    --on-info-container: light-dark(
+      oklch(0.4905 0.1401 250.34),
+      oklch(0.8459 0.0823 244.48)
+    );
+    --accent-hover: light-dark(
+      oklch(0.5 0.11 264),
+      oklch(0.8487 0.0745 262.81)
+    );
+    --surface-hover: light-dark(oklch(0.902 0.04 264), oklch(0.3 0.045 264));
+    --surface-selected: light-dark(
+      oklch(0.874 0.04 264),
+      oklch(0.34 0.045 264)
+    );
+    --scrim: light-dark(oklch(0.13 0 0 / 0.6), oklch(0.13 0 0 / 0.6));
 
     /* Alias the foundation `:focus-visible` reads (see @layer foundation). */
     --focus-ring-color: var(--focus-ring);
 
-    /* The "engineering journal" editorial type system — three shell faces, all mounted on
-       <html> by the root layout, each with a system fallback stack:
-       - --font-face    body / long-form editorial serif (Source Serif 4).
+    /* Global editorial typography — the site-wide house faces, mounted on <html> by the root
+       layout, each with a system fallback stack. NON-themeable page chrome:
+       - --font-face    body / long-form serif (Source Serif 4).
        - --font-display headings, the `folio_` logo, and nav (Space Grotesk).
        - --font-mono    metadata + token readouts (JetBrains Mono).
-       A brand slot overrides `--font-face` with its own roster face; `--font-display` /
-       `--font-mono` stay global editorial chrome (the shell is never brand-scoped). */
+       An entry's brand `fontKey` overrides `--font-face` in its OWN interactive slot only (an
+       inline style on `[data-entry]`, see `EntryScope`); the page chrome is never brand-scoped. */
     --font-face: var(--font-source-serif-4), Georgia, "Times New Roman", serif;
     --font-display:
       var(--font-space-grotesk), "Helvetica Neue", Arial, sans-serif;
