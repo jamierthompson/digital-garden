@@ -1,6 +1,6 @@
 ---
 name: agent-team
-description: Spawn and orchestrate an experimental Claude Code agent team (multiple coordinating teammates with their own context windows that share a task list and message each other) for work in this repo. Use whenever the user wants to run an agent team, spin up teammates, "fan this out to agents", have agents debate or challenge each other, or parallelize a job across independent agents — for any of four jobs: an architecture/design decision (independent lenses → adversarial debate → cited synthesis), a parallel code review, debugging via competing hypotheses, or a cross-layer / multi-module coding feature where each agent owns a distinct slice. Trigger on "spawn a team", "agent team", "use teammates", "have agents debate this", "parallel review", "investigate with competing hypotheses", or any task large and divisible enough that several independent agents who challenge each other beat one session. This skill makes you the team LEAD: it covers preflight (the experimental flag), the team-vs-subagent decision, how to brief teammates, splitting work by file ownership, and how the lead curates history and merges. Prefer it over hand-rolling multi-agent coordination.
+description: Spawn and orchestrate an experimental Claude Code agent team (multiple coordinating teammates with their own context windows that share a task list and message each other) for work in this repo. Use whenever the user wants to run an agent team, spin up teammates, "fan this out to agents", or parallelize a job across independent agents — for any of four jobs; true research into framework/library facts (cited digests — NOT design proposals; design decisions happen in conversation with the owner), a parallel code review, debugging via competing hypotheses, or a cross-layer / multi-module coding feature where each agent owns a distinct slice. Trigger on "spawn a team", "agent team", "use teammates", "parallel review", "investigate with competing hypotheses", or any task large and divisible enough that several independent agents beat one session. Models — Opus by default for every teammate; Fable only where stronger reasoning demonstrably pays (hardest engine work, a slice's main adversarial-QA pass; re-checks downgrade to Opus). This skill makes you the team LEAD: it covers preflight (the experimental flag), the team-vs-subagent decision, how to brief teammates, splitting work by file ownership, and how the lead curates history and merges. Prefer it over hand-rolling multi-agent coordination.
 ---
 
 # Agent Team — spawn & orchestrate (experimental)
@@ -86,7 +86,11 @@ channel in. Every brief includes:
       (critically) **which files this teammate owns** so two teammates never edit the same file.
 - [ ] **Output format** — a **dense, cited digest** (or, for coding, a gate-green slice + summary),
       not raw output.
-- [ ] **Model tier** — name it if the subtask needs stronger reasoning vs. a cheap pass.
+- [ ] **Model tier** — **Opus is the default for every teammate.** Reserve Fable for
+      work where stronger reasoning demonstrably pays: the hardest engine/contrast work
+      and a slice's **main adversarial-QA pass**. Tier per phase, not per teammate: a
+      Fable QA's **re-check** downgrades to Opus when the findings being re-verified are
+      trivial. Say the tier explicitly in every spawn.
 - [ ] **Cite-don't-remember** — restate it: "verify framework claims against the bundled docs at
       `node_modules/next/dist/docs/`; don't work from memory." This repo is Next 16 / React 19 and
       memorized APIs are wrong often enough to be dangerous (AGENTS.md "the one rule").
@@ -129,12 +133,21 @@ a task from being marked complete until the gate is green. Use this to enforce
 Open the matching reference and follow its recipe. Each reference assumes you've read the Preflight
 and universal-mechanics sections above.
 
-| The job in front of you                                                                                                                                                                              | Mode                 | Reference                                                            |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------- |
-| A hard-to-reverse **architecture / design decision** — crosses a module boundary, locks an external contract (Sanity schema, `keys.ts`, token names), or contradicts the plan or a binding repo rule | Research / decision  | [`references/research-decision.md`](references/research-decision.md) |
-| **Review** a diff / PR / branch across independent quality lenses                                                                                                                                    | Parallel review      | [`references/code-review.md`](references/code-review.md)             |
-| **Debug** something with an unclear root cause — several plausible theories                                                                                                                          | Competing hypotheses | [`references/debugging.md`](references/debugging.md)                 |
-| **Build** a feature that spans layers/modules, splittable into slices over distinct files                                                                                                            | Coding feature       | [`references/coding-feature.md`](references/coding-feature.md)       |
+| The job in front of you                                                                                                    | Mode                  | Reference                                                            |
+| -------------------------------------------------------------------------------------------------------------------------- | --------------------- | -------------------------------------------------------------------- |
+| **True research** — version-exact framework/library behavior, an external standard, an unfamiliar API. Facts, not designs. | Research (facts only) | [`references/research-decision.md`](references/research-decision.md) |
+| **Review** a diff / PR / branch across independent quality lenses                                                          | Parallel review       | [`references/code-review.md`](references/code-review.md)             |
+| **Debug** something with an unclear root cause — several plausible theories                                                | Competing hypotheses  | [`references/debugging.md`](references/debugging.md)                 |
+| **Build** a feature that spans layers/modules, splittable into slices over distinct files                                  | Coding feature        | [`references/coding-feature.md`](references/coding-feature.md)       |
+
+**Design decisions are not a team job.** Design happens **in conversation with the
+owner** — their requirements, taste, and insights drive the shape; owner intent is the
+most important input and agents drafting blind to it optimize for the wrong thing. Agents
+**verify** an emerging design rather than propose one: true-research digests for
+framework facts, clickable browser **spikes** as the ratification artifact (the owner
+reacts to working behavior, not documents), and an adversarial review of the chosen
+direction when it needs pressure-testing. Explain designs in-conversation in plain
+language; file attachments and mode jargon are not "showing."
 
 If the user's ask doesn't fit a mode, the honest answer may be "this doesn't need a team" — say so
 and propose subagents or a single session instead (see Preflight).
