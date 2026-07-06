@@ -66,7 +66,7 @@ export interface StudioState {
    * The batteries-included decorative harmony TIER (#152) — the 7 derived hues, each with its
    * own `50…950` ramp + receipt-grade text/fill picks, per scheme. Rules- and gamut-treated
    * like the brand; the harmony card group reads the active scheme's picks. Non-contract-bearing
-   * (kept out of the frozen token set), so it lives alongside `palette`, not inside it.
+   * (kept out of the guarded token set), so it lives alongside `palette`, not inside it.
    */
   readonly harmonyTier: HarmonyTier;
   /**

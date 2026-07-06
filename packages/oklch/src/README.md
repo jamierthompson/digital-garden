@@ -121,14 +121,16 @@ Studio answer, for any token, WHICH binding kind it is (`step`/`auto`/`accent`/`
 than restating it. Each `auto` binding's `target` is a `CONTRAST_TARGETS` object by identity,
 so the receipt's target and the solver's are one value. `ContrastTargetName` names the tiers.
 
-### The frozen contract & versioning stance (#99)
+### The drift-guarded surface & versioning stance (#99)
 
-The public surface — the runtime export names, the canonical name lists above, the
-custom-property names the serializers emit, and the high-level signatures — is **frozen**,
-guarded by `api.test.ts`. When that test fails, the contract changed; that happens only as
-a deliberate decision:
+`@garden/oklch` is an internal, project-only package — digital-garden is its **only** consumer —
+so its public surface (the runtime export names, the canonical name lists above, the
+custom-property names the serializers emit, and the high-level signatures) is **freely changeable**,
+up to a major-version bump for a new feature. `api.test.ts` guards it only against **silent,
+uncoordinated** drift, not against change: when that test fails, the surface changed, and that is
+fine as long as it was deliberate and the guard is updated in the same PR.
 
-- **Additions are fine** (new export, new token) — extend the freeze-guard's lists in the
+- **Additions are fine** (new export, new token) — extend the drift-guard's lists in the
   same commit, and update this README.
 - **Renames/removals are breaking** — migrate every consumer (`EntryScope`,
   `cardSwatches`, Studio validation, the studio module) in the same PR. There is no

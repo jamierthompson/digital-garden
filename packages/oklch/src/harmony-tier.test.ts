@@ -708,7 +708,7 @@ describe("QA — fresh-eyes adversarial: export seams (#152 × scrim-alpha #160)
 
   it("the CORE serializers emit no harmony output — the tier is opt-in by construction", () => {
     // The reverse direction (harmony emits no semantic names) is pinned above; this pins
-    // that opting OUT costs nothing: the frozen tokenSetTo* surfaces never mention the tier.
+    // that opting OUT costs nothing: the guarded tokenSetTo* surfaces never mention the tier.
     const set = buildTokenSet("#3b82f6");
     expect(tokenSetToCss(set, ":root")).not.toContain("harmony");
     expect(tokenSetToTailwindTheme(set)).not.toContain("harmony");

@@ -112,9 +112,10 @@ export interface EngineRules extends RampRules {
 
 /**
  * The generic, public token names the engine emits, in canonical emission order — the
- * FROZEN semantic contract (#99, completed to the 34-token model in #160). Exported so
- * consumers (the freeze-guard test, Sanity author-time validation, the studio receipt) read
- * the one list rather than restating it.
+ * drift-guarded semantic surface (#99, completed to the 34-token model in #160; freely
+ * changeable since the engine is internal/single-consumer). Exported so consumers (the
+ * drift-guard test, Sanity author-time validation, the studio receipt) read the one list
+ * rather than restating it.
  *
  * Emission order: the core 10, then a per-status block ×4 (`error`/`warning`/`success`/`info`)
  * of fill · on-fill · text · container · on-container, then the three interaction states
@@ -197,7 +198,7 @@ export type RampLabel = (typeof RAMP_LABELS)[number];
  * `brand` ramp (full seed chroma), the near-neutral `neutral` ramp (surfaces +
  * near-neutral text/border bind to it), and one ramp per canonical status hue. Role→step
  * binding is a *separate* layer (the semantic tokens); this is the pure lightness
- * primitive behind them. Part of the frozen contract (#99), exported like
+ * primitive behind them. Part of the drift-guarded surface (#99), exported like
  * `BRAND_TOKEN_NAMES`.
  */
 export const RAMP_ROLES = [

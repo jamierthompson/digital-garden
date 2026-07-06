@@ -1,6 +1,6 @@
 // The rule catalog the left rail renders — one descriptor per selectable value, each with a
-// plain-English consequence line ("nothing is a black box"). The option VALUES are the frozen
-// engine unions (`LightnessDistribution` etc.); the labels + hints are UI copy paraphrasing
+// plain-English consequence line ("nothing is a black box"). The option VALUES are the engine's
+// own unions (`LightnessDistribution` etc.); the labels + hints are UI copy paraphrasing
 // the engine type docs (`packages/oklch/src/types.ts`). Single source of truth for the rail.
 
 import type {

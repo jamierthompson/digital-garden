@@ -312,12 +312,15 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   expressly non-semantic and non-contrast-bearing (status colors stay canonical-hue; a consumer
   backing text with a harmony color contrast-checks it via `checkContrast`).
 
-- **The public surface is frozen and test-guarded.** The semantic token names (`BRAND_TOKEN_NAMES`),
-  ramp roles (`RAMP_ROLES`), step labels (`RAMP_LABELS` — `50…950`), the emitted custom-property
-  names, and the high-level signatures are the engine's **frozen contract**; a public-surface
-  freeze-guard test (`packages/oklch/src/api.test.ts`) fails on any drift. Additions are allowed
-  (extend the guard in the same commit); renames/removals are breaking and migrate every consumer
-  in the same PR. Alongside the in-repo CSS serialization, the engine exports **portable formats**
+- **The public surface is drift-guarded, not frozen.** `@garden/oklch` is an internal,
+  project-only package — this repo is its **only** consumer — so its whole surface (the semantic
+  token names `BRAND_TOKEN_NAMES`, ramp roles `RAMP_ROLES`, step labels `RAMP_LABELS` — `50…950`,
+  the emitted custom-property names, the high-level signatures) is **freely changeable**, up to a
+  major-version bump for a new feature. A public-surface guard test
+  (`packages/oklch/src/api.test.ts`) exists only to catch **silent, uncoordinated** drift between
+  the engine and its consumers — never to forbid change: a deliberate change updates the guard in
+  the same PR. Additions extend the guard in the same commit; renames/removals migrate every
+  consumer in the same PR (no deprecation window inside a monorepo). Alongside the in-repo CSS serialization, the engine exports **portable formats**
   for the studio export UI (#107): a Tailwind v4 `@theme` block (`--color-*` namespace, ramps 1:1
   to the Tailwind numeric scale) and W3C-DTCG design-tokens JSON (per-scheme groups), each
   serializable as `oklch` (native), `hex`, or `rgb`.
