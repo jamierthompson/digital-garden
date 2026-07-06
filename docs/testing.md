@@ -12,16 +12,18 @@ acceptance criteria; the co-location and scheduling rules are owned by this doc.
 
 ## TL;DR
 
-| Question         | Answer                                                                                                                                            |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Runner           | **Vitest 4** (`vitest run` in CI, `vitest` watch locally)                                                                                         |
-| Component lib    | **React Testing Library 16** + `@testing-library/jest-dom`                                                                                        |
-| DOM env          | **jsdom + node** via `test.projects` — the engine suite runs in both (see [Dual-env](#dual-env-the-oklch-engine))                                 |
-| E2E              | **Playwright — not installed.** Add when an E2E of the primary flow is warranted; a jsdom integration test (Sanity mocked) covers it for now      |
-| Browser checks   | **Chrome DevTools MCP** — agent-driven a11y/CWV/visual verification of rendered surfaces; the ship-gate browser check, **not** committed CI tests |
-| Where tests live | **Co-located** next to the subject (`Foo.test.tsx` beside `Foo.tsx`)                                                                              |
-| Coverage target  | **None.** Meaningful coverage, not a percentage                                                                                                   |
-| Async RSCs       | **Don't unit-test** — jsdom can't render them; extract the logic and unit-test that, or cover with Playwright (E2E)                               |
+| Question          | Answer                                                                                                                                                                      |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runner            | **Vitest 4** (`vitest run` in CI, `vitest` watch locally)                                                                                                                   |
+| Component lib     | **React Testing Library 16** + `@testing-library/jest-dom`                                                                                                                  |
+| DOM env           | **jsdom + node** via `test.projects` — the engine suite runs in both (see [Dual-env](#dual-env-the-oklch-engine))                                                           |
+| E2E               | **Playwright — not installed.** Add when an E2E of the primary flow is warranted; a jsdom integration test (Sanity mocked) covers it for now                                |
+| Browser checks    | **Chrome DevTools MCP** — agent-driven a11y/CWV/visual verification of rendered surfaces; the ship-gate browser check, **not** committed CI tests                           |
+| Where tests live  | **Co-located** next to the subject (`Foo.test.tsx` beside `Foo.tsx`)                                                                                                        |
+| Files per module  | **One** `<subject>.test.ts(x)` — extra concerns are nested `describe`s, never sibling files (see [One file per module](#one-file-per-module-and-the-one-sanctioned-suffix)) |
+| Sanctioned suffix | **Only** `.integration.test.ts(x)` (a different harness tier). No `.edges` / `.qa` / `.contrast` / … concern suffixes                                                       |
+| Coverage target   | **None.** Meaningful coverage, not a percentage                                                                                                                             |
+| Async RSCs        | **Don't unit-test** — jsdom can't render them; extract the logic and unit-test that, or cover with Playwright (E2E)                                                         |
 
 ---
 
@@ -124,6 +126,68 @@ router."_ We always co-locate; we do not use `__tests__/`.
 - `tests/` holds **only** cross-cutting infra: `tests/setup.ts` today, plus `tests/e2e/`
   once Playwright lands. Everything else co-locates; don't add a `tests/unit/`.
 - One test file ≈ one commit.
+
+---
+
+## One file per module (and the one sanctioned suffix)
+
+Co-location says _where_; this says _how many_. **Exactly one** co-located
+`<subject>.test.ts(x)` per source module — `page.test.tsx` for `page.tsx`,
+`scopeSeed.test.ts` for `scopeSeed.ts`. When a subject has several concerns (the happy
+path, the edge/boundary cases, an accessibility guard), they are **nested `describe`
+blocks inside that one file** — never sibling per-concern files.
+
+**Do not** spawn `page.edges.test.tsx`, `foundation.contrast.test.ts`,
+`scopeSeed.collision.test.ts`, or `SiteNav.tap-size.test.ts` alongside the subject's real
+suite. A reader looking for "the tests for `X`" should find **one** file, not hunt a
+scatter of concern-suffixed siblings; and split files silently duplicate the same imports,
+mocks, and setup that then drift apart. Fold each concern in as a `describe`:
+
+```ts
+// scopeSeed.test.ts — one file, many concerns
+describe("resolveScope — defensive, never throws", () => {
+  /* … */
+});
+describe("scopedStyleCss", () => {
+  /* … */
+});
+describe("vetSlug is not injective — isolation rests on upstream uniqueness", () => {
+  /* the former scopeSeed.collision.test.ts */
+});
+```
+
+When you merge concerns into one file, **collapse the now-duplicated scaffolding** —
+identical imports, `vi.mock` factories, and fixtures become one shared copy at the top;
+preserve every assertion exactly (a merge is a move, not a rewrite).
+
+### The only sanctioned suffix: `.integration.test.ts(x)`
+
+One suffix earns its own file, because it runs a **genuinely different harness / mocking
+tier** than the unit suite — e.g. `app/[slug]/page.integration.test.tsx` and
+`sanity/lib/queries.integration.test.tsx`, which exercise the wired data path with a
+broader mock boundary. That difference in _tier_ (not merely _concern_) is what justifies
+the separate file. **No other suffix is sanctioned** — `.edges`, `.render`, `.contrast`,
+`.tap-size`, `.collision` all belong as `describe` blocks in the subject's one suite.
+
+### No `.qa.test` files — ever
+
+Adversarial QA [writes the missing test cases](#what-to-test-vs-skip), but those cases go
+**into the subject's existing suite** as new `describe`/`it` blocks — never a parallel
+`*.qa.test.ts(x)`. QA provenance is **not** a filename concern: it lives in the commit
+message and the PR body (the durable QA log per
+[`./working-with-agents.md`](./working-with-agents.md)). A `.qa` suffix would fork a
+module's tests into "author's" and "QA's" halves — exactly the scatter this rule forbids —
+and rot the moment the two need the same mock.
+
+### Out of scope: the OKLCH engine's local conventions
+
+`packages/oklch/**` (`@garden/oklch`) keeps the **local test conventions documented in
+[`../packages/oklch/src/README.md`](../packages/oklch/src/README.md)** — the dual-env
+`node`+`jsdom` split (see [Dual-env](#dual-env-the-oklch-engine)), the freeze-guard
+(`api.test.ts`), and the visual-contrast harness (`harness/harness.test.ts`). Those are the
+engine's contract, not this convention's to override; read that README before touching engine
+tests. And `tests/setup.ts` stays put — it is **harness config** (jest-dom matchers), not a
+test subject, so the one-file-per-module rule doesn't apply to it.
 
 ---
 
