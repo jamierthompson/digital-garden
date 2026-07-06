@@ -89,17 +89,46 @@ export function applyThemeDeclarations(declarations: ThemeDeclaration[]): void {
   }
 }
 
+// The characters that are unsafe RAW inside an inline `<script>`: `<`/`>`/`&` (so a value can't
+// forge `</script>` and terminate the element) and the U+2028/U+2029 line terminators (legal in
+// JSON strings, historically illegal raw in JS). `JSON.stringify` leaves all of these untouched.
+const HTML_UNSAFE = /[<>&\u2028\u2029]/g;
+const HTML_ESCAPES: Record<string, string> = {
+  "<": "\\u003c",
+  ">": "\\u003e",
+  "&": "\\u0026",
+  "\u2028": "\\u2028",
+  "\u2029": "\\u2029",
+};
+
+/**
+ * JSON, then escape the HTML-unsafe characters as `\uXXXX` — the transform Next.js itself applies
+ * when inlining JSON into HTML. The escapes are decoded by the JS parser at parse time, so the
+ * value the script sets is byte-identical to the input; only the SOURCE text changes, so no value
+ * can break out of the `<script>`. Behavior-preserving (engine values contain none of these chars).
+ */
+function htmlSafeJson(value: unknown): string {
+  return JSON.stringify(value).replace(
+    HTML_UNSAFE,
+    (char) => HTML_ESCAPES[char],
+  );
+}
+
 /**
  * The flash-free hard-load script: a self-contained inline `<script>` body with the page's
  * resolved declarations BAKED IN, run during HTML parse (before first paint) to stamp `<html>`.
  * Unlike `scheme.ts`'s static `SCHEME_INIT_SCRIPT`, the seed is server-known, so this is a
  * function producing a per-page baked string with no `localStorage` read. The page renders the
- * returned string via `dangerouslySetInnerHTML` (see `PageTheme`). Self-guarding and standalone
- * — it runs before any bundle. Values are engine-emitted `light-dark(oklch(…))` literals (no
- * `<` / `</script>`), so the `JSON.stringify` embedding is injection-safe.
+ * returned string via `dangerouslySetInnerHTML` (see `PageTheme`).
+ *
+ * Injection safety is ENFORCED at this boundary, not assumed of the caller: `ThemeDeclaration[]`
+ * is arbitrary strings, so the payload is `htmlSafeJson`-escaped. Today's caller (`PageTheme`)
+ * only ever passes engine output (pure `light-dark(oklch(…))` literals), but `/color-engine`'s
+ * play path (#178) will feed this same primitive, so a hostile value must never be able to close
+ * the script element. Self-guarding and standalone — it runs before any bundle.
  */
 export function themeInitScript(declarations: ThemeDeclaration[]): string {
-  return `(function(){var s=document.documentElement.style;var d=${JSON.stringify(
+  return `(function(){var s=document.documentElement.style;var d=${htmlSafeJson(
     declarations,
   )};for(var i=0;i<d.length;i++){s.setProperty(d[i][0],d[i][1])}})();`;
 }
