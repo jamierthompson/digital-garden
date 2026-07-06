@@ -4,6 +4,7 @@ import type {StructureResolver} from 'sanity/structure'
 import {presentationTool, defineLocations} from 'sanity/presentation'
 import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
+import {previewUrl} from './previewUrl'
 
 /**
  * Singleton document types — excluded from the default document-type list so
@@ -27,14 +28,6 @@ const structure: StructureResolver = (S) =>
         (listItem) => !SINGLETONS.includes(listItem.getId() as string),
       ),
     ])
-
-/**
- * Front-end origin the Presentation tool loads in its iframe. Overridable per
- * Studio deployment via the `SANITY_STUDIO_PREVIEW_URL` env var (Studio-scoped:
- * Sanity only exposes vars prefixed `SANITY_STUDIO_` to the bundle). Defaults to
- * the local Next.js app — never hardcode a production URL. See studio/.env.example.
- */
-const PREVIEW_URL = process.env.SANITY_STUDIO_PREVIEW_URL || 'http://localhost:3000'
 
 /**
  * Document locations power the "Used on" panel and Structure↔Presentation
@@ -87,7 +80,7 @@ export default defineConfig({
      */
     presentationTool({
       previewUrl: {
-        initial: PREVIEW_URL,
+        initial: previewUrl,
         previewMode: {
           enable: '/api/draft-mode/enable',
           disable: '/api/draft-mode/disable',
