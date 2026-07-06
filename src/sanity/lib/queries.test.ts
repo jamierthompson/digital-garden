@@ -86,10 +86,11 @@ describe("ENTRY_DETAIL_QUERY", () => {
   it("kind-gates themeSeed: a now entry always wears /now, others their own brandColor (#166)", () => {
     // The page themes from ONE synchronously-available field, resolved in-query (static shell,
     // flash-free). It is KIND-gated, not presence-gated: `now` ALWAYS resolves to the authored
-    // /now page seed (its own brandColor is ignored downstream), and every themed kind uses its
-    // own required brandColor. The `.not.toContain` pins that we never regress to the
-    // presence-gated `coalesce(brandColor, …)` — which leaked a now entry's own brandColor and
-    // left a `brandColor: ""` now entry unthemed (executed semantics below).
+    // /now page seed (a now can't set its own color — forbiddenForNow — and the query ignores any
+    // that slips through), and every themed kind uses its own required brandColor. The
+    // `.not.toContain` pins that we never regress to the presence-gated `coalesce(brandColor, …)` —
+    // which sourced a now entry's own brandColor and left a `brandColor: ""` now entry unthemed
+    // (executed semantics below).
     expect(ENTRY_DETAIL_QUERY).toContain(
       '"themeSeed": select(kind == "now" =>',
     );
@@ -205,12 +206,12 @@ describe("ENTRY_DETAIL_QUERY themeSeed — executed GROQ semantics (#173 QA)", (
     );
   });
 
-  it("a now entry that carries its OWN brandColor still wears the /now seed (now theming is 'ignored downstream')", async () => {
-    // Regression guard for the self-override defect. entry.ts: "now ... carries no brandColor and
-    // inherits the /now page seed (resolved in ENTRY_DETAIL_QUERY); any theming fields set on it
-    // are ignored downstream." A presence-gated `coalesce` did NOT ignore them — it picked up the
-    // now entry's own brandColor, so a now update wore a DIFFERENT theme than the /now index. The
-    // kind-gated `select()` honors the contract: `now` always resolves to the /now seed.
+  it("a now entry that carries its OWN brandColor still wears the /now seed (defense-in-depth behind forbiddenForNow)", async () => {
+    // Regression guard for the self-override defect. The `forbiddenForNow` validator now stops a
+    // `now` from setting a brandColor at all, but a value can still arrive via a legacy doc or a
+    // raw API write that bypasses Studio validation — so the query is the second line of defense.
+    // A presence-gated `coalesce` would source that stray brandColor, wearing a DIFFERENT theme
+    // than the /now index; the kind-gated `select()` ignores it and always resolves to the /now seed.
     expect(await resolveThemeSeed({ kind: "now", brandColor: "#f97316" })).toBe(
       NOW_SEED,
     );

@@ -54,14 +54,15 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  *
  * `themeSeed` is the ONE seed the page themes from, resolved in the query so it lands
  * synchronously in the already-awaited result — no async boundary, so the static shell paints
- * flash-free (#166). It is KIND-gated, not presence-gated: a `now` entry ALWAYS wears the
- * authored `/now` page seed (its own `brandColor` is "ignored downstream" per the entry contract,
- * so a now update wears the same theme as the `/now` index), and every themed kind
- * (note/essay/project) wears its own required `brandColor`. A `select()` — not a
- * `coalesce(brandColor, …)` — because coalesce is presence-gated and would (a) leak a now
- * entry's own `brandColor` and (b) leave a `brandColor: ""` now entry unthemed (coalesce only
- * falls through on null, and `""` is reachable via the API). The route reads `themeSeed` and
- * never branches on `kind`.
+ * flash-free (#166). It is KIND-gated, not presence-gated: a `now` entry ALWAYS wears the authored
+ * `/now` page seed, so a now update wears the same theme as the `/now` index, and every themed kind
+ * (note/essay/project) wears its own required `brandColor`. The `forbiddenForNow` validator already
+ * stops a `now` from carrying a `brandColor`; the kind-gate is the defense-in-depth behind it —
+ * even a validator-bypassing value (a legacy doc, a raw API write) is IGNORED here rather than
+ * sourced. A `select()` — not a `coalesce(brandColor, …)` — because coalesce is presence-gated and
+ * would (a) source a now entry's own `brandColor` and (b) leave a `brandColor: ""` now entry
+ * unthemed (coalesce only falls through on null, and `""` is reachable via the API). The route reads
+ * `themeSeed` and never branches on `kind`.
  */
 export const ENTRY_DETAIL_QUERY = defineQuery(`
   *[_type == "entry" && slug.current == $slug][0] {
