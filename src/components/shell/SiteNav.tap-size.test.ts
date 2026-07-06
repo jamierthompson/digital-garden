@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
  * hit area with `inline-flex` + `min-height`/`min-width` floors + vertical padding. jsdom
  * performs no layout, so a computed-size assertion is impossible here; this pins the
  * declarations that produce the floor at the source (same pragmatic approach as
- * `layout.import-order.test.ts`).
+ * `layout.test.ts`).
  *
  * Both axes are floored MECHANICALLY (`min-height` + `min-width`, not label-dependent), so a
  * future 1–2 char label still clears 24×24. Verifying the real rendered pixel box needs a

@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 // Turbopack anchors the route's FIRST emitted stylesheet to whatever is imported first; if a
 // `next/font`/component chunk lands first it registers `@layer components` as the LOWEST layer, so
 // the foundation reset out-ranks every component rule and zeroes their padding/margin. Pinned by
-// layout.import-order.test.ts.
+// layout.test.ts.
 import "./foundation.css";
 import "./globals.css";
 

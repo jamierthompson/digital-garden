@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 /**
  * Pins a LOAD-BEARING, otherwise-invisible build setting the scheme toggle (#133) depends on
- * (same pragmatic guard-the-config approach as `layout.import-order.test.ts`).
+ * (same pragmatic guard-the-config approach as `layout.test.ts`).
  *
  * Turbopack's Lightning CSS, at the default browser targets, transpiles `light-dark()` into a
  * `var(--lightningcss-light) var(--lightningcss-dark)` polyfill toggled by
