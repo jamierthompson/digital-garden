@@ -44,7 +44,7 @@ scripts/
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
     layout.tsx             root layout (shell nav skeleton, shell fonts preload:true)
-    foundation.css         foundation primitives + semantic editorial defaults + the @layer foundation, semantic, brand, components order
+    foundation.css         foundation primitives + the semantic neutral fallback + the @layer foundation, semantic, components order
   lib/                     resolvers, keys, cardSwatches, breakpoints (build-time, NOT :root vars)
   entries/<slug>/          self-contained entry modules (registry-resolved, literal imports)
   fonts/roster.ts          curated next/font faces, one per key (preload:false)
@@ -63,7 +63,7 @@ Four ideas carry the whole architecture. Internalize the shape; read the cited s
 
 1. **Modules, not a monolith** (the Guiding principles and Entry modules sections of architecture.md). Each project is a self-contained module under `src/entries/<slug>/`; genuinely shared parts live in plain shared `src/` modules. Dependencies point **projects → shared, never back**, and never entry → entry. This is lint-enforced (see Golden rules).
 
-2. **Global editorial chrome, slot-scoped brand** (the Token & theming architecture section of architecture.md). Tokens are three layers: **foundation** (primitives at `:root`) → **semantic** (the generic role tokens components read — `--surface`, `--text`, `--accent`, `--font-face`, `--space-*` — mapped from primitives; the editorial look **is** their default mapping at `:root`) → **brand** (a brand slot at `[data-entry]` re-defines those same semantic tokens with its own values). One editorial system — Source Serif 4 + a black/white/gray neutral ramp — dresses **all page chrome** (nav, headers, prose, backgrounds, the shell). A project's **brand color + font** are **slot-scoped**: they theme only its bounded interactive slot, never the page or the shell. The public token contract is the **semantic** layer; there are **no project-prefixed `--<proj>-*` names** — isolation comes from the `[data-entry]` scope, not a prefix, so a shared unit codes against the generic semantic names and the cascade resolves to the nearest slot.
+2. **Per-page engine theming, slot-scoped font** (the Token & theming architecture section of architecture.md). Tokens are three tiers: **foundation** (primitives at `:root`) → **semantic** (the generic role tokens components read — `--surface`, `--text`, `--accent`, `--font-face`, `--space-*`) → **brand** (the theme override). Every route stamps its authored color theme imperatively on `<html>` (`PageTheme`), inherited by all page chrome (nav, headers, prose, the shell); the `:root` semantic color tokens are the engine's own neutral **fallback** for surfaces that render un-themed (404 / error / loading). An entry's **brand font** is **slot-scoped**: an inline `--font-face` on its `[data-entry]` slot (`EntryScope`) themes only that bounded interactive slot, never the page chrome, which keeps the global Space Grotesk / Source Serif 4 typography. The public token contract is the **semantic** layer; there are **no project-prefixed `--<proj>-*` names** — isolation comes from scope, not a prefix.
 
 3. **The OKLCH engine** (the OKLCH engine section of architecture.md) — a pure, **isomorphic** `(brandColor, scheme) → tokenSet` in `packages/oklch` (the `@garden/oklch` workspace package, so the Studio can import it too). It bakes literals server-side, is scheme-aware, and is **defensive — never throws**. The load-bearing, genuinely hard piece; one engine, three consumers. Read the OKLCH engine section before building against it.
 
@@ -82,7 +82,7 @@ These are the things that silently break this specific stack, or that the owner 
 - **Request APIs are async** — `cookies()`, `headers()`, `draftMode()`, and route `params` / `searchParams` are all `await`-able Promises.
 - **`export const dynamic` / `force-static` no longer apply.** With Cache Components, static-vs-dynamic is a **component-level** concern decided by `use cache` placement and where request-time APIs are touched. A route is a **prerendered shell with dynamic holes** (PPR). Uncached data outside `<Suspense>` is a **build-time hard error**.
 - **`middleware.ts` is renamed `proxy.ts`** (Node runtime only — setting `runtime` throws).
-- **The `@layer` trap**: Next does **not** auto-assign CSS Modules to a cascade layer, and an **unlayered** module outranks **every** `@layer` style. Every `*.module.css` must declare `@layer foundation|semantic|brand|components { … }` or stay strictly var-consuming. Enforced by `pnpm lint:css`.
+- **The `@layer` trap**: Next does **not** auto-assign CSS Modules to a cascade layer, and an **unlayered** module outranks **every** `@layer` style. Every `*.module.css` must declare `@layer foundation|semantic|components { … }` or stay strictly var-consuming. Enforced by `pnpm lint:css`.
 - **Literal dynamic imports**: `() => import("@/entries/<slug>")` per key — **never** a templated `import(\`…/${slug}\`)` (defeats bundler static analysis).
 - **Do not** put `server-only` / `client-only` on the OKLCH engine — it breaks isomorphism.
 
