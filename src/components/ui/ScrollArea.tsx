@@ -2,8 +2,8 @@
 
 // Harvested from `feat/entry-slide-over` (the slide-over/canvas exploration whose routing
 // mechanism was rejected, #139/#154) — the component itself is generic shell chrome, unrelated
-// to that branch's routing approach. First real consumer: the palette-studio CANVAS template's
-// `StudioCanvas` (#139 kind-driven canvas), so its scrollbar thumb picks up the entry's brand
+// to that branch's routing approach. First real consumer: the color-engine CANVAS template's
+// `ColorEngineCanvas` (#139 kind-driven canvas), so its scrollbar thumb picks up the entry's brand
 // `--accent` for free.
 
 import { ScrollArea as RadixScrollArea } from "radix-ui";

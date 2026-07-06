@@ -1,0 +1,32 @@
+/* The Color Engine's own working surface — @layer components, var-consuming only. It paints no
+   `background`: the page's `--bg` — from the route's `<html>` theme, painted at `body`
+   (`globals.css`) and re-stamped on `<html>` from the live play palette by `ColorEngineProvider`
+   (see that file) — already covers the whole canvas, so this wrapper only reserves the reading
+   gutter and the color shows straight through from the ancestor `--bg`. No `color-scheme` here:
+   it must inherit the ambient scheme (#159) rather than shadow the site-wide toggle. */
+@layer components {
+  .surface {
+    /* NO padding, any side (owner's scroll-container pattern): the spacing lives INSIDE the
+       branded ScrollArea's content (`.canvas` in `ColorEngineCanvas.module.css`), not on this wrapper
+       or the page module — so the ScrollArea spans full-bleed and the scrollbar hugs the viewport
+       edge, with content centered by symmetric inner gutters. An earlier one-sided
+       `padding-inline-end: 0` here (to let the scrollbar hug the edge) off-centered the layout;
+       zeroing all sides and moving the gutters inward is the fix. `block-size`/`min-block-size`
+       below are the LOAD-BEARING height-chain rules and stay. */
+    /* Two-scrollbar fix (`page.module.css`'s canvas flex-fill chain, `ColorEngineCanvas.module.css`'s
+       `.scrollArea`): this is the ONE wrapper that chain missed — `ColorEngineProvider` (this
+       component) sits between `EntryScope`'s `[data-entry]` div (already flex-filled to the
+       viewport's remaining space) and `ColorEngineCanvas`'s ScrollArea, with no height of its own, so
+       it sized to its CONTENT (thousands of px) instead of passing the definite height down —
+       the actual break point a plain "the ScrollArea has 100%" edit couldn't see. `[data-entry]`
+       is a flex item with a definite USED height (flexbox spec: a flex item's used main size
+       counts as definite for descendants' percentage resolution), so `block-size: 100%` here
+       resolves against it correctly; `min-block-size: 0` keeps this from refusing to shrink
+       below its own content, the same flex-item guard used one level up. Safe unconditionally —
+       `ColorEngineProvider` is the color-engine module's OWN provider, mounted only by
+       `ColorEngineExperience` (`index.ts` exports no other `Provider`), which the `/[slug]` route
+       renders only inside the CANVAS template. */
+    block-size: 100%;
+    min-block-size: 0;
+  }
+}

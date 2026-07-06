@@ -27,7 +27,11 @@
  * imports `applyThemeDeclarations`. Mirrors `scheme.ts`'s split exactly.
  */
 
-import { buildTokenSet, tokenSetToDeclarations } from "@garden/oklch";
+import {
+  buildTokenSet,
+  tokenSetToDeclarations,
+  type TokenSet,
+} from "@garden/oklch";
 
 /**
  * One semantic custom property to stamp on `<html>`, as a `[property, value]` pair —
@@ -49,8 +53,20 @@ export type ThemeDeclaration = [property: string, value: string];
 export function resolveThemeDeclarations(
   brandColor: unknown,
 ): ThemeDeclaration[] {
-  const css = tokenSetToDeclarations(buildTokenSet(brandColor));
-  return parseDeclarations(css);
+  return tokenSetToThemeDeclarations(buildTokenSet(brandColor));
+}
+
+/**
+ * Parse an already-built `TokenSet` into the imperative `<html>` declarations — the tail of the
+ * same pipeline `resolveThemeDeclarations` runs, split out so a caller that already holds a
+ * derived token set stamps the SAME declarations the authored path bakes. `/color-engine`'s
+ * ephemeral play path holds a live, rules-/gamut-treated palette (`derivePalette(...).tokenSet`)
+ * and drives this directly, so its client re-stamp and the server's baked theme can never drift.
+ */
+export function tokenSetToThemeDeclarations(
+  tokenSet: TokenSet,
+): ThemeDeclaration[] {
+  return parseDeclarations(tokenSetToDeclarations(tokenSet));
 }
 
 /**

@@ -17,21 +17,21 @@ describe("key contracts", () => {
   });
 
   it("COMPONENT_KEYS is a unique set holding the landed entry modules", () => {
-    // The first real coded module is the Palette Studio (#70); its key is registered here
+    // The first real coded module is the Color Engine (#70); its key is registered here
     // and mapped to a literal dynamic import in the components resolver.
     expect(new Set(COMPONENT_KEYS).size).toBe(COMPONENT_KEYS.length);
-    expect(COMPONENT_KEYS).toContain("palette-studio");
+    expect(COMPONENT_KEYS).toContain("color-engine");
     for (const key of COMPONENT_KEYS) expect(typeof key).toBe("string");
   });
 
-  it("EMBED_KEYS is a unique set holding the Palette Studio's slots (#131)", () => {
-    // The first real embeds: the studio's seven slots, interleaved through its entry's
+  it("EMBED_KEYS is a unique set holding the Color Engine's slots (#131)", () => {
+    // The first real embeds: the Color Engine's seven slots, interleaved through its entry's
     // prose. Every key is mapped to a literal dynamic import in the embeds resolver.
     expect(new Set(EMBED_KEYS).size).toBe(EMBED_KEYS.length);
     expect(EMBED_KEYS.length).toBeGreaterThan(0);
     for (const key of EMBED_KEYS) {
       expect(typeof key).toBe("string");
-      expect(key).toMatch(/^palette-studio-/);
+      expect(key).toMatch(/^color-engine-/);
     }
   });
 
@@ -42,7 +42,7 @@ describe("key contracts", () => {
   });
 
   it("isComponentKey narrows the registered key and rejects unknown ones", () => {
-    expect(isComponentKey("palette-studio")).toBe(true);
+    expect(isComponentKey("color-engine")).toBe(true);
     expect(isComponentKey("first-light")).toBe(false);
     expect(isComponentKey("log-explorer")).toBe(false);
     // The embed registry is still empty — every embed key misses.

@@ -121,7 +121,7 @@ const foundBoth = () =>
 // data can produce it at runtime; the page must degrade to prose-only, never crash, never 404.
 const foundEmptyModule = () => found(async () => ({ default: {} }));
 
-// A PROVIDER-ONLY module that declares `layout: "wide"` (#139) — the studio's real composition
+// A PROVIDER-ONLY module that declares `layout: "wide"` (#139) — the Color Engine's real composition
 // (Provider + interleaved liveEmbed slots, NO Experience). The wide page width must apply to
 // THIS shape with no recomposition: the acceptance case the owner correction turns on.
 const foundWideProvider = () =>
@@ -238,7 +238,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     // denied.
     resolveComponentKeyMock.mockReturnValue(foundExperience());
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "palette-studio" }),
+      entry({ kind: "note", componentKey: "color-engine" }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
@@ -257,7 +257,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "essay",
-        componentKey: "palette-studio",
+        componentKey: "color-engine",
         slug: "an-essay",
       }),
     );
@@ -274,7 +274,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "now",
-        componentKey: "palette-studio",
+        componentKey: "color-engine",
         brandColor: "oklch(0.7 0.15 70)",
         fontKey: "newsreader",
         ...withBody,
@@ -392,21 +392,21 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "project",
-        componentKey: "palette-studio",
+        componentKey: "color-engine",
         brandColor: "oklch(0.7 0.15 70)",
         fontKey: "newsreader",
-        slug: "palette-studio",
+        slug: "color-engine",
       }),
     );
     const { container } = render(
-      await EntryPage({ params: params("palette-studio") }),
+      await EntryPage({ params: params("color-engine") }),
     );
     const main = container.querySelector("main");
     expect(main).toHaveAttribute("data-template", "canvas");
     // The bounded brand scope still mounts (same slot as the editorial template's).
     const slot = container.querySelector("[data-entry]");
     expect(slot).not.toBeNull();
-    expect(slot).toHaveAttribute("data-entry", "palette-studio");
+    expect(slot).toHaveAttribute("data-entry", "color-engine");
     expect(screen.getByTestId("experience")).toBeInTheDocument();
     // No editorial surfaces: no template-rendered title/blurb, no article, no related region.
     expect(container.querySelector("article")).toBeNull();
@@ -419,8 +419,8 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "project",
-        componentKey: "palette-studio",
-        slug: "palette-studio",
+        componentKey: "color-engine",
+        slug: "color-engine",
         related: [
           { _id: "r1", title: "Related", slug: "related", kind: "note" },
         ],
@@ -429,7 +429,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
         ],
       }),
     );
-    render(await EntryPage({ params: params("palette-studio") }));
+    render(await EntryPage({ params: params("color-engine") }));
     expect(screen.queryByText("Related")).not.toBeInTheDocument();
     expect(screen.queryByText("Backlink")).not.toBeInTheDocument();
   });
@@ -441,14 +441,14 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "project",
-        componentKey: "palette-studio",
+        componentKey: "color-engine",
         brandColor: "oklch(0.7 0.15 70)",
         fontKey: "newsreader",
-        slug: "palette-studio",
+        slug: "color-engine",
       }),
     );
     const { container } = render(
-      await EntryPage({ params: params("palette-studio") }),
+      await EntryPage({ params: params("color-engine") }),
     );
     expect(container.querySelector("main")).not.toHaveAttribute(
       "data-template",
@@ -460,7 +460,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
   it("does NOT canvas a NOTE/ESSAY with a resolvable Experience — `kind` gates the template, not the capability", async () => {
     resolveComponentKeyMock.mockReturnValue(foundExperience());
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "palette-studio" }),
+      entry({ kind: "note", componentKey: "color-engine" }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
@@ -484,17 +484,17 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "project",
-        componentKey: "palette-studio",
+        componentKey: "color-engine",
         brandColor: "oklch(0.7 0.15 70)",
         fontKey: "newsreader",
-        slug: "palette-studio",
+        slug: "color-engine",
       }),
     );
     const { container } = render(
-      await EntryPage({ params: params("palette-studio") }),
+      await EntryPage({ params: params("color-engine") }),
     );
     const frame = screen.getByTestId("provider");
-    expect(frame).toHaveAttribute("data-slug", "palette-studio");
+    expect(frame).toHaveAttribute("data-slug", "color-engine");
     // The article (title within it) renders INSIDE the frame — children pass through.
     expect(
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
@@ -516,7 +516,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "note",
-        componentKey: "palette-studio",
+        componentKey: "color-engine",
         brandColor: "oklch(0.7 0.15 70)",
         ...withBody,
       }),
@@ -541,7 +541,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     // scope is still built and threaded to the body (theming survives a slot-less module).
     resolveComponentKeyMock.mockReturnValue(foundEmptyModule());
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "palette-studio", ...withBody }),
+      entry({ kind: "note", componentKey: "color-engine", ...withBody }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
@@ -589,7 +589,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "note",
-        componentKey: "palette-studio",
+        componentKey: "color-engine",
         brandColor: 'javascript:alert(1)"]{}body{display:none}',
       }),
     );
@@ -611,7 +611,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "essay",
-        componentKey: "palette-studio",
+        componentKey: "color-engine",
         brandColor: "oklch(0.7 0.15 70)",
         fontKey: "newsreader",
         slug: "an-essay",
@@ -681,7 +681,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     // `layout` renders exactly as before — narrow page.
     resolveComponentKeyMock.mockReturnValue(foundExperience());
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "project", componentKey: "palette-studio" }),
+      entry({ kind: "project", componentKey: "color-engine" }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
@@ -693,27 +693,27 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(screen.getByTestId("experience")).toBeInTheDocument();
   });
 
-  it('widens a PROVIDER-ONLY module that declares `layout: "wide"` — the studio\'s real shape, no Experience, no recomposition', async () => {
-    // THE acceptance case: the studio composes as Provider + interleaved liveEmbed slots with no
+  it('widens a PROVIDER-ONLY module that declares `layout: "wide"` — the Color Engine\'s real shape, no Experience, no recomposition', async () => {
+    // THE acceptance case: the Color Engine composes as Provider + interleaved liveEmbed slots with no
     // monolithic Experience. `layout: "wide"` must widen the page for that shape as-is — the width
     // switch is on the page container, independent of any slot. Article still renders in the frame.
     resolveComponentKeyMock.mockReturnValue(foundWideProvider());
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "project",
-        componentKey: "palette-studio",
-        slug: "palette-studio",
+        componentKey: "color-engine",
+        slug: "color-engine",
       }),
     );
     const { container } = render(
-      await EntryPage({ params: params("palette-studio") }),
+      await EntryPage({ params: params("color-engine") }),
     );
     expect(container.querySelector("main")).toHaveAttribute(
       "data-layout",
       "wide",
     );
     const frame = screen.getByTestId("provider");
-    expect(frame).toHaveAttribute("data-slug", "palette-studio");
+    expect(frame).toHaveAttribute("data-slug", "color-engine");
     // The article (its title) still renders inside the Provider frame — the wide page did not
     // disturb the composition, only the container width.
     expect(frame.querySelector("h1")).not.toBeNull();
@@ -724,7 +724,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
   it('widens an Experience module that declares `layout: "wide"` too (composition-agnostic)', async () => {
     resolveComponentKeyMock.mockReturnValue(foundWideExperience());
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "palette-studio" }),
+      entry({ kind: "note", componentKey: "color-engine" }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
@@ -746,7 +746,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
   it("wraps the wide Experience in a `.experience` direct-child of main that `.wide` can exempt", async () => {
     resolveComponentKeyMock.mockReturnValue(foundWideExperience());
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "palette-studio" }),
+      entry({ kind: "note", componentKey: "color-engine" }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
@@ -769,7 +769,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
   it("keeps the same `.experience` wrapper on a NARROW Experience, without `.wide` (byte-identical narrow path)", async () => {
     resolveComponentKeyMock.mockReturnValue(foundExperience());
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "palette-studio" }),
+      entry({ kind: "note", componentKey: "color-engine" }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
@@ -785,8 +785,8 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(wrapper!.className).toContain(pageStyles.experience);
   });
 
-  it("renders a wide entry with NO body cleanly — a prose-less article (the studio's future state) still mounts, no EntryBody", async () => {
-    // The prose-removed studio (#20) will have `body: null`: a wide page whose article carries no
+  it("renders a wide entry with NO body cleanly — a prose-less article (the Color Engine's future state) still mounts, no EntryBody", async () => {
+    // The prose-removed Color Engine (#20) will have `body: null`: a wide page whose article carries no
     // prose at all. The article must still render (its header) and mount nothing spurious — no
     // EntryBody, no crash — so the wide grid has a clean, header-only content column. (jsdom can't
     // measure the box; the "no collapsed/zero-height artifacts, no stray margins" property is the
@@ -795,13 +795,13 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "project",
-        componentKey: "palette-studio",
-        slug: "palette-studio",
+        componentKey: "color-engine",
+        slug: "color-engine",
         body: null,
       }),
     );
     const { container } = render(
-      await EntryPage({ params: params("palette-studio") }),
+      await EntryPage({ params: params("color-engine") }),
     );
     expect(container.querySelector("main")).toHaveAttribute(
       "data-layout",
@@ -819,7 +819,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     // an editorial status update is always the narrow editorial page.
     resolveComponentKeyMock.mockReturnValue(foundWideProvider());
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "now", componentKey: "palette-studio", ...withBody }),
+      entry({ kind: "now", componentKey: "color-engine", ...withBody }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
@@ -866,13 +866,11 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       fetchMock.mockResolvedValueOnce(
         entry({
           kind: "project",
-          componentKey: "palette-studio",
-          slug: "palette-studio",
+          componentKey: "color-engine",
+          slug: "color-engine",
         }),
       );
-      const wide = render(
-        await EntryPage({ params: params("palette-studio") }),
-      );
+      const wide = render(await EntryPage({ params: params("color-engine") }));
       const wideClasses = classesOf(wide.container.querySelector("main"));
 
       // Narrow is the single base class; wide is base + one modifier.
@@ -889,7 +887,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     it("narrow <main> is EXACTLY the base class — no `.wide` modifier, no stray/empty tokens (crown-jewel: className unchanged)", async () => {
       resolveComponentKeyMock.mockReturnValue(foundExperience());
       fetchMock.mockResolvedValueOnce(
-        entry({ kind: "project", componentKey: "palette-studio" }),
+        entry({ kind: "project", componentKey: "color-engine" }),
       );
       const { container } = render(
         await EntryPage({ params: params("an-entry") }),
@@ -922,7 +920,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
           })),
         );
         fetchMock.mockResolvedValueOnce(
-          entry({ kind: "project", componentKey: "palette-studio" }),
+          entry({ kind: "project", componentKey: "color-engine" }),
         );
         const { container } = render(
           await EntryPage({ params: params("an-entry") }),
@@ -945,7 +943,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
         found(async () => ({ default: { layout: "wide" as const } })),
       );
       fetchMock.mockResolvedValueOnce(
-        entry({ kind: "project", componentKey: "palette-studio", ...withBody }),
+        entry({ kind: "project", componentKey: "color-engine", ...withBody }),
       );
       const { container } = render(
         await EntryPage({ params: params("an-entry") }),
@@ -970,11 +968,11 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       fetchMock.mockResolvedValueOnce(
         entry({
           kind: "project",
-          componentKey: "palette-studio",
-          slug: "palette-studio",
+          componentKey: "color-engine",
+          slug: "color-engine",
         }),
       );
-      render(await EntryPage({ params: params("palette-studio") }));
+      render(await EntryPage({ params: params("color-engine") }));
 
       resolveComponentKeyMock.mockReturnValue(
         notFoundResolution("component", "x"),

@@ -39,18 +39,18 @@ const BODY = [
   {
     _type: "liveEmbed",
     _key: "e1",
-    embedKey: "palette-studio-seed",
+    embedKey: "color-engine-seed",
     caption: "seed caption",
   },
   {
     _type: "liveEmbed",
     _key: "e2",
-    embedKey: "palette-studio-tokens",
+    embedKey: "color-engine-tokens",
   },
 ] as unknown as Body;
 
 const SCOPE: ScopeSeed = {
-  slug: "palette-studio",
+  slug: "color-engine",
   fontKey: "jetbrains-mono",
 };
 
@@ -60,8 +60,8 @@ describe("EntryBody", () => {
     render(<EntryBody value={BODY} scope={SCOPE} />);
     expect(screen.getAllByTestId("embed")).toHaveLength(2);
     expect(captured.map((p) => p.embedKey)).toEqual([
-      "palette-studio-seed",
-      "palette-studio-tokens",
+      "color-engine-seed",
+      "color-engine-tokens",
     ]);
     for (const props of captured) {
       expect(props.scope).toEqual(SCOPE);

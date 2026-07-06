@@ -21,7 +21,7 @@ vi.mock("next/font/google", () => ({
 import EmbedBlock from "./EmbedBlock";
 
 const SCOPE = {
-  slug: "palette-studio",
+  slug: "color-engine",
   fontKey: "jetbrains-mono",
 };
 
@@ -51,29 +51,31 @@ describe("EmbedBlock", () => {
 
   it("mounts a resolved embed inside its OWN [data-entry] scope when given one", async () => {
     const { container } = render(
-      await EmbedBlock({ embedKey: "palette-studio-seed", scope: SCOPE }),
+      await EmbedBlock({ embedKey: "color-engine-seed", scope: SCOPE }),
     );
-    const scoped = container.querySelector('[data-entry="palette-studio"]');
+    const scoped = container.querySelector('[data-entry="color-engine"]');
     expect(scoped).not.toBeNull();
-    // The embed (a studio slot with no provider above it) renders ITS placeholder inside
+    // The embed (a Color Engine slot with no provider above it) renders ITS placeholder inside
     // the scope — proving both the per-slot scoping and the provider-less degradation
     // through the real resolver pipeline.
-    expect(scoped?.textContent).toMatch(/no studio frame mounted/);
+    expect(scoped?.textContent).toMatch(/no Color Engine frame mounted/);
   });
 
   it("mounts a resolved embed bare (no scope container) when no scope is given", async () => {
     const { container } = render(
-      await EmbedBlock({ embedKey: "palette-studio-seed" }),
+      await EmbedBlock({ embedKey: "color-engine-seed" }),
     );
     expect(container.querySelector("[data-entry]")).toBeNull();
     // Still renders the slot (which degrades to its placeholder without a provider).
-    expect(screen.getByText(/no studio frame mounted/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/no Color Engine frame mounted/),
+    ).toBeInTheDocument();
   });
 
   it("renders the caption OUTSIDE the brand scope, in the editorial figure", async () => {
     const { container } = render(
       await EmbedBlock({
-        embedKey: "palette-studio-seed",
+        embedKey: "color-engine-seed",
         caption: "A caption in the essay voice",
         scope: SCOPE,
       }),
@@ -88,7 +90,7 @@ describe("EmbedBlock", () => {
 
   it("renders no figcaption at all when the caption is absent", async () => {
     const { container } = render(
-      await EmbedBlock({ embedKey: "palette-studio-seed", scope: SCOPE }),
+      await EmbedBlock({ embedKey: "color-engine-seed", scope: SCOPE }),
     );
     expect(container.querySelector("figcaption")).toBeNull();
   });
