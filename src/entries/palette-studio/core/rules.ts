@@ -1,5 +1,5 @@
 // The Studio's rule state — the SINGLE source of truth for the generative rules the left
-// rail exposes. Deliberately nothing invented: the four shaping rules are exactly the frozen
+// rail exposes. Deliberately nothing invented: the four shaping rules are exactly the engine's
 // `EngineRules` (#101) with all fields made REQUIRED (the Studio always holds a concrete
 // value per rule — the defaults are ON, so the tool is usable in zero clicks), and `gamut`
 // is the engine's `Gamut` axis carried alongside. `derivePalette` (derive.ts) maps this

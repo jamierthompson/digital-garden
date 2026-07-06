@@ -168,7 +168,7 @@ export function tokenSetToDesignTokens(
 
 // ── The batteries-included harmony tier (#152) — an OPT-IN, clearly-separated decorative
 // annex. It is emitted ONLY through these dedicated serializers (opt-in by being a separate
-// call, so the frozen 34-token semantic contract and the `tokenSetTo*` outputs never grow),
+// call, so the guarded 34-token semantic surface and the `tokenSetTo*` outputs never grow),
 // each labeling the tier under a `harmony-` group. The `HarmonyTier` comes from
 // `buildHarmonyTier` (`harmony-tier.ts`); a studio export UI concatenates the semantic block
 // and the harmony block when the user opts in.
@@ -216,7 +216,7 @@ export function harmonyTierToTailwindTheme(
 /**
  * The harmony tier as a portable scoped CSS rule — bare `--harmony-*` custom properties (the
  * `[data-entry]`-style scope, not a `--color-` namespace), defaulting to `:root`. Kept OUT of
- * `css.ts`'s frozen `EntryScope` contract (that serializer must not grow); this is the export
+ * `css.ts`'s guarded `EntryScope` serializer (which must not grow); this is the export
  * surface's decorative annex, placed by whoever consumes it.
  */
 export function harmonyTierToCss(

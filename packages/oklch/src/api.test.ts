@@ -1,19 +1,21 @@
 /**
- * The public-surface FREEZE GUARD (#99). The engine's exported names — the module's
+ * The public-surface DRIFT GUARD (#99). The engine's exported names — the module's
  * runtime exports, the canonical token/role/label lists, and the custom properties the
- * serializers emit — are the frozen contract that `EntryScope`, `cardSwatches`, Sanity
- * author-time validation, and the studio (#70/#107) depend on.
+ * serializers emit — are the surface that `EntryScope`, `cardSwatches`, Sanity author-time
+ * validation, and the studio (#70/#107) depend on.
  *
- * A failure here means the contract changed. That is allowed to happen only as a
- * DELIBERATE decision (the versioning stance in `README.md`): additions extend the lists
- * below in the same commit; renames/removals are breaking and need the consumers migrated
- * in the same PR. Never "fix" this test to make an accidental drift pass.
+ * `@garden/oklch` is internal and project-only (this repo is its only consumer), so that
+ * surface is freely changeable — this test is a tripwire against SILENT drift, not a wall.
+ * A failure means the surface changed; that is fine as a DELIBERATE decision (the versioning
+ * stance in `README.md`): additions extend the lists below in the same commit; renames/removals
+ * migrate the consumers in the same PR. The one thing never to do is "fix" this test to make an
+ * ACCIDENTAL drift pass.
  */
 
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import * as api from "./index";
-// Import every type from the BARREL (not "./types") — resolving these is the freeze guard
+// Import every type from the BARREL (not "./types") — resolving these is the drift guard
 // for the type-only public surface: the signature checks below only reach the ~6 types
 // transitively named in the checked function signatures, so a STANDALONE exported type
 // (e.g. `RampPair`, `SchemeTokens`) could be dropped from `index.ts` and this suite would
@@ -185,21 +187,21 @@ const STEP_LABELS = [
   "950",
 ] as const;
 
-describe("the frozen public surface (#99)", () => {
-  it("exports exactly the frozen runtime names", () => {
+describe("the guarded public surface (#99)", () => {
+  it("exports exactly the guarded runtime names", () => {
     expect(Object.keys(api).sort()).toEqual([...RUNTIME_EXPORTS]);
   });
 
-  it("freezes the semantic token names, in emission order", () => {
+  it("pins the semantic token names, in emission order", () => {
     expect(api.BRAND_TOKEN_NAMES).toEqual(SEMANTIC_NAMES);
   });
 
-  it("freezes the ramp roles and the 50…950 step labels", () => {
+  it("pins the ramp roles and the 50…950 step labels", () => {
     expect(api.RAMP_ROLES).toEqual(ROLE_NAMES);
     expect(api.RAMP_LABELS).toEqual(STEP_LABELS);
   });
 
-  it("emits exactly the frozen custom-property names (the CSS contract)", () => {
+  it("emits exactly the guarded custom-property names (the CSS surface)", () => {
     const css = api.tokenSetToCss(api.buildTokenSet("#3b82f6"), "[data-x]");
     const emitted = [...css.matchAll(/(--[\w-]+):/g)].map((m) => m[1]).sort();
     const expected = [
@@ -211,7 +213,7 @@ describe("the frozen public surface (#99)", () => {
     expect(emitted).toEqual(expected);
   });
 
-  it("freezes the high-level signatures", () => {
+  it("pins the high-level signatures", () => {
     expectTypeOf(api.resolveTheme).parameters.toEqualTypeOf<
       [unknown, Scheme, api.EngineOptions?]
     >();
@@ -291,7 +293,7 @@ type PublicTypeSurface = {
   HarmonyDesignTokensExport: HarmonyDesignTokensExport;
 };
 
-describe("frozen public TYPE surface (#99) — completeness guard", () => {
+describe("guarded public TYPE surface (#99) — completeness guard", () => {
   it("every documented public type is exported from the barrel", () => {
     // If this file compiled, every listed type export resolved. Assert the map is inhabited
     // so the test is not empty; the real guard is compile-time.
@@ -312,7 +314,7 @@ describe("the exported derivation contract (#150)", () => {
   });
 
   it("binds every semantic token — the studio can answer kind/role/target for each", () => {
-    // Coverage: exactly the frozen token names, no more, no fewer.
+    // Coverage: exactly the guarded token names, no more, no fewer.
     expect(Object.keys(api.DEFAULT_BINDING_SCHEMA).sort()).toEqual(
       [...api.BRAND_TOKEN_NAMES].sort(),
     );

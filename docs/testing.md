@@ -183,7 +183,7 @@ and rot the moment the two need the same mock.
 
 `packages/oklch/**` (`@garden/oklch`) keeps the **local test conventions documented in
 [`../packages/oklch/src/README.md`](../packages/oklch/src/README.md)** — the dual-env
-`node`+`jsdom` split (see [Dual-env](#dual-env-the-oklch-engine)), the freeze-guard
+`node`+`jsdom` split (see [Dual-env](#dual-env-the-oklch-engine)), the drift-guard
 (`api.test.ts`), and the visual-contrast harness (`harness/harness.test.ts`). Those are the
 engine's contract, not this convention's to override; read that README before touching engine
 tests. And `tests/setup.ts` stays put — it is **harness config** (jest-dom matchers), not a

@@ -1,4 +1,4 @@
-// The Studio's headless core — pure, React-free, DOM-free. It re-runs the frozen
+// The Studio's headless core — pure, React-free, DOM-free. It re-runs the
 // `@garden/oklch` engine on every change and reshapes its output into exactly what the UI
 // paints: the two scheme views, the semantic-token table (each token's NAME, the ramp step
 // it resolved to, and its per-scheme value), and the automatic anchor readout.
@@ -43,7 +43,7 @@ export interface ParsedSeed {
 }
 
 // hsl()/hsla() in either modern (space/slash) or legacy (comma) syntax. The engine's
-// frozen parser speaks hex / rgb() / oklch() only, but hsl is a common paste format
+// parser speaks hex / rgb() / oklch() only, but hsl is a common paste format
 // (QA-131 D3) — so the STUDIO normalizes it to rgb() before parsing. Alpha is ignored
 // (seeds are opaque, matching the engine's rgb handling).
 const HSL_RE =

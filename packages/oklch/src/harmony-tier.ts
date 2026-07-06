@@ -13,7 +13,7 @@
  * (`ui`: 3:1 + Lc 45) — each landed by `minPass` against the scheme's worst-case surface and
  * carrying solve-time step provenance, exactly like the semantic `auto` tokens.
  *
- * DECORATIVE, still outside the frozen 34-token semantic contract: this is a separated
+ * DECORATIVE, still outside the guarded 34-token semantic surface: this is a separated
  * annex the studio opts into by calling the dedicated `harmonyTierTo*` serializers in
  * `export.ts`, never a growth of the semantic token list. Status hues stay fixed-hue and are NOT part of this
  * tier (`error` stays red — #66). Built by reusing `resolveTheme` so the seed, the
@@ -80,7 +80,7 @@ export const HARMONY_HUES = Object.keys(HARMONY_HUE_ANGLES) as HarmonyHue[];
  * mirroring `StepProvenance`), over a `HarmonyHue` role rather than a `RampRole`. The
  * decorative tier carries its own provenance type so the core `BindingProvenance` union that
  * the semantic receipt reads (#151/#153) stays pristine — the same separation the annex has
- * from the frozen token contract. Reported by `minPass` AT SOLVE TIME, never value-matched.
+ * from the guarded token surface. Reported by `minPass` AT SOLVE TIME, never value-matched.
  */
 export interface HarmonyStepProvenance {
   kind: "step";

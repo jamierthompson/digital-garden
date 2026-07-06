@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 // `next/font`/component chunk lands first it registers `@layer components` as the LOWEST layer, so
 // the foundation reset out-ranks every component rule and zeroes their padding/margin. Pinned by
 // layout.test.ts.
-import "./foundation.css";
+import "../styles/foundation.css";
 import "./globals.css";
 
 // Binding imports (no CSS side-effect that moves the Turbopack stylesheet anchor pinned above),
