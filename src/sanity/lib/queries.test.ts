@@ -82,6 +82,17 @@ describe("ENTRY_DETAIL_QUERY", () => {
     expect(ENTRY_DETAIL_QUERY).toContain("references(^._id)");
   });
 
+  it("resolves a single themeSeed, coalescing a now entry to the /now page seed (#166)", () => {
+    // The page themes from ONE synchronously-available field: the entry's own brandColor,
+    // or — when absent (a `now` update) — the authored /now page seed on siteSettings. Resolved
+    // in the query so it lands in the awaited result (static shell, flash-free), never behind a
+    // second async fetch. A regression to a bare `brandColor` seed would flash the now page.
+    expect(ENTRY_DETAIL_QUERY).toContain('"themeSeed": coalesce(brandColor,');
+    expect(ENTRY_DETAIL_QUERY).toContain(
+      '*[_type == "siteSettings"][0].pageThemes.now',
+    );
+  });
+
   it("scopes the incoming backlinks to an aliased entry subquery, not a stray root filter", () => {
     // `backlinks` must be a nested projection aliased on the document — an array of
     // OTHER entries that reference it — not a `references()` predicate applied to the
@@ -106,7 +117,8 @@ describe("ENTRY_DETAIL_QUERY", () => {
 
 /**
  * The settings query guards the singleton intent at the data layer: `[0]` returns one
- * document (or null), so the shell never assumes an array.
+ * document (or null), so the shell never assumes an array. Under #166 it also carries the
+ * per-page theme seeds for the site-owned pages (which have no backing entry).
  */
 describe("SITE_SETTINGS_QUERY", () => {
   it("guards the singleton with a [0] index", () => {
@@ -120,9 +132,12 @@ describe("SITE_SETTINGS_QUERY", () => {
     }
   });
 
-  it("carries no theming seeds — the shell is static + monochromatic", () => {
-    for (const field of ["brandColor", "brandColorDark", "fontKey"]) {
-      expect(SITE_SETTINGS_QUERY).not.toContain(field);
+  it("projects the five per-page theme seeds (#166)", () => {
+    expect(SITE_SETTINGS_QUERY).toContain("pageThemes");
+    for (const page of ["home", "browse", "about", "now", "system"]) {
+      expect(SITE_SETTINGS_QUERY).toMatch(
+        new RegExp(`pageThemes\\s*\\{[^}]*\\b${page}\\b`),
+      );
     }
   });
 });

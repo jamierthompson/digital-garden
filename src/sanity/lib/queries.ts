@@ -51,6 +51,13 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  * `$slug` is a GROQ parameter — the caller passes `{ slug }` to `.fetch`, never string
  * interpolation, so a hostile slug can't inject into the query. Typed by TypeGen as
  * `ENTRY_DETAIL_QUERYResult` in the root `sanity.types.ts`.
+ *
+ * `themeSeed` is the ONE seed the page themes from, resolved in the query so it lands
+ * synchronously in the already-awaited result — no async boundary, so the static shell paints
+ * flash-free (#166). `coalesce(brandColor, …pageThemes.now)`: every note/essay/project supplies
+ * its own required `brandColor`; a `now` entry has none and falls through to the authored `/now`
+ * page seed, so a now update wears the same theme as the `/now` index. The route reads
+ * `themeSeed` and never branches on `kind`.
  */
 export const ENTRY_DETAIL_QUERY = defineQuery(`
   *[_type == "entry" && slug.current == $slug][0] {
@@ -66,6 +73,7 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
     brandColorDark,
     fontKey,
     componentKey,
+    "themeSeed": coalesce(brandColor, *[_type == "siteSettings"][0].pageThemes.now),
     body,
     related[]->{ _id, title, "slug": slug.current, kind },
     "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }
@@ -145,15 +153,18 @@ export const NOW_QUERY = defineQuery(`
  * `siteSettings` is intended as a singleton (one document, enforced via Studio Structure
  * in a separate slice). `[0]` guards that intent at the query layer: it returns the single
  * settings document (or `null` if none is published) so the shell can fall back defensively
- * rather than assume an array. Pulls the shell identity only — `title` / `description` for
- * `generateMetadata` (layout.tsx). The shell is static + monochromatic (it wears the global
- * editorial layer), so this carries no brand seed; theming lives on each `entry`. Typed as
+ * rather than assume an array. Pulls the shell identity — `title` / `description` for
+ * `generateMetadata` (layout.tsx) — AND the per-page theme seeds: under the site-wide
+ * engine-theming model (#166) the site-owned pages (`/`, `/browse`, `/about`, `/now`,
+ * `/system`) have no backing `entry`, so they seed from `pageThemes` here. Consuming those
+ * seeds to theme each page is a later slice (#175); this query exposes the data. Typed as
  * `SITE_SETTINGS_QUERYResult`.
  */
 export const SITE_SETTINGS_QUERY = defineQuery(`
   *[_type == "siteSettings"][0] {
     _id,
     title,
-    description
+    description,
+    pageThemes { home, browse, about, now, system }
   }
 `);

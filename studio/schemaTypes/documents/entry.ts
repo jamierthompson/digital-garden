@@ -1,7 +1,7 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
 import {isBrandColorString} from '../shared/colorValidation'
-import {requiredForNonSketchProject, requiredForProject} from './entryValidators'
+import {requiredForNonSketchProject, requiredForThemedKind} from './entryValidators'
 
 /**
  * An `entry` — the single content type for the whole garden.
@@ -15,14 +15,16 @@ import {requiredForNonSketchProject, requiredForProject} from './entryValidators
  * Theming seeds (`brandColor` / `fontKey` / `componentKey`) are reference-by-key values
  * consumed by code, NOT prose — see the stega exclusions in src/sanity/lib/client.ts. They
  * are CAPABILITY fields: the route themes / mounts a module on their PRESENCE, for any kind
- * except `now` — not on `kind === 'project'`. The required rules below are only a floor:
- * `brandColor` is required for EVERY `project` (the card plate consumes it, even for a
- * sketch); `fontKey` / `componentKey` name a coded module + its face, so they are required
- * only for a `project` PAST the sketch stage — a `stage: sketch` project is an honest
- * placeholder with no module yet, so it carries a brandColor but no fontKey/componentKey.
- * All three are OPTIONAL for a note/essay — but honored, not dead: a note/essay that sets
- * `brandColor` gets its own brand scope, and one that sets `componentKey` mounts that module.
- * `now` is chrome + prose by design — it may carry these fields but they are ignored downstream.
+ * except `now`. The required rules below are only a floor: under the site-wide engine-theming
+ * model (#166) every page derives its theme from an authored seed, so `brandColor` is required
+ * for every THEMED kind — note, essay, AND project (any stage: the project card plate consumes
+ * it even for a sketch, and a note/essay page themes from it too). `fontKey` / `componentKey`
+ * name a coded module + its face, so they stay required only for a `project` PAST the sketch
+ * stage — a `stage: sketch` project is an honest placeholder with no module yet, so it carries a
+ * brandColor but no fontKey/componentKey. `fontKey` / `componentKey` remain OPTIONAL-but-honored
+ * for a note/essay (one that sets `componentKey` mounts that module). `now` is chrome + prose by
+ * design — it carries no `brandColor` and inherits the `/now` page seed (resolved in
+ * ENTRY_DETAIL_QUERY); any theming fields set on it are ignored downstream.
  *
  * NOTE: `componentKey` / `fontKey` are plain string fields here on purpose — the
  * standalone Studio bundle must not import app code (keys.ts / next/font / lazy project
@@ -124,16 +126,17 @@ export const entry = defineType({
           .error('Blurb exceeds the 300-character hard cap — the card layout cannot absorb the overflow.'),
     }),
 
-    // Theming seeds: reference-by-key, consumed by code, stega-excluded. brandColor is
-    // required for EVERY project (the card plate reads it, even a sketch); fontKey /
-    // componentKey name a coded module + face, so they are required only PAST the sketch stage.
+    // Theming seeds: reference-by-key, consumed by code, stega-excluded. brandColor is required
+    // for every themed kind — note, essay, and project (the page/card derives its theme from it);
+    // fontKey / componentKey name a coded module + face, so they are required only PAST the sketch
+    // stage. A `now` update carries none and inherits the /now page seed.
     defineField({
       name: 'brandColor',
       title: 'Brand color',
       type: 'string',
       description:
-        'Hex or oklch() accent for this entry’s interactive component. Required for projects; optional for a note or essay, where setting it also themes that entry’s component.',
-      validation: (rule) => rule.custom(requiredForProject).custom(isBrandColorString),
+        'Hex or oklch() accent that themes this entry’s page and interactive component. Required for every note, essay, and project. (A “now” update inherits the /now page seed instead.)',
+      validation: (rule) => rule.custom(requiredForThemedKind).custom(isBrandColorString),
     }),
     defineField({
       name: 'brandColorDark',

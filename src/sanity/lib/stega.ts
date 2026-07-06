@@ -39,6 +39,15 @@ export const STEGA_EXCLUDED_FIELDS = new Set([
 ]);
 
 /**
+ * The `siteSettings.pageThemes` object's per-page seeds (`home` / `browse` / `about` /
+ * `now` / `system`) are brand colors parsed by the OKLCH engine (#166), so they share
+ * `brandColor`'s stega hazard — but their leaf names are common words we must NOT denylist
+ * globally. So they're excluded by ANCESTOR: any field nested under `pageThemes` is a
+ * code-consumed seed.
+ */
+const STEGA_EXCLUDED_ANCESTORS = new Set(["pageThemes"]);
+
+/**
  * Where the standalone Studio lives, for Visual Editing click-to-edit deep links.
  *
  * `@sanity/client` v7 *requires* `stega.studioUrl` whenever stega is enabled (it
@@ -52,10 +61,18 @@ export const STEGA_EXCLUDED_FIELDS = new Set([
  */
 export const studioUrl = process.env.NEXT_PUBLIC_SANITY_STUDIO_URL || "/studio";
 
-/** `true` when the path's leaf field is one of the code-consumed fields above. */
+/**
+ * `true` when the path's leaf field is a code-consumed field by name, OR the path passes
+ * through a code-consumed ancestor object (e.g. `siteSettings.pageThemes.now`).
+ */
 export function isStegaExcludedField(sourcePath: readonly unknown[]): boolean {
   const field = sourcePath.at(-1);
-  return typeof field === "string" && STEGA_EXCLUDED_FIELDS.has(field);
+  if (typeof field === "string" && STEGA_EXCLUDED_FIELDS.has(field))
+    return true;
+  return sourcePath.some(
+    (segment) =>
+      typeof segment === "string" && STEGA_EXCLUDED_ANCESTORS.has(segment),
+  );
 }
 
 /**

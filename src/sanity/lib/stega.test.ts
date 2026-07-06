@@ -45,6 +45,20 @@ describe("stega exclusions", () => {
       false,
     );
   });
+
+  it.each(["home", "browse", "about", "now", "system"])(
+    "flags the pageThemes.%s seed via its ancestor (leaf names are common words)",
+    (page) => {
+      expect(isStegaExcludedField(["pageThemes", page])).toBe(true);
+    },
+  );
+
+  it("does not flag a same-named prose field OUTSIDE pageThemes", () => {
+    // `now` as a bare leaf (e.g. a hypothetical prose field) must NOT be excluded —
+    // only seeds nested under the pageThemes ancestor are code-consumed.
+    expect(isStegaExcludedField(["now"])).toBe(false);
+    expect(isStegaExcludedField(["home"])).toBe(false);
+  });
 });
 
 describe("stegaFilter", () => {

@@ -8,24 +8,34 @@ import type {ValidationContext} from 'sanity'
  * calls them with a synthetic `{document}` context. See `entry.ts` for how they attach to
  * the `brandColor` / `fontKey` / `componentKey` fields.
  *
- * These enforce only the REQUIRED floor, which is `project`-shaped and unchanged. They are
- * NOT a capability gate: the fields they guard are honored downstream for ANY kind except
- * `now`. The route themes / mounts a module on the presence of the capability field, not on
- * `kind === 'project'` — so a `note` or `essay` that OPTS IN by setting `brandColor` gets a
- * brand scope, and one that sets `componentKey` mounts its module. "Optional" here means
- * "not required", never "ignored". The one exception is `now`: chrome + prose by design, its
- * theming fields are ignored downstream. See docs/architecture.md → Content model.
+ * These enforce only the REQUIRED floor. They are NOT a capability gate: the fields they guard
+ * are honored downstream for ANY kind except `now`. The route themes / mounts a module on the
+ * presence of the capability field — so a `note` or `essay` that sets `componentKey` mounts its
+ * module even though the key is not *required* of it. The one exception is `now`: chrome + prose
+ * by design, its theming fields are ignored downstream. See docs/architecture.md → Content model.
  */
 
 /**
- * `brandColor` is required for a `project`, any stage — the card plate consumes it even for a
- * sketch, so every project must carry it. Optional for `note` / `essay` (honored when set —
- * it themes the entry's slot) and for `now` (set-but-ignored). Only the project floor is
- * enforced here; presence, not kind, drives theming downstream.
+ * The themed kinds — every page-shaped entry that derives a theme from its own `brandColor`
+ * (#166). Mirror of `entry.ts`'s `KINDS` minus `now` (the one chrome+prose kind, which inherits
+ * the `/now` page seed instead). A NEW themed kind opts into the required `brandColor` floor by
+ * joining this list; an as-yet-uninvented kind is not silently forced to carry one.
  */
-export function requiredForProject(value: unknown, context: ValidationContext): true | string {
+const THEMED_KINDS = ['note', 'essay', 'project'] as const
+
+/**
+ * `brandColor` is required for every THEMED kind — note, essay, and project (any stage: the
+ * project card plate consumes it even for a sketch, and a note/essay page now themes from it
+ * too). Exempt for `now` (chrome + prose — it inherits the `/now` seed) and for a half-created
+ * draft whose `kind` isn't picked yet (don't error before the editor chooses). Presence, not
+ * kind, still drives theming downstream; this is only the author-time floor.
+ */
+export function requiredForThemedKind(value: unknown, context: ValidationContext): true | string {
   const kind = (context.document as {kind?: unknown} | undefined)?.kind
-  return kind === 'project' && !value ? 'Required for a project.' : true
+  const isThemed = (THEMED_KINDS as readonly unknown[]).includes(kind)
+  return isThemed && !value
+    ? 'Required — every note, essay, and project needs a brand color.'
+    : true
 }
 
 /**
