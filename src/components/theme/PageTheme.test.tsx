@@ -1,7 +1,8 @@
 import { render } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { resolveThemeDeclarations, themeInitScript } from "@/lib/theme";
+import { resolveThemeDeclarations } from "@/lib/theme";
 
 import PageTheme from "./PageTheme";
 
@@ -12,16 +13,14 @@ const accentOf = (seed: unknown): string =>
 afterEach(() => document.documentElement.removeAttribute("style"));
 
 describe("PageTheme", () => {
-  it("emits the baked hard-load script carrying the seed's resolved declarations", () => {
-    const { container } = render(<PageTheme seed={SEED} />);
-    const script = container.querySelector("script");
-    expect(script).not.toBeNull();
-    expect(script?.innerHTML).toContain("setProperty");
-    // The seed's actual accent value is baked into the parse-time script.
-    expect(script?.innerHTML).toContain(accentOf(SEED));
+  it("emits a :root <style> carrying the seed's baked declarations (flash-free first paint)", () => {
+    const html = renderToStaticMarkup(<PageTheme seed={SEED} />);
+    expect(html).toContain(":root{");
+    // The seed's actual accent value is baked into the server-rendered CSS — no script.
+    expect(html).toContain(accentOf(SEED));
   });
 
-  it("wires the re-applier so <html> is themed (hydration / soft-nav path)", () => {
+  it("re-applies the theme to <html> on the client (soft-nav path)", () => {
     render(<PageTheme seed={SEED} />);
     expect(document.documentElement.style.getPropertyValue("--accent")).toBe(
       accentOf(SEED),
@@ -32,25 +31,14 @@ describe("PageTheme", () => {
     expect(() => render(<PageTheme seed={{ nonsense: true }} />)).not.toThrow();
   });
 
-  // --- Adversarial QA (#172): both halves must ride ONE resolution, and no hostile seed
-  // may reach the inline script through the composed component. ---
-
-  describe("QA — single resolution and hostile seeds", () => {
-    it("bakes EXACTLY themeInitScript(resolveThemeDeclarations(seed)) — both halves share one resolution", () => {
-      const { container } = render(<PageTheme seed={SEED} />);
-      expect(container.querySelector("script")?.innerHTML).toBe(
-        themeInitScript(resolveThemeDeclarations(SEED)),
-      );
-    });
-
-    it("a script-injection seed cannot reach the baked inline script (falls back, payload absent)", () => {
-      const payload = "</script><script>alert(1)</script>";
-      const { container } = render(<PageTheme seed={payload} />);
-      const html = container.querySelector("script")?.innerHTML ?? "";
-      expect(html).not.toBe("");
-      expect(html.toLowerCase()).not.toContain("</script");
+  describe("QA — hostile & empty seeds", () => {
+    it("a hostile seed is rejected by the engine (payload absent, full fallback theme)", () => {
+      const payload = "</style><script>alert(1)</script>";
+      const html = renderToStaticMarkup(<PageTheme seed={payload} />);
+      // The engine collapses a garbage seed to the fallback — no seed content reaches the CSS.
       expect(html).not.toContain("alert(1)");
-      // …and the page still gets the full fallback theme, not a blank one.
+      expect(html).not.toContain("<script");
+      render(<PageTheme seed={payload} />);
       expect(document.documentElement.style.getPropertyValue("--accent")).toBe(
         accentOf(undefined),
       );

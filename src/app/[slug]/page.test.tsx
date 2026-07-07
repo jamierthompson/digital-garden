@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 import { render, screen } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import pageStyles from "./page.module.css";
@@ -359,13 +360,10 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(
       entry({ kind: "note", componentKey: null, themeSeed: SEED, ...withBody }),
     );
-    const { container } = render(
+    const html = renderToStaticMarkup(
       await EntryPage({ params: params("an-entry") }),
     );
-    const initScript = [...container.querySelectorAll("script")].find((s) =>
-      s.innerHTML.includes("setProperty"),
-    );
-    expect(initScript?.innerHTML).toContain(accentOf(SEED));
+    expect(html).toContain(accentOf(SEED));
   });
 
   it("renders NO Tags region even if the fetched entry carries a stray `tags` array", async () => {

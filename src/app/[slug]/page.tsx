@@ -116,11 +116,11 @@ export default async function EntryPage({ params }: EntryPageProps) {
     notFound();
   }
 
-  // The page's authored theme, stamped on `<html>` flash-free (#166). `themeSeed` is resolved
+  // The page's authored theme, applied flash-free (#166/#187). `themeSeed` is resolved
   // KIND-GATED in the query (a `now` update wears the `/now` seed; every other kind wears its
   // own required `brandColor`), so the page never branches on `kind` here. `entry` is already
-  // awaited above, so the synchronous `<PageTheme>` bakes its inline script into the prerendered
-  // static shell — mounted first in BOTH templates below, ahead of the page body.
+  // awaited above, so the synchronous `<PageTheme>` emits its `:root` `<style>` into the
+  // prerendered static shell — React hoists it into `<head>`, ahead of the chrome.
   const pageTheme = <PageTheme seed={entry.themeSeed} />;
 
   // `now` is excluded from BOTH capabilities by design (an editorial status update, never an

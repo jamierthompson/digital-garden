@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // System is an async Server Component whose ONLY read is its own theme seed, resolved through
@@ -17,10 +18,10 @@ import SystemPage from "./page";
 const accentOf = (seed: unknown): string =>
   Object.fromEntries(resolveThemeDeclarations(seed))["--accent"];
 
-const initScriptHtml = (container: HTMLElement): string =>
-  [...container.querySelectorAll("script")]
-    .map((s) => s.innerHTML)
-    .find((html) => html.includes("setProperty")) ?? "";
+// The hard-load theme is a `:root` <style> (BrandThemeStyle); read the baked CSS from the page's
+// server markup.
+const themeMarkup = async (): Promise<string> =>
+  renderToStaticMarkup(await SystemPage());
 
 // `system` gets one seed, every other key a decoy — a wrong-key resolution bakes the decoy accent.
 const SYSTEM_SEED = "#7c3aed"; // violet
@@ -46,7 +47,7 @@ describe("SystemPage", () => {
     expect(screen.getByText(/being written/i)).toBeInTheDocument();
   });
 
-  it("mounts PageTheme baking the accent from its OWN `pageThemes.system` seed (not another key's)", async () => {
+  it("themes from its OWN `pageThemes.system` seed (not another key's)", async () => {
     expect(accentOf(SYSTEM_SEED)).not.toBe(accentOf(DECOY_SEED));
     mockSettings({
       home: DECOY_SEED,
@@ -55,16 +56,15 @@ describe("SystemPage", () => {
       now: DECOY_SEED,
       system: SYSTEM_SEED,
     });
-    const { container } = render(await SystemPage());
-    const html = initScriptHtml(container);
+    const html = await themeMarkup();
     expect(html).toContain(accentOf(SYSTEM_SEED));
     expect(html).not.toContain(accentOf(DECOY_SEED));
   });
 
   it("renders flash-free with a safe fallback when `pageThemes.system` is unauthored (null)", async () => {
     mockSettings({ system: null });
-    const { container } = render(await SystemPage());
-    expect(initScriptHtml(container)).toContain("setProperty");
+    expect(await themeMarkup()).toContain(":root{");
+    render(await SystemPage());
     expect(
       screen.getByRole("heading", { level: 1, name: /system/i }),
     ).toBeInTheDocument();
@@ -72,8 +72,8 @@ describe("SystemPage", () => {
 
   it("renders when there is no published siteSettings document at all (helper → null)", async () => {
     fetchMock.mockResolvedValue(null);
-    const { container } = render(await SystemPage());
-    expect(initScriptHtml(container)).toContain("setProperty");
+    expect(await themeMarkup()).toContain(":root{");
+    render(await SystemPage());
     expect(
       screen.getByRole("heading", { level: 1, name: /system/i }),
     ).toBeInTheDocument();

@@ -1,6 +1,6 @@
-import { resolveThemeDeclarations, themeInitScript } from "@/lib/theme";
+import { resolveThemeDeclarations } from "@/lib/theme";
 
-import InlineScript from "./InlineScript";
+import BrandThemeStyle from "./BrandThemeStyle";
 import ThemeReapplier from "./ThemeReapplier";
 
 interface PageThemeProps {
@@ -15,24 +15,25 @@ interface PageThemeProps {
 /**
  * A page mounts this once to wear its authored theme flash-free. A **synchronous** Server
  * Component (mirrors `EntryScope`'s posture — awaits nothing, prerenders into the static shell,
- * unit-testable in jsdom): it resolves the seed to declarations once and drives both halves of
- * the flash-free pattern from that single resolution —
+ * unit-testable in jsdom): it resolves the seed to declarations once and drives both halves —
  *
- *   1. `InlineScript` — the parse-time hard-load script that stamps `<html>` before first paint.
- *   2. `ThemeReapplier` — the client re-applier that re-stamps on soft nav / `<Activity>` reveal.
- *
- * There is deliberately no per-route `<style>` block: the theme is a single imperative write to
- * `<html>`, which cannot collide across `<Activity>`-kept routes the way a `:root` block does.
+ *   1. `BrandThemeStyle` — the hoisted `:root` `<style>` baked with the seed. React lifts it into
+ *      `<head>`, *before* the body chrome, so first paint is themed with no script and no
+ *      parse-order dependency (the same server-rendered baked-CSS approach `EntryCard` uses
+ *      inline, lifted to `:root`).
+ *   2. `ThemeReapplier` — the client re-applier that re-stamps on soft nav / `<Activity>` reveal,
+ *      where the persistent chrome doesn't reload. Its imperative `<html>` write out-ranks the
+ *      `:root` rule, so the visible route always wins and no per-route `:root` block collides.
  *
  * Every route mounts this to wear its authored theme: site pages resolve their seed from
  * `siteSettings.pageThemes` via `sitePageThemeSeed`, entry pages from `themeSeed`. The persistent
- * chrome (`SiteNav`/`SiteFooter`) inherits the `<html>` binding, so it re-matches the visible page.
+ * chrome (`SiteNav`/`SiteFooter`) inherits the `:root` theme, so it re-matches the visible page.
  */
 export default function PageTheme({ seed }: PageThemeProps) {
   const declarations = resolveThemeDeclarations(seed);
   return (
     <>
-      <InlineScript html={themeInitScript(declarations)} />
+      <BrandThemeStyle declarations={declarations} />
       <ThemeReapplier declarations={declarations} />
     </>
   );

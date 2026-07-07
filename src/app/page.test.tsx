@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Home is an async Server Component reading FEATURED_QUERY. Mock the single read path so a
@@ -123,11 +124,8 @@ describe("Home (featured front door)", () => {
   it("mounts PageTheme carrying the resolved pageThemes.home seed", async () => {
     const HOME_SEED = "#0ea5e9";
     mockReads({ settings: { pageThemes: { home: HOME_SEED } } });
-    const { container } = render(await Home());
-    const initScript = [...container.querySelectorAll("script")].find((s) =>
-      s.innerHTML.includes("setProperty"),
-    );
-    expect(initScript?.innerHTML).toContain(accentOf(HOME_SEED));
+    const html = renderToStaticMarkup(await Home());
+    expect(html).toContain(accentOf(HOME_SEED));
   });
 });
 

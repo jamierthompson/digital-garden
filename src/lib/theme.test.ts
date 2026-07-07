@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   applyThemeDeclarations,
   resolveThemeDeclarations,
-  themeInitScript,
   tokenSetToThemeDeclarations,
   type ThemeDeclaration,
 } from "./theme";
@@ -105,27 +104,6 @@ describe("applyThemeDeclarations", () => {
     expect(document.documentElement.style.getPropertyValue("--accent")).toBe(
       "red",
     );
-  });
-});
-
-describe("themeInitScript", () => {
-  afterEach(() => document.documentElement.removeAttribute("style"));
-
-  it("produces a self-contained script that stamps <html> when executed (flash-free hard load)", () => {
-    const declarations = resolveThemeDeclarations(ORANGE);
-    // Run it exactly as the browser would during HTML parse.
-    new Function(themeInitScript(declarations))();
-    expect(document.documentElement.style.getPropertyValue("--accent")).toBe(
-      Object.fromEntries(declarations)["--accent"],
-    );
-  });
-
-  it("bakes the seed's values in — no localStorage read (the seed is server-known)", () => {
-    const script = themeInitScript(resolveThemeDeclarations(ORANGE));
-    expect(script).not.toMatch(/localStorage/);
-    expect(script).toContain("setProperty");
-    // Distinct seeds bake distinct scripts.
-    expect(script).not.toBe(themeInitScript(resolveThemeDeclarations(BLUE)));
   });
 });
 
@@ -268,63 +246,6 @@ describe("hostile / malformed seeds (QA #172)", () => {
   });
 });
 
-describe("themeInitScript injection path (QA #172)", () => {
-  afterEach(() => document.documentElement.removeAttribute("style"));
-
-  it("a script-injection seed cannot reach the baked script (engine-sanitized values only)", () => {
-    const payload = "</script><script>alert(1)</script>";
-    const script = themeInitScript(resolveThemeDeclarations(payload));
-    expect(script.toLowerCase()).not.toContain("</script");
-    expect(script.toLowerCase()).not.toContain("<script");
-    expect(script).not.toContain("alert");
-    expect(script).not.toContain("<!--");
-  });
-
-  it("declaration values carry none of the HTML/JS-dangerous characters for inline embedding", () => {
-    // The injection-safety claim rests on this: engine values are numeric oklch literals.
-    for (const seed of [ORANGE, BLUE, undefined, "</script>"]) {
-      for (const [, value] of resolveThemeDeclarations(seed)) {
-        expect(value).not.toMatch(/[<>&"'`\\\n\u2028\u2029]/u);
-      }
-    }
-  });
-
-  it("escapes HTML-dangerous sequences even for out-of-engine declarations (boundary hardening)", () => {
-    // FAILING ON ARRIVAL — the defect this QA pass pins. `themeInitScript` is an exported
-    // module boundary typed `ThemeDeclaration[]` (arbitrary strings), but its injection
-    // safety is only a PRECONDITION stated in a comment (callers must pass engine output),
-    // not a property the function enforces. Embedded in HTML via dangerouslySetInnerHTML,
-    // a `</script` inside any value terminates the script element and the rest parses as
-    // markup — XSS one future caller away (#178 feeds this same path). The industry-standard
-    // fix is the one Next.js itself applies when inlining JSON into HTML: escape `<` (e.g.
-    // as <) in the stringified payload.
-    const script = themeInitScript([
-      ["--x", "</script><script>alert(1)</script>"],
-    ]);
-    expect(script.toLowerCase()).not.toContain("</script");
-  });
-
-  it("an empty declaration set bakes a harmless, valid no-op script", () => {
-    const script = themeInitScript([]);
-    expect(() => new Function(script)()).not.toThrow();
-    expect(document.documentElement.getAttribute("style")).toBeNull();
-  });
-
-  it("round-trips — executing the baked script stamps exactly what applyThemeDeclarations stamps", () => {
-    const declarations = resolveThemeDeclarations(ORANGE);
-    new Function(themeInitScript(declarations))();
-    const scripted = document.documentElement.getAttribute("style");
-    document.documentElement.removeAttribute("style");
-    applyThemeDeclarations(declarations);
-    expect(document.documentElement.getAttribute("style")).toBe(scripted);
-    for (const [property, value] of declarations) {
-      expect(document.documentElement.style.getPropertyValue(property)).toBe(
-        value,
-      );
-    }
-  });
-});
-
 describe("applyThemeDeclarations edges (QA #172)", () => {
   afterEach(() => document.documentElement.removeAttribute("style"));
 
@@ -354,13 +275,19 @@ describe("applyThemeDeclarations edges (QA #172)", () => {
 });
 
 describe("isomorphism", () => {
-  it("resolveThemeDeclarations + themeInitScript run with no DOM globals (server-safe)", () => {
+  it("resolveThemeDeclarations + tokenSetToThemeDeclarations run with no DOM globals (server-safe)", () => {
     // The pure half of the module must not touch the DOM — only applyThemeDeclarations does.
     vi.stubGlobal("document", undefined);
     vi.stubGlobal("window", undefined);
     try {
-      const script = themeInitScript(resolveThemeDeclarations(ORANGE));
-      expect(script).toContain("setProperty");
+      const declarations = resolveThemeDeclarations(ORANGE);
+      expect(declarations.length).toBeGreaterThan(0);
+      expect(Object.fromEntries(declarations)["--accent"]).toContain(
+        "light-dark(",
+      );
+      expect(tokenSetToThemeDeclarations(buildTokenSet(ORANGE))).toEqual(
+        declarations,
+      );
     } finally {
       vi.unstubAllGlobals();
     }

@@ -35,8 +35,8 @@ const KIND_SECTIONS = [
  * shows the `stage` maturity badge and a backlink hint, and links each to its flat `/[slug]`.
  */
 export default async function IndexPage() {
-  // Seed on the awaited path → synchronous `<PageTheme>` first in the tree (prerendered static
-  // shell, flash-free). See `sitePageThemeSeed`.
+  // Seed on the awaited path → synchronous `<PageTheme>`; its `:root` `<style>` hoists into
+  // `<head>` ahead of the chrome (prerendered static shell, flash-free, #187). See `sitePageThemeSeed`.
   const themeSeed = await sitePageThemeSeed("browse");
   const entries = await sanityFetch(INDEX_QUERY);
 

@@ -23,6 +23,17 @@ These are the through-lines; everything else follows from them.
   engine, the odd reused primitive) live in plain shared modules. No fused bundle; no premature
   abstraction either.
 
+- **The routing layer stays thin.** `src/app/` holds only Next.js route files (`page` / `layout` /
+  `route` / … per the App Router file conventions) plus what co-locates with them — their
+  `*.test.*`, the private helpers a route file imports (a `route.ts` can't export non-handlers, so
+  RSS's `escapeXml.ts` lives beside it), `*.module.css`, the root `globals.css`, and static assets.
+  Real logic and shared components live in `src/` modules; design-system CSS in `src/styles/`. The
+  routes wire things together and mount from the source tree — they don't hold the logic. Enforced by
+  `pnpm lint:routes` (`scripts/check-app-routes.mjs`), so the drift that manual review kept missing
+  can't recur. The guard is **deliberately stricter than Next**: Next blesses `_private` folders for
+  co-locating components under `app/`, but here components/logic belong in `src/`, so a module in
+  `app/_components/` is still flagged.
+
 - **Composition over inheritance.** Every page wears its **own authored theme**: the entry's (or
   site page's) brand color runs through the OKLCH engine and is stamped on `<html>`, so all chrome +
   prose + slots wear it. The global typography is fixed house style — Space Grotesk headings +
@@ -169,50 +180,50 @@ Key points:
 
 ### Site-wide `<html>` theme delivery (#166)
 
-The engine themes **every page** from an authored seed, stamped on a **single `<html>` binding**
-rather than a per-slot `[data-entry]` scope. Each page mounts one `<PageTheme seed>` (a synchronous
+The engine themes **every page** from an authored seed, applied as a **hoisted `:root` `<style>`**
+(re-stamped imperatively on `<html>` on soft nav) rather than a per-slot `[data-entry]` scope. Each page mounts one `<PageTheme seed>` (a synchronous
 server component): the site-owned pages (`/`, `/browse`, `/about`, `/now`, `/system`) seed from
 `siteSettings.pageThemes.<key>` (resolved by `sitePageThemeSeed`), and entry pages (`/[slug]`) seed
 from the kind-gated `themeSeed`. `SiteNav` and `SiteFooter` render once in the root layout above the
-pages and **inherit** the `<html>` binding, so the persistent chrome wears the visible page's theme
-with no re-render (custom-property inheritance is live).
+pages and **inherit** the page theme (`:root` on hard load, re-stamped on `<html>` on soft nav), so
+the persistent chrome wears the visible page's theme with no re-render (inheritance is live).
 
 The mechanism follows Next's _Preventing flash before hydration → Themes_ pattern
 (`node_modules/next/dist/docs/01-app/02-guides/preventing-flash-before-hydration.md`), and mirrors
 `src/lib/scheme.ts`'s split (the light/dark axis) — the one difference being that a page's seed is
 **author-set and server-known**, so theming carries **no `localStorage`**:
 
-- **The `<html>` node _is_ the state.** The theme is a set of semantic custom properties written
-  imperatively on `<html>`. There is **no per-route `:root` `<style>` block** — one collides across
-  the routes `<Activity>` keeps mounted at once (the #168 wash failure); a single imperative write to
-  one node cannot collide with itself. A per-token `setProperty` layers _alongside_ the scheme
-  toggle's inline `color-scheme` instead of clobbering it.
 - **The serializer** — `resolveThemeDeclarations(brandColor)` in `src/lib/theme.ts` — is a thin,
   isomorphic wrapper over the engine's `buildTokenSet` + `tokenSetToDeclarations`, returning
   `[property, value]` pairs. It never throws (the engine collapses a bad seed to a fallback).
-- **Hard load / refresh:** the page renders `themeInitScript(declarations)` (via the `InlineScript`
-  helper) — a parse-time inline `<script>` with the seed's values baked in — which stamps `<html>`
-  before first paint. The read path (`sanityFetch`) is `use cache`, so a public request prerenders
-  the page into the **static shell** and the script is in the initial HTML; the seed resolves on the
-  page's synchronously-awaited path so it never lands in a streamed `◐` dynamic hole (which would
-  deliver the script late). The script runs **after `<SiteNav>` in DOM order** — a page renders
-  inside the shared layout's chrome, not above it — but it is parser-blocking and sits in the static
-  shell, so it executes before first paint (the guarantee the scheme script rests on).
-- **Soft navigation & `<Activity>` reveal:** `ThemeReapplier` (client) re-stamps `<html>` from the
-  declarations it holds as a prop, in a **layout effect** — not an insertion effect: an insertion
-  effect does _not_ re-run on `<Activity>` reveal (so a back/forward-revealed route keeps the
-  previous route's theme), whereas a layout effect participates in Activity's hide/show effect cycle
-  and re-asserts this route's theme before paint.
+- **Hard load / refresh (the easy case — the seed is server-known):** the page renders the
+  declarations as a `:root { … }` `<style>` (`BrandThemeStyle`), which React 19 hoists into `<head>` —
+  **ahead of the body chrome** — so the theme applies before ANY content paints, with no script and
+  no parse-order dependency. This is `EntryCard`'s server-rendered baked-CSS approach lifted to
+  `:root`. The `<style>` is **unlayered**, so it out-ranks the `@layer foundation` fallback `:root`
+  (the "@layer trap"). The read path (`sanityFetch`) is `use cache`, so a public request prerenders
+  the page into the **static shell** and the `<style>` is in the initial `<head>`. (An inline
+  _script_ can't do this — React doesn't hoist inline scripts, so a page-rendered one lands **after**
+  the chrome and FOUCs: that was **#187**.)
+- **Soft navigation & `<Activity>` reveal (the reason the re-applier exists — the persistent chrome
+  doesn't reload):** `ThemeReapplier` (client) re-stamps `<html>` from the declarations it holds as a
+  prop, in a **layout effect**. Its imperative `<html>.style` write out-ranks the `:root` rule, so
+  the visible route always wins even with several routes' `:root` styles mounted at once under
+  `<Activity>` — no per-route collision (the write layers _alongside_ the scheme toggle's inline
+  `color-scheme`, never clobbering it). It must be a layout effect, not an insertion effect: an
+  insertion effect does _not_ re-run on `<Activity>` reveal (a back/forward-revealed route would keep
+  the previous route's theme), whereas a layout effect participates in Activity's hide/show cycle and
+  re-asserts this route's theme before paint.
 
-The primitives live in `src/lib/theme.ts` + `src/components/theme/{InlineScript,ThemeReapplier,PageTheme}`;
+The primitives live in `src/lib/theme.ts` + `src/components/theme/{BrandThemeStyle,ThemeReapplier,PageTheme}`;
 `PageTheme` composes both halves from one seed resolution.
 
 `foundation.css`'s `:root` semantic color tokens are the engine's own fallback token set
 (`buildTokenSet(undefined)`) baked as static `light-dark()` literals — the neutral ground for the
-surfaces that render with **no** `<html>` theme (404 / error / loading + the chrome around them,
-which never mount a `<PageTheme>`); a themed route's imperative `<html>` write out-ranks them.
-There is no canvas wash: a single imperative `<html>` write supplies `--bg` to every route, so the
-`:has()`-scoped body re-bind (and its #168 `<Activity>` failure) is gone. The cascade order is
+surfaces that render with **no** page theme (404 / error / loading + the chrome around them,
+which never mount a `<PageTheme>`); a themed route's `:root` `<style>` (and the imperative `<html>`
+re-applier) out-rank them. There is no canvas wash: the page theme supplies `--bg` to every route,
+so the `:has()`-scoped body re-bind (and its #168 `<Activity>` failure) is gone. The cascade order is
 `@layer foundation, semantic, components;` — there is no `brand` layer, because the entry's brand
 font scopes to its own slot via an inline style on `[data-entry]` (`EntryScope`), not a cascade
 layer.
@@ -277,10 +288,11 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   engine (via `cardSwatches`) and spreads them inline as generic semantic-token overrides — its own
   entry's `brandColor`.
 
-- Delivered as an **imperative write on `<html>`** (`PageTheme`'s parse-time inline script, baked at
-  build). On Vercel this is genuinely **flash-free for color**: the `brandColor` is known on the
-  _server_, so the baked declarations are in the initial HTML, server/client RSC payloads agree, and
-  there's no hydration mismatch and no FOUC. A single imperative write to one node can't collide
+- Delivered as a **hoisted `:root` `<style>`** (`PageTheme` → `BrandThemeStyle`, re-stamped imperatively
+  on `<html>` on soft nav). On Vercel this is genuinely **flash-free for color**: the `brandColor` is
+  known on the _server_, so the baked declarations are in the initial `<head>` — ahead of the chrome —
+  server/client RSC payloads agree, and there's no hydration mismatch and no FOUC. The imperative
+  soft-nav write to one node can't collide
   across the routes `<Activity>` keeps mounted — the delivery section covers the full mechanism.
 
 - **Ramp-primitive tier, semantic tokens bound to it.** The engine emits a per-role

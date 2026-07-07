@@ -23,8 +23,8 @@ export const metadata: Metadata = {
  */
 export default async function Home() {
   // Both reads are `use cache`, so they resolve into the prerendered static shell — the theme
-  // seed on the page's own awaited path, fed to a synchronous `<PageTheme>` mounted first so its
-  // inline `<html>` script bakes into the initial HTML (flash-free; #172 streamed-shell rule).
+  // seed on the page's own awaited path, fed to a synchronous `<PageTheme>`, whose `:root`
+  // `<style>` React hoists into `<head>` ahead of the chrome, so first paint is themed (#187).
   const themeSeed = await sitePageThemeSeed("home");
   const featured = await sanityFetch(FEATURED_QUERY);
 

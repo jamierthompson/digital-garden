@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // About is an async Server Component whose ONLY read is its own theme seed, resolved through
@@ -17,10 +18,11 @@ import AboutPage from "./page";
 const accentOf = (seed: unknown): string =>
   Object.fromEntries(resolveThemeDeclarations(seed))["--accent"];
 
-const initScriptHtml = (container: HTMLElement): string =>
-  [...container.querySelectorAll("script")]
-    .map((s) => s.innerHTML)
-    .find((html) => html.includes("setProperty")) ?? "";
+// The hard-load theme is a `:root` <style> (BrandThemeStyle); render the page's server markup and
+// read the baked CSS from the string (the <style> hoists in a browser, but the value is in the SSR
+// output either way).
+const themeMarkup = async (): Promise<string> =>
+  renderToStaticMarkup(await AboutPage());
 
 // Feed the `about` key one seed and EVERY OTHER key a decoy — so if the page ever resolves the
 // wrong `pageThemes.*` key (a copy-paste bug the `SitePageKey` type can't catch — every key is a
@@ -49,7 +51,7 @@ describe("AboutPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("mounts PageTheme baking the accent from its OWN `pageThemes.about` seed (not another key's)", async () => {
+  it("themes from its OWN `pageThemes.about` seed (not another key's)", async () => {
     // Guard: the two seeds must produce distinct accents, else a wrong-key bug would be invisible.
     expect(accentOf(ABOUT_SEED)).not.toBe(accentOf(DECOY_SEED));
     mockSettings({
@@ -59,17 +61,16 @@ describe("AboutPage", () => {
       now: DECOY_SEED,
       system: DECOY_SEED,
     });
-    const { container } = render(await AboutPage());
-    const html = initScriptHtml(container);
+    const html = await themeMarkup();
     expect(html).toContain(accentOf(ABOUT_SEED));
     expect(html).not.toContain(accentOf(DECOY_SEED));
   });
 
   it("renders flash-free with a safe fallback when `pageThemes.about` is unauthored (null)", async () => {
     mockSettings({ about: null });
-    const { container } = render(await AboutPage());
-    // Still mounts the init script (fallback palette baked), never crashes on a missing seed.
-    expect(initScriptHtml(container)).toContain("setProperty");
+    // Still bakes the :root theme (fallback palette), never crashes on a missing seed.
+    expect(await themeMarkup()).toContain(":root{");
+    render(await AboutPage());
     expect(
       screen.getByRole("heading", { level: 1, name: /about/i }),
     ).toBeInTheDocument();
@@ -77,8 +78,8 @@ describe("AboutPage", () => {
 
   it("renders when there is no published siteSettings document at all (helper → null)", async () => {
     fetchMock.mockResolvedValue(null);
-    const { container } = render(await AboutPage());
-    expect(initScriptHtml(container)).toContain("setProperty");
+    expect(await themeMarkup()).toContain(":root{");
+    render(await AboutPage());
     expect(
       screen.getByRole("heading", { level: 1, name: /about/i }),
     ).toBeInTheDocument();
