@@ -18,8 +18,7 @@
   }
 
   .title {
-    /* Display face comes from the base h1–h6 rule (`foundation.css`); no per-title binding to
-       drift (the omission #147 patched here is now impossible by construction). */
+    /* Display face comes from the base h1–h6 rule (`foundation.css`) */
     font-size: var(--text-3xl);
     line-height: var(--leading-tight);
     color: var(--accent-text);
