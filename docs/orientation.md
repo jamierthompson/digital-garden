@@ -8,7 +8,7 @@ There is no decision log: **the docs are the current truth, edited in place; git
 
 ## What this project is
 
-A personal portfolio + digital garden. Each **project is a self-contained module** — its pages, its interactive experience, the components its essay embeds, and its scoped tokens — composed on a shared foundation. Content + brand seeds live in **Sanity**; the site renders on **Next.js 16 / React 19** on Vercel. The foundation, the OKLCH engine, the content model, and the first project are live; remaining work is tracked in the [GitHub issue tracker](https://github.com/jamierthompson/digital-garden/issues).
+A personal portfolio + digital garden. Each **project is a self-contained module** — its single `/[slug]` page (the editorial article + its interactive experience), the components its essay embeds, and its scoped tokens — composed on a shared foundation. Content + brand seeds live in **Sanity**; the site renders on **Next.js 16 / React 19** on Vercel. The foundation, the OKLCH engine, the content model, and the first project are live; remaining work is tracked in the [GitHub issue tracker](https://github.com/jamierthompson/digital-garden/issues).
 
 The stack, verified — do not contradict it:
 

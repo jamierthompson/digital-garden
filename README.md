@@ -127,9 +127,10 @@ tests/                  # shared Vitest setup/infra; suites co-locate beside the
 docs/                   # handbook (incl. architecture.md, the system model)
 ```
 
-Each project under `src/entries/<slug>/` is a self-contained module — its pages, its
-interactive experience, scoped tokens. A thin route file at the flat root-level `/[slug]` mounts
-it, and a typed reference-by-key resolver maps a Sanity `componentKey` to a literal dynamic import.
+Each project under `src/entries/<slug>/` is a self-contained module — its single `/[slug]` page
+(editorial article + interactive experience), scoped tokens. A thin route file at the flat
+root-level `/[slug]` mounts it, and a typed reference-by-key resolver maps a Sanity `componentKey`
+to a literal dynamic import.
 Dependencies point **entry modules → shared, never back** (lint-enforced). The OKLCH engine
 lives in its own `packages/oklch` workspace package (`@garden/oklch`), so the standalone
 Studio can import it too.

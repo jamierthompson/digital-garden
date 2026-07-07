@@ -1,8 +1,8 @@
 # Architecture — system model
 
 The system model for the portfolio + digital garden. Each project is a **self-contained
-module** — its pages (always the interactive experience, plus whatever else it needs: an essay,
-a hero, rich media), the components its essay embeds, and its tokens — composed within the site.
+module** — its `/[slug]` page (the editorial article plus its interactive experience), the
+components its essay embeds, and its tokens — composed within the site.
 Hosted on Vercel; essay + brand seeds in Sanity.
 
 This is the **reference for how the system is designed**; code and the other docs point back to
@@ -419,8 +419,7 @@ any _specific_ project's scope. It ships its own defaults and reads generic sema
 
 ```
 src/entries/<slug>/
-  ├─ pages/             the project's own page components — essay / hero / other
-  ├─ experience.tsx     the interactive experience (the working demo); a thin page mounts it
+  ├─ experience.tsx     the interactive experience (the working demo); the route mounts it
   ├─ core/              headless core — ONLY when the experience's logic earns extraction
   ├─ embeds.ts          entry-local embed map (key → component) — bespoke inline embeds
   ├─ tokens.css         the project's slot-scoped semantic override (generic names, brand values)
@@ -431,7 +430,7 @@ src/lib/resolvers/components.ts  componentKey → () => import("@/entries/<slug>
 src/*/keys.ts              string-constant key contracts (Studio imports these; resolvers don't)
 ```
 
-A project is **one or more pages**. Its registry entry (the `EntryModule` contract,
+An entry renders as a single `/[slug]` page. Its registry entry (the `EntryModule` contract,
 `src/entries/types.ts`) exports one or both of two composition members — a compile error
 enforces at least one:
 
@@ -444,15 +443,14 @@ enforces at least one:
   mounts in its own `EntryScope` container (an inline `--font-face` per island; color is
   inherited from the page's `<html>` theme).
 
-Beyond those a project may have an essay/rich-media page, a hero, something else, or nothing
-more at all — the page set is decided per project, not fixed by a template. `experience.tsx`
-is the component; a thin page in `pages/` mounts it. A headless `core/` is **not** templated into every module — let it
+Nothing more is templated: the page is the editorial `<article>` (prose) plus the module's
+composition. A headless `core/` is **not** templated into every module — let it
 emerge only when an experience's logic warrants extraction (same deferral discipline as the
-embed tiers; see the interactive experience section). The module owns its page components; thin
-route files mount them. Code lives under `src/entries/<slug>/`; **routes are flat** — `/` is the
+embed tiers; see the interactive experience section). Code lives under `src/entries/<slug>/`;
+**routes are flat** — `/` is the
 **featured** front door, a browsable **Index** (nav-labelled "Index") lists every entry at
 **`/browse`**, and a root-level `/[slug]` (a dynamic segment that cedes precedence to the static
-segments `/browse`, `/about`, `/now`) mounts any entry's pages. Every entry — note, essay, or
+segments `/browse`, `/about`, `/now`) mounts any entry. Every entry — note, essay, or
 project — lives at a **flat top-level slug** (`/some-note`, not `/notes/some-note`), so its URL stays
 stable even if its `kind` changes. There is no `/work` prefix. The browse route is `/browse`, **not
 `/index`**: Next.js reserves `index` for the root segment's prerender output (`app/index.html`), so a
@@ -484,7 +482,7 @@ Sanity entry doc { kind, componentKey: "<slug>", brandColor, fontKey, body, stag
 src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the entry module
         │
         ▼
-src/entries/<slug>/   its pages (experience + any essay/hero/other) + embeddable components
+src/entries/<slug>/   its page (editorial article + interactive experience) + embeddable components
 ```
 
 - **Content references; code resolves.** The essay comes from Sanity and references coded

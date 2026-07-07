@@ -2,7 +2,7 @@
 //
 // A `componentKey` resolves (via `src/lib/resolvers/components.ts`, a LITERAL dynamic
 // import per key) to an entry module; this is the contract that module's default
-// export satisfies, so a thin `/[slug]` route can mount its pages without knowing the
+// export satisfies, so a thin `/[slug]` route can mount it without knowing the
 // concrete project. A module composes with the editorial page in one (or both) of two
 // ways — `Experience` (one interactive slot mounted after the prose) and/or `Provider`
 // (a client frame around the article so `liveEmbed` slots interleaved through the prose
