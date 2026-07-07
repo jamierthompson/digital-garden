@@ -224,6 +224,25 @@
     line-height: var(--leading-normal);
   }
 
+  /* Headings default to the display face. This is the ONE place the display/body-face split is
+     applied to headings, so a new heading is correct by construction — no per-module
+     `font-family: var(--font-display)` to remember (and drop in a refactor). This supersedes
+     #147, which patched that omission on a single title; the drift class it guarded against is
+     now structurally impossible. `--font-display` is global chrome: a brand slot re-binds only
+     `--font-face` inside its `[data-entry]` scope, never `--font-display`, so headings stay in
+     the shell display face everywhere, in or out of a slot. Font-family only lives here; the
+     planned `@garden/type` engine will back the wider type contract, so components read named
+     tokens (size/leading), never magic literals. A surface that deliberately wants a different
+     heading face (e.g. the mono readout cards) overrides in its own `@layer components`. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+  }
+
   img,
   picture,
   video,

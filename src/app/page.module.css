@@ -25,7 +25,6 @@
      garden IS (notes/essays/work-in-the-open) rather than spending the page's primary
      heading on a duplicate byline. */
   .title {
-    font-family: var(--font-display);
     font-size: var(--text-4xl);
     font-weight: 600;
     line-height: var(--leading-tight);

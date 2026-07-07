@@ -18,11 +18,8 @@
   }
 
   .title {
-    /* The display face, exactly as the homepage h1 (`app/page.module.css` .title) — the same
-       `--font-display` token so the two headings can't drift (#147). It reads the SHELL's
-       display face: the article is editorial chrome outside any brand scope, so a brand-slotted
-       entry's `fontKey` (which overrides `--font-face` inside its slot only) never reaches it. */
-    font-family: var(--font-display);
+    /* Display face comes from the base h1–h6 rule (`foundation.css`); no per-title binding to
+       drift (the omission #147 patched here is now impossible by construction). */
     font-size: var(--text-3xl);
     line-height: var(--leading-tight);
     color: var(--accent-text);

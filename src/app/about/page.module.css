@@ -10,7 +10,6 @@
   }
 
   .title {
-    font-family: var(--font-face);
     font-size: var(--text-3xl);
     line-height: var(--leading-tight);
     color: var(--text);

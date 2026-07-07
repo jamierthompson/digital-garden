@@ -112,6 +112,25 @@ describe("foundation.css color is engine-derived, not hand-authored", () => {
   });
 });
 
+// The base `h1`–`h6` element rule is the ONE place headings bind the display face — it supersedes
+// #147, which patched that omission on a single title. With the family declared once here, the
+// per-module drift #147 guarded against (a heading forgetting `--font-display` and inheriting the
+// body serif) is impossible by construction, so this replaces the old two-`.title` anti-drift test.
+describe("foundation.css base heading element rule", () => {
+  // Strip comments so a `--font-display` mention in prose can't satisfy the assertion.
+  const CODE = SHEET.replace(/\/\*[\s\S]*?\*\//g, "");
+  const headingRule = CODE.match(
+    /h1,\s*h2,\s*h3,\s*h4,\s*h5,\s*h6\s*\{([^}]*)\}/,
+  );
+
+  it("binds --font-display on h1–h6 (the display/body-face split, applied once)", () => {
+    expect(headingRule).not.toBeNull();
+    expect(/font-family:\s*var\(--font-display\)/.test(headingRule![1])).toBe(
+      true,
+    );
+  });
+});
+
 // The `@layer` statement is load-bearing: it fixes cascade priority lowest-first (`components`
 // last = strongest). `check-css-layers.mjs` only proves every rule is INSIDE some layer, so it
 // would not catch a reordering or a stale `brand` (the deleted slot machinery's layer).
