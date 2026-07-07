@@ -22,8 +22,8 @@ export const metadata: Metadata = {
  * (`var(--text)`, `var(--font-face)`, …) from `:root`, no brand scope of its own.
  *
  * `async` so it can resolve its authored `pageThemes.about` seed on its own awaited path — a
- * `use cache` read, so the page stays fully prerendered (no dynamic hole) and the theme script
- * bakes into the static shell (flash-free).
+ * `use cache` read, so the page stays fully prerendered (no dynamic hole) and the theme's `:root`
+ * `<style>` hoists into `<head>` ahead of the chrome, flash-free (#187).
  */
 export default async function AboutPage() {
   const themeSeed = await sitePageThemeSeed("about");

@@ -6,8 +6,8 @@ import { applyThemeDeclarations, type ThemeDeclaration } from "@/lib/theme";
 
 // `useLayoutEffect` on the client, `useEffect` on the server — the standard isomorphic guard.
 // The write must be a LAYOUT effect (see below); this only silences React's "useLayoutEffect
-// does nothing on the server" warning during SSR, where the inline script owns first paint and
-// this effect is a no-op anyway.
+// does nothing on the server" warning during SSR, where the hoisted `:root` `<style>` owns first
+// paint and this effect is a no-op anyway.
 const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
@@ -20,9 +20,10 @@ interface ThemeReapplierProps {
  * Re-applies the page's theme to `<html>` across client transitions — the soft-nav half of the
  * flash-free pattern (the guide's `LocalDate` mechanism; see `preventing-flash-before-hydration.md`).
  *
- * The hard-load inline script (`themeInitScript`) runs once during HTML parse; it does NOT
- * re-run on client navigation. This Client Component fills that gap on two events, both of which
- * must re-stamp the single shared `<html>` binding with THIS route's seed:
+ * The hard-load `:root` `<style>` (`BrandThemeStyle`) themes first paint from the initial HTML; it
+ * does NOT re-apply on client navigation (the persistent chrome doesn't reload). This Client
+ * Component fills that gap on two events, both of which re-stamp `<html>` with THIS route's seed
+ * (an imperative write that out-ranks the `:root` rule, so the visible route always wins):
  *
  *   1. **Soft navigation to this route** — the component mounts, the effect runs.
  *   2. **`<Activity>` reveal** — under Cache Components, Next keeps up to 3 routes mounted and

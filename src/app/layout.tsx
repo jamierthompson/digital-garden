@@ -76,11 +76,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // `SiteNav`/`SiteFooter` render once here, above the pages, and inherit the page's theme from
-  // the `<html>` binding each page stamps via `<PageTheme>` — so the persistent chrome wears the
-  // visible page's authored theme with no per-component work. `foundation.css`'s editorial token
-  // defaults sit beneath that binding as the fallback. `siteSettings` feeds `generateMetadata`
-  // (title/description) here; its `pageThemes` seeds the pages' themes (see the site pages).
+  // `SiteNav`/`SiteFooter` render once here, above the pages, and inherit the page's theme each
+  // page emits via `<PageTheme>` — a hoisted `:root` `<style>` on hard load (React lifts it into
+  // `<head>` ahead of this chrome, flash-free), re-stamped imperatively on `<html>` on soft nav.
+  // So the persistent chrome wears the visible page's authored theme with no per-component work;
+  // `foundation.css`'s `@layer` token defaults sit beneath as the fallback (the unlayered theme
+  // `:root` out-ranks them). `siteSettings` feeds `generateMetadata` (title/description) here; its
+  // `pageThemes` seeds the pages' themes (see the site pages).
   return (
     // `suppressHydrationWarning` (one level, `<html>` only): the inline scheme script below
     // may set `color-scheme` on <html> before React hydrates, an attribute the server markup

@@ -45,8 +45,8 @@ function formatDate(iso: string | null): string | null {
  * updates fold into the Index's "Now" section.
  */
 export default async function NowPage() {
-  // Seed on the awaited path → synchronous `<PageTheme>` first in the tree (prerendered static
-  // shell, flash-free). See `sitePageThemeSeed`.
+  // Seed on the awaited path → synchronous `<PageTheme>`; its `:root` `<style>` hoists into
+  // `<head>` ahead of the chrome (prerendered static shell, flash-free, #187). See `sitePageThemeSeed`.
   const themeSeed = await sitePageThemeSeed("now");
   const updates = await sanityFetch(NOW_QUERY);
 
