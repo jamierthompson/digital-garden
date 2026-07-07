@@ -20,8 +20,11 @@
    token can override a primitive predictably. */
 @layer foundation {
   :root {
-    /* Spacing ramp (rem-based, 0.25rem step) */
-    --space-0: 0;
+    /* Space scale — a 4px grid (0.25rem base), steps 1–9 (Radix/Tailwind-parity). Raw foundation
+       primitives: components read these directly for arbitrary spacing, or the semantic role
+       tokens below (`--space-inset/gutter/stack/cluster`) for structural spacing. A step past
+       `--space-9` (6rem) is appended here the moment something needs it — no `0` step (use a
+       literal `0`) and no unused headroom. */
     --space-1: 0.25rem;
     --space-2: 0.5rem;
     --space-3: 0.75rem;
@@ -31,7 +34,6 @@
     --space-7: 3rem;
     --space-8: 4rem;
     --space-9: 6rem;
-    --space-10: 8rem;
 
     /* Type scale (modular, 1.25 major third on a 1rem base) */
     --type-ratio: 1.25;
@@ -81,6 +83,24 @@
     --focus-ring-width: 2px;
     --focus-ring-offset: 2px;
     --focus-ring-style: solid;
+  }
+}
+
+/* Semantic space roles — the thin layer of NAMED structural spacing the layout primitives and
+   templates read, so a page expresses intent ("inset", "gutter") rather than a magnitude. Each
+   aliases a foundation step; retune here to reflow the whole system at once. Deliberately small:
+   space, unlike color, needs only a handful of roles (the raw scale covers everything else).
+   The planned `@garden/type`-style derivation would later BACK these same names. */
+@layer semantic {
+  :root {
+    /* padding INSIDE a container / card / panel */
+    --space-inset: var(--space-5);
+    /* the page frame's inline breathing room (edge padding) */
+    --space-gutter: var(--space-6);
+    /* default vertical rhythm between stacked blocks */
+    --space-stack: var(--space-4);
+    /* gap between inline items in a wrapping row (meta, chips) */
+    --space-cluster: var(--space-3);
   }
 }
 

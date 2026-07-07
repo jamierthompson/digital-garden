@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
+import { space } from "@/lib/tokens";
 import { NOW_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
 
@@ -64,35 +66,40 @@ export default async function NowPage() {
         {updates.length === 0 ? (
           <p className={styles.empty}>No now-updates yet — check back soon.</p>
         ) : (
-          <ul className={styles.list}>
-            {updates.map((update) => {
-              const date = formatDate(update.iterated);
-              return (
-                <li key={update._id} className={styles.item}>
-                  {date ? (
-                    <time
-                      className={styles.date}
-                      dateTime={update.iterated ?? undefined}
-                    >
-                      {date}
-                    </time>
-                  ) : null}
-                  {update.slug ? (
-                    <Link href={`/${update.slug}`} className={styles.itemTitle}>
-                      {update.title ?? "Untitled update"}
-                    </Link>
-                  ) : (
-                    <span className={styles.itemTitle}>
-                      {update.title ?? "Untitled update"}
-                    </span>
-                  )}
-                  {update.blurb ? (
-                    <p className={styles.blurb}>{update.blurb}</p>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
+          <Stack asChild gap={space(6)}>
+            <ul className={styles.list}>
+              {updates.map((update) => {
+                const date = formatDate(update.iterated);
+                return (
+                  <li key={update._id} className={styles.item}>
+                    {date ? (
+                      <time
+                        className={styles.date}
+                        dateTime={update.iterated ?? undefined}
+                      >
+                        {date}
+                      </time>
+                    ) : null}
+                    {update.slug ? (
+                      <Link
+                        href={`/${update.slug}`}
+                        className={styles.itemTitle}
+                      >
+                        {update.title ?? "Untitled update"}
+                      </Link>
+                    ) : (
+                      <span className={styles.itemTitle}>
+                        {update.title ?? "Untitled update"}
+                      </span>
+                    )}
+                    {update.blurb ? (
+                      <p className={styles.blurb}>{update.blurb}</p>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          </Stack>
         )}
 
         <p className={styles.footnote}>

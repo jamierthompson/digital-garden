@@ -27,10 +27,9 @@
     color: var(--text-muted);
   }
 
+  /* Column flow + gap now come from the <Stack> wrapper (asChild); this keeps only the
+     list reset. */
   .list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
     list-style: none;
     padding: 0;
   }
