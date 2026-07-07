@@ -43,7 +43,8 @@ export default function BrandThemeStyle({
 /**
  * A CSS declaration can't legitimately contain `<`/`>` (engine output is `light-dark(oklch(…))`),
  * so escape them as CSS code points — behavior-preserving on real values, but no seed can forge
- * `</style>` and close the element. Mirrors `themeInitScript`'s injection hardening.
+ * `</style>` and close the element (the injection boundary for the `/color-engine` play path,
+ * which feeds this same primitive live-recomputed declarations).
  */
 function cssSafe(text: string): string {
   return text.replace(

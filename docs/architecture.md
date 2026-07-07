@@ -288,10 +288,11 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   engine (via `cardSwatches`) and spreads them inline as generic semantic-token overrides — its own
   entry's `brandColor`.
 
-- Delivered as an **imperative write on `<html>`** (`PageTheme`'s parse-time inline script, baked at
-  build). On Vercel this is genuinely **flash-free for color**: the `brandColor` is known on the
-  _server_, so the baked declarations are in the initial HTML, server/client RSC payloads agree, and
-  there's no hydration mismatch and no FOUC. A single imperative write to one node can't collide
+- Delivered as a **hoisted `:root` `<style>`** (`PageTheme` → `BrandThemeStyle`, re-stamped imperatively
+  on `<html>` on soft nav). On Vercel this is genuinely **flash-free for color**: the `brandColor` is
+  known on the _server_, so the baked declarations are in the initial `<head>` — ahead of the chrome —
+  server/client RSC payloads agree, and there's no hydration mismatch and no FOUC. The imperative
+  soft-nav write to one node can't collide
   across the routes `<Activity>` keeps mounted — the delivery section covers the full mechanism.
 
 - **Ramp-primitive tier, semantic tokens bound to it.** The engine emits a per-role
