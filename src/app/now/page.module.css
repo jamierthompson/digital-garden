@@ -27,8 +27,7 @@
     color: var(--text-muted);
   }
 
-  /* Column flow + gap now come from the <Stack> wrapper (asChild); this keeps only the
-     list reset. */
+  /* List reset. */
   .list {
     list-style: none;
     padding: 0;
