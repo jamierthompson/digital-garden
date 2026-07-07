@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // NowPage is an async Server Component reading NOW_QUERY. Mock the single read path so a
@@ -173,11 +174,8 @@ describe("NowPage (/now) — theme mount wiring", () => {
     // that the synchronous PageTheme mounts its parse-time init script.
     seedSpy.mockClear();
     fetchMock.mockResolvedValueOnce([row({ _id: "a" })]);
-    const { container } = render(await NowPage());
+    const html = renderToStaticMarkup(await NowPage());
     expect(seedSpy).toHaveBeenCalledWith("now");
-    const initScript = [...container.querySelectorAll("script")].find((s) =>
-      s.innerHTML.includes("setProperty"),
-    );
-    expect(initScript).toBeDefined();
+    expect(html).toContain(":root{");
   });
 });

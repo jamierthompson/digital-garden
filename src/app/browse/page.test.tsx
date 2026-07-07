@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // IndexPage is an async Server Component reading INDEX_QUERY. Mock the single read path;
@@ -235,11 +236,9 @@ describe("IndexPage (/browse) — theme mount wiring", () => {
     fetchMock.mockResolvedValueOnce([
       row({ _id: "p", kind: "project", title: "P", slug: "p" }),
     ]);
-    const { container } = render(await IndexPage());
+    const html = renderToStaticMarkup(await IndexPage());
     expect(seedSpy).toHaveBeenCalledWith("browse");
-    const initScript = [...container.querySelectorAll("script")].find((s) =>
-      s.innerHTML.includes("setProperty"),
-    );
-    expect(initScript).toBeDefined();
+    // PageTheme bakes its :root <style> into the server markup (React hoists it into <head>).
+    expect(html).toContain(":root{");
   });
 });
