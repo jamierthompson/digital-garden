@@ -4,7 +4,7 @@ The coding conventions an agent applies in this repo. This is _how we write code
 
 **One rule above all others — the framework is not the one you remember.** This is Next.js **16** + React **19** with Cache Components enabled app-wide. Request APIs are async, `middleware.ts` is gone, `export const dynamic` is removed. Before you write any framework code, **read the version-matched doc** in `node_modules/next/dist/docs/` ([`../AGENTS.md`](../AGENTS.md) says the same). Don't code from training-data memory — it is stale here.
 
-Most of what follows is **machine-enforced** (`pnpm lint · lint:css · lint:keys · lint:docs · format:check · typecheck · test`, all gated in CI — see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) and [`./definition-of-done.md`](./definition-of-done.md)). Where a rule has a checker, this doc tells you the _intent_ so you stop fighting the tool.
+Most of what follows is **machine-enforced** (`pnpm lint · lint:css · lint:routes · lint:keys · lint:docs · format:check · typecheck · test`, all gated in CI — see [`./git-and-pr-workflow.md`](./git-and-pr-workflow.md) and [`./definition-of-done.md`](./definition-of-done.md)). Where a rule has a checker, this doc tells you the _intent_ so you stop fighting the tool.
 
 ---
 
@@ -125,7 +125,7 @@ async function Card({ theme }: { theme: string }) {
 
 **Tokens are three layers** (the deep treatment is architecture.md's Token & theming architecture section — the layer names below are what you need to apply the `@layer` rule):
 
-1. **Foundation** (primitives: spacing, motion, breakpoints, z-index, type-scale) → global `:root` in `src/app/foundation.css`.
+1. **Foundation** (primitives: spacing, motion, breakpoints, z-index, type-scale) → global `:root` in `src/styles/foundation.css`.
 2. **Semantic** (generic role tokens components actually read) → the layer components consume; radius, border weight, shadow, and density live here too — they're just more semantic tokens, not a separate "feel/geometry" tier.
 3. **Brand** → a project **slot**'s full scoped override of the semantic layer — engine-scoped to the `[data-entry]` wrapper, emitted by the OKLCH engine; page chrome stays on the global editorial foundation.
 

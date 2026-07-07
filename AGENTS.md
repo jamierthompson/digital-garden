@@ -54,7 +54,7 @@ These silently break *this* stack. Most are lint/CI-enforced; know them so you d
   slice and writes the missing test cases a product-team QA engineer would, the owning author fixes,
   QA re-checks. This holds on **every** session — solo (lead is also author → one QA) or team (one QA per
   coding agent). The lead owns the loop (see the dev↔QA loop in [`docs/working-with-agents.md`](./docs/working-with-agents.md)).
-- **Every CSS Module declares its `@layer`** (`foundation|semantic|brand|components`) or stays strictly
+- **Every CSS Module declares its `@layer`** (`foundation|semantic|components`) or stays strictly
   var-consuming. An unlayered module outranks **every** `@layer` style — the "@layer trap".
   Enforced by `pnpm lint:css`.
 - **The OKLCH engine stays isomorphic** — never add `server-only` / `client-only` to the engine package (`packages/oklch/`, imported as `@garden/oklch`).
