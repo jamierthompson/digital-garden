@@ -46,5 +46,8 @@ export default function BrandThemeStyle({
  * `</style>` and close the element. Mirrors `themeInitScript`'s injection hardening.
  */
 function cssSafe(text: string): string {
-  return text.replace(/[<>]/g, (char) => `\\${char.charCodeAt(0).toString(16)} `);
+  return text.replace(
+    /[<>]/g,
+    (char) => `\\${char.charCodeAt(0).toString(16)} `,
+  );
 }
