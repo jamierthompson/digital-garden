@@ -67,9 +67,9 @@ function chromaticOnAccentLabel(
   chroma: number,
   gamut: Gamut,
 ): OkLCH {
-  // Today's label: the higher-contrast achromatic extreme — the guaranteed floor + the pole.
+  // The achromatic fallback: the higher-contrast achromatic extreme — the guaranteed floor + the pole.
   const achromatic = onAccentLabel(accent, hue, gamut);
-  // No chroma to spend (achromatic seed) → the label IS that extreme, bit-identical to today.
+  // No chroma to spend (achromatic seed) → the label IS that extreme, bit-identical to the fallback.
   if (chroma <= CHROMA_BACKOFF_EPS) return achromatic;
 
   const target = withSolveMargin(CONTRAST_TARGETS.onAccent);

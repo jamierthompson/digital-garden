@@ -1,6 +1,6 @@
 // The measured-contrast chip (#154) — a token's live WCAG ratio + APCA Lc with a pass mark,
 // e.g. "3.0:1 · Lc 84 ✓". Its own component because both the card face and the disclosure's
-// per-scheme detail render it, and #155's per-swatch clamp receipts will extend it.
+// per-scheme detail render it.
 // Display-only; the numbers come pre-measured from `cardModel` (a live `checkContrast`).
 
 import type { ContrastCheck } from "@garden/oklch";

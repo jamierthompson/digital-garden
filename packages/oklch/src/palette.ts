@@ -204,9 +204,9 @@ export const DEFAULT_BINDING_SCHEMA: Readonly<
   "focus-ring": { kind: "auto", role: "brand", target: CONTRAST_TARGETS.ui },
   // Status TRIOS + CONTAINERS (#160), one block per status role. The FILL is the co-solved
   // signal color (visible on the surface + hosts a label); `on-<status>` its chromatic label;
-  // `<status>-text` keeps TODAY's status semantics under the honest name (accent-text tier
-  // against surface-2 — the rename-with-guarantee); `<status>-container` a soft tinted alert
-  // surface; `on-<status>-container` its label, solved against the container's actual color.
+  // `<status>-text` is the accent-text tier solved against surface-2; `<status>-container` a
+  // soft tinted alert surface; `on-<status>-container` its label, solved against the container's
+  // actual color.
   error: { kind: "fill", role: "error" },
   "on-error": { kind: "on-fill", role: "error" },
   "error-text": {

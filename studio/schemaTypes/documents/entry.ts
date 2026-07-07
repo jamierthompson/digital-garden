@@ -29,7 +29,7 @@ import {forbiddenForNow, requiredForNonSketchProject, requiredForThemedKind} fro
  *
  * NOTE: `componentKey` / `fontKey` are plain string fields here on purpose — the
  * standalone Studio bundle must not import app code (keys.ts / next/font / lazy project
- * bundles). A dropdown wired to the shared keys.ts contract is a later slice.
+ * bundles).
  */
 const KINDS = [
   {title: 'Note', value: 'note'},

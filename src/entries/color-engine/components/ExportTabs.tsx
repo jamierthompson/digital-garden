@@ -67,7 +67,6 @@ export default function ExportTabs({
         ? "Hex & RGB clamp this P3 palette to sRGB — a lossy rendering. OKLCH keeps the full-gamut values."
         : "Hex & RGB are the sRGB rendering of each OKLCH value.";
 
-  // Flash a transient status on the Copy button, auto-reverting to idle.
   const flashCopy = (status: "copied" | "failed"): void => {
     setCopyStatus(status);
     if (copiedTimer.current) clearTimeout(copiedTimer.current);

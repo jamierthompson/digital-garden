@@ -53,7 +53,7 @@ function ramp(tokens: SchemeTokens): string {
 
 function panel(scheme: Scheme, sample: BrandSample): string {
   const { tokens } = resolveTheme(sample.brandColor, scheme);
-  const surfaceBg = tokens["surface-2"]; // worst-case surface the engine solves against
+  const surfaceBg = tokens["surface-2"]; // a mid surface, for the eyeball contrast badges below
   const css = (c: OkLCH): string => formatOklch(c);
 
   return `

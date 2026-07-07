@@ -65,12 +65,12 @@ export type ColorFormat = "oklch" | "hex" | "rgb";
 
 /**
  * How the steps space in lightness. `tailwind` (default) is the engine's hand-shaped
- * scale — denser at both extremes so each end yields three close-spaced surfaces. The
- * named curves reshape the five INTERIOR steps (`300…700`) between pinned shoulders
- * (`50/100/200` + `800/900/950` never move — they host the surfaces and the extreme
- * fallbacks, which is what keeps the contrast guarantees intact under every policy):
- * `linear` an even interior march, `eased` a smoothstep, `punchy` a steep mid,
- * `soft` a low-contrast band huddled toward the middle.
+ * scale — denser at each end, so whichever end a scheme uses yields five close-spaced
+ * surfaces. The named curves reshape only the active scheme's TEXT-ZONE interior — the run
+ * of non-surface steps between the innermost surface and the far text extreme — while the
+ * five surface steps and the extreme text step stay PINNED (which is what keeps the contrast
+ * guarantees intact under every policy): `linear` an even interior march, `eased` a
+ * smoothstep, `punchy` a steep mid, `soft` a low-contrast band huddled toward the middle.
  */
 export type LightnessDistribution =
   | "tailwind"
@@ -128,7 +128,7 @@ export interface EngineRules extends RampRules {
  * `text-muted`/`border` clear their targets on EVERY surface including the state ones.
  */
 export const BRAND_TOKEN_NAMES = [
-  // Core (10) — unchanged.
+  // Core (10)
   "bg",
   "surface",
   "surface-2",
@@ -301,9 +301,8 @@ export interface OnFillProvenance {
 /**
  * Provenance for a `literal` binding — a fixed value with no derivation to solve (#160). The
  * only field that carries a story is `alpha` (the scrim's opacity; 1 for an opaque literal); a
- * literal makes NO contrast claim, so there is nothing else to receipt. Replaces the old bare
- * `null` for literals — every token now carries a first-class report (the batteries-included
- * constitution). `null` remains in the union only as the reserved "no binding" sentinel.
+ * literal makes NO contrast claim, so there is nothing else to receipt. Every token carries a
+ * first-class report; `null` is the union's reserved "no binding" sentinel.
  */
 export interface LiteralProvenance {
   kind: "literal";

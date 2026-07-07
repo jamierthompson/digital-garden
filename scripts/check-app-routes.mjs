@@ -2,11 +2,10 @@
 //
 // `src/app/` is the routing layer: it holds Next.js route files and the assets
 // co-located with them — NOT free-standing logic, components, design-system CSS,
-// or config-guard tests. Those recurrently drift in (`foundation.css`,
-// `foundation.test.ts`, `next-config.test.ts` — all since relocated) and only
-// manual review caught them, so they kept slipping back. This guard makes the
-// drift structurally impossible: real logic lives in `src/` modules, styles in
-// `src/styles/`, tests beside their subject.
+// or config-guard tests. Files like `foundation.css`, `foundation.test.ts`, or
+// `next-config.test.ts` belong elsewhere. This guard makes the drift structurally
+// impossible: real logic lives in `src/` modules, styles in `src/styles/`, tests
+// beside their subject.
 //
 // A file under `src/app/` is allowed only if it is one of:
 //   1. A route-convention CODE file — basename ∈ ROUTE_BASENAMES with a code

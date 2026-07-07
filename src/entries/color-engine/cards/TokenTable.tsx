@@ -1,10 +1,7 @@
 // The palette table — a compact, scanning companion to the swatch-card grid (`SwatchGrid`).
-// Restored by owner request (it existed pre-#154 as a plain semantic-token table, deleted when
-// the card system replaced it) and rebuilt over the CURRENT card data model rather than
-// un-deleted verbatim, so it reads the same per-token record the cards do: token name, the ramp
-// step (or "solved" for a co-solve) it bound to, the resolved value with its swatch, and — new,
-// since the cards now compute it — the live contrast readout. One row per token, so it scales to
-// however many the contract carries (14 today) without a layout change.
+// It reads the same per-token record the cards do: token name, the ramp step (or "solved" for a
+// co-solve) it bound to, the resolved value with its swatch, and the live contrast readout. One
+// row per token, so it scales to however many the contract carries without a layout change.
 //
 // Presentational: it takes the pre-built card records (`buildCards`, cardModel.ts) and lays them
 // out; the slot owns the one engine run. The swatch paints via `light-dark()` off BOTH facets —

@@ -1,13 +1,11 @@
 // The Color Engine canvas (#154, #139) — the prose-less, Experience-centered composition. Every
 // surface the Color Engine has (the seed input, the rules, the swatch-card grid, the shared glossary,
-// the export, and a reserved region for the future harmony group) is mounted ONCE in a single
-// top-level CSS grid whose `grid-template-areas` are NAMED, so the owner can reshape the whole
-// layout by editing the template string — the grid is theirs to iterate; this file just
-// declares clean regions.
+// the export, and the harmony group) is mounted ONCE in a single top-level CSS grid whose
+// `grid-template-areas` are NAMED, so the owner can reshape the whole layout by editing the
+// template string — the grid is theirs to iterate; this file just declares clean regions.
 //
-// The surfaces are the same slot components as before (they read the shared `ColorEngineProvider`
-// state via `useColorEngine`); they are just mounted directly here in a grid instead of being
-// interleaved through prose as `liveEmbed`s.
+// The surfaces are the slot components that read the shared `ColorEngineProvider` state via
+// `useColorEngine`, mounted directly here in the grid.
 
 import ScrollArea from "@/components/ui/ScrollArea";
 

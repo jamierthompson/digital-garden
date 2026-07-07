@@ -11,9 +11,9 @@ import MissingFrame from "./MissingFrame";
 
 /**
  * The palette table slot — a compact, scanning companion to the swatch-card grid
- * (`TokensSlot`): one row per semantic token instead of one card, so the same token set (14
- * today, more once the contract grows) can be scanned at a glance alongside the cards, not
- * instead of them. Owns its own reshape of the engine run into card records, same as
+ * (`TokensSlot`): one row per semantic token instead of one card, so the same token set can be
+ * scanned at a glance alongside the cards, not instead of them. Owns its own reshape of the
+ * engine run into card records, same as
  * `TokensSlot` — a cheap pure reshape of an already-derived palette, so recomputing it here
  * keeps the two slots independent rather than threading shared state between them.
  */
