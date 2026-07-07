@@ -204,7 +204,7 @@ The mechanism follows Next's _Preventing flash before hydration → Themes_ patt
   (the "@layer trap"). The read path (`sanityFetch`) is `use cache`, so a public request prerenders
   the page into the **static shell** and the `<style>` is in the initial `<head>`. (An inline
   _script_ can't do this — React doesn't hoist inline scripts, so a page-rendered one lands **after**
-  the chrome and FOUCs: that was **#187**.)
+  the chrome and FOUCs.)
 - **Soft navigation & `<Activity>` reveal (the reason the re-applier exists — the persistent chrome
   doesn't reload):** `ThemeReapplier` (client) re-stamps `<html>` from the declarations it holds as a
   prop, in a **layout effect**. Its imperative `<html>.style` write out-ranks the `:root` rule, so
@@ -222,8 +222,8 @@ The primitives live in `src/lib/theme.ts` + `src/components/theme/{BrandThemeSty
 (`buildTokenSet(undefined)`) baked as static `light-dark()` literals — the neutral ground for the
 surfaces that render with **no** page theme (404 / error / loading + the chrome around them,
 which never mount a `<PageTheme>`); a themed route's `:root` `<style>` (and the imperative `<html>`
-re-applier) out-rank them. There is no canvas wash: the page theme supplies `--bg` to every route,
-so the `:has()`-scoped body re-bind (and its #168 `<Activity>` failure) is gone. The cascade order is
+re-applier) out-rank them. There is no canvas wash and no `:has()`-scoped body re-bind: the page
+theme supplies `--bg` to every route. The cascade order is
 `@layer foundation, semantic, components;` — there is no `brand` layer, because the entry's brand
 font scopes to its own slot via an inline style on `[data-entry]` (`EntryScope`), not a cascade
 layer.
@@ -550,21 +550,22 @@ Two facts make a large roster cheap:
 So, the policy:
 
 - **`preload: false` on every roster face** by default (the default is `true`, so this must be set
-  explicitly). Only the **1–2 editorial faces** get `preload: true`, in the root layout, where they
-  preload on every route.
+  explicitly). The **1–2 editorial faces** in the root layout are `preload: false` too; any
+  above-the-fold preload is emitted as a manual `<link>`, not via the loader flag.
 - **Per-entry faces are applied, not preloaded.** An entry's slot face (behind a `/[slug]` click)
   tolerates `font-display: swap`. If a specific above-the-fold entry face genuinely must preload,
   emit the `<link rel="preload" as="font" crossorigin>` manually.
 - **Verify empirically:** `pnpm build`, visit `/[slug]`, view-source the `<head>`, count
-  `<link rel="preload" as="font">` — confirm the policy holds (expect the editorial face only).
+  `<link rel="preload" as="font">` — confirm the policy holds (expect only the manually-linked
+  above-the-fold face, if any).
 - **Where the link lands** (initial shell vs streamed hole) is the other axis: keep `EntryScope`
   in the prerendered shell (see repo & hosting) so the slot's resolved font reference (its
   `.variable` class + inline `--font-face`) is in the initial static HTML.
 
 Mapped onto the layers:
 
-- **The editorial face** (the site's global identity — Source Serif 4) → root layout, `preload: true`.
-  Every page's chrome uses it. Keep to 1–2 faces.
+- **The editorial face** (the site's global identity — Source Serif 4) → root layout, `preload: false`;
+  any above-the-fold preload is a manual `<link>`. Every page's chrome uses it. Keep to 1–2 faces.
 - **Per-entry fonts** → resolved from the entry doc's `fontKey` against the code-side roster,
   applied at the entry's `[data-entry]` **slot** scope via `.variable` — they theme the slot,
   not the page.

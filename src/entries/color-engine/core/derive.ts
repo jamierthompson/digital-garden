@@ -5,7 +5,7 @@
 //
 // It NEVER reimplements engine math — every color AND every binding receipt comes from
 // `buildTokenSet` (the engine reports which ramp step each token bound to). Kept pure and
-// separable so #41 can memoize `derivePalette` later without touching a component; the engine
+// separable from any component, so the engine's own memoization covers it; the engine
 // already never throws, so neither does this.
 
 import {

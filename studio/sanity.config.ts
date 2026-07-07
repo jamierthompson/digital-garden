@@ -34,7 +34,7 @@ const structure: StructureResolver = (S) =>
  * navigation: they map a document to the front-end route(s) where it appears.
  *
  * - `entry` → its flat detail page (`/<slug>`) + the browsable Index (`/browse`) it's listed
- *   on. Every kind now folds into the one Index.
+ *   on. Every kind folds into the one Index.
  * - `siteSettings` is global (used on every page), so it shows a message instead
  *   of links.
  */

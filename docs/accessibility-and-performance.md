@@ -122,8 +122,9 @@ before touching the roster.
 
 - **`preload: false` on every roster face.** The `next/font` default is `true`, so you
   must set `false` **explicitly** on each face in `src/fonts/roster.ts`.
-- **`preload: true` only on the 1–2 shell faces** declared in the **root layout** — they
-  apply on every route.
+- **The shell faces in the root layout are `preload: false` too.** Any above-the-fold
+  preload is emitted as a manual `<link>` (below), not via the loader's `preload` flag —
+  the loader can't statically target the faces the policy wants preloaded.
 - **Why per-entry faces can't be preloaded:** `next/font` preload injection is a
   **build-time static transform** keyed to a _statically referenced_ font object.
   `roster[fontKey].variable` is a **runtime index** Next can't target. This is a

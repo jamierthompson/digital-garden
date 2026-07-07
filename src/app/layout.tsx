@@ -43,8 +43,7 @@ const sourceSerif = Source_Serif_4({
 
 // Geist Mono is the entry scope's shell-font FALLBACK (`--font-geist-mono`, used only when a
 // project's `fontKey` doesn't resolve — see scopeSeed.ts). Kept mounted so that fallback
-// resolves. Never above the fold on the shell routes, so `preload: false`. (Geist Sans was
-// removed — nothing read `--font-geist-sans`, so its preload was pure waste competing with LCP.)
+// resolves. Never above the fold on the shell routes, so `preload: false`.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],

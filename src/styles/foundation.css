@@ -54,8 +54,8 @@
     --duration-slow: 320ms;
 
     /* Layout measures — house-style content-frame widths, read directly by route/shell
-       modules instead of hand-picking a per-route `max-width` (which drifted: the nav and
-       home used to disagree, so the wordmark didn't align with the hero). Foundation
+       modules instead of hand-picking a per-route `max-width`, so a single shared measure
+       keeps the nav wordmark aligned with the hero. Foundation
        primitives like the spacing/type ramps: dimensional, house-style, NOT brand-themeable
        (a brand slot re-binds color/font, never the page frame). Ordered by content density:
        - --width-prose:   narrow pure-reading column (about, system).
@@ -100,10 +100,9 @@
        with the canonical fallback seed as input — so an un-themed surface (404 / error / loading,
        or any page with no `<html>` seed of its own) renders a complete, coherent engine theme,
        structurally identical to a seeded page, not a special minimal case. A themed route's
-       `<html>` imperative write out-ranks this `:root`. Engine-derived, never hand-picked (this
-       closes #161 — status tokens are now solved by the engine, not hand-authored hex);
-       `foundation.test.ts` pins the whole block against the live engine output so drift goes red.
-       The eventual option to author a specific seed for these states in `siteSettings` is #189. */
+       `<html>` imperative write out-ranks this `:root`. Engine-derived, never hand-picked —
+       status tokens are solved by the engine, not hand-authored hex;
+       `foundation.test.ts` pins the whole block against the live engine output so drift goes red. */
     --bg: light-dark(oklch(0.9823 0.0097 235.77), oklch(0.165 0.045 264));
     --surface: light-dark(oklch(0.958 0.0198 263.78), oklch(0.21 0.045 264));
     --surface-2: light-dark(oklch(0.9296 0.0336 263.04), oklch(0.26 0.045 264));

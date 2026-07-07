@@ -36,6 +36,7 @@ eslint.config.mjs          the real import-boundary + isomorphism rules
 .github/workflows/ci.yml   the real CI gate (jobs: verify + published-keys)
 scripts/
   check-css-layers.mjs     the @layer-declaration lint (pnpm lint:css)
+  check-app-routes.mjs     the app-dir route-hygiene lint (pnpm lint:routes)
   check-key-drift.mjs      the key-drift guard (pnpm lint:keys)
   check-doc-gate-sync.mjs  the gate-doc sync guard (pnpm lint:docs; keeps the gate chain ≡ across the DoD one command, ci.yml)
   check-doc-links.mjs      the markdown link & anchor checker (also part of pnpm lint:docs)
@@ -43,7 +44,8 @@ scripts/
   check-published-keys.mjs the published-keys → code drift net (pnpm lint:keys:published; CI job published-keys)
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
-    layout.tsx             root layout (shell nav skeleton, shell fonts preload:true)
+    layout.tsx             root layout (shell nav skeleton; shell fonts preload:false)
+  styles/
     foundation.css         foundation primitives + the semantic neutral fallback + the @layer foundation, semantic, components order
   lib/                     resolvers, keys, cardSwatches, breakpoints (build-time, NOT :root vars)
   entries/<slug>/          self-contained entry modules (registry-resolved, literal imports)
@@ -63,7 +65,7 @@ Four ideas carry the whole architecture. Internalize the shape; read the cited s
 
 1. **Modules, not a monolith** (the Guiding principles and Entry modules sections of architecture.md). Each project is a self-contained module under `src/entries/<slug>/`; genuinely shared parts live in plain shared `src/` modules. Dependencies point **projects → shared, never back**, and never entry → entry. This is lint-enforced (see Golden rules).
 
-2. **Per-page engine theming, slot-scoped font** (the Token & theming architecture section of architecture.md). Tokens are three tiers: **foundation** (primitives at `:root`) → **semantic** (the generic role tokens components read — `--surface`, `--text`, `--accent`, `--font-face`, `--space-*`) → **brand** (the theme override). Brand is **not** a CSS `@layer` — the cascade is `@layer foundation, semantic, components` (the `brand` layer was removed in #176); the override is an **unlayered `:root` `<style>`** that out-ranks the layered fallback (the "@layer trap"). Every route's `PageTheme` renders it, and React hoists it into `<head>` ahead of the chrome on hard load (flash-free), re-stamping imperatively on `<html>` on soft nav; it's inherited by all page chrome (nav, headers, prose, the shell). The `@layer` `:root` semantic color tokens are the engine's own neutral **fallback** for surfaces that render un-themed (404 / error / loading). An entry's **brand font** is **slot-scoped**: an inline `--font-face` on its `[data-entry]` slot (`EntryScope`) themes only that bounded interactive slot, never the page chrome, which keeps the global Space Grotesk / Source Serif 4 typography. The public token contract is the **semantic** layer; there are **no project-prefixed `--<proj>-*` names** — isolation comes from scope, not a prefix.
+2. **Per-page engine theming, slot-scoped font** (the Token & theming architecture section of architecture.md). Tokens are three tiers: **foundation** (primitives at `:root`) → **semantic** (the generic role tokens components read — `--surface`, `--text`, `--accent`, `--font-face`, `--space-*`) → **brand** (the theme override). Brand is **not** a CSS `@layer` — the cascade is `@layer foundation, semantic, components`; the override is an **unlayered `:root` `<style>`** that out-ranks the layered fallback (the "@layer trap"). Every route's `PageTheme` renders it, and React hoists it into `<head>` ahead of the chrome on hard load (flash-free), re-stamping imperatively on `<html>` on soft nav; it's inherited by all page chrome (nav, headers, prose, the shell). The `@layer` `:root` semantic color tokens are the engine's own neutral **fallback** for surfaces that render un-themed (404 / error / loading). An entry's **brand font** is **slot-scoped**: an inline `--font-face` on its `[data-entry]` slot (`EntryScope`) themes only that bounded interactive slot, never the page chrome, which keeps the global Space Grotesk / Source Serif 4 typography. The public token contract is the **semantic** layer; there are **no project-prefixed `--<proj>-*` names** — isolation comes from scope, not a prefix.
 
 3. **The OKLCH engine** (the OKLCH engine section of architecture.md) — a pure, **isomorphic** `(brandColor, scheme) → tokenSet` in `packages/oklch` (the `@garden/oklch` workspace package, so the Studio can import it too). It bakes literals server-side, is scheme-aware, and is **defensive — never throws**. The load-bearing, genuinely hard piece; one engine, three consumers. Read the OKLCH engine section before building against it.
 

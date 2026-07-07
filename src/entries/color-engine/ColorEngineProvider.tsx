@@ -1,10 +1,8 @@
 "use client";
 
-// The Color Engine's shared-state frame. The page wraps the entry's article in this
-// provider (the `EntryModule.Provider` contract), so the Color Engine's slots — mounted as
-// individual `liveEmbed`s interleaved through the server-rendered prose — share one
-// state store and ONE engine run per change. The client boundary is this frame plus the
-// slot leaves; the prose between slots passes through as server-rendered children.
+// The Color Engine's shared-state frame. `ColorEngineExperience` wraps the canvas in this
+// provider, so the Color Engine's slots — mounted in the canvas grid — share one state store
+// and ONE engine run per change. The client boundary is this frame plus the slot leaves.
 
 import {
   createContext,
@@ -58,8 +56,8 @@ export interface ColorEngineState {
   readonly setGamut: (gamut: Gamut) => void;
   /**
    * The scheme the single-scheme slots display (boards, token table). Follows the
-   * viewer's color scheme — there is no page-local toggle by design (the toggle is
-   * site-wide chrome, #133); when that control lands it re-binds this same signal.
+   * viewer's color scheme — there is no page-local toggle by design; the site-wide
+   * scheme toggle re-binds this signal.
    */
   readonly scheme: Scheme;
   /** The single engine run per state change — every slot reads this one result. */

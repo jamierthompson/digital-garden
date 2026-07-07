@@ -5,8 +5,7 @@
 //
 // The client boundary stays low: this composer and the canvas are server components; only the
 // provider frame and the slot leaves are client. `ColorEngineProvider` renders `ColorEngineCanvas` as
-// its children, so the slots inside the grid read the context exactly as the old interleaved
-// `liveEmbed`s did.
+// its children, so the slots inside the grid read the shared context.
 
 import type { ExperienceProps } from "@/entries/types";
 

@@ -9,8 +9,7 @@ import MissingFrame from "./MissingFrame";
 /**
  * The live preview — the generated palette on real component shapes (a card, controls, status
  * badges), for the ACTIVE scheme, matching the single-scheme cards (the site-wide toggle flips
- * it, which IS the light-dark() demo). The decorative harmony is its own canvas region now
- * (`HarmonyGroup`), so it's no longer bundled here.
+ * it, which IS the light-dark() demo).
  */
 export default function PreviewSlot(): React.ReactElement {
   const colorEngine = useColorEngine();

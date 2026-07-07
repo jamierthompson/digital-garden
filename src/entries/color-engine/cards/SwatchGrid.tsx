@@ -1,7 +1,6 @@
 // The swatch-card grid (#154) — one derivation card per semantic color, the Color Engine's
-// centerpiece. Replaces the old token table / primitives board / standalone receipt: each
-// card now carries its own ramp position and live contrast, so the palette reads as 14
-// self-contained receipts rather than islands of information. Presentational: it takes the
+// centerpiece. Each card carries its own ramp position and live contrast, so the palette reads
+// as self-contained receipts rather than islands of information. Presentational: it takes the
 // pre-built card records and lays them out; `TokensSlot` owns the one engine run.
 
 import type { Scheme } from "@garden/oklch";

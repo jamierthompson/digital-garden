@@ -191,8 +191,8 @@ describe("serializers — non-finite input (defended per QA-99)", () => {
   });
 
   it("formatColor with an out-of-union format falls back to the native oklch literal", () => {
-    // TypeScript blocks this at compile time; a JS caller casting past the union used to get
-    // silent `undefined` — now the default arm returns the lossless literal.
+    // TypeScript blocks this at compile time; a JS caller casting past the union hits the
+    // default arm, which returns the lossless oklch literal.
     const c: OkLCH = { L: 0.5, C: 0.1, H: 200 };
     expect(formatColor(c, "hsl" as never)).toBe(formatColor(c, "oklch"));
   });

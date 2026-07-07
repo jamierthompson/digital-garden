@@ -2,9 +2,7 @@
 // foundation.css, …) — has a style rule outside an `@layer` block. Next does not
 // auto-layer CSS Modules, and a plain global stylesheet is just as unlayered by
 // default; either way an unlayered rule silently outranks every @layer style
-// regardless of specificity (the "@layer trap" — a stock unlayered `body{…}` from
-// create-next-app once broke editorial theming this way, uncaught because this
-// script only scanned `*.module.css`). Wrap rules in the appropriate @layer
+// regardless of specificity (the "@layer trap"). Wrap rules in the appropriate @layer
 // (foundation | semantic | components). `@layer` statements/blocks, `@import`,
 // and `@media`/`@supports` wrapping layered rules are all fine — only a bare
 // top-level style rule is a violation.
