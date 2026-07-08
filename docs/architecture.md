@@ -475,7 +475,7 @@ with one consistent gap and owns nothing else.
   default rhythm (the `--space-stack` semantic role). Use `space(n)` to name a step.
 - **`asChild?: boolean`** — render the single child instead of a wrapping `<div>` (Radix `Slot`),
   merging the stack's class + token onto it — e.g. `<Stack asChild><ul>…</ul></Stack>` to stack
-  real list items with no extra wrapper. Adopted this way on `/now`'s list.
+  real list items with no extra wrapper.
 - Extends the intrinsic `<div>` props (`React.ComponentPropsWithRef<"div">`), so every native
   attribute, a `ref` (forwarded to the underlying element — or, under `asChild`, the child via
   Radix `Slot`), and a caller `style`/`className` compose.
