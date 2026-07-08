@@ -2,11 +2,11 @@ import { Slot } from "radix-ui";
 
 import styles from "./Stack.module.css";
 
-interface StackProps extends React.ComponentPropsWithoutRef<"div"> {
+interface StackProps extends React.ComponentPropsWithRef<"div"> {
   /**
    * Vertical gap between children as a CSS token reference — use `space(n)` from `@/lib/tokens`.
-   * Omit for the default rhythm (`--space-4`). Any length token works, so a future engine-derived
-   * `clamp()` value passes straight through the conduit.
+   * Omit for the default rhythm (the `--space-stack` semantic role). Any length token works, so a
+   * future engine-derived `clamp()` value passes straight through the conduit.
    */
   readonly gap?: string;
   /**

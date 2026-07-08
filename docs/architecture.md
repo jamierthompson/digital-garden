@@ -476,8 +476,9 @@ with one consistent gap and owns nothing else.
 - **`asChild?: boolean`** — render the single child instead of a wrapping `<div>` (Radix `Slot`),
   merging the stack's class + token onto it — e.g. `<Stack asChild><ul>…</ul></Stack>` to stack
   real list items with no extra wrapper. Adopted this way on `/now`'s list.
-- Extends the intrinsic `<div>` props (`React.ComponentPropsWithoutRef<"div">`), so every native
-  attribute and a caller `style`/`className` compose.
+- Extends the intrinsic `<div>` props (`React.ComponentPropsWithRef<"div">`), so every native
+  attribute, a `ref` (forwarded to the underlying element — or, under `asChild`, the child via
+  Radix `Slot`), and a caller `style`/`className` compose.
 
 Its CSS Module is `@layer components` and strictly var-consuming: `gap: var(--stack-gap,
 var(--space-stack))` — the conduit prop wins when set, the semantic role is the default.
