@@ -6,7 +6,7 @@ import styles from "./ColorEngineStub.module.css";
  * could be rebuilt first without migrating its pre-foundation type literals; the `componentKey`
  * and `embedKey`s stay registered (`src/lib/keys.ts`) so the published entry still resolves.
  * The interactive tool is rebuilt under the template epics — it takes no props (every embed
- * slot resolves to this same placeholder, and the canvas `Experience` ignores its `slug`).
+ * slot resolves to this same placeholder, and the `Experience` slot ignores its `slug`).
  */
 export default function ColorEngineStub(): React.ReactElement {
   return (

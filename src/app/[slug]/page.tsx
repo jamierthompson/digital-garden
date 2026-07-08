@@ -20,50 +20,30 @@ import styles from "./page.module.css";
 // dynamic segment cedes precedence to the static routes `/browse`, `/now`, `/about`, `/system`). Thin
 // route (`app/` is routing only — it mounts components from `src/`).
 //
-// TWO TEMPLATES, chosen by `kind` (#139, owner-refined from a per-module `presentation` flag
-// to kind-driven): a `project`-kind entry with a resolved `Experience` gets the CANVAS
-// template; every other composition — essay/note/now, or a `project` that hasn't shipped a
-// module yet (a `stage: sketch` project, `componentKey: null`) — gets the EDITORIAL template,
-// byte-identical to before this change (a hard redline: verified by the existing render-test
-// suite, none of which needed to change).
+// ONE editorial template for every entry — chrome + the entry's prose — with two optional,
+// capability-gated additions layered on: an interactive module slot and a brand-scoped theme.
 //
-//   EDITORIAL (unchanged):
 //     <main> editorial chrome
 //       ├ <article> the entry's essay (PT serializer) — editorial
 //       ├ EntryScopeBoundary + EntryScope + <Experience/> — the brand-themed slot,
-//       │   rendered for ANY entry that resolves a module
+//       │   rendered for ANY entry (except `now`) that resolves a module
 //       └ <RelatedEntries> — editorial (outgoing `related` + incoming backlinks)
 //
-//   CANVAS (new): the `Experience` module IS the page — no editorial <article>, no
-//   template-rendered title (the module renders its own if it needs one), no <RelatedEntries>.
-//     <main data-template="canvas">
-//       └ EntryScopeBoundary + EntryScope + <Experience/> — the bounded font slot. The page's
-//           `<html>` theme (via <PageTheme>) supplies `--bg` and every color token, which
-//           SiteNav/SiteFooter (in the ROOT layout) and this canvas both inherit; EntryScope
-//           adds only the entry's brand font on its `[data-entry]` div. The `data-template=
-//           "canvas"` marker on `<main>` below is the hook for the canvas scroll-lock rule
-//           (`page.module.css`) — don't rename it without updating that selector.
-//
-// CAPABILITY-gated (independent of the kind gate above): which slot an entry gets is decided
-// by the capability fields it carries, not solely by its `kind` (any kind of entry can be
-// interactive or themed; `kind === "project"` additionally selects the CANVAS template).
+// CAPABILITY-gated, never kind-gated: which additions an entry gets is decided by the
+// capability fields it carries, not its `kind` (any kind of entry can be interactive or themed).
 //   • Module — a `componentKey` that DECLARES a coded module: present → resolve it; a
 //     renamed/deleted module (drift) → `notFound()`, for ANY kind. NO `componentKey` →
 //     prose-only, never a 404 (a `stage: sketch` project keeps its key null until it ships,
-//     and a note/essay simply never has one).
+//     and a note/essay simply never has one). A module composes one (or both) of two ways —
+//     `Experience` (one slot mounted after the prose) and/or `Provider` (a client frame around
+//     the article so interleaved `liveEmbed` slots share state).
 //   • Theming — a `brandColor`: present → build the scope seed and thread it to the body so
-//     each `liveEmbed` mounts in its own scoped container, exactly as a project's do.
+//     each `liveEmbed` (and the `Experience` slot) mounts in its own scoped container.
 //
 // `now` is the ONE exception, excluded by design: it stays chrome + prose — never a scope,
 // never a module — even if it happens to carry `brandColor`/`componentKey`, because a `now`
 // note is an editorial status update, not an interactive slot. The keystone stays defensive:
 // the scope never throws on a bad brandColor/fontKey, so an empty seed field is always safe.
-//
-// PAGE WIDTH (#139) — a module MAY declare `layout: "wide"` to widen the page's content
-// container from the narrow editorial max-width to a screen-filling one (owner directive).
-// It's a page-level max-width switch on `<main>`, not a per-slot breakout, so it applies to
-// the WHOLE composition regardless of shape (Provider + interleaved slots, or an Experience).
-// Absent → today's narrow layout, unchanged.
 
 interface EntryPageProps {
   params: Promise<{ slug: string }>;
@@ -153,12 +133,6 @@ export default async function EntryPage({ params }: EntryPageProps) {
   const Experience = entryModule?.Experience ?? null;
   const Provider = entryModule?.Provider ?? null;
 
-  // Page width is a MODULE contract (#139): a module may ask for a screen-filling page instead
-  // of the narrow editorial column. Absent → narrow (every existing module + every prose-only
-  // entry). Widening happens on the `<main>` container, so the whole composition benefits — no
-  // dependence on a particular slot shape.
-  const isWide = entryModule?.layout === "wide";
-
   // The font seed for the entry's slot(s), threaded to the body so each `liveEmbed` — and the
   // `Experience` slot — mounts in its own `[data-entry]` wearing the entry's brand font. Built
   // whenever this entry either themes (`brandColor`) OR mounts a module: keyed on the REAL `slug`
@@ -169,46 +143,6 @@ export default async function EntryPage({ params }: EntryPageProps) {
     !isNow && (entry.brandColor || entryModule)
       ? { slug, fontKey: entry.fontKey ?? "" }
       : undefined;
-
-  // `.module` caps the page at the editorial measure; the `.wide` modifier (module-declared)
-  // overrides that cap with a screen-filling width. `data-layout` records the mode in the
-  // markup (the repo's `data-*` vocabulary — cf. `data-entry`/`data-theme`). Shared by BOTH
-  // templates: page width is a module contract, orthogonal to which template a `kind` selects.
-  const mainClassName = isWide
-    ? `${styles.module} ${styles.wide}`
-    : styles.module;
-  const mainDataLayout = isWide ? "wide" : "narrow";
-
-  // CANVAS template (#139, kind-driven): a `project` whose module resolved an `Experience` gets
-  // the tool-first composition — checked (and returned) BEFORE `article` is built below, since
-  // the canvas template never renders it. A `project` with no `Experience` yet (a `stage:
-  // sketch` project, `componentKey: null` — 4 of the 5 `project`-kind entries live today, per
-  // the seed content) has no module to be the page, so it falls through to the SAME editorial
-  // template every other entry gets, unchanged — never a blank page.
-  if (entry.kind === "project" && Experience) {
-    return (
-      <>
-        {pageTheme}
-        <main
-          className={mainClassName}
-          data-layout={mainDataLayout}
-          data-template="canvas"
-        >
-          {/* The bounded font slot: `<html>`'s theme supplies `--bg` and every color token
-            (inherited by SiteNav/SiteFooter and this canvas alike); EntryScope adds only the
-            entry's brand font. `data-template="canvas"` on THIS `<main>` is the hook for the
-            canvas scroll-lock rule (`page.module.css`). */}
-          <div className={styles.experience}>
-            <EntryScopeBoundary>
-              <EntryScope seed={scope}>
-                <Experience slug={slug} />
-              </EntryScope>
-            </EntryScopeBoundary>
-          </div>
-        </main>
-      </>
-    );
-  }
 
   const article = (
     <article className={styles.article}>
@@ -223,7 +157,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
   return (
     <>
       {pageTheme}
-      <main className={mainClassName} data-layout={mainDataLayout}>
+      <main className={styles.module}>
         {/* The provider is a state frame, not a theme: prose inside stays server-rendered
           editorial content (children pass-through). Rendered as deep as possible per the
           bundled composition docs. */}
@@ -231,10 +165,8 @@ export default async function EntryPage({ params }: EntryPageProps) {
         {/* Brand is scoped to the interactive slot ONLY — the engine theme wraps
           <Experience/>, not the editorial article/related around it. Rendered only when a
           module resolved (any kind but `now`); an entry without one is prose-only. The
-          `.experience` wrapper is the direct `.module` child: it holds the reading-measure cap
-          on narrow entries (like every non-article child) but is exempted under `.wide` so a
-          module-declared wide Experience fills the frame — the article's `[full]` slots aren't
-          the only wide-mode path (a lone Experience is a direct child, not inside the article). */}
+          `.experience` wrapper is a direct `.module` child, so it holds the reading-measure cap
+          like every non-article child. */}
         {Experience ? (
           <div className={styles.experience}>
             <EntryScopeBoundary>

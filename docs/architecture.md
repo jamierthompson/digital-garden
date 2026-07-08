@@ -358,20 +358,20 @@ it need not call the engine at runtime (the Color Engine is the exception — it
 function in JS live, and reports the engine's own receipts: per-token binding provenance,
 measured contrast, the anchor readout).
 
-The Color Engine composes as a **prose-less wide canvas**: its module exports a single
-`Experience` (`ColorEngineExperience`) that mounts the shared-state `ColorEngineProvider` around
-the `ColorEngineCanvas` grid, which lays every surface (seed row, rules rail, primitives board,
-token table, preview, contrast receipt, export, harmony) into one named-area CSS grid. The
-surfaces share state through the provider via context — one engine run per change, every surface
-reading the one result. `layout: "wide"` asks the `/[slug]` route for the screen-filling CANVAS
-template.
+Its interactive demo has been **removed pending a rebuild** on the deliberate design-system
+foundation (the old surfaces carried pre-foundation type literals). The `color-engine` key stays
+registered to a placeholder so the published entry still resolves; the tool is rebuilt later as a
+**multi-page project** (#149). There is no bespoke page template for it: a project that resolves an
+`Experience` mounts that slot in the **one editorial template** every entry uses, after the prose —
+the canvas template and the `layout: "wide"` module option were dropped with the demo.
 
-It is also the **one place a visitor plays with a seed**. The provider holds the live seed/rules
-in React state and drives the page's `<html>` theme off the generated palette (`ThemeReapplier`,
-the same imperative re-applier that lands the authored theme), so moving a control repaints the
-**whole** page — chrome included — in the palette it generates. The play is **ephemeral**: React
-state only, no `localStorage`, reset on hard reload, and it never bleeds onto authored routes
-(every route re-asserts its own theme on navigation / `<Activity>` reveal).
+When rebuilt, it is meant to be the **one place a visitor plays with a seed** — the provider holding
+the live seed/rules in React state and driving the page's `<html>` theme off the generated palette
+(`ThemeReapplier`, the imperative re-applier that also lands the authored theme), so moving a
+control repaints the **whole** page — chrome included — in the palette it generates. That play is
+**ephemeral** by design: React state only, no `localStorage`, reset on hard reload, and it never
+bleeds onto authored routes (every route re-asserts its own theme on navigation / `<Activity>`
+reveal).
 
 Two deliberate consequences:
 

@@ -1,10 +1,10 @@
 "use client";
 
-// Harvested from `feat/entry-slide-over` (the slide-over/canvas exploration whose routing
-// mechanism was rejected, #139/#154) — the component itself is generic shell chrome, unrelated
-// to that branch's routing approach. First real consumer: the color-engine CANVAS template's
-// `ColorEngineCanvas` (#139 kind-driven canvas), so its scrollbar thumb picks up the entry's brand
-// `--accent` for free.
+// Harvested from `feat/entry-slide-over` (a slide-over exploration whose routing mechanism was
+// rejected, #154) — the component itself is generic shell chrome, unrelated to that branch's
+// routing approach. It has no consumer yet (the color-engine demo that first used it was removed
+// with the canvas template); kept for the interactive modules being rebuilt on the foundation,
+// where a brand-scoped surface wants a scrollbar thumb that picks up the entry's `--accent`.
 
 import { ScrollArea as RadixScrollArea } from "radix-ui";
 import type { ReactNode } from "react";
@@ -43,13 +43,13 @@ export default function ScrollArea({
         {children}
       </RadixScrollArea.Viewport>
       {/* VERTICAL ONLY — no horizontal Scrollbar + no Corner (owner: the vertical track must run
-          flush to the footer). Radix insets the vertical scrollbar by `bottom:
+          flush to the bottom edge). Radix insets the vertical scrollbar by `bottom:
           var(--radix-scroll-area-corner-height)` — the horizontal scrollbar's reserved corner —
-          so an always-mounted (`type="always"`) horizontal bar stopped the vertical thumb ~10px
-          short of the footer even though the canvas never scrolls sideways. It doesn't need to:
-          the canvas is a single full-width column, and the only wide elements (the palette table,
-          the mini-ramp strips) scroll INTERNALLY (`overflow-x: auto`). Dropping the horizontal
-          bar removes the corner reservation, so the vertical track spans the full viewport. */}
+          so an always-mounted (`type="always"`) horizontal bar stops the vertical thumb ~10px
+          short of the bottom even when the surface never scrolls sideways. A consumer that has
+          genuinely wide children should scroll them INTERNALLY (`overflow-x: auto`). Dropping the
+          horizontal bar removes the corner reservation, so the vertical track spans the full
+          height. */}
       <RadixScrollArea.Scrollbar
         orientation="vertical"
         className={styles.scrollbar}
