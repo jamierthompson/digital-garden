@@ -26,12 +26,12 @@
        16→18px); steps descend to captions, climb to display. BAKED LITERALS — regenerate via the
        engine and keep `typeTokens.test.ts`'s guard green; never hand-edit a value. A demo reads
        any step directly; the role bundles below bind the semantic roles to steps. */
-    --type-size-1: clamp(0.6331rem, 0.7149rem - 0.1022vw, 0.6944rem);
-    --type-size-2: clamp(0.8333rem, 0.8298rem + 0.0177vw, 0.844rem);
+    --type-size-1: clamp(0.6331rem, 0.7148rem - 0.1022vw, 0.6944rem);
+    --type-size-2: clamp(0.8333rem, 0.8297rem + 0.0178vw, 0.844rem);
     --type-size-3: clamp(1rem, 0.9583rem + 0.2083vw, 1.125rem);
-    --type-size-4: clamp(1.2rem, 1.1001rem + 0.4994vw, 1.4996rem);
+    --type-size-4: clamp(1.2rem, 1.1001rem + 0.4993vw, 1.4996rem);
     --type-size-5: clamp(1.44rem, 1.2537rem + 0.9317vw, 1.999rem);
-    --type-size-6: clamp(1.728rem, 1.4158rem + 1.5611vw, 2.6647rem);
+    --type-size-6: clamp(1.728rem, 1.4158rem + 1.5612vw, 2.6647rem);
     --type-size-7: clamp(2.0736rem, 1.5808rem + 2.464vw, 3.552rem);
     --type-size-8: clamp(2.4883rem, 1.7395rem + 3.7442vw, 4.7348rem);
     --type-size-9: clamp(2.986rem, 1.8775rem + 5.5425vw, 6.3115rem);

@@ -1,8 +1,9 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import pageStyles from "./page.module.css";
 
 // next/font/google is a build-time transform, untransformed under Vitest — mock the faces
 // pulled in transitively via EntryScope → resolveScope → FONT_FACES (same shape as the
@@ -381,14 +382,14 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
     // The Experience mounts after the prose in its own real-slug brand scope, wrapped in a
-    // `.experience` element that is a direct child of main.
+    // <div> that is a direct child of main (so it gets the reading-measure cap).
     expect(screen.getByTestId("experience")).toBeInTheDocument();
     const slot = container.querySelector("[data-entry]");
     expect(slot).toHaveAttribute("data-entry", "color-engine");
     const wrapper = [...main.children].find((child) =>
       child.querySelector('[data-testid="experience"]'),
     );
-    expect(wrapper?.className).toContain(pageStyles.experience);
+    expect(wrapper).toBeDefined();
     // RelatedEntries renders for the project — the canvas template no longer suppresses it.
     expect(
       screen.getByRole("region", { name: /related/i }),
@@ -596,5 +597,32 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(article).not.toBeNull();
     expect(article?.querySelector("h1")).not.toBeNull();
     expect(screen.queryByTestId("essay-body")).not.toBeInTheDocument();
+  });
+});
+
+describe("page.tsx styles.* references resolve to real classes in page.module.css", () => {
+  // WHY this reads the sources instead of rendering: `test.css` is off in `vitest.config.ts`,
+  // so a CSS-Module import resolves to an identity Proxy — `pageStyles.anything` returns
+  // `"anything"` — and a render assertion on a class that does NOT exist in the sheet still
+  // passes (a false green; in the real build a missing export is `undefined` and React drops
+  // the className entirely). Reading the actual files fails on a dangling reference no matter
+  // what the test-env CSS shim does.
+  it("references no class the sheet does not define", () => {
+    const read = (rel: string): string =>
+      readFileSync(resolve(process.cwd(), "src/app/[slug]", rel), "utf8");
+    const source = read("page.tsx");
+    const sheet = read("page.module.css");
+    const referenced = [
+      ...new Set(
+        [...source.matchAll(/styles\.([a-zA-Z][a-zA-Z0-9_]*)/g)].map(
+          (m) => m[1],
+        ),
+      ),
+    ];
+    expect(referenced.length).toBeGreaterThan(0); // false-green guard
+    const defined = new Set(
+      [...sheet.matchAll(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g)].map((m) => m[1]),
+    );
+    expect(referenced.filter((name) => !defined.has(name))).toEqual([]);
   });
 });

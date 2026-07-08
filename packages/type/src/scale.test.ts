@@ -121,7 +121,7 @@ describe("buildTypeScale — the solved ramp", () => {
       for (const step of scale.steps) {
         // +1e-4 tolerance for independent 4-dp rounding of the two bounds.
         expect(step.maxRem).toBeLessThanOrEqual(
-          ZOOM_CAP_RATIO * step.minRem + 1e-4,
+          ZOOM_CAP_RATIO * step.minRem + 1e-9,
         );
       }
     }

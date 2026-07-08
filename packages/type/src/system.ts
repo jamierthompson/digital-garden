@@ -57,7 +57,22 @@ function isUsable(c: ScaleConfig): boolean {
   if (!isPositiveInt(c.stepCount) || !isPositiveInt(c.baseIndex)) {
     return false;
   }
+  // An upper bound on the ramp length: "never throws" must also mean "never hangs / OOMs" on a
+  // hostile `stepCount` (author-time studio input). Far above any real scale (9 today).
+  if (c.stepCount > MAX_STEP_COUNT) {
+    return false;
+  }
   return c.baseIndex <= c.stepCount;
+}
+
+/** The ramp-length ceiling — a backstop against a runaway `stepCount`, not a design limit. */
+const MAX_STEP_COUNT = 64;
+
+/** A solved step is only usable if BOTH bounds are finite and positive — extreme-but-valid
+ *  config fields (e.g. a huge base × huge ratio) can still overflow to `Infinity` or underflow
+ *  to `0`, which `isUsable`'s field checks can't see. */
+function stepIsSane(step: FluidStep): boolean {
+  return isFinitePositive(step.minRem) && isFinitePositive(step.maxRem);
 }
 
 /**
@@ -70,7 +85,13 @@ export function buildTypeScale(config?: Partial<ScaleConfig>): TypeScale {
   const usable = isUsable(merged);
 
   try {
-    return assemble(usable ? merged : DEFAULT_CONFIG, !usable);
+    const scale = assemble(usable ? merged : DEFAULT_CONFIG, !usable);
+    // Field validation can't catch a computed overflow/underflow (Infinity / 0 sizes) from an
+    // extreme-but-valid config — validate the OUTPUT and fall back if any step is unusable.
+    if (usable && !scale.steps.every(stepIsSane)) {
+      return assemble(DEFAULT_CONFIG, true);
+    }
+    return scale;
   } catch {
     // Last-resort guard: any unforeseen throw returns the default ramp, never crashes a page.
     return assemble(DEFAULT_CONFIG, true);

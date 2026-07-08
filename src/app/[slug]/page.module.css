@@ -35,8 +35,8 @@
       [prose-start] min(var(--width-text), 100%)
       [prose-end] minmax(0, 1fr)
       [full-end];
-    font-size: var(--type-size-3);
-    line-height: var(--leading-relaxed, 1.7);
+    font-size: var(--type-body-size);
+    line-height: var(--type-body-leading);
   }
 
   /* Zero-specificity default so a slot's own `grid-column: full` (equal layer, any

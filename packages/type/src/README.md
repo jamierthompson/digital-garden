@@ -23,7 +23,7 @@ studio are all deliberately out of scope here).
   but shrinks the CSS viewport, so the `vw` term works against the user. Reachability of 200%
   apparent size within the ~500% browser ceiling reduces to `maxPx ≤ 2.5 × minPx` per step. The
   engine enforces **2.4** (`ZOOM_CAP_RATIO`, a margin under 2.5), pulls a hot step's ceiling down
-  to `2.4 × floor`, and **flags** it (`zoomCapped` / `meta.zoomCappedRoles`) — the analog of the
+  to `2.4 × floor`, and **flags** it (`zoomCapped` / `meta.zoomCappedSteps`) — the analog of the
   color engine's out-of-gamut flag. Solved and capped, never eyeballed.
 - **Steps, not roles — size is decoupled from role.** The engine emits the whole scale as a
   Radix-style numeric ramp (`--type-size-1 … --type-size-N`, 1 = smallest, the base at

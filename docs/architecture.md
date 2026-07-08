@@ -408,15 +408,20 @@ engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WC
   retune moves a role to a different step with no call-site change, and roles can be added or
   dropped without touching the engine. The roles: **display · title · heading · subheading · lead ·
   body · label · meta**.
-- **Components read roles via `<Heading>` / `<Text>`, never a raw step.** `Heading` renders the
-  `<hN>` for its `level` (the a11y outline) and applies a role by `variant` — or by the level when
-  `variant` is omitted (1→`title`, 2→`heading`, 3–6→`subheading`; the oversized `display` is opt-in
-  for a hero). `Text` renders `<p>` (or any element via `asChild`) in `body`/`lead`/`label`/`meta`.
+- **Editorial content reads roles via `<Heading>` / `<Text>`.** `Heading` renders the `<hN>` for
+  its `level` (the a11y outline) and applies a role by `variant` — or by the level when `variant`
+  is omitted (1→`title`, 2→`heading`, 3–6→`subheading`; the oversized `display` is opt-in for a
+  hero). `Text` renders `<p>` (or any element via `asChild`) in `body`/`lead`/`label`/`meta`.
   Discrete roles apply via a `data-variant` attribute (the variant mechanism), not the
-  value-conduit the spacing primitives use for continuous lengths. A page's CSS Modules own only
-  layout + color + decoration (margins, borders, `text-transform`, `color`) — **never** a type
-  value; every font-size/weight/tracking/leading comes from a primitive. There are no bespoke type
-  literals: any value that isn't from a role snaps to the nearest scale token.
+  value-conduit the spacing primitives use for continuous lengths. The primitives read **only**
+  the semantic role tokens, never a raw `--type-size-*` step. So a **page's** CSS Modules — its
+  editorial content expressed through the primitives — own only layout + color + decoration
+  (margins, borders, `text-transform`, `color`), no type value. **UI-chrome** components (buttons,
+  nav, tabs, chips) still read foundation type tokens (`--type-size-*`, `--font-weight-*`, …)
+  directly — a pragmatic boundary, the same "does chrome reach the foundation layer" question the
+  spacing accessor raises (#224), not yet resolved either way. What holds everywhere: **no bespoke
+  type _literals_** — every value is a token, snapped to the nearest scale step where a source had
+  no exact match.
 - **Bake-and-guard emission.** The global scale is not per-entry runtime-varying (unlike color), so
   the engine's `--type-size-*` output is baked as `clamp()` literals into `foundation.css`;
   `typeTokens.test.ts` re-derives the ramp from `@garden/type` and fails on any drift (and pins

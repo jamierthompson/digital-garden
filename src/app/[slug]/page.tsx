@@ -172,11 +172,11 @@ export default async function EntryPage({ params }: EntryPageProps) {
         {Provider ? <Provider slug={slug}>{article}</Provider> : article}
         {/* Brand is scoped to the interactive slot ONLY — the engine theme wraps
           <Experience/>, not the editorial article/related around it. Rendered only when a
-          module resolved (any kind but `now`); an entry without one is prose-only. The
-          `.experience` wrapper is a direct `.module` child, so it holds the reading-measure cap
-          like every non-article child. */}
+          module resolved (any kind but `now`); an entry without one is prose-only. The wrapper
+          `<div>` is a direct `.module` child, so it holds the reading-measure cap
+          (`.module > :not(.article)`) like every non-article child. */}
         {Experience ? (
-          <div className={styles.experience}>
+          <div>
             <EntryScopeBoundary>
               <EntryScope seed={scope}>
                 <Experience slug={slug} />
