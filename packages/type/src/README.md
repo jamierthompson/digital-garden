@@ -53,9 +53,8 @@ Internal, single-consumer package: the public surface is freely changeable. `api
 tripwire against **silent** drift, not a wall — a deliberate change updates the guard in the same
 commit and migrates consumers in the same PR. Never "fix" the guard to pass an accidental drift.
 
-## Config knobs (owner-tuned, live)
+## Config knobs
 
 `DEFAULT_CONFIG` is a calm editorial baseline (fluid 16→18px body at `baseIndex` 3, 1.2
 minor-third on mobile opening to 1.333 perfect-fourth on desktop, a 9-step ramp). Every value is
-a design knob tuned on the dev server — none is load-bearing except the zoom cap, which holds
-whatever they are set to.
+a design knob — none is load-bearing except the zoom cap, which holds whatever they are set to.

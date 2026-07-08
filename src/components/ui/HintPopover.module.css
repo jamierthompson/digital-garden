@@ -14,7 +14,7 @@
     background: transparent;
     border-radius: 0.375rem;
     font-family: var(--font-mono);
-    font-size: var(--text-sm);
+    font-size: var(--type-size-2);
     color: var(--accent-text);
     cursor: pointer;
     text-align: start;
@@ -50,7 +50,7 @@
     background: var(--surface);
     color: var(--text);
     font-family: var(--font-face);
-    font-size: var(--text-sm);
+    font-size: var(--type-size-2);
     line-height: 1.5;
     box-shadow: 0 8px 30px color-mix(in oklab, var(--text) 18%, transparent);
     /* Radix sets transform-origin; a small entrance keeps it from feeling abrupt. */

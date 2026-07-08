@@ -1,0 +1,85 @@
+/* Heading — semantic heading type primitive. @layer components, strictly var-consuming.
+   Every level applies a full SEMANTIC role bundle (`--type-<role>-*`); the primitive reads the
+   role layer ONLY, never a raw `--type-size-*` step (that foundation layer is for demos and for
+   the role bundles to bind to). DEFAULT by level: 1 → title, 2 → heading, 3–6 → subheading (the
+   oversized `display` role is opt-in via `variant`, not a level default). EXPLICIT `variant`:
+   the `[data-variant]` rules below override the level default with the named role — same
+   specificity as the level rules, so source order (variants last) wins. */
+@layer components {
+  .heading[data-level="1"] {
+    font-family: var(--type-title-family);
+    font-size: var(--type-title-size);
+    font-weight: var(--type-title-weight);
+    letter-spacing: var(--type-title-tracking);
+    line-height: var(--type-title-leading);
+  }
+
+  .heading[data-level="2"] {
+    font-family: var(--type-heading-family);
+    font-size: var(--type-heading-size);
+    font-weight: var(--type-heading-weight);
+    letter-spacing: var(--type-heading-tracking);
+    line-height: var(--type-heading-leading);
+  }
+
+  .heading[data-level="3"],
+  .heading[data-level="4"],
+  .heading[data-level="5"],
+  .heading[data-level="6"] {
+    font-family: var(--type-subheading-family);
+    font-size: var(--type-subheading-size);
+    font-weight: var(--type-subheading-weight);
+    letter-spacing: var(--type-subheading-tracking);
+    line-height: var(--type-subheading-leading);
+  }
+
+  .heading[data-variant="display"] {
+    font-family: var(--type-display-family);
+    font-size: var(--type-display-size);
+    font-weight: var(--type-display-weight);
+    letter-spacing: var(--type-display-tracking);
+    line-height: var(--type-display-leading);
+  }
+  .heading[data-variant="title"] {
+    font-family: var(--type-title-family);
+    font-size: var(--type-title-size);
+    font-weight: var(--type-title-weight);
+    letter-spacing: var(--type-title-tracking);
+    line-height: var(--type-title-leading);
+  }
+  .heading[data-variant="heading"] {
+    font-family: var(--type-heading-family);
+    font-size: var(--type-heading-size);
+    font-weight: var(--type-heading-weight);
+    letter-spacing: var(--type-heading-tracking);
+    line-height: var(--type-heading-leading);
+  }
+  .heading[data-variant="subheading"] {
+    font-family: var(--type-subheading-family);
+    font-size: var(--type-subheading-size);
+    font-weight: var(--type-subheading-weight);
+    letter-spacing: var(--type-subheading-tracking);
+    line-height: var(--type-subheading-leading);
+  }
+  .heading[data-variant="body"] {
+    font-family: var(--type-body-family);
+    font-size: var(--type-body-size);
+    font-weight: var(--type-body-weight);
+    letter-spacing: var(--type-body-tracking);
+    line-height: var(--type-body-leading);
+  }
+  .heading[data-variant="label"] {
+    font-family: var(--type-label-family);
+    font-size: var(--type-label-size);
+    font-weight: var(--type-label-weight);
+    letter-spacing: var(--type-label-tracking);
+    line-height: var(--type-label-leading);
+  }
+  .heading[data-variant="meta"] {
+    font-family: var(--type-meta-family);
+    font-size: var(--type-meta-size);
+    font-weight: var(--type-meta-weight);
+    letter-spacing: var(--type-meta-tracking);
+    line-height: var(--type-meta-leading);
+  }
+}

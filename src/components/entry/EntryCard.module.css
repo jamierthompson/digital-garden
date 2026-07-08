@@ -25,7 +25,7 @@
 
   /* Register 1 — the display title (Space Grotesk, via the base h1–h6 rule). */
   .title {
-    font-size: var(--text-xl);
+    font-size: var(--type-size-5);
     font-weight: 600;
     line-height: var(--leading-tight);
     letter-spacing: -0.01em;
@@ -35,7 +35,7 @@
   /* Register 2 — the editorial serif blurb (the multi-font mix). */
   .blurb {
     font-family: var(--font-face);
-    font-size: var(--text-base);
+    font-size: var(--type-size-3);
     line-height: var(--leading-normal);
     color: var(--on-accent);
   }
@@ -47,7 +47,7 @@
   .meta {
     margin-top: auto;
     font-family: var(--font-mono);
-    font-size: var(--text-sm);
+    font-size: var(--type-size-2);
     color: var(--on-accent);
   }
 

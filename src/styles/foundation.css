@@ -21,18 +21,87 @@
     --space-8: 4rem;
     --space-9: 6rem;
 
-    /* Type scale (modular, 1.25 major third on a 1rem base) */
-    --type-ratio: 1.25;
-    --text-sm: 0.8rem;
-    --text-base: 1rem;
-    --text-lg: 1.25rem;
-    --text-xl: 1.5625rem;
-    --text-2xl: 1.9531rem;
-    --text-3xl: 2.4414rem;
-    --text-4xl: 3.0518rem;
-    --leading-tight: 1.2;
+    /* Type scale — a Radix-style numeric ramp emitted by `@garden/type` (modular, Utopia
+       dual-ratio, fluid `clamp()`, WCAG-1.4.4 zoom-capped). `--type-size-3` is the base (fluid
+       16→18px); steps descend to captions, climb to display. BAKED LITERALS — regenerate via the
+       engine and keep `typeTokens.test.ts`'s guard green; never hand-edit a value. A demo reads
+       any step directly; the role bundles below bind the semantic roles to steps. */
+    --type-size-1: clamp(0.6331rem, 0.7149rem - 0.1022vw, 0.6944rem);
+    --type-size-2: clamp(0.8333rem, 0.8298rem + 0.0177vw, 0.844rem);
+    --type-size-3: clamp(1rem, 0.9583rem + 0.2083vw, 1.125rem);
+    --type-size-4: clamp(1.2rem, 1.1001rem + 0.4994vw, 1.4996rem);
+    --type-size-5: clamp(1.44rem, 1.2537rem + 0.9317vw, 1.999rem);
+    --type-size-6: clamp(1.728rem, 1.4158rem + 1.5611vw, 2.6647rem);
+    --type-size-7: clamp(2.0736rem, 1.5808rem + 2.464vw, 3.552rem);
+    --type-size-8: clamp(2.4883rem, 1.7395rem + 3.7442vw, 4.7348rem);
+    --type-size-9: clamp(2.986rem, 1.8775rem + 5.5425vw, 6.3115rem);
+
+    /* Weight / tracking / leading — static token families for now (a later `@garden/type` meal
+       derives these too; the named CONTRACT is what stays stable). */
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    --tracking-tighter: -0.05em;
+    --tracking-tight: -0.025em;
+    --tracking-normal: 0em;
+    --tracking-wide: 0.025em;
+    --tracking-wider: 0.05em;
+    --tracking-widest: 0.1em;
+
+    --leading-none: 1;
+    --leading-tight: 1.25;
+    --leading-snug: 1.375;
     --leading-normal: 1.5;
-    --leading-loose: 1.75;
+    --leading-relaxed: 1.625;
+    --leading-loose: 2;
+
+    /* Semantic type ROLES — the app's binding layer over the scale (the engine has no role
+       vocabulary). Each role binds its size to a `--type-size-*` step; components apply a role via
+       `<Heading>`/`<Text>`. Retune a role by pointing its size at a different step. */
+    --type-display-family: var(--font-display);
+    --type-display-size: var(--type-size-8);
+    --type-display-weight: var(--font-weight-semibold);
+    --type-display-tracking: var(--tracking-normal);
+    --type-display-leading: var(--leading-tight);
+
+    --type-title-family: var(--font-display);
+    --type-title-size: var(--type-size-7);
+    --type-title-weight: var(--font-weight-semibold);
+    --type-title-tracking: var(--tracking-tight);
+    --type-title-leading: var(--leading-tight);
+
+    --type-heading-family: var(--font-display);
+    --type-heading-size: var(--type-size-6);
+    --type-heading-weight: var(--font-weight-semibold);
+    --type-heading-tracking: var(--tracking-tight);
+    --type-heading-leading: var(--leading-tight);
+
+    --type-subheading-family: var(--font-display);
+    --type-subheading-size: var(--type-size-5);
+    --type-subheading-weight: var(--font-weight-medium);
+    --type-subheading-tracking: var(--tracking-tight);
+    --type-subheading-leading: var(--leading-snug);
+
+    --type-body-family: var(--font-face);
+    --type-body-size: var(--type-size-3);
+    --type-body-weight: var(--font-weight-normal);
+    --type-body-tracking: var(--tracking-normal);
+    --type-body-leading: var(--leading-relaxed);
+
+    --type-label-family: var(--font-display);
+    --type-label-size: var(--type-size-2);
+    --type-label-weight: var(--font-weight-medium);
+    --type-label-tracking: var(--tracking-wide);
+    --type-label-leading: var(--leading-none);
+
+    --type-meta-family: var(--font-mono);
+    --type-meta-size: var(--type-size-2);
+    --type-meta-weight: var(--font-weight-normal);
+    --type-meta-tracking: var(--tracking-wide);
+    --type-meta-leading: var(--leading-normal);
 
     --ease-standard: cubic-bezier(0.2, 0, 0, 1);
     --ease-in: cubic-bezier(0.4, 0, 1, 1);

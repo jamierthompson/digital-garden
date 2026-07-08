@@ -7,8 +7,8 @@ import { solveStep } from "./scale";
 import type { FluidStep, ScaleConfig, TypeScale } from "./types";
 
 /**
- * The starting scale. Every value here is a design knob the owner tunes live on the dev server —
- * NOT a load-bearing constant (the one guarantee, the zoom cap, holds whatever these are set to).
+ * The starting scale. Every value here is a design knob — NOT a load-bearing constant (the one
+ * guarantee, the zoom cap, holds whatever these are set to).
  *
  * A calm editorial baseline: a fluid 16→18px body (`baseIndex` 3), a tighter minor-third (1.2) on
  * mobile so deep steps still fit, opening to a perfect-fourth (1.333) on desktop for drama. Nine

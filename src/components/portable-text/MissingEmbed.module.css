@@ -9,14 +9,14 @@
   }
 
   .label {
-    font-size: var(--text-sm);
+    font-size: var(--type-size-2);
     font-weight: 600;
     color: var(--text);
   }
 
   .detail {
     margin-top: var(--space-2);
-    font-size: var(--text-sm);
+    font-size: var(--type-size-2);
     color: color-mix(in oklab, var(--text) 70%, transparent);
   }
 }

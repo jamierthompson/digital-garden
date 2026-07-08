@@ -1,0 +1,29 @@
+/* Text — semantic type primitive for non-heading copy. @layer components, strictly var-consuming.
+   The base rule IS the `body` role; `data-variant` (set by the component) switches to the `label`
+   or `meta` role bundle. Named `variant` rather than `role` so the prop can't shadow the ARIA
+   `role` attribute. */
+@layer components {
+  .text {
+    font-family: var(--type-body-family);
+    font-size: var(--type-body-size);
+    font-weight: var(--type-body-weight);
+    letter-spacing: var(--type-body-tracking);
+    line-height: var(--type-body-leading);
+  }
+
+  .text[data-variant="label"] {
+    font-family: var(--type-label-family);
+    font-size: var(--type-label-size);
+    font-weight: var(--type-label-weight);
+    letter-spacing: var(--type-label-tracking);
+    line-height: var(--type-label-leading);
+  }
+
+  .text[data-variant="meta"] {
+    font-family: var(--type-meta-family);
+    font-size: var(--type-meta-size);
+    font-weight: var(--type-meta-weight);
+    letter-spacing: var(--type-meta-tracking);
+    line-height: var(--type-meta-leading);
+  }
+}

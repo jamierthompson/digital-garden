@@ -10,7 +10,7 @@
   }
 
   .heading {
-    font-size: var(--text-2xl);
+    font-size: var(--type-size-6);
     line-height: var(--leading-tight);
   }
 

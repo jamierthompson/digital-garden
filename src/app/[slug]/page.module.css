@@ -19,14 +19,14 @@
 
   .title {
     /* Display face comes from the base h1–h6 rule (`foundation.css`) */
-    font-size: var(--text-3xl);
+    font-size: var(--type-heading-size);
     line-height: var(--leading-tight);
     color: var(--accent-text);
   }
 
   .blurb {
     margin-top: var(--space-3);
-    font-size: var(--text-lg);
+    font-size: var(--type-size-4);
     max-width: 52ch;
     color: color-mix(in oklab, var(--text) 80%, transparent);
   }
@@ -38,7 +38,7 @@
       [prose-start] min(var(--width-text), 100%)
       [prose-end] minmax(0, 1fr)
       [full-end];
-    font-size: var(--text-base);
+    font-size: var(--type-size-3);
     line-height: var(--leading-relaxed, 1.7);
   }
 

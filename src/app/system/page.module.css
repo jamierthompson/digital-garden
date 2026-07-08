@@ -12,21 +12,21 @@
   /* Mono metadata eyebrow — the journal "readout" voice. */
   .eyebrow {
     font-family: var(--font-mono);
-    font-size: var(--text-sm);
+    font-size: var(--type-size-2);
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--text-muted);
   }
 
   .title {
-    font-size: var(--text-4xl);
+    font-size: var(--type-display-size);
     line-height: var(--leading-tight);
     letter-spacing: -0.02em;
     color: var(--text);
   }
 
   .lede {
-    font-size: var(--text-lg);
+    font-size: var(--type-size-4);
     line-height: var(--leading-loose);
     color: var(--text-muted);
   }
