@@ -102,12 +102,12 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-  // The OKLCH engine is its own workspace package (@garden/oklch) so the standalone
-  // Studio can import it too. The isomorphism guard applies: no framework
-  // imports, no DOM/Node runtime globals. `boundaries` is scoped to `src/**` and can't
-  // reach here, so the framework-import ban is enforced via no-restricted-imports below.
+  // The engines (@garden/oklch color, @garden/type type-scale) are their own workspace
+  // packages so the standalone Studio can import them too. The isomorphism guard applies to
+  // both: no framework imports, no DOM/Node runtime globals. `boundaries` is scoped to `src/**`
+  // and can't reach here, so the framework-import ban is enforced via no-restricted-imports below.
   {
-    files: ["packages/oklch/**/*.{js,jsx,ts,tsx,mts,cts}"],
+    files: ["packages/{oklch,type}/**/*.{js,jsx,ts,tsx,mts,cts}"],
     rules: {
       "no-restricted-globals": ["error", ...NON_ISOMORPHIC_GLOBALS],
       "no-restricted-imports": [

@@ -1,0 +1,10 @@
+{
+  "name": "@garden/type",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The pure, isomorphic type-scale engine — modular scale, fluid clamp(), and the WCAG 1.4.4 zoom cap. Sibling of @garden/oklch.",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
