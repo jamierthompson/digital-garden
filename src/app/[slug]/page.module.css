@@ -18,15 +18,12 @@
   }
 
   .title {
-    /* Display face comes from the base h1–h6 rule (`foundation.css`) */
-    font-size: var(--type-heading-size);
-    line-height: var(--leading-tight);
+    /* Type comes from the `Heading` primitive (title role); only color stays here. */
     color: var(--accent-text);
   }
 
   .blurb {
     margin-top: var(--space-3);
-    font-size: var(--type-size-4);
     max-width: 52ch;
     color: color-mix(in oklab, var(--text) 80%, transparent);
   }

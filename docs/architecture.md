@@ -97,11 +97,11 @@ the site rather than any entry, and wear their own authored theme (seeded from
 
 Tokens are organized in **three tiers**, each consuming the one before it:
 
-| Tier           | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                               |
-| -------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Foundation** | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, content-width measures (`--width-prose`/`-text`/`-content`), motion curves/durations, type-scale ratios, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
-| **Semantic**   | global `:root` (the neutral fallback)             | the **generic role tokens components read** — `--surface`, `--text`, `--text-muted`, `--accent`, `--font-face`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the neutral ground for surfaces that render with no `<html>` theme.  |
-| **Brand**      | `<html>` (color) + the slot `[data-entry]` (font) | the theme override, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **font** is a per-slot override, an inline `--font-face` on `[data-entry]` (`EntryScope`).      |
+| Tier           | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Foundation** | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, content-width measures (`--width-prose`/`-text`/`-content`), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
+| **Semantic**   | global `:root` (the neutral fallback)             | the **generic role tokens components read** — `--surface`, `--text`, `--text-muted`, `--accent`, `--font-face`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the neutral ground for surfaces that render with no `<html>` theme.                                                                      |
+| **Brand**      | `<html>` (color) + the slot `[data-entry]` (font) | the theme override, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **font** is a per-slot override, an inline `--font-face` on `[data-entry]` (`EntryScope`).                                                                          |
 
 The model is layered, not partitioned: the **semantic layer is the contract** components code
 against, and a theme simply re-defines those same semantic tokens with its own values — the page's
@@ -383,6 +383,44 @@ Two deliberate consequences:
 The anti-pattern to avoid: putting the engine _inside_ an entry module and having the theming
 layer reach up into a portfolio piece for infrastructure — that inverts the dependency direction.
 Shared logic lives in a shared module; the project is a presentation of it.
+
+### The type engine
+
+Type follows the same shape as color: a pure, isomorphic engine (`@garden/type`, sibling of
+`@garden/oklch`) whose output is **baked into `foundation.css` and guarded**. Where the color
+engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WCAG 1.4.4)**.
+
+- **Size is decoupled from role.** The engine deals only in **scale steps**, not roles. It solves
+  a modular scale (Utopia **dual-ratio** — a tighter `minRatio` on mobile so deep steps still fit,
+  a wider `maxRatio` on desktop for drama) into a Radix-style numeric ramp of per-step fluid
+  `clamp()` sizes, emitted as `--type-size-1 … N` (1 = smallest; the base at `baseIndex`). This is
+  the **foundation** tier: a demo reads any step directly, or imports the engine to compute a
+  bespoke scale.
+- **The zoom cap is the guarantee.** A fluid `clamp()` fights full-page zoom (zoom scales `rem`
+  but shrinks the CSS viewport, so the `vw` term works against the user). Reachability of 200%
+  apparent size within the browser's ~500% ceiling reduces to `maxPx ≤ 2.5 × minPx` per step; the
+  engine enforces **2.4** (a margin), pulls a hot step's ceiling down, and **flags** it
+  (`zoomCapped`) — the analog of the color engine's out-of-gamut flag. Solved, never eyeballed. It
+  **never throws** (bad config → default ramp).
+- **Roles are the app's semantic layer, bound to steps.** The engine has no role vocabulary; the
+  app owns it. `foundation.css` binds each role's size to a step —
+  `--type-heading-size: var(--type-size-6)` — alongside its family/weight/tracking/leading, so a
+  retune moves a role to a different step with no call-site change, and roles can be added or
+  dropped without touching the engine. The roles: **display · title · heading · subheading · lead ·
+  body · label · meta**.
+- **Components read roles via `<Heading>` / `<Text>`, never a raw step.** `Heading` renders the
+  `<hN>` for its `level` (the a11y outline) and applies a role by `variant` — or by the level when
+  `variant` is omitted (1→`title`, 2→`heading`, 3–6→`subheading`; the oversized `display` is opt-in
+  for a hero). `Text` renders `<p>` (or any element via `asChild`) in `body`/`lead`/`label`/`meta`.
+  Discrete roles apply via a `data-variant` attribute (the variant mechanism), not the
+  value-conduit the spacing primitives use for continuous lengths. A page's CSS Modules own only
+  layout + color + decoration (margins, borders, `text-transform`, `color`) — **never** a type
+  value; every font-size/weight/tracking/leading comes from a primitive. There are no bespoke type
+  literals: any value that isn't from a role snaps to the nearest scale token.
+- **Bake-and-guard emission.** The global scale is not per-entry runtime-varying (unlike color), so
+  the engine's `--type-size-*` output is baked as `clamp()` literals into `foundation.css`;
+  `typeTokens.test.ts` re-derives the ramp from `@garden/type` and fails on any drift (and pins
+  that roles bind to steps, and that the old Tailwind-named `--text-*` scale is gone).
 
 ### Downward theming
 

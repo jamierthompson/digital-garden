@@ -1,4 +1,4 @@
-/* System page. @layer components — declares its layer (an unlayered module outranks every layered rule); var-consuming only (global editorial tokens). */
+/* System page. @layer components — declares its layer (an unlayered module outranks every layered rule); var-consuming only (global editorial tokens). Type comes from the <Heading>/<Text> primitives (role bundles); these rules own layout + color only. */
 @layer components {
   .main {
     display: flex;
@@ -9,25 +9,7 @@
     padding: var(--space-8) var(--space-6);
   }
 
-  /* Mono metadata eyebrow — the journal "readout" voice. */
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: var(--type-size-2);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-
-  .title {
-    font-size: var(--type-display-size);
-    line-height: var(--leading-tight);
-    letter-spacing: -0.02em;
-    color: var(--text);
-  }
-
   .lede {
-    font-size: var(--type-size-4);
-    line-height: var(--leading-loose);
     color: var(--text-muted);
   }
 }

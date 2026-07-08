@@ -71,6 +71,7 @@ describe("foundation.css semantic role layer binds to the ramp", () => {
     "title",
     "heading",
     "subheading",
+    "lead",
     "body",
     "label",
     "meta",

@@ -61,6 +61,13 @@
     letter-spacing: var(--type-subheading-tracking);
     line-height: var(--type-subheading-leading);
   }
+  .heading[data-variant="lead"] {
+    font-family: var(--type-lead-family);
+    font-size: var(--type-lead-size);
+    font-weight: var(--type-lead-weight);
+    letter-spacing: var(--type-lead-tracking);
+    line-height: var(--type-lead-leading);
+  }
   .heading[data-variant="body"] {
     font-family: var(--type-body-family);
     font-size: var(--type-body-size);

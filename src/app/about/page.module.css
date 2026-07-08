@@ -9,23 +9,16 @@
     padding: var(--space-8) var(--space-6);
   }
 
-  .title {
-    font-size: var(--type-heading-size);
-    line-height: var(--leading-tight);
-    color: var(--text);
-  }
-
+  /* Layout + color only — the type comes from the `<Text variant="lead">` role bundle. */
   .prose {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-    font-size: var(--type-size-4);
-    line-height: var(--leading-loose);
     color: var(--text-muted);
   }
 
   .emphasis {
     color: var(--text);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
   }
 }

@@ -15,14 +15,7 @@
     gap: var(--space-2);
   }
 
-  .title {
-    font-size: var(--type-heading-size);
-    line-height: var(--leading-tight);
-    color: var(--text);
-  }
-
   .intro {
-    font-size: var(--type-size-4);
     color: var(--text-muted);
   }
 
@@ -39,18 +32,13 @@
   }
 
   .date {
-    font-size: var(--type-size-2);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: var(--text-muted);
   }
 
   .itemTitle {
-    /* An entry-title link, not a heading element — so it opts into the display face explicitly
-       (the base h1–h6 rule can't reach an `<a>`), matching EntryCard's title register. */
-    font-family: var(--font-display);
-    font-size: var(--type-size-5);
-    line-height: var(--leading-tight);
+    /* Inside a `<Heading level={3}>` — the subheading role owns the type; this class is a
+       plain wrapper for the href, layout + color only. */
     color: var(--text);
     text-decoration: none;
   }
@@ -62,18 +50,14 @@
 
   .blurb {
     max-width: 62ch;
-    font-size: var(--type-size-3);
-    line-height: var(--leading-normal);
     color: var(--text-muted);
   }
 
   .empty {
-    font-size: var(--type-size-4);
     color: var(--text-muted);
   }
 
   .footnote {
-    font-size: var(--type-size-3);
     color: var(--text-muted);
   }
 

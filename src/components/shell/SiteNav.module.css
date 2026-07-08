@@ -56,9 +56,9 @@
 
   .brand {
     font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     font-size: var(--type-size-6);
-    letter-spacing: -0.02em;
+    letter-spacing: var(--tracking-tight);
     color: var(--text);
     text-decoration: none;
   }
@@ -96,7 +96,7 @@
        active state (below) doesn't shift the row. */
     font-family: var(--font-display);
     font-size: var(--type-size-3);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     color: var(--text-muted);
     text-decoration: none;
     border-bottom: 2px solid transparent;

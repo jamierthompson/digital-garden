@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
 
 import styles from "./page.module.css";
 
@@ -26,13 +28,12 @@ export default async function SystemPage() {
     <>
       <PageTheme seed={themeSeed} />
       <main className={styles.main}>
-        <p className={styles.eyebrow}>colophon</p>
-        <h1 className={styles.title}>System</h1>
-        <p className={styles.lede}>
+        <Heading level={1}>System</Heading>
+        <Text variant="lead" className={styles.lede}>
           The design system behind the garden — the token tiers, the OKLCH color
           engine, the type system, and the stack, documented in the open. This
           page is being written.
-        </p>
+        </Text>
       </main>
     </>
   );

@@ -2,9 +2,9 @@
 @layer components {
   .kicker {
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.14em;
+    font-size: var(--type-size-1);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: var(--tracking-widest);
     text-transform: uppercase;
     color: var(--text-muted);
   }

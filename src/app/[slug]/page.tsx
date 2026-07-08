@@ -7,6 +7,8 @@ import EntryScope from "@/components/entry-scope/EntryScope";
 import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 import RelatedEntries from "@/components/entry/RelatedEntries";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
 import { resolveComponentKey } from "@/lib/resolvers/components";
 import { isNotFound } from "@/lib/resolvers/resolution";
 import type { EntryModule } from "@/entries/types";
@@ -147,8 +149,14 @@ export default async function EntryPage({ params }: EntryPageProps) {
   const article = (
     <article className={styles.article}>
       <header className={styles.header}>
-        <h1 className={styles.title}>{entry.title}</h1>
-        {entry.blurb ? <p className={styles.blurb}>{entry.blurb}</p> : null}
+        <Heading level={1} className={styles.title}>
+          {entry.title}
+        </Heading>
+        {entry.blurb ? (
+          <Text variant="lead" className={styles.blurb}>
+            {entry.blurb}
+          </Text>
+        ) : null}
       </header>
       {entry.body ? <EntryBody value={entry.body} scope={scope} /> : null}
     </article>

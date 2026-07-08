@@ -37,13 +37,12 @@ beforeEach(() => {
 });
 
 describe("SystemPage", () => {
-  it("renders the System colophon stub (eyebrow + heading + lede)", async () => {
+  it("renders the System stub (heading + lede)", async () => {
     mockSettings({ system: SYSTEM_SEED });
     render(await SystemPage());
     expect(
       screen.getByRole("heading", { level: 1, name: /system/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/colophon/i)).toBeInTheDocument();
     expect(screen.getByText(/being written/i)).toBeInTheDocument();
   });
 

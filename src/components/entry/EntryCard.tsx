@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
 import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
 import { cardSwatches } from "@/lib/cardSwatches";
 
@@ -42,9 +44,13 @@ export default function EntryCard({ entry }: EntryCardProps) {
 
   const body: ReactNode = (
     <>
-      <h3 className={styles.title}>{title}</h3>
-      {entry.blurb ? <p className={styles.blurb}>{entry.blurb}</p> : null}
-      {meta ? <p className={styles.meta}>{meta}</p> : null}
+      <Heading level={3}>{title}</Heading>
+      {entry.blurb ? <Text className={styles.blurb}>{entry.blurb}</Text> : null}
+      {meta ? (
+        <Text variant="meta" className={styles.meta}>
+          {meta}
+        </Text>
+      ) : null}
     </>
   );
 
