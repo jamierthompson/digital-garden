@@ -15,16 +15,13 @@ describe("space()", () => {
     expect(space(6)).toBe("var(--space-6)");
   });
 
-  // Contract-vs-runtime: the SpaceStep union blocks off-scale numbers at COMPILE time, but TS
-  // erases at runtime — `space()` has no runtime guard, so a value that slips past the type (an
-  // `as SpaceStep` cast, untyped JS, bad external data) is interpolated verbatim into a
-  // `var(--space-N)` that FOUNDATION.CSS DOES NOT DEFINE. It resolves to an invalid/empty var, so
-  // the consuming `gap` silently collapses to no gap rather than failing loudly. This pins the
-  // current (unguarded) behavior so adding a runtime guard later is a conscious change, not a
-  // silent one — and documents the sharp edge for callers reaching past the type.
+  // `SpaceStep` blocks off-scale numbers at COMPILE time, but TS erases: a value slipping past the
+  // type (an `as SpaceStep` cast, untyped JS, bad external data) is interpolated verbatim into a
+  // `var(--space-N)` foundation.css doesn't define, and the consuming `gap` silently collapses to
+  // no gap. Pinned so adding a runtime guard later is a conscious change, and to flag the edge.
   it("has NO runtime guard: an off-scale value cast past the type yields a nonexistent token", () => {
-    expect(space(0 as SpaceStep)).toBe("var(--space-0)"); // --space-0 was intentionally dropped
-    expect(space(10 as SpaceStep)).toBe("var(--space-10)"); // --space-10 was intentionally dropped
+    expect(space(0 as SpaceStep)).toBe("var(--space-0)"); // --space-0 is not on the scale
+    expect(space(10 as SpaceStep)).toBe("var(--space-10)"); // --space-10 is not on the scale
     expect(space(-1 as SpaceStep)).toBe("var(--space--1)"); // structurally malformed token name
     expect(space(2.5 as SpaceStep)).toBe("var(--space-2.5)"); // non-integer, no such step
     expect(space(NaN as unknown as SpaceStep)).toBe("var(--space-NaN)");

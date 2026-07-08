@@ -8,16 +8,12 @@ import { buildTokenSet, tokenSetToDeclarations } from "@garden/oklch";
 /**
  * Guards for the fallback theme + cascade statement in `src/styles/foundation.css`.
  *
- * The `:root` semantic color tokens are the COMPLETE engine token set from the engine's own
- * fallback seed (`buildTokenSet(undefined)`) baked as static `light-dark()` literals — the same
- * derivation every seeded page uses, so a surface with no `<html>` theme (404 / error / loading +
- * chrome) renders a full, coherent engine theme. This suite is the executable RECEIPT: it
- * re-derives the engine fallback and asserts the baked block matches it EXACTLY — every engine
- * token present with the engine's value, and no extra hand-authored semantic color token. So a
- * drift (an engine change) or a hand-edit goes red instead of silently shipping a stale or
- * hand-picked value; #161's hand-authored status literals are gone (status is now engine-solved).
- * Contrast is owned by the engine's own suite — matching its output transitively guarantees it.
- * Also pins that the neutral ramp is gone and the `@layer` order is right (now `brand`-free).
+ * The `:root` semantic color tokens are the COMPLETE engine token set from the engine's fallback
+ * seed (`buildTokenSet(undefined)`) baked as static `light-dark()` literals. This suite is the
+ * executable RECEIPT: it re-derives the engine fallback and asserts the baked block matches it
+ * EXACTLY — every engine token present with the engine's value, and no extra hand-authored color
+ * token — so an engine change or a hand-edit goes red instead of silently shipping a stale value.
+ * Contrast is owned by the engine's own suite; matching its output transitively guarantees it.
  *
  * Resolve the sheet from the repo root (vitest's cwd); jsdom gives `import.meta.url` a
  * non-file scheme, so a file-URL resolution can't be used here.
@@ -72,10 +68,10 @@ describe("foundation.css :root fallback IS the engine's complete fallback token 
 });
 
 describe("foundation.css color is engine-derived, not hand-authored", () => {
-  it("solves the status tokens through the engine — no hand-authored hex (closes #161)", () => {
+  it("solves the status tokens through the engine — no hand-authored hex", () => {
     for (const t of ["--success", "--error", "--warning", "--info"]) {
       expect(SHEET_DECLS[t]).toBe(ENGINE_DECLS[t]);
-      // Engine output is `oklch()`, never the old hand-picked hex literals.
+      // Engine output is `oklch()`, not hex.
       expect(SHEET_DECLS[t]).toContain("oklch(");
       expect(SHEET_DECLS[t]).not.toMatch(/#[0-9a-f]{3,8}/i);
     }
@@ -87,13 +83,10 @@ describe("foundation.css color is engine-derived, not hand-authored", () => {
     ).toBe(false);
   });
 
-  // The forward guards above pin engine ⊆ sheet (every engine token present + valued correctly).
-  // They do NOT pin the REVERSE (sheet-color ⊆ engine) — yet this suite's own header claims "no
-  // extra hand-authored semantic color token" gets caught. Without this, a hand-authored color
-  // token smuggled into `:root` (a re-introduced #161-style status hex, a bespoke `--brand-x`)
-  // would ship un-caught: it isn't in `ENGINE_TOKENS`, so no forward `it` ever looks at it. This
-  // closes that gap — every color-valued declaration in the sheet MUST be an engine token, so the
-  // color surface is a strict bijection with `buildTokenSet(undefined)`, never a superset.
+  // Forward guards pin engine ⊆ sheet. This pins the REVERSE: a hand-authored color token
+  // smuggled into `:root` isn't in `ENGINE_TOKENS`, so no forward `it` looks at it. Requiring
+  // every color-valued declaration to be an engine token makes the color surface a strict
+  // bijection with `buildTokenSet(undefined)`, never a superset.
   it("carries NO color-valued token beyond the engine set (reverse guard: no hand-authored color can hide)", () => {
     const engineTokens = new Set(ENGINE_TOKENS);
     const sheetColorTokens = Object.entries(SHEET_DECLS)
@@ -112,10 +105,9 @@ describe("foundation.css color is engine-derived, not hand-authored", () => {
   });
 });
 
-// The base `h1`–`h6` element rule is the ONE place headings bind the display face — it supersedes
-// #147, which patched that omission on a single title. With the family declared once here, the
-// per-module drift #147 guarded against (a heading forgetting `--font-display` and inheriting the
-// body serif) is impossible by construction, so this replaces the old two-`.title` anti-drift test.
+// The base `h1`–`h6` element rule is the ONE place headings bind the display face. Declared once
+// here, the drift it guards against — a heading forgetting `--font-display` and inheriting the
+// body serif — is impossible by construction.
 describe("foundation.css base heading element rule", () => {
   // Strip comments so a `--font-display` mention in prose can't satisfy the assertion.
   const CODE = SHEET.replace(/\/\*[\s\S]*?\*\//g, "");
@@ -133,13 +125,13 @@ describe("foundation.css base heading element rule", () => {
 
 // The `@layer` statement is load-bearing: it fixes cascade priority lowest-first (`components`
 // last = strongest). `check-css-layers.mjs` only proves every rule is INSIDE some layer, so it
-// would not catch a reordering or a stale `brand` (the deleted slot machinery's layer).
+// would not catch a reordering or a stray `brand`/`project` layer.
 describe("foundation.css @layer order statement", () => {
   it("declares the three layers lowest-first: foundation, semantic, components", () => {
     expect(SHEET).toContain("@layer foundation, semantic, components;");
   });
 
-  it("no longer names the retired `brand` or `project` layer in the statement", () => {
+  it("excludes the `brand` and `project` layers from the statement", () => {
     expect(SHEET).not.toContain(
       "@layer foundation, semantic, brand, components;",
     );
