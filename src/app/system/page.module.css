@@ -19,7 +19,6 @@
   }
 
   .title {
-    font-family: var(--font-display);
     font-size: var(--text-4xl);
     line-height: var(--leading-tight);
     letter-spacing: -0.02em;

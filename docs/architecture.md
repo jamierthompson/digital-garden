@@ -413,6 +413,86 @@ any _specific_ project's scope. It ships its own defaults and reads generic sema
 
 ---
 
+## Layout primitives
+
+Layout is composed from small, content-agnostic primitives that own **one** structural concern
+(column flow, a row, a frame) and nothing else. They read the ambient space scale and never care
+what they hold, so a page expresses layout by composing primitives rather than hand-writing
+margins per component.
+
+### The conduit + typed-accessor pattern
+
+A primitive takes its spacing as a **prop** and passes it **straight through to an inline CSS
+custom property** — it does not compute a style. This "conduit" indirection is deliberate: because
+the value lands as a custom property the CSS reads, a container query or a future
+`@garden/type`-style derivation engine (a planned sibling to the OKLCH color engine) can override
+it in CSS **without touching the call site**. The prop accepts any CSS length string, so an engine-derived `clamp()`
+passes through unchanged.
+
+Type safety comes from a **typed accessor**, not from constraining the prop:
+
+- `src/lib/tokens.ts` exports `space(step)` → `"var(--space-<step>)"`, with `step` constrained at
+  compile time to the real scale (`SpaceStep = 1…9`). `space(6)` is how a caller names a step
+  without hand-writing `var(--space-6)` and without being able to pick an off-scale number.
+- The module is **dependency-free and side-effect-free** (mirroring `src/lib/keys.ts`): a token
+  contract the app — or the standalone Studio — can import without pulling in app code. It only
+  _names_ the steps; the scale **values** live in `foundation.css` (`@layer foundation`).
+- The prop itself stays a plain `string`, so the escape hatch (a raw token, an engine `clamp()`)
+  is always open; `space()` is the ergonomic, guarded default, not a gate.
+
+The primitive writes its token onto the shared `style` channel, so a caller's `style` is **merged
+deliberately** — token first, caller's `style` last — and an explicit caller override wins.
+
+### The space scale & semantic roles
+
+Two layers, matching the token architecture:
+
+| Layer                | Tokens                                                     | Role                                                                                                                                                                                                                           |
+| -------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Foundation** scale | `--space-1 … --space-9` (`foundation.css`)                 | raw steps on a 4px grid (`0.25rem … 6rem`). No `0` step (use a smaller step or none); a step past `--space-9` is appended when something needs it. Radix/Tailwind-parity 1–9.                                                  |
+| **Semantic** roles   | `--space-{inset,gutter,stack,cluster}` (`@layer semantic`) | the thin layer of **named** structural spacing primitives and templates read, so a page expresses _intent_ ("inset", "gutter") over a magnitude. Each aliases a foundation step — retune one alias to reflow the whole system. |
+
+The semantic roles are deliberately few — space, unlike color, needs only a handful (the raw scale
+covers the rest):
+
+| Role              | Aliases     | Meaning                                                  |
+| ----------------- | ----------- | -------------------------------------------------------- |
+| `--space-inset`   | `--space-5` | padding _inside_ a container / card / panel              |
+| `--space-gutter`  | `--space-6` | the page frame's inline breathing room (edge padding)    |
+| `--space-stack`   | `--space-4` | default vertical rhythm between stacked blocks           |
+| `--space-cluster` | `--space-3` | gap between inline items in a wrapping row (meta, chips) |
+
+The planned `@garden/type`-style derivation would later _back_ these same names — so components
+and templates commit to the **role names now**, and the values become derived later without a
+call-site change.
+
+### `Stack`
+
+The vertical-rhythm primitive (`src/components/layout/Stack.tsx`): lays its children in a column
+with one consistent gap and owns nothing else.
+
+- **`gap?: string`** — the column gap, passed through the `--stack-gap` conduit. Omit for the
+  default rhythm (the `--space-stack` semantic role). Use `space(n)` to name a step.
+- **`asChild?: boolean`** — render the single child instead of a wrapping `<div>` (Radix `Slot`),
+  merging the stack's class + token onto it — e.g. `<Stack asChild><ul>…</ul></Stack>` to stack
+  real list items with no extra wrapper.
+- Extends the intrinsic `<div>` props (`React.ComponentPropsWithRef<"div">`), so every native
+  attribute, a `ref` (forwarded to the underlying element — or, under `asChild`, the child via
+  Radix `Slot`), and a caller `style`/`className` compose.
+
+Its CSS Module is `@layer components` and strictly var-consuming: `gap: var(--stack-gap,
+var(--space-stack))` — the conduit prop wins when set, the semantic role is the default.
+
+```tsx
+import Stack from "@/components/layout/Stack";
+import { space } from "@/lib/tokens";
+
+<Stack gap={space(6)}>…</Stack>          // named scale step
+<Stack asChild><ul>…</ul></Stack>        // no wrapper; default --space-stack rhythm
+```
+
+---
+
 ## Entry modules
 
 ### Structure

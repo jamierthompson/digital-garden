@@ -1,10 +1,9 @@
 /* Index route. @layer components — declares its layer (an unlayered module outranks every
    layered rule); var-consuming only (global editorial semantic tokens, no per-entry brand). */
 @layer components {
+  /* Column flow + gap are owned by the `Stack` primitive wrapping `<main>` (asChild); this rule
+     keeps only the page frame — width, centering, padding. */
   .main {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
     max-width: var(--width-content);
     margin: 0 auto;
     padding: var(--space-8) var(--space-5);
@@ -44,10 +43,8 @@
     border-bottom: 1px solid var(--border);
   }
 
+  /* Column flow + gap are owned by the `Stack` primitive wrapping the `<ul>` (asChild). */
   .list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-5);
     list-style: none;
     padding: 0;
   }
@@ -66,6 +63,9 @@
   }
 
   .itemLink {
+    /* An entry-title link, not a heading element — opts into the display face explicitly (the
+       base h1–h6 rule can't reach an `<a>`), matching EntryCard's title register and /now. */
+    font-family: var(--font-display);
     font-size: var(--text-xl);
     line-height: var(--leading-tight);
     color: var(--text);

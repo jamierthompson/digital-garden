@@ -1,27 +1,16 @@
-/* Foundation tier (global, house-style, non-themeable) — the base of the token model
-   (foundation primitives → semantic role tokens → per-slot brand font override).
-   Loaded before every other sheet so the cascade-layer order is established first. */
-
-/* Cascade order: foundation < semantic < components. Declaring it up front means later sheets
-   slot into named layers instead of fighting source order / specificity.
-   - foundation: raw primitives (scales, focus geometry, layout measures) + resets.
-   - semantic:   the generic role-token contract components read (`--surface`, `--text`,
-                 `--accent`, `--font-face`, …). Every route stamps its authored theme on
-                 `<html>` imperatively (see `PageTheme`), which out-ranks this layer; the values
-                 here are the neutral fallback for surfaces that render un-themed.
-   - components: every component's own var-consuming rules (routes, shell, ui, entry modules).
-   An entry's brand font scopes to its own slot via an inline style on `[data-entry]`
-   (`EntryScope`), not a cascade layer. Every CSS Module must opt into one of these layers (or
-   stay var-consuming). */
+/* Foundation tier — the base of the token model (foundation primitives → semantic role tokens →
+   per-slot brand font override). Loaded before every other sheet so the cascade order is set
+   first: foundation < semantic < components. Declaring it up front means later sheets slot into
+   named layers instead of fighting source order / specificity. Every CSS Module must opt into a
+   layer or stay strictly var-consuming — an unlayered rule out-ranks every layered one (the
+   "@layer trap"). That trap is also why the primitives below sit inside @layer foundation. */
 @layer foundation, semantic, components;
 
-/* Primitives live INSIDE @layer foundation — an unlayered :root would out-rank every
-   layered re-declaration (the "@layer trap"); keeping them layered means a future layered
-   token can override a primitive predictably. */
 @layer foundation {
   :root {
-    /* Spacing ramp (rem-based, 0.25rem step) */
-    --space-0: 0;
+    /* Space scale — a 4px grid (0.25rem base), steps 1–9 (Radix/Tailwind-parity). Read directly
+       for arbitrary spacing, or via the semantic roles below for structural spacing. No `0` step
+       (use a literal `0`); a step past `--space-9` is added when something needs it. */
     --space-1: 0.25rem;
     --space-2: 0.5rem;
     --space-3: 0.75rem;
@@ -31,7 +20,6 @@
     --space-7: 3rem;
     --space-8: 4rem;
     --space-9: 6rem;
-    --space-10: 8rem;
 
     /* Type scale (modular, 1.25 major third on a 1rem base) */
     --type-ratio: 1.25;
@@ -53,17 +41,11 @@
     --duration-base: 200ms;
     --duration-slow: 320ms;
 
-    /* Layout measures — house-style content-frame widths, read directly by route/shell
-       modules instead of hand-picking a per-route `max-width`, so a single shared measure
-       keeps the nav wordmark aligned with the hero. Foundation
-       primitives like the spacing/type ramps: dimensional, house-style, NOT brand-themeable
-       (a brand slot re-binds color/font, never the page frame). Ordered by content density:
-       - --width-prose:   narrow pure-reading column (about, system).
-       - --width-text:    reading page with a little more room (entry pages, now).
-       - --width-content: the default modern page frame + the shell nav (home, index) — the
-                          two share ONE token so their edges align.
-       Inline reading measures (a paragraph's `max-width: NNch`) stay per-element — they cap
-       line length for that block, a different job from the page frame. */
+    /* Layout measures — content-frame widths, read directly by route/shell modules (not a
+       per-route `max-width`), ordered by content density. NOT brand-themeable — a brand slot
+       re-binds color/font, never the page frame. Home/index and the shell nav share
+       `--width-content` so their edges align. Inline reading measures (a paragraph's
+       `max-width: NNch`) stay per-element — a different job from the page frame. */
     --width-prose: 42rem;
     --width-text: 48rem;
     --width-content: 72rem;
@@ -76,33 +58,40 @@
     --z-popover: 500;
     --z-toast: 600;
 
-    /* Focus-ring geometry only — the ring COLOR is a semantic token (`--focus-ring-color`,
-     bound in @layer semantic below). */
+    /* Focus-ring geometry only — the ring COLOR is the `--focus-ring-color` semantic token. */
     --focus-ring-width: 2px;
     --focus-ring-offset: 2px;
     --focus-ring-style: solid;
   }
 }
 
-/* Semantic tier — the generic role-token contract every component reads. Every route stamps
-   its authored theme imperatively on `<html>` (see `PageTheme`), which out-ranks this `:root`;
-   the color values here are the FALLBACK THEME — the full engine token set from the engine's own
-   fallback seed — for the surfaces that render with no page theme (404 / error / loading + the
-   persistent chrome around them, which never mount a `<PageTheme>`). `light-dark()` makes each
-   role scheme-aware, following `color-scheme`. */
+/* Semantic space roles — the thin layer of NAMED structural spacing primitives and templates
+   read, so a page expresses intent ("inset", "gutter") rather than a magnitude. Each aliases a
+   foundation step; retune here to reflow the whole system at once. */
+@layer semantic {
+  :root {
+    /* padding INSIDE a container / card / panel */
+    --space-inset: var(--space-5);
+    /* the page frame's inline breathing room (edge padding) */
+    --space-gutter: var(--space-6);
+    /* default vertical rhythm between stacked blocks */
+    --space-stack: var(--space-4);
+    /* gap between inline items in a wrapping row (meta, chips) */
+    --space-cluster: var(--space-3);
+  }
+}
+
+/* Semantic tier — the generic role-token contract every component reads. A route stamps its
+   authored theme imperatively on `<html>` (`PageTheme`), which out-ranks this `:root`; the values
+   here are the FALLBACK THEME for surfaces that render with no page theme (404 / error / loading +
+   the chrome around them). `light-dark()` makes each role scheme-aware, following `color-scheme`. */
 @layer semantic {
   :root {
     color-scheme: light dark;
 
-    /* The complete engine token set derived from the engine's own fallback seed color
-       (`buildTokenSet(undefined)` → the FULL semantic tier, both schemes via `light-dark()`),
-       baked as static literals. This is the SAME derivation path every seeded page uses, just
-       with the canonical fallback seed as input — so an un-themed surface (404 / error / loading,
-       or any page with no `<html>` seed of its own) renders a complete, coherent engine theme,
-       structurally identical to a seeded page, not a special minimal case. A themed route's
-       `<html>` imperative write out-ranks this `:root`. Engine-derived, never hand-picked —
-       status tokens are solved by the engine, not hand-authored hex;
-       `foundation.test.ts` pins the whole block against the live engine output so drift goes red. */
+    /* Engine-derived, never hand-picked: the full token set from the engine's fallback seed
+       (`buildTokenSet(undefined)`, both schemes), baked as static literals via the same path a
+       seeded page uses. `foundation.test.ts` pins this block against live engine output. */
     --bg: light-dark(oklch(0.9823 0.0097 235.77), oklch(0.165 0.045 264));
     --surface: light-dark(oklch(0.958 0.0198 263.78), oklch(0.21 0.045 264));
     --surface-2: light-dark(oklch(0.9296 0.0336 263.04), oklch(0.26 0.045 264));
@@ -192,13 +181,11 @@
     /* Alias the foundation `:focus-visible` reads (see @layer foundation). */
     --focus-ring-color: var(--focus-ring);
 
-    /* Global editorial typography — the site-wide house faces, mounted on <html> by the root
-       layout, each with a system fallback stack. NON-themeable page chrome:
-       - --font-face    body / long-form serif (Source Serif 4).
-       - --font-display headings, the `folio_` logo, and nav (Space Grotesk).
-       - --font-mono    metadata + token readouts (JetBrains Mono).
-       An entry's brand `fontKey` overrides `--font-face` in its OWN interactive slot only (an
-       inline style on `[data-entry]`, see `EntryScope`); the page chrome is never brand-scoped. */
+    /* Global editorial typography — the house faces, mounted on <html> by the root layout, each
+       with a system fallback stack: --font-face body serif, --font-display headings/nav/logo,
+       --font-mono metadata + token readouts. An entry's brand `fontKey` overrides `--font-face`
+       in its OWN slot only (inline style on `[data-entry]`, `EntryScope`); chrome is never
+       brand-scoped. */
     --font-face: var(--font-source-serif-4), Georgia, "Times New Roman", serif;
     --font-display:
       var(--font-space-grotesk), "Helvetica Neue", Arial, sans-serif;
@@ -222,6 +209,20 @@
   body {
     min-height: 100%;
     line-height: var(--leading-normal);
+  }
+
+  /* Headings default to the display face — the ONE place the split is applied to headings, so a
+     new heading is correct by construction with no per-module `font-family` to remember. A brand
+     slot re-binds only `--font-face`, never `--font-display`, so headings stay in the shell face
+     in or out of a slot. A surface that wants a different heading face (e.g. the mono readout
+     cards) overrides in its own `@layer components`. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
   }
 
   img,

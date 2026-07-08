@@ -1,0 +1,10 @@
+/* Stack — vertical rhythm primitive. @layer components, strictly var-consuming.
+   Owns column flow + one gap; the gap defaults to the semantic `--space-stack` role and is
+   overridden by the `--stack-gap` custom property the component sets from its `gap` prop. */
+@layer components {
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--stack-gap, var(--space-stack));
+  }
+}
