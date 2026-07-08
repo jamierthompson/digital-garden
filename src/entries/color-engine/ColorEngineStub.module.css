@@ -1,0 +1,8 @@
+/* Placeholder for the removed Color Engine demo. @layer components, strictly var-consuming. */
+@layer components {
+  .placeholder {
+    padding: var(--space-7) var(--space-inset);
+    text-align: center;
+    color: var(--text-muted);
+  }
+}

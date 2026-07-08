@@ -1,21 +1,18 @@
-// Registry entry for the Color Engine entry module (#70). Resolved by the LITERAL dynamic import in
-// `src/lib/resolvers/components.ts` keyed off `componentKey: "color-engine"`; its default
-// export satisfies the `EntryModule` contract.
+// Registry entry for the Color Engine entry module. Resolved by the LITERAL dynamic import in
+// `src/lib/resolvers/components.ts` keyed off `componentKey: "color-engine"`; its default export
+// satisfies the `EntryModule` contract.
 //
-// The Color Engine is a prose-less wide canvas: it composes as ONE `Experience` —
-// `ColorEngineExperience` mounts the shared-state `ColorEngineProvider` around the `ColorEngineCanvas` grid,
-// which lays every surface (seed, rules, cards, glossary, export, the harmony region)
-// out in one named-area CSS grid. `layout: "wide"` asks the `/[slug]` route for a
-// screen-filling page. The module themes off the ambient entry scope; the palette it GENERATES
-// is data (swatches, receipts, exports), never the module's own chrome.
+// The interactive demo was removed so the design-system foundation could be rebuilt first (its
+// cards carried pre-foundation type literals). The `componentKey` stays registered so the
+// published entry still resolves — to the placeholder below — and the tool is rebuilt on the new
+// foundation under the template epics.
 
 import type { EntryModule } from "@/entries/types";
 
-import ColorEngineExperience from "./ColorEngineExperience";
+import ColorEngineStub from "./ColorEngineStub";
 
 const colorEngine: EntryModule = {
-  Experience: ColorEngineExperience,
-  layout: "wide",
+  Experience: ColorEngineStub,
 };
 
 export default colorEngine;
