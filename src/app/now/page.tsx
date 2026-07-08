@@ -55,65 +55,69 @@ export default async function NowPage() {
   return (
     <>
       <PageTheme seed={themeSeed} />
-      <main className={styles.main}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>Now</h1>
-          <p className={styles.intro}>
-            What I&apos;m focused on at the moment. Newest first.
+      <Stack asChild gap={space(6)}>
+        <main className={styles.main}>
+          <header className={styles.header}>
+            <h1 className={styles.title}>Now</h1>
+            <p className={styles.intro}>
+              What I&apos;m focused on at the moment. Newest first.
+            </p>
+          </header>
+
+          {updates.length === 0 ? (
+            <p className={styles.empty}>
+              No now-updates yet — check back soon.
+            </p>
+          ) : (
+            <Stack asChild gap={space(6)}>
+              <ul className={styles.list}>
+                {updates.map((update) => {
+                  const date = formatDate(update.iterated);
+                  return (
+                    <li key={update._id} className={styles.item}>
+                      {date ? (
+                        <time
+                          className={styles.date}
+                          dateTime={update.iterated ?? undefined}
+                        >
+                          {date}
+                        </time>
+                      ) : null}
+                      {update.slug ? (
+                        <Link
+                          href={`/${update.slug}`}
+                          className={styles.itemTitle}
+                        >
+                          {update.title ?? "Untitled update"}
+                        </Link>
+                      ) : (
+                        <span className={styles.itemTitle}>
+                          {update.title ?? "Untitled update"}
+                        </span>
+                      )}
+                      {update.blurb ? (
+                        <p className={styles.blurb}>{update.blurb}</p>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </Stack>
+          )}
+
+          <p className={styles.footnote}>
+            This is a{" "}
+            <a
+              className={styles.link}
+              href="https://nownownow.com/about"
+              rel="noopener noreferrer"
+            >
+              now page
+            </a>
+            , and you could make one too.
           </p>
-        </header>
-
-        {updates.length === 0 ? (
-          <p className={styles.empty}>No now-updates yet — check back soon.</p>
-        ) : (
-          <Stack asChild gap={space(6)}>
-            <ul className={styles.list}>
-              {updates.map((update) => {
-                const date = formatDate(update.iterated);
-                return (
-                  <li key={update._id} className={styles.item}>
-                    {date ? (
-                      <time
-                        className={styles.date}
-                        dateTime={update.iterated ?? undefined}
-                      >
-                        {date}
-                      </time>
-                    ) : null}
-                    {update.slug ? (
-                      <Link
-                        href={`/${update.slug}`}
-                        className={styles.itemTitle}
-                      >
-                        {update.title ?? "Untitled update"}
-                      </Link>
-                    ) : (
-                      <span className={styles.itemTitle}>
-                        {update.title ?? "Untitled update"}
-                      </span>
-                    )}
-                    {update.blurb ? (
-                      <p className={styles.blurb}>{update.blurb}</p>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
-          </Stack>
-        )}
-
-        <p className={styles.footnote}>
-          This is a{" "}
-          <a
-            className={styles.link}
-            href="https://nownownow.com/about"
-            rel="noopener noreferrer"
-          >
-            now page
-          </a>
-          , and you could make one too.
-        </p>
-      </main>
+        </main>
+      </Stack>
     </>
   );
 }
