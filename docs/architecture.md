@@ -418,7 +418,7 @@ any _specific_ project's scope. It ships its own defaults and reads generic sema
 Layout is composed from small, content-agnostic primitives that own **one** structural concern
 (column flow, a row, a frame) and nothing else. They read the ambient space scale and never care
 what they hold, so a page expresses layout by composing primitives rather than hand-writing
-margins per component. The first is `Stack`; the family grows under one shared API pattern.
+margins per component.
 
 ### The conduit + typed-accessor pattern
 
