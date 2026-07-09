@@ -47,7 +47,7 @@ export type ComponentKey = (typeof COMPONENT_KEYS)[number];
 
 /**
  * Embed keys — in-essay live components / widgets, resolved in
- * `src/lib/resolvers/embeds.ts`. The registry starts single-tier; a
+ * `src/lib/resolvers/embeds.ts`. The registry starts single-tier; an
  * entry-local tier is added only on a genuine second use.
  *
  * The `color-engine-*` keys are the Color Engine's slots (#131): the Color Engine composes

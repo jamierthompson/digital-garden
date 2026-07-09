@@ -29,7 +29,7 @@ studio are all deliberately out of scope here).
   Radix-style numeric ramp (`--type-size-1 … --type-size-N`, 1 = smallest, the base at
   `baseIndex`). This is the flexible foundation: a demo reaches any step directly, or imports the
   engine to compute a bespoke scale. Semantic ROLES (`heading`/`body`/…) are the **app's** layer —
-  the app binds a role to a step (`--type-heading-size: var(--type-size-8)`) and applies it via the
+  the app binds a role to a step (`--type-heading-size: var(--type-size-6)`) and applies it via the
   `Heading`/`Text` primitives. The engine has no role vocabulary, so the app adds/renames/drops
   roles without touching it.
 - **Never throws.** A bad field falls the whole config back to `DEFAULT_CONFIG` and flags
