@@ -11,24 +11,17 @@ import { describe, expect, it } from "vitest";
  */
 
 /**
- * Guards the load-bearing global-CSS import order in `layout.tsx` (foundation.css imported first).
+ * Guards the load-bearing global-CSS import order in `layout.tsx`.
  *
- * The global stylesheets (`foundation.css`, which declares
- * `@layer foundation, semantic, brand, components;`) MUST be imported before `next/font` and the
- * component imports. Turbopack anchors the route's first emitted stylesheet to whatever
- * is imported first; if a `next/font`/component-module chunk loads first, the browser
- * registers `@layer components` as the lowest cascade layer and the foundation reset
- * out-ranks every component rule — the cascade inversion that zeroes component padding/margin.
- *
- * This is a SOURCE-ORDER invariant with no runtime API to assert against (the harm only
- * shows in the bundled CSS / live browser), so we pin it at the source: the foundation/
- * globals imports must appear textually before the `next/font` import. If someone reorders
- * the imports — or enables an import-sorter that does — this fails loudly in the gate
- * rather than silently reintroducing the inversion.
+ * `layers.css` declares `@layer foundation, semantic, components;` and MUST be the first
+ * side-effect import; every `../styles/…` sheet MUST precede `next/font` and the component
+ * imports. Turbopack anchors the route's first emitted stylesheet to whatever is imported first;
+ * if a `next/font`/component-module chunk loads first, the browser registers `@layer components`
+ * as the lowest cascade layer and the foundation reset out-ranks every component rule — the
+ * cascade inversion that zeroes component padding/margin. A SOURCE-ORDER invariant with no runtime
+ * API to assert against, so pinned at the source.
  */
 describe("layout.tsx global-CSS import order", () => {
-  // Resolve from the repo root (vitest's cwd) — jsdom gives `import.meta.url` an
-  // http: scheme, so a file-URL resolution can't be used here.
   const source = readFileSync(
     resolve(process.cwd(), "src/app/layout.tsx"),
     "utf8",
@@ -42,35 +35,46 @@ describe("layout.tsx global-CSS import order", () => {
 
   const nextFont = indexOfImport('from "next/font/google"');
 
-  it("imports foundation.css before next/font", () => {
-    expect(indexOfImport('import "../styles/foundation.css"')).toBeLessThan(
-      nextFont,
-    );
+  // Every `../styles/…` side-effect import, in first-seen order.
+  const styleImports = [
+    ...source.matchAll(/^import\s+["'](\.\.\/styles\/[^"']+)["'];?$/gm),
+  ].map((m) => m[1]);
+
+  it("imports the layer, reset, and color sheets at minimum", () => {
+    expect(styleImports).toContain("../styles/layers.css");
+    expect(styleImports).toContain("../styles/reset.css");
+    expect(styleImports).toContain("../styles/semantic/color.css");
   });
 
-  it("imports globals.css before next/font", () => {
-    expect(indexOfImport('import "./globals.css"')).toBeLessThan(nextFont);
+  it("imports every style sheet before next/font", () => {
+    for (const sheet of styleImports) {
+      expect(
+        indexOfImport(`import "${sheet}"`),
+        `${sheet} must precede next/font`,
+      ).toBeLessThan(nextFont);
+    }
   });
 
-  it("imports the global sheets before every component import", () => {
-    const foundation = indexOfImport('import "../styles/foundation.css"');
-    // The first aliased component/module import in the file.
+  it("imports every style sheet before the first component import", () => {
     const firstComponent = indexOfImport('from "@/components/');
-    expect(foundation).toBeLessThan(firstComponent);
+    for (const sheet of styleImports) {
+      expect(
+        indexOfImport(`import "${sheet}"`),
+        `${sheet} must precede the first component`,
+      ).toBeLessThan(firstComponent);
+    }
   });
 
-  it("makes foundation.css the first side-effect import — nothing may precede it", () => {
-    // A side-effect import (`import "x"`, no bindings) emits a chunk; the FIRST one
-    // anchors Turbopack's first emitted stylesheet. The named checks above only guard
-    // the imports they mention, so a future side-effect import on ANY other path (e.g.
-    // `import "@/sanity/lib/queries"`) could slip above foundation.css and reinvert the
-    // cascade without tripping them. Pin the first bare import explicitly. (Type-only
-    // and binding imports are erased / don't emit a leading CSS chunk, so they're fine.)
+  it("makes layers.css the first side-effect import — nothing may precede it", () => {
+    // The FIRST bare import anchors Turbopack's first emitted stylesheet AND must carry the
+    // `@layer` order statement (layers.css). A side-effect import on any other path slipping
+    // above it would reinvert the cascade. (Type-only / binding imports emit no leading CSS
+    // chunk, so they're fine.)
     const firstSideEffect = source.match(/^import\s+["']([^"']+)["'];?\s*$/m);
     expect(
       firstSideEffect?.[1],
       "expected a side-effect import in layout.tsx",
-    ).toBe("../styles/foundation.css");
+    ).toBe("../styles/layers.css");
   });
 });
 

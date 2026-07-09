@@ -1,0 +1,26 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import { describe, expect, it } from "vitest";
+
+/**
+ * The base `h1`–`h6` rule is the ONE place headings bind the display face. Pinned here so the drift
+ * it guards — a heading forgetting `--font-display` and inheriting the body serif — is impossible.
+ */
+const CODE = readFileSync(
+  resolve(process.cwd(), "src/styles/reset.css"),
+  "utf8",
+).replace(/\/\*[\s\S]*?\*\//g, "");
+
+describe("reset.css base heading element rule", () => {
+  const headingRule = CODE.match(
+    /h1,\s*h2,\s*h3,\s*h4,\s*h5,\s*h6\s*\{([^}]*)\}/,
+  );
+
+  it("binds --font-display on h1–h6", () => {
+    expect(headingRule).not.toBeNull();
+    expect(/font-family:\s*var\(--font-display\)/.test(headingRule![1])).toBe(
+      true,
+    );
+  });
+});

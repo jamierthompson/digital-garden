@@ -31,7 +31,7 @@ describe("next.config — Lightning CSS keeps light-dark() native", () => {
     // including a commented-out or otherwise inert line. Assert the actual EVALUATED config
     // value, which only passes when the setting is really in effect.
     it("the evaluated config actually carries the exclude (not just the source text)", async () => {
-      const mod = (await import("../../next.config")) as {
+      const mod = (await import("./next.config")) as {
         default: {
           experimental?: { lightningCssFeatures?: { exclude?: string[] } };
         };

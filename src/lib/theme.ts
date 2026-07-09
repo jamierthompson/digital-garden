@@ -45,7 +45,7 @@ export type ThemeDeclaration = [property: string, value: string];
  * Derive a page's semantic custom-property declarations from its authored brand seed. A thin
  * wrapper over the engine: `buildTokenSet` (contrast-solved, gamut-mapped, both schemes zipped
  * into `light-dark()`, never throws) + `tokenSetToDeclarations` (the generic `--surface`…
- * `--success` semantic tier — the same role names `foundation.css` binds as the editorial
+ * `--success` semantic tier — the same role names `semantic/color.css` binds as the editorial
  * default), parsed into the pairs the imperative appliers stamp. `brandColor` is `unknown`
  * because the seed is authored, untrusted input; the engine collapses anything unparseable to a
  * safe fallback rather than throwing, so this never rejects a bad seed.

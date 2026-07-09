@@ -44,7 +44,7 @@ interface HeadingProps extends React.ComponentPropsWithRef<"h1"> {
 /**
  * Semantic heading primitive — renders the `<hN>` for its `level` and applies a type role, and
  * owns nothing else. The role is chosen by `variant`, or by the level when `variant` is omitted;
- * either way the type comes from the semantic role bundle (`--type-{role}-*` in `foundation.css`),
+ * either way the type comes from the semantic role bundle (`--type-{role}-*` in `semantic/type.css`),
  * whose sizes bind to the `@garden/type` scale steps — the primitive reads only the semantic layer,
  * never a raw `--type-size-*` step. Discrete roles are applied via a `data-*` attribute (the variant
  * mechanism), not the value-conduit the spacing primitives use for continuous lengths. Extends the

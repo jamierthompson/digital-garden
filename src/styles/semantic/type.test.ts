@@ -6,22 +6,14 @@ import { describe, expect, it } from "vitest";
 import { buildTypeScale, typeScaleToDeclarations } from "@garden/type";
 
 /**
- * Guard for the type scale baked into `src/styles/foundation.css`.
- *
- * The `--type-size-1 … N` ramp is the COMPLETE output of `@garden/type`'s default scale, baked as
- * static `clamp()` literals (the global scale is not per-entry runtime-varying, unlike color). This
- * suite is the executable RECEIPT — the same bake-and-guard pattern `foundation.test.ts` uses for
- * color: it re-derives the ramp from the engine and asserts the baked block matches, so a config
- * retune that isn't re-baked (or a hand-edited literal) fails here. The zoom cap / clamp math is
- * owned by the engine's own suite; matching its output transitively guarantees it.
- *
- * It also pins the SEMANTIC layer: each role's size token binds to a `--type-size-*` step (the
- * app-owned binding the engine has no opinion about), and no raw `--text-*` size step survives.
+ * Executable receipt for the type scale + role binding. The `--type-size-*` ramp
+ * (`foundation/typography.css`) is the COMPLETE output of `@garden/type`'s default scale, baked as
+ * `clamp()` literals — re-derived here and asserted to match, so a config retune that isn't
+ * re-baked fails. The semantic role layer (`semantic/type.css`) is app-owned: each role's size
+ * binds to a `--type-size-*` step, which the engine has no opinion about.
  */
-const SHEET = readFileSync(
-  resolve(process.cwd(), "src/styles/foundation.css"),
-  "utf8",
-);
+const read = (rel: string): string =>
+  readFileSync(resolve(process.cwd(), rel), "utf8");
 
 const normalize = (v: string): string =>
   v.trim().replace(/\s+/g, " ").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")");
@@ -35,7 +27,10 @@ function parseDeclarations(css: string): Record<string, string> {
   return decls;
 }
 
-const SHEET_DECLS = parseDeclarations(SHEET);
+const SHEET_DECLS = {
+  ...parseDeclarations(read("src/styles/foundation/typography.css")),
+  ...parseDeclarations(read("src/styles/semantic/type.css")),
+};
 const ENGINE_DECLS = Object.fromEntries(
   typeScaleToDeclarations(buildTypeScale()).map(([prop, value]) => [
     prop,
@@ -44,7 +39,7 @@ const ENGINE_DECLS = Object.fromEntries(
 );
 const RAMP_TOKENS = Object.keys(ENGINE_DECLS);
 
-describe("foundation.css --type-size ramp IS @garden/type's default scale", () => {
+describe("--type-size ramp IS @garden/type's default scale", () => {
   it("parsed a non-trivial sheet and a full ramp (false-green guard)", () => {
     expect(Object.keys(SHEET_DECLS).length).toBeGreaterThan(20);
     expect(RAMP_TOKENS.length).toBe(9); // DEFAULT_CONFIG.stepCount
@@ -65,7 +60,7 @@ describe("foundation.css --type-size ramp IS @garden/type's default scale", () =
   });
 });
 
-describe("foundation.css semantic role layer binds to the ramp", () => {
+describe("semantic role layer binds to the ramp", () => {
   const ROLES = [
     "display",
     "title",
@@ -103,9 +98,5 @@ describe("the Tailwind-named --text-* size scale is gone", () => {
 
   it("--type-ratio (the old hand-tuned derivation knob) is gone", () => {
     expect(SHEET_DECLS["--type-ratio"]).toBeUndefined();
-  });
-
-  it("keeps --text-muted, which is a COLOR token, not a size step", () => {
-    expect(SHEET_DECLS["--text-muted"]).toBeDefined();
   });
 });

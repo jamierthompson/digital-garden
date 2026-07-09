@@ -45,8 +45,11 @@ scripts/
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
     layout.tsx             root layout (shell nav skeleton; shell fonts preload:false)
-  styles/
-    foundation.css         foundation primitives + the semantic neutral fallback + the @layer foundation, semantic, components order
+  styles/                  design-system CSS, split by tier & family
+    layers.css             the @layer foundation, semantic, components order (imported first)
+    reset.css              base reset + element defaults (@layer foundation)
+    foundation/            tier-1 primitives: space · typography · motion · dimension · focus (radius/border/elevation land here)
+    semantic/              tier-2 role tokens components read: space · type · typography · color (baked engine fallback)
   lib/                     resolvers, keys, cardSwatches, breakpoints (build-time, NOT :root vars)
   entries/<slug>/          self-contained entry modules (registry-resolved, literal imports)
   fonts/roster.ts          curated next/font faces, one per key (preload:false)

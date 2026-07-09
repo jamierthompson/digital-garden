@@ -1,0 +1,70 @@
+/* Layered so it can't out-rank the semantic/components tiers (the "@layer trap"): an unlayered
+   create-next-app body rule was flipping the editorial look on soft nav. Body reads the semantic
+   tokens, inherited everywhere. */
+@layer foundation {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    height: 100%;
+  }
+
+  html,
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    font-family: var(--font-face);
+    line-height: var(--leading-normal);
+    color: var(--text);
+    background-color: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* The one place headings get the display face; a brand slot re-binds only --font-face, so
+     headings hold the shell face in or out of a slot. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: var(--focus-ring-width) var(--focus-ring-style)
+      var(--focus-ring-color, currentColor);
+    outline-offset: var(--focus-ring-offset);
+  }
+}

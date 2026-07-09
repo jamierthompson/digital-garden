@@ -218,7 +218,7 @@ The mechanism follows Next's _Preventing flash before hydration → Themes_ patt
 The primitives live in `src/lib/theme.ts` + `src/components/theme/{BrandThemeStyle,ThemeReapplier,PageTheme}`;
 `PageTheme` composes both halves from one seed resolution.
 
-`foundation.css`'s `:root` semantic color tokens are the engine's own fallback token set
+`semantic/color.css`'s `:root` semantic color tokens are the engine's own fallback token set
 (`buildTokenSet(undefined)`) baked as static `light-dark()` literals — the neutral ground for the
 surfaces that render with **no** page theme (404 / error / loading + the chrome around them,
 which never mount a `<PageTheme>`); a themed route's `:root` `<style>` (and the imperative `<html>`
@@ -387,7 +387,7 @@ Shared logic lives in a shared module; the project is a presentation of it.
 ### The type engine
 
 Type follows the same shape as color: a pure, isomorphic engine (`@garden/type`, sibling of
-`@garden/oklch`) whose output is **baked into `foundation.css` and guarded**. Where the color
+`@garden/oklch`) whose output is **baked into `src/styles/semantic/color.css` and guarded**. Where the color
 engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WCAG 1.4.4)**.
 
 - **Size is decoupled from role.** The engine deals only in **scale steps**, not roles. It solves
@@ -403,7 +403,7 @@ engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WC
   (`zoomCapped`) — the analog of the color engine's out-of-gamut flag. Solved, never eyeballed. It
   **never throws** (bad config → default ramp).
 - **Roles are the app's semantic layer, bound to steps.** The engine has no role vocabulary; the
-  app owns it. `foundation.css` binds each role's size to a step —
+  app owns it. `semantic/type.css` binds each role's size to a step —
   `--type-heading-size: var(--type-size-6)` — alongside its family/weight/tracking/leading, so a
   retune moves a role to a different step with no call-site change, and roles can be added or
   dropped without touching the engine. The roles: **display · title · heading · subheading · lead ·
@@ -423,7 +423,7 @@ engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WC
   type _literals_** — every value is a token, snapped to the nearest scale step where a source had
   no exact match.
 - **Bake-and-guard emission.** The global scale is not per-entry runtime-varying (unlike color), so
-  the engine's `--type-size-*` output is baked as `clamp()` literals into `foundation.css`;
+  the engine's `--type-size-*` output is baked as `clamp()` literals into `foundation/typography.css`;
   `typeTokens.test.ts` re-derives the ramp from `@garden/type` and fails on any drift (and pins
   that roles bind to steps, and that the old Tailwind-named `--text-*` scale is gone).
 
@@ -479,7 +479,7 @@ Type safety comes from a **typed accessor**, not from constraining the prop:
   without hand-writing `var(--space-6)` and without being able to pick an off-scale number.
 - The module is **dependency-free and side-effect-free** (mirroring `src/lib/keys.ts`): a token
   contract the app — or the standalone Studio — can import without pulling in app code. It only
-  _names_ the steps; the scale **values** live in `foundation.css` (`@layer foundation`).
+  _names_ the steps; the scale **values** live in `foundation/typography.css` (`@layer foundation`).
 - The prop itself stays a plain `string`, so the escape hatch (a raw token, an engine `clamp()`)
   is always open; `space()` is the ergonomic, guarded default, not a gate.
 
@@ -492,7 +492,7 @@ Two layers, matching the token architecture:
 
 | Layer                | Tokens                                                     | Role                                                                                                                                                                                                                           |
 | -------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Foundation** scale | `--space-1 … --space-9` (`foundation.css`)                 | raw steps on a 4px grid (`0.25rem … 6rem`). No `0` step (use a smaller step or none); a step past `--space-9` is appended when something needs it. Radix/Tailwind-parity 1–9.                                                  |
+| **Foundation** scale | `--space-1 … --space-9` (`foundation/space.css`)           | raw steps on a 4px grid (`0.25rem … 6rem`). No `0` step (use a smaller step or none); a step past `--space-9` is appended when something needs it. Radix/Tailwind-parity 1–9.                                                  |
 | **Semantic** roles   | `--space-{inset,gutter,stack,cluster}` (`@layer semantic`) | the thin layer of **named** structural spacing primitives and templates read, so a page expresses _intent_ ("inset", "gutter") over a magnitude. Each aliases a foundation step — retune one alias to reflow the whole system. |
 
 The semantic roles are deliberately few — space, unlike color, needs only a handful (the raw scale

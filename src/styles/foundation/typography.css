@@ -1,0 +1,34 @@
+/* --type-size-* is baked @garden/type output — regenerate via the engine; guarded by type.test.ts. */
+@layer foundation {
+  :root {
+    --type-size-1: clamp(0.6331rem, 0.7148rem - 0.1022vw, 0.6944rem);
+    --type-size-2: clamp(0.8333rem, 0.8297rem + 0.0178vw, 0.844rem);
+    --type-size-3: clamp(1rem, 0.9583rem + 0.2083vw, 1.125rem);
+    --type-size-4: clamp(1.2rem, 1.1001rem + 0.4993vw, 1.4996rem);
+    --type-size-5: clamp(1.44rem, 1.2537rem + 0.9317vw, 1.999rem);
+    --type-size-6: clamp(1.728rem, 1.4158rem + 1.5612vw, 2.6647rem);
+    --type-size-7: clamp(2.0736rem, 1.5808rem + 2.464vw, 3.552rem);
+    --type-size-8: clamp(2.4883rem, 1.7395rem + 3.7442vw, 4.7348rem);
+    --type-size-9: clamp(2.986rem, 1.8775rem + 5.5425vw, 6.3115rem);
+
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    --tracking-tighter: -0.05em;
+    --tracking-tight: -0.025em;
+    --tracking-normal: 0em;
+    --tracking-wide: 0.025em;
+    --tracking-wider: 0.05em;
+    --tracking-widest: 0.1em;
+
+    --leading-none: 1;
+    --leading-tight: 1.25;
+    --leading-snug: 1.375;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+    --leading-loose: 2;
+  }
+}
