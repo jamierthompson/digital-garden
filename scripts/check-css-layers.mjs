@@ -1,5 +1,5 @@
-// Fails if any CSS under `src/` — CSS Modules AND global sheets alike (globals.css,
-// foundation.css, …) — has a style rule outside an `@layer` block. Next does not
+// Fails if any CSS under `src/` — CSS Modules AND global sheets alike (reset.css and
+// the src/styles token sheets, …) — has a style rule outside an `@layer` block. Next does not
 // auto-layer CSS Modules, and a plain global stylesheet is just as unlayered by
 // default; either way an unlayered rule silently outranks every @layer style
 // regardless of specificity (the "@layer trap"). Wrap rules in the appropriate @layer

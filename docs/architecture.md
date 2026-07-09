@@ -26,7 +26,7 @@ These are the through-lines; everything else follows from them.
 - **The routing layer stays thin.** `src/app/` holds only Next.js route files (`page` / `layout` /
   `route` / … per the App Router file conventions) plus what co-locates with them — their
   `*.test.*`, the private helpers a route file imports (a `route.ts` can't export non-handlers, so
-  RSS's `escapeXml.ts` lives beside it), `*.module.css`, the root `globals.css`, and static assets.
+  RSS's `escapeXml.ts` lives beside it), `*.module.css`, and static assets.
   Real logic and shared components live in `src/` modules; design-system CSS in `src/styles/`. The
   routes wire things together and mount from the source tree — they don't hold the logic. Enforced by
   `pnpm lint:routes` (`scripts/check-app-routes.mjs`), so the drift that manual review kept missing
