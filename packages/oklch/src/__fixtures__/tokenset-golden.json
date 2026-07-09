@@ -1,7 +1,7 @@
 {
   "blue": {
     "tokens": {
-      "bg": {
+      "background": {
         "light": {
           "L": 0.9823053168204964,
           "C": 0.010546032980756187,
@@ -25,7 +25,7 @@
           "H": 259.8145266738871
         }
       },
-      "surface-2": {
+      "surface-elevated": {
         "light": {
           "L": 0.929688797097348,
           "C": 0.03382214507704809,
@@ -37,7 +37,7 @@
           "H": 259.8145266738871
         }
       },
-      "text": {
+      "foreground": {
         "light": {
           "L": 0.29,
           "C": 0.04,
@@ -49,7 +49,7 @@
           "H": 259.7032506925612
         }
       },
-      "text-muted": {
+      "muted-foreground": {
         "light": {
           "L": 0.38,
           "C": 0.04,
@@ -97,7 +97,7 @@
           "H": 256.6344937401143
         }
       },
-      "on-accent": {
+      "accent-foreground": {
         "light": {
           "L": 0.8699519908077861,
           "C": 0.0638899299775993,
@@ -109,7 +109,7 @@
           "H": 260.36719185092636
         }
       },
-      "focus-ring": {
+      "ring": {
         "light": {
           "L": 0.4453100721624302,
           "C": 0.18185269377201435,
@@ -133,7 +133,7 @@
           "H": 27.073264145489723
         }
       },
-      "on-error": {
+      "error-foreground": {
         "light": {
           "L": 0.8296076482006326,
           "C": 0.09469752767287645,
@@ -157,7 +157,7 @@
           "H": 27.578480413108
         }
       },
-      "error-container": {
+      "error-subtle": {
         "light": {
           "L": 0.9488177986014814,
           "C": 0.025726471956513456,
@@ -169,7 +169,7 @@
           "H": 29.2338851923426
         }
       },
-      "on-error-container": {
+      "error-subtle-foreground": {
         "light": {
           "L": 0.49,
           "C": 0.15,
@@ -193,7 +193,7 @@
           "H": 80
         }
       },
-      "on-warning": {
+      "warning-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -217,7 +217,7 @@
           "H": 80.09235921332129
         }
       },
-      "warning-container": {
+      "warning-subtle": {
         "light": {
           "L": 0.9467400562079166,
           "C": 0.06985419263198749,
@@ -229,7 +229,7 @@
           "H": 70.81669735080087
         }
       },
-      "on-warning-container": {
+      "warning-subtle-foreground": {
         "light": {
           "L": 0.49110667114998047,
           "C": 0.10292456408478888,
@@ -253,7 +253,7 @@
           "H": 150
         }
       },
-      "on-success": {
+      "success-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -277,7 +277,7 @@
           "H": 150
         }
       },
-      "success-container": {
+      "success-subtle": {
         "light": {
           "L": 0.9555731295630205,
           "C": 0.0731679354766854,
@@ -289,7 +289,7 @@
           "H": 145.07816109960646
         }
       },
-      "on-success-container": {
+      "success-subtle-foreground": {
         "light": {
           "L": 0.49167771184878256,
           "C": 0.13812355755518027,
@@ -313,7 +313,7 @@
           "H": 249.33843610937592
         }
       },
-      "on-info": {
+      "info-foreground": {
         "light": {
           "L": 0.9498739988120702,
           "C": 0.024924289100336252,
@@ -337,7 +337,7 @@
           "H": 244.47805920293217
         }
       },
-      "info-container": {
+      "info-subtle": {
         "light": {
           "L": 0.9545088880517185,
           "C": 0.026760676952529802,
@@ -349,7 +349,7 @@
           "H": 255.27415402787238
         }
       },
-      "on-info-container": {
+      "info-subtle-foreground": {
         "light": {
           "L": 0.49047743395963217,
           "C": 0.14007719556245563,
@@ -413,7 +413,7 @@
       }
     },
     "ramps": {
-      "brand": {
+      "accent": {
         "light": [
           {
             "label": "50",
@@ -1656,7 +1656,7 @@
       "direction": "dark",
       "anchorLabel": "300",
       "bindings": {
-        "bg": {
+        "background": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -1680,7 +1680,7 @@
             "label": "900"
           }
         },
-        "surface-2": {
+        "surface-elevated": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -1692,7 +1692,7 @@
             "label": "800"
           }
         },
-        "text": {
+        "foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -1704,7 +1704,7 @@
             "label": "100"
           }
         },
-        "text-muted": {
+        "muted-foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -1731,7 +1731,7 @@
         "accent": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 259.8145266738871,
             "seed": {
               "native": false,
@@ -1740,7 +1740,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 259.8145266738871,
             "seed": {
               "native": true,
@@ -1751,42 +1751,42 @@
         "accent-text": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "500"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "100"
           }
         },
-        "on-accent": {
+        "accent-foreground": {
           "light": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "white",
             "hue": 259.8145266738871,
             "chroma": 0.0638899299775993,
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "black",
             "hue": 259.8145266738871,
             "chroma": 0.07507605344087082,
             "backedOff": true
           }
         },
-        "focus-ring": {
+        "ring": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "500"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "200"
           }
         },
@@ -1804,9 +1804,9 @@
             "seed": null
           }
         },
-        "on-error": {
+        "error-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "white",
             "hue": 27,
@@ -1814,7 +1814,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "black",
             "hue": 27,
@@ -1834,7 +1834,7 @@
             "label": "200"
           }
         },
-        "error-container": {
+        "error-subtle": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -1846,7 +1846,7 @@
             "label": "900"
           }
         },
-        "on-error-container": {
+        "error-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -1872,9 +1872,9 @@
             "seed": null
           }
         },
-        "on-warning": {
+        "warning-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "white",
             "hue": 80,
@@ -1882,7 +1882,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "black",
             "hue": 80,
@@ -1902,7 +1902,7 @@
             "label": "200"
           }
         },
-        "warning-container": {
+        "warning-subtle": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -1914,7 +1914,7 @@
             "label": "900"
           }
         },
-        "on-warning-container": {
+        "warning-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -1940,9 +1940,9 @@
             "seed": null
           }
         },
-        "on-success": {
+        "success-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "white",
             "hue": 150,
@@ -1950,7 +1950,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "black",
             "hue": 150,
@@ -1970,7 +1970,7 @@
             "label": "200"
           }
         },
-        "success-container": {
+        "success-subtle": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -1982,7 +1982,7 @@
             "label": "900"
           }
         },
-        "on-success-container": {
+        "success-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -2008,9 +2008,9 @@
             "seed": null
           }
         },
-        "on-info": {
+        "info-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "white",
             "hue": 250,
@@ -2018,7 +2018,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "black",
             "hue": 250,
@@ -2038,7 +2038,7 @@
             "label": "200"
           }
         },
-        "info-container": {
+        "info-subtle": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -2050,7 +2050,7 @@
             "label": "900"
           }
         },
-        "on-info-container": {
+        "info-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -2065,7 +2065,7 @@
         "accent-hover": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 259.8145266738871,
             "seed": {
               "native": false,
@@ -2074,7 +2074,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 259.8145266738871,
             "seed": {
               "native": false,
@@ -2121,7 +2121,7 @@
   },
   "violet": {
     "tokens": {
-      "bg": {
+      "background": {
         "light": {
           "L": 0.9826685464759691,
           "C": 0.009622806977608004,
@@ -2145,7 +2145,7 @@
           "H": 293.0089677307044
         }
       },
-      "surface-2": {
+      "surface-elevated": {
         "light": {
           "L": 0.929858033920338,
           "C": 0.03690959896467936,
@@ -2157,7 +2157,7 @@
           "H": 293.0089677307044
         }
       },
-      "text": {
+      "foreground": {
         "light": {
           "L": 0.29,
           "C": 0.04,
@@ -2169,7 +2169,7 @@
           "H": 293.4854690863054
         }
       },
-      "text-muted": {
+      "muted-foreground": {
         "light": {
           "L": 0.38,
           "C": 0.04,
@@ -2217,7 +2217,7 @@
           "H": 294.65259334576706
         }
       },
-      "on-accent": {
+      "accent-foreground": {
         "light": {
           "L": 0.9312285958741547,
           "C": 0.036159171016188096,
@@ -2229,7 +2229,7 @@
           "H": 291.9554339565121
         }
       },
-      "focus-ring": {
+      "ring": {
         "light": {
           "L": 0.5413370851180865,
           "C": 0.24658592413900496,
@@ -2253,7 +2253,7 @@
           "H": 27.073264145489723
         }
       },
-      "on-error": {
+      "error-foreground": {
         "light": {
           "L": 0.8296076482006326,
           "C": 0.09469752767287645,
@@ -2277,7 +2277,7 @@
           "H": 27.578480413108
         }
       },
-      "error-container": {
+      "error-subtle": {
         "light": {
           "L": 0.9488177986014814,
           "C": 0.025726471956513456,
@@ -2289,7 +2289,7 @@
           "H": 29.2338851923426
         }
       },
-      "on-error-container": {
+      "error-subtle-foreground": {
         "light": {
           "L": 0.49,
           "C": 0.15,
@@ -2313,7 +2313,7 @@
           "H": 80
         }
       },
-      "on-warning": {
+      "warning-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -2337,7 +2337,7 @@
           "H": 80.09235921332129
         }
       },
-      "warning-container": {
+      "warning-subtle": {
         "light": {
           "L": 0.9467400562079166,
           "C": 0.06985419263198749,
@@ -2349,7 +2349,7 @@
           "H": 70.81669735080087
         }
       },
-      "on-warning-container": {
+      "warning-subtle-foreground": {
         "light": {
           "L": 0.49110667114998047,
           "C": 0.10292456408478888,
@@ -2373,7 +2373,7 @@
           "H": 150
         }
       },
-      "on-success": {
+      "success-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -2397,7 +2397,7 @@
           "H": 150
         }
       },
-      "success-container": {
+      "success-subtle": {
         "light": {
           "L": 0.9555731295630205,
           "C": 0.0731679354766854,
@@ -2409,7 +2409,7 @@
           "H": 145.07816109960646
         }
       },
-      "on-success-container": {
+      "success-subtle-foreground": {
         "light": {
           "L": 0.49167771184878256,
           "C": 0.13812355755518027,
@@ -2433,7 +2433,7 @@
           "H": 249.33843610937592
         }
       },
-      "on-info": {
+      "info-foreground": {
         "light": {
           "L": 0.9498739988120702,
           "C": 0.024924289100336252,
@@ -2457,7 +2457,7 @@
           "H": 244.47805920293217
         }
       },
-      "info-container": {
+      "info-subtle": {
         "light": {
           "L": 0.9545088880517185,
           "C": 0.026760676952529802,
@@ -2469,7 +2469,7 @@
           "H": 255.27415402787238
         }
       },
-      "on-info-container": {
+      "info-subtle-foreground": {
         "light": {
           "L": 0.49047743395963217,
           "C": 0.14007719556245563,
@@ -2533,7 +2533,7 @@
       }
     },
     "ramps": {
-      "brand": {
+      "accent": {
         "light": [
           {
             "label": "50",
@@ -3776,7 +3776,7 @@
       "direction": "light",
       "anchorLabel": "500",
       "bindings": {
-        "bg": {
+        "background": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -3800,7 +3800,7 @@
             "label": "900"
           }
         },
-        "surface-2": {
+        "surface-elevated": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -3812,7 +3812,7 @@
             "label": "800"
           }
         },
-        "text": {
+        "foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -3824,7 +3824,7 @@
             "label": "100"
           }
         },
-        "text-muted": {
+        "muted-foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -3851,7 +3851,7 @@
         "accent": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 293.0089677307044,
             "seed": {
               "native": true,
@@ -3860,7 +3860,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 293.0089677307044,
             "seed": {
               "native": false,
@@ -3871,42 +3871,42 @@
         "accent-text": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "600"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "200"
           }
         },
-        "on-accent": {
+        "accent-foreground": {
           "light": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "white",
             "hue": 293.0089677307044,
             "chroma": 0.036159171016188096,
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "black",
             "hue": 293.0089677307044,
             "chroma": 0.057531269560249225,
             "backedOff": true
           }
         },
-        "focus-ring": {
+        "ring": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "500"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "300"
           }
         },
@@ -3924,9 +3924,9 @@
             "seed": null
           }
         },
-        "on-error": {
+        "error-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "white",
             "hue": 27,
@@ -3934,7 +3934,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "black",
             "hue": 27,
@@ -3954,7 +3954,7 @@
             "label": "200"
           }
         },
-        "error-container": {
+        "error-subtle": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -3966,7 +3966,7 @@
             "label": "900"
           }
         },
-        "on-error-container": {
+        "error-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -3992,9 +3992,9 @@
             "seed": null
           }
         },
-        "on-warning": {
+        "warning-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "white",
             "hue": 80,
@@ -4002,7 +4002,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "black",
             "hue": 80,
@@ -4022,7 +4022,7 @@
             "label": "200"
           }
         },
-        "warning-container": {
+        "warning-subtle": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -4034,7 +4034,7 @@
             "label": "900"
           }
         },
-        "on-warning-container": {
+        "warning-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -4060,9 +4060,9 @@
             "seed": null
           }
         },
-        "on-success": {
+        "success-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "white",
             "hue": 150,
@@ -4070,7 +4070,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "black",
             "hue": 150,
@@ -4090,7 +4090,7 @@
             "label": "200"
           }
         },
-        "success-container": {
+        "success-subtle": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -4102,7 +4102,7 @@
             "label": "900"
           }
         },
-        "on-success-container": {
+        "success-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -4128,9 +4128,9 @@
             "seed": null
           }
         },
-        "on-info": {
+        "info-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "white",
             "hue": 250,
@@ -4138,7 +4138,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "black",
             "hue": 250,
@@ -4158,7 +4158,7 @@
             "label": "200"
           }
         },
-        "info-container": {
+        "info-subtle": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -4170,7 +4170,7 @@
             "label": "900"
           }
         },
-        "on-info-container": {
+        "info-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -4185,7 +4185,7 @@
         "accent-hover": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 293.0089677307044,
             "seed": {
               "native": false,
@@ -4194,7 +4194,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 293.0089677307044,
             "seed": {
               "native": false,
@@ -4241,7 +4241,7 @@
   },
   "crimson": {
     "tokens": {
-      "bg": {
+      "background": {
         "light": {
           "L": 0.9781049280204456,
           "C": 0.0106541369300581,
@@ -4265,7 +4265,7 @@
           "H": 17.584628383222427
         }
       },
-      "surface-2": {
+      "surface-elevated": {
         "light": {
           "L": 0.9289083808249068,
           "C": 0.03609392743890623,
@@ -4277,7 +4277,7 @@
           "H": 17.584628383222427
         }
       },
-      "text": {
+      "foreground": {
         "light": {
           "L": 0.29,
           "C": 0.04,
@@ -4289,7 +4289,7 @@
           "H": 17.5116462482004
         }
       },
-      "text-muted": {
+      "muted-foreground": {
         "light": {
           "L": 0.38,
           "C": 0.04,
@@ -4337,7 +4337,7 @@
           "H": 17.208675633503756
         }
       },
-      "on-accent": {
+      "accent-foreground": {
         "light": {
           "L": 0.9756618665301464,
           "C": 0.011865837503978287,
@@ -4349,7 +4349,7 @@
           "H": 18.823351915778645
         }
       },
-      "focus-ring": {
+      "ring": {
         "light": {
           "L": 0.4703315840740797,
           "C": 0.18857403682014576,
@@ -4373,7 +4373,7 @@
           "H": 27.073264145489723
         }
       },
-      "on-error": {
+      "error-foreground": {
         "light": {
           "L": 0.8296076482006326,
           "C": 0.09469752767287645,
@@ -4397,7 +4397,7 @@
           "H": 27.578480413108
         }
       },
-      "error-container": {
+      "error-subtle": {
         "light": {
           "L": 0.9488177986014814,
           "C": 0.025726471956513456,
@@ -4409,7 +4409,7 @@
           "H": 29.2338851923426
         }
       },
-      "on-error-container": {
+      "error-subtle-foreground": {
         "light": {
           "L": 0.49,
           "C": 0.15,
@@ -4433,7 +4433,7 @@
           "H": 80
         }
       },
-      "on-warning": {
+      "warning-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -4457,7 +4457,7 @@
           "H": 80.09235921332129
         }
       },
-      "warning-container": {
+      "warning-subtle": {
         "light": {
           "L": 0.9467400562079166,
           "C": 0.06985419263198749,
@@ -4469,7 +4469,7 @@
           "H": 70.81669735080087
         }
       },
-      "on-warning-container": {
+      "warning-subtle-foreground": {
         "light": {
           "L": 0.49110667114998047,
           "C": 0.10292456408478888,
@@ -4493,7 +4493,7 @@
           "H": 150
         }
       },
-      "on-success": {
+      "success-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -4517,7 +4517,7 @@
           "H": 150
         }
       },
-      "success-container": {
+      "success-subtle": {
         "light": {
           "L": 0.9555731295630205,
           "C": 0.0731679354766854,
@@ -4529,7 +4529,7 @@
           "H": 145.07816109960646
         }
       },
-      "on-success-container": {
+      "success-subtle-foreground": {
         "light": {
           "L": 0.49167771184878256,
           "C": 0.13812355755518027,
@@ -4553,7 +4553,7 @@
           "H": 249.33843610937592
         }
       },
-      "on-info": {
+      "info-foreground": {
         "light": {
           "L": 0.9498739988120702,
           "C": 0.024924289100336252,
@@ -4577,7 +4577,7 @@
           "H": 244.47805920293217
         }
       },
-      "info-container": {
+      "info-subtle": {
         "light": {
           "L": 0.9545088880517185,
           "C": 0.026760676952529802,
@@ -4589,7 +4589,7 @@
           "H": 255.27415402787238
         }
       },
-      "on-info-container": {
+      "info-subtle-foreground": {
         "light": {
           "L": 0.49047743395963217,
           "C": 0.14007719556245563,
@@ -4653,7 +4653,7 @@
       }
     },
     "ramps": {
-      "brand": {
+      "accent": {
         "light": [
           {
             "label": "50",
@@ -5896,7 +5896,7 @@
       "direction": "light",
       "anchorLabel": "500",
       "bindings": {
-        "bg": {
+        "background": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -5920,7 +5920,7 @@
             "label": "900"
           }
         },
-        "surface-2": {
+        "surface-elevated": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -5932,7 +5932,7 @@
             "label": "800"
           }
         },
-        "text": {
+        "foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -5944,7 +5944,7 @@
             "label": "100"
           }
         },
-        "text-muted": {
+        "muted-foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -5971,7 +5971,7 @@
         "accent": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 17.584628383222427,
             "seed": {
               "native": true,
@@ -5980,7 +5980,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 17.584628383222427,
             "seed": {
               "native": false,
@@ -5991,42 +5991,42 @@
         "accent-text": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "700"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "200"
           }
         },
-        "on-accent": {
+        "accent-foreground": {
           "light": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "white",
             "hue": 17.584628383222427,
             "chroma": 0.011865837503978287,
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "black",
             "hue": 17.584628383222427,
             "chroma": 0.05681037051545274,
             "backedOff": true
           }
         },
-        "focus-ring": {
+        "ring": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "600"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "300"
           }
         },
@@ -6044,9 +6044,9 @@
             "seed": null
           }
         },
-        "on-error": {
+        "error-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "white",
             "hue": 27,
@@ -6054,7 +6054,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "black",
             "hue": 27,
@@ -6074,7 +6074,7 @@
             "label": "200"
           }
         },
-        "error-container": {
+        "error-subtle": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -6086,7 +6086,7 @@
             "label": "900"
           }
         },
-        "on-error-container": {
+        "error-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -6112,9 +6112,9 @@
             "seed": null
           }
         },
-        "on-warning": {
+        "warning-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "white",
             "hue": 80,
@@ -6122,7 +6122,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "black",
             "hue": 80,
@@ -6142,7 +6142,7 @@
             "label": "200"
           }
         },
-        "warning-container": {
+        "warning-subtle": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -6154,7 +6154,7 @@
             "label": "900"
           }
         },
-        "on-warning-container": {
+        "warning-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -6180,9 +6180,9 @@
             "seed": null
           }
         },
-        "on-success": {
+        "success-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "white",
             "hue": 150,
@@ -6190,7 +6190,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "black",
             "hue": 150,
@@ -6210,7 +6210,7 @@
             "label": "200"
           }
         },
-        "success-container": {
+        "success-subtle": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -6222,7 +6222,7 @@
             "label": "900"
           }
         },
-        "on-success-container": {
+        "success-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -6248,9 +6248,9 @@
             "seed": null
           }
         },
-        "on-info": {
+        "info-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "white",
             "hue": 250,
@@ -6258,7 +6258,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "black",
             "hue": 250,
@@ -6278,7 +6278,7 @@
             "label": "200"
           }
         },
-        "info-container": {
+        "info-subtle": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -6290,7 +6290,7 @@
             "label": "900"
           }
         },
-        "on-info-container": {
+        "info-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -6305,7 +6305,7 @@
         "accent-hover": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 17.584628383222427,
             "seed": {
               "native": false,
@@ -6314,7 +6314,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 17.584628383222427,
             "seed": {
               "native": false,
@@ -6361,7 +6361,7 @@
   },
   "too-light": {
     "tokens": {
-      "bg": {
+      "background": {
         "light": {
           "L": 0.9848447158026071,
           "C": 0.03748081794927627,
@@ -6385,7 +6385,7 @@
           "H": 100.79797480339421
         }
       },
-      "surface-2": {
+      "surface-elevated": {
         "light": {
           "L": 0.93,
           "C": 0.04,
@@ -6397,7 +6397,7 @@
           "H": 101.02553885417139
         }
       },
-      "text": {
+      "foreground": {
         "light": {
           "L": 0.29,
           "C": 0.04,
@@ -6409,7 +6409,7 @@
           "H": 101.02553885417139
         }
       },
-      "text-muted": {
+      "muted-foreground": {
         "light": {
           "L": 0.38,
           "C": 0.04,
@@ -6457,7 +6457,7 @@
           "H": 101.02553885417139
         }
       },
-      "on-accent": {
+      "accent-foreground": {
         "light": {
           "L": 0.9700000000000005,
           "C": 0.06604410665999541,
@@ -6469,7 +6469,7 @@
           "H": 101.02553885417139
         }
       },
-      "focus-ring": {
+      "ring": {
         "light": {
           "L": 0.5151485285637305,
           "C": 0.06604410665999541,
@@ -6493,7 +6493,7 @@
           "H": 27.073264145489723
         }
       },
-      "on-error": {
+      "error-foreground": {
         "light": {
           "L": 0.8296076482006326,
           "C": 0.09469752767287645,
@@ -6517,7 +6517,7 @@
           "H": 27.578480413108
         }
       },
-      "error-container": {
+      "error-subtle": {
         "light": {
           "L": 0.9488177986014814,
           "C": 0.025726471956513456,
@@ -6529,7 +6529,7 @@
           "H": 29.2338851923426
         }
       },
-      "on-error-container": {
+      "error-subtle-foreground": {
         "light": {
           "L": 0.49,
           "C": 0.15,
@@ -6553,7 +6553,7 @@
           "H": 80
         }
       },
-      "on-warning": {
+      "warning-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -6577,7 +6577,7 @@
           "H": 80.09235921332129
         }
       },
-      "warning-container": {
+      "warning-subtle": {
         "light": {
           "L": 0.9467400562079166,
           "C": 0.06985419263198749,
@@ -6589,7 +6589,7 @@
           "H": 70.81669735080087
         }
       },
-      "on-warning-container": {
+      "warning-subtle-foreground": {
         "light": {
           "L": 0.49110667114998047,
           "C": 0.10292456408478888,
@@ -6613,7 +6613,7 @@
           "H": 150
         }
       },
-      "on-success": {
+      "success-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -6637,7 +6637,7 @@
           "H": 150
         }
       },
-      "success-container": {
+      "success-subtle": {
         "light": {
           "L": 0.9555731295630205,
           "C": 0.0731679354766854,
@@ -6649,7 +6649,7 @@
           "H": 145.07816109960646
         }
       },
-      "on-success-container": {
+      "success-subtle-foreground": {
         "light": {
           "L": 0.49167771184878256,
           "C": 0.13812355755518027,
@@ -6673,7 +6673,7 @@
           "H": 249.33843610937592
         }
       },
-      "on-info": {
+      "info-foreground": {
         "light": {
           "L": 0.9498739988120702,
           "C": 0.024924289100336252,
@@ -6697,7 +6697,7 @@
           "H": 244.47805920293217
         }
       },
-      "info-container": {
+      "info-subtle": {
         "light": {
           "L": 0.9545088880517185,
           "C": 0.026760676952529802,
@@ -6709,7 +6709,7 @@
           "H": 255.27415402787238
         }
       },
-      "on-info-container": {
+      "info-subtle-foreground": {
         "light": {
           "L": 0.49047743395963217,
           "C": 0.14007719556245563,
@@ -6773,7 +6773,7 @@
       }
     },
     "ramps": {
-      "brand": {
+      "accent": {
         "light": [
           {
             "label": "50",
@@ -8016,7 +8016,7 @@
       "direction": "dark",
       "anchorLabel": "300",
       "bindings": {
-        "bg": {
+        "background": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -8040,7 +8040,7 @@
             "label": "900"
           }
         },
-        "surface-2": {
+        "surface-elevated": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -8052,7 +8052,7 @@
             "label": "800"
           }
         },
-        "text": {
+        "foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -8064,7 +8064,7 @@
             "label": "100"
           }
         },
-        "text-muted": {
+        "muted-foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -8091,7 +8091,7 @@
         "accent": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 101.02553885417139,
             "seed": {
               "native": false,
@@ -8100,7 +8100,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 101.02553885417139,
             "seed": {
               "native": true,
@@ -8111,42 +8111,42 @@
         "accent-text": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "700"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "400"
           }
         },
-        "on-accent": {
+        "accent-foreground": {
           "light": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "white",
             "hue": 101.02553885417139,
             "chroma": 0.06604410665999541,
             "backedOff": false
           },
           "dark": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "black",
             "hue": 101.02553885417139,
             "chroma": 0.05415616746119623,
             "backedOff": false
           }
         },
-        "focus-ring": {
+        "ring": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "600"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "400"
           }
         },
@@ -8164,9 +8164,9 @@
             "seed": null
           }
         },
-        "on-error": {
+        "error-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "white",
             "hue": 27,
@@ -8174,7 +8174,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "black",
             "hue": 27,
@@ -8194,7 +8194,7 @@
             "label": "200"
           }
         },
-        "error-container": {
+        "error-subtle": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -8206,7 +8206,7 @@
             "label": "900"
           }
         },
-        "on-error-container": {
+        "error-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -8232,9 +8232,9 @@
             "seed": null
           }
         },
-        "on-warning": {
+        "warning-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "white",
             "hue": 80,
@@ -8242,7 +8242,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "black",
             "hue": 80,
@@ -8262,7 +8262,7 @@
             "label": "200"
           }
         },
-        "warning-container": {
+        "warning-subtle": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -8274,7 +8274,7 @@
             "label": "900"
           }
         },
-        "on-warning-container": {
+        "warning-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -8300,9 +8300,9 @@
             "seed": null
           }
         },
-        "on-success": {
+        "success-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "white",
             "hue": 150,
@@ -8310,7 +8310,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "black",
             "hue": 150,
@@ -8330,7 +8330,7 @@
             "label": "200"
           }
         },
-        "success-container": {
+        "success-subtle": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -8342,7 +8342,7 @@
             "label": "900"
           }
         },
-        "on-success-container": {
+        "success-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -8368,9 +8368,9 @@
             "seed": null
           }
         },
-        "on-info": {
+        "info-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "white",
             "hue": 250,
@@ -8378,7 +8378,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "black",
             "hue": 250,
@@ -8398,7 +8398,7 @@
             "label": "200"
           }
         },
-        "info-container": {
+        "info-subtle": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -8410,7 +8410,7 @@
             "label": "900"
           }
         },
-        "on-info-container": {
+        "info-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -8425,7 +8425,7 @@
         "accent-hover": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 101.02553885417139,
             "seed": {
               "native": false,
@@ -8434,7 +8434,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 101.02553885417139,
             "seed": {
               "native": false,
@@ -8481,7 +8481,7 @@
   },
   "achromatic": {
     "tokens": {
-      "bg": {
+      "background": {
         "light": {
           "L": 0.9847619433215375,
           "C": 0.019906692489885407,
@@ -8505,7 +8505,7 @@
           "H": 89.50770942925296
         }
       },
-      "surface-2": {
+      "surface-elevated": {
         "light": {
           "L": 0.93,
           "C": 0.04,
@@ -8517,7 +8517,7 @@
           "H": 89.87556306659991
         }
       },
-      "text": {
+      "foreground": {
         "light": {
           "L": 0.29,
           "C": 0.04,
@@ -8529,7 +8529,7 @@
           "H": 89.87556306659991
         }
       },
-      "text-muted": {
+      "muted-foreground": {
         "light": {
           "L": 0.38,
           "C": 0.04,
@@ -8577,7 +8577,7 @@
           "H": 89.87556306659991
         }
       },
-      "on-accent": {
+      "accent-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -8589,7 +8589,7 @@
           "H": 89.87556306659991
         }
       },
-      "focus-ring": {
+      "ring": {
         "light": {
           "L": 0.43042091256391135,
           "C": 2.2359581739618487e-8,
@@ -8613,7 +8613,7 @@
           "H": 27.073264145489723
         }
       },
-      "on-error": {
+      "error-foreground": {
         "light": {
           "L": 0.8296076482006326,
           "C": 0.09469752767287645,
@@ -8637,7 +8637,7 @@
           "H": 27.578480413108
         }
       },
-      "error-container": {
+      "error-subtle": {
         "light": {
           "L": 0.9488177986014814,
           "C": 0.025726471956513456,
@@ -8649,7 +8649,7 @@
           "H": 29.2338851923426
         }
       },
-      "on-error-container": {
+      "error-subtle-foreground": {
         "light": {
           "L": 0.49,
           "C": 0.15,
@@ -8673,7 +8673,7 @@
           "H": 80
         }
       },
-      "on-warning": {
+      "warning-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -8697,7 +8697,7 @@
           "H": 80.09235921332129
         }
       },
-      "warning-container": {
+      "warning-subtle": {
         "light": {
           "L": 0.9467400562079166,
           "C": 0.06985419263198749,
@@ -8709,7 +8709,7 @@
           "H": 70.81669735080087
         }
       },
-      "on-warning-container": {
+      "warning-subtle-foreground": {
         "light": {
           "L": 0.49110667114998047,
           "C": 0.10292456408478888,
@@ -8733,7 +8733,7 @@
           "H": 150
         }
       },
-      "on-success": {
+      "success-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -8757,7 +8757,7 @@
           "H": 150
         }
       },
-      "success-container": {
+      "success-subtle": {
         "light": {
           "L": 0.9555731295630205,
           "C": 0.0731679354766854,
@@ -8769,7 +8769,7 @@
           "H": 145.07816109960646
         }
       },
-      "on-success-container": {
+      "success-subtle-foreground": {
         "light": {
           "L": 0.49167771184878256,
           "C": 0.13812355755518027,
@@ -8793,7 +8793,7 @@
           "H": 249.33843610937592
         }
       },
-      "on-info": {
+      "info-foreground": {
         "light": {
           "L": 0.9498739988120702,
           "C": 0.024924289100336252,
@@ -8817,7 +8817,7 @@
           "H": 244.47805920293217
         }
       },
-      "info-container": {
+      "info-subtle": {
         "light": {
           "L": 0.9545088880517185,
           "C": 0.026760676952529802,
@@ -8829,7 +8829,7 @@
           "H": 255.27415402787238
         }
       },
-      "on-info-container": {
+      "info-subtle-foreground": {
         "light": {
           "L": 0.49047743395963217,
           "C": 0.14007719556245563,
@@ -8893,7 +8893,7 @@
       }
     },
     "ramps": {
-      "brand": {
+      "accent": {
         "light": [
           {
             "label": "50",
@@ -10136,7 +10136,7 @@
       "direction": "dark",
       "anchorLabel": "300",
       "bindings": {
-        "bg": {
+        "background": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -10160,7 +10160,7 @@
             "label": "900"
           }
         },
-        "surface-2": {
+        "surface-elevated": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -10172,7 +10172,7 @@
             "label": "800"
           }
         },
-        "text": {
+        "foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -10184,7 +10184,7 @@
             "label": "100"
           }
         },
-        "text-muted": {
+        "muted-foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -10211,7 +10211,7 @@
         "accent": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 89.87556306659991,
             "seed": {
               "native": false,
@@ -10220,7 +10220,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 89.87556306659991,
             "seed": {
               "native": true,
@@ -10231,42 +10231,42 @@
         "accent-text": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "500"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "100"
           }
         },
-        "on-accent": {
+        "accent-foreground": {
           "light": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "white",
             "hue": 89.87556306659991,
             "chroma": 0,
             "backedOff": false
           },
           "dark": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "black",
             "hue": 89.87556306659991,
             "chroma": 0,
             "backedOff": false
           }
         },
-        "focus-ring": {
+        "ring": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "500"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "200"
           }
         },
@@ -10284,9 +10284,9 @@
             "seed": null
           }
         },
-        "on-error": {
+        "error-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "white",
             "hue": 27,
@@ -10294,7 +10294,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "black",
             "hue": 27,
@@ -10314,7 +10314,7 @@
             "label": "200"
           }
         },
-        "error-container": {
+        "error-subtle": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -10326,7 +10326,7 @@
             "label": "900"
           }
         },
-        "on-error-container": {
+        "error-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -10352,9 +10352,9 @@
             "seed": null
           }
         },
-        "on-warning": {
+        "warning-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "white",
             "hue": 80,
@@ -10362,7 +10362,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "black",
             "hue": 80,
@@ -10382,7 +10382,7 @@
             "label": "200"
           }
         },
-        "warning-container": {
+        "warning-subtle": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -10394,7 +10394,7 @@
             "label": "900"
           }
         },
-        "on-warning-container": {
+        "warning-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -10420,9 +10420,9 @@
             "seed": null
           }
         },
-        "on-success": {
+        "success-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "white",
             "hue": 150,
@@ -10430,7 +10430,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "black",
             "hue": 150,
@@ -10450,7 +10450,7 @@
             "label": "200"
           }
         },
-        "success-container": {
+        "success-subtle": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -10462,7 +10462,7 @@
             "label": "900"
           }
         },
-        "on-success-container": {
+        "success-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -10488,9 +10488,9 @@
             "seed": null
           }
         },
-        "on-info": {
+        "info-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "white",
             "hue": 250,
@@ -10498,7 +10498,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "black",
             "hue": 250,
@@ -10518,7 +10518,7 @@
             "label": "200"
           }
         },
-        "info-container": {
+        "info-subtle": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -10530,7 +10530,7 @@
             "label": "900"
           }
         },
-        "on-info-container": {
+        "info-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -10545,7 +10545,7 @@
         "accent-hover": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 89.87556306659991,
             "seed": {
               "native": false,
@@ -10554,7 +10554,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 89.87556306659991,
             "seed": {
               "native": false,
@@ -10601,7 +10601,7 @@
   },
   "achromatic-p3": {
     "tokens": {
-      "bg": {
+      "background": {
         "light": {
           "L": 0.9837609300554461,
           "C": 0.02669053559116564,
@@ -10625,7 +10625,7 @@
           "H": 89.87556306659991
         }
       },
-      "surface-2": {
+      "surface-elevated": {
         "light": {
           "L": 0.93,
           "C": 0.04,
@@ -10637,7 +10637,7 @@
           "H": 89.87556306659991
         }
       },
-      "text": {
+      "foreground": {
         "light": {
           "L": 0.29,
           "C": 0.04,
@@ -10649,7 +10649,7 @@
           "H": 89.87556306659991
         }
       },
-      "text-muted": {
+      "muted-foreground": {
         "light": {
           "L": 0.38,
           "C": 0.04,
@@ -10697,7 +10697,7 @@
           "H": 89.87556306659991
         }
       },
-      "on-accent": {
+      "accent-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -10709,7 +10709,7 @@
           "H": 89.87556306659991
         }
       },
-      "focus-ring": {
+      "ring": {
         "light": {
           "L": 0.43042091256391135,
           "C": 2.2359581739618487e-8,
@@ -10733,7 +10733,7 @@
           "H": 27
         }
       },
-      "on-error": {
+      "error-foreground": {
         "light": {
           "L": 0.8400000000000004,
           "C": 0.113653564453125,
@@ -10757,7 +10757,7 @@
           "H": 27
         }
       },
-      "error-container": {
+      "error-subtle": {
         "light": {
           "L": 0.9514180766528346,
           "C": 0.024449303412405077,
@@ -10769,7 +10769,7 @@
           "H": 29.23388519234261
         }
       },
-      "on-error-container": {
+      "error-subtle-foreground": {
         "light": {
           "L": 0.49,
           "C": 0.15,
@@ -10793,7 +10793,7 @@
           "H": 80
         }
       },
-      "on-warning": {
+      "warning-foreground": {
         "light": {
           "L": 0.9866472398445387,
           "C": 0.013799674382469956,
@@ -10817,7 +10817,7 @@
           "H": 80
         }
       },
-      "warning-container": {
+      "warning-subtle": {
         "light": {
           "L": 0.9502629570959049,
           "C": 0.06350686625023658,
@@ -10829,7 +10829,7 @@
           "H": 77.6740396438099
         }
       },
-      "on-warning-container": {
+      "warning-subtle-foreground": {
         "light": {
           "L": 0.48743550360278015,
           "C": 0.10055798549222375,
@@ -10853,7 +10853,7 @@
           "H": 150
         }
       },
-      "on-success": {
+      "success-foreground": {
         "light": {
           "L": 0.9200000000000005,
           "C": 0.15,
@@ -10877,7 +10877,7 @@
           "H": 150
         }
       },
-      "success-container": {
+      "success-subtle": {
         "light": {
           "L": 0.9599309992912312,
           "C": 0.06839112565584589,
@@ -10889,7 +10889,7 @@
           "H": 145.74885445306063
         }
       },
-      "on-success-container": {
+      "success-subtle-foreground": {
         "light": {
           "L": 0.49,
           "C": 0.15,
@@ -10913,7 +10913,7 @@
           "H": 255.02769370937386
         }
       },
-      "on-info": {
+      "info-foreground": {
         "light": {
           "L": 0.8400000000000004,
           "C": 0.08075569795982489,
@@ -10937,7 +10937,7 @@
           "H": 252.06391389019763
         }
       },
-      "info-container": {
+      "info-subtle": {
         "light": {
           "L": 0.9559487753218461,
           "C": 0.0236146803227916,
@@ -10949,7 +10949,7 @@
           "H": 259.1211868533304
         }
       },
-      "on-info-container": {
+      "info-subtle-foreground": {
         "light": {
           "L": 0.49,
           "C": 0.15,
@@ -11013,7 +11013,7 @@
       }
     },
     "ramps": {
-      "brand": {
+      "accent": {
         "light": [
           {
             "label": "50",
@@ -12256,7 +12256,7 @@
       "direction": "dark",
       "anchorLabel": "300",
       "bindings": {
-        "bg": {
+        "background": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -12280,7 +12280,7 @@
             "label": "900"
           }
         },
-        "surface-2": {
+        "surface-elevated": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -12292,7 +12292,7 @@
             "label": "800"
           }
         },
-        "text": {
+        "foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -12304,7 +12304,7 @@
             "label": "100"
           }
         },
-        "text-muted": {
+        "muted-foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -12331,7 +12331,7 @@
         "accent": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 89.87556306659991,
             "seed": {
               "native": false,
@@ -12340,7 +12340,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 89.87556306659991,
             "seed": {
               "native": true,
@@ -12351,42 +12351,42 @@
         "accent-text": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "500"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "100"
           }
         },
-        "on-accent": {
+        "accent-foreground": {
           "light": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "white",
             "hue": 89.87556306659991,
             "chroma": 0,
             "backedOff": false
           },
           "dark": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "black",
             "hue": 89.87556306659991,
             "chroma": 0,
             "backedOff": false
           }
         },
-        "focus-ring": {
+        "ring": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "500"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "200"
           }
         },
@@ -12404,9 +12404,9 @@
             "seed": null
           }
         },
-        "on-error": {
+        "error-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "white",
             "hue": 27,
@@ -12414,7 +12414,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "black",
             "hue": 27,
@@ -12434,7 +12434,7 @@
             "label": "200"
           }
         },
-        "error-container": {
+        "error-subtle": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -12446,7 +12446,7 @@
             "label": "900"
           }
         },
-        "on-error-container": {
+        "error-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -12472,9 +12472,9 @@
             "seed": null
           }
         },
-        "on-warning": {
+        "warning-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "white",
             "hue": 80,
@@ -12482,7 +12482,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "black",
             "hue": 80,
@@ -12502,7 +12502,7 @@
             "label": "200"
           }
         },
-        "warning-container": {
+        "warning-subtle": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -12514,7 +12514,7 @@
             "label": "900"
           }
         },
-        "on-warning-container": {
+        "warning-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -12540,9 +12540,9 @@
             "seed": null
           }
         },
-        "on-success": {
+        "success-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "white",
             "hue": 150,
@@ -12550,7 +12550,7 @@
             "backedOff": false
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "black",
             "hue": 150,
@@ -12570,7 +12570,7 @@
             "label": "200"
           }
         },
-        "success-container": {
+        "success-subtle": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -12582,7 +12582,7 @@
             "label": "900"
           }
         },
-        "on-success-container": {
+        "success-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -12608,9 +12608,9 @@
             "seed": null
           }
         },
-        "on-info": {
+        "info-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "white",
             "hue": 250,
@@ -12618,7 +12618,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "black",
             "hue": 250,
@@ -12638,7 +12638,7 @@
             "label": "200"
           }
         },
-        "info-container": {
+        "info-subtle": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -12650,7 +12650,7 @@
             "label": "900"
           }
         },
-        "on-info-container": {
+        "info-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -12665,7 +12665,7 @@
         "accent-hover": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 89.87556306659991,
             "seed": {
               "native": false,
@@ -12674,7 +12674,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 89.87556306659991,
             "seed": {
               "native": false,
@@ -12721,7 +12721,7 @@
   },
   "untinted-neutrals": {
     "tokens": {
-      "bg": {
+      "background": {
         "light": {
           "L": 0.985,
           "C": 0,
@@ -12745,7 +12745,7 @@
           "H": 259.8145266738871
         }
       },
-      "surface-2": {
+      "surface-elevated": {
         "light": {
           "L": 0.93,
           "C": 0,
@@ -12757,7 +12757,7 @@
           "H": 259.8145266738871
         }
       },
-      "text": {
+      "foreground": {
         "light": {
           "L": 0.29,
           "C": 0,
@@ -12769,7 +12769,7 @@
           "H": 259.8145266738871
         }
       },
-      "text-muted": {
+      "muted-foreground": {
         "light": {
           "L": 0.38,
           "C": 0,
@@ -12817,7 +12817,7 @@
           "H": 256.6344937401143
         }
       },
-      "on-accent": {
+      "accent-foreground": {
         "light": {
           "L": 0.8699519908077861,
           "C": 0.0638899299775993,
@@ -12829,7 +12829,7 @@
           "H": 260.36719185092636
         }
       },
-      "focus-ring": {
+      "ring": {
         "light": {
           "L": 0.4453100721624302,
           "C": 0.18185269377201435,
@@ -12853,7 +12853,7 @@
           "H": 27.073264145489723
         }
       },
-      "on-error": {
+      "error-foreground": {
         "light": {
           "L": 0.8296076482006326,
           "C": 0.09469752767287645,
@@ -12877,7 +12877,7 @@
           "H": 27.578480413108
         }
       },
-      "error-container": {
+      "error-subtle": {
         "light": {
           "L": 0.9488177986014814,
           "C": 0.025726471956513456,
@@ -12889,7 +12889,7 @@
           "H": 29.2338851923426
         }
       },
-      "on-error-container": {
+      "error-subtle-foreground": {
         "light": {
           "L": 0.49,
           "C": 0.15,
@@ -12913,7 +12913,7 @@
           "H": 80
         }
       },
-      "on-warning": {
+      "warning-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -12937,7 +12937,7 @@
           "H": 80.09235921332129
         }
       },
-      "warning-container": {
+      "warning-subtle": {
         "light": {
           "L": 0.9467400562079166,
           "C": 0.06985419263198749,
@@ -12949,7 +12949,7 @@
           "H": 70.81669735080087
         }
       },
-      "on-warning-container": {
+      "warning-subtle-foreground": {
         "light": {
           "L": 0.49110667114998047,
           "C": 0.10292456408478888,
@@ -12973,7 +12973,7 @@
           "H": 150
         }
       },
-      "on-success": {
+      "success-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -12997,7 +12997,7 @@
           "H": 150
         }
       },
-      "success-container": {
+      "success-subtle": {
         "light": {
           "L": 0.9555731295630205,
           "C": 0.0731679354766854,
@@ -13009,7 +13009,7 @@
           "H": 145.07816109960646
         }
       },
-      "on-success-container": {
+      "success-subtle-foreground": {
         "light": {
           "L": 0.49167771184878256,
           "C": 0.13812355755518027,
@@ -13033,7 +13033,7 @@
           "H": 249.33843610937592
         }
       },
-      "on-info": {
+      "info-foreground": {
         "light": {
           "L": 0.9498739988120702,
           "C": 0.024924289100336252,
@@ -13057,7 +13057,7 @@
           "H": 244.47805920293217
         }
       },
-      "info-container": {
+      "info-subtle": {
         "light": {
           "L": 0.9545088880517185,
           "C": 0.026760676952529802,
@@ -13069,7 +13069,7 @@
           "H": 255.27415402787238
         }
       },
-      "on-info-container": {
+      "info-subtle-foreground": {
         "light": {
           "L": 0.49047743395963217,
           "C": 0.14007719556245563,
@@ -13133,7 +13133,7 @@
       }
     },
     "ramps": {
-      "brand": {
+      "accent": {
         "light": [
           {
             "label": "50",
@@ -14376,7 +14376,7 @@
       "direction": "dark",
       "anchorLabel": "300",
       "bindings": {
-        "bg": {
+        "background": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -14400,7 +14400,7 @@
             "label": "900"
           }
         },
-        "surface-2": {
+        "surface-elevated": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -14412,7 +14412,7 @@
             "label": "800"
           }
         },
-        "text": {
+        "foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -14424,7 +14424,7 @@
             "label": "100"
           }
         },
-        "text-muted": {
+        "muted-foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -14451,7 +14451,7 @@
         "accent": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 259.8145266738871,
             "seed": {
               "native": false,
@@ -14460,7 +14460,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 259.8145266738871,
             "seed": {
               "native": true,
@@ -14471,42 +14471,42 @@
         "accent-text": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "500"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "100"
           }
         },
-        "on-accent": {
+        "accent-foreground": {
           "light": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "white",
             "hue": 259.8145266738871,
             "chroma": 0.0638899299775993,
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "black",
             "hue": 259.8145266738871,
             "chroma": 0.07507605344087082,
             "backedOff": true
           }
         },
-        "focus-ring": {
+        "ring": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "500"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "200"
           }
         },
@@ -14524,9 +14524,9 @@
             "seed": null
           }
         },
-        "on-error": {
+        "error-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "white",
             "hue": 27,
@@ -14534,7 +14534,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "black",
             "hue": 27,
@@ -14554,7 +14554,7 @@
             "label": "200"
           }
         },
-        "error-container": {
+        "error-subtle": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -14566,7 +14566,7 @@
             "label": "900"
           }
         },
-        "on-error-container": {
+        "error-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -14592,9 +14592,9 @@
             "seed": null
           }
         },
-        "on-warning": {
+        "warning-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "white",
             "hue": 80,
@@ -14602,7 +14602,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "black",
             "hue": 80,
@@ -14622,7 +14622,7 @@
             "label": "200"
           }
         },
-        "warning-container": {
+        "warning-subtle": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -14634,7 +14634,7 @@
             "label": "900"
           }
         },
-        "on-warning-container": {
+        "warning-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -14660,9 +14660,9 @@
             "seed": null
           }
         },
-        "on-success": {
+        "success-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "white",
             "hue": 150,
@@ -14670,7 +14670,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "black",
             "hue": 150,
@@ -14690,7 +14690,7 @@
             "label": "200"
           }
         },
-        "success-container": {
+        "success-subtle": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -14702,7 +14702,7 @@
             "label": "900"
           }
         },
-        "on-success-container": {
+        "success-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -14728,9 +14728,9 @@
             "seed": null
           }
         },
-        "on-info": {
+        "info-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "white",
             "hue": 250,
@@ -14738,7 +14738,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "black",
             "hue": 250,
@@ -14758,7 +14758,7 @@
             "label": "200"
           }
         },
-        "info-container": {
+        "info-subtle": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -14770,7 +14770,7 @@
             "label": "900"
           }
         },
-        "on-info-container": {
+        "info-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -14785,7 +14785,7 @@
         "accent-hover": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 259.8145266738871,
             "seed": {
               "native": false,
@@ -14794,7 +14794,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 259.8145266738871,
             "seed": {
               "native": false,
@@ -14841,7 +14841,7 @@
   },
   "fallback": {
     "tokens": {
-      "bg": {
+      "background": {
         "light": {
           "L": 0.9822728893432214,
           "C": 0.009738923500313568,
@@ -14865,7 +14865,7 @@
           "H": 264
         }
       },
-      "surface-2": {
+      "surface-elevated": {
         "light": {
           "L": 0.9296310759256179,
           "C": 0.033558617355696485,
@@ -14877,7 +14877,7 @@
           "H": 264
         }
       },
-      "text": {
+      "foreground": {
         "light": {
           "L": 0.29,
           "C": 0.04,
@@ -14889,7 +14889,7 @@
           "H": 263.76073548460795
         }
       },
-      "text-muted": {
+      "muted-foreground": {
         "light": {
           "L": 0.38,
           "C": 0.04,
@@ -14937,7 +14937,7 @@
           "H": 263.20389778897464
         }
       },
-      "on-accent": {
+      "accent-foreground": {
         "light": {
           "L": 0.9798809670195608,
           "C": 0.009412446749576156,
@@ -14949,7 +14949,7 @@
           "H": 264
         }
       },
-      "focus-ring": {
+      "ring": {
         "light": {
           "L": 0.55,
           "C": 0.11,
@@ -14973,7 +14973,7 @@
           "H": 27.073264145489723
         }
       },
-      "on-error": {
+      "error-foreground": {
         "light": {
           "L": 0.8296076482006326,
           "C": 0.09469752767287645,
@@ -14997,7 +14997,7 @@
           "H": 27.578480413108
         }
       },
-      "error-container": {
+      "error-subtle": {
         "light": {
           "L": 0.9488177986014814,
           "C": 0.025726471956513456,
@@ -15009,7 +15009,7 @@
           "H": 29.2338851923426
         }
       },
-      "on-error-container": {
+      "error-subtle-foreground": {
         "light": {
           "L": 0.49,
           "C": 0.15,
@@ -15033,7 +15033,7 @@
           "H": 80
         }
       },
-      "on-warning": {
+      "warning-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -15057,7 +15057,7 @@
           "H": 80.09235921332129
         }
       },
-      "warning-container": {
+      "warning-subtle": {
         "light": {
           "L": 0.9467400562079166,
           "C": 0.06985419263198749,
@@ -15069,7 +15069,7 @@
           "H": 70.81669735080087
         }
       },
-      "on-warning-container": {
+      "warning-subtle-foreground": {
         "light": {
           "L": 0.49110667114998047,
           "C": 0.10292456408478888,
@@ -15093,7 +15093,7 @@
           "H": 150
         }
       },
-      "on-success": {
+      "success-foreground": {
         "light": {
           "L": 0.99,
           "C": 0,
@@ -15117,7 +15117,7 @@
           "H": 150
         }
       },
-      "success-container": {
+      "success-subtle": {
         "light": {
           "L": 0.9555731295630205,
           "C": 0.0731679354766854,
@@ -15129,7 +15129,7 @@
           "H": 145.07816109960646
         }
       },
-      "on-success-container": {
+      "success-subtle-foreground": {
         "light": {
           "L": 0.49167771184878256,
           "C": 0.13812355755518027,
@@ -15153,7 +15153,7 @@
           "H": 249.33843610937592
         }
       },
-      "on-info": {
+      "info-foreground": {
         "light": {
           "L": 0.9498739988120702,
           "C": 0.024924289100336252,
@@ -15177,7 +15177,7 @@
           "H": 244.47805920293217
         }
       },
-      "info-container": {
+      "info-subtle": {
         "light": {
           "L": 0.9545088880517185,
           "C": 0.026760676952529802,
@@ -15189,7 +15189,7 @@
           "H": 255.27415402787238
         }
       },
-      "on-info-container": {
+      "info-subtle-foreground": {
         "light": {
           "L": 0.49047743395963217,
           "C": 0.14007719556245563,
@@ -15253,7 +15253,7 @@
       }
     },
     "ramps": {
-      "brand": {
+      "accent": {
         "light": [
           {
             "label": "50",
@@ -16496,7 +16496,7 @@
       "direction": "light",
       "anchorLabel": "500",
       "bindings": {
-        "bg": {
+        "background": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -16520,7 +16520,7 @@
             "label": "900"
           }
         },
-        "surface-2": {
+        "surface-elevated": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -16532,7 +16532,7 @@
             "label": "800"
           }
         },
-        "text": {
+        "foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -16544,7 +16544,7 @@
             "label": "100"
           }
         },
-        "text-muted": {
+        "muted-foreground": {
           "light": {
             "kind": "step",
             "role": "neutral",
@@ -16571,7 +16571,7 @@
         "accent": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 264,
             "seed": {
               "native": true,
@@ -16580,7 +16580,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 264,
             "seed": {
               "native": false,
@@ -16591,42 +16591,42 @@
         "accent-text": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "600"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "200"
           }
         },
-        "on-accent": {
+        "accent-foreground": {
           "light": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "white",
             "hue": 264,
             "chroma": 0.009412446749576156,
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
-            "role": "brand",
+            "kind": "fill-foreground",
+            "role": "accent",
             "pole": "black",
             "hue": 264,
             "chroma": 0.09019999999999999,
             "backedOff": false
           }
         },
-        "focus-ring": {
+        "ring": {
           "light": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "500"
           },
           "dark": {
             "kind": "step",
-            "role": "brand",
+            "role": "accent",
             "label": "300"
           }
         },
@@ -16644,9 +16644,9 @@
             "seed": null
           }
         },
-        "on-error": {
+        "error-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "white",
             "hue": 27,
@@ -16654,7 +16654,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "error",
             "pole": "black",
             "hue": 27,
@@ -16674,7 +16674,7 @@
             "label": "200"
           }
         },
-        "error-container": {
+        "error-subtle": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -16686,7 +16686,7 @@
             "label": "900"
           }
         },
-        "on-error-container": {
+        "error-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "error",
@@ -16712,9 +16712,9 @@
             "seed": null
           }
         },
-        "on-warning": {
+        "warning-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "white",
             "hue": 80,
@@ -16722,7 +16722,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "warning",
             "pole": "black",
             "hue": 80,
@@ -16742,7 +16742,7 @@
             "label": "200"
           }
         },
-        "warning-container": {
+        "warning-subtle": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -16754,7 +16754,7 @@
             "label": "900"
           }
         },
-        "on-warning-container": {
+        "warning-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "warning",
@@ -16780,9 +16780,9 @@
             "seed": null
           }
         },
-        "on-success": {
+        "success-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "white",
             "hue": 150,
@@ -16790,7 +16790,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "success",
             "pole": "black",
             "hue": 150,
@@ -16810,7 +16810,7 @@
             "label": "200"
           }
         },
-        "success-container": {
+        "success-subtle": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -16822,7 +16822,7 @@
             "label": "900"
           }
         },
-        "on-success-container": {
+        "success-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "success",
@@ -16848,9 +16848,9 @@
             "seed": null
           }
         },
-        "on-info": {
+        "info-foreground": {
           "light": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "white",
             "hue": 250,
@@ -16858,7 +16858,7 @@
             "backedOff": true
           },
           "dark": {
-            "kind": "on-fill",
+            "kind": "fill-foreground",
             "role": "info",
             "pole": "black",
             "hue": 250,
@@ -16878,7 +16878,7 @@
             "label": "200"
           }
         },
-        "info-container": {
+        "info-subtle": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -16890,7 +16890,7 @@
             "label": "900"
           }
         },
-        "on-info-container": {
+        "info-subtle-foreground": {
           "light": {
             "kind": "step",
             "role": "info",
@@ -16905,7 +16905,7 @@
         "accent-hover": {
           "light": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 264,
             "seed": {
               "native": false,
@@ -16914,7 +16914,7 @@
           },
           "dark": {
             "kind": "fill",
-            "role": "brand",
+            "role": "accent",
             "hue": 264,
             "seed": {
               "native": false,

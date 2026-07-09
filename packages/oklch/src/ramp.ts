@@ -26,9 +26,9 @@ import {
  * (#160). The engine does NOT mirror one scale into the other (a mirror-label flip gives
  * muddy dark neutrals — architecture.md: "Dark re-generates each ramp and re-solves every
  * binding against dark's OWN surfaces"). Each scale reserves its FIVE-surface band at its own
- * end — light: `50…400` at the light end (bg · surface · surface-2 · surface-hover ·
+ * end — light: `50…400` at the light end (bg · surface · surface-elevated · surface-hover ·
  * surface-selected, ~0.028 apart); dark: `600…950` at the dark end (mirror ROLES, not values)
- * — then spreads the remaining steps into that scheme's text zone so `text`/`text-muted`/
+ * — then spreads the remaining steps into that scheme's text zone so `text`/`muted-foreground`/
  * `border` land on THREE distinct steps. Monotonic, lightest → darkest.
  */
 const RAMP_L: Record<Scheme, Record<RampLabel, number>> = {
@@ -145,7 +145,7 @@ function hueDelta(t: number, policy: HuePolicy): number {
 }
 
 export interface RampSpec {
-  /** Hue held across the ramp (the brand hue for `brand`/`neutral`, a canonical status hue). */
+  /** Hue held across the ramp (the accent hue for `accent`/`neutral`, a canonical status hue). */
   hue: number;
   /** Nominal chroma held across the ramp; gamut-mapped per step, so extremes desaturate. */
   chroma: number;
@@ -158,7 +158,7 @@ export interface RampSpec {
    * Seed anchor (#108): pin `label`'s step to lightness `L` EXACTLY and bend the rest of
    * the scale around it — a per-side shift+scale that keeps both endpoints, so the seed's
    * own color lands ON the ramp instead of drifting between steps. The engine anchors
-   * only the `brand` ramp (see `palette.ts`); neutral/status ramps stay on the scheme's
+   * only the `accent` ramp (see `palette.ts`); neutral/status ramps stay on the scheme's
    * own scale. `L` is clamped into the scale's open interval so the ramp stays monotonic.
    */
   anchor?: { label: RampLabel; L: number };

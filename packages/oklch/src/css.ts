@@ -1,24 +1,24 @@
 /**
  * Serialize a TokenSet to baked CSS — literal `oklch()` values inside `light-dark()`,
- * wrapped in `@layer brand`.
+ * wrapped in `@layer semantic`.
  *
  * Two tiers:
- *   • the GENERIC SEMANTIC token contract (`--surface`, `--accent`, `--text`, … `--success`)
+ *   • the GENERIC SEMANTIC token contract (`--surface`, `--accent`, `--foreground`, … `--success`)
  *     — the same role names the foundation layer defines as the global editorial default; a
- *     slot's `@layer brand` block re-binds them with the brand's solved values.
- *   • the per-role `50…950` ramp PRIMITIVES the semantic tokens bind from (`--brand-500`,
+ *     slot's `@layer semantic` block re-binds them with the theme's solved values.
+ *   • the per-role `50…950` ramp PRIMITIVES the semantic tokens bind from (`--accent-500`,
  *     `--neutral-200`, … `--info-950`) — the tier exposed 1:1 to a Tailwind numeric scale.
  *
  * `tokenSetToDeclarations` emits just the semantic tier; `rampSetToDeclarations` just the
  * ramp tier; `tokenSetToCss` emits both, wrapped in the scoped rule. Adding the
- * `--focus-ring-color` alias and the `--font-face` mapping is the entry scope's job, not
+ * `--ring-color` alias and the `--font-body` mapping is the entry scope's job, not
  * the engine's. `EntryScope` (owned elsewhere) composes the declarations it wants into its
  * scoped `<style>`; this serializer is the convenience that produces them.
  */
 
 import { formatColor } from "./convert";
 import type {
-  BrandTokenName,
+  ThemeTokenName,
   ColorFormat,
   RampRole,
   RampStep,
@@ -47,7 +47,7 @@ export interface CssOptions {
 
 /**
  * Public custom-property prefix. The engine's token names ARE the generic semantic role
- * names, so the prefix is bare `--` (`--surface`, `--accent`, …) — no `--brand-`/project
+ * names, so the prefix is bare `--` (`--surface`, `--accent`, …) — no `--accent-`/project
  * namespace, because the `[data-entry]` scope provides the isolation.
  */
 const PREFIX = "--";
@@ -58,12 +58,12 @@ function lightDark(pair: SchemePair, format: ColorFormat): string {
 }
 
 /** `--<name>` for a token (the generic semantic custom property). */
-function customProperty(name: BrandTokenName): string {
+function customProperty(name: ThemeTokenName): string {
   return `${PREFIX}${name}`;
 }
 
 /**
- * `--<role>-<step>` for one ramp step (`--brand-500`, `--neutral-200`, `--success-700`) —
+ * `--<role>-<step>` for one ramp step (`--accent-500`, `--neutral-200`, `--success-700`) —
  * the primitive tier, exposed 1:1 to a Tailwind numeric scale. A consumer inside the slot
  * (a subtle branded fill, the card ramp strip #96) reads these; the semantic tokens above
  * are what components read by default.
@@ -88,7 +88,7 @@ export function tokenSetToDeclarations(
 ): string {
   const format = opts?.format ?? "oklch";
   const lines = opts?.colorScheme ? ["color-scheme: light dark;"] : [];
-  for (const name of Object.keys(set.tokens) as BrandTokenName[]) {
+  for (const name of Object.keys(set.tokens) as ThemeTokenName[]) {
     lines.push(
       `${customProperty(name)}: ${lightDark(set.tokens[name], format)};`,
     );
@@ -97,7 +97,7 @@ export function tokenSetToDeclarations(
 }
 
 /**
- * Just the primitive `--<role>-<step>` ramp declarations (`--brand-500`, `--neutral-200`,
+ * Just the primitive `--<role>-<step>` ramp declarations (`--accent-500`, `--neutral-200`,
  * … `--info-950`) — the `50…950` tier the semantic tokens bind from, exposed 1:1 to a
  * Tailwind numeric scale (#98). Opt-in and separate from the semantic tier so a caller
  * decides whether to ship the full ramp into its scope; `tokenSetToCss` includes them by
@@ -121,7 +121,7 @@ export function rampSetToDeclarations(
 }
 
 /**
- * A complete, ready-to-inline scoped rule wrapped in `@layer brand` — the semantic role
+ * A complete, ready-to-inline scoped rule wrapped in `@layer semantic` — the semantic role
  * tokens AND the per-role `50…950` ramp primitives (#98). `selector` is typically
  * `[data-entry="<slug>"]`. Indentation is cosmetic. A caller wanting only the semantic
  * tier composes `tokenSetToDeclarations` itself (as `EntryScope` does).
@@ -139,5 +139,5 @@ export function tokenSetToCss(
     .split("\n")
     .map((line) => `    ${line}`)
     .join("\n");
-  return `@layer brand {\n  ${selector} {\n${body}\n  }\n}`;
+  return `@layer semantic {\n  ${selector} {\n${body}\n  }\n}`;
 }

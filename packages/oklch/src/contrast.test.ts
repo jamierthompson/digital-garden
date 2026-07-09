@@ -151,11 +151,12 @@ describe("checkContrast (#100)", () => {
   const SCHEMES = ["light", "dark"] as const;
   for (const scheme of SCHEMES) {
     it.each(SEEDS)(
-      `text clears body text on surface-2 (%s, ${scheme})`,
+      `text clears body text on surface-elevated (%s, ${scheme})`,
       (seed) => {
         const { tokens } = resolveTheme(seed, scheme);
         expect(
-          checkContrast(tokens.text, tokens["surface-2"], BODY).passes,
+          checkContrast(tokens.foreground, tokens["surface-elevated"], BODY)
+            .passes,
         ).toBe(true);
       },
     );
@@ -164,12 +165,12 @@ describe("checkContrast (#100)", () => {
   it("honestly reports the minPass extreme fallback as failing an absurd target", () => {
     const absurd = { wcag: 22, apca: 110 }; // unreachable by construction
     const { ramps, tokens } = resolveTheme("#3b82f6", "light");
-    const fallback = minPass(ramps.neutral, tokens["surface-2"], absurd);
+    const fallback = minPass(ramps.neutral, tokens["surface-elevated"], absurd);
     // minPass always resolves (the highest-contrast extreme) …
     expect(fallback.label).toBeDefined();
     // … and the public check tells the truth about it rather than inheriting "resolved" as "passes".
     expect(
-      checkContrast(fallback.color, tokens["surface-2"], absurd).passes,
+      checkContrast(fallback.color, tokens["surface-elevated"], absurd).passes,
     ).toBe(false);
   });
 });
@@ -287,11 +288,11 @@ describe("checkContrast — identical semantics with the primitives it consolida
 
   for (const scheme of SCHEMES) {
     it.each(SEEDS)(
-      `passes ⇔ the raw two-floor predicate for text/surface-2 (%s, ${scheme})`,
+      `passes ⇔ the raw two-floor predicate for text/surface-elevated (%s, ${scheme})`,
       (seed) => {
         const { tokens } = resolveTheme(seed, scheme);
-        const fg = tokens.text;
-        const bg = tokens["surface-2"];
+        const fg = tokens.foreground;
+        const bg = tokens["surface-elevated"];
         for (const target of TARGETS) {
           const check = checkContrast(fg, bg, target);
           const raw =

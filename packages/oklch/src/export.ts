@@ -6,8 +6,8 @@
  *
  * Naming per format:
  *   • Tailwind: everything under the `--color-*` theme namespace — ramps 1:1 to the
- *     Tailwind numeric scale (`--color-brand-500`) and the semantic roles by name
- *     (`--color-accent`), so utilities like `bg-brand-500` / `text-accent` fall out.
+ *     Tailwind numeric scale (`--color-accent-500`) and the semantic roles by name
+ *     (`--color-accent`), so utilities like `bg-accent-500` / `text-accent` fall out.
  *   • DTCG: per-scheme root groups (`light` / `dark` — the format has no `light-dark()`,
  *     and mode-per-group is the convention Style Dictionary–class tools consume), each
  *     holding one group per ramp role plus a `semantic` group.
@@ -15,7 +15,7 @@
 
 import { clamp01, formatColor, formatHex, oklchToSrgb } from "./convert";
 import type {
-  BrandTokenName,
+  ThemeTokenName,
   ColorFormat,
   OkLCH,
   RampRole,
@@ -32,7 +32,7 @@ export interface ExportOptions {
 
 /**
  * A Tailwind v4 CSS-first theme block: `@theme { --color-…: light-dark(…); }`.
- * Pasteable into a v4 stylesheet; utilities (`bg-brand-500`, `text-accent`, …) are
+ * Pasteable into a v4 stylesheet; utilities (`bg-accent-500`, `text-accent`, …) are
  * generated from the `--color-*` namespace. `light-dark()` resolves wherever the
  * consuming page sets `color-scheme` (Tailwind inlines the var, so the value stays
  * scheme-aware at paint time).
@@ -43,7 +43,7 @@ export function tokenSetToTailwindTheme(
 ): string {
   const format = opts?.format ?? "oklch";
   const lines: string[] = [];
-  for (const name of Object.keys(set.tokens) as BrandTokenName[]) {
+  for (const name of Object.keys(set.tokens) as ThemeTokenName[]) {
     const { light, dark } = set.tokens[name];
     lines.push(
       `  --color-${name}: light-dark(${formatColor(light, format)}, ${formatColor(dark, format)});`,
@@ -131,7 +131,7 @@ function colorToDesignToken(color: OkLCH, format: ColorFormat): DesignToken {
 
 /** One scheme's DTCG tree: a group per ramp role plus the `semantic` group. */
 export interface DesignTokenScheme {
-  semantic: Record<BrandTokenName, DesignToken>;
+  semantic: Record<ThemeTokenName, DesignToken>;
   ramps: Record<RampRole, Record<string, DesignToken>>;
 }
 
@@ -148,8 +148,8 @@ export function tokenSetToDesignTokens(
 ): DesignTokensExport {
   const format = opts?.format ?? "oklch";
   const scheme = (which: Scheme): DesignTokenScheme => {
-    const semantic = {} as Record<BrandTokenName, DesignToken>;
-    for (const name of Object.keys(set.tokens) as BrandTokenName[]) {
+    const semantic = {} as Record<ThemeTokenName, DesignToken>;
+    for (const name of Object.keys(set.tokens) as ThemeTokenName[]) {
       semantic[name] = colorToDesignToken(set.tokens[name][which], format);
     }
     const ramps = {} as Record<RampRole, Record<string, DesignToken>>;

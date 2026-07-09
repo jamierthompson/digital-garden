@@ -1,6 +1,6 @@
 # OKLCH theming engine
 
-A **pure, isomorphic** color engine: `brandColor → contrast-solved, gamut-mapped token
+A **pure, isomorphic** color engine: `themeColor → contrast-solved, gamut-mapped token
 sets`, baked to literal `oklch()` values server-side. The load-bearing, genuinely hard
 piece of the theming system (see `docs/architecture.md`). It knows nothing about React, the
 DOM, Node, or projects — its isomorphism is lint-enforced (`eslint.config.mjs`) and
@@ -16,20 +16,20 @@ bit-identical to a fresh compute — so the purity/determinism contract is uncha
 ## Decisions baked in
 
 - **Ramp primitive + bound semantic tokens.** The engine emits a per-role generative ramp
-  — `brand`, `neutral`, and the four status ramps — as **11 `50…950` steps** (a pure
+  — `accent`, `neutral`, and the four status ramps — as **11 `50…950` steps** (a pure
   perceptual-lightness primitive, gamut-mapped, with an out-of-gamut flag per step), and the
   semantic tokens **bind to ramp steps**: surfaces pin a fixed neutral step per scheme, and
   every readable-on-surface token binds to the _smallest step that clears_ its contrast target
   (`minPass`, with an extreme-step fallback). The accent **fill** is the exception — a faithful
-  continuous solve anchored at the seed's lightness — with its on-accent label the **most
-  chromatic** color at the brand hue that clears on the fill (#153 — gold on navy, degrading to
+  continuous solve anchored at the seed's lightness — with its accent-foreground label the **most
+  chromatic** color at the accent hue that clears on the fill (#153 — gold on navy, degrading to
   a near-white/near-black extreme when the gamut allows no chroma there). Consumers read the generic semantic **names**;
   the ramp math stays behind them (the raw `--<role>-<step>` steps are emitted too).
-- **Seed anchor-step.** The **brand** ramp is bent so one step sits at the seed's **exact**
+- **Seed anchor-step.** The **accent** ramp is bent so one step sits at the seed's **exact**
   lightness (a per-side shift+scale that preserves the endpoints, keeps the scale strictly
   monotonic, and happens _before_ gamut mapping) — the seed's own color lands **on** the ramp
   instead of drifting between steps, and in the native scheme the accent fill IS that step
-  _whenever the seed's own lightness can host a legible on-accent label_ (a label-hostile
+  _whenever the seed's own lightness can host a legible accent-foreground label_ (a label-hostile
   mid-tone seed falls back to the co-solve's minimal nudge, diverging from the step — by
   design). Fully automatic: the step is keyed off the seed's native direction (`500`
   light-native, `300` dark-native) and reported as `anchorLabel` (`SchemeResult` /
@@ -53,7 +53,7 @@ bit-identical to a fresh compute — so the purity/determinism contract is uncha
   **chroma policy** (`flat` default · `taper` · `hold`); **hue policy** (`constant` default ·
   `warm-shadows` · `cool-highlights`, ±9° drift); **tinted neutrals** (default `true`;
   `false` = pure achromatic greys). Every default reproduces the un-ruled output bit-for-bit.
-- **Scheme-aware, independent per-scheme scales** (#160): `(brandColor, scheme) →
+- **Scheme-aware, independent per-scheme scales** (#160): `(themeColor, scheme) →
 { ramps, tokens }`. Light and dark are **not** a mirror-label flip of one shared scale —
   each has its **own** lightness distribution (surfaces reserved at its own end: light `50…400`,
   dark `600…950`) and its own neutral chroma, so dark neutrals read clean rather than muddy.
@@ -73,50 +73,50 @@ import { resolveTheme, buildTokenSet, tokenSetToCss } from "@garden/oklch";
 
 // One scheme → { ramps, tokens, seed, isFallback } (cardSwatches; the studio, #70):
 const { ramps, tokens, seed, isFallback } = resolveTheme("#3b82f6", "light");
-ramps.brand[7]; // → { label: "700", color: {…}, oog: false }
+ramps.accent[7]; // → { label: "700", color: {…}, oog: false }
 
 // Both schemes zipped for EntryScope's light-dark() <style>:
 const set = buildTokenSet("#3b82f6"); // { gamut: "p3" } to opt into wide gamut
-const css = tokenSetToCss(set, '[data-entry="garden"]'); // @layer brand, tokens + ramps
+const css = tokenSetToCss(set, '[data-entry="garden"]'); // @layer semantic, tokens + ramps
 ```
 
 Tokens (generic semantic contract, emitted as bare `--<name>`) — the **34-token** model
-(#160): the core 10 (`bg`, `surface`, `surface-2`, `text`, `text-muted`, `border`, `accent`,
-`accent-text`, `on-accent`, `focus-ring`); a status **trio + container** block ×4
-(`error`/`warning`/`success`/`info` × `<status>` fill · `on-<status>` label · `<status>-text` ·
-`<status>-container` · `on-<status>-container`); the interaction states `accent-hover`,
+(#160): the core 10 (`background`, `surface`, `surface-elevated`, `foreground`, `muted-foreground`, `border`, `accent`,
+`accent-text`, `accent-foreground`, `ring`); a status **trio + subtle surface** block ×4
+(`error`/`warning`/`success`/`info` × `<status>` fill · `<status>-foreground` label · `<status>-text` ·
+`<status>-subtle` · `<status>-subtle-foreground`); the interaction states `accent-hover`,
 `surface-hover`, `surface-selected`; and the translucent `scrim` overlay literal. The canonical
-lists are exported (`BRAND_TOKEN_NAMES`, `RAMP_ROLES`, `RAMP_LABELS`) — import them, don't
+lists are exported (`THEME_TOKEN_NAMES`, `RAMP_ROLES`, `RAMP_LABELS`) — import them, don't
 restate them.
 
-Ramps (the primitive tier, emitted as `--<role>-<step>`): one per role — `brand`, `neutral`,
+Ramps (the primitive tier, emitted as `--<role>-<step>`): one per role — `accent`, `neutral`,
 `success`, `error`, `warning`, `info` — each 11 `50…950` steps (`RampStep` = `{ label, color,
 oog }`). `tokenSetToDeclarations` emits the semantic tier only; `rampSetToDeclarations` the
 ramp tier only; `tokenSetToCss` both.
 
 Binding provenance (the receipt): each result reports **which ramp step every semantic token
-bound to**, so a consumer (the Studio token table, #70) can print a truthful "`--text` →
+bound to**, so a consumer (the Studio token table, #70) can print a truthful "`--foreground` →
 `neutral · 800`" without reverse-engineering it by value-matching — a scan that _lies_ where
-the brand and neutral ramps converge (an achromatic seed, `tintedNeutrals: false`) and scan
+the accent and neutral ramps converge (an achromatic seed, `tintedNeutrals: false`) and scan
 order, not the schema, would pick the role. `SchemeResult.bindings` is
-`Record<BrandTokenName, BindingProvenance>` for that scheme; `TokenSet.meta.bindings` is
-`Record<BrandTokenName, BindingPair>` (`{ light, dark }`). `BindingProvenance` is a
+`Record<ThemeTokenName, BindingProvenance>` for that scheme; `TokenSet.meta.bindings` is
+`Record<ThemeTokenName, BindingPair>` (`{ light, dark }`). `BindingProvenance` is a
 discriminated union on `kind` (generalized #160 — the kind is the derivation SHAPE, `role`
 carries the identity so a status fill's receipt never says "accent"): `StepProvenance`
 (`{ kind: "step", role, label }`) for a discrete ramp step (surfaces, every `auto` token,
 containers, state steps); `FillProvenance` (`{ kind: "fill", role, hue, seed }`) for a
-co-solved fill (the brand `accent`/`accent-hover` — `seed` non-null with the faithful/nudged/
+co-solved fill (the `accent`/`accent-hover` — `seed` non-null with the faithful/nudged/
 derived story — and every status fill — `seed: null`, fixed canonical hue); `OnFillProvenance`
 (`{ kind: "on-fill", role, pole, hue, chroma, backedOff }`) for a chromatic label on a fill
-(`on-accent`, `on-<status>`); and `LiteralProvenance` (`{ kind: "literal", alpha }`) for a
+(`accent-foreground`, `<status>-foreground`); and `LiteralProvenance` (`{ kind: "literal", alpha }`) for a
 fixed value (scrim — no contrast claim, only opacity). `null` is a reserved sentinel. It is
 **reporting, not re-solving** — every baked color is byte-identical with or without it.
 
 The derivation contract (the receipt's other half, #150): `CONTRAST_TARGETS` — the named
 tiers each pair is measured against (`bodyText` 4.5/75, `mutedText`/`accentText`/`onAccent`
 4.5/60, `ui` 3/45, `border` 3/30) — and `DEFAULT_BINDING_SCHEMA`, the read-only
-`Record<BrandTokenName, TokenBinding>` the engine solves against. Together they let the
-Studio answer, for any token, WHICH binding kind it is (`step`/`auto`/`accent`/`on-accent`/
+`Record<ThemeTokenName, TokenBinding>` the engine solves against. Together they let the
+Studio answer, for any token, WHICH binding kind it is (`step`/`auto`/`accent`/`accent-foreground`/
 `literal`), against WHICH role's ramp, to WHICH tier — reading the solver's own table rather
 than restating it. Each `auto` binding's `target` is a `CONTRAST_TARGETS` object by identity,
 so the receipt's target and the solver's are one value. `ContrastTargetName` names the tiers.
@@ -145,7 +145,7 @@ Portable serializations of a `TokenSet`, each taking `{ format?: "oklch" | "hex"
 ```ts
 import { tokenSetToTailwindTheme, tokenSetToDesignTokens } from "@garden/oklch";
 
-tokenSetToTailwindTheme(set); // Tailwind v4 `@theme { --color-brand-500: …; }` (CSS-first)
+tokenSetToTailwindTheme(set); // Tailwind v4 `@theme { --color-accent-500: …; }` (CSS-first)
 tokenSetToDesignTokens(set, { format: "hex" }); // W3C-DTCG JSON, per-scheme groups
 ```
 
@@ -162,8 +162,9 @@ stops), `minPass` (discrete step binding), and the color conversions/parsers.
 
 - The engine emits the **generic semantic** names only (bare `--surface`, `--accent`, …) —
   there are no project-prefixed aliases (isolation comes from the `[data-entry]` scope).
-  Mapping to `--focus-ring-color` (foundation's `:focus-visible` reads that) is the
-  **scope's** job, not the engine's. Suggested: `--focus-ring-color: var(--focus-ring)`.
+  The engine emits `--ring` (the focus-ring color) directly, so foundation's
+  `:focus-visible` reads `--ring` with no aliasing step; the ring geometry
+  (`--ring-width`/`--ring-offset`/`--ring-style`) stays global to the foundation layer.
 - **`color-scheme` is NOT emitted by default (#159).** `color-scheme` is inherited, so a
   scoped `[data-entry]` slot must let it fall through from the foundation `:root` — otherwise
   re-declaring `light dark` shadows a forced root override (the site-wide light/dark toggle)
@@ -176,8 +177,8 @@ stops), `minPass` (discrete step binding), and the color conversions/parsers.
 ## Visual contrast harness
 
 `harness/harness.test.ts` is the **exit criterion**: it asserts measured APCA Lc + WCAG
-ratios for 5 hue-spanning brand colors (incl. the **yellow & cyan stressers**), in **both
-schemes**, on every text-on-surface and on-brand pair _after_ gamut mapping. It also
+ratios for 5 hue-spanning theme colors (incl. the **yellow & cyan stressers**), in **both
+schemes**, on every text-on-surface and accent pair _after_ gamut mapping. It also
 regenerates **`harness/swatches.html`** — a committed, deterministic eyeball artifact.
 
 ```bash

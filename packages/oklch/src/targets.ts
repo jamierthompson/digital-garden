@@ -25,11 +25,11 @@ export const CONTRAST_TARGETS = deepFreeze({
   /** Link/accent text: AA small-text floor (4.5), Lc 60 — the yellow/cyan stresser. */
   accentText: { wcag: 4.5, apca: 60 } satisfies ContrastTarget,
   /** Text on the accent fill: AA small-text (4.5) + APCA "non-body" tier (Lc 60). A
-   *  mid-tone fill cannot host Lc-75 body text in either polarity, so the on-brand
+   *  mid-tone fill cannot host Lc-75 body text in either polarity, so the accent-foreground
    *  label target is the non-body tier; the accent fill is co-solved to host it. */
-  onAccent: { wcag: 4.5, apca: 60 } satisfies ContrastTarget,
+  accentForeground: { wcag: 4.5, apca: 60 } satisfies ContrastTarget,
   /** Accent fill, borders, focus ring: non-text 3:1 (1.4.11), Lc 45 spot-readable. The
-   *  focus-ring color is an engine token (contrast-solved per slot); ring geometry stays global. */
+   *  ring color is an engine token (contrast-solved per slot); ring geometry stays global. */
   ui: { wcag: 3, apca: 45 } satisfies ContrastTarget,
   /** Subtle borders: non-text 3:1 floor. */
   border: { wcag: 3, apca: 30 } satisfies ContrastTarget,

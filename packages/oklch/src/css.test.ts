@@ -26,20 +26,22 @@ describe("tokenSetToDeclarations", () => {
   });
 
   it("emits the generic semantic public contract as bare -- names (no ramp tier)", () => {
-    expect(decls).toContain("--bg:");
+    expect(decls).toContain("--background:");
     expect(decls).toContain("--accent:");
-    expect(decls).toContain("--focus-ring:");
-    // The 34-token contract (#160): status trios/containers, interaction states, scrim.
-    expect(decls).toContain("--on-error:");
-    expect(decls).toContain("--error-container:");
-    expect(decls).toContain("--on-success-container:");
+    expect(decls).toContain("--ring:");
+    // The 34-token contract (#160): status trios/subtle surfaces, interaction states, scrim.
+    expect(decls).toContain("--error-foreground:");
+    expect(decls).toContain("--error-subtle:");
+    expect(decls).toContain("--success-subtle-foreground:");
     expect(decls).toContain("--accent-hover:");
     expect(decls).toContain("--surface-selected:");
     expect(decls).toContain("--scrim:");
-    // The semantic tier is generic and self-contained: no `--brand-` namespace of any kind
-    // (neither a prefixed role nor a ramp primitive — the `--<role>-<step>` ramp tier is a
-    // separate opt-in, `rampSetToDeclarations`).
-    expect(decls).not.toContain("--brand-");
+    // The semantic tier is self-contained: none of the `--<role>-<step>` ramp primitives
+    // leak in (that tier is a separate opt-in, `rampSetToDeclarations`). `--neutral-*` is the
+    // clean discriminator — a pure ramp namespace with no semantic-token counterpart, unlike
+    // `--accent-*`, which legitimately carries semantic roles (`--accent-hover`, `--accent-text`).
+    expect(decls).not.toContain("--neutral-");
+    expect(decls).not.toContain("--accent-500");
     // No project-internal alias leaks out of the engine.
     expect(decls).not.toContain("--logx-");
     // Exactly the 34 semantic tokens — nothing else (no color-scheme by default, #159).
@@ -48,7 +50,7 @@ describe("tokenSetToDeclarations", () => {
 
   it("bakes literal oklch() values inside light-dark()", () => {
     expect(decls).toMatch(
-      /--bg: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
+      /--background: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
     );
   });
 });
@@ -60,9 +62,9 @@ describe("rampSetToDeclarations", () => {
   it("emits the per-role 50…950 ramp primitives baked as light-dark() (#98)", () => {
     // One representative step from each role, plus both ends of a ramp.
     for (const decl of [
-      "--brand-50:",
-      "--brand-500:",
-      "--brand-950:",
+      "--accent-50:",
+      "--accent-500:",
+      "--accent-950:",
       "--neutral-200:",
       "--success-500:",
       "--error-500:",
@@ -72,7 +74,7 @@ describe("rampSetToDeclarations", () => {
       expect(ramps).toContain(decl);
     }
     expect(ramps).toMatch(
-      /--brand-500: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
+      /--accent-500: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
     );
     // 6 roles × 11 steps — the full primitive tier, no semantic tokens mixed in.
     expect(ramps.split("\n")).toHaveLength(6 * 11);
@@ -82,25 +84,25 @@ describe("rampSetToDeclarations", () => {
   it("zips each step's LIGHT and DARK literals into light-dark() in the right order", () => {
     // A transposed/duplicated-scheme zip would still match the shape regex above; assert the
     // two literals are exactly the role's light[i] and dark[i] steps for a representative step.
-    const { light, dark } = set.ramps.brand;
+    const { light, dark } = set.ramps.accent;
     const i = light.findIndex((s) => s.label === "500");
     expect(ramps).toContain(
-      `--brand-500: light-dark(${formatOklch(light[i].color)}, ${formatOklch(dark[i].color)});`,
+      `--accent-500: light-dark(${formatOklch(light[i].color)}, ${formatOklch(dark[i].color)});`,
     );
   });
 });
 
 describe("tokenSetToCss", () => {
-  it("wraps the rule in @layer brand for the scoped <style>", () => {
+  it("wraps the rule in @layer semantic for the scoped <style>", () => {
     const css = tokenSetToCss(
       buildTokenSet("#3b82f6"),
       '[data-entry="garden"]',
     );
-    expect(css).toContain("@layer brand {");
+    expect(css).toContain("@layer semantic {");
     expect(css).toContain('[data-entry="garden"] {');
-    expect(css).toContain("--text:");
+    expect(css).toContain("--foreground:");
     // The complete scoped rule carries the ramp primitives too (#98).
-    expect(css).toContain("--brand-500:");
+    expect(css).toContain("--accent-500:");
   });
 
   it("serializes values per ColorFormat on request, defaulting to native oklch (#99)", () => {

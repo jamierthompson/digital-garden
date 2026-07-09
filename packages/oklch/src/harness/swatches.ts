@@ -1,10 +1,10 @@
 /**
  * Pure generator for the visual contrast harness artifact.
  *
- * Builds a self-contained HTML document of swatch cards — one row per brand color, a
+ * Builds a self-contained HTML document of swatch cards — one row per theme color, a
  * light and a dark panel each — using the engine's BAKED `oklch()` literals so a real
  * browser paints exactly what the engine solved. Every text-on-surface and
- * on-brand pair is labeled with its MEASURED APCA Lc and WCAG ratio (assert the number,
+ * accent-foreground pair is labeled with its MEASURED APCA Lc and WCAG ratio (assert the number,
  * don't snapshot the CSS — testing.md). Pure & isomorphic: no DOM, no Node, no I/O —
  * it returns a string; the test writes it to disk.
  */
@@ -14,18 +14,18 @@ import { formatOklch } from "../convert";
 import { resolveTheme } from "../palette";
 import type { OkLCH, Scheme, SchemeTokens } from "../types";
 
-export interface BrandSample {
+export interface ThemeSample {
   name: string;
-  brandColor: string;
+  themeColor: string;
 }
 
 /** The default hue-spanning set — includes the yellow & cyan stressers. */
-export const BRAND_SAMPLES: readonly BrandSample[] = [
-  { name: "Crimson", brandColor: "#e11d48" },
-  { name: "Amber (yellow stresser)", brandColor: "#eab308" },
-  { name: "Emerald", brandColor: "#16a34a" },
-  { name: "Cyan (cyan stresser)", brandColor: "#06b6d4" },
-  { name: "Violet", brandColor: "#7c3aed" },
+export const THEME_SAMPLES: readonly ThemeSample[] = [
+  { name: "Crimson", themeColor: "#e11d48" },
+  { name: "Amber (yellow stresser)", themeColor: "#eab308" },
+  { name: "Emerald", themeColor: "#16a34a" },
+  { name: "Cyan (cyan stresser)", themeColor: "#06b6d4" },
+  { name: "Violet", themeColor: "#7c3aed" },
 ];
 
 function badge(label: string, lc: number, ratio: number): string {
@@ -35,13 +35,13 @@ function badge(label: string, lc: number, ratio: number): string {
 function ramp(tokens: SchemeTokens): string {
   // Eyeball strip: surfaces + key tokens laid out as bars.
   const stops: Array<[string, OkLCH]> = [
-    ["bg", tokens.bg],
+    ["background", tokens.background],
     ["surface", tokens.surface],
-    ["surface-2", tokens["surface-2"]],
+    ["surface-elevated", tokens["surface-elevated"]],
     ["border", tokens.border],
     ["accent", tokens.accent],
     ["accent-text", tokens["accent-text"]],
-    ["text", tokens.text],
+    ["foreground", tokens.foreground],
   ];
   return stops
     .map(
@@ -51,37 +51,37 @@ function ramp(tokens: SchemeTokens): string {
     .join("");
 }
 
-function panel(scheme: Scheme, sample: BrandSample): string {
-  const { tokens } = resolveTheme(sample.brandColor, scheme);
-  const surfaceBg = tokens["surface-2"]; // a mid surface, for the eyeball contrast badges below
+function panel(scheme: Scheme, sample: ThemeSample): string {
+  const { tokens } = resolveTheme(sample.themeColor, scheme);
+  const surfaceBg = tokens["surface-elevated"]; // a mid surface, for the eyeball contrast badges below
   const css = (c: OkLCH): string => formatOklch(c);
 
   return `
-  <div class="panel" style="color-scheme:${scheme}; background:${css(tokens.bg)}; color:${css(tokens.text)}">
+  <div class="panel" style="color-scheme:${scheme}; background:${css(tokens.background)}; color:${css(tokens.foreground)}">
     <div class="scheme-label">${scheme}</div>
     <div class="card" style="background:${css(tokens.surface)}; border:1px solid ${css(tokens.border)}">
-      <h3 style="color:${css(tokens.text)}">Heading on surface ${badge("text/sfc2", apcaLc(tokens.text, surfaceBg), contrastWCAG(tokens.text, surfaceBg))}</h3>
-      <p style="color:${css(tokens.text)}">Body text — the readable default. ${badge("text/bg", apcaLc(tokens.text, tokens.bg), contrastWCAG(tokens.text, tokens.bg))}</p>
-      <p style="color:${css(tokens["text-muted"])}">Muted secondary text. ${badge("muted/sfc2", apcaLc(tokens["text-muted"], surfaceBg), contrastWCAG(tokens["text-muted"], surfaceBg))}</p>
+      <h3 style="color:${css(tokens.foreground)}">Heading on surface ${badge("text/sfc2", apcaLc(tokens.foreground, surfaceBg), contrastWCAG(tokens.foreground, surfaceBg))}</h3>
+      <p style="color:${css(tokens.foreground)}">Body text — the readable default. ${badge("text/bg", apcaLc(tokens.foreground, tokens.background), contrastWCAG(tokens.foreground, tokens.background))}</p>
+      <p style="color:${css(tokens["muted-foreground"])}">Muted secondary text. ${badge("muted/sfc2", apcaLc(tokens["muted-foreground"], surfaceBg), contrastWCAG(tokens["muted-foreground"], surfaceBg))}</p>
       <p><a style="color:${css(tokens["accent-text"])}">An accent link</a> ${badge("link/sfc2", apcaLc(tokens["accent-text"], surfaceBg), contrastWCAG(tokens["accent-text"], surfaceBg))}</p>
-      <button style="background:${css(tokens.accent)}; color:${css(tokens["on-accent"])}; border:none; padding:6px 12px; border-radius:6px">Accent button ${badge("on-accent", apcaLc(tokens["on-accent"], tokens.accent), contrastWCAG(tokens["on-accent"], tokens.accent))}</button>
-      <div class="ring" style="outline:2px solid ${css(tokens["focus-ring"])}; outline-offset:2px">focus ring ${badge("ring/sfc2", apcaLc(tokens["focus-ring"], surfaceBg), contrastWCAG(tokens["focus-ring"], surfaceBg))}</div>
+      <button style="background:${css(tokens.accent)}; color:${css(tokens["accent-foreground"])}; border:none; padding:6px 12px; border-radius:6px">Accent button ${badge("accent-foreground", apcaLc(tokens["accent-foreground"], tokens.accent), contrastWCAG(tokens["accent-foreground"], tokens.accent))}</button>
+      <div class="ring" style="outline:2px solid ${css(tokens["ring"])}; outline-offset:2px">focus ring ${badge("ring/sfc2", apcaLc(tokens["ring"], surfaceBg), contrastWCAG(tokens["ring"], surfaceBg))}</div>
       <div class="ramp">${ramp(tokens)}</div>
     </div>
   </div>`;
 }
 
-function row(sample: BrandSample): string {
+function row(sample: ThemeSample): string {
   return `
   <section class="row">
-    <h2>${sample.name} <code>${sample.brandColor}</code></h2>
+    <h2>${sample.name} <code>${sample.themeColor}</code></h2>
     <div class="panels">${panel("light", sample)}${panel("dark", sample)}</div>
   </section>`;
 }
 
 /** Render the full eyeball document for the given samples. Pure. */
 export function renderSwatchDocument(
-  samples: readonly BrandSample[] = BRAND_SAMPLES,
+  samples: readonly ThemeSample[] = THEME_SAMPLES,
 ): string {
   const rows = samples.map(row).join("\n");
   return `<!doctype html>
@@ -112,7 +112,7 @@ export function renderSwatchDocument(
 <body>
 <h1>OKLCH engine — contrast harness</h1>
 <p class="note">
-  Each brand color, light &amp; dark, baked to literal <code>oklch()</code> by the engine
+  Each theme color, light &amp; dark, baked to literal <code>oklch()</code> by the engine
   (gamut-mapped before contrast math, contrast solved per scheme). Badges show MEASURED
   APCA Lc and WCAG ratio for each pair. Open in a browser to eyeball palette quality;
   the numbers are asserted by <code>harness.test.ts</code>.

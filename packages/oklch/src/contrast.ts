@@ -117,7 +117,7 @@ export interface ContrastTarget {
 export interface SolveOptions {
   /** Background the foreground must contrast against (already gamut-mapped). */
   bg: OkLCH;
-  /** Hue to hold while moving L (the brand hue, usually). */
+  /** Hue to hold while moving L (the accent hue, usually). */
   hue: number;
   /** Preferred chroma; backed off toward 0 if the target is otherwise infeasible. */
   chroma: number;

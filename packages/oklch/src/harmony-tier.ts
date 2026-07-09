@@ -4,11 +4,11 @@
  *
  * Where `buildHarmonyPalette` emits single decorative colors (seed L/C held, hue rotated,
  * gamut-mapped) and hands the contrast homework to the consumer, this tier gives each
- * derived harmony hue the SAME treatment the brand hue gets, composed from the existing
+ * derived harmony hue the SAME treatment the accent hue gets, composed from the existing
  * machinery: a full `50…950` ramp per scheme (`buildRamp`, #101 — built on that scheme's
  * own INDEPENDENT lightness scale (#160, not a mirror flip), same generative rules, same
  * per-scheme seed-chroma dampening, same per-step gamut map + `oog` flags, anchored to
- * the seed's own lightness exactly like the brand ramp, #108), plus two receipt-backed
+ * the seed's own lightness exactly like the accent ramp, #108), plus two receipt-backed
  * picks per hue — a text-grade pick (`accentText`: 4.5:1 + Lc 60) and a UI-grade fill pick
  * (`ui`: 3:1 + Lc 45) — each landed by `minPass` against the scheme's worst-case surface and
  * carrying solve-time step provenance, exactly like the semantic `auto` tokens.
@@ -18,7 +18,7 @@
  * `export.ts`, never a growth of the semantic token list. Status hues stay fixed-hue and are NOT part of this
  * tier (`error` stays red — #66). Built by reusing `resolveTheme` so the seed, the
  * dark-scheme dampening, the anchor, and the worst-case surface each pick is solved against
- * are IDENTICAL to what the brand ramp ships — one source of truth, no re-derived drift.
+ * are IDENTICAL to what the accent ramp ships — one source of truth, no re-derived drift.
  *
  * Pure, deterministic, isomorphic, never throws — bad input yields the fallback seed's tier.
  */
@@ -102,7 +102,7 @@ export interface HarmonyHueResult {
   relationship: HarmonyKind;
   /** Signed hue offset from the seed, in degrees. */
   offset: number;
-  /** The `50…950` ramp at this hue for this scheme — rules- and gamut-treated like brand. */
+  /** The `50…950` ramp at this hue for this scheme — rules- and gamut-treated like the accent ramp. */
   ramp: Ramp;
   /** Text-grade pick (`accentText`: 4.5:1 + Lc 60 vs the worst-case surface). */
   text: HarmonyPick;
@@ -113,10 +113,10 @@ export interface HarmonyHueResult {
 /** The harmony tier resolved for one scheme — the per-scheme counterpart of `SchemeResult`. */
 export interface HarmonySchemeResult {
   hues: Record<HarmonyHue, HarmonyHueResult>;
-  /** The per-scheme, chroma-dampened, gamut-mapped brand seed the hues rotate around. */
+  /** The per-scheme, chroma-dampened, gamut-mapped theme seed the hues rotate around. */
   seed: OkLCH;
   gamut: Gamut;
-  /** True when the brand input failed to parse and the fallback seed was used. */
+  /** True when the theme input failed to parse and the fallback seed was used. */
   isFallback: boolean;
 }
 
@@ -141,7 +141,7 @@ export interface HarmonyHueTier {
 export interface HarmonyTier {
   hues: Record<HarmonyHue, HarmonyHueTier>;
   meta: {
-    /** The per-scheme brand seed the hues rotate around. */
+    /** The per-scheme theme seed the hues rotate around. */
     seed: SchemePair;
     gamut: Gamut;
     isFallback: boolean;
@@ -174,26 +174,26 @@ function landPick(
 
 /**
  * Resolve the harmony tier for ONE scheme. Reuses `resolveTheme` so the seed (per-scheme
- * chroma-dampened + gamut-mapped), the anchor (the brand ramp's seed-anchored step, #108),
- * and the worst-case surface each pick is solved against are IDENTICAL to the brand ramp's —
+ * chroma-dampened + gamut-mapped), the anchor (the accent ramp's seed-anchored step, #108),
+ * and the worst-case surface each pick is solved against are IDENTICAL to the accent ramp's —
  * no re-derived surface that could silently drift from what ships. Each derived hue then gets
- * a ramp built with the same generative rules, chroma, gamut, and anchor as brand, with only
+ * a ramp built with the same generative rules, chroma, gamut, and anchor as the accent ramp, with only
  * the hue rotated; its text/fill picks land via `minPass` against that surface. Never throws.
  */
 export function resolveHarmonyTier(
-  brandColor: unknown,
+  themeColor: unknown,
   scheme: Scheme,
   opts: EngineOptions = {},
 ): HarmonySchemeResult {
-  const base = resolveTheme(brandColor, scheme, opts);
+  const base = resolveTheme(themeColor, scheme, opts);
   const { seed, gamut, isFallback } = base;
   // The worst-case surface the semantic `auto` tokens solved against — `surface-selected`,
   // the darkest (light) / lightest (dark) text-bearing surface of the 5-surface band (#160),
   // so a pick that clears its target here clears it on EVERY surface. Read straight off the
   // resolved token so it can never diverge from the shipped surface.
   const worstSurface = base.tokens["surface-selected"];
-  // Anchor every harmony ramp to the seed's own lightness at the brand ramp's anchor step
-  // (#108), so the derived hue's identity color lands ON its ramp exactly as brand's does.
+  // Anchor every harmony ramp to the seed's own lightness at the accent ramp's anchor step
+  // (#108), so the derived hue's identity color lands ON its ramp exactly as the accent ramp does.
   const anchor = { label: base.anchorLabel, L: seed.L };
   const rules = opts?.rules;
 
@@ -228,11 +228,11 @@ export function resolveHarmonyTier(
  * deterministic, never throws.
  */
 export function buildHarmonyTier(
-  brandColor: unknown,
+  themeColor: unknown,
   opts: EngineOptions = {},
 ): HarmonyTier {
-  const light = resolveHarmonyTier(brandColor, "light", opts);
-  const dark = resolveHarmonyTier(brandColor, "dark", opts);
+  const light = resolveHarmonyTier(themeColor, "light", opts);
+  const dark = resolveHarmonyTier(themeColor, "dark", opts);
 
   const hues = {} as Record<HarmonyHue, HarmonyHueTier>;
   for (const hue of HARMONY_HUES) {

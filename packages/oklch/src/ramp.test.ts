@@ -4,7 +4,7 @@ import { inGamut } from "./gamut";
 import { buildLightnessRamp, buildRamp } from "./ramp";
 import { RAMP_LABELS } from "./types";
 
-/** Brand-ish hues spanning the wheel, incl. the yellow/cyan stressers. */
+/** Assorted seed hues spanning the wheel, incl. the yellow/cyan stressers. */
 const HUES = [29, 110, 145, 195, 260, 330];
 
 describe("buildLightnessRamp", () => {

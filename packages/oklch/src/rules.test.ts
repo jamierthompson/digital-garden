@@ -13,7 +13,7 @@ import { buildTokenSet, resolveTheme } from "./palette";
 import { buildRamp } from "./ramp";
 import { apcaLc, contrastWCAG } from "./contrast";
 import {
-  type BrandTokenName,
+  type ThemeTokenName,
   type ChromaPolicy,
   type EngineRules,
   type Gamut,
@@ -43,36 +43,36 @@ const HUE_POLICIES: HuePolicy[] = [
 
 // Foreground token, the background it is solved against, and its schema target (palette.ts
 // CONTRAST_TARGETS). The worst-case surface is `surface-selected` (#160); fills read as UI
-// (3:1/Lc45) on it, and every label sits on its ACTUAL fill/container (4.5/Lc60).
+// (3:1/Lc45) on it, and every label sits on its ACTUAL fill/subtle-surface (4.5/Lc60).
 // [name, bg, wcag floor, apca floor].
-const FLOORS: Array<[BrandTokenName, BrandTokenName, number, number]> = [
-  ["text", "surface-selected", 4.5, 75],
-  ["text-muted", "surface-selected", 4.5, 60],
+const FLOORS: Array<[ThemeTokenName, ThemeTokenName, number, number]> = [
+  ["foreground", "surface-selected", 4.5, 75],
+  ["muted-foreground", "surface-selected", 4.5, 60],
   ["border", "surface-selected", 3, 30],
   ["accent-text", "surface-selected", 4.5, 60],
-  ["focus-ring", "surface-selected", 3, 45],
+  ["ring", "surface-selected", 3, 45],
   ["accent", "surface-selected", 3, 45],
   ["accent-hover", "surface-selected", 3, 45],
-  ["on-accent", "accent", 4.5, 60],
+  ["accent-foreground", "accent", 4.5, 60],
   ["error", "surface-selected", 3, 45],
-  ["on-error", "error", 4.5, 60],
+  ["error-foreground", "error", 4.5, 60],
   ["error-text", "surface-selected", 4.5, 60],
-  ["on-error-container", "error-container", 4.5, 60],
+  ["error-subtle-foreground", "error-subtle", 4.5, 60],
   ["warning", "surface-selected", 3, 45],
-  ["on-warning", "warning", 4.5, 60],
+  ["warning-foreground", "warning", 4.5, 60],
   ["warning-text", "surface-selected", 4.5, 60],
-  ["on-warning-container", "warning-container", 4.5, 60],
+  ["warning-subtle-foreground", "warning-subtle", 4.5, 60],
   ["success", "surface-selected", 3, 45],
-  ["on-success", "success", 4.5, 60],
+  ["success-foreground", "success", 4.5, 60],
   ["success-text", "surface-selected", 4.5, 60],
-  ["on-success-container", "success-container", 4.5, 60],
+  ["success-subtle-foreground", "success-subtle", 4.5, 60],
   ["info", "surface-selected", 3, 45],
-  ["on-info", "info", 4.5, 60],
+  ["info-foreground", "info", 4.5, 60],
   ["info-text", "surface-selected", 4.5, 60],
-  ["on-info-container", "info-container", 4.5, 60],
+  ["info-subtle-foreground", "info-subtle", 4.5, 60],
 ];
 
-// Stresser seeds: brand blue, the yellow/cyan APCA stressers, near-white / near-black
+// Stresser seeds: blue seed, the yellow/cyan APCA stressers, near-white / near-black
 // extremes, and unparseable garbage (must fall back to a passing palette, not explode).
 const SEEDS: unknown[] = [
   "#2563eb",
@@ -87,7 +87,7 @@ const SEEDS: unknown[] = [
 // The full policy cross-product (5×3×3×2 policy combos × 2 schemes × 2 gamuts) is heavy —
 // each `resolveTheme` now co-solves the accent + four status fills + the hover (#160). Its
 // PURPOSE is policy coverage, not seed variety, so it sweeps a focused stresser set: the
-// two hardest APCA hues (yellow/cyan), a brand blue, and the near-black extreme. Broad seed
+// two hardest APCA hues (yellow/cyan), a blue seed, and the near-black extreme. Broad seed
 // coverage of the values lives in the #79 floor sweep and the direction-invariant test below.
 const CROSS_PRODUCT_SEEDS: unknown[] = [
   "#2563eb",
@@ -131,15 +131,21 @@ describe("generative rules (#101) — full policy cross-product", () => {
                         `${name} APCA ${where}`,
                       ).toBeGreaterThanOrEqual(apca);
                     }
-                    // #160: the accent co-solve constraint CARRIES onto its hover — on-accent
+                    // #160: the accent co-solve constraint CARRIES onto its hover — accent-foreground
                     // must still clear its floor on the nudged accent-hover fill under every policy.
                     expect(
-                      contrastWCAG(tokens["on-accent"], tokens["accent-hover"]),
-                      `on-accent/hover WCAG ${where}`,
+                      contrastWCAG(
+                        tokens["accent-foreground"],
+                        tokens["accent-hover"],
+                      ),
+                      `accent-foreground/hover WCAG ${where}`,
                     ).toBeGreaterThanOrEqual(4.5);
                     expect(
-                      apcaLc(tokens["on-accent"], tokens["accent-hover"]),
-                      `on-accent/hover APCA ${where}`,
+                      apcaLc(
+                        tokens["accent-foreground"],
+                        tokens["accent-hover"],
+                      ),
+                      `accent-foreground/hover APCA ${where}`,
                     ).toBeGreaterThanOrEqual(60);
                   }
             }
@@ -148,9 +154,9 @@ describe("generative rules (#101) — full policy cross-product", () => {
   );
 
   // The claim under test (commit 47414c9 / types.ts): a DISTRIBUTION reshapes only the
-  // interior 300…700; the shoulders (bg/surface/surface-2) never move. Holding chroma/hue
+  // interior 300…700; the shoulders (bg/surface/surface-elevated) never move. Holding chroma/hue
   // policy at their defaults, the surface tokens must be bit-identical across every
-  // distribution — this is exactly what keeps surface-2 (the worst-case background) fixed.
+  // distribution — this is exactly what keeps surface-elevated (the worst-case background) fixed.
   it("surface tokens are bit-identical across every distribution (chroma/hue at default)", () => {
     for (const seed of ["#2563eb", "#eab308", "#06b6d4", "#010101", "#fefefe"])
       for (const scheme of SCHEMES) {
@@ -158,13 +164,16 @@ describe("generative rules (#101) — full policy cross-product", () => {
         for (const distribution of DISTRIBUTIONS) {
           const ruled = resolveTheme(seed, scheme, { rules: { distribution } });
           const where = `${distribution} ${seed}/${scheme}`;
-          expect(ruled.tokens.bg, `bg ${where}`).toEqual(plain.tokens.bg);
+          expect(ruled.tokens.background, `bg ${where}`).toEqual(
+            plain.tokens.background,
+          );
           expect(ruled.tokens.surface, `surface ${where}`).toEqual(
             plain.tokens.surface,
           );
-          expect(ruled.tokens["surface-2"], `surface-2 ${where}`).toEqual(
-            plain.tokens["surface-2"],
-          );
+          expect(
+            ruled.tokens["surface-elevated"],
+            `surface-elevated ${where}`,
+          ).toEqual(plain.tokens["surface-elevated"]);
         }
       }
   });
@@ -189,7 +198,11 @@ describe("generative rules (#101) — full policy cross-product", () => {
                   rules: { distribution, chromaPolicy, huePolicy },
                 });
                 const where = `${distribution}/${chromaPolicy}/${huePolicy} ${seed}/${scheme}`;
-                for (const t of ["bg", "surface", "surface-2"] as const) {
+                for (const t of [
+                  "background",
+                  "surface",
+                  "surface-elevated",
+                ] as const) {
                   expect(
                     Math.abs(ruled.tokens[t].L - plain.tokens[t].L),
                     `${t} L ${where}`,
@@ -239,16 +252,16 @@ describe("generative rules (#101) — taper/hold vs the 'seed lands on the ramp'
   // on the ramp." Under taper/hold, chromaCurve multiplies nominal chroma by sin(πt)^k.
   // For a LIGHT-native seed the anchor is "500" (t=0.5 → sin=1 → ×1), so chroma is
   // preserved and the claim holds. For a DARK-native seed the anchor is "300" (t=0.3 →
-  // sin(0.3π)^0.72 ≈ 0.86), so the anchored brand step's CHROMA is pulled below the seed's
+  // sin(0.3π)^0.72 ≈ 0.86), so the anchored accent step's CHROMA is pulled below the seed's
   // — the seed's color does NOT fully land on the ramp. Lightness stays exact. This pins
   // the real, chroma-lossy behavior so the doc's unqualified "color lands on the ramp" is
   // either corrected or knowingly accepted (the shipped `accent` token is co-solved from
-  // seed.C independently, so it is unaffected — only the brand RAMP primitive is).
-  it("dark-native anchored brand step keeps L exact but LOSES chroma under taper (claim is L-only)", () => {
+  // seed.C independently, so it is unaffected — only the accent RAMP primitive is).
+  it("dark-native anchored accent step keeps L exact but LOSES chroma under taper (claim is L-only)", () => {
     const seed = "#eab308"; // yellow → dark-native, anchors "300"
     const r = resolveTheme(seed, "dark", { rules: { chromaPolicy: "taper" } });
     expect(r.anchorLabel).toBe("300");
-    const step = r.ramps.brand.find((s) => s.label === r.anchorLabel)!;
+    const step = r.ramps.accent.find((s) => s.label === r.anchorLabel)!;
     // Lightness pin survives taper.
     expect(step.color.L).toBeCloseTo(r.seed.L, 6);
     // …but the chroma at t=0.3 is pulled well below the seed's nominal chroma.
@@ -256,15 +269,15 @@ describe("generative rules (#101) — taper/hold vs the 'seed lands on the ramp'
     expect(step.color.C).toBeGreaterThan(0);
   });
 
-  it("light-native anchored brand step (500, t=0.5) keeps chroma under taper — the seed's color DOES land", () => {
+  it("light-native anchored accent step (500, t=0.5) keeps chroma under taper — the seed's color DOES land", () => {
     const seed = "#2563eb"; // blue → light-native, anchors "500"
     const flat = resolveTheme(seed, "light");
     const taper = resolveTheme(seed, "light", {
       rules: { chromaPolicy: "taper" },
     });
     expect(taper.anchorLabel).toBe("500");
-    const a = taper.ramps.brand.find((s) => s.label === "500")!;
-    const b = flat.ramps.brand.find((s) => s.label === "500")!;
+    const a = taper.ramps.accent.find((s) => s.label === "500")!;
+    const b = flat.ramps.accent.find((s) => s.label === "500")!;
     // sin(π·0.5)^k = 1, so the anchor step is untouched by taper.
     expect(a.color.C).toBeCloseTo(b.color.C, 9);
     expect(a.color.L).toBeCloseTo(b.color.L, 9);
@@ -318,7 +331,7 @@ describe("generative rules (#101) — public buildRamp runtime posture", () => {
 });
 
 describe("generative rules (#101) — direction & monotonicity invariants", () => {
-  // detectDirection now threads `rules`; tintedNeutrals:false zeroes surface-2's chroma.
+  // detectDirection now threads `rules`; tintedNeutrals:false zeroes surface-elevated's chroma.
   // Direction MAY legitimately differ if the surface changed — but surfaces are
   // shoulder-pinned and chroma barely moves lightness, so within a single buildTokenSet
   // call light & dark must still AGREE (the whole point of seed-only detection).
@@ -340,7 +353,7 @@ describe("generative rules (#101) — direction & monotonicity invariants", () =
 
   // Every built ramp — every role, every scheme, every distribution — must stay strictly
   // monotonic in lightness (lightest → darkest). A non-monotonic ramp breaks minPass
-  // binding and the surface ordering. The committed ramp.test only checks the brand-shaped
+  // binding and the surface ordering. The committed ramp.test only checks the seed-shaped
   // BASE ramp; this sweeps the real role chromas + the seed anchor together.
   it(
     "every role ramp stays strictly monotonic under every distribution × anchor, both schemes",
