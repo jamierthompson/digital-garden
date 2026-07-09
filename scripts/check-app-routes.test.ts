@@ -69,12 +69,11 @@ describe("check-app-routes.mjs — allowed files", () => {
     expect(stdout).toMatch(/app-routes: OK/);
   });
 
-  it("allows a `*.module.css` anywhere and the root `globals.css`", () => {
+  it("allows a `*.module.css` anywhere", () => {
     const { status } = run({
       "page.tsx": "export default function Page(){ return null }",
       "page.module.css": ".root { color: red }",
       "deep/nested/Thing.module.css": ".x { color: blue }",
-      "globals.css": "@layer foundation {}",
     });
     expect(status).toBe(0);
   });
@@ -158,13 +157,14 @@ describe("check-app-routes.mjs — violations (the guard bites)", () => {
     expect(stderr).toMatch(/src\/styles/);
   });
 
-  it("FAILS a `globals.css` placed in a nested segment (only the root one is allowed)", () => {
+  it("FAILS a root `globals.css` (global/token CSS belongs in `src/styles/`)", () => {
     const { status, stderr } = run({
       "page.tsx": "export default function Page(){ return null }",
-      "about/globals.css": ".x { color: red }",
+      "globals.css": "@layer foundation {}",
     });
     expect(status).toBe(1);
-    expect(stderr).toMatch(/about\/globals\.css/);
+    expect(stderr).toMatch(/globals\.css/);
+    expect(stderr).toMatch(/src\/styles/);
   });
 
   it("FAILS an orphan test whose subject is not co-located (the next-config.test.ts case)", () => {

@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
 
 // LOAD-BEARING IMPORT ORDER — do not reorder, and do not enable an import-sorter.
-// These global sheets establish the cascade-layer order (`@layer foundation, semantic, brand,
-// components;` in foundation.css) and MUST be imported before `next/font` and every component below.
-// Turbopack anchors the route's FIRST emitted stylesheet to whatever is imported first; if a
-// `next/font`/component chunk lands first it registers `@layer components` as the LOWEST layer, so
-// the foundation reset out-ranks every component rule and zeroes their padding/margin. Pinned by
-// layout.test.ts.
-import "../styles/foundation.css";
-import "./globals.css";
+// layers.css declares `@layer foundation, semantic, components;` and MUST be the first side-effect
+// import; every style sheet MUST precede `next/font` and the component imports. Turbopack anchors
+// the route's FIRST emitted stylesheet to whatever is imported first; if a `next/font`/component
+// chunk lands first it registers `@layer components` as the LOWEST layer, so the foundation reset
+// out-ranks every component rule and zeroes their padding/margin. Pinned by layout.test.ts.
+import "../styles/layers.css";
+import "../styles/reset.css";
+import "../styles/foundation/space.css";
+import "../styles/foundation/typography.css";
+import "../styles/foundation/motion.css";
+import "../styles/foundation/dimension.css";
+import "../styles/foundation/focus.css";
+import "../styles/semantic/space.css";
+import "../styles/semantic/type.css";
+import "../styles/semantic/typography.css";
+import "../styles/semantic/color.css";
 
 // Binding imports (no CSS side-effect that moves the Turbopack stylesheet anchor pinned above),
 // so they sit safely after the global sheets.
@@ -24,7 +32,7 @@ import SanityLiveMount from "@/sanity/SanityLiveMount";
 import VisualEditingControls from "@/sanity/VisualEditingControls";
 
 // The shell's own body face. Source Serif 4 is the GLOBAL EDITORIAL body font — the semantic
-// `--font-face` default (foundation.css) maps to `var(--font-source-serif-4)`, so mounting its
+// `--font-face` default (semantic/typography.css) maps to `var(--font-source-serif-4)`, so mounting its
 // `.variable` on <html> brings that variable into scope for all chrome. Its size-adjusted
 // fallback keeps CLS at zero. A brand slot overrides `--font-face` with its own roster face.
 // The shell's display face (Space Grotesk → `--font-display`, the `folio_` logo + nav) and
@@ -79,7 +87,7 @@ export default function RootLayout({
   // page emits via `<PageTheme>` — a hoisted `:root` `<style>` on hard load (React lifts it into
   // `<head>` ahead of this chrome, flash-free), re-stamped imperatively on `<html>` on soft nav.
   // So the persistent chrome wears the visible page's authored theme with no per-component work;
-  // `foundation.css`'s `@layer` token defaults sit beneath as the fallback (the unlayered theme
+  // the `src/styles` `@layer` token defaults sit beneath as the fallback (the unlayered theme
   // `:root` out-ranks them). `siteSettings` feeds `generateMetadata` (title/description) here; its
   // `pageThemes` seeds the pages' themes (see the site pages).
   return (

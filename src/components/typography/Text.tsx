@@ -13,7 +13,7 @@ interface TextProps extends React.ComponentPropsWithRef<"p"> {
    * The semantic type role to apply — `body` (running copy, the default), `lead` (an intro /
    * blurb, a notch larger than body), `label` (kickers / eyebrows / section labels), or `meta`
    * (metadata, timestamps, mono readouts). Each applies that role's token bundle
-   * (`--type-{body,lead,label,meta}-*` in `foundation.css`).
+   * (`--type-{body,lead,label,meta}-*` in `semantic/type.css`).
    */
   readonly variant?: TextVariant;
   /**

@@ -1,0 +1,8 @@
+@layer semantic {
+  :root {
+    --space-inset: var(--space-5);
+    --space-gutter: var(--space-6);
+    --space-stack: var(--space-4);
+    --space-cluster: var(--space-3);
+  }
+}

@@ -30,9 +30,8 @@
 //      or a shared component → it belongs in a `src/` module. Comments are stripped
 //      before the import scan, so a specifier appearing only in a comment cannot
 //      launder a module through.
-//   4. A CSS Module — `*.module.css` (scoped component styles), anywhere; or the
-//      single root `globals.css`. Any OTHER plain `.css` is design-system / token
-//      CSS that belongs in `src/styles/`.
+//   4. A CSS Module — `*.module.css` (scoped component styles), anywhere. Any OTHER
+//      plain `.css` is design-system / token CSS that belongs in `src/styles/`.
 //   5. A non-code, non-CSS asset — images, `favicon.ico`, `manifest.json`,
 //      `robots.txt`, `sitemap.xml`, fonts, etc. These are legitimate route/metadata
 //      static assets and are left alone (only the code extensions above and `.css`
@@ -158,16 +157,13 @@ function coLocatedRouteFiles(dir, allFiles) {
   });
 }
 
-function classify(file, allFiles, appDir) {
+function classify(file, allFiles) {
   const ext = extname(file);
   const dir = dirname(file);
 
   if (ext === ".css") {
     if (file.endsWith(".module.css")) return null;
-    // The single root global sheet is allowed; any other plain `.css` is token /
-    // design-system CSS that belongs in `src/styles/`.
-    if (basename(file) === "globals.css" && dir === appDir) return null;
-    return "plain (non-module) CSS — move design-system/token styles to `src/styles/` (only `*.module.css` and the root `globals.css` belong under `src/app/`)";
+    return "plain (non-module) CSS — move design-system/token styles to `src/styles/` (only `*.module.css` belongs under `src/app/`)";
   }
 
   if (!CODE_EXT.has(ext)) return null; // static/metadata asset — left alone.
@@ -224,7 +220,7 @@ function main() {
 
   const violations = [];
   for (const file of allFiles) {
-    const reason = classify(file, allFiles, appDir);
+    const reason = classify(file, allFiles);
     if (reason)
       violations.push(`${relative(process.cwd(), file)}\n      ↳ ${reason}`);
   }

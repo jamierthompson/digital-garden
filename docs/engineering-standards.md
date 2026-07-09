@@ -125,7 +125,7 @@ async function Card({ theme }: { theme: string }) {
 
 **Tokens are three layers** (the deep treatment is architecture.md's Token & theming architecture section — the layer names below are what you need to apply the `@layer` rule):
 
-1. **Foundation** (primitives: spacing, motion, breakpoints, z-index, type-scale) → global `:root` in `src/styles/foundation.css`.
+1. **Foundation** (primitives: spacing, motion, breakpoints, z-index, type-scale) → global `:root` in `src/styles/foundation/*` (one file per family), with the base reset in `src/styles/reset.css`.
 2. **Semantic** (generic role tokens components actually read) → the layer components consume; radius, border weight, shadow, and density live here too — they're just more semantic tokens, not a separate "feel/geometry" tier.
 3. **Brand** → a project **slot**'s full scoped override of the semantic layer — engine-scoped to the `[data-entry]` wrapper, emitted by the OKLCH engine; page chrome stays on the global editorial foundation.
 
@@ -137,7 +137,7 @@ Components read **generic semantic tokens** — `--surface`, `--text`, `--accent
 
 > **Every `*.module.css` MUST wrap its rules in `@layer foundation` / `@layer semantic` / `@layer components` — or stay strictly var-consuming (no bare rules).**
 
-This is enforced by `pnpm lint:css` (`scripts/check-css-layers.mjs`, a CI gate): any rule outside an `@layer` block fails the build. Layer order is declared once, first, in `foundation.css`:
+This is enforced by `pnpm lint:css` (`scripts/check-css-layers.mjs`, a CI gate): any rule outside an `@layer` block fails the build. Layer order is declared once, first, in `src/styles/layers.css` (imported before every other sheet):
 
 ```css
 @layer foundation, semantic, components; /* foundation < semantic < components */
@@ -150,7 +150,7 @@ An entry's brand font scopes to its own slot via an inline style on `[data-entry
 | Rule                                 | Detail                                                                                                                                                                                                                                            | Source                                                                         |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | **Breakpoints are not `:root` vars** | CSS variables are invalid inside `@media` conditions. Use container queries or the literal px in CSS; `src/lib/breakpoints.ts` holds the constants that feed JS (`matchMedia`); slot-responsive layout uses container queries scoped to the slot. | —                                                                              |
-| **Focus ring**                       | Geometry (width/offset/style, `:focus-visible` policy) is global in `foundation.css`; ring **color** is an engine token per slot. Use `:focus-visible`, never bare `outline: none`.                                                               | see [`./accessibility-and-performance.md`](./accessibility-and-performance.md) |
+| **Focus ring**                       | Geometry (width/offset/style, `:focus-visible` policy) is global in `src/styles/foundation/focus.css` (+ the `:focus-visible` rule in `reset.css`); ring **color** is an engine token per slot. Use `:focus-visible`, never bare `outline: none`. | see [`./accessibility-and-performance.md`](./accessibility-and-performance.md) |
 | **Streamed `<style>`**               | Plain inline `<style>` is fine when `EntryScope` renders above any Suspense (the common case). Use React 19 `<style href={\`entry-theme-${slug}\`} precedence>`only if`EntryScope` can suspend.                                                   | —                                                                              |
 | **Stega off `brandColor`/`fontKey`** | Sanity stega injects invisible chars that break the OKLCH parse and font lookup — disable it on those fields.                                                                                                                                     | —                                                                              |
 

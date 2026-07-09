@@ -1,0 +1,9 @@
+@layer semantic {
+  :root {
+    --font-face: var(--font-source-serif-4), Georgia, "Times New Roman", serif;
+    --font-display:
+      var(--font-space-grotesk), "Helvetica Neue", Arial, sans-serif;
+    --font-mono:
+      var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+}

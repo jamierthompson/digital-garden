@@ -2,7 +2,7 @@
  * The site-wide color scheme — a binary light ⇄ dark choice, seeded from the OS.
  *
  * The whole token system is emitted as native `light-dark()` literals keyed on the root
- * `color-scheme` (foundation.css binds `:root { color-scheme: light dark }`; the build keeps
+ * `color-scheme` (semantic/color.css binds `:root { color-scheme: light dark }`; the build keeps
  * `light-dark()` native — see next.config's `lightningCssFeatures`). So a scheme is applied by
  * setting `color-scheme` on `<html>`: every editorial AND brand token re-resolves natively,
  * with no per-component work.
