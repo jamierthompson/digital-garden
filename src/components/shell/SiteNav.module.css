@@ -26,13 +26,13 @@
   /* Byline + dateline: quiet mono, muted, natural case & spacing (no tracking). */
   .byline {
     font-family: var(--font-mono);
-    font-size: var(--text-sm);
+    font-size: var(--type-size-2);
     color: var(--text-muted);
   }
 
   .dateline {
     font-family: var(--font-mono);
-    font-size: var(--text-sm);
+    font-size: var(--type-size-2);
     color: var(--text-muted);
     white-space: nowrap;
   }
@@ -56,9 +56,9 @@
 
   .brand {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--text-2xl);
-    letter-spacing: -0.02em;
+    font-weight: var(--font-weight-bold);
+    font-size: var(--type-size-6);
+    letter-spacing: var(--tracking-tight);
     color: var(--text);
     text-decoration: none;
   }
@@ -95,8 +95,8 @@
     /* Journal nav: Space Grotesk, lowercase. A transparent 2px underline reserved so the
        active state (below) doesn't shift the row. */
     font-family: var(--font-display);
-    font-size: var(--text-base);
-    font-weight: 500;
+    font-size: var(--type-size-3);
+    font-weight: var(--font-weight-medium);
     color: var(--text-muted);
     text-decoration: none;
     border-bottom: 2px solid transparent;

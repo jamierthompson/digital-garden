@@ -57,7 +57,7 @@ These silently break *this* stack. Most are lint/CI-enforced; know them so you d
 - **Every CSS Module declares its `@layer`** (`foundation|semantic|components`) or stays strictly
   var-consuming. An unlayered module outranks **every** `@layer` style — the "@layer trap".
   Enforced by `pnpm lint:css`.
-- **The OKLCH engine stays isomorphic** — never add `server-only` / `client-only` to the engine package (`packages/oklch/`, imported as `@garden/oklch`).
+- **The engine packages stay isomorphic** — never add `server-only` / `client-only` to `packages/oklch/` (`@garden/oklch`, color) or `packages/type/` (`@garden/type`, type-scale); both are pure isomorphic engines the Studio can import. Guarded by a shared `eslint.config.mjs` block on `packages/{oklch,type}/**`.
 - **Literal dynamic imports only:** `() => import("@/entries/<slug>")` per key — never a templated
   `import(\`…/${slug}\`)` (defeats bundler static analysis).
 - **pnpm only** — never npm/yarn; `pnpm dlx`, not `npx`. Commit `pnpm-lock.yaml` on dep changes.

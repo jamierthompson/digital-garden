@@ -44,10 +44,13 @@ export default defineConfig({
           name: "node",
           environment: "node",
           globals: true,
-          // Scoped to the engine — the dual-env half of the isomorphism guard. No
-          // setupFiles: the engine suite needs no jsdom matchers. The engine is its own
+          // Scoped to the engine packages — the dual-env half of the isomorphism guard. No
+          // setupFiles: the engine suites need no jsdom matchers. Each engine is its own
           // workspace package but runs from root so both env halves stay in one place.
-          include: ["packages/oklch/**/*.test.ts"],
+          include: [
+            "packages/oklch/**/*.test.ts",
+            "packages/type/**/*.test.ts",
+          ],
         },
       },
     ],

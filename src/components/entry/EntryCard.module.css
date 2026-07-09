@@ -23,31 +23,18 @@
     text-decoration: none;
   }
 
-  /* Register 1 — the display title (Space Grotesk, via the base h1–h6 rule). */
-  .title {
-    font-size: var(--text-xl);
-    font-weight: 600;
-    line-height: var(--leading-tight);
-    letter-spacing: -0.01em;
-    color: var(--on-accent);
-  }
-
-  /* Register 2 — the editorial serif blurb (the multi-font mix). */
+  /* Register 2 — the editorial serif blurb (the multi-font mix, via the `Text` body role). */
   .blurb {
-    font-family: var(--font-face);
-    font-size: var(--text-base);
-    line-height: var(--leading-normal);
     color: var(--on-accent);
   }
 
-  /* Register 3 — the mono readout, pinned to the plate floor: maturity stage · OKLCH seed.
-     NOT dimmed: the engine solves `--on-accent` to only just clear WCAG AA on the accent fill
-     (~zero headroom), so any `opacity < 1` drops this normal-size text below 4.5:1 (guarded by
-     cardSwatches.meta-opacity.test.ts). De-emphasis comes from the mono face + smaller size. */
+  /* Register 3 — the mono readout (via the `Text` meta role), pinned to the plate floor:
+     maturity stage · OKLCH seed. NOT dimmed: the engine solves `--on-accent` to only just clear
+     WCAG AA on the accent fill (~zero headroom), so any `opacity < 1` drops this normal-size
+     text below 4.5:1 (guarded by cardSwatches.meta-opacity.test.ts). De-emphasis comes from the
+     mono face + smaller size, both owned by the primitive. */
   .meta {
     margin-top: auto;
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
     color: var(--on-accent);
   }
 

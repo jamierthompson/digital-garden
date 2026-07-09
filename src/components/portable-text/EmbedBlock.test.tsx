@@ -55,10 +55,9 @@ describe("EmbedBlock", () => {
     );
     const scoped = container.querySelector('[data-entry="color-engine"]');
     expect(scoped).not.toBeNull();
-    // The embed (a Color Engine slot with no provider above it) renders ITS placeholder inside
-    // the scope — proving both the per-slot scoping and the provider-less degradation
-    // through the real resolver pipeline.
-    expect(scoped?.textContent).toMatch(/no Color Engine frame mounted/);
+    // The embed (the registered Color Engine slot, now a rebuild placeholder) renders inside
+    // the scope — proving the per-slot scoping through the real resolver pipeline.
+    expect(scoped?.textContent).toMatch(/rebuilt on the new foundation/);
   });
 
   it("mounts a resolved embed bare (no scope container) when no scope is given", async () => {
@@ -66,9 +65,9 @@ describe("EmbedBlock", () => {
       await EmbedBlock({ embedKey: "color-engine-seed" }),
     );
     expect(container.querySelector("[data-entry]")).toBeNull();
-    // Still renders the slot (which degrades to its placeholder without a provider).
+    // Still renders the resolved slot (the rebuild placeholder).
     expect(
-      screen.getByText(/no Color Engine frame mounted/),
+      screen.getByText(/rebuilt on the new foundation/),
     ).toBeInTheDocument();
   });
 

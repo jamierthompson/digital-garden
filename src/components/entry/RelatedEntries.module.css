@@ -7,7 +7,7 @@
   }
 
   .heading {
-    font-size: var(--text-lg);
+    font-size: var(--type-size-4);
     color: var(--accent-text);
   }
 

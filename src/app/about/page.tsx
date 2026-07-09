@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
 
 import styles from "./page.module.css";
 
@@ -31,27 +33,27 @@ export default async function AboutPage() {
     <>
       <PageTheme seed={themeSeed} />
       <main className={styles.main}>
-        <h1 className={styles.title}>About</h1>
+        <Heading level={1}>About</Heading>
         <div className={styles.prose}>
-          <p>
+          <Text variant="lead">
             This is a personal portfolio and digital garden — part showcase,
             part notebook. Each project is a self-contained island with its own
             brand color and typeface, composed on one shared foundation.
-          </p>
-          <p>
+          </Text>
+          <Text variant="lead">
             The colors you see are not hand-picked per element. A single brand
             seed runs through an OKLCH engine that derives an accessible palette
             for both light and dark schemes, then bakes it into the page so the
             theme is present before the first paint — no flash, no client-side
             theming pass.
-          </p>
-          <p>
+          </Text>
+          <Text variant="lead">
             The garden grows by accretion: projects, working notes, and the
             links between them. Wander through{" "}
             <span className={styles.emphasis}>Work</span>,{" "}
             <span className={styles.emphasis}>Notes</span>, and{" "}
             <span className={styles.emphasis}>Now</span>.
-          </p>
+          </Text>
         </div>
       </main>
     </>

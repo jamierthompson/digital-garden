@@ -7,9 +7,7 @@
 // ways — `Experience` (one interactive slot mounted after the prose) and/or `Provider`
 // (a client frame around the article so `liveEmbed` slots interleaved through the prose
 // can share state) — and must export at least one; the union below makes an
-// empty module a compile error. A module may also declare `layout: "wide"` to ask the
-// `/[slug]` route for a screen-filling page width instead of the narrow editorial column
-// (owner directive, #139) — see `EntryModuleMembers.layout`.
+// empty module a compile error.
 //
 // Lives in shared `src/entries/` (not inside any one project) because it is the
 // cross-module contract the resolver and route key off — named where it will live now,
@@ -45,22 +43,6 @@ export interface ProviderProps {
 
 /** The members an entry module MAY export — see `EntryModule` for the at-least-one rule. */
 interface EntryModuleMembers {
-  /**
-   * The page WIDTH the module wants for its `/[slug]` entry (owner directive, #139). Absent
-   * (the default) keeps today's narrow editorial max-width (`--width-content`) that essays,
-   * notes, and every existing module already get. `"wide"` switches the page's content
-   * container to a screen-filling max-width so a demo/tool can use the full window.
-   *
-   * Applied at the PAGE container level (the whole content column widens), NOT a per-slot
-   * breakout — so it works for ANY composition: a `Provider` + interleaved `liveEmbed` slots
-   * widens exactly as a lone `Experience` would, with no recomposition required. Prose keeps
-   * its own reading measure (the article grid caps it), so widening the page doesn't stretch
-   * the text; the module's full-width slots take the extra room.
-   *
-   * A module contract, not a Sanity schema field, so content stays presentation-agnostic (no
-   * schema change, no TypeGen, no editor burden).
-   */
-  readonly layout?: "wide";
   /**
    * One interactive slot, mounted by the page after the prose inside its own brand scope.
    * The default composition for a module whose experience is a single surface.

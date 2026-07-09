@@ -4,6 +4,8 @@ import Link from "next/link";
 import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
 import { space } from "@/lib/tokens";
 import { NOW_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
@@ -58,16 +60,16 @@ export default async function NowPage() {
       <Stack asChild gap={space(6)}>
         <main className={styles.main}>
           <header className={styles.header}>
-            <h1 className={styles.title}>Now</h1>
-            <p className={styles.intro}>
+            <Heading level={1}>Now</Heading>
+            <Text variant="lead" className={styles.intro}>
               What I&apos;m focused on at the moment. Newest first.
-            </p>
+            </Text>
           </header>
 
           {updates.length === 0 ? (
-            <p className={styles.empty}>
+            <Text variant="lead" className={styles.empty}>
               No now-updates yet — check back soon.
-            </p>
+            </Text>
           ) : (
             <Stack asChild gap={space(6)}>
               <ul className={styles.list}>
@@ -76,27 +78,31 @@ export default async function NowPage() {
                   return (
                     <li key={update._id} className={styles.item}>
                       {date ? (
-                        <time
-                          className={styles.date}
-                          dateTime={update.iterated ?? undefined}
-                        >
-                          {date}
-                        </time>
+                        <Text variant="meta" asChild>
+                          <time
+                            className={styles.date}
+                            dateTime={update.iterated ?? undefined}
+                          >
+                            {date}
+                          </time>
+                        </Text>
                       ) : null}
-                      {update.slug ? (
-                        <Link
-                          href={`/${update.slug}`}
-                          className={styles.itemTitle}
-                        >
-                          {update.title ?? "Untitled update"}
-                        </Link>
-                      ) : (
-                        <span className={styles.itemTitle}>
-                          {update.title ?? "Untitled update"}
-                        </span>
-                      )}
+                      <Heading level={3}>
+                        {update.slug ? (
+                          <Link
+                            href={`/${update.slug}`}
+                            className={styles.itemTitle}
+                          >
+                            {update.title ?? "Untitled update"}
+                          </Link>
+                        ) : (
+                          <span className={styles.itemTitle}>
+                            {update.title ?? "Untitled update"}
+                          </span>
+                        )}
+                      </Heading>
                       {update.blurb ? (
-                        <p className={styles.blurb}>{update.blurb}</p>
+                        <Text className={styles.blurb}>{update.blurb}</Text>
                       ) : null}
                     </li>
                   );
@@ -105,7 +111,7 @@ export default async function NowPage() {
             </Stack>
           )}
 
-          <p className={styles.footnote}>
+          <Text className={styles.footnote}>
             This is a{" "}
             <a
               className={styles.link}
@@ -115,7 +121,7 @@ export default async function NowPage() {
               now page
             </a>
             , and you could make one too.
-          </p>
+          </Text>
         </main>
       </Stack>
     </>

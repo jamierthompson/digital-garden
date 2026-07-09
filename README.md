@@ -7,12 +7,12 @@ color (a perceptual OKLCH palette) and font theme only its own bounded
 interactive slot, on that shared foundation. Content and brand seeds live in
 Sanity; the site renders on Next.js.
 
-> **Status:** the shared foundation, the OKLCH theming engine (`@garden/oklch`), the Sanity
-> content model, and the real garden entries are **live on Vercel** — with the editorial
-> garden shell, an RSS feed, Sanity draft mode + live preview wired to publish→production
-> revalidation, and the first coded entry module: the **OKLCH Color Engine**
-> (`src/entries/color-engine/`), an interactive one-seed palette generator that re-runs
-> the engine live with a measured contrast receipt and CSS/Tailwind/JSON export. Remaining
+> **Status:** the shared foundation — the OKLCH theming engine (`@garden/oklch`) and the
+> `@garden/type` type-scale engine — plus the Sanity content model and the real garden entries
+> are **live on Vercel**, with the editorial garden shell, an RSS feed, and Sanity draft mode +
+> live preview wired to publish→production revalidation. The interactive **Color Engine** demo
+> (`src/entries/color-engine/`) is a registered stub pending a rebuild on the new foundation as a
+> multi-page project (#149); the `@garden/oklch` engine it showcases is untouched. Remaining
 > work is tracked in [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
 The engineering docs live in [`docs/`](./docs/) (start at
@@ -32,7 +32,7 @@ source of truth — edited in place, with git history as the audit trail.
 - **Linting/formatting:** ESLint (`eslint-config-next` + `eslint-plugin-boundaries`)
   - Prettier
 - **Hosting:** [Vercel](https://vercel.com/)
-- **Package manager:** [pnpm](https://pnpm.io/) (workspace: the Next app, the Studio, and the `@garden/oklch` engine)
+- **Package manager:** [pnpm](https://pnpm.io/) (workspace: the Next app, the Studio, and the `@garden/oklch` + `@garden/type` engines)
 
 ## Getting started
 
@@ -96,8 +96,9 @@ contract — is in [`docs/architecture.md`](./docs/architecture.md) (_Token & th
 
 The Next app lives in `src/` — App Router routes in `src/app/`, self-contained entry modules in
 `src/entries/<slug>/`, shared UI in `src/components/`, and the design-system CSS in `src/styles/`.
-The `@garden/oklch` engine is its own `packages/oklch` workspace package (the app **and** the
-Studio depend on it); the Sanity Studio is a standalone package in `studio/`.
+The `@garden/oklch` (color) and `@garden/type` (type-scale) engines are each their own
+`packages/*` workspace package (the app **and** the Studio can depend on them); the Sanity Studio
+is a standalone package in `studio/`.
 
 Each entry module owns its single `/[slug]` page (editorial article + interactive experience), its
 scoped tokens, and the components its essay embeds. A typed reference-by-key resolver maps a Sanity

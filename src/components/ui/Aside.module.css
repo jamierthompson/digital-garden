@@ -5,7 +5,7 @@
     max-width: 60ch;
     font-family: var(--font-face);
     font-style: italic;
-    font-size: var(--text-sm);
+    font-size: var(--type-size-2);
     line-height: var(--leading-normal);
     color: var(--text-muted);
   }

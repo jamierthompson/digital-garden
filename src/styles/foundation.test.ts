@@ -43,15 +43,17 @@ const ENGINE_DECLS = parseDeclarations(
   tokenSetToDeclarations(buildTokenSet(undefined)),
 );
 
-// Every token the engine's fallback set emits — the complete list the `:root` block must carry,
-// verbatim from the engine output (bg/surface/text/…, the full status tiers, hover/selected/scrim).
+// Every token the engine's fallback set emits — the complete set of COLOR tokens the `:root` block
+// must carry, verbatim from the engine output (bg/surface/text/…, the full status tiers,
+// hover/selected/scrim). Non-color semantic roles (type, space) live in @layer semantic too but
+// aren't engine-emitted, so they're out of scope here.
 const ENGINE_TOKENS = Object.keys(ENGINE_DECLS);
 
 describe("foundation.css :root fallback IS the engine's complete fallback token set", () => {
   it("parsed a non-trivial sheet AND a full engine set (false-green guard)", () => {
     expect(Object.keys(SHEET_DECLS).length).toBeGreaterThan(10);
-    // The engine emits the whole semantic tier — surfaces, ink, accent, all four status tiers,
-    // hover/selected/scrim. A truncated engine set would make the loop below vacuously weak.
+    // The engine emits the whole semantic COLOR tier — surfaces, ink, accent, all four status
+    // tiers, hover/selected/scrim. A truncated engine set would make the loop below vacuously weak.
     expect(ENGINE_TOKENS.length).toBeGreaterThanOrEqual(30);
     expect(SHEET_DECLS["--bg"]).toBeDefined();
   });

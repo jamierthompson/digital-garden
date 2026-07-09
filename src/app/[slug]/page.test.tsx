@@ -1,8 +1,9 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import pageStyles from "./page.module.css";
 
 // next/font/google is a build-time transform, untransformed under Vitest — mock the faces
 // pulled in transitively via EntryScope → resolveScope → FONT_FACES (same shape as the
@@ -119,37 +120,6 @@ const foundBoth = () =>
 // neither `Experience` nor `Provider`. The compile-time union forbids this, but drift/bad
 // data can produce it at runtime; the page must degrade to prose-only, never crash, never 404.
 const foundEmptyModule = () => found(async () => ({ default: {} }));
-
-// A PROVIDER-ONLY module that declares `layout: "wide"` (#139) — the Color Engine's real composition
-// (Provider + interleaved liveEmbed slots, NO Experience). The wide page width must apply to
-// THIS shape with no recomposition: the acceptance case the owner correction turns on.
-const foundWideProvider = () =>
-  found(async () => ({
-    default: {
-      layout: "wide" as const,
-      Provider: ({
-        slug,
-        children,
-      }: {
-        slug: string;
-        children: React.ReactNode;
-      }) => (
-        <div data-testid="provider" data-slug={slug}>
-          {children}
-        </div>
-      ),
-    },
-  }));
-
-// An Experience module that also declares `layout: "wide"` — proves the width switch is
-// composition-agnostic (works for a lone Experience too, not only the Provider path).
-const foundWideExperience = () =>
-  found(async () => ({
-    default: {
-      layout: "wide" as const,
-      Experience: () => <div data-testid="experience">experience slot</div>,
-    },
-  }));
 
 interface EntryOverrides {
   [key: string]: unknown;
@@ -379,11 +349,12 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(screen.queryByText("leftover")).not.toBeInTheDocument();
   });
 
-  // ── #139: kind-driven CANVAS template — a `project` with a resolved `Experience` gets the
-  // tool-first composition (no editorial article/title/RelatedEntries); every other case
-  // (essay/note/now, or a `project` with no Experience yet) keeps the editorial template.
+  // ── ONE editorial template for every entry. A `project` with a resolved `Experience` gets
+  // no special "canvas" template (the canvas concept was dropped, #211): the module's slot
+  // mounts after the prose, alongside the article, its heading, and RelatedEntries — the same
+  // composition every kind gets. `kind === "project"` becomes multi-page separately (#149).
 
-  it("CANVAS: a project with a resolvable Experience renders the tool-first template — no article, no RelatedEntries, `data-template='canvas'`", async () => {
+  it("renders a project with a resolvable Experience on the editorial template — article, h1, the Experience slot, and RelatedEntries all present", async () => {
     resolveComponentKeyMock.mockReturnValue(foundExperience());
     fetchMock.mockResolvedValueOnce(
       entry({
@@ -391,84 +362,39 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
         componentKey: "color-engine",
         brandColor: "oklch(0.7 0.15 70)",
         fontKey: "newsreader",
-        slug: "color-engine",
-      }),
-    );
-    const { container } = render(
-      await EntryPage({ params: params("color-engine") }),
-    );
-    const main = container.querySelector("main");
-    expect(main).toHaveAttribute("data-template", "canvas");
-    // The bounded brand scope still mounts (same slot as the editorial template's).
-    const slot = container.querySelector("[data-entry]");
-    expect(slot).not.toBeNull();
-    expect(slot).toHaveAttribute("data-entry", "color-engine");
-    expect(screen.getByTestId("experience")).toBeInTheDocument();
-    // No editorial surfaces: no template-rendered title/blurb, no article, no related region.
-    expect(container.querySelector("article")).toBeNull();
-    expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
-    expect(screen.queryByText("A blurb.")).not.toBeInTheDocument();
-  });
-
-  it("CANVAS: does not render `<RelatedEntries>` even when the entry carries related/backlinks", async () => {
-    resolveComponentKeyMock.mockReturnValue(foundExperience());
-    fetchMock.mockResolvedValueOnce(
-      entry({
-        kind: "project",
-        componentKey: "color-engine",
         slug: "color-engine",
         related: [
-          { _id: "r1", title: "Related", slug: "related", kind: "note" },
+          { _id: "r1", title: "A related note", slug: "related", kind: "note" },
         ],
         backlinks: [
-          { _id: "b1", title: "Backlink", slug: "backlink", kind: "note" },
+          { _id: "b1", title: "A backlink", slug: "backlink", kind: "note" },
         ],
-      }),
-    );
-    render(await EntryPage({ params: params("color-engine") }));
-    expect(screen.queryByText("Related")).not.toBeInTheDocument();
-    expect(screen.queryByText("Backlink")).not.toBeInTheDocument();
-  });
-
-  it("does NOT canvas a `project` with a Provider-only module (no Experience) — falls back to the editorial template", async () => {
-    // A Provider frames the article for shared client state; it never composes the page as a
-    // canvas by itself — only a resolved `Experience` does.
-    resolveComponentKeyMock.mockReturnValue(foundProvider());
-    fetchMock.mockResolvedValueOnce(
-      entry({
-        kind: "project",
-        componentKey: "color-engine",
-        brandColor: "oklch(0.7 0.15 70)",
-        fontKey: "newsreader",
-        slug: "color-engine",
       }),
     );
     const { container } = render(
       await EntryPage({ params: params("color-engine") }),
     );
-    expect(container.querySelector("main")).not.toHaveAttribute(
-      "data-template",
-    );
-    expect(screen.getByTestId("provider")).toBeInTheDocument();
-    expect(container.querySelector("article")).not.toBeNull();
-  });
-
-  it("does NOT canvas a NOTE/ESSAY with a resolvable Experience — `kind` gates the template, not the capability", async () => {
-    resolveComponentKeyMock.mockReturnValue(foundExperience());
-    fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "color-engine" }),
-    );
-    const { container } = render(
-      await EntryPage({ params: params("an-entry") }),
-    );
-    expect(container.querySelector("main")).not.toHaveAttribute(
-      "data-template",
-    );
-    expect(screen.getByTestId("experience")).toBeInTheDocument();
+    const main = container.querySelector("main")!;
+    // One template: no canvas marker, and the editorial article + its single h1 render.
+    expect(main).not.toHaveAttribute("data-template");
     expect(container.querySelector("article")).not.toBeNull();
     expect(
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
+    // The Experience mounts after the prose in its own real-slug brand scope, wrapped in a
+    // <div> that is a direct child of main (so it gets the reading-measure cap).
+    expect(screen.getByTestId("experience")).toBeInTheDocument();
+    const slot = container.querySelector("[data-entry]");
+    expect(slot).toHaveAttribute("data-entry", "color-engine");
+    const wrapper = [...main.children].find((child) =>
+      child.querySelector('[data-testid="experience"]'),
+    );
+    expect(wrapper).toBeDefined();
+    // RelatedEntries renders for the project — the canvas template no longer suppresses it.
+    expect(
+      screen.getByRole("region", { name: /related/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("A backlink")).toBeInTheDocument();
   });
 
   it("wraps the article in the module's Provider when it exports one (no after-prose slot)", async () => {
@@ -652,142 +578,10 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     );
   });
 
-  // ── #139: module-declared page WIDTH — narrow (default) vs wide ──
-  //
-  // The observable server-side contract is `<main data-layout>` — "narrow" (today's editorial
-  // max-width) unless a resolved module declares `layout: "wide"`. jsdom computes no layout, so
-  // these pin WHICH width the page selects; the actual screen-filling geometry (no horizontal
-  // overflow at 390/1440/1920) is the browser check's job.
-
-  it("defaults a prose-only entry to the narrow layout (no module → no width declaration)", async () => {
-    fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: null, ...withBody }),
-    );
-    const { container } = render(
-      await EntryPage({ params: params("an-entry") }),
-    );
-    expect(container.querySelector("main")).toHaveAttribute(
-      "data-layout",
-      "narrow",
-    );
-  });
-
-  it("keeps a module that declares NO layout on the narrow default (absent === narrow; no leak)", async () => {
-    // Regression: the wide option must not widen existing modules. A resolvable module with no
-    // `layout` renders exactly as before — narrow page.
-    resolveComponentKeyMock.mockReturnValue(foundExperience());
-    fetchMock.mockResolvedValueOnce(
-      entry({ kind: "project", componentKey: "color-engine" }),
-    );
-    const { container } = render(
-      await EntryPage({ params: params("an-entry") }),
-    );
-    expect(container.querySelector("main")).toHaveAttribute(
-      "data-layout",
-      "narrow",
-    );
-    expect(screen.getByTestId("experience")).toBeInTheDocument();
-  });
-
-  it('widens a PROVIDER-ONLY module that declares `layout: "wide"` — the Color Engine\'s real shape, no Experience, no recomposition', async () => {
-    // THE acceptance case: the Color Engine composes as Provider + interleaved liveEmbed slots with no
-    // monolithic Experience. `layout: "wide"` must widen the page for that shape as-is — the width
-    // switch is on the page container, independent of any slot. Article still renders in the frame.
-    resolveComponentKeyMock.mockReturnValue(foundWideProvider());
-    fetchMock.mockResolvedValueOnce(
-      entry({
-        kind: "project",
-        componentKey: "color-engine",
-        slug: "color-engine",
-      }),
-    );
-    const { container } = render(
-      await EntryPage({ params: params("color-engine") }),
-    );
-    expect(container.querySelector("main")).toHaveAttribute(
-      "data-layout",
-      "wide",
-    );
-    const frame = screen.getByTestId("provider");
-    expect(frame).toHaveAttribute("data-slug", "color-engine");
-    // The article (its title) still renders inside the Provider frame — the wide page did not
-    // disturb the composition, only the container width.
-    expect(frame.querySelector("h1")).not.toBeNull();
-    // No Experience needed for the wide page to apply.
-    expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
-  });
-
-  it('widens an Experience module that declares `layout: "wide"` too (composition-agnostic)', async () => {
-    resolveComponentKeyMock.mockReturnValue(foundWideExperience());
-    fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "color-engine" }),
-    );
-    const { container } = render(
-      await EntryPage({ params: params("an-entry") }),
-    );
-    expect(container.querySelector("main")).toHaveAttribute(
-      "data-layout",
-      "wide",
-    );
-    expect(screen.getByTestId("experience")).toBeInTheDocument();
-  });
-
-  // The MECHANISM behind the wide Experience, pinned as class composition (not just
-  // `data-layout`): jsdom computes no width, so the bug — a lone Experience "reports wide but
-  // renders at content width" because `.module > :not(.article)` pins its wrapper to
-  // `--width-text` — is only catchable by asserting the classes the CSS rule keys off. The fix
-  // wraps the Experience in a `.experience` element that is a DIRECT child of `main`, exempted
-  // under `.wide` by `.wide > .experience`. Two browser paths of this class of bug (article
-  // slots, then Experience) have escaped jsdom; this locks the Experience path structurally.
-  it("wraps the wide Experience in a `.experience` direct-child of main that `.wide` can exempt", async () => {
-    resolveComponentKeyMock.mockReturnValue(foundWideExperience());
-    fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "color-engine" }),
-    );
-    const { container } = render(
-      await EntryPage({ params: params("an-entry") }),
-    );
-    const main = container.querySelector("main")!;
-    // Both classes the exemption selector `.wide > .experience` depends on are present…
-    expect(main.className).toContain(pageStyles.module);
-    expect(main.className).toContain(pageStyles.wide);
-    // …on a wrapper that is a DIRECT child of main (so the `>` combinator matches).
-    const wrapper = [...main.children].find((child) =>
-      child.querySelector('[data-testid="experience"]'),
-    );
-    expect(
-      wrapper,
-      "Experience wrapper must be a direct child of main",
-    ).toBeDefined();
-    expect(wrapper!.className).toContain(pageStyles.experience);
-  });
-
-  it("keeps the same `.experience` wrapper on a NARROW Experience, without `.wide` (byte-identical narrow path)", async () => {
-    resolveComponentKeyMock.mockReturnValue(foundExperience());
-    fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "color-engine" }),
-    );
-    const { container } = render(
-      await EntryPage({ params: params("an-entry") }),
-    );
-    const main = container.querySelector("main")!;
-    // Narrow: main carries `.module` but NOT `.wide`, so the wrapper keeps the reading-measure
-    // cap (`.module > :not(.article)`) — narrow entries are unchanged by the wide exemption.
-    expect(main.className).toContain(pageStyles.module);
-    expect(main.className).not.toContain(pageStyles.wide);
-    const wrapper = [...main.children].find((child) =>
-      child.querySelector('[data-testid="experience"]'),
-    );
-    expect(wrapper!.className).toContain(pageStyles.experience);
-  });
-
-  it("renders a wide entry with NO body cleanly — a prose-less article (the Color Engine's future state) still mounts, no EntryBody", async () => {
-    // The prose-removed Color Engine (#20) will have `body: null`: a wide page whose article carries no
-    // prose at all. The article must still render (its header) and mount nothing spurious — no
-    // EntryBody, no crash — so the wide grid has a clean, header-only content column. (jsdom can't
-    // measure the box; the "no collapsed/zero-height artifacts, no stray margins" property is the
-    // browser check's job — this pins the structural contract.)
-    resolveComponentKeyMock.mockReturnValue(foundWideProvider());
+  it("renders an entry with NO body cleanly — a prose-less article still mounts its header, no EntryBody", async () => {
+    // A body-less entry (e.g. the Color Engine's future prose-removed state, #20) must still
+    // render the article and its header, and mount nothing spurious — no EntryBody, no crash.
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "project",
@@ -799,206 +593,36 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     const { container } = render(
       await EntryPage({ params: params("color-engine") }),
     );
-    expect(container.querySelector("main")).toHaveAttribute(
-      "data-layout",
-      "wide",
-    );
-    // Article present (rendered inside the Provider frame) with its header, but NO prose body.
-    const frame = screen.getByTestId("provider");
-    expect(frame.querySelector("article")).not.toBeNull();
-    expect(frame.querySelector("h1")).not.toBeNull();
+    const article = container.querySelector("article");
+    expect(article).not.toBeNull();
+    expect(article?.querySelector("h1")).not.toBeNull();
     expect(screen.queryByTestId("essay-body")).not.toBeInTheDocument();
   });
+});
 
-  it("never widens a `now` (excluded kind never resolves a module, so it can carry no width)", async () => {
-    // `now` never consults the resolver, so even a doc pointing at a wide module stays narrow —
-    // an editorial status update is always the narrow editorial page.
-    resolveComponentKeyMock.mockReturnValue(foundWideProvider());
-    fetchMock.mockResolvedValueOnce(
-      entry({ kind: "now", componentKey: "color-engine", ...withBody }),
+describe("page.tsx styles.* references resolve to real classes in page.module.css", () => {
+  // WHY this reads the sources instead of rendering: `test.css` is off in `vitest.config.ts`,
+  // so a CSS-Module import resolves to an identity Proxy — `pageStyles.anything` returns
+  // `"anything"` — and a render assertion on a class that does NOT exist in the sheet still
+  // passes (a false green; in the real build a missing export is `undefined` and React drops
+  // the className entirely). Reading the actual files fails on a dangling reference no matter
+  // what the test-env CSS shim does.
+  it("references no class the sheet does not define", () => {
+    const read = (rel: string): string =>
+      readFileSync(resolve(process.cwd(), "src/app/[slug]", rel), "utf8");
+    const source = read("page.tsx");
+    const sheet = read("page.module.css");
+    const referenced = [
+      ...new Set(
+        [...source.matchAll(/styles\.([a-zA-Z][a-zA-Z0-9_]*)/g)].map(
+          (m) => m[1],
+        ),
+      ),
+    ];
+    expect(referenced.length).toBeGreaterThan(0); // false-green guard
+    const defined = new Set(
+      [...sheet.matchAll(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g)].map((m) => m[1]),
     );
-    const { container } = render(
-      await EntryPage({ params: params("an-entry") }),
-    );
-    expect(container.querySelector("main")).toHaveAttribute(
-      "data-layout",
-      "narrow",
-    );
-    expect(resolveComponentKeyMock).not.toHaveBeenCalled();
-  });
-
-  // ══════════════════════════════════════════════════════════════════════════════
-  // QA — adversarial (#139 page width): mechanism, type honesty & isolation.
-  //
-  // The author's 5 width tests assert ONLY `data-layout`. But `data-layout` is a
-  // MARKER — the thing that actually widens the page is the `.wide` CSS class on
-  // `<main>`, set from the SAME `isWide` boolean but by a SEPARATE expression (the
-  // `className` ternary). A mutation that broke the className half while leaving
-  // `data-layout` intact would ship a page that *reports* "wide" but *renders* narrow —
-  // and every existing test would still pass. These pin the class mechanism itself, the
-  // strict `=== "wide"` type gate (degrade, never emit a foreign token, never throw),
-  // and per-<main> isolation under Activity.
-  //
-  // NOTE on CSS-module resolution under this Vitest config: `styles.<anything>` returns
-  // a synthesized `_<name>_<hash>` string for ANY key access (verified empirically), so
-  // these assert the className COMPOSITION (which classes the JSX puts on <main>), not
-  // that the CSS itself widens — that geometry is the browser check's job.
-  describe("QA — adversarial: width mechanism, type honesty & isolation", () => {
-    const classesOf = (el: Element | null): string[] =>
-      el ? Array.from(el.classList) : [];
-
-    it("wide <main> carries a MODIFIER class the narrow <main> does not (pins the className half, not just data-layout)", async () => {
-      // Render a narrow prose-only page and a wide Provider page and compare their <main>
-      // class lists. The wide page must add EXACTLY ONE class on top of the base — the `.wide`
-      // modifier. If the className ternary regressed (e.g. always `styles.module`), data-layout
-      // would still say "wide" but this assertion would fail — which is the whole point.
-      fetchMock.mockResolvedValueOnce(
-        entry({ kind: "note", componentKey: null, ...withBody }),
-      );
-      const narrow = render(await EntryPage({ params: params("an-entry") }));
-      const narrowClasses = classesOf(narrow.container.querySelector("main"));
-
-      resolveComponentKeyMock.mockReturnValue(foundWideProvider());
-      fetchMock.mockResolvedValueOnce(
-        entry({
-          kind: "project",
-          componentKey: "color-engine",
-          slug: "color-engine",
-        }),
-      );
-      const wide = render(await EntryPage({ params: params("color-engine") }));
-      const wideClasses = classesOf(wide.container.querySelector("main"));
-
-      // Narrow is the single base class; wide is base + one modifier.
-      expect(narrowClasses).toHaveLength(1);
-      expect(wideClasses).toHaveLength(2);
-      // Wide is a strict superset: it keeps the base class and adds a NEW one.
-      for (const c of narrowClasses) expect(wideClasses).toContain(c);
-      const modifier = wideClasses.filter((c) => !narrowClasses.includes(c));
-      expect(modifier).toHaveLength(1);
-      // The modifier is genuinely absent from the narrow page (no leak of the wide class).
-      expect(narrowClasses).not.toContain(modifier[0]);
-    });
-
-    it("narrow <main> is EXACTLY the base class — no `.wide` modifier, no stray/empty tokens (crown-jewel: className unchanged)", async () => {
-      resolveComponentKeyMock.mockReturnValue(foundExperience());
-      fetchMock.mockResolvedValueOnce(
-        entry({ kind: "project", componentKey: "color-engine" }),
-      );
-      const { container } = render(
-        await EntryPage({ params: params("an-entry") }),
-      );
-      const main = container.querySelector("main");
-      expect(classesOf(main)).toHaveLength(1);
-      // No "undefined"/empty-string tokens leaked into the class attribute.
-      expect(main?.className).not.toMatch(/undefined|\s{2,}|^\s|\s$/);
-    });
-
-    it.each([
-      { label: "a foreign string (banana)", layout: "banana" },
-      { label: "null (bad runtime data)", layout: null },
-      { label: "undefined (explicit)", layout: undefined },
-      { label: "a boolean true", layout: true },
-      { label: "the number 1", layout: 1 },
-    ])(
-      'degrades a module whose `layout` is $label to narrow — strict `=== "wide"`, never emits a foreign data-layout, never throws',
-      async ({ layout }) => {
-        // Type honesty at the runtime boundary: the contract says `layout?: "wide"`, but drift /
-        // bad data can hand the page anything. `isWide` is a strict `=== "wide"`, so every
-        // non-"wide" value must fall through to the narrow default — and data-layout must be
-        // exactly "narrow", never the foreign token echoed back.
-        resolveComponentKeyMock.mockReturnValue(
-          found(async () => ({
-            default: {
-              layout,
-              Experience: () => <div data-testid="experience">slot</div>,
-            },
-          })),
-        );
-        fetchMock.mockResolvedValueOnce(
-          entry({ kind: "project", componentKey: "color-engine" }),
-        );
-        const { container } = render(
-          await EntryPage({ params: params("an-entry") }),
-        );
-        const main = container.querySelector("main");
-        expect(main).toHaveAttribute("data-layout", "narrow");
-        // The foreign token never reaches the markup.
-        expect(main?.getAttribute("data-layout")).toBe("narrow");
-        // …and the wide modifier class is not applied (single base class only).
-        expect(classesOf(main)).toHaveLength(1);
-        expect(screen.getByTestId("experience")).toBeInTheDocument();
-      },
-    );
-
-    it("applies wide to a MALFORMED wide module that exports neither Experience nor Provider (drift: layout-only) — wide + prose-only, no crash, no 404", async () => {
-      // The compile-time union forbids a member-less module, but drift can produce
-      // `{ layout: "wide" }` at runtime. `isWide` reads `layout` independent of any slot, so the
-      // page must still widen AND degrade to prose-only — never throw.
-      resolveComponentKeyMock.mockReturnValue(
-        found(async () => ({ default: { layout: "wide" as const } })),
-      );
-      fetchMock.mockResolvedValueOnce(
-        entry({ kind: "project", componentKey: "color-engine", ...withBody }),
-      );
-      const { container } = render(
-        await EntryPage({ params: params("an-entry") }),
-      );
-      const main = container.querySelector("main");
-      expect(main).toHaveAttribute("data-layout", "wide");
-      expect(classesOf(main)).toHaveLength(2);
-      // Prose-only: nothing mounted, but the article (its header) is present.
-      expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
-      expect(screen.queryByTestId("provider")).not.toBeInTheDocument();
-      expect(
-        screen.getByRole("heading", { level: 1, name: /an entry/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("keeps two simultaneously-mounted <main>s (Activity) from bleeding width into each other, and touches nothing global", async () => {
-      // Cache Components can keep several /[slug] routes mounted at once (React <Activity>).
-      // Mount a WIDE entry and a NARROW entry together; each <main> must keep its own
-      // data-layout + class, and NOTHING global (document.body) may be re-styled — the width
-      // switch is strictly per-<main>.
-      resolveComponentKeyMock.mockReturnValue(foundWideProvider());
-      fetchMock.mockResolvedValueOnce(
-        entry({
-          kind: "project",
-          componentKey: "color-engine",
-          slug: "color-engine",
-        }),
-      );
-      render(await EntryPage({ params: params("color-engine") }));
-
-      resolveComponentKeyMock.mockReturnValue(
-        notFoundResolution("component", "x"),
-      );
-      fetchMock.mockResolvedValueOnce(
-        entry({
-          kind: "note",
-          componentKey: null,
-          slug: "a-note",
-          ...withBody,
-        }),
-      );
-      render(await EntryPage({ params: params("a-note") }));
-
-      const mains = Array.from(document.querySelectorAll("main"));
-      expect(mains).toHaveLength(2);
-      const layouts = mains.map((m) => m.getAttribute("data-layout")).sort();
-      expect(layouts).toEqual(["narrow", "wide"]);
-      // Each main's class count matches its own mode — wide=2, narrow=1 — proving no bleed.
-      const wideMain = mains.find(
-        (m) => m.getAttribute("data-layout") === "wide",
-      );
-      const narrowMain = mains.find(
-        (m) => m.getAttribute("data-layout") === "narrow",
-      );
-      expect(classesOf(wideMain ?? null)).toHaveLength(2);
-      expect(classesOf(narrowMain ?? null)).toHaveLength(1);
-      // Nothing global was touched: the body carries no data-layout and no injected class.
-      expect(document.body).not.toHaveAttribute("data-layout");
-      expect(document.body.classList).toHaveLength(0);
-    });
+    expect(referenced.filter((name) => !defined.has(name))).toEqual([]);
   });
 });

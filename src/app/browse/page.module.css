@@ -15,16 +15,9 @@
     gap: var(--space-2);
   }
 
-  .title {
-    font-size: var(--text-3xl);
-    line-height: var(--leading-tight);
-    color: var(--text);
-  }
-
   .intro {
     max-width: 60ch;
     color: var(--text-muted);
-    font-size: var(--text-lg);
   }
 
   .section {
@@ -34,9 +27,6 @@
   }
 
   .sectionHeading {
-    font-size: var(--text-sm);
-    font-weight: 600;
-    letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--text-muted);
     padding-bottom: var(--space-2);
@@ -63,11 +53,8 @@
   }
 
   .itemLink {
-    /* An entry-title link, not a heading element — opts into the display face explicitly (the
-       base h1–h6 rule can't reach an `<a>`), matching EntryCard's title register and /now. */
-    font-family: var(--font-display);
-    font-size: var(--text-xl);
-    line-height: var(--leading-tight);
+    /* Inside a `<Heading level={3}>` — the subheading role owns the type; this class is a
+       plain wrapper for the href, layout + color only. */
     color: var(--text);
     text-decoration: none;
   }
@@ -78,7 +65,6 @@
   }
 
   .stage {
-    font-size: var(--text-sm);
     text-transform: capitalize;
     color: var(--text-muted);
     padding: 0.1em 0.6em;
@@ -89,17 +75,13 @@
   .blurb {
     max-width: 68ch;
     color: var(--text-muted);
-    font-size: var(--text-base);
-    line-height: var(--leading-normal);
   }
 
   .meta {
-    font-size: var(--text-sm);
     color: var(--text-muted);
   }
 
   .empty {
     color: var(--text-muted);
-    font-size: var(--text-lg);
   }
 }

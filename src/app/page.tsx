@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { VisuallyHidden } from "radix-ui";
 
 import EntryCard from "@/components/entry/EntryCard";
+import Heading from "@/components/typography/Heading";
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
 import { FEATURED_QUERY } from "@/sanity/lib/queries";
@@ -33,9 +34,11 @@ export default async function Home() {
       <PageTheme seed={themeSeed} />
       <main className={styles.main}>
         <section className={styles.hero}>
-          <h1 className={styles.title}>
+          {/* The landing statement is the one place the oversized `display` role is used; a
+            content page's h1 defaults to the quieter `title` role. */}
+          <Heading level={1} variant="display" className={styles.title}>
             Notes, essays, and things I&rsquo;m building in the open.
-          </h1>
+          </Heading>
         </section>
 
         {featured.length > 0 ? (

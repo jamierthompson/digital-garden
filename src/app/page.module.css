@@ -25,10 +25,10 @@
      garden IS (notes/essays/work-in-the-open) rather than spending the page's primary
      heading on a duplicate byline. */
   .title {
-    font-size: var(--text-4xl);
-    font-weight: 600;
+    font-size: var(--type-display-size);
+    font-weight: var(--font-weight-semibold);
     line-height: var(--leading-tight);
-    letter-spacing: -0.02em;
+    letter-spacing: var(--tracking-tight);
     color: var(--text);
     /* Balance the headline across its lines rather than leaving a stray short last line —
        the hero spans the full content frame, so this settles to a tidy two lines. */
