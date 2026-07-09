@@ -16,7 +16,7 @@ acceptance criteria; the co-location and scheduling rules are owned by this doc.
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Runner            | **Vitest 4** (`vitest run` in CI, `vitest` watch locally)                                                                                                                   |
 | Component lib     | **React Testing Library 16** + `@testing-library/jest-dom`                                                                                                                  |
-| DOM env           | **jsdom + node** via `test.projects` — the engine suite runs in both (see [Dual-env](#dual-env-the-oklch-engine))                                                           |
+| DOM env           | **jsdom + node** via `test.projects` — the engine suites run in both (see [Dual-env](#dual-env-the-engine-packages))                                                        |
 | E2E               | **Playwright — not installed.** Add when an E2E of the primary flow is warranted; a jsdom integration test (Sanity mocked) covers it for now                                |
 | Browser checks    | **Chrome DevTools MCP** — agent-driven a11y/CWV/visual verification of rendered surfaces; the ship-gate browser check, **not** committed CI tests                           |
 | Where tests live  | **Co-located** next to the subject (`Foo.test.tsx` beside `Foo.tsx`)                                                                                                        |
@@ -179,15 +179,16 @@ message and the PR body (the durable QA log per
 module's tests into "author's" and "QA's" halves — exactly the scatter this rule forbids —
 and rot the moment the two need the same mock.
 
-### Out of scope: the OKLCH engine's local conventions
+### Out of scope: the engine packages' local conventions
 
-`packages/oklch/**` (`@garden/oklch`) keeps the **local test conventions documented in
-[`../packages/oklch/src/README.md`](../packages/oklch/src/README.md)** — the dual-env
-`node`+`jsdom` split (see [Dual-env](#dual-env-the-oklch-engine)), the drift-guard
-(`api.test.ts`), and the visual-contrast harness (`harness/harness.test.ts`). Those are the
-engine's contract, not this convention's to override; read that README before touching engine
-tests. And `tests/setup.ts` stays put — it is **harness config** (jest-dom matchers), not a
-test subject, so the one-file-per-module rule doesn't apply to it.
+The engine packages — `packages/oklch/**` (`@garden/oklch`) and `packages/type/**`
+(`@garden/type`) — keep the **local test conventions documented in their own READMEs**
+([oklch](../packages/oklch/src/README.md), [type](../packages/type/src/README.md)): the dual-env
+`node`+`jsdom` split (see [Dual-env](#dual-env-the-engine-packages)) and a drift-guard
+(`api.test.ts`) in each, plus oklch's visual-contrast harness (`harness/harness.test.ts`). Those
+are each engine's contract, not this convention's to override; read the relevant README before
+touching engine tests. And `tests/setup.ts` stays put — it is **harness config** (jest-dom
+matchers), not a test subject, so the one-file-per-module rule doesn't apply to it.
 
 ---
 
@@ -213,20 +214,21 @@ transform of their output" move from [What to test](#what-to-test-vs-skip).
 
 ---
 
-## Dual-env: the OKLCH engine
+## Dual-env: the engine packages
 
-`packages/oklch/**` (the `@garden/oklch` package) is **isomorphic** — it must run
-identically server- and client-side. Two guards enforce this, and both are mandatory:
+The engine packages — `packages/oklch/**` (`@garden/oklch`) and `packages/type/**`
+(`@garden/type`) — are **isomorphic**: each must run identically server- and client-side. Two
+guards enforce this, and both are mandatory:
 
 1. **Isomorphism lint** (`pnpm lint`): a dedicated `eslint.config.mjs` block on
-   `packages/oklch/**` (`no-restricted-imports` + `no-restricted-globals`) forbids the engine
+   `packages/{oklch,type}/**` (`no-restricted-imports` + `no-restricted-globals`) forbids an engine
    from importing `next`/`next/*`, `react`, `react-dom`, or touching DOM/Node globals. **Never** add
    `server-only` / `client-only` to engine files — they pin the module to one side and
    break isomorphism.
-2. **Dual-environment test run:** the engine suite executes under **both** `environment:
+2. **Dual-environment test run:** the engine suites execute under **both** `environment:
 'node'` and `environment: 'jsdom'`.
 
-`vitest.config.ts` wires this with a **`test.projects`** split, so the same glob runs in both
+`vitest.config.ts` wires this with a **`test.projects`** split, so the engine globs run in both
 envs (`projects` is the current API — `workspace` is **deprecated** since Vitest 3.2;
 [vitest.dev/guide/projects](https://vitest.dev/guide/projects)):
 
@@ -234,8 +236,9 @@ envs (`projects` is the current API — `workspace` is **deprecated** since Vite
   glob (which also runs under `node`). It loads `tests/setup.ts` for jest-dom matchers and
   resolves the `@/*` alias via `resolve.tsconfigPaths: true`. If a node-_only_ test is ever
   added outside the engine, give jsdom an explicit `exclude` for it or it runs here in the wrong env.
-- A **`node`** project is scoped to the engine glob only (`packages/oklch/**/*.test.ts`), no
-  matcher setup. Engine tests use relative imports, so they need no `@/*` alias.
+- A **`node`** project is scoped to the engine globs only (`packages/oklch/**/*.test.ts`,
+  `packages/type/**/*.test.ts`), no matcher setup. Engine tests use relative imports, so they need
+  no `@/*` alias.
 
 `projects` beats the per-file `// @vitest-environment node` docblock because the docblock runs a
 file in _one_ env — satisfying "both" would mean duplicating the suite. Run a single env while

@@ -44,7 +44,7 @@ const load = () => import(`@/entries/${slug}`);
 
 `ssr: false` is **Client-Component-only** — passing it from a Server Component is an error (`…/02-guides/lazy-loading.md`).
 
-**Do NOT put `server-only` / `client-only` on the OKLCH engine.** Those pin a module to one side and break the isomorphism requirement (see the Import boundaries section). This is lint-enforced.
+**Do NOT put `server-only` / `client-only` on the engine packages** (`@garden/oklch`, `@garden/type`). Those pin a module to one side and break the isomorphism requirement (see the Import boundaries section). This is lint-enforced.
 
 > ⚠️ **Async Server Components don't render in jsdom** — Vitest can't unit-test them. Test sync RSCs / Client Components with RTL; cover async RSCs and the primary flow with Playwright (E2E). See [`./testing.md`](./testing.md).
 
@@ -165,10 +165,10 @@ An entry's brand font scopes to its own slot via an inline style on `[data-entry
 | `entry` ⇏ other `entry` | An entry module **cannot import another entry module** (matched by captured `slug`) — lift shared code into a shared module instead. |
 | `shared` ⇏ `entry`      | Dependencies point **from entry modules to shared, never back**.                                                                     |
 
-**The OKLCH engine (`packages/oklch/**`, the `@garden/oklch`workspace package) is isomorphic**— it must run identically in Node and the browser. It lives in its own package precisely so the standalone Studio can import it too; its guard is a dedicated `eslint.config.mjs`block on`packages/oklch/**`(not a`boundaries`element — that plugin is`src/**`-scoped). Two guards:
+**The engine packages (`packages/oklch/**`—`@garden/oklch`, color; and `packages/type/**`—`@garden/type`, type-scale) are isomorphic**— each must run identically in Node and the browser. They live in their own packages precisely so the standalone Studio can import them too; the guard is a dedicated `eslint.config.mjs`block on`packages/{oklch,type}/**`(not a`boundaries`element — that plugin is`src/**`-scoped). Two guards:
 
 1. **No framework imports** — `no-restricted-imports` forbids `next`/`next/*`, `react`, `react-dom`/`react-dom/*`, and **`server-only`/`client-only`** (those break it; see the React section).
-2. **No DOM/Node globals** — `no-restricted-globals` forbids `window`/`document`/`process`/`Buffer`/… inside `packages/oklch/**` (full list in `eslint.config.mjs`). Imports can't catch ambient globals, so this rule does.
+2. **No DOM/Node globals** — `no-restricted-globals` forbids `window`/`document`/`process`/`Buffer`/… inside `packages/{oklch,type}/**` (full list in `eslint.config.mjs`). Imports can't catch ambient globals, so this rule does.
 
 The contract is also test-enforced: the engine suite runs under **both** `node` and `jsdom` Vitest environments (see [`./testing.md`](./testing.md)).
 
@@ -180,12 +180,12 @@ The contract is also test-enforced: the engine suite runs under **both** `node` 
 
 House rule: **establish the pattern early, instantiate it late** (the deferral discipline). Name where each kind of code _will_ live, but don't stand up the structure until a concrete trigger earns it — a genuine second use or an actual prop-drill. "I'll need it later" is not a trigger. Each rule below pairs with the **trigger** that says it's time — none of this is built pre-emptively.
 
-| Concern                                             | Where it lives                                                                                  | Instantiate when…                                                                                                                        |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Pure logic / utilities (no React, no I/O)           | `src/lib/*` (`breakpoints.ts`, `cardSwatches`, resolvers); the OKLCH engine in `packages/oklch` | always — logic stays out of components                                                                                                   |
-| Data fetching / external I/O (the "services" layer) | `src/sanity/lib/*`                                                                              | a new external source appears. **No generic `services/`** — RSCs fetch directly and `sanity/lib` is the I/O home                         |
-| Interaction logic / state (reducers, machines)      | a hook beside the component, or a headless `core/`                                              | a component's logic outgrows its render — extract a `core/` **then**, not by template (architecture.md's interactive experience section) |
-| Presentation                                        | the component, reading **tokens + props**                                                       | —                                                                                                                                        |
+| Concern                                             | Where it lives                                                                                                          | Instantiate when…                                                                                                                        |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Pure logic / utilities (no React, no I/O)           | `src/lib/*` (`breakpoints.ts`, `cardSwatches`, resolvers); the `@garden/oklch` + `@garden/type` engines in `packages/*` | always — logic stays out of components                                                                                                   |
+| Data fetching / external I/O (the "services" layer) | `src/sanity/lib/*`                                                                                                      | a new external source appears. **No generic `services/`** — RSCs fetch directly and `sanity/lib` is the I/O home                         |
+| Interaction logic / state (reducers, machines)      | a hook beside the component, or a headless `core/`                                                                      | a component's logic outgrows its render — extract a `core/` **then**, not by template (architecture.md's interactive experience section) |
+| Presentation                                        | the component, reading **tokens + props**                                                                               | —                                                                                                                                        |
 
 **Separation of concerns.** A component renders; it does not _also_ own a reducer, derive data, and fetch. Keep those concerns separable even before you split them — when logic starts to crowd render, lift it into a hook / `core/` and feed the component tokens and props. This is architecture.md's interactive experience section's headless-core idea applied everywhere, not only to an experience.
 

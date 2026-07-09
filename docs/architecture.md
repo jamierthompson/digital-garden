@@ -467,8 +467,8 @@ margins per component.
 
 A primitive takes its spacing as a **prop** and passes it **straight through to an inline CSS
 custom property** — it does not compute a style. This "conduit" indirection is deliberate: because
-the value lands as a custom property the CSS reads, a container query or a future
-`@garden/type`-style derivation engine (a planned sibling to the OKLCH color engine) can override
+the value lands as a custom property the CSS reads, a container query or a `@garden/type`-style
+space-derivation engine (the type engine already derives type sizes exactly this way) can override
 it in CSS **without touching the call site**. The prop accepts any CSS length string, so an engine-derived `clamp()`
 passes through unchanged.
 
@@ -505,9 +505,9 @@ covers the rest):
 | `--space-stack`   | `--space-4` | default vertical rhythm between stacked blocks           |
 | `--space-cluster` | `--space-3` | gap between inline items in a wrapping row (meta, chips) |
 
-The planned `@garden/type`-style derivation would later _back_ these same names — so components
-and templates commit to the **role names now**, and the values become derived later without a
-call-site change.
+A `@garden/type`-style derivation of the space scale would later _back_ these same names — so
+components and templates commit to the **role names now**, and the values become derived later
+without a call-site change.
 
 ### `Stack`
 
@@ -845,8 +845,8 @@ componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fon
   problem — hence "validate + fall back," not "let it throw and catch."
 - **One Next.js app for the site; the Sanity Studio is a separate workspace package.** The
   repo is a multi-member pnpm workspace: the Next app at the root, a **standalone Sanity Studio in
-  `studio/`** (Vite-based, auto-updating, TypeGen watch mode), and the `@garden/oklch` engine in
-  `packages/oklch`. The _site_ is still a single app with
+  `studio/`** (Vite-based, auto-updating, TypeGen watch mode), and the `@garden/oklch` (color) and
+  `@garden/type` (type-scale) engines in `packages/oklch` and `packages/type`. The _site_ is still a single app with
   no project sub-packages — project code lives under `src/entries/*`; shared bits live in shared
   `src/` modules. Boundaries are **lint-import rules**: a project can't import another project;
   shared can't import a project; plus the `packages/oklch/**` isomorphism boundary (see the OKLCH
