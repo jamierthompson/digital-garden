@@ -1,11 +1,5 @@
 "use client";
 
-// Harvested from `feat/entry-slide-over` (a slide-over exploration whose routing mechanism was
-// rejected, #154) — the component itself is generic shell chrome, unrelated to that branch's
-// routing approach. It has no consumer yet (the color-engine demo that first used it was removed
-// with the canvas template); kept for the interactive modules being rebuilt on the foundation,
-// where a brand-scoped surface wants a scrollbar thumb that picks up the entry's `--accent`.
-
 import { ScrollArea as RadixScrollArea } from "radix-ui";
 import type { ReactNode } from "react";
 
@@ -23,12 +17,10 @@ interface ScrollAreaProps {
  * the editorial accent. Fills its parent (parent controls the size; give it a bounded
  * block-size and `min-block-size: 0` in grid/flex cells).
  *
- * `type="always"` — the one deviation from the harvested `feat/entry-slide-over` version,
- * whose Root left `type` at Radix's own default (`"hover"`: the Scrollbar/Thumb don't even
- * mount until a real pointer hover, confirmed against the installed
- * `@radix-ui/react-scroll-area@1.2.13` source). The thumb IS the brand color here, so hiding
- * it until a hover would hide the very thing this component exists to show off — "always"
- * keeps it mounted and visible from first paint.
+ * `type="always"` overrides Radix's default (`"hover"`, which doesn't mount the Scrollbar/Thumb
+ * until a real pointer hover — confirmed against the installed `@radix-ui/react-scroll-area@1.2.13`
+ * source). The thumb IS the brand color here, so hiding it until hover would hide the very thing
+ * this component exists to show off — "always" keeps it mounted and visible from first paint.
  */
 export default function ScrollArea({
   children,
