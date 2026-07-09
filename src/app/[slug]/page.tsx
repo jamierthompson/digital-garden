@@ -23,11 +23,11 @@ import styles from "./page.module.css";
 // route (`app/` is routing only — it mounts components from `src/`).
 //
 // ONE editorial template for every entry — chrome + the entry's prose — with two optional,
-// capability-gated additions layered on: an interactive module slot and a brand-scoped theme.
+// capability-gated additions layered on: an interactive module slot and a theme-scoped theme.
 //
 //     <main> editorial chrome
 //       ├ <article> the entry's essay (PT serializer) — editorial
-//       ├ EntryScopeBoundary + EntryScope + <Experience/> — the brand-themed slot,
+//       ├ EntryScopeBoundary + EntryScope + <Experience/> — the themed slot,
 //       │   rendered for ANY entry (except `now`) that resolves a module
 //       └ <RelatedEntries> — editorial (outgoing `related` + incoming backlinks)
 //
@@ -39,13 +39,13 @@ import styles from "./page.module.css";
 //     and a note/essay simply never has one). A module composes one (or both) of two ways —
 //     `Experience` (one slot mounted after the prose) and/or `Provider` (a client frame around
 //     the article so interleaved `liveEmbed` slots share state).
-//   • Theming — a `brandColor`: present → build the scope seed and thread it to the body so
+//   • Theming — a `themeColor`: present → build the scope seed and thread it to the body so
 //     each `liveEmbed` (and the `Experience` slot) mounts in its own scoped container.
 //
 // `now` is the ONE exception, excluded by design: it stays chrome + prose — never a scope,
-// never a module — even if it happens to carry `brandColor`/`componentKey`, because a `now`
+// never a module — even if it happens to carry `themeColor`/`componentKey`, because a `now`
 // note is an editorial status update, not an interactive slot. The keystone stays defensive:
-// the scope never throws on a bad brandColor/fontKey, so an empty seed field is always safe.
+// the scope never throws on a bad themeColor/fontKey, so an empty seed field is always safe.
 
 interface EntryPageProps {
   params: Promise<{ slug: string }>;
@@ -100,14 +100,14 @@ export default async function EntryPage({ params }: EntryPageProps) {
 
   // The page's authored theme, applied flash-free (#166/#187). `themeSeed` is resolved
   // KIND-GATED in the query (a `now` update wears the `/now` seed; every other kind wears its
-  // own required `brandColor`), so the page never branches on `kind` here. `entry` is already
+  // own required `themeColor`), so the page never branches on `kind` here. `entry` is already
   // awaited above, so the synchronous `<PageTheme>` emits its `:root` `<style>` into the
   // prerendered static shell — React hoists it into `<head>`, ahead of the chrome.
   const pageTheme = <PageTheme seed={entry.themeSeed} />;
 
   // `now` is excluded from BOTH capabilities by design (an editorial status update, never an
   // interactive slot) — so it never resolves a key and never builds a scope, even if the doc
-  // happens to carry `componentKey`/`brandColor`.
+  // happens to carry `componentKey`/`themeColor`.
   const isNow = entry.kind === "now";
 
   // Module gate — capability, not kind. A DECLARED `componentKey` must resolve for any kind
@@ -136,13 +136,13 @@ export default async function EntryPage({ params }: EntryPageProps) {
   const Provider = entryModule?.Provider ?? null;
 
   // The font seed for the entry's slot(s), threaded to the body so each `liveEmbed` — and the
-  // `Experience` slot — mounts in its own `[data-entry]` wearing the entry's brand font. Built
-  // whenever this entry either themes (`brandColor`) OR mounts a module: keyed on the REAL `slug`
+  // `Experience` slot — mounts in its own `[data-entry]` wearing the entry's theme font. Built
+  // whenever this entry either themes (`themeColor`) OR mounts a module: keyed on the REAL `slug`
   // so a scope never collapses to the shared `data-entry="fallback"`. An absent `fontKey` is a
   // safe empty string: the keystone falls back to the shell font without throwing. The slot's
   // COLOR comes from the page's `<html>` theme (inherited); this seed carries only the font.
   const scope: ScopeSeed | undefined =
-    !isNow && (entry.brandColor || entryModule)
+    !isNow && (entry.themeColor || entryModule)
       ? { slug, fontKey: entry.fontKey ?? "" }
       : undefined;
 
@@ -170,7 +170,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
           editorial content (children pass-through). Rendered as deep as possible per the
           bundled composition docs. */}
         {Provider ? <Provider slug={slug}>{article}</Provider> : article}
-        {/* Brand is scoped to the interactive slot ONLY — the engine theme wraps
+        {/* The theme is scoped to the interactive slot ONLY — the engine theme wraps
           <Experience/>, not the editorial article/related around it. Rendered only when a
           module resolved (any kind but `now`); an entry without one is prose-only. The wrapper
           `<div>` is a direct `.module` child, so it holds the reading-measure cap

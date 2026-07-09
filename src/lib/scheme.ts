@@ -4,7 +4,7 @@
  * The whole token system is emitted as native `light-dark()` literals keyed on the root
  * `color-scheme` (semantic/color.css binds `:root { color-scheme: light dark }`; the build keeps
  * `light-dark()` native — see next.config's `lightningCssFeatures`). So a scheme is applied by
- * setting `color-scheme` on `<html>`: every editorial AND brand token re-resolves natively,
+ * setting `color-scheme` on `<html>`: every editorial and theme tokens re-resolves natively,
  * with no per-component work.
  *
  * Until the visitor first flips the switch there is NO stored override — the CSS `light dark`

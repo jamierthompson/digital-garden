@@ -17,8 +17,8 @@ describe("stega exclusions", () => {
   it("excludes exactly the code-consumed fields", () => {
     expect([...STEGA_EXCLUDED_FIELDS].sort()).toEqual(
       [
-        "brandColor",
-        "brandColorDark",
+        "themeColor",
+        "themeColorDark",
         "componentKey",
         "embedKey",
         "fontKey",
@@ -29,8 +29,8 @@ describe("stega exclusions", () => {
   });
 
   it.each([
-    "brandColor",
-    "brandColorDark",
+    "themeColor",
+    "themeColorDark",
     "fontKey",
     "componentKey",
     "embedKey",
@@ -78,7 +78,7 @@ describe("stega exclusions", () => {
   });
 
   it("still excludes a leaf-name field nested arbitrarily deep", () => {
-    expect(isStegaExcludedField(["a", "b", "c", "brandColor"])).toBe(true);
+    expect(isStegaExcludedField(["a", "b", "c", "themeColor"])).toBe(true);
   });
 
   it("does not over-match a segment that merely CONTAINS 'pageThemes' (exact match only)", () => {
@@ -104,7 +104,7 @@ describe("stegaFilter", () => {
   it("returns false (skip encoding) for an excluded field, without consulting the default", () => {
     const filterDefault = vi.fn(() => true);
     const result = stegaFilter({
-      sourcePath: ["brandColor"],
+      sourcePath: ["themeColor"],
       filterDefault,
       // The remaining FilterDefault props are unused by our branch; cast for the test.
     } as unknown as Parameters<typeof stegaFilter>[0]);

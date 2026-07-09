@@ -3,10 +3,10 @@
   .aside {
     margin: 0;
     max-width: 60ch;
-    font-family: var(--font-face);
+    font-family: var(--font-body);
     font-style: italic;
     font-size: var(--type-size-2);
     line-height: var(--leading-normal);
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 }

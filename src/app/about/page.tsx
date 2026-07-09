@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 /**
  * The shell About page. Static editorial prose — reads the global semantic tokens
- * (`var(--text)`, `var(--font-face)`, …) from `:root`, no brand scope of its own.
+ * (`var(--foreground)`, `var(--font-body)`, …) from `:root`, no theme scope of its own.
  *
  * `async` so it can resolve its authored `pageThemes.about` seed on its own awaited path — a
  * `use cache` read, so the page stays fully prerendered (no dynamic hole) and the theme's `:root`
@@ -38,10 +38,10 @@ export default async function AboutPage() {
           <Text variant="lead">
             This is a personal portfolio and digital garden — part showcase,
             part notebook. Each project is a self-contained island with its own
-            brand color and typeface, composed on one shared foundation.
+            theme color and typeface, composed on one shared foundation.
           </Text>
           <Text variant="lead">
-            The colors you see are not hand-picked per element. A single brand
+            The colors you see are not hand-picked per element. A single theme
             seed runs through an OKLCH engine that derives an accessible palette
             for both light and dark schemes, then bakes it into the page so the
             theme is present before the first paint — no flash, no client-side

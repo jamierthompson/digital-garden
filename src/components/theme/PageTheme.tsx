@@ -1,11 +1,11 @@
 import { resolveThemeDeclarations } from "@/lib/theme";
 
-import BrandThemeStyle from "./BrandThemeStyle";
+import ThemeStyle from "./ThemeStyle";
 import ThemeReapplier from "./ThemeReapplier";
 
 interface PageThemeProps {
   /**
-   * The page's authored theme seed (a `brandColor` from Sanity, or the `/color-engine` play
+   * The page's authored theme seed (a `themeColor` from Sanity, or the `/color-engine` play
    * seed). Untrusted — the engine collapses an unparseable seed to a safe fallback, so this
    * never throws.
    */
@@ -17,7 +17,7 @@ interface PageThemeProps {
  * Component (mirrors `EntryScope`'s posture — awaits nothing, prerenders into the static shell,
  * unit-testable in jsdom): it resolves the seed to declarations once and drives both halves —
  *
- *   1. `BrandThemeStyle` — the hoisted `:root` `<style>` baked with the seed. React lifts it into
+ *   1. `ThemeStyle` — the hoisted `:root` `<style>` baked with the seed. React lifts it into
  *      `<head>`, *before* the body chrome, so first paint is themed with no script and no
  *      parse-order dependency (the same server-rendered baked-CSS approach `EntryCard` uses
  *      inline, lifted to `:root`).
@@ -33,7 +33,7 @@ export default function PageTheme({ seed }: PageThemeProps) {
   const declarations = resolveThemeDeclarations(seed);
   return (
     <>
-      <BrandThemeStyle declarations={declarations} />
+      <ThemeStyle declarations={declarations} />
       <ThemeReapplier declarations={declarations} />
     </>
   );

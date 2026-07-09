@@ -1,5 +1,5 @@
 /**
- * The expressive brand-harmony palette (#102): decorative hue sets in mathematical
+ * The expressive accent-harmony palette (#102): decorative hue sets in mathematical
  * harmony with the seed — analogous, complementary, triadic, split-complementary — for
  * charts, gradients, and secondary accents.
  *
@@ -58,16 +58,16 @@ function rotate(hue: number, delta: number): number {
 }
 
 /**
- * Build the decorative brand-harmony palette from a brand color (#102). Each derived
+ * Build the decorative accent-harmony palette from a theme color (#102). Each derived
  * color keeps the seed's L and C and rotates the hue by the relationship's angles,
  * gamut-mapped into the target gamut. Pure, deterministic, never throws.
  */
 export function buildHarmonyPalette(
-  brandColor: unknown,
+  themeColor: unknown,
   opts: HarmonyOptions = {},
 ): HarmonyPalette {
   const gamut: Gamut = opts?.gamut ?? "srgb";
-  const parsed = parseColor(brandColor);
+  const parsed = parseColor(themeColor);
   const isFallback = parsed === null;
   const seed = gamutMap(parsed ?? FALLBACK_SEED, gamut);
 

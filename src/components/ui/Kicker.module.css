@@ -6,6 +6,6 @@
     font-weight: var(--font-weight-medium);
     letter-spacing: var(--tracking-widest);
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 }

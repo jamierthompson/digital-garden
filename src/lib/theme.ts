@@ -8,7 +8,7 @@
  * `localStorage`. So the server BAKES the resolved values into CSS; first paint is the easy case:
  *
  *   • Hard load / refresh — the page renders the declarations as a `:root { … }` `<style>`
- *     (`BrandThemeStyle`); React hoists it into `<head>`, ahead of the body chrome, so the theme
+ *     (`ThemeStyle`); React hoists it into `<head>`, ahead of the body chrome, so the theme
  *     is applied before ANY content paints — no script, no parse-order dependency. This is
  *     `EntryCard`'s server-rendered baked-CSS approach lifted to `:root`. The page stays static.
  *   • Soft navigation & `<Activity>` reveal — a Client Component re-applier calls
@@ -23,7 +23,7 @@
  * route's imperative write always wins — lingering `:root` styles from hidden routes are inert.
  *
  * Isomorphic & framework-agnostic (no `use client`, every DOM access inside a function body):
- * the server page imports `resolveThemeDeclarations` (→ `BrandThemeStyle`); the client re-applier
+ * the server page imports `resolveThemeDeclarations` (→ `ThemeStyle`); the client re-applier
  * imports `applyThemeDeclarations`. Mirrors `scheme.ts`'s split.
  */
 
@@ -42,18 +42,18 @@ import {
 export type ThemeDeclaration = [property: string, value: string];
 
 /**
- * Derive a page's semantic custom-property declarations from its authored brand seed. A thin
+ * Derive a page's semantic custom-property declarations from its authored theme seed. A thin
  * wrapper over the engine: `buildTokenSet` (contrast-solved, gamut-mapped, both schemes zipped
  * into `light-dark()`, never throws) + `tokenSetToDeclarations` (the generic `--surface`…
  * `--success` semantic tier — the same role names `semantic/color.css` binds as the editorial
- * default), parsed into the pairs the imperative appliers stamp. `brandColor` is `unknown`
+ * default), parsed into the pairs the imperative appliers stamp. `themeColor` is `unknown`
  * because the seed is authored, untrusted input; the engine collapses anything unparseable to a
  * safe fallback rather than throwing, so this never rejects a bad seed.
  */
 export function resolveThemeDeclarations(
-  brandColor: unknown,
+  themeColor: unknown,
 ): ThemeDeclaration[] {
-  return tokenSetToThemeDeclarations(buildTokenSet(brandColor));
+  return tokenSetToThemeDeclarations(buildTokenSet(themeColor));
 }
 
 /**

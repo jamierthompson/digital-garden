@@ -1,5 +1,5 @@
 /* Now page. @layer components — declares its layer (an unlayered module outranks every layered
-   rule); var-consuming only (global editorial semantic tokens, no per-entry brand). */
+   rule); var-consuming only (global editorial semantic tokens, no per-entry theme). */
 @layer components {
   /* Column flow + gap are owned by the `Stack` primitive wrapping `<main>` (asChild); this rule
      keeps only the page frame — width, centering, padding. */
@@ -16,7 +16,7 @@
   }
 
   .intro {
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 
   /* List reset. */
@@ -33,13 +33,13 @@
 
   .date {
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 
   .itemTitle {
     /* Inside a `<Heading level={3}>` — the subheading role owns the type; this class is a
        plain wrapper for the href, layout + color only. */
-    color: var(--text);
+    color: var(--foreground);
     text-decoration: none;
   }
 
@@ -50,15 +50,15 @@
 
   .blurb {
     max-width: 62ch;
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 
   .empty {
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 
   .footnote {
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 
   .link {

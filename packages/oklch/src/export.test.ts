@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { buildTokenSet } from "./palette";
 import { formatHex } from "./convert";
 import { tokenSetToDesignTokens, tokenSetToTailwindTheme } from "./export";
-import { BRAND_TOKEN_NAMES, RAMP_LABELS, RAMP_ROLES } from "./types";
+import { THEME_TOKEN_NAMES, RAMP_LABELS, RAMP_ROLES } from "./types";
 
 const SEED = "#3b82f6";
 
@@ -13,7 +13,7 @@ describe("tokenSetToTailwindTheme", () => {
   it("emits a v4 @theme block under the --color-* namespace", () => {
     expect(theme.startsWith("@theme {")).toBe(true);
     expect(theme.endsWith("}")).toBe(true);
-    for (const name of BRAND_TOKEN_NAMES) {
+    for (const name of THEME_TOKEN_NAMES) {
       expect(theme).toContain(`--color-${name}: light-dark(`);
     }
   });
@@ -41,7 +41,7 @@ describe("tokenSetToTailwindTheme", () => {
       format: "rgb",
     });
     expect(rgb).toMatch(
-      /--color-brand-500: light-dark\(rgb\(\d+ \d+ \d+\), rgb\(\d+ \d+ \d+\)\);/,
+      /--color-accent-500: light-dark\(rgb\(\d+ \d+ \d+\), rgb\(\d+ \d+ \d+\)\);/,
     );
   });
 
@@ -85,7 +85,7 @@ describe("tokenSetToDesignTokens", () => {
   it("emits per-scheme root groups with the full semantic contract", () => {
     for (const scheme of ["light", "dark"] as const) {
       expect(Object.keys(tokens[scheme].semantic).sort()).toEqual(
-        [...BRAND_TOKEN_NAMES].sort(),
+        [...THEME_TOKEN_NAMES].sort(),
       );
     }
   });
@@ -127,13 +127,13 @@ describe("tokenSetToDesignTokens", () => {
     expect(scrim.$value.alpha).toBeGreaterThan(0);
     expect(scrim.$value.alpha).toBeLessThan(1);
     // An ordinary opaque token has no `alpha` key at all (exactly as before the scrim work).
-    expect("alpha" in tokens.light.semantic.text.$value).toBe(false);
+    expect("alpha" in tokens.light.semantic.foreground.$value).toBe(false);
   });
 
   it("serializes srgb components on the hex / rgb formats", () => {
     for (const format of ["hex", "rgb"] as const) {
       const out = tokenSetToDesignTokens(buildTokenSet(SEED), { format });
-      const text = out.dark.semantic.text.$value;
+      const text = out.dark.semantic.foreground.$value;
       expect(text.colorSpace).toBe("srgb");
       for (const c of text.components) {
         expect(c).toBeGreaterThanOrEqual(0);
@@ -144,15 +144,15 @@ describe("tokenSetToDesignTokens", () => {
   });
 
   it("the components agree with the hex fallback (one paint, two encodings)", () => {
-    const step = tokens.light.ramps.brand["500"].$value;
+    const step = tokens.light.ramps.accent["500"].$value;
     // Re-serializing the oklch components through the sRGB path lands on the same hex.
     const [L, C, H] = step.components;
     expect(formatHex({ L, C, H })).toBe(step.hex);
   });
 
   it("dark values genuinely differ from light (the re-solve is visible)", () => {
-    expect(tokens.light.semantic.text.$value).not.toEqual(
-      tokens.dark.semantic.text.$value,
+    expect(tokens.light.semantic.foreground.$value).not.toEqual(
+      tokens.dark.semantic.foreground.$value,
     );
   });
 

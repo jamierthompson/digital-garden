@@ -1,6 +1,6 @@
 /* /[slug] entry page. @layer components — declares its layer (an unlayered module outranks
    every layered rule); var-consuming only; reads the generic semantic tokens (editorial by
-   default; each brand slot re-binds them inside its own scoped container). Breakout layout:
+   default; each themed slot re-binds them inside its own scoped container). Breakout layout:
    the page frame runs wide (demo, not essay), the prose keeps its reading measure via the
    article grid's named [prose] column, and a liveEmbed slot spans [full] (EmbedBlock sets
    `grid-column: full`). */
@@ -9,8 +9,8 @@
     max-width: var(--width-content);
     margin: 0 auto;
     padding: var(--space-7) var(--space-6);
-    font-family: var(--font-face);
-    color: var(--text);
+    font-family: var(--font-body);
+    color: var(--foreground);
   }
 
   .header {
@@ -25,7 +25,7 @@
   .blurb {
     margin-top: var(--space-3);
     max-width: 52ch;
-    color: color-mix(in oklab, var(--text) 80%, transparent);
+    color: color-mix(in oklab, var(--foreground) 80%, transparent);
   }
 
   .article {

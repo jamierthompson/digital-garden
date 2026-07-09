@@ -33,8 +33,7 @@
   }
 
   .link:focus-visible {
-    outline: var(--focus-ring-width) var(--focus-ring-style)
-      var(--focus-ring-color, currentColor);
-    outline-offset: var(--focus-ring-offset);
+    outline: var(--ring-width) var(--ring-style) var(--ring, currentColor);
+    outline-offset: var(--ring-offset);
   }
 }

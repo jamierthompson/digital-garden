@@ -26,7 +26,7 @@
 <body>
 <h1>OKLCH engine — contrast harness</h1>
 <p class="note">
-  Each brand color, light &amp; dark, baked to literal <code>oklch()</code> by the engine
+  Each theme color, light &amp; dark, baked to literal <code>oklch()</code> by the engine
   (gamut-mapped before contrast math, contrast solved per scheme). Badges show MEASURED
   APCA Lc and WCAG ratio for each pair. Open in a browser to eyeball palette quality;
   the numbers are asserted by <code>harness.test.ts</code>.
@@ -42,9 +42,9 @@
       <p style="color:oklch(0.29 0.04 17.58)">Body text — the readable default. <span class="badge">text/bg: Lc 96.4 · 13.42:1</span></p>
       <p style="color:oklch(0.38 0.04 17.58)">Muted secondary text. <span class="badge">muted/sfc2: Lc 78.8 · 8.17:1</span></p>
       <p><a style="color:oklch(0.3678 0.1475 18.91)">An accent link</a> <span class="badge">link/sfc2: Lc 79.1 · 9.08:1</span></p>
-      <button style="background:oklch(0.5758 0.222 17.58); color:oklch(0.9757 0.0119 17.59); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 71.5 · 4.55:1</span></button>
+      <button style="background:oklch(0.5758 0.222 17.58); color:oklch(0.9757 0.0119 17.59); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">accent-foreground: Lc 71.5 · 4.55:1</span></button>
       <div class="ring" style="outline:2px solid oklch(0.4703 0.1886 18.73); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 68.9 · 6.05:1</span></div>
-      <div class="ramp"><div class="stop" style="background:oklch(0.9781 0.0107 17.5)" title="bg"></div><div class="stop" style="background:oklch(0.953 0.0234 17.44)" title="surface"></div><div class="stop" style="background:oklch(0.9289 0.0361 17.55)" title="surface-2"></div><div class="stop" style="background:oklch(0.49 0.04 17.58)" title="border"></div><div class="stop" style="background:oklch(0.5758 0.222 17.58)" title="accent"></div><div class="stop" style="background:oklch(0.3678 0.1475 18.91)" title="accent-text"></div><div class="stop" style="background:oklch(0.29 0.04 17.58)" title="text"></div></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.9781 0.0107 17.5)" title="background"></div><div class="stop" style="background:oklch(0.953 0.0234 17.44)" title="surface"></div><div class="stop" style="background:oklch(0.9289 0.0361 17.55)" title="surface-elevated"></div><div class="stop" style="background:oklch(0.49 0.04 17.58)" title="border"></div><div class="stop" style="background:oklch(0.5758 0.222 17.58)" title="accent"></div><div class="stop" style="background:oklch(0.3678 0.1475 18.91)" title="accent-text"></div><div class="stop" style="background:oklch(0.29 0.04 17.58)" title="foreground"></div></div>
     </div>
   </div>
   <div class="panel" style="color-scheme:dark; background:oklch(0.165 0.045 17.58); color:oklch(0.9279 0.0367 17.51)">
@@ -54,9 +54,9 @@
       <p style="color:oklch(0.9279 0.0367 17.51)">Body text — the readable default. <span class="badge">text/bg: Lc 90.9 · 15.50:1</span></p>
       <p style="color:oklch(0.85 0.045 17.58)">Muted secondary text. <span class="badge">muted/sfc2: Lc 72.9 · 9.82:1</span></p>
       <p><a style="color:oklch(0.8501 0.082 17.21)">An accent link</a> <span class="badge">link/sfc2: Lc 72.2 · 9.68:1</span></p>
-      <button style="background:oklch(0.7699 0.1365 17.58); color:oklch(0.1417 0.0568 18.82); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 60.6 · 9.11:1</span></button>
+      <button style="background:oklch(0.7699 0.1365 17.58); color:oklch(0.1417 0.0568 18.82); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">accent-foreground: Lc 60.6 · 9.11:1</span></button>
       <div class="ring" style="outline:2px solid oklch(0.772 0.135 17.5); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 57.0 · 7.24:1</span></div>
-      <div class="ramp"><div class="stop" style="background:oklch(0.165 0.045 17.58)" title="bg"></div><div class="stop" style="background:oklch(0.21 0.045 17.58)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.045 17.58)" title="surface-2"></div><div class="stop" style="background:oklch(0.67 0.045 17.58)" title="border"></div><div class="stop" style="background:oklch(0.7699 0.1365 17.58)" title="accent"></div><div class="stop" style="background:oklch(0.8501 0.082 17.21)" title="accent-text"></div><div class="stop" style="background:oklch(0.9279 0.0367 17.51)" title="text"></div></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.165 0.045 17.58)" title="background"></div><div class="stop" style="background:oklch(0.21 0.045 17.58)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.045 17.58)" title="surface-elevated"></div><div class="stop" style="background:oklch(0.67 0.045 17.58)" title="border"></div><div class="stop" style="background:oklch(0.7699 0.1365 17.58)" title="accent"></div><div class="stop" style="background:oklch(0.8501 0.082 17.21)" title="accent-text"></div><div class="stop" style="background:oklch(0.9279 0.0367 17.51)" title="foreground"></div></div>
     </div>
   </div></div>
   </section>
@@ -71,9 +71,9 @@
       <p style="color:oklch(0.29 0.04 86.05)">Body text — the readable default. <span class="badge">text/bg: Lc 97.6 · 13.51:1</span></p>
       <p style="color:oklch(0.38 0.04 86.05)">Muted secondary text. <span class="badge">muted/sfc2: Lc 79.5 · 8.16:1</span></p>
       <p><a style="color:oklch(0.4424 0.091 82.86)">An accent link</a> <span class="badge">link/sfc2: Lc 72.9 · 6.31:1</span></p>
-      <button style="background:oklch(0.5607 0.115 84.5); color:oklch(0.99 0 86.05); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 75.5 · 4.56:1</span></button>
+      <button style="background:oklch(0.5607 0.115 84.5); color:oklch(0.99 0 86.05); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">accent-foreground: Lc 75.5 · 4.56:1</span></button>
       <div class="ring" style="outline:2px solid oklch(0.5538 0.1137 84.14); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 59.4 · 3.93:1</span></div>
-      <div class="ramp"><div class="stop" style="background:oklch(0.9841 0.0196 89.4)" title="bg"></div><div class="stop" style="background:oklch(0.958 0.04 86.05)" title="surface"></div><div class="stop" style="background:oklch(0.93 0.04 86.05)" title="surface-2"></div><div class="stop" style="background:oklch(0.49 0.04 86.05)" title="border"></div><div class="stop" style="background:oklch(0.5607 0.115 84.5)" title="accent"></div><div class="stop" style="background:oklch(0.4424 0.091 82.86)" title="accent-text"></div><div class="stop" style="background:oklch(0.29 0.04 86.05)" title="text"></div></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.9841 0.0196 89.4)" title="background"></div><div class="stop" style="background:oklch(0.958 0.04 86.05)" title="surface"></div><div class="stop" style="background:oklch(0.93 0.04 86.05)" title="surface-elevated"></div><div class="stop" style="background:oklch(0.49 0.04 86.05)" title="border"></div><div class="stop" style="background:oklch(0.5607 0.115 84.5)" title="accent"></div><div class="stop" style="background:oklch(0.4424 0.091 82.86)" title="accent-text"></div><div class="stop" style="background:oklch(0.29 0.04 86.05)" title="foreground"></div></div>
     </div>
   </div>
   <div class="panel" style="color-scheme:dark; background:oklch(0.1656 0.0341 81.58); color:oklch(0.93 0.045 86.05)">
@@ -83,9 +83,9 @@
       <p style="color:oklch(0.93 0.045 86.05)">Body text — the readable default. <span class="badge">text/bg: Lc 92.3 · 15.68:1</span></p>
       <p style="color:oklch(0.85 0.045 86.05)">Muted secondary text. <span class="badge">muted/sfc2: Lc 73.8 · 9.84:1</span></p>
       <p><a style="color:oklch(0.8711 0.1326 86.05)">An accent link</a> <span class="badge">link/sfc2: Lc 77.8 · 10.49:1</span></p>
-      <button style="background:oklch(0.7952 0.1326 86.05); color:oklch(0.31 0.0636 86.05); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 60.9 · 6.91:1</span></button>
+      <button style="background:oklch(0.7952 0.1326 86.05); color:oklch(0.31 0.0636 86.05); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">accent-foreground: Lc 60.9 · 6.91:1</span></button>
       <div class="ring" style="outline:2px solid oklch(0.7952 0.1326 86.05); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 63.4 · 8.15:1</span></div>
-      <div class="ramp"><div class="stop" style="background:oklch(0.1656 0.0341 81.58)" title="bg"></div><div class="stop" style="background:oklch(0.2101 0.0431 85.23)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.045 86.05)" title="surface-2"></div><div class="stop" style="background:oklch(0.67 0.045 86.05)" title="border"></div><div class="stop" style="background:oklch(0.7952 0.1326 86.05)" title="accent"></div><div class="stop" style="background:oklch(0.8711 0.1326 86.05)" title="accent-text"></div><div class="stop" style="background:oklch(0.93 0.045 86.05)" title="text"></div></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.1656 0.0341 81.58)" title="background"></div><div class="stop" style="background:oklch(0.2101 0.0431 85.23)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.045 86.05)" title="surface-elevated"></div><div class="stop" style="background:oklch(0.67 0.045 86.05)" title="border"></div><div class="stop" style="background:oklch(0.7952 0.1326 86.05)" title="accent"></div><div class="stop" style="background:oklch(0.8711 0.1326 86.05)" title="accent-text"></div><div class="stop" style="background:oklch(0.93 0.045 86.05)" title="foreground"></div></div>
     </div>
   </div></div>
   </section>
@@ -100,9 +100,9 @@
       <p style="color:oklch(0.29 0.04 149.21)">Body text — the readable default. <span class="badge">text/bg: Lc 97.6 · 13.34:1</span></p>
       <p style="color:oklch(0.38 0.04 149.21)">Muted secondary text. <span class="badge">muted/sfc2: Lc 79.9 · 8.11:1</span></p>
       <p><a style="color:oklch(0.3718 0.1167 145.07)">An accent link</a> <span class="badge">link/sfc2: Lc 79.4 · 8.15:1</span></p>
-      <button style="background:oklch(0.5422 0.156 148.24); color:oklch(0.99 0 149.21); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 75.1 · 4.55:1</span></button>
+      <button style="background:oklch(0.5422 0.156 148.24); color:oklch(0.99 0 149.21); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">accent-foreground: Lc 75.1 · 4.55:1</span></button>
       <div class="ring" style="outline:2px solid oklch(0.448 0.1266 148.93); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 71.0 · 5.84:1</span></div>
-      <div class="ramp"><div class="stop" style="background:oklch(0.9825 0.0279 149.54)" title="bg"></div><div class="stop" style="background:oklch(0.958 0.04 149.21)" title="surface"></div><div class="stop" style="background:oklch(0.93 0.04 149.21)" title="surface-2"></div><div class="stop" style="background:oklch(0.49 0.04 149.21)" title="border"></div><div class="stop" style="background:oklch(0.5422 0.156 148.24)" title="accent"></div><div class="stop" style="background:oklch(0.3718 0.1167 145.07)" title="accent-text"></div><div class="stop" style="background:oklch(0.29 0.04 149.21)" title="text"></div></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.9825 0.0279 149.54)" title="background"></div><div class="stop" style="background:oklch(0.958 0.04 149.21)" title="surface"></div><div class="stop" style="background:oklch(0.93 0.04 149.21)" title="surface-elevated"></div><div class="stop" style="background:oklch(0.49 0.04 149.21)" title="border"></div><div class="stop" style="background:oklch(0.5422 0.156 148.24)" title="accent"></div><div class="stop" style="background:oklch(0.3718 0.1167 145.07)" title="accent-text"></div><div class="stop" style="background:oklch(0.29 0.04 149.21)" title="foreground"></div></div>
     </div>
   </div>
   <div class="panel" style="color-scheme:dark; background:oklch(0.165 0.045 149.21); color:oklch(0.93 0.045 149.21)">
@@ -112,9 +112,9 @@
       <p style="color:oklch(0.93 0.045 149.21)">Body text — the readable default. <span class="badge">text/bg: Lc 93.3 · 15.81:1</span></p>
       <p style="color:oklch(0.85 0.045 149.21)">Muted secondary text. <span class="badge">muted/sfc2: Lc 74.6 · 9.84:1</span></p>
       <p><a style="color:oklch(0.8975 0.1393 149.21)">An accent link</a> <span class="badge">link/sfc2: Lc 86.3 · 11.82:1</span></p>
-      <button style="background:oklch(0.7371 0.1393 149.21); color:oklch(0.1309 0.0384 147.54); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 60.5 · 9.07:1</span></button>
+      <button style="background:oklch(0.7371 0.1393 149.21); color:oklch(0.1309 0.0384 147.54); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">accent-foreground: Lc 60.5 · 9.07:1</span></button>
       <div class="ring" style="outline:2px solid oklch(0.7702 0.1393 149.21); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 61.8 · 7.79:1</span></div>
-      <div class="ramp"><div class="stop" style="background:oklch(0.165 0.045 149.21)" title="bg"></div><div class="stop" style="background:oklch(0.21 0.045 149.21)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.045 149.21)" title="surface-2"></div><div class="stop" style="background:oklch(0.67 0.045 149.21)" title="border"></div><div class="stop" style="background:oklch(0.7371 0.1393 149.21)" title="accent"></div><div class="stop" style="background:oklch(0.8975 0.1393 149.21)" title="accent-text"></div><div class="stop" style="background:oklch(0.93 0.045 149.21)" title="text"></div></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.165 0.045 149.21)" title="background"></div><div class="stop" style="background:oklch(0.21 0.045 149.21)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.045 149.21)" title="surface-elevated"></div><div class="stop" style="background:oklch(0.67 0.045 149.21)" title="border"></div><div class="stop" style="background:oklch(0.7371 0.1393 149.21)" title="accent"></div><div class="stop" style="background:oklch(0.8975 0.1393 149.21)" title="accent-text"></div><div class="stop" style="background:oklch(0.93 0.045 149.21)" title="foreground"></div></div>
     </div>
   </div></div>
   </section>
@@ -129,9 +129,9 @@
       <p style="color:oklch(0.29 0.04 215.22)">Body text — the readable default. <span class="badge">text/bg: Lc 97.6 · 13.40:1</span></p>
       <p style="color:oklch(0.38 0.04 215.22)">Muted secondary text. <span class="badge">muted/sfc2: Lc 79.7 · 8.12:1</span></p>
       <p><a style="color:oklch(0.4078 0.0729 217.07)">An accent link</a> <span class="badge">link/sfc2: Lc 76.2 · 7.14:1</span></p>
-      <button style="background:oklch(0.5464 0.0982 218.07); color:oklch(0.986 0.0135 206.64); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 75.1 · 4.59:1</span></button>
+      <button style="background:oklch(0.5464 0.0982 218.07); color:oklch(0.986 0.0135 206.64); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">accent-foreground: Lc 75.1 · 4.59:1</span></button>
       <div class="ring" style="outline:2px solid oklch(0.505 0.0899 216.37); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 64.8 · 4.68:1</span></div>
-      <div class="ramp"><div class="stop" style="background:oklch(0.9839 0.019 201.04)" title="bg"></div><div class="stop" style="background:oklch(0.9577 0.0346 212.95)" title="surface"></div><div class="stop" style="background:oklch(0.93 0.04 215.22)" title="surface-2"></div><div class="stop" style="background:oklch(0.49 0.04 215.22)" title="border"></div><div class="stop" style="background:oklch(0.5464 0.0982 218.07)" title="accent"></div><div class="stop" style="background:oklch(0.4078 0.0729 217.07)" title="accent-text"></div><div class="stop" style="background:oklch(0.29 0.04 215.22)" title="text"></div></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.9839 0.019 201.04)" title="background"></div><div class="stop" style="background:oklch(0.9577 0.0346 212.95)" title="surface"></div><div class="stop" style="background:oklch(0.93 0.04 215.22)" title="surface-elevated"></div><div class="stop" style="background:oklch(0.49 0.04 215.22)" title="border"></div><div class="stop" style="background:oklch(0.5464 0.0982 218.07)" title="accent"></div><div class="stop" style="background:oklch(0.4078 0.0729 217.07)" title="accent-text"></div><div class="stop" style="background:oklch(0.29 0.04 215.22)" title="foreground"></div></div>
     </div>
   </div>
   <div class="panel" style="color-scheme:dark; background:oklch(0.167 0.03 218.15); color:oklch(0.93 0.045 215.22)">
@@ -141,9 +141,9 @@
       <p style="color:oklch(0.93 0.045 215.22)">Body text — the readable default. <span class="badge">text/bg: Lc 93.2 · 15.77:1</span></p>
       <p style="color:oklch(0.85 0.045 215.22)">Muted secondary text. <span class="badge">muted/sfc2: Lc 74.3 · 9.85:1</span></p>
       <p><a style="color:oklch(0.8229 0.1031 215.22)">An accent link</a> <span class="badge">link/sfc2: Lc 70.3 · 9.16:1</span></p>
-      <button style="background:oklch(0.7448 0.1031 215.22); color:oklch(0.1605 0.0285 215.97); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 60.5 · 8.81:1</span></button>
+      <button style="background:oklch(0.7448 0.1031 215.22); color:oklch(0.1605 0.0285 215.97); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">accent-foreground: Lc 60.5 · 8.81:1</span></button>
       <div class="ring" style="outline:2px solid oklch(0.7148 0.1031 215.22); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 51.1 · 6.28:1</span></div>
-      <div class="ramp"><div class="stop" style="background:oklch(0.167 0.03 218.15)" title="bg"></div><div class="stop" style="background:oklch(0.211 0.0375 216.36)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.045 215.22)" title="surface-2"></div><div class="stop" style="background:oklch(0.67 0.045 215.22)" title="border"></div><div class="stop" style="background:oklch(0.7448 0.1031 215.22)" title="accent"></div><div class="stop" style="background:oklch(0.8229 0.1031 215.22)" title="accent-text"></div><div class="stop" style="background:oklch(0.93 0.045 215.22)" title="text"></div></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.167 0.03 218.15)" title="background"></div><div class="stop" style="background:oklch(0.211 0.0375 216.36)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.045 215.22)" title="surface-elevated"></div><div class="stop" style="background:oklch(0.67 0.045 215.22)" title="border"></div><div class="stop" style="background:oklch(0.7448 0.1031 215.22)" title="accent"></div><div class="stop" style="background:oklch(0.8229 0.1031 215.22)" title="accent-text"></div><div class="stop" style="background:oklch(0.93 0.045 215.22)" title="foreground"></div></div>
     </div>
   </div></div>
   </section>
@@ -158,9 +158,9 @@
       <p style="color:oklch(0.29 0.04 293.01)">Body text — the readable default. <span class="badge">text/bg: Lc 97.3 · 13.54:1</span></p>
       <p style="color:oklch(0.38 0.04 293.01)">Muted secondary text. <span class="badge">muted/sfc2: Lc 79.2 · 8.18:1</span></p>
       <p><a style="color:oklch(0.4343 0.2415 292.88)">An accent link</a> <span class="badge">link/sfc2: Lc 74.3 · 7.39:1</span></p>
-      <button style="background:oklch(0.5413 0.2466 293.01); color:oklch(0.9312 0.0362 293.11); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 67.4 · 4.62:1</span></button>
+      <button style="background:oklch(0.5413 0.2466 293.01); color:oklch(0.9312 0.0362 293.11); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">accent-foreground: Lc 67.4 · 4.62:1</span></button>
       <div class="ring" style="outline:2px solid oklch(0.5413 0.2466 293.01); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 63.2 · 4.60:1</span></div>
-      <div class="ramp"><div class="stop" style="background:oklch(0.9827 0.0096 300.87)" title="bg"></div><div class="stop" style="background:oklch(0.9564 0.0231 295.3)" title="surface"></div><div class="stop" style="background:oklch(0.9299 0.0369 293.14)" title="surface-2"></div><div class="stop" style="background:oklch(0.49 0.04 293.01)" title="border"></div><div class="stop" style="background:oklch(0.5413 0.2466 293.01)" title="accent"></div><div class="stop" style="background:oklch(0.4343 0.2415 292.88)" title="accent-text"></div><div class="stop" style="background:oklch(0.29 0.04 293.01)" title="text"></div></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.9827 0.0096 300.87)" title="background"></div><div class="stop" style="background:oklch(0.9564 0.0231 295.3)" title="surface"></div><div class="stop" style="background:oklch(0.9299 0.0369 293.14)" title="surface-elevated"></div><div class="stop" style="background:oklch(0.49 0.04 293.01)" title="border"></div><div class="stop" style="background:oklch(0.5413 0.2466 293.01)" title="accent"></div><div class="stop" style="background:oklch(0.4343 0.2415 292.88)" title="accent-text"></div><div class="stop" style="background:oklch(0.29 0.04 293.01)" title="foreground"></div></div>
     </div>
   </div>
   <div class="panel" style="color-scheme:dark; background:oklch(0.165 0.045 293.01); color:oklch(0.9295 0.0372 293.49)">
@@ -170,9 +170,9 @@
       <p style="color:oklch(0.9295 0.0372 293.49)">Body text — the readable default. <span class="badge">text/bg: Lc 91.8 · 15.63:1</span></p>
       <p style="color:oklch(0.85 0.045 293.01)">Muted secondary text. <span class="badge">muted/sfc2: Lc 73.4 · 9.84:1</span></p>
       <p><a style="color:oklch(0.8403 0.0884 294.65)">An accent link</a> <span class="badge">link/sfc2: Lc 70.9 · 9.41:1</span></p>
-      <button style="background:oklch(0.7639 0.1352 294.89); color:oklch(0.1029 0.0575 291.96); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">on-accent: Lc 60.5 · 9.36:1</span></button>
+      <button style="background:oklch(0.7639 0.1352 294.89); color:oklch(0.1029 0.0575 291.96); border:none; padding:6px 12px; border-radius:6px">Accent button <span class="badge">accent-foreground: Lc 60.5 · 9.36:1</span></button>
       <div class="ring" style="outline:2px solid oklch(0.7473 0.1443 293.82); outline-offset:2px">focus ring <span class="badge">ring/sfc2: Lc 53.3 · 6.69:1</span></div>
-      <div class="ramp"><div class="stop" style="background:oklch(0.165 0.045 293.01)" title="bg"></div><div class="stop" style="background:oklch(0.21 0.045 293.01)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.045 293.01)" title="surface-2"></div><div class="stop" style="background:oklch(0.67 0.045 293.01)" title="border"></div><div class="stop" style="background:oklch(0.7639 0.1352 294.89)" title="accent"></div><div class="stop" style="background:oklch(0.8403 0.0884 294.65)" title="accent-text"></div><div class="stop" style="background:oklch(0.9295 0.0372 293.49)" title="text"></div></div>
+      <div class="ramp"><div class="stop" style="background:oklch(0.165 0.045 293.01)" title="background"></div><div class="stop" style="background:oklch(0.21 0.045 293.01)" title="surface"></div><div class="stop" style="background:oklch(0.26 0.045 293.01)" title="surface-elevated"></div><div class="stop" style="background:oklch(0.67 0.045 293.01)" title="border"></div><div class="stop" style="background:oklch(0.7639 0.1352 294.89)" title="accent"></div><div class="stop" style="background:oklch(0.8403 0.0884 294.65)" title="accent-text"></div><div class="stop" style="background:oklch(0.9295 0.0372 293.49)" title="foreground"></div></div>
     </div>
   </div></div>
   </section>

@@ -21,10 +21,10 @@ const VALID_SEED = {
   fontKey: "jetbrains-mono",
 } as const;
 
-// The inline `--font-face` on a scope wrapper, read straight off the element's style so the
+// The inline `--font-body` on a scope wrapper, read straight off the element's style so the
 // assertion doesn't depend on jsdom computing custom properties.
 const fontFaceOf = (el: Element | null): string =>
-  (el as HTMLElement).style.getPropertyValue("--font-face");
+  (el as HTMLElement).style.getPropertyValue("--font-body");
 
 // EntryScope is a SYNC server component, so jsdom can render it (async RSCs cannot).
 describe("EntryScope (font slot)", () => {
@@ -40,7 +40,7 @@ describe("EntryScope (font slot)", () => {
     expect(wrapper).toHaveClass(FONT_FACES["jetbrains-mono"].variable);
   });
 
-  it("maps --font-face inline to the resolved roster face + fallback stack", () => {
+  it("maps --font-body inline to the resolved roster face + fallback stack", () => {
     render(
       <EntryScope seed={VALID_SEED}>
         <p>themed</p>
@@ -77,9 +77,9 @@ describe("EntryScope (font slot)", () => {
     ).toHaveAttribute("data-entry", "fallback");
   });
 
-  it("uses the shell mono face (no roster class) but still maps --font-face when the fontKey misses", () => {
+  it("uses the shell mono face (no roster class) but still maps --font-body when the fontKey misses", () => {
     // An unknown fontKey resolves to the shell mono face, which has no roster `.variable`
-    // class — so the wrapper carries no (empty) className — but `--font-face` still maps to the
+    // class — so the wrapper carries no (empty) className — but `--font-body` still maps to the
     // shell var, never a bare/empty value.
     render(
       <EntryScope seed={{ slug: "oklch-engine", fontKey: "nope" }}>

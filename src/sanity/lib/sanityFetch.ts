@@ -21,7 +21,7 @@ import { liveFetch } from "./live";
  * How the two paths resolve:
  * - Public request → Draft Mode OFF → `perspective: "published"`, `stega: false`. The
  *   read is CDN-backed and lands in the prerendered static shell (PPR), so the shell
- *   brand is flash-free in the initial bytes. `defineLive` sets a long
+ *   the theme is flash-free in the initial bytes. `defineLive` sets a long
  *   `cacheLife` (on-demand tag revalidation is the freshness mechanism, not a timer).
  * - Draft Mode ON → `perspective: "drafts"`, `stega: true`. Next re-executes every
  *   cached function on every request and saves nothing (use-cache.md),

@@ -16,8 +16,8 @@ interface EmbedBlockProps {
   caption?: string;
   /**
    * The host entry's font-scope seed. Present whenever a non-`now` entry themes OR mounts a
-   * module (`brandColor || componentKey`, not just a project): each embed then mounts inside its
-   * OWN `EntryScope` container, so it wears the entry's brand font while the prose around it
+   * module (`themeColor || componentKey`, not just a project): each embed then mounts inside its
+   * OWN `EntryScope` container, so it wears the entry's theme font while the prose around it
    * keeps the editorial body face. Color is inherited from the page's `<html>` theme, so this
    * seed carries only the slug + `fontKey`. A module-only entry (no `fontKey`) still gets a seed
    * keyed on its own slug, so its embeds fall back to the shell font. Absent (a `now`, or an
@@ -30,7 +30,7 @@ interface EmbedBlockProps {
  * Renders one `liveEmbed` block from an essay. An async Server Component that
  * resolves the `embedKey` to its lazy loader via `resolveEmbedKey`, awaits the module, and
  * mounts the default export — inside its own `EntryScope` when the host entry carries a
- * brand (`scope`), bare otherwise.
+ * themed (`scope`), bare otherwise.
  *
  * Defensive at the seam: a missing or unresolved `embedKey` does NOT throw — it
  * renders the visible `MissingEmbed` placeholder, so a content→code key drift degrades

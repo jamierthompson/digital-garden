@@ -8,8 +8,8 @@
     border: 1px solid var(--border);
     border-radius: 99px;
     background: transparent;
-    color: var(--text);
-    font-family: var(--font-display);
+    color: var(--foreground);
+    font-family: var(--font-heading);
     font-size: var(--type-size-2);
     line-height: var(--leading-none);
     cursor: pointer;
@@ -20,6 +20,6 @@
   }
 
   .button:hover {
-    border-color: var(--text-muted);
+    border-color: var(--muted-foreground);
   }
 }

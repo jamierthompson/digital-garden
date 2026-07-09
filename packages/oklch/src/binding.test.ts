@@ -11,10 +11,10 @@ import { buildRamp } from "./ramp";
 import { apcaLc, contrastWCAG, type ContrastTarget } from "./contrast";
 import type { OkLCH, Ramp, RampRole } from "./types";
 
-// A near-neutral ramp (whisper of hue) and a full-chroma brand ramp — the two the default
+// A near-neutral ramp (whisper of hue) and a full-chroma accent ramp — the two the default
 // schema binds against — plus canonical light/dark worst-case surfaces from the neutral ramp.
 const neutral: Ramp = buildRamp({ hue: 260, chroma: 0.01, gamut: "srgb" });
-const brand: Ramp = buildRamp({ hue: 260, chroma: 0.15, gamut: "srgb" });
+const accentRamp: Ramp = buildRamp({ hue: 260, chroma: 0.15, gamut: "srgb" });
 const lightSurface: OkLCH = neutral.find((s) => s.label === "200")!.color; // L ≈ 0.92
 const darkSurface: OkLCH = neutral.find((s) => s.label === "800")!.color; // L ≈ 0.27
 
@@ -63,7 +63,7 @@ describe("minPass", () => {
     expect(step.label).toBe("50");
   });
 
-  it("clears even a full-chroma brand ramp via gamut-desaturated dark steps (yellow-ish)", () => {
+  it("clears even a full-chroma accent ramp via gamut-desaturated dark steps (yellow-ish)", () => {
     const yellow = buildRamp({ hue: 90, chroma: 0.18, gamut: "srgb" });
     const step = minPass(yellow, lightSurface, BODY);
     // A high-chroma hue can't host body text at mid-lightness, but its dark steps desaturate
@@ -90,18 +90,21 @@ describe("minPass", () => {
 });
 
 describe("resolveBinding", () => {
-  const ramps = { neutral, brand } as unknown as Record<RampRole, Ramp>;
+  const ramps = { neutral, accent: accentRamp } as unknown as Record<
+    RampRole,
+    Ramp
+  >;
   const accent: OkLCH = { L: 0.5, C: 0.15, H: 260 };
-  const onAccent: OkLCH = { L: 0.99, C: 0, H: 260 };
+  const accentForeground: OkLCH = { L: 0.99, C: 0, H: 260 };
   const accentProvenance = {
     kind: "fill" as const,
-    role: "brand" as const,
+    role: "accent" as const,
     hue: 260,
     seed: { native: true, deltaL: 0 },
   };
-  const onAccentProvenance = {
-    kind: "on-fill" as const,
-    role: "brand" as const,
+  const accentForegroundProvenance = {
+    kind: "fill-foreground" as const,
+    role: "accent" as const,
     pole: "white" as const,
     hue: 260,
     chroma: 0,
@@ -109,7 +112,7 @@ describe("resolveBinding", () => {
   };
   const hoverProvenance = {
     kind: "fill" as const,
-    role: "brand" as const,
+    role: "accent" as const,
     hue: 260,
     seed: { native: false, deltaL: -0.1 },
   };
@@ -120,15 +123,15 @@ describe("resolveBinding", () => {
     // The co-solves are computed by palette.ts and passed in verbatim, keyed by role;
     // resolveBinding forwards each role's fill/label + provenance (identity — asserted below).
     fills: {
-      brand: {
+      accent: {
         fill: accent,
-        onFill: onAccent,
+        fillForeground: accentForeground,
         fillProvenance: accentProvenance,
-        onFillProvenance: onAccentProvenance,
+        fillForegroundProvenance: accentForegroundProvenance,
       },
     },
     hovers: {
-      brand: { fill: hoverFill, provenance: hoverProvenance },
+      accent: { fill: hoverFill, provenance: hoverProvenance },
     },
   };
 
@@ -147,7 +150,7 @@ describe("resolveBinding", () => {
     expect(dark.step).toEqual({ kind: "step", role: "neutral", label: "950" });
   });
 
-  it("`auto` runs minPass against surface-2 and reports the winning step", () => {
+  it("`auto` runs minPass against surface-elevated and reports the winning step", () => {
     const b: TokenBinding = { kind: "auto", role: "neutral", target: BODY };
     const chosen = minPass(neutral, lightSurface, BODY);
     const got = resolveBinding(b, { ...baseCtx, scheme: "light" });
@@ -178,20 +181,20 @@ describe("resolveBinding", () => {
     expect(d.step).toEqual({ kind: "literal", alpha: 0.6 });
   });
 
-  it("`fill` / `on-fill` defer to the role's co-solve, forwarding its provenance report (#151/#160)", () => {
+  it("`fill` / `fill-foreground` defer to the role's co-solve, forwarding its provenance report (#151/#160)", () => {
     const a = resolveBinding(
-      { kind: "fill", role: "brand" },
+      { kind: "fill", role: "accent" },
       { ...baseCtx, scheme: "light" },
     );
     expect(a.color).toBe(accent);
     // Not null any more — the fill reports the co-solve story it was handed, verbatim.
     expect(a.step).toBe(accentProvenance);
     const on = resolveBinding(
-      { kind: "on-fill", role: "brand" },
+      { kind: "fill-foreground", role: "accent" },
       { ...baseCtx, scheme: "light" },
     );
-    expect(on.color).toBe(onAccent);
-    expect(on.step).toBe(onAccentProvenance);
+    expect(on.color).toBe(accentForeground);
+    expect(on.step).toBe(accentForegroundProvenance);
   });
 
   it("`fill` keys by ROLE — a status fill forwards its OWN co-solve, never the accent's (#160)", () => {
@@ -204,14 +207,17 @@ describe("resolveBinding", () => {
     };
     const ctx: Omit<BindingContext, "scheme"> = {
       ...baseCtx,
-      ramps: { ...ramps, error: brand } as unknown as Record<RampRole, Ramp>,
+      ramps: { ...ramps, error: accentRamp } as unknown as Record<
+        RampRole,
+        Ramp
+      >,
       fills: {
         ...baseCtx.fills,
         error: {
           fill: errorFill,
-          onFill: onAccent,
+          fillForeground: accentForeground,
           fillProvenance: errorProvenance,
-          onFillProvenance: onAccentProvenance,
+          fillForegroundProvenance: accentForegroundProvenance,
         },
       },
     };
@@ -226,7 +232,7 @@ describe("resolveBinding", () => {
 
   it("`fill-hover` defers to the role's hover co-solve (#160)", () => {
     const h = resolveBinding(
-      { kind: "fill-hover", role: "brand" },
+      { kind: "fill-hover", role: "accent" },
       { ...baseCtx, scheme: "light" },
     );
     expect(h.color).toBe(hoverFill);
@@ -234,28 +240,28 @@ describe("resolveBinding", () => {
   });
 
   it("`auto-on` runs minPass against a PINNED step of the same role, reporting the winning step (#160)", () => {
-    // A container step on the brand ramp; the label solves against THAT color, not surface-2.
-    const containerLabel = "100";
-    const container = brand.find((s) => s.label === containerLabel)!.color;
+    // A subtle step on the accent ramp; the label solves against THAT color, not surface-elevated.
+    const subtleLabel = "100";
+    const subtle = accentRamp.find((s) => s.label === subtleLabel)!.color;
     const b: TokenBinding = {
       kind: "auto-on",
-      role: "brand",
-      against: { light: containerLabel, dark: "900" },
+      role: "accent",
+      against: { light: subtleLabel, dark: "900" },
       target: BODY,
     };
-    const chosen = minPass(brand, container, BODY);
+    const chosen = minPass(accentRamp, subtle, BODY);
     const got = resolveBinding(b, { ...baseCtx, scheme: "light" });
     expect(got.color).toEqual(chosen.color);
     expect(got.step).toEqual({
       kind: "step",
-      role: "brand",
+      role: "accent",
       label: chosen.label,
     });
-    // The label really clears its target against the container's ACTUAL color.
-    expect(meets(got.color, container, BODY)).toBe(true);
+    // The label really clears its target against the subtle surface's ACTUAL color.
+    expect(meets(got.color, subtle, BODY)).toBe(true);
   });
 
-  it("a `fill`/`on-fill`/`fill-hover` with NO co-solve for its role never throws (defensive)", () => {
+  it("a `fill`/`fill-foreground`/`fill-hover` with NO co-solve for its role never throws (defensive)", () => {
     // A hand-authored schema can name a role the context didn't co-solve; the binding must
     // still resolve to a sane ramp step rather than crashing (engine never-throws guarantee).
     const bare: Omit<BindingContext, "scheme"> = {
@@ -264,7 +270,7 @@ describe("resolveBinding", () => {
       fills: {},
       hovers: {},
     };
-    for (const kind of ["fill", "on-fill", "fill-hover"] as const) {
+    for (const kind of ["fill", "fill-foreground", "fill-hover"] as const) {
       const got = resolveBinding(
         { kind, role: "neutral" },
         { ...bare, scheme: "light" },
@@ -276,19 +282,30 @@ describe("resolveBinding", () => {
 
   it("resolveTokens visits every key, returning parallel tokens + provenance", () => {
     const schema = {
-      bg: { kind: "step", role: "neutral", light: "50", dark: "950" },
-      text: { kind: "auto", role: "neutral", target: BODY },
-      accent: { kind: "fill", role: "brand" },
-    } as unknown as Record<"bg" | "text" | "accent", TokenBinding>;
+      background: { kind: "step", role: "neutral", light: "50", dark: "950" },
+      foreground: { kind: "auto", role: "neutral", target: BODY },
+      accent: { kind: "fill", role: "accent" },
+    } as unknown as Record<
+      "background" | "foreground" | "accent",
+      TokenBinding
+    >;
     const { tokens, bindings } = resolveTokens(schema as never, {
       ...baseCtx,
       scheme: "light",
     });
-    expect(Object.keys(tokens)).toEqual(["bg", "text", "accent"]);
-    expect(Object.keys(bindings)).toEqual(["bg", "text", "accent"]);
+    expect(Object.keys(tokens)).toEqual(["background", "foreground", "accent"]);
+    expect(Object.keys(bindings)).toEqual([
+      "background",
+      "foreground",
+      "accent",
+    ]);
     expect(tokens.accent).toBe(accent);
     // A stepped binding reports its (role, label); the continuous accent forwards its report.
-    expect(bindings.bg).toEqual({ kind: "step", role: "neutral", label: "50" });
+    expect(bindings.background).toEqual({
+      kind: "step",
+      role: "neutral",
+      label: "50",
+    });
     expect(bindings.accent).toBe(accentProvenance);
   });
 });

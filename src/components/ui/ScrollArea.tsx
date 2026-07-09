@@ -12,14 +12,14 @@ interface ScrollAreaProps {
 
 /**
  * The shared scroll container: Radix ScrollArea with the site's semantic scrollbar.
- * The thumb reads `--accent`, so inside a brand scope (`[data-entry]`) the scrollbar
- * is automatically the entry's brand color — no per-use wiring; outside a scope it's
+ * The thumb reads `--accent`, so inside a theme scope (`[data-entry]`) the scrollbar
+ * is automatically the entry's accent color — no per-use wiring; outside a scope it's
  * the editorial accent. Fills its parent (parent controls the size; give it a bounded
  * block-size and `min-block-size: 0` in grid/flex cells).
  *
  * `type="always"` overrides Radix's default (`"hover"`, which doesn't mount the Scrollbar/Thumb
  * until a real pointer hover — confirmed against the installed `@radix-ui/react-scroll-area@1.2.13`
- * source). The thumb IS the brand color here, so hiding it until hover would hide the very thing
+ * source). The thumb IS the accent color here, so hiding it until hover would hide the very thing
  * this component exists to show off — "always" keeps it mounted and visible from first paint.
  */
 export default function ScrollArea({

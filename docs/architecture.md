@@ -3,7 +3,7 @@
 The system model for the portfolio + digital garden. Each project is a **self-contained
 module** — its `/[slug]` page (the editorial article plus its interactive experience), the
 components its essay embeds, and its tokens — composed within the site.
-Hosted on Vercel; essay + brand seeds in Sanity.
+Hosted on Vercel; essay + theme seeds in Sanity.
 
 This is the **reference for how the system is designed**; code and the other docs point back to
 its sections by name. This document is the current truth; it is edited in place as the system
@@ -35,17 +35,17 @@ These are the through-lines; everything else follows from them.
   `app/_components/` is still flagged.
 
 - **Composition over inheritance.** Every page wears its **own authored theme**: the entry's (or
-  site page's) brand color runs through the OKLCH engine and is stamped on `<html>`, so all chrome +
+  site page's) theme color runs through the OKLCH engine and is stamped on `<html>`, so all chrome +
   prose + slots wear it. The global typography is fixed house style — Space Grotesk headings +
   Source Serif 4 body — and a **themed entry** (any kind but a `now` update) additionally carries its
-  **own brand font**, scoped to its **interactive slot(s)** (the `<Experience/>` / `[data-entry]`
-  wrapper, or each interleaved embed's container), where it re-binds `--font-face` only. The `:root`
+  **own theme font**, scoped to its **interactive slot(s)** (the `<Experience/>` / `[data-entry]`
+  wrapper, or each interleaved embed's container), where it re-binds `--font-body` only. The `:root`
   semantic color tokens are just the neutral **fallback** for surfaces that render un-themed. Entries
-  are not variations of one global _brand_; they are self-assembled from shared parts.
+  are not variations of one global _look_; they are self-assembled from shared parts.
 
 - **Self-sufficient contracts; theme downward; never reach up _for a look_.** Every unit — a
   token group, a component, an entry module — ships its own defaults and is themed by whatever
-  composes it _downward_. Nothing depends on **themeable** ambient context (a brand value) provided
+  composes it _downward_. Nothing depends on **themeable** ambient context (a theme value) provided
   by an ancestor it doesn't own. It _may_ depend on the global **foundation** layer (spacing,
   motion, breakpoints, z-index) — that's shared plumbing, not a look. This is the precise form of
   "don't reach up the tree," and it generalizes the `var(--public-override, var(--_internal-default))`
@@ -56,7 +56,7 @@ These are the through-lines; everything else follows from them.
   shippable packages. Slot-scoped theming, downward theming, and the don't-reach-up discipline stay
   only where they earn their keep. The foundation and the semantic defaults are shared globally (the
   neutral fallback for un-themed surfaces); a page's authored **color** theme rides on `<html>`, and
-  only the **brand font** is scoped to each themed entry's slot. A small foundation _coordination_ layer is the norm (see
+  only the **theme font** is scoped to each themed entry's slot. A small foundation _coordination_ layer is the norm (see
   the token & theming architecture below), the embed registry starts single-tier (see entry
   modules), and the don't-reach-up litmus applies to shared primitives, not every component.
   Concentrate the sophistication where it pays — the OKLCH engine (the load-bearing, genuinely hard
@@ -71,10 +71,10 @@ Two homes:
 - **The Next app** — all code: each project's pages, its interactive experience (a working
   demo), and the components its essay embeds. Each project is a self-contained module under
   `src/entries/<slug>/`; shared parts live in plain shared modules.
-- **Sanity** — content & brand seeds: one `entry` document type covering every content kind — a
+- **Sanity** — content & theme seeds: one `entry` document type covering every content kind — a
   `kind` discriminator (note · essay · project · now), a Portable Text body (rich text with embeds),
   a `stage` (sketch → prototype → shipped), an authored `iterated` date, self-referencing `related`
-  backlinks, an optional `featuredRank`, and the per-entry `brandColor` / `fontKey` / `componentKey`
+  backlinks, an optional `featuredRank`, and the per-entry `themeColor` / `fontKey` / `componentKey`
   reference-by-key seeds.
 
 Within a project the division is code vs content, but the line isn't a wall. The interactive
@@ -93,31 +93,31 @@ the site rather than any entry, and wear their own authored theme (seeded from
 
 ## Token & theming architecture
 
-### Three tiers: foundation (primitives) → semantic (role tokens) → brand (theme override)
+### Three tiers: foundation (primitives) → semantic (role tokens) → theme (theme override)
 
 Tokens are organized in **three tiers**, each consuming the one before it:
 
 | Tier           | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                                                                                                   |
 | -------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Foundation** | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, content-width measures (`--width-prose`/`-text`/`-content`), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
-| **Semantic**   | global `:root` (the neutral fallback)             | the **generic role tokens components read** — `--surface`, `--text`, `--text-muted`, `--accent`, `--font-face`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the neutral ground for surfaces that render with no `<html>` theme.                                                                      |
-| **Brand**      | `<html>` (color) + the slot `[data-entry]` (font) | the theme override, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **font** is a per-slot override, an inline `--font-face` on `[data-entry]` (`EntryScope`).                                                                          |
+| **Semantic**   | global `:root` (the neutral fallback)             | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted-foreground`, `--accent`, `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the neutral ground for surfaces that render with no `<html>` theme.                                                          |
+| **Theme**      | `<html>` (color) + the slot `[data-entry]` (font) | the theme override, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **font** is a per-slot override, an inline `--font-body` on `[data-entry]` (`EntryScope`).                                                                          |
 
 The model is layered, not partitioned: the **semantic layer is the contract** components code
 against, and a theme simply re-defines those same semantic tokens with its own values — the page's
 `<html>` write for color, the slot's inline style for font. There is **no separate "feel" or
 "geometry" tier** — radius, border, shadow, and density are just more semantic tokens the engine
 can emit. Color varies per **page** (every route wears its authored theme); font varies per
-**slot** (the interactive island wears the entry's brand face while the prose keeps the editorial
+**slot** (the interactive island wears the entry's theme face while the prose keeps the editorial
 body face).
 
 Every page's chrome (title, prose, nav) reads the **semantic tokens as written on `<html>`** by the
 visible page's theme. Its **interactive slot** and the embedded components read those **same generic
-semantic tokens** (inherited from `<html>`), plus the entry's `--font-face` re-bound on the
+semantic tokens** (inherited from `<html>`), plus the entry's `--font-body` re-bound on the
 `[data-entry]` scope. Components never read a project-prefixed name — there are **no `--<proj>-*`
-tokens**. Under the hood the engine emits a **per-role `50…950` ramp primitive** (`brand`,
+tokens**. Under the hood the engine emits a **per-role `50…950` ramp primitive** (`accent`,
 `neutral`, and the four status ramps) and **binds each semantic token to a ramp step** — so
-`--text` is `neutral`'s smallest step that clears body-text contrast, `--surface` is a fixed
+`--foreground` is `neutral`'s smallest step that clears body-text contrast, `--surface` is a fixed
 light/dark neutral step, and so on. Consumers still read only the generic semantic names; the ramp
 math stays behind them (the raw `--<role>-<step>` steps are also emitted for a consumer that wants
 them).
@@ -126,36 +126,36 @@ them).
 global :root  (foundation primitives + the semantic NEUTRAL FALLBACK)
    ├─ FOUNDATION: spacing ramp · content widths · motion curves · type-scale ratios
    │              · breakpoint constants · z-index · focus-ring GEOMETRY · reset  (no color ramp)
-   ├─ SEMANTIC (engine fallback token set): --surface · --text · --accent · --font-face · …
+   ├─ SEMANTIC (engine fallback token set): --surface · --foreground · --accent · --font-body · …
    │              ← the generic contract; the neutral ground for surfaces with no <html> theme
    └─ @layer foundation, semantic, components;   ← bare order statement, loaded first
           │ every ROUTE stamps its authored color theme on <html> (PageTheme), which out-ranks :root ↓
-<html style="--surface:… --text:… --accent:… --success:…">   ◄── OKLCH engine ◄── the page's seed (Sanity)
+<html style="--surface:… --foreground:… --accent:… --success:…">   ◄── OKLCH engine ◄── the page's seed (Sanity)
    │        chrome (nav · headers · prose · shell) + slots ALL inherit this one write — one imperative
    │        node, so it can't collide across the routes <Activity> keeps mounted at once (#168)
           │ and inside a themed entry, each bounded slot re-binds ONLY its font ↓
-[data-entry="<slug>" style="--font-face: var(<face>), …"]   the font slot — an inline style per
+[data-entry="<slug>" style="--font-body: var(<face>), …"]   the font slot — an inline style per
    │        island (EntryScope). A page mounts one (the after-prose experience) or MANY (slots
    │        interleaved through the prose); each is per-element, so distinct slots never collide.
-   │        Color is inherited from <html>; only --font-face is overridden here.
+   │        Color is inherited from <html>; only --font-body is overridden here.
           │ themes downward, within the slot ↓
-   the slot's experience + embeds   read the SAME generic semantic tokens (--surface, --accent, --font-face, …)
+   the slot's experience + embeds   read the SAME generic semantic tokens (--surface, --accent, --font-body, …)
           └─ [data-experience-surface]  optional scoped reset for an interactive surface
 ```
 
 Key points:
 
 - **The public token contract is the SEMANTIC layer.** Shared, cross-project units read the
-  generic role tokens (`--surface`, `--text`, `--accent`, `--font-face`, `--space-*`) — never a
+  generic role tokens (`--surface`, `--foreground`, `--accent`, `--font-body`, `--space-*`) — never a
   project-prefixed name, because a shared embed cannot know which project hosts it. Isolation comes
   from **scope, not prefix**: color from the page's `<html>` write (inherited), font from the
-  `[data-entry]` slot's inline `--font-face`.
+  `[data-entry]` slot's inline `--font-body`.
 
 - **Color themes the page; font themes the slot.** Every route stamps its authored color theme on
   `<html>` (`PageTheme`), so all chrome + prose + slots wear it; the `:root` semantic color tokens
   are only the neutral **fallback** for surfaces that render un-themed (404 / error / loading). The
   global typography is fixed house style — Space Grotesk headings + Source Serif 4 body — and an
-  entry's brand **font** overrides `--font-face` in its own interactive slot only (an inline style
+  entry's theme **font** overrides `--font-body` in its own interactive slot only (an inline style
   on `[data-entry]`), never the page chrome. Spacing, motion, breakpoints, and type-ratios are
   themeable-in-principle but invariant-in-practice.
 
@@ -164,7 +164,7 @@ Key points:
   regardless of specificity or source order. So any component CSS Module that sets real properties
   must wrap its body in `@layer components { … }` (or stay strictly var-_consuming_); the bare
   `@layer foundation, semantic, components;` order statement is emitted in a global sheet loaded
-  first. The entry font slot needs no layer — an inline `--font-face` on `[data-entry]` out-ranks
+  first. The entry font slot needs no layer — an inline `--font-body` on `[data-entry]` out-ranks
   every layer. Lint-enforced (see the don't-reach-up litmus).
 
 - **Cascade order via `@layer`** (foundation < semantic < components) to kill CSS-module insertion-order
@@ -193,11 +193,11 @@ The mechanism follows Next's _Preventing flash before hydration → Themes_ patt
 `src/lib/scheme.ts`'s split (the light/dark axis) — the one difference being that a page's seed is
 **author-set and server-known**, so theming carries **no `localStorage`**:
 
-- **The serializer** — `resolveThemeDeclarations(brandColor)` in `src/lib/theme.ts` — is a thin,
+- **The serializer** — `resolveThemeDeclarations(themeColor)` in `src/lib/theme.ts` — is a thin,
   isomorphic wrapper over the engine's `buildTokenSet` + `tokenSetToDeclarations`, returning
   `[property, value]` pairs. It never throws (the engine collapses a bad seed to a fallback).
 - **Hard load / refresh (the easy case — the seed is server-known):** the page renders the
-  declarations as a `:root { … }` `<style>` (`BrandThemeStyle`), which React 19 hoists into `<head>` —
+  declarations as a `:root { … }` `<style>` (`ThemeStyle`), which React 19 hoists into `<head>` —
   **ahead of the body chrome** — so the theme applies before ANY content paints, with no script and
   no parse-order dependency. This is `EntryCard`'s server-rendered baked-CSS approach lifted to
   `:root`. The `<style>` is **unlayered**, so it out-ranks the `@layer foundation` fallback `:root`
@@ -215,7 +215,7 @@ The mechanism follows Next's _Preventing flash before hydration → Themes_ patt
   the previous route's theme), whereas a layout effect participates in Activity's hide/show cycle and
   re-asserts this route's theme before paint.
 
-The primitives live in `src/lib/theme.ts` + `src/components/theme/{BrandThemeStyle,ThemeReapplier,PageTheme}`;
+The primitives live in `src/lib/theme.ts` + `src/components/theme/{ThemeStyle,ThemeReapplier,PageTheme}`;
 `PageTheme` composes both halves from one seed resolution.
 
 `semantic/color.css`'s `:root` semantic color tokens are the engine's own fallback token set
@@ -223,8 +223,8 @@ The primitives live in `src/lib/theme.ts` + `src/components/theme/{BrandThemeSty
 surfaces that render with **no** page theme (404 / error / loading + the chrome around them,
 which never mount a `<PageTheme>`); a themed route's `:root` `<style>` (and the imperative `<html>`
 re-applier) out-rank them. There is no canvas wash and no `:has()`-scoped body re-bind: the page
-theme supplies `--bg` to every route. The cascade order is
-`@layer foundation, semantic, components;` — there is no `brand` layer, because the entry's brand
+theme supplies `--background` to every route. The cascade order is
+`@layer foundation, semantic, components;` — there is no `theme` layer, because the entry's theme
 font scopes to its own slot via an inline style on `[data-entry]` (`EntryScope`), not a cascade
 layer.
 
@@ -233,7 +233,7 @@ layer.
 The engine is the load-bearing, genuinely hard piece of the system — not a lightness ramp but a
 small color _system_. It is **both a feature and a project — same logic, two-plus consumers.**
 
-- A **pure function**: takes a brand color **and a scheme**, emits a color-token set. Knows
+- A **pure function**: takes a theme color **and a scheme**, emits a color-token set. Knows
   nothing about projects. Lives in its own workspace package (`packages/oklch`, imported as
   `@garden/oklch`) — no React, no DOM, no Node built-ins — as the single source of truth
   for the algorithm. Its isomorphism is **enforced**, not hoped: a lint import-boundary on the
@@ -241,17 +241,17 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   test runs the suite under both `node` and `jsdom`. (Do **not** use `server-only`/`client-only` —
   those pin it to one side and break the requirement.)
 
-- **Scheme-aware.** The signature is `(brandColor, scheme) → tokenSet`. One `brandColor`
+- **Scheme-aware.** The signature is `(themeColor, scheme) → tokenSet`. One `themeColor`
   per project generates **both** light and dark ramps — dark is reduced chroma + shifted surface L
   with on-color contrast re-solved, not "invert L." The scoped `<style>` emits both via CSS
   `light-dark()` so a single block carries both schemes and switching is pure CSS, respecting
   `prefers-color-scheme`. A seed too light to serve as the light-mode primary is auto-assigned as
-  the **dark-mode** brand, with the light-mode brand derived from it.
+  the **dark-mode** theme, with the light-mode theme derived from it.
 
 - **Contrast is solved, not stepped.** OKLCH `L` is perceptual lightness, _not_ WCAG
-  relative luminance or APCA Lc — a fixed ΔL passes for a blue brand and fails for yellow/cyan at
+  relative luminance or APCA Lc — a fixed ΔL passes for a blue theme and fails for yellow/cyan at
   the same steps. The engine takes a contrast target (APCA Lc for text, WCAG 2.x as compliance
-  fallback) and binary-searches `L` for on-brand/on-surface pairs against the relevant background.
+  fallback) and binary-searches `L` for accent-foreground/on-surface pairs against the relevant background.
 
 - **Gamut-map before contrast math.** OKLCH chroma routinely exceeds sRGB and even P3; the
   engine cusp-maps (Ottosson-style chroma reduction toward the boundary) to the chosen target
@@ -268,65 +268,65 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   global reset is kept free of other smuggled looks (`::selection`, `accent-color`, default link
   color) — those belong in the scoped tier.
 
-- **Status colors are canonical-hue, brand-harmonized.** `success`/`warning`/`error`/`info` use
+- **Status colors are canonical-hue, accent-harmonized.** `success`/`warning`/`error`/`info` use
   **fixed canonical hues** (green / amber / red / blue), so they stay recognizable — error is red, a
-  usability requirement, not a brand-shifted guess. They are **not** derived from the brand hue. What
+  usability requirement, not an accent-shifted guess. They are **not** derived from the accent hue. What
   harmonizes them with the slot is the **treatment**: each is contrast-solved, gamut-mapped, and
   re-solved per scheme through the same pipeline as the rest of the ramp (and against the slot's own
-  brand-tinted worst-case surface). They're part of the engine's designed output; the deeper
-  brand-lean rules are a deferred follow-up (see the GitHub issue tracker).
+  accent-tinted worst-case surface). They're part of the engine's designed output; the deeper
+  accent-lean rules are a deferred follow-up (see the GitHub issue tracker).
 
-- **Defensive, never throws.** `brandColor` comes from an editor and may be invalid or
+- **Defensive, never throws.** `themeColor` comes from an editor and may be invalid or
   out-of-gamut. The engine parses/clamps/gamut-validates and **returns a safe fallback palette**
   rather than throwing — a bad color is expected data, not an exceptional bug. This pairs with
   author-time Sanity validation (see the content model) and an `EntryScope` backstop (the content
   model and repo & hosting sections).
 
-- Runs **per page** — once per route, seeded by the page's authored `brandColor` (`PageTheme`
+- Runs **per page** — once per route, seeded by the page's authored `themeColor` (`PageTheme`
   stamps the result on `<html>`; see the site-wide delivery section). **Cards are a lighter call**:
   a featured-home card needs a few colors, not the full token set, so it derives them from the same
   engine (via `cardSwatches`) and spreads them inline as generic semantic-token overrides — its own
-  entry's `brandColor`.
+  entry's `themeColor`.
 
-- Delivered as a **hoisted `:root` `<style>`** (`PageTheme` → `BrandThemeStyle`, re-stamped imperatively
-  on `<html>` on soft nav). On Vercel this is genuinely **flash-free for color**: the `brandColor` is
+- Delivered as a **hoisted `:root` `<style>`** (`PageTheme` → `ThemeStyle`, re-stamped imperatively
+  on `<html>` on soft nav). On Vercel this is genuinely **flash-free for color**: the `themeColor` is
   known on the _server_, so the baked declarations are in the initial `<head>` — ahead of the chrome —
   server/client RSC payloads agree, and there's no hydration mismatch and no FOUC. The imperative
   soft-nav write to one node can't collide
   across the routes `<Activity>` keeps mounted — the delivery section covers the full mechanism.
 
 - **Ramp-primitive tier, semantic tokens bound to it.** The engine emits a per-role
-  generative ramp — `brand`, `neutral`, and the four status ramps, each **11 `50…950` steps**
+  generative ramp — `accent`, `neutral`, and the four status ramps, each **11 `50…950` steps**
   (a pure perceptual-lightness primitive, gamut-mapped, with an out-of-gamut flag per step) — and
   the **semantic role tokens bind to ramp steps** rather than being solved in isolation: a surface
   pins a fixed neutral step (the light end in light mode, the dark end in dark — the per-scheme
   re-solve), and every readable-on-surface token binds to the _smallest step that clears_ its
   contrast target (`minPass`, with an extreme-step fallback). The one exception is the accent
-  **fill**: it is the brand's identity, so it stays a faithful continuous solve anchored at the
-  seed's lightness, with its on-accent label a near-white/near-black extreme that clears with
+  **fill**: it is the accent's identity, so it stays a faithful continuous solve anchored at the
+  seed's lightness, with its accent-foreground label a near-white/near-black extreme that clears with
   headroom. Consumers see the generic semantic **names** (`--surface`, `--accent`, … bound to,
   e.g., `neutral`'s `800` step) — the ramp math stays behind them. The page's `<html>` write carries
-  the full token set (incl. the `--focus-ring-color` alias and status); the entry's slot adds only
-  the `--font-face` mapping, inline on `[data-entry]`. The raw `--<role>-<step>` primitives are
+  the full token set (incl. the `--ring` alias and status); the entry's slot adds only
+  the `--font-body` mapping, inline on `[data-entry]`. The raw `--<role>-<step>` primitives are
   emitted alongside for a consumer that wants them (`tokenSetToCss` / `rampSetToDeclarations`). Dark re-generates each ramp (reduced chroma) and re-solves every
-  binding against dark's own surfaces — not a mirror-label flip. The **brand** ramp is additionally
+  binding against dark's own surfaces — not a mirror-label flip. The **accent** ramp is additionally
   **anchored to the seed**: one step (keyed off the seed's native direction, reported as
   `anchorLabel`) is bent to the seed's exact lightness — endpoint-preserving, still monotonic — so
-  the brand's own color sits on its ramp and the native-scheme accent fill is that step exactly
-  (when the seed's own lightness can host the on-accent label; extreme seeds clamp just inside the scale).
+  the accent's own color sits on its ramp and the native-scheme accent fill is that step exactly
+  (when the seed's own lightness can host the accent-foreground label; extreme seeds clamp just inside the scale).
   Neutral/status ramps stay on the shared scale. **Generative rules** (`EngineOptions.rules`)
   parameterize how the ramp tier is shaped — lightness distribution, chroma policy, hue policy,
   tinted neutrals — with every default reproducing the un-ruled output; distributions reshape only
   the interior steps (`300…700`) while the surface-bearing shoulders stay pinned, so the engine's
   contrast guarantees hold under every policy. The Color Engine (#73) surfaces them ("Rules · set once").
-  A separate **decorative brand-harmony palette** (`buildHarmonyPalette`) emits analogous /
+  A separate **decorative accent-harmony palette** (`buildHarmonyPalette`) emits analogous /
   complementary / triadic / split-complementary hue sets at the seed's own L/C, gamut-mapped —
   expressly non-semantic and non-contrast-bearing (status colors stay canonical-hue; a consumer
   backing text with a harmony color contrast-checks it via `checkContrast`).
 
 - **The public surface is drift-guarded, not frozen.** `@garden/oklch` is an internal,
   project-only package — this repo is its **only** consumer — so its whole surface (the semantic
-  token names `BRAND_TOKEN_NAMES`, ramp roles `RAMP_ROLES`, step labels `RAMP_LABELS` — `50…950`,
+  token names `THEME_TOKEN_NAMES`, ramp roles `RAMP_ROLES`, step labels `RAMP_LABELS` — `50…950`,
   the emitted custom-property names, the high-level signatures) is **freely changeable**, up to a
   major-version bump for a new feature. A public-surface guard test
   (`packages/oklch/src/api.test.ts`) exists only to catch **silent, uncoordinated** drift between
@@ -340,14 +340,14 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 **Three call sites, one engine:**
 
 - **Author-time validation (`studio/schemaTypes/shared/colorValidation.ts`)**: the Studio's
-  `brandColor` validation runs the same `buildTokenSet` pipeline (parse → gamut-map →
+  `themeColor` validation runs the same `buildTokenSet` pipeline (parse → gamut-map →
   contrast-solve) for editor feedback (see the content model).
 - **Per-page delivery (`resolveThemeDeclarations`)**: `PageTheme` runs the **same engine**
   (`buildTokenSet` + `tokenSetToDeclarations`) to stamp a page's authored theme on `<html>` (see the
   site-wide delivery section).
-- **Preview swatches (`cardSwatches`)**: a featured-home card calls `cardSwatches(brandColor)` — the
+- **Preview swatches (`cardSwatches`)**: a featured-home card calls `cardSwatches(themeColor)` — the
   **same engine**, returning a few stops spread inline as generic semantic-token overrides
-  (`--surface`/`--text`/`--border`/`--accent`), so each card wears its own entry's `brandColor` with
+  (`--surface`/`--foreground`/`--border`/`--accent`), so each card wears its own entry's `themeColor` with
   no slot scope and no `<style>` block.
 
 The **Color Engine** — an entry module whose experience re-runs the pure engine in JS
@@ -376,7 +376,7 @@ reveal).
 Two deliberate consequences:
 
 - **It themes itself, on purpose.** The Color Engine's slot (`color-engine`) is themed like any
-  other, so its own brand tokens are generated by the engine it showcases. No circular dependency
+  other, so its own theme tokens are generated by the engine it showcases. No circular dependency
   in code (the project depends on the engine; the engine depends on nothing).
 - **Keep it isomorphic** (enforced — see above).
 
@@ -429,8 +429,8 @@ engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WC
 
 ### Downward theming
 
-The **themed entry's slot scope is the single downward-theming owner** for brand: it re-defines the
-semantic tokens with the entry's brand values (from the OKLCH engine) plus any other semantic
+The **themed entry's slot scope is the single downward-theming owner** for the theme: it re-defines the
+semantic tokens with the entry's theme values (from the OKLCH engine) plus any other semantic
 overrides, and themes everything beneath it — the slot's interactive experience and the components
 it embeds — by passing those values _down_. They all read the same generic semantic tokens; the
 slot scope is the authority. The page chrome around the slot reads the semantic color tokens as
@@ -440,19 +440,19 @@ sit above, shared.
 The directional rule:
 
 - **Host themes the child downward** by setting the semantic tokens the child consumes. Fine.
-- **Child reaching up** for an ancestor's _brand_ value. Banned.
+- **Child reaching up** for an ancestor's _theme_ value. Banned.
 - **Reading the global _foundation_ primitives** (spacing, motion). Allowed — it's shared plumbing,
   not a look.
 
 The override surface is precise: you override the **seed** (re-run the engine, server-side, per
-scope) **or** a **leaf consumable token** (`--accent`, `--font-face` — a literal a host sets and a
+scope) **or** a **leaf consumable token** (`--accent`, `--font-body` — a literal a host sets and a
 component reads). You never override a _mid-chain derived_ token and expect its derivatives to
 recompute — the engine baked them. The `var(--public, var(--_internal-default))` pattern is for
 composition-time downward theming of primitives, not live ramp re-derivation.
 
 Self-sufficiency still applies _within_ the slot: a shared primitive must not assume tokens from
 any _specific_ project's scope. It ships its own defaults and reads generic semantic names
-(`--surface`, `--accent`, `--font-face`), so it works composed into any project (or none).
+(`--surface`, `--accent`, `--font-body`), so it works composed into any project (or none).
 
 ---
 
@@ -545,7 +545,7 @@ src/entries/<slug>/
   ├─ experience.tsx     the interactive experience (the working demo); the route mounts it
   ├─ core/              headless core — ONLY when the experience's logic earns extraction
   ├─ embeds.ts          entry-local embed map (key → component) — bespoke inline embeds
-  ├─ tokens.css         the project's slot-scoped semantic override (generic names, brand values)
+  ├─ tokens.css         the project's slot-scoped semantic override (generic names, theme values)
   └─ index.ts           registry entry
 src/fonts/roster.ts        curated next/font declarations, one per face, exported by key
 src/lib/resolvers/embeds.ts      embedKey → embed-component loader — cross-entry widgets
@@ -558,12 +558,12 @@ An entry renders as a single `/[slug]` page. Its registry entry (the `EntryModul
 enforces at least one:
 
 - **`Experience`** — one interactive slot the page mounts after the prose, inside its own
-  brand scope. The default for a module whose demo is a single surface.
+  theme scope. The default for a module whose demo is a single surface.
 - **`Provider`** — a client frame the page wraps the `<article>` in, so `liveEmbed` slots
   interleaved through the prose share state via context. The prose stays server-rendered
   (children pass-through); the provider adds state, never markup that re-themes the
   editorial register. The page threads the font seed to the serializer, and each embed
-  mounts in its own `EntryScope` container (an inline `--font-face` per island; color is
+  mounts in its own `EntryScope` container (an inline `--font-body` per island; color is
   inherited from the page's `<html>` theme).
 
 Nothing more is templated: the page is the editorial `<article>` (prose) plus the module's
@@ -584,7 +584,7 @@ widget; introduce the entry-local tier only then. Once you do, embeds follow the
 per-entry-plus-shared shape as tokens and fonts**. For a given project the resolver composes the
 two (`{ ...shared, ...entryLocal }`) so an entry-local key **overrides** a shared one of the same
 name — the downward-override spirit of `var(--public-override, var(--_internal-default))`. A
-_shared_ embed themes off the **generic semantic tokens** (`--surface`, `--accent`, `--font-face`),
+_shared_ embed themes off the **generic semantic tokens** (`--surface`, `--accent`, `--font-body`),
 never anything project-specific. Promote a widget into the shared registry only once it's genuinely
 reused; both tiers lazy-import.
 
@@ -599,7 +599,7 @@ showcases the shared engine's output rather than holding the engine (see the OKL
 ### The CMS ↔ code registry
 
 ```
-Sanity entry doc { kind, componentKey: "<slug>", brandColor, fontKey, body, stage, iterated, related, featuredRank }
+Sanity entry doc { kind, componentKey: "<slug>", themeColor, fontKey, body, stage, iterated, related, featuredRank }
         │
         ▼
 src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the entry module
@@ -647,10 +647,10 @@ scope, so it themes identically.
 **Store-the-key (roster-by-key).** A curated roster of faces is declared in code (each a `next/font`
 export, in a single shared module); Sanity stores a `fontKey` per entry and the editor picks from
 a dropdown; the entry's **slot scope** applies the face that key resolves to, via that face's
-**`.variable` class** on the `[data-entry]` wrapper, with the slot's `--font-face` mapping to it;
+**`.variable` class** on the `[data-entry]` wrapper, with the slot's `--font-body` mapping to it;
 page chrome stays on the editorial face. This keeps
 `next/font`'s self-hosting, subsetting, and zero-CLS sizing while putting an entry's type choice on
-its document alongside its brand color.
+its document alongside its theme color.
 
 `next/font` must be called at module scope, so the roster can't be _arbitrary_: an editor picks from
 the curated set, never a free-text name or upload. **Adding a face to the roster is a code change;
@@ -681,7 +681,7 @@ So, the policy:
   above-the-fold face, if any).
 - **Where the link lands** (initial shell vs streamed hole) is the other axis: keep `EntryScope`
   in the prerendered shell (see repo & hosting) so the slot's resolved font reference (its
-  `.variable` class + inline `--font-face`) is in the initial static HTML.
+  `.variable` class + inline `--font-body`) is in the initial static HTML.
 
 Mapped onto the layers:
 
@@ -693,14 +693,14 @@ Mapped onto the layers:
 - **Shared fonts** → the roster _is_ the single declaration point, so a face two projects use is
   declared **once** and resolved by both.
 - **Experience & embed fonts** → neither declares its own `next/font`; each reads the generic
-  `--font-face` token, which the slot fills from the resolved face.
+  `--font-body` token, which the slot fills from the resolved face.
 
 Practical notes:
 
 - Prefer **variable fonts** (one file, many weights/optical sizes).
 - The site is **flash-free for _theming_** (color arrives inline with the markup); fonts are
   **zero-CLS with an intentional `swap`** — next/font's size-adjusted fallback kills layout shift but
-  a per-brand slot face will visibly swap as its slot mounts, by design. Decide `swap` vs
+  a per-entry slot face will visibly swap as its slot mounts, by design. Decide `swap` vs
   `optional` per face.
 
 ---
@@ -719,26 +719,26 @@ Practical notes:
   interactions slotted in; a _project_ is an interactive experience with more slots; a _now_ is a dated
   "now" update that drives the reverse-chronological `/now` stream and also mixes into the Index.
   **Downstream, theming and interactivity key on capability (presence), not kind:** every kind but
-  `now` scopes on a present `brandColor` and mounts on a present `componentKey`. (`brandColor`
+  `now` scopes on a present `themeColor` and mounts on a present `componentKey`. (`themeColor`
   additionally carries a required _floor_ for note/essay/project — see below — but the mount/scope
-  logic keys on presence, not kind.) A present `brandColor` gives the entry its own brand
+  logic keys on presence, not kind.) A present `themeColor` gives the entry its own brand
   `[data-entry]` scope (and mounts its
   `liveEmbed`s in their own scoped containers, exactly as a project's embeds do); a present
   `componentKey` resolves and mounts the coded module — a declared key that fails to resolve is a
   `notFound()` for any kind, and no key at all renders prose-only (a sketch project renders
   prose-only, never a 404). **A module mount always implies a scope seed** — the route builds the
-  `ScopeSeed` whenever a non-`now` entry _themes or mounts a module_ (`brandColor || a resolvable
-componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fontKey` defaulting to
+  `ScopeSeed` whenever a non-`now` entry _themes or mounts a module_ (`themeColor || a resolvable
+componentKey`), always **keyed on the entry's own slug**, with `themeColor`/`fontKey` defaulting to
   `""`. So a
-  module-only entry (a resolvable `componentKey`, no `brandColor`) still gets its **own** per-entry
+  module-only entry (a resolvable `componentKey`, no `themeColor`) still gets its **own** per-entry
   `[data-entry]` scope rather than collapsing onto a shared fallback slug — two such entries must not
-  share one `data-entry` and cross-contaminate themes — and its empty brand fields resolve to the
+  share one `data-entry` and cross-contaminate themes — and its empty theme fields resolve to the
   engine's fallback palette + the shell's mono fallback face (Geist Mono, `--font-geist-mono`) — the
   never-throws keystone, unchanged.
-  `brandColor` is **required for every themed kind** — note, essay, and project (each page derives its
+  `themeColor` is **required for every themed kind** — note, essay, and project (each page derives its
   theme from an authored seed). `componentKey`/`fontKey` stay **conditionally required for a
   `project`** (past the sketch stage) and **optional-but-honored** for a `note`/`essay`. A `now`
-  update is chrome + prose by design: it **cannot set its own `brandColor`** (the field is hidden for
+  update is chrome + prose by design: it **cannot set its own `themeColor`** (the field is hidden for
   a `now` in the Studio and rejected on write by `forbiddenForNow`) and **inherits the `/now` page
   seed** instead — the single `/now` seed themes the `/now` index and every `now` entry alike. `stage`
   does not
@@ -750,25 +750,25 @@ componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fon
   tended.
 - **The essay is rich content (portable text), not plain text.** Alongside text it carries typed
   embed blocks — media and live components referenced by key and resolved in code.
-- **`brandColor` is per-entry, typed, and validated.** It's a field on the `entry`
+- **`themeColor` is per-entry, typed, and validated.** It's a field on the `entry`
   document (the slot seed), stored as a validated string (hex or `oklch()`). Author-time Sanity
   `validation` runs the engine's own color pipeline (parse → gamut-map → confirm in-spec contrast)
   for editor feedback. Defense-in-depth: the engine itself never throws (see the OKLCH engine) and
   `EntryScope` falls back to a safe default. `siteSettings` holds the site title/description **and the
-  per-page theme seeds**: a `pageThemes` object carries one authored, engine-validated brand seed for
+  per-page theme seeds**: a `pageThemes` object carries one authored, engine-validated theme seed for
   each site-owned page (`/`, `/browse`, `/about`, `/now`, `/system`) — the pages with no backing
-  `entry` — exposed by `SITE_SETTINGS_QUERY`. A `now` entry has no `brandColor` of its own, so
+  `entry` — exposed by `SITE_SETTINGS_QUERY`. A `now` entry has no `themeColor` of its own, so
   `ENTRY_DETAIL_QUERY` resolves a **kind-gated** `themeSeed`
-  (`select(kind == "now" => …pageThemes.now, brandColor)`): a `now` update always wears the `/now`
-  seed (its own `brandColor` ignored), every themed kind wears its own — resolved in-query so it lands
+  (`select(kind == "now" => …pageThemes.now, themeColor)`): a `now` update always wears the `/now`
+  seed (its own `themeColor` ignored), every themed kind wears its own — resolved in-query so it lands
   in the static shell, flash-free. Wiring each page to consume its seed is the site-wide
   theming-delivery slice.
 - **`fontKey` is per-entry** — a field on the `entry` document, chosen from the curated roster
-  (see fonts). Reference-by-key, exactly like `componentKey` and `brandColor`.
-- **No per-scheme color field.** Dark mode is a render-time axis; one `brandColor` generates
-  both schemes. A project needing a hand-tuned dark brand gets an _optional_ `brandColorDark`
+  (see fonts). Reference-by-key, exactly like `componentKey` and `themeColor`.
+- **No per-scheme color field.** Dark mode is a render-time axis; one `themeColor` generates
+  both schemes. A project needing a hand-tuned dark brand gets an _optional_ `themeColorDark`
   override, defaulted from the engine — never a required parallel field. (A seed too light to be the
-  light-mode primary is auto-assigned as the dark brand; see the OKLCH engine.)
+  light-mode primary is auto-assigned as the dark theme; see the OKLCH engine.)
 - **Keys are a contract; the Studio never imports implementations.** Each reference-by-key
   pair is split: a tiny `keys.ts` of string constants (imported by the schema to build its dropdown)
   and a separate resolver in the app — `lib/resolvers/components.ts`, `lib/resolvers/fonts.ts`,
@@ -786,19 +786,19 @@ componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fon
   into two registered keys. Litmus: _editor writes/curates it → typed block; developer decides it →
   registry; neither → it's not an input._
 - **The card queries refuse to over-fetch.** The featured-home query pulls the card fields —
-  `title`/`slug`/`blurb`/`stage`/`kind` plus the `brandColor` each card themes its plate from — but
+  `title`/`slug`/`blurb`/`stage`/`kind` plus the `themeColor` each card themes its plate from — but
   **not** the body. That enforces "a few colors per card" at the data layer (cards feed
   `cardSwatches`) and keeps the front-door payload small for CWV.
 - **`EntryScope` is the font-slot keystone.** One server component takes a scope's `slug` +
-  `fontKey` and emits the `[data-entry]` wrapper with the entry's `--font-face` set inline (plus the
+  `fontKey` and emits the `[data-entry]` wrapper with the entry's `--font-body` set inline (plus the
   resolved face's `.variable` class), flash-free in the initial HTML. It wraps a themed entry's
   **interactive slot(s)** (and any homepage slot `siteSettings` seeds), not the page chrome. Color is
   NOT re-bound here — the slot inherits every color token from the page's `<html>` theme. It is
   **defensive** — resolution returns the shell font on bad input, and the component is wrapped in
   `unstable_catchError` (`next/error`) as a backstop, **not** a segment `error.tsx` (which doesn't
   catch its own layout's throw — see repo & hosting). It renders in the prerendered shell; the slot's
-  subtree reads the inherited color tokens plus the slot's `var(--font-face)`.
-- **Visual editing details.** Disable Sanity **stega** on `brandColor`/`fontKey` — the
+  subtree reads the inherited color tokens plus the slot's `var(--font-body)`.
+- **Visual editing details.** Disable Sanity **stega** on `themeColor`/`fontKey` — the
   invisible encoding chars break the OKLCH parse and the font-class lookup. `liveEmbed`
   click-to-edit targets the caption/`embedKey` field, not the interactive region.
 - **Backlinks are Day-1.** An `entry` carries a `related` **self-referencing** array (`entry` →
@@ -814,8 +814,8 @@ componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fon
   `featuredRank != null` filter), not a separate section. The **shell frame** of both — plus `/about`
   and `/now` — wears the page's authored `<html>` theme (see the token & theming architecture). Their
   _content_ differs by intent: the Index is a uniform editorial list, and the **featured home's cards
-  are branded plates** — each spreads its own entry's engine-solved palette inline via `cardSwatches`,
-  because a card is a bounded slot, not chrome. So a card carries its own `brandColor` while the frame
+  are themed plates** — each spreads its own entry's engine-solved palette inline via `cardSwatches`,
+  because a card is a bounded slot, not chrome. So a card carries its own `themeColor` while the frame
   around it wears the page theme.
 - **TypeGen + `defineQuery`**: typed GROQ; run TypeGen after any schema or query change (a committed
   script + a CI `git diff --exit-code` on the generated types keeps it from rotting); `defineQuery`
@@ -833,7 +833,7 @@ componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fon
   routes are dynamic-by-default with PPR baked in, and static-vs-dynamic is a **component-level**
   concern (`use cache` + where request-time APIs are touched). A route is a **prerendered shell with
   dynamic holes**. `EntryScope` (wrapping a themed entry's slot) renders into the prerendered shell so its
-  inline `--font-face` and the resolved font class are in the **initial static HTML** (flash-free, no
+  inline `--font-body` and the resolved font class are in the **initial static HTML** (flash-free, no
   streamed delay), while the essay streams; the page's color theme lands flash-free the same way, via
   `PageTheme`'s `<html>` script. This is an app-wide rendering model (request APIs need Suspense or
   arg-passing; `<Activity>`-based state preservation across nav).
@@ -861,11 +861,11 @@ componentKey`), always **keyed on the entry's own slug**, with `brandColor`/`fon
 
 Before shipping a **shared** unit (the litmus is for shared primitives, not every component):
 
-- [ ] Does it render correctly reading only **generic semantic tokens** (`--surface`, `--text`,
-      `--accent`, `--font-face`, `--space-*`) plus its own defaults — with no dependency on any
+- [ ] Does it render correctly reading only **generic semantic tokens** (`--surface`, `--foreground`,
+      `--accent`, `--font-body`, `--space-*`) plus its own defaults — with no dependency on any
       project-specific token name?
 - [ ] Is every themeable value exposed as a **public token** with an internal default?
-- [ ] Does it avoid assuming any **themeable ambient context** (a parent's _brand_ value, a
+- [ ] Does it avoid assuming any **themeable ambient context** (a parent's _theme_ value, a
       font mounted higher up)? Reading the global **foundation** primitives (spacing, motion) is fine —
       that's plumbing, not a look.
 - [ ] If shared, is it **declared once and composed in**, never re-instantiated per slot?

@@ -111,7 +111,7 @@ then get combined).
 Either `!` before the colon **or** a `BREAKING CHANGE:` footer (uppercase, literal):
 
 ```
-feat(oklch)!: change engine signature to (brandColor, scheme)
+feat(oklch)!: change engine signature to (themeColor, scheme)
 ```
 
 The repo is `private` / `0.1.0` with no release automation, so SemVer impact is informational —
@@ -123,7 +123,7 @@ but `feat!:` is still how you flag a contract break for the next agent reading t
 feat: enable Cache Components app-wide
 chore: add CI gate (lint/format/typecheck/test/build) on PRs
 docs: fold the production checklist into security-and-ops
-fix(oklch): clamp out-of-gamut brandColor instead of throwing
+fix(oklch): clamp out-of-gamut themeColor instead of throwing
 ```
 
 > No commitlint is installed — the commit/branch conventions are **discipline-enforced**, not

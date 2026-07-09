@@ -17,7 +17,7 @@ export interface EntryCardEntry {
   stage: "prototype" | "shipped" | "sketch" | null;
   /** The engine seed. Themes the plate (via `cardSwatches`, total over any value) AND is shown
    *  verbatim in the mono readout — the "show your work" detail the mockup captions carry. */
-  brandColor: string | null;
+  themeColor: string | null;
 }
 
 interface EntryCardProps {
@@ -25,10 +25,10 @@ interface EntryCardProps {
 }
 
 /**
- * A branded entry card — a solid brand PLATE (mockup 4a), not chrome. It spreads its own
+ * A themed entry card — a solid accent PLATE (mockup 4a), not chrome. It spreads its own
  * engine-solved palette inline via `cardSwatches`, re-binding the generic semantic tokens for
- * this card's subtree only: the plate is `--accent`, its text the contrast-solved `--on-accent`
- * pair — so a grid of differently-branded plates needs no per-card scope or `<style>`, and each
+ * this card's subtree only: the plate is `--accent`, its text the contrast-solved `--accent-foreground`
+ * pair — so a grid of differently-themed plates needs no per-card scope or `<style>`, and each
  * stays legible by construction. The surrounding shell stays editorial ink.
  *
  * Three type registers, journal-style: display title, serif blurb, mono meta (the maturity
@@ -40,7 +40,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
   // which would render an empty <h3> — a nameless heading in the outline and a link whose
   // accessible name silently degrades to the blurb. Treat blank/whitespace-only as missing.
   const title = entry.title?.trim() ? entry.title : "Untitled entry";
-  const meta = [entry.stage, entry.brandColor].filter(Boolean).join(" · ");
+  const meta = [entry.stage, entry.themeColor].filter(Boolean).join(" · ");
 
   const body: ReactNode = (
     <>
@@ -58,10 +58,10 @@ export default function EntryCard({ entry }: EntryCardProps) {
     <li
       className={styles.card}
       // `cardSwatches` returns generic semantic-token overrides baked as `light-dark()`
-      // literals; spread inline they re-bind this card's subtree to its own brand palette
-      // (the plate reads `--accent` + `--on-accent`). Cast to `CSSProperties`: React types
+      // literals; spread inline they re-bind this card's subtree to its own theme palette
+      // (the plate reads `--accent` + `--accent-foreground`). Cast to `CSSProperties`: React types
       // custom props via an index signature a `Record<--*, string>` doesn't match alone.
-      style={cardSwatches(entry.brandColor) as CSSProperties}
+      style={cardSwatches(entry.themeColor) as CSSProperties}
     >
       {entry.slug ? (
         <HoverPrefetchLink href={`/${entry.slug}`} className={styles.link}>

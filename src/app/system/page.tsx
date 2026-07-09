@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 /**
  * The shell System page — the site's own design-system / colophon surface (the site
  * documenting itself). Static editorial chrome — reads the global semantic tokens, no
- * brand scope of its own.
+ * theme scope of its own.
  *
  * `async` so it can resolve its authored `pageThemes.system` seed on its own awaited path — a
  * `use cache` read, so the page stays fully prerendered (no dynamic hole) and the theme's `:root`

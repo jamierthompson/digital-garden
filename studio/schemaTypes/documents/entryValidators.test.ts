@@ -18,11 +18,11 @@ const ctx = (document: unknown): Ctx => ({document}) as unknown as Ctx
 // optional kind is accepted, never rejected. Both halves are pinned below.
 const OPTIONAL_KEY_KINDS = ['note', 'essay', 'now'] as const
 
-// The three themed kinds that MUST carry a brandColor under #166 (every page derives its theme
+// The three themed kinds that MUST carry a themeColor under #166 (every page derives its theme
 // from an authored seed). `now` is the sole exempt kind (chrome + prose — it inherits /now).
 const THEMED_KINDS = ['note', 'essay', 'project'] as const
 
-describe('requiredForThemedKind — brandColor: required for note/essay/project (#166)', () => {
+describe('requiredForThemedKind — themeColor: required for note/essay/project (#166)', () => {
   it('is required for every themed kind with no value (any stage)', () => {
     for (const kind of THEMED_KINDS) {
       expect(requiredForThemedKind(undefined, ctx({kind, stage: 'sketch'}))).toMatch(/Required/)
@@ -53,28 +53,28 @@ describe('requiredForThemedKind — brandColor: required for note/essay/project 
 
   it('treats a cleared field (null) as missing — required for a themed kind', () => {
     // Clearing a field in Studio can yield null (not just undefined); the required floor
-    // must still fire, otherwise an editor can "empty" an essay's brandColor and ship it.
+    // must still fire, otherwise an editor can "empty" an essay's themeColor and ship it.
     expect(requiredForThemedKind(null, ctx({kind: 'essay'}))).toMatch(/Required/)
     expect(requiredForThemedKind(null, ctx({kind: 'project', stage: 'sketch'}))).toMatch(/Required/)
   })
 
   it('is NOT required for an unknown/future kind — the floor is an explicit allowlist, not "≠ now"', () => {
     // Deliberate: a not-yet-invented kind must OPT IN by joining THEMED_KINDS. A denylist
-    // ("required unless now") would silently force a brandColor on every future kind the
+    // ("required unless now") would silently force a themeColor on every future kind the
     // instant it is added — this asserts we chose the conservative allowlist instead.
     expect(requiredForThemedKind(undefined, ctx({kind: 'bookmark'}))).toBe(true)
   })
 
   it('is NOT required for a draft whose kind is not yet chosen (document present, no kind)', () => {
     // A brand-new draft exists before the editor picks a kind; it must not throw a required
-    // error on brandColor the instant it is created.
+    // error on themeColor the instant it is created.
     expect(requiredForThemedKind(undefined, ctx({stage: 'prototype'}))).toBe(true)
     expect(requiredForThemedKind(undefined, ctx({}))).toBe(true)
   })
 
   it('does not throw or require on a non-string kind (defensive allowlist)', () => {
     // `kind` crosses the wire as `unknown`; a malformed doc (number/object/boolean) must
-    // fail OPEN via the allowlist `includes`, never require a brandColor or throw.
+    // fail OPEN via the allowlist `includes`, never require a themeColor or throw.
     expect(requiredForThemedKind(undefined, ctx({kind: 123}))).toBe(true)
     expect(requiredForThemedKind(undefined, ctx({kind: {_type: 'x'}}))).toBe(true)
     expect(requiredForThemedKind(undefined, ctx({kind: true}))).toBe(true)

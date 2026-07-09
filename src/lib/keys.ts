@@ -34,7 +34,7 @@ export type FontKey = (typeof FONT_KEYS)[number];
  *
  * `componentKey` is capability-gated, not kind-gated: any kind but `now` can declare one.
  * An entry with no `componentKey` renders prose-only (a sketch project carrying a
- * `brandColor` but no key yet, or an unkeyed note/essay); an entry that declares its key
+ * `themeColor` but no key yet, or an unkeyed note/essay); an entry that declares its key
  * here has the resolver map it to a literal dynamic import. A key is required for a project
  * past the sketch stage and optional-but-honored for a note or essay; a declared key that
  * fails to resolve is a `notFound()` for any kind. The first real module is the Color
@@ -51,7 +51,7 @@ export type ComponentKey = (typeof COMPONENT_KEYS)[number];
  * entry-local tier is added only on a genuine second use.
  *
  * The `color-engine-*` keys are the Color Engine's slots (#131): the Color Engine composes
- * as an editorial page whose prose interleaves these embeds, each in its own brand-scoped
+ * as an editorial page whose prose interleaves these embeds, each in its own theme-scoped
  * container, sharing state through the module's `Provider`.
  */
 export const EMBED_KEYS = [

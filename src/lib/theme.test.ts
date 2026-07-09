@@ -16,8 +16,8 @@ const BLUE = "#1d4ed8";
 const CORE_ROLES = [
   "--surface",
   "--accent",
-  "--text",
-  "--on-accent",
+  "--foreground",
+  "--accent-foreground",
   "--success",
 ] as const;
 

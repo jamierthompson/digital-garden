@@ -1,5 +1,5 @@
 /**
- * Binding-provenance report (#70) — the truthful source for the Studio's "`--text` →
+ * Binding-provenance report (#70) — the truthful source for the Studio's "`--foreground` →
  * `neutral · 800`" receipt.
  *
  * Two obligations proven here:
@@ -8,10 +8,10 @@
  *      snapshot (`__fixtures__/tokenset-golden.json`, regenerated wholesale with the 34-token
  *      contract, #160). Any accidental value drift in a future change fails here.
  *   2. TRUTHFUL. The report names the binding SCHEMA's role — not whatever a value-scan
- *      across the ramps would find. In the reachable states where the brand and neutral
+ *      across the ramps would find. In the reachable states where the accent and neutral
  *      ramps CONVERGE (an achromatic seed with `tintedNeutrals: false` collapses both to the
  *      same pinned grey steps), a first-match value-scan mislabels a neutral-bound token as
- *      `brand`; the report does not.
+ *      `accent`; the report does not.
  */
 
 import { describe, expect, it } from "vitest";
@@ -19,10 +19,10 @@ import { describe, expect, it } from "vitest";
 import goldenFixture from "./__fixtures__/tokenset-golden.json";
 import { buildTokenSet } from "./palette";
 import {
-  BRAND_TOKEN_NAMES,
+  THEME_TOKEN_NAMES,
   RAMP_ROLES,
   type BindingProvenance,
-  type BrandTokenName,
+  type ThemeTokenName,
   type EngineRules,
   type OkLCH,
   type Ramp,
@@ -60,36 +60,36 @@ const sameColor = (a: OkLCH, b: OkLCH): boolean =>
 // The documented default schema's role per STEP-reporting token — the `step`/`auto`/`auto-on`
 // bindings that resolve to a discrete ramp step (#160). The co-solved fills (`accent`,
 // `accent-hover`, the four status fills), their labels (`on-*`), and the `scrim` literal are
-// excluded — they report `fill`/`on-fill`/`literal`, not `step`. Mirrors DEFAULT_BINDING_SCHEMA.
-const EXPECTED_ROLE: Partial<Record<BrandTokenName, RampRole>> = {
+// excluded — they report `fill`/`fill-foreground`/`literal`, not `step`. Mirrors DEFAULT_BINDING_SCHEMA.
+const EXPECTED_ROLE: Partial<Record<ThemeTokenName, RampRole>> = {
   // Surfaces (step) + neutral foregrounds (auto).
-  bg: "neutral",
+  background: "neutral",
   surface: "neutral",
-  "surface-2": "neutral",
+  "surface-elevated": "neutral",
   "surface-hover": "neutral",
   "surface-selected": "neutral",
-  text: "neutral",
-  "text-muted": "neutral",
+  foreground: "neutral",
+  "muted-foreground": "neutral",
   border: "neutral",
-  // Brand foregrounds (auto).
-  "accent-text": "brand",
-  "focus-ring": "brand",
-  // Status `<status>-text` (auto), `<status>-container` (step), `on-<status>-container` (auto-on).
+  // Accent foregrounds (auto).
+  "accent-text": "accent",
+  ring: "accent",
+  // Status `<status>-text` (auto), `<status>-subtle` (step), `<status>-subtle-foreground` (auto-on).
   "error-text": "error",
-  "error-container": "error",
-  "on-error-container": "error",
+  "error-subtle": "error",
+  "error-subtle-foreground": "error",
   "warning-text": "warning",
-  "warning-container": "warning",
-  "on-warning-container": "warning",
+  "warning-subtle": "warning",
+  "warning-subtle-foreground": "warning",
   "success-text": "success",
-  "success-container": "success",
-  "on-success-container": "success",
+  "success-subtle": "success",
+  "success-subtle-foreground": "success",
   "info-text": "info",
-  "info-container": "info",
-  "on-info-container": "info",
+  "info-subtle": "info",
+  "info-subtle-foreground": "info",
 };
 
-const CONTINUOUS: BrandTokenName[] = ["accent", "on-accent"];
+const CONTINUOUS: ThemeTokenName[] = ["accent", "accent-foreground"];
 
 describe("deterministic snapshot (#70/#160): the full token set is bit-for-bit stable", () => {
   it.each(CASES)(
@@ -117,7 +117,7 @@ describe("deterministic snapshot (#70/#160): the full token set is bit-for-bit s
 
 describe("truthful provenance (#70): reports the schema role, not a value-scan", () => {
   // The states the task calls out: achromatic seed and/or pure achromatic neutrals — where
-  // the brand and neutral ramps numerically converge at their pinned shoulder steps.
+  // the accent and neutral ramps numerically converge at their pinned shoulder steps.
   const TRIGGERS: Array<{ label: string; seed: string; rules?: EngineRules }> =
     [
       { label: "achromatic seed, default tint", seed: "#808080" },
@@ -139,7 +139,7 @@ describe("truthful provenance (#70): reports the schema role, not a value-scan",
       const set = buildTokenSet(seed, rules ? { rules } : {});
       for (const scheme of SCHEMES) {
         for (const [name, role] of Object.entries(EXPECTED_ROLE) as [
-          BrandTokenName,
+          ThemeTokenName,
           RampRole,
         ][]) {
           const binding = set.meta.bindings[name][scheme];
@@ -153,17 +153,17 @@ describe("truthful provenance (#70): reports the schema role, not a value-scan",
   );
 
   it.each(TRIGGERS)(
-    "$label — accent + on-accent carry a co-solve report, never null (#151)",
+    "$label — accent + accent-foreground carry a co-solve report, never null (#151)",
     ({ seed, rules }) => {
       const set = buildTokenSet(seed, rules ? { rules } : {});
       for (const scheme of SCHEMES)
         for (const name of CONTINUOUS) {
           const p = set.meta.bindings[name][scheme];
           expect(p, `${name}/${scheme}`).not.toBeNull();
-          // The co-solve report kind: the `accent` token → "fill", `on-accent` → "on-fill"
+          // The co-solve report kind: the `accent` token → "fill", `accent-foreground` → "fill-foreground"
           // (generalized #160 — the SHAPE is the discriminant; `role` carries the identity).
           expect(p!.kind, `${name}/${scheme}`).toBe(
-            name === "accent" ? "fill" : "on-fill",
+            name === "accent" ? "fill" : "fill-foreground",
           );
         }
     },
@@ -175,7 +175,7 @@ describe("truthful provenance (#70): reports the schema role, not a value-scan",
       const set = buildTokenSet(seed, rules ? { rules } : {});
       for (const scheme of SCHEMES) {
         const rampFor = (role: RampRole): Ramp => set.ramps[role][scheme];
-        for (const name of BRAND_TOKEN_NAMES) {
+        for (const name of THEME_TOKEN_NAMES) {
           const binding = set.meta.bindings[name][scheme];
           if (binding?.kind !== "step") continue; // co-solve / literal — no ramp step
           const step = rampFor(binding.role).find(
@@ -194,26 +194,26 @@ describe("truthful provenance (#70): reports the schema role, not a value-scan",
     },
   );
 
-  // The whole point of solving-at-source. Where the brand and neutral ramps CONVERGE, the
+  // The whole point of solving-at-source. Where the accent and neutral ramps CONVERGE, the
   // deleted `findBoundStep` heuristic (first ramp in RAMP_ROLES order carrying a step whose
   // color equals the value) picks the role by SCAN ORDER, not by the schema. The bend
   // preserves the ramp endpoints exactly, so for pure black + `tintedNeutrals: false` the
-  // grey `brand[50]` and `neutral[50]` are bit-identical — and `bg` binds that endpoint.
-  it("beats the value-scan where brand ≡ neutral at an endpoint (#000000, untinted)", () => {
+  // grey `accent[50]` and `neutral[50]` are bit-identical — and `bg` binds that endpoint.
+  it("beats the value-scan where accent ≡ neutral at an endpoint (#000000, untinted)", () => {
     const set = buildTokenSet("#000000", { rules: { tintedNeutrals: false } });
     const scheme: Scheme = "light";
 
-    const bg = set.tokens.bg[scheme];
-    const brand50 = set.ramps.brand[scheme][0];
+    const bg = set.tokens.background[scheme];
+    const accent50 = set.ramps.accent[scheme][0];
     const neutral50 = set.ramps.neutral[scheme][0];
     // The coincidence the value-scan cannot disambiguate: bg's baked value is BOTH
-    // brand[50] and neutral[50], to the last bit (guarded so the demonstrator can't rot
+    // accent[50] and neutral[50], to the last bit (guarded so the demonstrator can't rot
     // silently — if the ramp math stops converging here, this precondition fails loudly).
-    expect(brand50.label).toBe("50");
+    expect(accent50.label).toBe("50");
     expect(sameColor(bg, neutral50.color)).toBe(true);
-    expect(sameColor(bg, brand50.color)).toBe(true);
+    expect(sameColor(bg, accent50.color)).toBe(true);
 
-    // The old heuristic: FIRST role (brand precedes neutral) with a matching step wins.
+    // The old heuristic: FIRST role (accent precedes neutral) with a matching step wins.
     const firstMatch = (value: OkLCH): BindingProvenance => {
       for (const role of RAMP_ROLES)
         for (const step of set.ramps[role][scheme])
@@ -222,14 +222,14 @@ describe("truthful provenance (#70): reports the schema role, not a value-scan",
       return null;
     };
 
-    // The value-scan is FOOLED — it names `brand`, a false receipt.
+    // The value-scan is FOOLED — it names `accent`, a false receipt.
     expect(firstMatch(bg)).toEqual({
       kind: "step",
-      role: "brand",
+      role: "accent",
       label: "50",
     });
     // The engine report is TRUTHFUL — bg binds the NEUTRAL ramp, per the schema.
-    expect(set.meta.bindings.bg[scheme]).toEqual({
+    expect(set.meta.bindings.background[scheme]).toEqual({
       kind: "step",
       role: "neutral",
       label: "50",
@@ -237,12 +237,12 @@ describe("truthful provenance (#70): reports the schema role, not a value-scan",
   });
 });
 
-// #151 — the accent/on-accent bindings stop being `null` and carry a first-class co-solve
+// #151 — the accent/accent-foreground bindings stop being `null` and carry a first-class co-solve
 // report, so the Studio renders faithful/nudged/derived + the label pole WITHOUT comparing
 // `meta.seed` to `tokens.accent` (exactly the value-matching #109 forbids). The reports are
 // REPORTING ONLY — the byte-identical suite above (which strips `meta.bindings`) already
 // proves no baked value moved; here we prove the reports are truthful to those values.
-describe("accent + on-accent co-solve report (#151)", () => {
+describe("accent + accent-foreground co-solve report (#151)", () => {
   const REPORT_CASES = [
     "#3b82f6", // chromatic, light-native
     "#e11d48", // chromatic
@@ -257,7 +257,7 @@ describe("accent + on-accent co-solve report (#151)", () => {
       const set = buildTokenSet(seed);
       for (const scheme of SCHEMES) {
         const accent = set.tokens.accent[scheme];
-        const onAccent = set.tokens["on-accent"][scheme];
+        const accentForeground = set.tokens["accent-foreground"][scheme];
         const s = set.meta.seed[scheme];
 
         const accentP = set.meta.bindings.accent[scheme];
@@ -270,12 +270,16 @@ describe("accent + on-accent co-solve report (#151)", () => {
         expect(accentP.seed!.native).toBe(scheme === set.meta.direction);
         expect(accentP.seed!.deltaL).toBe(accent.L - s.L);
 
-        const labelP = set.meta.bindings["on-accent"][scheme];
-        if (labelP?.kind !== "on-fill")
-          throw new Error(`on-accent/${scheme}: expected on-accent report`);
+        const labelP = set.meta.bindings["accent-foreground"][scheme];
+        if (labelP?.kind !== "fill-foreground")
+          throw new Error(
+            `accent-foreground/${scheme}: expected accent-foreground report`,
+          );
         expect(labelP.hue).toBe(s.H);
-        expect(labelP.chroma).toBe(onAccent.C);
-        expect(labelP.pole).toBe(onAccent.L >= accent.L ? "white" : "black");
+        expect(labelP.chroma).toBe(accentForeground.C);
+        expect(labelP.pole).toBe(
+          accentForeground.L >= accent.L ? "white" : "black",
+        );
       }
     },
   );
@@ -297,22 +301,24 @@ describe("accent + on-accent co-solve report (#151)", () => {
     }
   });
 
-  it("a chromatic seed's on-accent report tracks the #153 chromatic label (chroma is the label's own)", () => {
+  it("a chromatic seed's accent-foreground report tracks the #153 chromatic label (chroma is the label's own)", () => {
     const set = buildTokenSet("#3b82f6");
     // Navy fill in dark mode hosts a chromatic light label — the report carries its REAL
     // chroma (not 0), exactly the baked token's, with backedOff = carries less than the seed's.
-    const p = set.meta.bindings["on-accent"].dark;
-    if (p?.kind !== "on-fill") throw new Error("expected on-accent report");
+    const p = set.meta.bindings["accent-foreground"].dark;
+    if (p?.kind !== "fill-foreground")
+      throw new Error("expected accent-foreground report");
     expect(p.chroma).toBeGreaterThan(0.03);
-    expect(p.chroma).toBe(set.tokens["on-accent"].dark.C);
+    expect(p.chroma).toBe(set.tokens["accent-foreground"].dark.C);
     expect(p.backedOff).toBe(p.chroma + 1e-4 < set.meta.seed.dark.C);
   });
 
-  it("an achromatic seed's on-accent reports backedOff false (no chroma to give up)", () => {
+  it("an achromatic seed's accent-foreground reports backedOff false (no chroma to give up)", () => {
     const set = buildTokenSet("#808080");
     for (const scheme of SCHEMES) {
-      const p = set.meta.bindings["on-accent"][scheme];
-      if (p?.kind !== "on-fill") throw new Error("expected on-accent report");
+      const p = set.meta.bindings["accent-foreground"][scheme];
+      if (p?.kind !== "fill-foreground")
+        throw new Error("expected accent-foreground report");
       expect(p.backedOff).toBe(false);
     }
   });
@@ -337,7 +343,7 @@ describe("QA — adversarial: co-solve report never lies across the hue wheel ×
   const GAMUTS = ["srgb", "p3"] as const;
 
   it(
-    "accent + on-accent provenance is internally consistent for every seed on the grid",
+    "accent + accent-foreground provenance is internally consistent for every seed on the grid",
     () => {
       for (const gamut of GAMUTS)
         for (const H of HUES)
@@ -347,7 +353,8 @@ describe("QA — adversarial: co-solve report never lies across the hue wheel ×
               const set = buildTokenSet(seed, { gamut });
               for (const scheme of SCHEMES) {
                 const accent = set.tokens.accent[scheme];
-                const onAccent = set.tokens["on-accent"][scheme];
+                const accentForeground =
+                  set.tokens["accent-foreground"][scheme];
                 const s = set.meta.seed[scheme];
                 const where = `${seed}/${scheme}/${gamut}`;
 
@@ -360,17 +367,19 @@ describe("QA — adversarial: co-solve report never lies across the hue wheel ×
                   expect(aP.seed!.native, `${where} native`).toBe(false);
                 expect(aP.seed!.deltaL, `${where} deltaL`).toBe(accent.L - s.L);
 
-                const oP = set.meta.bindings["on-accent"][scheme];
-                if (oP?.kind !== "on-fill")
-                  throw new Error(`${where}: expected on-accent report`);
+                const oP = set.meta.bindings["accent-foreground"][scheme];
+                if (oP?.kind !== "fill-foreground")
+                  throw new Error(
+                    `${where}: expected accent-foreground report`,
+                  );
                 // Every reported field must match the baked label, not an approximation.
                 expect(oP.hue, `${where} hue`).toBe(s.H);
-                expect(oP.chroma, `${where} chroma`).toBe(onAccent.C);
+                expect(oP.chroma, `${where} chroma`).toBe(accentForeground.C);
                 expect(oP.pole, `${where} pole`).toBe(
-                  onAccent.L >= accent.L ? "white" : "black",
+                  accentForeground.L >= accent.L ? "white" : "black",
                 );
                 expect(oP.backedOff, `${where} backedOff`).toBe(
-                  onAccent.C + 1e-4 < s.C,
+                  accentForeground.C + 1e-4 < s.C,
                 );
               }
             }

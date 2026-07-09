@@ -143,11 +143,11 @@ describe("layout.tsx shell font mounts (#38 preload trim)", () => {
   });
 
   it("mounts the three journal editorial faces (body, display, mono)", () => {
-    // Source Serif 4 → `--font-face` (body); a shell-only loader like Geist Mono.
+    // Source Serif 4 → `--font-body` (body); a shell-only loader like Geist Mono.
     expect(source).toMatch(/import\s*\{[^}]*\bSource_Serif_4\b[^}]*\}/);
     expect(source).toMatch(/Source_Serif_4\(/);
     expect(htmlClassName).toContain("sourceSerif.variable");
-    // Space Grotesk → `--font-display` and JetBrains Mono → `--font-mono` are reused from the
+    // Space Grotesk → `--font-heading` and JetBrains Mono → `--font-mono` are reused from the
     // per-entry roster (not duplicate loaders), so they mount via FONT_FACES.
     expect(htmlClassName).toContain('FONT_FACES["space-grotesk"].variable');
     expect(htmlClassName).toContain('FONT_FACES["jetbrains-mono"].variable');

@@ -19,10 +19,10 @@ import {
 import { CONTRAST_TARGETS } from "./targets";
 import type {
   BindingProvenance,
-  BrandTokenName,
+  ThemeTokenName,
   FillProvenance,
   OkLCH,
-  OnFillProvenance,
+  FillForegroundProvenance,
   Ramp,
   RampLabel,
   RampRole,
@@ -74,9 +74,9 @@ export function minPass(
 /**
  * A semantic token's binding. `step` pins a fixed ramp step (per scheme — e.g. surfaces);
  * `auto` runs `minPass` against the scheme's worst-case surface; `auto-on` runs `minPass`
- * against a pinned step of the SAME role (a solved label on a status container, #160);
- * `literal` bakes a fixed value per scheme (scrim's alpha literal); `fill`/`on-fill` defer to
- * a co-solve — a continuous fill (brand accent + the status fills, #160) and its chromatic
+ * against a pinned step of the SAME role (a solved label on a status subtle, #160);
+ * `literal` bakes a fixed value per scheme (scrim's alpha literal); `fill`/`fill-foreground` defer to
+ * a co-solve — a continuous fill (accent + the status fills, #160) and its chromatic
  * label; `fill-hover` defers to a co-solved interaction-state fill (accent-hover). The default
  * schema lives in `palette.ts`, which owns the contrast targets.
  */
@@ -91,15 +91,15 @@ export type TokenBinding =
     }
   | { kind: "literal"; light: OkLCH; dark: OkLCH }
   | { kind: "fill"; role: RampRole }
-  | { kind: "on-fill"; role: RampRole }
+  | { kind: "fill-foreground"; role: RampRole }
   | { kind: "fill-hover"; role: RampRole };
 
 /** A role's co-solved fill + its label, with the provenance the receipt reads (#151/#160). */
 export interface CoSolvedFill {
   fill: OkLCH;
-  onFill: OkLCH;
+  fillForeground: OkLCH;
   fillProvenance: FillProvenance;
-  onFillProvenance: OnFillProvenance;
+  fillForegroundProvenance: FillForegroundProvenance;
 }
 
 /** A role's co-solved interaction-state fill (e.g. accent-hover) + its provenance (#160). */
@@ -117,12 +117,12 @@ export interface BindingContext {
    *  — the darkest text-bearing surface, so a pass here holds on every surface, #160). */
   worstSurface: OkLCH;
   /**
-   * The co-solved fills keyed by role (#160): the brand accent (`role: "brand"`) plus the four
-   * status fills (`error`/`warning`/`success`/`info`). A `fill`/`on-fill` binding reads its
+   * The co-solved fills keyed by role (#160): the accent (`role: "accent"`) plus the four
+   * status fills (`error`/`warning`/`success`/`info`). A `fill`/`fill-foreground` binding reads its
    * role's entry, so an error fill's receipt reports its status role, never "accent".
    */
   fills: Partial<Record<RampRole, CoSolvedFill>>;
-  /** The co-solved interaction-state fills keyed by role (#160) — today just brand
+  /** The co-solved interaction-state fills keyed by role (#160) — today just accent
    *  `accent-hover`. A `fill-hover` binding reads its role's entry. */
   hovers: Partial<Record<RampRole, CoSolvedHover>>;
 }
@@ -137,8 +137,8 @@ function stepAt(ramp: Ramp, label: RampLabel): OkLCH {
 
 /**
  * One resolved binding: the baked color AND its provenance. `step` is the discrete
- * `(role, label)` for ramp-bound tokens, the `accent`/`on-accent` co-solve report for the
- * continuous brand pair (#151), or `null` only for a `literal`. Surfacing provenance HERE, at
+ * `(role, label)` for ramp-bound tokens, the `accent`/`accent-foreground` co-solve report for the
+ * continuous accent pair (#151), or `null` only for a `literal`. Surfacing provenance HERE, at
  * solve time, is what lets the receipt name the SCHEMA's role and the co-solve story rather
  * than reverse-engineering them by value-matching (which lies when two ramps converge — an
  * achromatic seed, `tintedNeutrals: false`). #70. (`step` keeps its name for continuity.)
@@ -148,7 +148,7 @@ export interface ResolvedBinding {
   step: BindingProvenance;
 }
 
-/** A defensive fallback for a `fill`/`on-fill`/`fill-hover` binding whose role has no co-solve
+/** A defensive fallback for a `fill`/`fill-foreground`/`fill-hover` binding whose role has no co-solve
  *  in the context — unreachable for the default schema (which always provides them), but keeps
  *  a hand-authored schema never-throwing: bind the role's `minPass` UI step against surface-selected. */
 function fillFallback(ctx: BindingContext, role: RampRole): ResolvedBinding {
@@ -189,17 +189,13 @@ export function resolveBinding(
       };
     }
     case "auto-on": {
-      // A label solved against a PINNED step of the same role (a status container) — not the
+      // A label solved against a PINNED step of the same role (a status subtle) — not the
       // worst-case surface. `minPass` lands the least-extreme step clearing the target on that
-      // container's ACTUAL color, so the guarantee holds against what actually ships.
-      const containerLabel =
+      // subtle surface's ACTUAL color, so the guarantee holds against what actually ships.
+      const subtleLabel =
         ctx.scheme === "light" ? binding.against.light : binding.against.dark;
-      const container = stepAt(ctx.ramps[binding.role], containerLabel);
-      const chosen = minPass(
-        ctx.ramps[binding.role],
-        container,
-        binding.target,
-      );
+      const subtle = stepAt(ctx.ramps[binding.role], subtleLabel);
+      const chosen = minPass(ctx.ramps[binding.role], subtle, binding.target);
       return {
         color: chosen.color,
         step: { kind: "step", role: binding.role, label: chosen.label },
@@ -216,10 +212,10 @@ export function resolveBinding(
         ? { color: co.fill, step: co.fillProvenance }
         : fillFallback(ctx, binding.role);
     }
-    case "on-fill": {
+    case "fill-foreground": {
       const co = ctx.fills[binding.role];
       return co
-        ? { color: co.onFill, step: co.onFillProvenance }
+        ? { color: co.fillForeground, step: co.fillForegroundProvenance }
         : fillFallback(ctx, binding.role);
     }
     case "fill-hover": {
@@ -237,19 +233,19 @@ export function resolveBinding(
 /** A scheme's resolved token set plus each token's binding provenance (parallel keys). */
 export interface ResolvedTokens {
   tokens: SchemeTokens;
-  bindings: Record<BrandTokenName, BindingProvenance>;
+  bindings: Record<ThemeTokenName, BindingProvenance>;
 }
 
 /** Resolve a full binding schema into a scheme's token set + per-token provenance. The
  *  schema is read-only here — resolution only reads it (so the exported
  *  `DEFAULT_BINDING_SCHEMA`, #150, passes straight through). */
 export function resolveTokens(
-  schema: Readonly<Record<BrandTokenName, TokenBinding>>,
+  schema: Readonly<Record<ThemeTokenName, TokenBinding>>,
   ctx: BindingContext,
 ): ResolvedTokens {
   const tokens = {} as SchemeTokens;
-  const bindings = {} as Record<BrandTokenName, BindingProvenance>;
-  for (const name of Object.keys(schema) as BrandTokenName[]) {
+  const bindings = {} as Record<ThemeTokenName, BindingProvenance>;
+  for (const name of Object.keys(schema) as ThemeTokenName[]) {
     const resolved = resolveBinding(schema[name], ctx);
     tokens[name] = resolved.color;
     bindings[name] = resolved.step;

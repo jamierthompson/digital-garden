@@ -10,11 +10,11 @@ interface EntryScopeProps {
 
 /**
  * The entry's bounded font slot. A **synchronous** server component that mounts its subtree
- * under `[data-entry="<slug>"]` wearing the entry's brand typeface.
+ * under `[data-entry="<slug>"]` wearing the entry's theme typeface.
  *
  * Color is NOT re-bound here: the page stamps its authored seed on `<html>` (see `PageTheme`),
  * and the slot inherits every color token from it — the page and its slot are one seed. The only
- * per-slot override is the font, so this maps `--font-face` to the resolved roster face as an
+ * per-slot override is the font, so this maps `--font-body` to the resolved roster face as an
  * **inline style** on the wrapper (alongside that face's `.variable` class, which brings
  * `var(<cssVariable>)` into scope). Inline on a server-rendered div → the value is in the initial
  * shell HTML (flash-free) and is per-element, so distinct slots can never collide.
@@ -30,7 +30,7 @@ interface EntryScopeProps {
 export default function EntryScope({ seed, children }: EntryScopeProps) {
   const scope = resolveScope(seed);
   const style = {
-    "--font-face": `var(${scope.font.cssVariable}), ${FONT_STACK}`,
+    "--font-body": `var(${scope.font.cssVariable}), ${FONT_STACK}`,
   } as CSSProperties;
   return (
     // Shell-mono fallback has no roster class (its variable is already on `<html>`), so

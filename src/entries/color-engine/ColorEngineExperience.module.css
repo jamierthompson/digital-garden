@@ -3,6 +3,6 @@
   .placeholder {
     padding: var(--space-7) var(--space-inset);
     text-align: center;
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 }

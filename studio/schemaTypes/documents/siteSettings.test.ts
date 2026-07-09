@@ -8,13 +8,13 @@ import {siteSettings} from './siteSettings'
  *
  * Two concerns live here now:
  *   • Shell identity — `title` (required) + `description`, read by `generateMetadata`.
- *   • `pageThemes` — one authored, engine-validated brand seed per site-owned page
+ *   • `pageThemes` — one authored, engine-validated theme seed per site-owned page
  *     (`home`/`browse`/`about`/`now`/`system`). This REPLACES the old #142 stance that the
  *     shell carried no theming fields: under #166 every page derives its theme from a seed,
  *     and the site-owned pages (which have no backing `entry`) seed from here.
  *
  * The guard: `pageThemes` must exist as a required object whose five page seeds are each
- * required and validated by the engine (`isBrandColorString`), not a color-picker. A regressed
+ * required and validated by the engine (`isThemeColorString`), not a color-picker. A regressed
  * projection (`queries.test.ts`) or a dropped seed would otherwise render a page unseeded.
  */
 type Rule = {required: (...a: unknown[]) => Rule; custom: (...a: unknown[]) => Rule}
@@ -82,7 +82,7 @@ describe('siteSettings schema — identity + per-page theme seeds (#166)', () =>
       expect(seed.type, `${seed.name} should be a plain string, not a color-picker`).toBe('string')
       const called = calledRules(seed)
       expect(called, `${seed.name} must be required`).toContain('required')
-      // `.custom(isBrandColorString)` is the engine-backed parse guard.
+      // `.custom(isThemeColorString)` is the engine-backed parse guard.
       expect(called, `${seed.name} must run the engine validator`).toContain('custom')
     }
   })

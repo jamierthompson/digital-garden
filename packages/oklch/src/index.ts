@@ -2,7 +2,7 @@
  * The OKLCH theming engine — pure, isomorphic public surface.
  *
  * Two layers:
- *   • HIGH-LEVEL: `resolveTheme(brandColor, scheme)` and `buildTokenSet(brandColor)` —
+ *   • HIGH-LEVEL: `resolveTheme(themeColor, scheme)` and `buildTokenSet(themeColor)` —
  *     contrast-solved, gamut-mapped, baked-literal, never-throwing token sets.
  *     `buildTokenSet` zips both schemes for `light-dark()` output.
  *   • LOW-LEVEL: color conversions, gamut mapping, contrast (APCA Lc + WCAG ratio),
@@ -104,7 +104,7 @@ export {
   clamp01,
 } from "./convert";
 
-export { RAMP_LABELS, RAMP_ROLES, BRAND_TOKEN_NAMES } from "./types";
+export { RAMP_LABELS, RAMP_ROLES, THEME_TOKEN_NAMES } from "./types";
 
 export type {
   OkLCH,
@@ -118,7 +118,7 @@ export type {
   HuePolicy,
   RampRules,
   EngineRules,
-  BrandTokenName,
+  ThemeTokenName,
   RampLabel,
   RampRole,
   RampStep,
@@ -129,7 +129,7 @@ export type {
   BindingStep,
   StepProvenance,
   FillProvenance,
-  OnFillProvenance,
+  FillForegroundProvenance,
   LiteralProvenance,
   BindingProvenance,
   BindingPair,

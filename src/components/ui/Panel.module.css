@@ -1,15 +1,15 @@
 /* Panel primitive — @layer components, var-consuming only. `.panel` is the structural base
    (layout + ambient text); `.framed` adds the demo-panel surface (hairline border, soft radius,
-   ambient surface — editorial by default, brand inside a brand slot). `plain` panels omit
-   `.framed` so a grid of self-chromed cards sits directly on the themed ground (the page `--bg`). */
+   ambient surface — editorial by default, themed inside a themed slot). `plain` panels omit
+   `.framed` so a grid of self-chromed cards sits directly on the themed ground (the page `--background`). */
 @layer components {
   .panel {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
     min-width: 0;
-    color: var(--text);
-    font-family: var(--font-face);
+    color: var(--foreground);
+    font-family: var(--font-body);
   }
 
   .framed {

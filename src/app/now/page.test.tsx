@@ -19,7 +19,7 @@ const { NOW_FIXTURE, fetchMock } = vi.hoisted(() => ({
       title: "Proving the engine",
       slug: "now-jun-2026",
       iterated: "2026-06-15",
-      blurb: "Seeding brands.",
+      blurb: "Seeding themes.",
     },
   ],
   fetchMock: vi.fn(),

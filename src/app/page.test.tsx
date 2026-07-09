@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Home is an async Server Component reading FEATURED_QUERY. Mock the single read path so a
 // per-test fixture can be swapped; `vi.hoisted` lets the fixture + mock fn exist before the
-// hoisted `vi.mock` factory runs. cardSwatches runs for REAL on each fixture's brandColor —
-// it's pure/defensive, so the null/garbage-brand cases exercise the true fallback path.
+// hoisted `vi.mock` factory runs. cardSwatches runs for REAL on each fixture's themeColor —
+// it's pure/defensive, so the null/garbage-theme cases exercise the true fallback path.
 const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
   FEATURED_FIXTURE: [
     {
@@ -15,7 +15,7 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
       kind: "project",
       stage: "sketch",
       blurb: "A seed in, a solved palette out.",
-      brandColor: "oklch(0.7 0.28 330)",
+      themeColor: "oklch(0.7 0.28 330)",
       fontKey: null,
     },
     {
@@ -25,7 +25,7 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
       kind: "project",
       stage: "sketch",
       blurb: "Looking inside a model.",
-      brandColor: "oklch(0.7 0.15 70)",
+      themeColor: "oklch(0.7 0.15 70)",
       fontKey: null,
     },
   ],
@@ -60,7 +60,7 @@ interface FeaturedRow {
   kind: string | null;
   stage: string | null;
   blurb: string | null;
-  brandColor: unknown;
+  themeColor: unknown;
   fontKey: string | null;
 }
 
@@ -71,7 +71,7 @@ function row(over: Partial<FeaturedRow> & { _id: string }): FeaturedRow {
     kind: "project",
     stage: "prototype",
     blurb: null,
-    brandColor: "oklch(0.7 0.15 70)",
+    themeColor: "oklch(0.7 0.15 70)",
     fontKey: "newsreader",
     ...over,
   };
@@ -141,8 +141,8 @@ describe("Home (/) — edges & boundaries", () => {
     expect(screen.queryByRole("heading", { name: /featured/i })).toBeNull();
   });
 
-  it("brands a featured entry with a NULL brandColor without throwing (fallback swatches)", async () => {
-    // featuredRank can promote ANY kind — a featured note/now has no brandColor. The card
+  it("brands a featured entry with a NULL themeColor without throwing (fallback swatches)", async () => {
+    // featuredRank can promote ANY kind — a featured note/now has no themeColor. The card
     // must still render (fallback palette), never crash the whole front door.
     mockReads({
       featured: [
@@ -151,7 +151,7 @@ describe("Home (/) — edges & boundaries", () => {
           kind: "note",
           title: "Featured note",
           slug: "featured-note",
-          brandColor: null,
+          themeColor: null,
         }),
       ],
     });
@@ -164,20 +164,20 @@ describe("Home (/) — edges & boundaries", () => {
     expect(card!.getAttribute("style") ?? "").toContain("--surface");
   });
 
-  it("survives a hostile/garbage brandColor on a featured card", async () => {
+  it("survives a hostile/garbage themeColor on a featured card", async () => {
     mockReads({
       featured: [
         row({
           _id: "a",
-          title: "Garbage brand",
+          title: "Garbage theme",
           slug: "g",
-          brandColor: "not-a-color",
+          themeColor: "not-a-color",
         }),
       ],
     });
     render(await Home());
     expect(
-      screen.getByRole("link", { name: /garbage brand/i }),
+      screen.getByRole("link", { name: /garbage theme/i }),
     ).toBeInTheDocument();
   });
 

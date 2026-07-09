@@ -8,10 +8,10 @@ import styles from "./SiteNav.module.css";
  * The shell's primary navigation — the "engineering journal" masthead.
  *
  * A Server Component: it renders a masthead tagline band, the `folio_` logo (Space Grotesk via
- * `--font-display`) and mounts the small Client `NavLinks` leaf for the current-page indicator.
- * Var-consuming only: reads the global editorial semantic tokens (`--font-display`, `--font-mono`,
- * `--text`, `--border`). The shell is never brand-scoped — editorial chrome is global; a
- * project's brand is scoped to its own interactive slot.
+ * `--font-heading`) and mounts the small Client `NavLinks` leaf for the current-page indicator.
+ * Var-consuming only: reads the global editorial semantic tokens (`--font-heading`, `--font-mono`,
+ * `--foreground`, `--border`). The shell is never theme-scoped — editorial chrome is global; a
+ * project's the theme is scoped to its own interactive slot.
  */
 export default function SiteNav() {
   return (
@@ -34,7 +34,7 @@ export default function SiteNav() {
       <nav className={styles.nav} aria-label="Primary">
         {/* Home is the logo (→ `/`). The trailing `_` is a muted blinking-cursor nod — the
             "folio_" wordmark from the engineering-journal direction. */}
-        <Link href="/" className={styles.brand}>
+        <Link href="/" className={styles.wordmark}>
           folio
           <span className={styles.cursor} aria-hidden="true">
             _

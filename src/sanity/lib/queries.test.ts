@@ -23,7 +23,7 @@ describe("WORK_INDEX_QUERY", () => {
   it("projects exactly the card fields", () => {
     for (const field of [
       "blurb",
-      "brandColor",
+      "themeColor",
       "fontKey",
       "kind",
       "stage",
@@ -66,8 +66,8 @@ describe("ENTRY_DETAIL_QUERY", () => {
   it("pulls the body, the theming seeds, and both directions of the backlink graph", () => {
     for (const field of [
       "body",
-      "brandColor",
-      "brandColorDark",
+      "themeColor",
+      "themeColorDark",
       "fontKey",
       "componentKey",
       "kind",
@@ -83,13 +83,13 @@ describe("ENTRY_DETAIL_QUERY", () => {
     expect(ENTRY_DETAIL_QUERY).toContain("references(^._id)");
   });
 
-  it("kind-gates themeSeed: a now entry always wears /now, others their own brandColor (#166)", () => {
+  it("kind-gates themeSeed: a now entry always wears /now, others their own themeColor (#166)", () => {
     // The page themes from ONE synchronously-available field, resolved in-query (static shell,
     // flash-free). It is KIND-gated, not presence-gated: `now` ALWAYS resolves to the authored
     // /now page seed (a now can't set its own color — forbiddenForNow — and the query ignores any
-    // that slips through), and every themed kind uses its own required brandColor. The
-    // `.not.toContain` pins that we never regress to the presence-gated `coalesce(brandColor, …)` —
-    // which sourced a now entry's own brandColor and left a `brandColor: ""` now entry unthemed
+    // that slips through), and every themed kind uses its own required themeColor. The
+    // `.not.toContain` pins that we never regress to the presence-gated `coalesce(themeColor, …)` —
+    // which sourced a now entry's own themeColor and left a `themeColor: ""` now entry unthemed
     // (executed semantics below).
     expect(ENTRY_DETAIL_QUERY).toContain(
       '"themeSeed": select(kind == "now" =>',
@@ -97,7 +97,7 @@ describe("ENTRY_DETAIL_QUERY", () => {
     expect(ENTRY_DETAIL_QUERY).toContain(
       '*[_type == "siteSettings"][0].pageThemes.now',
     );
-    expect(ENTRY_DETAIL_QUERY).not.toContain("coalesce(brandColor");
+    expect(ENTRY_DETAIL_QUERY).not.toContain("coalesce(themeColor");
   });
 
   it("scopes the incoming backlinks to an aliased entry subquery, not a stray root filter", () => {
@@ -126,11 +126,11 @@ describe("ENTRY_DETAIL_QUERY", () => {
  * QA (#173): the `.toContain` tests above pin the query STRING; these EXECUTE the real
  * ENTRY_DETAIL_QUERY against a synthetic dataset with groq-js (a declared dependency) to pin its
  * actual `themeSeed` SEMANTICS. themeSeed is KIND-gated — `select(kind == "now" =>
- * …pageThemes.now, brandColor)` — so a `now` entry ALWAYS resolves to the /now seed regardless of
- * its own `brandColor`, and every themed kind resolves to its own. These cases lock that in and
- * are regression guards against the earlier presence-gated `coalesce(brandColor, …)`: coalesce
+ * …pageThemes.now, themeColor)` — so a `now` entry ALWAYS resolves to the /now seed regardless of
+ * its own `themeColor`, and every themed kind resolves to its own. These cases lock that in and
+ * are regression guards against the earlier presence-gated `coalesce(themeColor, …)`: coalesce
  * returns the first NON-NULL operand, and "" is non-null, so it (a) leaked a now entry's own
- * `brandColor` and (b) left a `brandColor: ""` now entry unthemed. The two former fail-first cases
+ * `themeColor` and (b) left a `themeColor: ""` now entry unthemed. The two former fail-first cases
  * below (self-override, empty-string) exposed exactly that; the `select()` closes both.
  */
 const NOW_SEED = "#105060";
@@ -171,19 +171,19 @@ async function resolveThemeSeed(
 
 describe("ENTRY_DETAIL_QUERY themeSeed — executed GROQ semantics (#173 QA)", () => {
   // --- The contract that HOLDS (pins the good path) ---
-  it("a now entry with an ABSENT brandColor inherits the /now page seed", async () => {
+  it("a now entry with an ABSENT themeColor inherits the /now page seed", async () => {
     expect(await resolveThemeSeed({ kind: "now" })).toBe(NOW_SEED);
   });
 
-  it("a now entry with a null brandColor inherits the /now page seed", async () => {
-    expect(await resolveThemeSeed({ kind: "now", brandColor: null })).toBe(
+  it("a now entry with a null themeColor inherits the /now page seed", async () => {
+    expect(await resolveThemeSeed({ kind: "now", themeColor: null })).toBe(
       NOW_SEED,
     );
   });
 
-  it("a themed entry themes from its OWN brandColor, never the /now seed", async () => {
+  it("a themed entry themes from its OWN themeColor, never the /now seed", async () => {
     expect(
-      await resolveThemeSeed({ kind: "project", brandColor: "#4f46e5" }),
+      await resolveThemeSeed({ kind: "project", themeColor: "#4f46e5" }),
     ).toBe("#4f46e5");
   });
 
@@ -194,25 +194,25 @@ describe("ENTRY_DETAIL_QUERY themeSeed — executed GROQ semantics (#173 QA)", (
   });
 
   // --- The contract that BREAKS (fail-first: proves the real defect) ---
-  it("a now entry with an EMPTY-STRING brandColor still inherits the /now seed (empty-string coalesce hole)", async () => {
+  it("a now entry with an EMPTY-STRING themeColor still inherits the /now seed (empty-string coalesce hole)", async () => {
     // Regression guard for the empty-string hole. A presence-gated `coalesce` only falls through
     // on null; "" is non-null, so it would leave themeSeed "" — a SILENTLY unthemed page. "" is
-    // reachable: brandColor is NOT required for `now` (requiredForThemedKind exempts it) and
+    // reachable: themeColor is NOT required for `now` (requiredForThemedKind exempts it) and
     // isBrandColorString("") returns true, so both author-time guards pass it (the API-write path
     // colorValidation.ts calls out as real). The kind-gated `select()` ignores a now entry's
-    // brandColor entirely, so "" can never defeat the /now inheritance.
-    expect(await resolveThemeSeed({ kind: "now", brandColor: "" })).toBe(
+    // themeColor entirely, so "" can never defeat the /now inheritance.
+    expect(await resolveThemeSeed({ kind: "now", themeColor: "" })).toBe(
       NOW_SEED,
     );
   });
 
-  it("a now entry that carries its OWN brandColor still wears the /now seed (defense-in-depth behind forbiddenForNow)", async () => {
+  it("a now entry that carries its OWN themeColor still wears the /now seed (defense-in-depth behind forbiddenForNow)", async () => {
     // Regression guard for the self-override defect. The `forbiddenForNow` validator now stops a
-    // `now` from setting a brandColor at all, but a value can still arrive via a legacy doc or a
+    // `now` from setting a themeColor at all, but a value can still arrive via a legacy doc or a
     // raw API write that bypasses Studio validation — so the query is the second line of defense.
-    // A presence-gated `coalesce` would source that stray brandColor, wearing a DIFFERENT theme
+    // A presence-gated `coalesce` would source that stray themeColor, wearing a DIFFERENT theme
     // than the /now index; the kind-gated `select()` ignores it and always resolves to the /now seed.
-    expect(await resolveThemeSeed({ kind: "now", brandColor: "#f97316" })).toBe(
+    expect(await resolveThemeSeed({ kind: "now", themeColor: "#f97316" })).toBe(
       NOW_SEED,
     );
   });

@@ -30,7 +30,7 @@ import type {
   Gamut,
   ColorFormat,
   // token/ramp vocabulary
-  BrandTokenName,
+  ThemeTokenName,
   RampLabel,
   RampRole,
   RampStep,
@@ -41,7 +41,7 @@ import type {
   BindingStep,
   StepProvenance,
   FillProvenance,
-  OnFillProvenance,
+  FillForegroundProvenance,
   LiteralProvenance,
   BindingProvenance,
   BindingPair,
@@ -81,13 +81,13 @@ import type {
 /** Every runtime export of `@garden/oklch`, alphabetized. Type-only exports don't exist
  *  at runtime; the signature checks below guard those. */
 const RUNTIME_EXPORTS = [
-  "BRAND_TOKEN_NAMES",
   "CONTRAST_TARGETS",
   "DEFAULT_BINDING_SCHEMA",
   "HARMONY_HUES",
   "HARMONY_KINDS",
   "RAMP_LABELS",
   "RAMP_ROLES",
+  "THEME_TOKEN_NAMES",
   "apcaLc",
   "buildHarmonyPalette",
   "buildHarmonyTier",
@@ -126,37 +126,37 @@ const RUNTIME_EXPORTS = [
 
 const SEMANTIC_NAMES = [
   // Core (10).
-  "bg",
+  "background",
   "surface",
-  "surface-2",
-  "text",
-  "text-muted",
+  "surface-elevated",
+  "foreground",
+  "muted-foreground",
   "border",
   "accent",
   "accent-text",
-  "on-accent",
-  "focus-ring",
-  // Status blocks (×4): fill · on-fill · text · container · on-container.
+  "accent-foreground",
+  "ring",
+  // Status blocks (×4): fill · fill-foreground · text · subtle · subtle-foreground.
   "error",
-  "on-error",
+  "error-foreground",
   "error-text",
-  "error-container",
-  "on-error-container",
+  "error-subtle",
+  "error-subtle-foreground",
   "warning",
-  "on-warning",
+  "warning-foreground",
   "warning-text",
-  "warning-container",
-  "on-warning-container",
+  "warning-subtle",
+  "warning-subtle-foreground",
   "success",
-  "on-success",
+  "success-foreground",
   "success-text",
-  "success-container",
-  "on-success-container",
+  "success-subtle",
+  "success-subtle-foreground",
   "info",
-  "on-info",
+  "info-foreground",
   "info-text",
-  "info-container",
-  "on-info-container",
+  "info-subtle",
+  "info-subtle-foreground",
   // Interaction states (×3) + overlay.
   "accent-hover",
   "surface-hover",
@@ -165,7 +165,7 @@ const SEMANTIC_NAMES = [
 ] as const;
 
 const ROLE_NAMES = [
-  "brand",
+  "accent",
   "neutral",
   "success",
   "error",
@@ -193,7 +193,7 @@ describe("the guarded public surface (#99)", () => {
   });
 
   it("pins the semantic token names, in emission order", () => {
-    expect(api.BRAND_TOKEN_NAMES).toEqual(SEMANTIC_NAMES);
+    expect(api.THEME_TOKEN_NAMES).toEqual(SEMANTIC_NAMES);
   });
 
   it("pins the ramp roles and the 50…950 step labels", () => {
@@ -252,7 +252,7 @@ type PublicTypeSurface = {
   Scheme: Scheme;
   Gamut: Gamut;
   ColorFormat: ColorFormat;
-  BrandTokenName: BrandTokenName;
+  ThemeTokenName: ThemeTokenName;
   RampLabel: RampLabel;
   RampRole: RampRole;
   RampStep: RampStep;
@@ -263,7 +263,7 @@ type PublicTypeSurface = {
   BindingStep: BindingStep;
   StepProvenance: StepProvenance;
   FillProvenance: FillProvenance;
-  OnFillProvenance: OnFillProvenance;
+  FillForegroundProvenance: FillForegroundProvenance;
   LiteralProvenance: LiteralProvenance;
   BindingProvenance: BindingProvenance;
   BindingPair: BindingPair;
@@ -307,7 +307,7 @@ describe("the exported derivation contract (#150)", () => {
       bodyText: { wcag: 4.5, apca: 75 },
       mutedText: { wcag: 4.5, apca: 60 },
       accentText: { wcag: 4.5, apca: 60 },
-      onAccent: { wcag: 4.5, apca: 60 },
+      accentForeground: { wcag: 4.5, apca: 60 },
       ui: { wcag: 3, apca: 45 },
       border: { wcag: 3, apca: 30 },
     });
@@ -316,17 +316,17 @@ describe("the exported derivation contract (#150)", () => {
   it("binds every semantic token — the studio can answer kind/role/target for each", () => {
     // Coverage: exactly the guarded token names, no more, no fewer.
     expect(Object.keys(api.DEFAULT_BINDING_SCHEMA).sort()).toEqual(
-      [...api.BRAND_TOKEN_NAMES].sort(),
+      [...api.THEME_TOKEN_NAMES].sort(),
     );
     // Shape: every binding declares a kind the receipt copy switches on.
-    for (const name of api.BRAND_TOKEN_NAMES) {
+    for (const name of api.THEME_TOKEN_NAMES) {
       expect([
         "step",
         "auto",
         "auto-on",
         "literal",
         "fill",
-        "on-fill",
+        "fill-foreground",
         "fill-hover",
       ]).toContain(api.DEFAULT_BINDING_SCHEMA[name].kind);
     }
@@ -336,7 +336,7 @@ describe("the exported derivation contract (#150)", () => {
     // Identity, not deep-equality: a drifted copy of the table would fail this. This is the
     // single-source guarantee #150 exists to make — the receipt names the solver's own tier.
     const tiers = Object.values(api.CONTRAST_TARGETS);
-    for (const name of api.BRAND_TOKEN_NAMES) {
+    for (const name of api.THEME_TOKEN_NAMES) {
       const binding = api.DEFAULT_BINDING_SCHEMA[name];
       if (binding.kind === "auto" || binding.kind === "auto-on") {
         expect(tiers).toContain(binding.target);
@@ -371,14 +371,14 @@ describe("QA — adversarial: #150 exports are a READ-ONLY contract, not a mutab
 
   it("mutating a CONTRAST_TARGETS tier does NOT corrupt a later solve (proves the shared-singleton risk)", () => {
     // Demonstrates the concrete blast radius: `text` binds `auto` against `bodyText`, so
-    // raising that tier's floor at runtime moves the shipped `--text` color. Restored in a
+    // raising that tier's floor at runtime moves the shipped `--foreground` color. Restored in a
     // `finally` so the demonstration can't poison sibling tests — but a frozen table would
     // make the write a silent no-op (loose mode) or throw (strict), and this would pass.
     const tier = api.CONTRAST_TARGETS.bodyText as {
       wcag: number;
       apca: number;
     };
-    const before = api.buildTokenSet("#3b82f6").tokens.text.light;
+    const before = api.buildTokenSet("#3b82f6").tokens.foreground.light;
     const original = { wcag: tier.wcag, apca: tier.apca };
     // On a deeply-frozen table this write throws in ESM strict mode (or silently no-ops in
     // loose mode) — both mean the tier is immutable. Tolerate the throw so we can still assert
@@ -391,7 +391,7 @@ describe("QA — adversarial: #150 exports are a READ-ONLY contract, not a mutab
       } catch {
         /* frozen property → strict-mode TypeError: the immutability we want */
       }
-      const after = api.buildTokenSet("#3b82f6").tokens.text.light;
+      const after = api.buildTokenSet("#3b82f6").tokens.foreground.light;
       // A read-only contract keeps the solve stable regardless of the attempted write.
       expect(after).toEqual(before);
     } finally {

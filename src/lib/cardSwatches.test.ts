@@ -20,13 +20,13 @@ const LIGHT_DARK = /^light-dark\(oklch\([^)]+\), oklch\([^)]+\)\)$/;
 /** The generic semantic tokens a card re-binds — the #57 no-prefix contract. */
 const KEYS = [
   "--surface",
-  "--text",
+  "--foreground",
   "--border",
   "--accent",
-  "--on-accent",
+  "--accent-foreground",
 ] as const;
 
-describe("cardSwatches — valid brandColor", () => {
+describe("cardSwatches — valid themeColor", () => {
   const style = cardSwatches("#3b82f6");
 
   it("emits exactly the four generic semantic-token overrides", () => {
@@ -34,9 +34,11 @@ describe("cardSwatches — valid brandColor", () => {
   });
 
   it("uses only generic semantic names — no project-prefixed token leaks (#57)", () => {
-    // Every key is a bare semantic role name; none is namespaced (`--c-*`, `--brand-*`, `--<proj>-*`).
+    // Every key is a bare semantic role name; none is namespaced (`--c-*`, `--theme-*`, `--<proj>-*`).
     for (const key of Object.keys(style)) {
-      expect(key).toMatch(/^--(?:surface|text|border|accent|on-accent)$/);
+      expect(key).toMatch(
+        /^--(?:surface|foreground|border|accent|accent-foreground)$/,
+      );
     }
   });
 
@@ -56,14 +58,14 @@ describe("cardSwatches — valid brandColor", () => {
     }
   });
 
-  it("tracks the brand color — a different brand yields a different palette", () => {
+  it("tracks the theme color — a different seed yields a different palette", () => {
     const other = cardSwatches("#ef4444");
     // At least the accent must differ; in practice surface/text/border shift too.
     expect(style["--accent"]).not.toBe(other["--accent"]);
   });
 
   it("surface and text are distinct — the solved contrast pair, not one flat color", () => {
-    expect(style["--surface"]).not.toBe(style["--text"]);
+    expect(style["--surface"]).not.toBe(style["--foreground"]);
   });
 
   it("accepts the engine gamut option without throwing", () => {
@@ -80,7 +82,7 @@ describe("cardSwatches — defensive & total", () => {
     ["boolean", true],
     ["empty string", ""],
     ["garbage string", "not-a-color"],
-    ["object", { brandColor: "#fff" }],
+    ["object", { themeColor: "#fff" }],
     ["array", ["#fff"]],
     ["injection-y string", '#fff"}</style><script>alert(1)</script>'],
     ["css-breakout string", "red; } body { display: none"],
@@ -115,22 +117,22 @@ describe("cardSwatches — defensive & total", () => {
  * Engine contrast STRESS-TEST, via the featured-home card consumer.
  *
  * The featured-home grid exists to exercise the engine: a card's SURFACE and TEXT are both
- * engine-derived from its `brandColor`, so the ratio between them IS the solver's output.
- * This suite feeds `cardSwatches` a battery of edge-case brand colors — the hard paths the
+ * engine-derived from its `themeColor`, so the ratio between them IS the solver's output.
+ * This suite feeds `cardSwatches` a battery of edge-case theme colors — the hard paths the
  * solver must survive (too-light, yellow/cyan where a uniform ΔL fails, high-chroma /
  * wide-gamut, near-black) — parses the BAKED colors back out of each card's `light-dark()`
  * literals, and asserts:
  *   • text on surface clears WCAG 2.2 AA body contrast (≥ 4.5:1), and
  *   • the border + accent clear the non-text UI floor (≥ 3:1) on that same surface,
- * in BOTH schemes and BOTH gamuts. If any brand value drops a pair under its floor, this
+ * in BOTH schemes and BOTH gamuts. If any theme value drops a pair under its floor, this
  * goes red — a real engine finding surfaced at the exact place the grid is meant to prove it.
  *
  * (The engine solves foregrounds against the worst-case surface `surface-2`, so a pass here
  * on `surface` is the guaranteed-minimum; see `packages/oklch/src/palette.ts`.)
  */
-describe("cardSwatches — the engine solves an accessible card palette across brand values", () => {
-  // [label, brandColor] — chosen to hit the solver's documented hard paths.
-  const BRANDS: readonly [string, string][] = [
+describe("cardSwatches — the engine solves an accessible card palette across theme values", () => {
+  // [label, themeColor] — chosen to hit the solver's documented hard paths.
+  const SEEDS: readonly [string, string][] = [
     ["mid blue", "#3b82f6"],
     ["mid red", "#ef4444"],
     ["violet", "#8b5cf6"],
@@ -163,10 +165,10 @@ describe("cardSwatches — the engine solves an accessible card palette across b
   }
 
   for (const gamut of GAMUTS) {
-    for (const [label, brand] of BRANDS) {
-      const style = cardSwatches(brand, { gamut });
+    for (const [label, seed] of SEEDS) {
+      const style = cardSwatches(seed, { gamut });
       const surface = schemes(style["--surface"]);
-      const text = schemes(style["--text"]);
+      const text = schemes(style["--foreground"]);
       const border = schemes(style["--border"]);
       const accent = schemes(style["--accent"]);
 
@@ -196,16 +198,16 @@ describe("cardSwatches — the engine solves an accessible card palette across b
 /**
  * Defensive-totality contract for `cardSwatches`.
  *
- * The featured-home grid brands EVERY featured card from its `brandColor` — including a
- * featured note/essay/now with no `brandColor` (null), or a hostile/garbage value. The engine
+ * The featured-home grid brands EVERY featured card from its `themeColor` — including a
+ * featured note/essay/now with no `themeColor` (null), or a hostile/garbage value. The engine
  * is the fallback owner, but this consumer promises to NEVER throw and to ALWAYS return four
  * valid `light-dark(oklch(...), oklch(...))` literals. The existing contrast suite only feeds
  * VALID colors; this pins the bad-input edge the author's suite skipped.
  */
-describe("cardSwatches — total & defensive on bad brandColor", () => {
+describe("cardSwatches — total & defensive on bad themeColor", () => {
   const VARS: readonly CardSwatchVar[] = [
     "--surface",
-    "--text",
+    "--foreground",
     "--border",
     "--accent",
   ];
@@ -261,16 +263,16 @@ describe("cardSwatches — total & defensive on bad brandColor", () => {
 /**
  * The PLATE contrast pair — the pair `EntryCard` actually paints.
  *
- * `EntryCard` renders a solid brand PLATE: `background: var(--accent)` with
- * `color: var(--on-accent)` (see EntryCard.module.css). Every visible glyph on a card — title,
- * blurb, and the mono meta readout — is `--on-accent` painted ON the `--accent` fill. The
+ * `EntryCard` renders a solid accent PLATE: `background: var(--accent)` with
+ * `color: var(--accent-foreground)` (see EntryCard.module.css). Every visible glyph on a card — title,
+ * blurb, and the mono meta readout — is `--accent-foreground` painted ON the `--accent` fill. The
  * sibling stress-test above (the engine-solves-an-accessible-card-palette suite) proves
  * text/border/accent clear their floors AGAINST THE SURFACE; this suite locks the pair the
  * plate paints instead.
  *
  * Two guards over the same pair:
  *  1. Full-opacity `on-accent` on `accent` clears WCAG 4.5 / APCA Lc 60 — across the solver's
- *     hard brand paths, both schemes, both gamuts, and the fallback palette.
+ *     hard theme paths, both schemes, both gamuts, and the fallback palette.
  *  2. The `.meta` row is de-emphasised. Its opacity is read straight from EntryCard.module.css
  *     (defaulting to 1 when the rule carries none), composited over the plate, and asserted to
  *     STILL clear AA — so re-introducing any `opacity < 1` turns this red, because on-accent is
@@ -280,8 +282,8 @@ describe("cardSwatches — total & defensive on bad brandColor", () => {
  * eats the `SOLVE_MARGIN` headroom turns this red at the exact place the grid proves it.
  */
 describe("cardSwatches — the plate pair (on-accent text on the accent fill) stays legible", () => {
-  // [label, brandColor] — the solver's documented hard paths, plus the non-color fallbacks.
-  const BRANDS: readonly [string, string | null][] = [
+  // [label, themeColor] — the solver's documented hard paths, plus the non-color fallbacks.
+  const SEEDS: readonly [string, string | null][] = [
     ["mid blue", "#3b82f6"],
     ["mid red", "#ef4444"],
     ["violet", "#8b5cf6"],
@@ -333,14 +335,14 @@ describe("cardSwatches — the plate pair (on-accent text on the accent fill) st
   }
 
   for (const gamut of GAMUTS) {
-    for (const [label, brand] of BRANDS) {
-      const style = cardSwatches(brand, { gamut });
+    for (const [label, seed] of SEEDS) {
+      const style = cardSwatches(seed, { gamut });
       const accent = schemes(style["--accent"]);
-      const onAccent = schemes(style["--on-accent"]);
+      const accentForeground = schemes(style["--accent-foreground"]);
 
       for (const scheme of ["light", "dark"] as const) {
         const bg = toColor(accent[scheme]);
-        const fg = toColor(onAccent[scheme]);
+        const fg = toColor(accentForeground[scheme]);
 
         it(`[${gamut}/${scheme}] ${label}: on-accent on accent ≥ 4.5:1 (WCAG 2.2 AA body)`, () => {
           expect(contrastWCAG(fg, bg)).toBeGreaterThanOrEqual(4.5);
@@ -352,7 +354,7 @@ describe("cardSwatches — the plate pair (on-accent text on the accent fill) st
 
         // The de-emphasised meta row composited at its shipped opacity must STILL clear AA.
         const metaFg = compositeOver(
-          onAccent[scheme],
+          accentForeground[scheme],
           accent[scheme],
           META_OPACITY,
         );

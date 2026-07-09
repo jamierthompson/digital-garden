@@ -1,9 +1,9 @@
 /**
  * Visual contrast harness — the engine's real exit criterion.
  *
- * Proves PALETTE QUALITY, not just determinism: for 5 hue-spanning brand colors (incl.
+ * Proves PALETTE QUALITY, not just determinism: for 5 hue-spanning theme colors (incl.
  * the yellow & cyan stressers), in BOTH schemes, every text-on-surface and
- * on-brand pair clears its APCA Lc + WCAG target AFTER gamut mapping. Assert the
+ * accent-foreground pair clears its APCA Lc + WCAG target AFTER gamut mapping. Assert the
  * MEASURED number, never a CSS snapshot (testing.md). The companion `swatches.html`
  * artifact (regenerated below) is the eyeball check; run instructions in README.md.
  */
@@ -16,7 +16,7 @@ import { apcaLc, contrastWCAG } from "../contrast";
 import { inGamut } from "../gamut";
 import { resolveTheme } from "../palette";
 import type { OkLCH, Scheme } from "../types";
-import { BRAND_SAMPLES, renderSwatchDocument } from "./swatches";
+import { THEME_SAMPLES, renderSwatchDocument } from "./swatches";
 
 const SCHEMES: Scheme[] = ["light", "dark"];
 
@@ -29,79 +29,79 @@ interface PairCheck {
 }
 
 // The pairs the engine guarantees. Text foregrounds are solved against the worst-case
-// surface (surface-2), so each also clears on bg and surface — both asserted below.
+// surface (surface-elevated), so each also clears on background and surface — both asserted below.
 const CHECKS: PairCheck[] = [
   {
-    label: "text / surface-2",
-    fg: (t) => t.text,
-    bg: (t) => t["surface-2"],
+    label: "foreground / surface-elevated",
+    fg: (t) => t.foreground,
+    bg: (t) => t["surface-elevated"],
     wcag: 4.5,
     apca: 75,
   },
   {
-    label: "text / surface",
-    fg: (t) => t.text,
+    label: "foreground / surface",
+    fg: (t) => t.foreground,
     bg: (t) => t.surface,
     wcag: 4.5,
     apca: 75,
   },
   {
-    label: "text / bg",
-    fg: (t) => t.text,
-    bg: (t) => t.bg,
+    label: "foreground / background",
+    fg: (t) => t.foreground,
+    bg: (t) => t.background,
     wcag: 4.5,
     apca: 75,
   },
   {
-    label: "muted / surface-2",
-    fg: (t) => t["text-muted"],
-    bg: (t) => t["surface-2"],
+    label: "muted / surface-elevated",
+    fg: (t) => t["muted-foreground"],
+    bg: (t) => t["surface-elevated"],
     wcag: 4.5,
     apca: 60,
   },
   {
-    label: "accent-text / surface-2",
+    label: "accent-text / surface-elevated",
     fg: (t) => t["accent-text"],
-    bg: (t) => t["surface-2"],
+    bg: (t) => t["surface-elevated"],
     wcag: 4.5,
     apca: 60,
   },
   {
-    label: "on-accent / accent",
-    fg: (t) => t["on-accent"],
+    label: "accent-foreground / accent",
+    fg: (t) => t["accent-foreground"],
     bg: (t) => t.accent,
     wcag: 4.5,
     apca: 60,
   },
   {
-    label: "accent / surface-2",
+    label: "accent / surface-elevated",
     fg: (t) => t.accent,
-    bg: (t) => t["surface-2"],
+    bg: (t) => t["surface-elevated"],
     wcag: 3,
     apca: 45,
   },
   {
-    label: "border / surface-2",
+    label: "border / surface-elevated",
     fg: (t) => t.border,
-    bg: (t) => t["surface-2"],
+    bg: (t) => t["surface-elevated"],
     wcag: 3,
     // The engine's own CONTRAST_TARGETS.border is Lc 30 (palette.ts) — assert it delivers that.
     apca: 30,
   },
   {
-    label: "focus-ring / surface-2",
-    fg: (t) => t["focus-ring"],
-    bg: (t) => t["surface-2"],
+    label: "ring / surface-elevated",
+    fg: (t) => t["ring"],
+    bg: (t) => t["surface-elevated"],
     wcag: 3,
     apca: 45,
   },
 ];
 
 describe("visual contrast harness", () => {
-  for (const sample of BRAND_SAMPLES) {
+  for (const sample of THEME_SAMPLES) {
     for (const scheme of SCHEMES) {
       describe(`${sample.name} — ${scheme}`, () => {
-        const { tokens } = resolveTheme(sample.brandColor, scheme);
+        const { tokens } = resolveTheme(sample.themeColor, scheme);
 
         it.each(CHECKS)("$label meets its contrast target", (check) => {
           const fg = check.fg(tokens);

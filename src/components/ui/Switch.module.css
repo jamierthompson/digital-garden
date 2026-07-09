@@ -9,7 +9,7 @@
     padding: 0;
     border: 1px solid var(--border);
     border-radius: 99px;
-    background: var(--surface-2);
+    background: var(--surface-elevated);
     cursor: pointer;
     transition:
       background var(--duration-fast) var(--ease-standard),
@@ -27,18 +27,18 @@
     height: 1.125rem;
     transform: translateX(0.1875rem);
     border-radius: 99px;
-    /* --text-muted, not --bg or --border: the unchecked state must stay perceptible
+    /* --muted-foreground, not --background or --border: the unchecked state must stay perceptible
        (WCAG 1.4.11 ≥3:1) in BOTH token tiers this primitive renders under — the editorial
        foundation (nav/footer chrome, where --border is an incidental hairline with no
-       receipt) and engine brand scopes. text-muted is a solved ink token in both; measured
-       6.0–7.9:1 vs track, page bg, and the page `--bg` extremes, both schemes. */
-    background: var(--text-muted);
+       receipt) and engine theme scopes. text-muted is a solved ink token in both; measured
+       6.0–7.9:1 vs track, page bg, and the page `--background` extremes, both schemes. */
+    background: var(--muted-foreground);
     transition: transform var(--duration-fast) var(--ease-standard);
     will-change: transform;
   }
 
   .thumb[data-state="checked"] {
     transform: translateX(1.1875rem);
-    background: var(--on-accent);
+    background: var(--accent-foreground);
   }
 }

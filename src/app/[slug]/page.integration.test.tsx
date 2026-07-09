@@ -34,8 +34,8 @@ const THEMED_ENTRY = {
   title: "A Themed Slot",
   slug: "themed-slot",
   blurb: "A representative themed entry.",
-  brandColor: "oklch(0.7 0.15 70)",
-  brandColorDark: null,
+  themeColor: "oklch(0.7 0.15 70)",
+  themeColorDark: null,
   fontKey: "newsreader",
   notes: null,
 };
@@ -60,7 +60,7 @@ describe("/[slug] primary flow (Sanity mocked)", () => {
     expect(scope.font.cssVariable).toBe("--font-newsreader");
   });
 
-  it("renders the slot under its data-entry scope wearing the entry's brand font", () => {
+  it("renders the slot under its data-entry scope wearing the entry's theme font", () => {
     const { container } = render(
       <EntryScope
         seed={{ slug: THEMED_ENTRY.slug, fontKey: THEMED_ENTRY.fontKey }}
@@ -71,8 +71,8 @@ describe("/[slug] primary flow (Sanity mocked)", () => {
     const wrapper = container.querySelector("[data-entry]") as HTMLElement;
     expect(wrapper).toHaveAttribute("data-entry", "themed-slot");
     // Color is inherited from the page's `<html>` theme; the only per-slot override is the
-    // entry's font, mapped onto `--font-face` inline on this island.
-    expect(wrapper.style.getPropertyValue("--font-face")).toContain(
+    // entry's font, mapped onto `--font-body` inline on this island.
+    expect(wrapper.style.getPropertyValue("--font-body")).toContain(
       "var(--font-newsreader)",
     );
   });

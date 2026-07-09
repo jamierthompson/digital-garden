@@ -2,7 +2,7 @@
 @layer components {
   .related {
     margin-top: var(--space-7);
-    border-top: 1px solid var(--border, var(--text));
+    border-top: 1px solid var(--border, var(--foreground));
     padding-top: var(--space-5);
   }
 
@@ -18,7 +18,7 @@
 
   .item {
     margin-top: var(--space-2);
-    color: var(--text);
+    color: var(--foreground);
   }
 
   .link {

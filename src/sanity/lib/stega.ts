@@ -15,7 +15,7 @@ import type { StegaConfig } from "@sanity/client/stega";
  * Fields whose string values are consumed by CODE, not rendered as prose, so they
  * must never carry stega's invisible zero-width characters.
  *
- * - `brandColor` / `brandColorDark` are parsed by the OKLCH engine; stega chars
+ * - `themeColor` / `themeColorDark` are parsed by the OKLCH engine; stega chars
  *   break the color parse.
  * - `fontKey` / `componentKey` / `embedKey` are resolved against code by key; stega
  *   chars break the lookup (and reintroduce key-drift).
@@ -29,8 +29,8 @@ import type { StegaConfig } from "@sanity/client/stega";
  * names, so we exclude them explicitly.
  */
 export const STEGA_EXCLUDED_FIELDS = new Set([
-  "brandColor",
-  "brandColorDark",
+  "themeColor",
+  "themeColorDark",
   "fontKey",
   "componentKey",
   "embedKey",
@@ -40,8 +40,8 @@ export const STEGA_EXCLUDED_FIELDS = new Set([
 
 /**
  * The `siteSettings.pageThemes` object's per-page seeds (`home` / `browse` / `about` /
- * `now` / `system`) are brand colors parsed by the OKLCH engine (#166), so they share
- * `brandColor`'s stega hazard — but their leaf names are common words we must NOT denylist
+ * `now` / `system`) are theme colors parsed by the OKLCH engine (#166), so they share
+ * `themeColor`'s stega hazard — but their leaf names are common words we must NOT denylist
  * globally. So they're excluded by ANCESTOR: any field nested under `pageThemes` is a
  * code-consumed seed.
  */

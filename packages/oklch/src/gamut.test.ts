@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { gamutMap, inGamut } from "./gamut";
 import type { Gamut, OkLCH } from "./types";
 
-/** Brand-ish hues spanning the wheel, incl. the yellow/cyan stressers. */
+/** Assorted seed hues spanning the wheel, incl. the yellow/cyan stressers. */
 const HUES = [29, 110, 145, 195, 260, 330];
 
 const GAMUTS: Gamut[] = ["srgb", "p3"];

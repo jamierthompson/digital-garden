@@ -19,13 +19,13 @@ import { buildTokenSet, resolveTheme } from "./palette";
 import { CONTRAST_TARGETS } from "./targets";
 import { checkContrast } from "./contrast";
 import { inGamut } from "./gamut";
-import { RAMP_LABELS, BRAND_TOKEN_NAMES, RAMP_ROLES } from "./types";
+import { RAMP_LABELS, THEME_TOKEN_NAMES, RAMP_ROLES } from "./types";
 import type { OkLCH } from "./types";
 
 /** JND budget the gamut mapper is allowed to nudge L by (gamut.ts JND = 0.02 ΔEok). */
 const JND = 0.02;
 
-/** A spread of brand seeds that stress every branch: light-native, dark-native, achromatic,
+/** A spread of theme seeds that stress every branch: light-native, dark-native, achromatic,
  *  the L extremes, gamut-tight and wrap-edge hues, plus the unparseable fallback path. */
 const SEEDS: Array<[label: string, seed: unknown]> = [
   ["mid blue", "#3b82f6"],
@@ -134,7 +134,7 @@ describe("harmony tier — structure & determinism (#152)", () => {
   });
 });
 
-describe("harmony tier — ramps get the brand treatment", () => {
+describe("harmony tier — ramps get the accent treatment", () => {
   it.each(SEEDS)(
     "%s: every step gamut-mapped, monotonic, oog flagged",
     (_l, seed) => {
@@ -158,20 +158,20 @@ describe("harmony tier — ramps get the brand treatment", () => {
   );
 
   it.each(SEEDS)(
-    "%s: harmony ramp shares the brand ramp's anchored lightness profile (within JND)",
+    "%s: harmony ramp shares the accent ramp's anchored lightness profile (within JND)",
     (_l, seed) => {
       for (const scheme of ["light", "dark"] as const) {
-        const brand = resolveTheme(seed, scheme).ramps.brand;
+        const accentRamp = resolveTheme(seed, scheme).ramps.accent;
         const tier = resolveHarmonyTier(seed, scheme);
         for (const hue of HARMONY_HUES) {
           const ramp = tier.hues[hue].ramp;
           // Same scale + same anchor + same rules → identical NOMINAL L. Only the per-hue
           // gamut clip differs, and it can nudge each side up to one JND from that shared
-          // nominal — so brand vs. harmony differ by at most 2×JND (they clip independently).
+          // nominal — so accent vs. harmony differ by at most 2×JND (they clip independently).
           for (let i = 0; i < ramp.length; i++) {
-            expect(Math.abs(ramp[i].color.L - brand[i].color.L)).toBeLessThan(
-              2 * JND,
-            );
+            expect(
+              Math.abs(ramp[i].color.L - accentRamp[i].color.L),
+            ).toBeLessThan(2 * JND);
           }
         }
       }
@@ -294,11 +294,11 @@ describe("harmony tier — opt-in, separated export group", () => {
       ...props(harmonyTierToCss(tier)),
       ...props(harmonyTierToTailwindTheme(tier)),
     ];
-    for (const name of BRAND_TOKEN_NAMES) {
+    for (const name of THEME_TOKEN_NAMES) {
       expect(emitted).not.toContain(`--${name}`);
       expect(emitted).not.toContain(`--color-${name}`);
     }
-    // No `--brand-500` / `--neutral-200` / status ramp props leak into the annex.
+    // No `--accent-500` / `--neutral-200` / status ramp props leak into the annex.
     for (const role of RAMP_ROLES) {
       expect(emitted.some((n) => n.startsWith(`--harmony-${role}-`))).toBe(
         false,
@@ -352,9 +352,9 @@ describe("harmony tier — opt-in, separated export group", () => {
  *  included); `surface-selected` is the derivation's declared worst case, so a pick that
  *  clears it must also clear the other four. */
 const SURFACE_TOKENS = [
-  "bg",
+  "background",
   "surface",
-  "surface-2",
+  "surface-elevated",
   "surface-hover",
   "surface-selected",
 ] as const;
@@ -591,7 +591,7 @@ describe("QA — adversarial (#152)", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Fresh-eyes adversarial QA (second pass, #152 × #160) — the seams the suite above
 // doesn't reach: the generative-rules interaction with the picks, DIRECT per-scheme
-// scale evidence (not brand-relative), the alpha × harmony export seam, opt-in purity
+// scale evidence (not seed-relative), the alpha × harmony export seam, opt-in purity
 // of the core serializers, and byte-level exporter determinism.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -654,7 +654,7 @@ describe("QA — fresh-eyes adversarial: rules × picks (#101 interaction)", () 
 });
 
 describe("QA — fresh-eyes adversarial: per-scheme scale, proven directly (#160)", () => {
-  // The "shares the brand ramp's profile" test above is RELATIVE — if brand and harmony
+  // The "shares the accent ramp's profile" test above is RELATIVE — if accent and harmony
   // were both label-flipped, it would still pass. Pin the scales ABSOLUTELY: the anchor
   // bend preserves the ramp endpoints and the gamut map may nudge L by at most one JND,
   // so each scheme's harmony ramps must end at ITS OWN scale extremes (light 950 → 0.145,

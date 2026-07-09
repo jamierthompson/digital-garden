@@ -155,7 +155,7 @@ describe("first-paint theme source order — built production HTML", () => {
  * Injection surface: the theme block is authored via `dangerouslySetInnerHTML`. Prove the
  * engine pipeline (which the `/color-engine` play path also feeds) can never emit a value or
  * property carrying a `<style>`-breakout or CSS-block-breakout character, for ANY seed —
- * `cssSafe` in `BrandThemeStyle` is then a second line of defense, not the only one.
+ * `cssSafe` in `ThemeStyle` is then a second line of defense, not the only one.
  */
 describe("theme declarations carry no injection characters (any seed)", () => {
   const HOSTILE_SEEDS: unknown[] = [
