@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -79,5 +79,30 @@ describe("semantic/color.css color is engine-derived, not hand-authored", () => 
     const extras = sheetColorTokens.filter((t) => !engineTokens.has(t));
     expect(extras).toEqual([]);
     expect(new Set(sheetColorTokens)).toEqual(engineTokens);
+  });
+
+  // Pre-split, the bijection above scanned the whole monolith, so a hand-authored color
+  // anywhere in the token sheets tripped it. Post-split it only reads color.css — so extend
+  // the reverse guard to the TREE: no other src/styles sheet may declare a color value at all,
+  // keeping color.css the single (engine-derived) color surface.
+  it("no other src/styles sheet declares a color value (tree-wide reverse guard)", () => {
+    const stylesDir = resolve(process.cwd(), "src/styles");
+    const otherSheets = readdirSync(stylesDir, { recursive: true })
+      .map((entry) => String(entry).split("\\").join("/"))
+      .filter((entry) => entry.endsWith(".css"))
+      .filter((entry) => entry !== "semantic/color.css");
+    expect(otherSheets.length).toBeGreaterThan(0);
+    for (const sheet of otherSheets) {
+      const css = readFileSync(resolve(stylesDir, sheet), "utf8").replace(
+        /\/\*[\s\S]*?\*\//g,
+        "",
+      );
+      expect(
+        /oklch\(|oklab\(|light-dark\(|#[0-9a-f]{3,8}\b|\brgb\(|\bhsl\(/i.test(
+          css,
+        ),
+        `src/styles/${sheet} declares a color value — colors live only in semantic/color.css (engine-derived)`,
+      ).toBe(false);
+    }
   });
 });
