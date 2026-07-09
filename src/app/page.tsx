@@ -19,8 +19,8 @@ export const metadata: Metadata = {
 /**
  * The featured home — the curated front door for a hurried evaluator (the Index at `/browse`
  * is the wanderer's path). It renders the entries an editor promoted with a `featuredRank`,
- * ordered by rank, as `EntryCard`s — each a bounded brand slot that themes itself from its
- * own `brandColor` (see `EntryCard`), while the surrounding shell stays editorial ink.
+ * ordered by rank, as `EntryCard`s — each a bounded themed slot that themes itself from its
+ * own `themeColor` (see `EntryCard`), while the surrounding shell stays editorial ink.
  */
 export default async function Home() {
   // Both reads are `use cache`, so they resolve into the prerendered static shell — the theme

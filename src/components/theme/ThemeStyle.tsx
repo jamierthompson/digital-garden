@@ -23,7 +23,7 @@ import type { ThemeDeclaration } from "@/lib/theme";
  * `</style>` breakout is refused defensively at this boundary — the `/color-engine` play path
  * feeds the same primitive, so a hostile seed must never be able to close the element.
  */
-export default function BrandThemeStyle({
+export default function ThemeStyle({
   declarations,
 }: {
   declarations: ThemeDeclaration[];

@@ -65,7 +65,7 @@ function customProperty(name: ThemeTokenName): string {
 /**
  * `--<role>-<step>` for one ramp step (`--accent-500`, `--neutral-200`, `--success-700`) —
  * the primitive tier, exposed 1:1 to a Tailwind numeric scale. A consumer inside the slot
- * (a subtle branded fill, the card ramp strip #96) reads these; the semantic tokens above
+ * (a subtle accent fill, the card ramp strip #96) reads these; the semantic tokens above
  * are what components read by default.
  */
 function rampProperty(role: RampRole, step: RampStep): string {

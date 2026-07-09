@@ -10,6 +10,6 @@
   }
 
   .lede {
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 }

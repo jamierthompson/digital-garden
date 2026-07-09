@@ -7,7 +7,7 @@
     border: 1px solid var(--border);
     border-radius: 0.375rem;
     background: var(--surface);
-    color: var(--text);
+    color: var(--foreground);
     font-size: var(--type-size-3);
   }
 

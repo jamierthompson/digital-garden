@@ -24,8 +24,8 @@ interface SegmentedControlProps<T extends string> {
  * A pill segmented control — a horizontal single-choice toggle (Radix `RadioGroup`
  * under the hood, so roving arrow-key navigation and `aria-checked` come for free).
  * Generic UI primitive: themes off the ambient semantic tokens (`--accent`,
- * `--on-accent`, `--border`, …) so it reads editorial by default and brand inside a
- * brand slot. Provide `label` or `labelledBy`, not both.
+ * `--accent-foreground`, `--border`, …) so it reads editorial by default and themed inside a
+ * themed slot. Provide `label` or `labelledBy`, not both.
  */
 export default function SegmentedControl<T extends string>({
   label,

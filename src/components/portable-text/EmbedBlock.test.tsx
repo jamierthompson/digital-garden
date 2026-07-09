@@ -2,7 +2,7 @@
 // contract under test: (1) a missing/unknown key degrades to the visible MissingEmbed —
 // never a throw; (2) with a project `scope` the embed mounts inside its OWN
 // `[data-entry]` container; (3) without a scope it mounts bare; (4) the caption stays
-// OUTSIDE the brand scope (editorial register). EmbedBlock is an async Server Component,
+// OUTSIDE the theme scope (editorial register). EmbedBlock is an async Server Component,
 // so each case awaits the element before rendering (the jsdom-compatible RSC pattern).
 
 import { render, screen } from "@testing-library/react";
@@ -71,7 +71,7 @@ describe("EmbedBlock", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the caption OUTSIDE the brand scope, in the editorial figure", async () => {
+  it("renders the caption OUTSIDE the theme scope, in the editorial figure", async () => {
     const { container } = render(
       await EmbedBlock({
         embedKey: "color-engine-seed",
@@ -81,7 +81,7 @@ describe("EmbedBlock", () => {
     );
     const caption = screen.getByText("A caption in the essay voice");
     expect(caption.tagName).toBe("FIGCAPTION");
-    // The caption must NOT sit inside the scoped container — brand never reaches prose.
+    // The caption must NOT sit inside the scoped container — the theme never reaches prose.
     expect(caption.closest("[data-entry]")).toBeNull();
     // And the whole block is one <figure>.
     expect(container.querySelector("figure")).toContainElement(caption);

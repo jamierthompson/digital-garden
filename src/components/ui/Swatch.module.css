@@ -22,8 +22,8 @@
     inline-size: 5px;
     block-size: 5px;
     border-radius: 99px;
-    background: var(--bg);
-    box-shadow: 0 0 0 1px var(--text-muted);
+    background: var(--background);
+    box-shadow: 0 0 0 1px var(--muted-foreground);
   }
 
   /* Seed-change morph — the fill cross-fades to its new color instead of snapping (#154).

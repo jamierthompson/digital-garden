@@ -2,9 +2,9 @@
 
 A personal portfolio and digital garden — a place to grow notes, ideas, and work
 over time. The whole site shares one editorial look — Source Serif 4 and a
-black/white/gray neutral ramp — across all page chrome. Each project's brand
+black/white/gray neutral ramp — across all page chrome. Each project's theme
 color (a perceptual OKLCH palette) and font theme only its own bounded
-interactive slot, on that shared foundation. Content and brand seeds live in
+interactive slot, on that shared foundation. Content and theme seeds live in
 Sanity; the site renders on Next.js.
 
 > **Status:** the shared foundation — the OKLCH theming engine (`@garden/oklch`) and the
@@ -85,8 +85,8 @@ chain on every PR.
 
 CSS custom properties + CSS Modules, organized with `@layer`. Tokens are three tiers —
 **foundation** primitives → **semantic** role tokens (the public contract components read) → a
-per-slot **brand** override the `@garden/oklch` engine bakes flash-free. One editorial look themes
-all page chrome; a project's brand color + font theme only its own bounded slot, with no
+per-slot **theme** override the `@garden/oklch` engine bakes flash-free. One editorial look themes
+all page chrome; a project's theme color + font theme only its own bounded slot, with no
 project-prefixed token names (the `[data-entry]` scope provides the isolation).
 
 The full model — the layer order, the "@layer trap", scope-based isolation, and the token

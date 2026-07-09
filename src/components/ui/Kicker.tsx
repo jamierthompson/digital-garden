@@ -16,7 +16,7 @@ interface KickerProps {
 /**
  * The mono micro-kicker — the site's meta register: uppercase, tracked, muted,
  * monospace. Generic UI primitive (the #120 mono-meta anchor): reads the ambient
- * semantic tokens, so it renders editorial by default and brand inside a brand slot.
+ * semantic tokens, so it renders editorial by default and themed inside a themed slot.
  */
 export default function Kicker({
   children,

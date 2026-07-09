@@ -1,7 +1,7 @@
 // The per-entry font roster. A curated `next/font` face per `FontKey`,
 // declared once here and resolved by key against the Sanity `fontKey` (see
 // `src/lib/resolvers/fonts.ts`). The entry scope mounts the resolved face's
-// `.variable` className on its `[data-entry]` wrapper and maps `--font-face` to it.
+// `.variable` className on its `[data-entry]` wrapper and maps `--font-body` to it.
 //
 // next/font must be called at module scope, so the roster is a fixed code-side set —
 // an editor picks from it, never a free-text name. Declaration ≠ download (a face
@@ -28,7 +28,7 @@ import type { FontKey } from "@/lib/keys";
 export interface FontFace {
   /** The `next/font`-generated className that declares the CSS variable; mount it on the `[data-entry]` scope wrapper. */
   readonly variable: string;
-  /** The CSS custom-property name this face is bound to; the scope maps `--font-face: var(<this>)`. */
+  /** The CSS custom-property name this face is bound to; the scope maps `--font-body: var(<this>)`. */
   readonly cssVariable: string;
 }
 

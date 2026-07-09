@@ -38,7 +38,7 @@ bit-identical to a fresh compute — so the purity/determinism contract is uncha
   policy** the pin is **lightness-only** — the anchored step's chroma follows the policy's
   curve like every other step, so full seed-color fidelity holds under the default `flat`
   policy (QA-101). Neutral/status ramps stay on the scheme's own scale.
-- **Brand-harmony palette** (`buildHarmonyPalette`, #102): decorative hue sets in
+- **Accent-harmony palette** (`buildHarmonyPalette`, #102): decorative hue sets in
   mathematical harmony with the seed — analogous (±30°), complementary (180°), triadic
   (±120°), split-complementary (150°/210°) — each at the seed's own L/C, gamut-mapped, for
   charts/gradients/secondary accents. **Decorative, not semantic**: kept apart from the
@@ -106,14 +106,14 @@ carries the identity so a status fill's receipt never says "accent"): `StepProve
 (`{ kind: "step", role, label }`) for a discrete ramp step (surfaces, every `auto` token,
 containers, state steps); `FillProvenance` (`{ kind: "fill", role, hue, seed }`) for a
 co-solved fill (the `accent`/`accent-hover` — `seed` non-null with the faithful/nudged/
-derived story — and every status fill — `seed: null`, fixed canonical hue); `OnFillProvenance`
-(`{ kind: "on-fill", role, pole, hue, chroma, backedOff }`) for a chromatic label on a fill
+derived story — and every status fill — `seed: null`, fixed canonical hue); `FillForegroundProvenance`
+(`{ kind: "fill-foreground", role, pole, hue, chroma, backedOff }`) for a chromatic label on a fill
 (`accent-foreground`, `<status>-foreground`); and `LiteralProvenance` (`{ kind: "literal", alpha }`) for a
 fixed value (scrim — no contrast claim, only opacity). `null` is a reserved sentinel. It is
 **reporting, not re-solving** — every baked color is byte-identical with or without it.
 
 The derivation contract (the receipt's other half, #150): `CONTRAST_TARGETS` — the named
-tiers each pair is measured against (`bodyText` 4.5/75, `mutedText`/`accentText`/`onAccent`
+tiers each pair is measured against (`bodyText` 4.5/75, `mutedText`/`accentText`/`accentForeground`
 4.5/60, `ui` 3/45, `border` 3/30) — and `DEFAULT_BINDING_SCHEMA`, the read-only
 `Record<ThemeTokenName, TokenBinding>` the engine solves against. Together they let the
 Studio answer, for any token, WHICH binding kind it is (`step`/`auto`/`accent`/`accent-foreground`/

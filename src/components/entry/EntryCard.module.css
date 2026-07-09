@@ -1,12 +1,12 @@
-/* Branded entry card. @layer components — declares its layer
+/* Themed entry card. @layer components — declares its layer
    (an unlayered module outranks every layered rule). Reads ONLY the semantic tokens
    `cardSwatches` re-binds on this card's element: the plate is `--accent`, its text the
-   engine-solved contrast pair `--on-accent`, so each plate is legible by construction. */
+   engine-solved contrast pair `--accent-foreground`, so each plate is legible by construction. */
 @layer components {
   .card {
     display: flex;
     background: var(--accent);
-    color: var(--on-accent);
+    color: var(--accent-foreground);
     border-radius: 0.75rem;
     overflow: hidden;
   }
@@ -25,23 +25,23 @@
 
   /* Register 2 — the editorial serif blurb (the multi-font mix, via the `Text` body role). */
   .blurb {
-    color: var(--on-accent);
+    color: var(--accent-foreground);
   }
 
   /* Register 3 — the mono readout (via the `Text` meta role), pinned to the plate floor:
-     maturity stage · OKLCH seed. NOT dimmed: the engine solves `--on-accent` to only just clear
+     maturity stage · OKLCH seed. NOT dimmed: the engine solves `--accent-foreground` to only just clear
      WCAG AA on the accent fill (~zero headroom), so any `opacity < 1` drops this normal-size
      text below 4.5:1 (guarded by cardSwatches.meta-opacity.test.ts). De-emphasis comes from the
      mono face + smaller size, both owned by the primitive. */
   .meta {
     margin-top: auto;
-    color: var(--on-accent);
+    color: var(--accent-foreground);
   }
 
   /* Keep the focus ring legible on the saturated plate: draw it in the on-accent pair, inset so
      it sits ON the plate rather than being clipped by the card's `overflow: hidden`. */
   .link:focus-visible {
-    outline-color: var(--on-accent);
+    outline-color: var(--accent-foreground);
     outline-offset: -4px;
   }
 }

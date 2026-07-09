@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 // The global editorial IA: the featured front door, the browse Index, and the shell pages.
-// `featured` and the `folio_` logo both point home (the logo is branding, `featured` is the
+// `featured` and the `folio_` logo both point home (the logo is the site wordmark, `featured` is the
 // wayfinding item that carries the active state on `/`). Kept a module constant, not inlined,
 // so the set has one source of truth.
 // The Index lives at `/browse` (not `/index`: Next prerenders the root route `/` to
@@ -39,7 +39,7 @@ function isActive(pathname: string, href: string): boolean {
  * The shell's primary nav links, split into a small Client Component so the current-page
  * indicator can read `usePathname` without dragging the server-rendered header
  * (`SiteNav`) to the client. Var-consuming only: reads the global editorial tokens
- * (`--font-display`, `--text`, `--border`) — the shell is never brand-scoped.
+ * (`--font-heading`, `--foreground`, `--border`) — the shell is never theme-scoped.
  */
 export default function NavLinks(): React.ReactElement {
   const pathname = usePathname();

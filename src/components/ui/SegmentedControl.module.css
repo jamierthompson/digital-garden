@@ -1,5 +1,5 @@
 /* Segmented pill control — @layer components, var-consuming only (generic semantic tokens,
-   editorial by default, brand inside a brand slot). ≥24px min target (WCAG 2.5.8); the
+   editorial by default, themed inside a themed slot). ≥24px min target (WCAG 2.5.8); the
    checked pill fills with the ambient accent so the current choice reads at a glance. */
 @layer components {
   .root {
@@ -16,8 +16,8 @@
     border: 1px solid var(--border);
     border-radius: 99px;
     background: transparent;
-    color: var(--text-muted);
-    font-family: var(--font-display);
+    color: var(--muted-foreground);
+    font-family: var(--font-heading);
     font-size: var(--type-size-2);
     line-height: var(--leading-none);
     cursor: pointer;
@@ -28,13 +28,13 @@
   }
 
   .pill:hover {
-    border-color: var(--text-muted);
-    color: var(--text);
+    border-color: var(--muted-foreground);
+    color: var(--foreground);
   }
 
   .pill[data-state="checked"] {
     background: var(--accent);
     border-color: var(--accent);
-    color: var(--on-accent);
+    color: var(--accent-foreground);
   }
 }

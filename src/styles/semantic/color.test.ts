@@ -39,7 +39,7 @@ describe("semantic/color.css IS the engine's complete fallback token set", () =>
   it("parsed a non-trivial sheet AND a full engine set (false-green guard)", () => {
     expect(Object.keys(SHEET_DECLS).length).toBeGreaterThan(10);
     expect(ENGINE_TOKENS.length).toBeGreaterThanOrEqual(30);
-    expect(SHEET_DECLS["--bg"]).toBeDefined();
+    expect(SHEET_DECLS["--background"]).toBeDefined();
   });
 
   for (const token of ENGINE_TOKENS) {
@@ -48,8 +48,11 @@ describe("semantic/color.css IS the engine's complete fallback token set", () =>
     });
   }
 
-  it("aliases --focus-ring-color to the semantic focus-ring token", () => {
-    expect(SHEET_DECLS["--focus-ring-color"]).toBe("var(--focus-ring)");
+  // `--ring` is the engine-emitted focus color read directly by `:focus-visible` — no alias
+  // step. The forward loop above already pins it to the engine value like any other token.
+  it("emits --ring as an engine token (no --focus-ring-color alias)", () => {
+    expect(SHEET_DECLS["--ring"]).toBe(ENGINE_DECLS["--ring"]);
+    expect(SHEET_DECLS["--focus-ring-color"]).toBeUndefined();
   });
 });
 

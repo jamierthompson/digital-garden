@@ -27,15 +27,15 @@
     display: flex;
     flex-direction: column;
     min-height: 100%;
-    font-family: var(--font-face);
+    font-family: var(--font-body);
     line-height: var(--leading-normal);
-    color: var(--text);
-    background-color: var(--bg);
+    color: var(--foreground);
+    background-color: var(--background);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* The one place headings get the display face; a brand slot re-binds only --font-face, so
+  /* The one place headings get the display face; a themed slot re-binds only --font-body, so
      headings hold the shell face in or out of a slot. */
   h1,
   h2,
@@ -43,7 +43,7 @@
   h4,
   h5,
   h6 {
-    font-family: var(--font-display);
+    font-family: var(--font-heading);
   }
 
   img,
@@ -63,8 +63,7 @@
   }
 
   :focus-visible {
-    outline: var(--focus-ring-width) var(--focus-ring-style)
-      var(--focus-ring-color, currentColor);
-    outline-offset: var(--focus-ring-offset);
+    outline: var(--ring-width) var(--ring-style) var(--ring, currentColor);
+    outline-offset: var(--ring-offset);
   }
 }

@@ -546,7 +546,7 @@ describe("seed-lightness auto-direction", () => {
 describe("status colors (trios + subtle surfaces, #160)", () => {
   const STATUS = ["success", "error", "warning", "info"] as const;
   const fillName = (s: string): ThemeTokenName => s as ThemeTokenName;
-  const onFillName = (s: string): ThemeTokenName =>
+  const fillForegroundName = (s: string): ThemeTokenName =>
     `${s}-foreground` as ThemeTokenName;
   const textName = (s: string): ThemeTokenName => `${s}-text` as ThemeTokenName;
   const subtleName = (s: string): ThemeTokenName =>
@@ -555,7 +555,7 @@ describe("status colors (trios + subtle surfaces, #160)", () => {
     `${s}-subtle-foreground` as ThemeTokenName;
   const allOf = (s: string): ThemeTokenName[] => [
     fillName(s),
-    onFillName(s),
+    fillForegroundName(s),
     textName(s),
     subtleName(s),
     onSubtleName(s),
@@ -636,7 +636,7 @@ describe("status colors (trios + subtle surfaces, #160)", () => {
         const surface2 = tokens["surface-elevated"];
         for (const s of STATUS) {
           const fill = tokens[fillName(s)];
-          const fillForeground = tokens[onFillName(s)];
+          const fillForeground = tokens[fillForegroundName(s)];
           const where = `${s}/${scheme}/${String(seed)}`;
           expect(inGamut(fill, "srgb"), `${where} fill gamut`).toBe(true);
           expect(
@@ -699,7 +699,7 @@ describe("status colors (trios + subtle surfaces, #160)", () => {
         s,
       ).toBeGreaterThanOrEqual(FILL_FLOOR.wcag);
       expect(
-        contrastWCAG(tokens[onFillName(s)], tokens[fillName(s)]),
+        contrastWCAG(tokens[fillForegroundName(s)], tokens[fillName(s)]),
         `on-${s}`,
       ).toBeGreaterThanOrEqual(LABEL_FLOOR.wcag);
       expect(
@@ -742,7 +742,7 @@ describe("status colors (trios + subtle surfaces, #160)", () => {
                   const where = `${s}/${scheme}/${gamut}/H${H}L${L}C${C}`;
                   const text = tokens[textName(s)];
                   const fill = tokens[fillName(s)];
-                  const fillForeground = tokens[onFillName(s)];
+                  const fillForeground = tokens[fillForegroundName(s)];
                   const subtle = tokens[subtleName(s)];
                   const subtleForeground = tokens[onSubtleName(s)];
                   expect(inGamut(fill, gamut), `${where} fill`).toBe(true);
@@ -789,7 +789,7 @@ describe("status colors (trios + subtle surfaces, #160)", () => {
 
   // The subtle surface + subtle-foreground are pinned/solved on the SEED-INDEPENDENT status ramp, so they
   // are EXACTLY theme-invariant; `<status>-text` (solved vs the accent-tinted surface-elevated) is only
-  // near-invariant. Guards against a accent-hue leak into the status solve.
+  // near-invariant. Guards against an accent-hue leak into the status solve.
   it("status subtle surfaces are theme-invariant; status text is near-invariant (fixed canonical hue)", () => {
     const a = resolveTheme("#e11d48", "light").tokens; // crimson seed
     const b = resolveTheme("#06b6d4", "light").tokens; // cyan seed

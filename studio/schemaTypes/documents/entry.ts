@@ -1,6 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-import {isBrandColorString} from '../shared/colorValidation'
+import {isThemeColorString} from '../shared/colorValidation'
 import {forbiddenForNow, requiredForNonSketchProject, requiredForThemedKind} from './entryValidators'
 
 /**
@@ -12,18 +12,18 @@ import {forbiddenForNow, requiredForNonSketchProject, requiredForThemedKind} fro
  * drives the Index's type filter and the on-card label; the kinds differ by scope and
  * emphasis, not fields. See docs/architecture.md → Content model.
  *
- * Theming seeds (`brandColor` / `fontKey` / `componentKey`) are reference-by-key values
+ * Theming seeds (`themeColor` / `fontKey` / `componentKey`) are reference-by-key values
  * consumed by code, NOT prose — see the stega exclusions in src/sanity/lib/client.ts. They
  * are CAPABILITY fields: the route themes / mounts a module on their PRESENCE, for any kind
  * except `now`. The required rules below are only a floor: under the site-wide engine-theming
- * model (#166) every page derives its theme from an authored seed, so `brandColor` is required
+ * model (#166) every page derives its theme from an authored seed, so `themeColor` is required
  * for every THEMED kind — note, essay, AND project (any stage: the project card plate consumes
  * it even for a sketch, and a note/essay page themes from it too). `fontKey` / `componentKey`
  * name a coded module + its face, so they stay required only for a `project` PAST the sketch
  * stage — a `stage: sketch` project is an honest placeholder with no module yet, so it carries a
- * brandColor but no fontKey/componentKey. `fontKey` / `componentKey` remain OPTIONAL-but-honored
+ * themeColor but no fontKey/componentKey. `fontKey` / `componentKey` remain OPTIONAL-but-honored
  * for a note/essay (one that sets `componentKey` mounts that module). `now` is chrome + prose by
- * design — it CANNOT set a `brandColor` (the single `/now` page seed themes all `now` content: the
+ * design — it CANNOT set a `themeColor` (the single `/now` page seed themes all `now` content: the
  * `/now` index and every `now` entry, resolved in ENTRY_DETAIL_QUERY); `forbiddenForNow` rejects a
  * color on a `now`, and any other theming field it carries is ignored downstream.
  *
@@ -127,13 +127,13 @@ export const entry = defineType({
           .error('Blurb exceeds the 300-character hard cap — the card layout cannot absorb the overflow.'),
     }),
 
-    // Theming seeds: reference-by-key, consumed by code, stega-excluded. brandColor is required
+    // Theming seeds: reference-by-key, consumed by code, stega-excluded. themeColor is required
     // for every themed kind — note, essay, and project (the page/card derives its theme from it);
     // fontKey / componentKey name a coded module + face, so they are required only PAST the sketch
     // stage. A `now` update carries none and inherits the /now page seed.
     defineField({
-      name: 'brandColor',
-      title: 'Brand color',
+      name: 'themeColor',
+      title: 'Theme color',
       type: 'string',
       description:
         'Hex or oklch() accent that themes this entry’s page and interactive component. Required for every note, essay, and project. (A “now” update inherits the /now page seed and cannot set its own color.)',
@@ -142,18 +142,18 @@ export const entry = defineType({
       // — hiding is UX, the validator is the belt that guards the API/import path.
       hidden: ({document}) => document?.kind === 'now',
       validation: (rule) =>
-        rule.custom(requiredForThemedKind).custom(forbiddenForNow).custom(isBrandColorString),
+        rule.custom(requiredForThemedKind).custom(forbiddenForNow).custom(isThemeColorString),
     }),
     defineField({
-      name: 'brandColorDark',
-      title: 'Brand color (dark override)',
+      name: 'themeColorDark',
+      title: 'Theme color (dark override)',
       type: 'string',
       description:
-        'Optional dark-mode override. Leave empty to derive it automatically from the brand color.',
-      // Hidden AND rejected for `now` alongside its paired `brandColor` — a dark override with no
+        'Optional dark-mode override. Leave empty to derive it automatically from the theme color.',
+      // Hidden AND rejected for `now` alongside its paired `themeColor` — a dark override with no
       // base color to override makes no sense on a kind that inherits the /now seed.
       hidden: ({document}) => document?.kind === 'now',
-      validation: (rule) => rule.custom(forbiddenForNow).custom(isBrandColorString),
+      validation: (rule) => rule.custom(forbiddenForNow).custom(isThemeColorString),
     }),
     defineField({
       name: 'fontKey',

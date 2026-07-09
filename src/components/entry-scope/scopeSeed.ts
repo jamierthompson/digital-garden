@@ -1,10 +1,10 @@
-// Pure, defensive resolution of an entry "scope seed" → the vetted slug + the brand font for
+// Pure, defensive resolution of an entry "scope seed" → the vetted slug + the theme font for
 // its interactive slot.
 //
 // The slot's COLOR comes from the page's `<html>` theme (every route stamps its authored seed
 // there and the slot inherits it), so the only per-slot override is the entry's font: this
 // module resolves the `fontKey` through the roster (`resolveFontKey`) and hands `EntryScope`
-// the face to mount + map onto `--font-face`.
+// the face to mount + map onto `--font-body`.
 //
 // The defensive contract the stub established is preserved: `resolveScope` is TOTAL and NEVER
 // throws. A bad/unknown `fontKey` collapses to the shell mono face via `resolveFontKey`'s
@@ -15,7 +15,7 @@
 import { resolveFontKey } from "@/lib/resolvers/fonts";
 import type { FontFace } from "@/fonts/roster";
 
-/** A resolved scope: the vetted slug it is keyed on + the brand font to mount. */
+/** A resolved scope: the vetted slug it is keyed on + the theme font to mount. */
 export interface ResolvedScope {
   /**
    * The selector key: the entry's slug, sanitized to `[a-z0-9-]` (never raw user input) so it is
@@ -50,7 +50,7 @@ const SHELL_MONO_FACE: FontFace = {
   cssVariable: "--font-geist-mono",
 };
 
-/** The font fallback stack appended after the resolved face's CSS variable in `--font-face`. */
+/** The font fallback stack appended after the resolved face's CSS variable in `--font-body`. */
 export const FONT_STACK = "ui-monospace, monospace";
 
 // Sanitize an untrusted slug into a CSS-selector-safe token: lowercased and stripped to
@@ -61,7 +61,7 @@ export const FONT_STACK = "ui-monospace, monospace";
 // entry keeps its OWN `[data-entry]` scope: a real entry slug is already `[a-z0-9-]` and passes
 // through unchanged, staying UNIQUE per entry, while only genuinely empty / non-string input
 // falls back to the constant. (Decoupled from `COMPONENT_KEYS` — which module renders in the
-// slot is a separate resolution; an entry can carry a brand font before it has a module.)
+// slot is a separate resolution; an entry can carry a theme font before it has a module.)
 function vetSlug(slug: unknown): string {
   if (typeof slug !== "string") return FALLBACK_SLUG;
   const safe = slug.toLowerCase().replace(/[^a-z0-9-]/g, "");

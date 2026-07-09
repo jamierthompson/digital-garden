@@ -13,7 +13,7 @@ interface PanelProps {
   /**
    * Visual treatment. `framed` (default) is the bordered surface card. `plain` drops ALL
    * chrome (surface, border, radius, padding) so a group of self-chromed cards sits directly on
-   * the themed ground (the page `--bg`) instead of on an island — the section, its `region` label, and the `style` token
+   * the themed ground (the page `--background`) instead of on an island — the section, its `region` label, and the `style` token
    * binding are UNCHANGED, so scoped-token resolution and a11y hold either way.
    */
   readonly variant?: "framed" | "plain";
@@ -23,7 +23,7 @@ interface PanelProps {
 /**
  * A surface panel — the labelled `region` every interactive slot and demo board sits in.
  * Generic UI primitive: reads the ambient semantic tokens, so it renders editorial by default
- * and brand-tinted inside a project slot. `framed` gives it the bordered demo-panel surface;
+ * and theme-tinted inside an entry slot. `framed` gives it the bordered demo-panel surface;
  * `plain` is chrome-free (for a grid of already-carded content). Pair with `Aside` for the
  * italic aside voice inside a panel.
  */

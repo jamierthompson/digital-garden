@@ -14,8 +14,8 @@
     border: 1px solid var(--border);
     border-radius: 99px;
     background: transparent;
-    color: var(--text-muted);
-    font-family: var(--font-display);
+    color: var(--muted-foreground);
+    font-family: var(--font-heading);
     font-size: var(--type-size-2);
     line-height: var(--leading-none);
     cursor: pointer;
@@ -26,13 +26,13 @@
   }
 
   .pill:hover {
-    border-color: var(--text-muted);
-    color: var(--text);
+    border-color: var(--muted-foreground);
+    color: var(--foreground);
   }
 
   .pill[data-state="active"] {
     background: var(--accent);
     border-color: var(--accent);
-    color: var(--on-accent);
+    color: var(--accent-foreground);
   }
 }

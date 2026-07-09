@@ -10,8 +10,8 @@ const SHEET = readFileSync(
 
 describe("semantic/typography.css house faces", () => {
   it.each([
-    ["--font-face", "--font-source-serif-4"],
-    ["--font-display", "--font-space-grotesk"],
+    ["--font-body", "--font-source-serif-4"],
+    ["--font-heading", "--font-space-grotesk"],
     ["--font-mono", "--font-jetbrains-mono"],
   ])("%s maps to %s", (token, nextFontVar) => {
     const decl = SHEET.match(new RegExp(`${token}\\s*:\\s*([^;]+);`))?.[1];

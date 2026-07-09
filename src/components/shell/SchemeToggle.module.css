@@ -1,5 +1,5 @@
 /* Scheme toggle — @layer components, var-consuming only (global editorial semantic tokens;
-   the shell is never brand-scoped). Lays the shared `ui/Switch` between decorative sun/moon
+   the shell is never theme-scoped). Lays the shared `ui/Switch` between decorative sun/moon
    icons; the active side brightens to ink so the current scheme reads at a glance. */
 @layer components {
   .toggle {
@@ -9,11 +9,11 @@
   }
 
   .icon {
-    color: var(--text-muted);
+    color: var(--muted-foreground);
     transition: color var(--duration-fast) var(--ease-standard);
   }
 
   .active {
-    color: var(--text);
+    color: var(--foreground);
   }
 }

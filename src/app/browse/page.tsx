@@ -34,7 +34,7 @@ const KIND_SECTIONS = [
 /**
  * The `/browse` route (labelled "index" in the nav) — the browsable list of every entry, the wanderer's reading path
  * (the featured home `/` is the hurried evaluator's). Shell-owned editorial chrome: it reads
- * the global semantic tokens, with NO per-entry brand (a project's brand lives on its own
+ * the global semantic tokens, with NO per-entry theme (a project's theme lives on its own
  * detail slot, not here). Groups entries by `kind` (notes excluded — see `KIND_SECTIONS`),
  * shows the `stage` maturity badge and a backlink hint, and links each to its flat `/[slug]`.
  */

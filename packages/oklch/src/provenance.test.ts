@@ -204,14 +204,14 @@ describe("truthful provenance (#70): reports the schema role, not a value-scan",
     const scheme: Scheme = "light";
 
     const bg = set.tokens.background[scheme];
-    const brand50 = set.ramps.accent[scheme][0];
+    const accent50 = set.ramps.accent[scheme][0];
     const neutral50 = set.ramps.neutral[scheme][0];
     // The coincidence the value-scan cannot disambiguate: bg's baked value is BOTH
     // accent[50] and neutral[50], to the last bit (guarded so the demonstrator can't rot
     // silently — if the ramp math stops converging here, this precondition fails loudly).
-    expect(brand50.label).toBe("50");
+    expect(accent50.label).toBe("50");
     expect(sameColor(bg, neutral50.color)).toBe(true);
-    expect(sameColor(bg, brand50.color)).toBe(true);
+    expect(sameColor(bg, accent50.color)).toBe(true);
 
     // The old heuristic: FIRST role (accent precedes neutral) with a matching step wins.
     const firstMatch = (value: OkLCH): BindingProvenance => {

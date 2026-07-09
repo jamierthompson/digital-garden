@@ -18,7 +18,7 @@ import SystemPage from "./page";
 const accentOf = (seed: unknown): string =>
   Object.fromEntries(resolveThemeDeclarations(seed))["--accent"];
 
-// The hard-load theme is a `:root` <style> (BrandThemeStyle); read the baked CSS from the page's
+// The hard-load theme is a `:root` <style> (ThemeStyle); read the baked CSS from the page's
 // server markup.
 const themeMarkup = async (): Promise<string> =>
   renderToStaticMarkup(await SystemPage());

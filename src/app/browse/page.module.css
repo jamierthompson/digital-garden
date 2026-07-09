@@ -1,5 +1,5 @@
 /* Index route. @layer components — declares its layer (an unlayered module outranks every
-   layered rule); var-consuming only (global editorial semantic tokens, no per-entry brand). */
+   layered rule); var-consuming only (global editorial semantic tokens, no per-entry theme). */
 @layer components {
   /* Column flow + gap are owned by the `Stack` primitive wrapping `<main>` (asChild); this rule
      keeps only the page frame — width, centering, padding. */
@@ -17,7 +17,7 @@
 
   .intro {
     max-width: 60ch;
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 
   .section {
@@ -28,7 +28,7 @@
 
   .sectionHeading {
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--muted-foreground);
     padding-bottom: var(--space-2);
     border-bottom: 1px solid var(--border);
   }
@@ -55,7 +55,7 @@
   .itemLink {
     /* Inside a `<Heading level={3}>` — the subheading role owns the type; this class is a
        plain wrapper for the href, layout + color only. */
-    color: var(--text);
+    color: var(--foreground);
     text-decoration: none;
   }
 
@@ -66,7 +66,7 @@
 
   .stage {
     text-transform: capitalize;
-    color: var(--text-muted);
+    color: var(--muted-foreground);
     padding: 0.1em 0.6em;
     border: 1px solid var(--border);
     border-radius: 999px;
@@ -74,14 +74,14 @@
 
   .blurb {
     max-width: 68ch;
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 
   .meta {
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 
   .empty {
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 }

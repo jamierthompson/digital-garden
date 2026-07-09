@@ -43,7 +43,11 @@ const HOVER_DELTA_L = 0.05;
  * ramp model absorbs #95: the label is an extreme step, so it clears with margin, not a
  * floor-hugging continuous solve. Both candidates are gamut-mapped so the math matches paint.
  */
-function onAccentLabel(accent: OkLCH, hue: number, gamut: Gamut): OkLCH {
+function accentForegroundLabel(
+  accent: OkLCH,
+  hue: number,
+  gamut: Gamut,
+): OkLCH {
   const white = gamutMap({ L: 0.99, C: 0, H: hue }, gamut);
   const black = gamutMap({ L: 0.1, C: 0, H: hue }, gamut);
   return apcaLc(white, accent) >= apcaLc(black, accent) ? white : black;
@@ -55,7 +59,7 @@ function onAccentLabel(accent: OkLCH, hue: number, gamut: Gamut): OkLCH {
  * WCAG + APCA contrast are luminance-based, so a legible label always lands far from the fill
  * in LIGHTNESS; what the solve wins is the chroma the gamut allows AT that lightness (dark fills
  * → colorful light labels; light fills → deep colorful darks). It is a STRICT generalization of
- * `onAccentLabel`: that achromatic near-white/near-black extreme is the C→0 limit of the backoff
+ * `accentForegroundLabel`: that achromatic near-white/near-black extreme is the C→0 limit of the backoff
  * AND the guaranteed-clearing floor, so we search the pole it chose and only REPLACE it when a
  * chromatic label genuinely clears — an achromatic seed (chroma ≤ eps) returns it bit-for-bit,
  * so legibility can never regress. Solve a hair above the floor (#79) so the 4-dp bake still
@@ -68,12 +72,12 @@ function chromaticOnAccentLabel(
   gamut: Gamut,
 ): OkLCH {
   // The achromatic fallback: the higher-contrast achromatic extreme — the guaranteed floor + the pole.
-  const achromatic = onAccentLabel(accent, hue, gamut);
+  const achromatic = accentForegroundLabel(accent, hue, gamut);
   // No chroma to spend (achromatic seed) → the label IS that extreme, bit-identical to the fallback.
   if (chroma <= CHROMA_BACKOFF_EPS) return achromatic;
 
   const target = withSolveMargin(CONTRAST_TARGETS.accentForeground);
-  // The chromatic label sits on the same pole `onAccentLabel` picked (the far side of the fill
+  // The chromatic label sits on the same pole `accentForegroundLabel` picked (the far side of the fill
   // in lightness — where contrast lives); scan that side for the most chromatic clearing color.
   // Following that pole is a deliberate headroom-FIRST priority: for a balanced mid-lightness
   // fill the opposite pole could occasionally hold marginally more gamut chroma, but the chosen

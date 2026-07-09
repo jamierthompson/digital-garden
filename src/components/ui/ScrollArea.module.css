@@ -31,7 +31,7 @@
     position: relative;
     flex: 1;
     border-radius: 999px;
-    /* The brand hook: inside [data-entry] this is the entry's accent. */
+    /* The theme hook: inside [data-entry] this is the entry's accent. */
     background: var(--accent);
   }
 

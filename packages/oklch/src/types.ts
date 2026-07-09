@@ -369,7 +369,7 @@ export interface SchemeResult {
    * Per-token binding provenance for THIS scheme (#109, #151): the solve-time story of each
    * semantic token — a `step` `(role, label)` for ramp-bound tokens, a first-class `accent`/
    * `accent-foreground` co-solve report for the continuous accent pair, `null` only for a `literal`.
-   * The truthful source for a "`--text` → `neutral · 800`" receipt AND the accent's
+   * The truthful source for a "`--foreground` → `neutral · 800`" receipt AND the accent's
    * faithful/nudged/derived + label-pole story — a value-scan cannot tell accent from neutral
    * when the two ramps converge, nor recover the co-solve. Reporting only: every `tokens`
    * value is unchanged by its presence.

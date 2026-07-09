@@ -9,7 +9,7 @@ function entry(over: Partial<EntryCardEntry> = {}): EntryCardEntry {
     slug: "a-card",
     blurb: "A short blurb.",
     stage: "prototype",
-    brandColor: "oklch(0.7 0.15 70)",
+    themeColor: "oklch(0.7 0.15 70)",
     ...over,
   };
 }
@@ -52,19 +52,19 @@ describe("EntryCard", () => {
   });
 
   it("renders the mono meta readout: maturity stage · OKLCH seed", () => {
-    renderCard(entry({ stage: "shipped", brandColor: "oklch(0.6 0.2 260)" }));
+    renderCard(entry({ stage: "shipped", themeColor: "oklch(0.6 0.2 260)" }));
     expect(
       screen.getByText("shipped · oklch(0.6 0.2 260)"),
     ).toBeInTheDocument();
   });
 
   it("shows only what it has when part of the meta is missing", () => {
-    renderCard(entry({ stage: "sketch", brandColor: null }));
+    renderCard(entry({ stage: "sketch", themeColor: null }));
     expect(screen.getByText("sketch")).toBeInTheDocument();
   });
 
   it("omits the meta row entirely when there is no stage or seed", () => {
-    const { container } = renderCard(entry({ stage: null, brandColor: null }));
+    const { container } = renderCard(entry({ stage: null, themeColor: null }));
     // Title still renders; nothing left to read out.
     expect(
       screen.getByRole("heading", { level: 3, name: /a card/i }),
@@ -72,17 +72,17 @@ describe("EntryCard", () => {
     expect(container.textContent).not.toContain("·");
   });
 
-  it("bakes its brand palette inline, incl. the plate's contrast pair (--accent + --on-accent)", () => {
+  it("bakes its theme palette inline, incl. the plate's contrast pair (--accent + --accent-foreground)", () => {
     renderCard(entry());
     const style = screen.getByRole("listitem").getAttribute("style") ?? "";
     expect(style).toContain("--accent");
-    expect(style).toContain("--on-accent");
+    expect(style).toContain("--accent-foreground");
   });
 
-  it("survives a null / garbage brandColor via the engine fallback (never throws)", () => {
-    expect(() => renderCard(entry({ brandColor: null }))).not.toThrow();
+  it("survives a null / garbage themeColor via the engine fallback (never throws)", () => {
+    expect(() => renderCard(entry({ themeColor: null }))).not.toThrow();
     expect(() =>
-      renderCard(entry({ brandColor: "not-a-color" as string })),
+      renderCard(entry({ themeColor: "not-a-color" as string })),
     ).not.toThrow();
   });
 });

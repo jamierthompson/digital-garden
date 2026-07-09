@@ -19,7 +19,7 @@ export const WORK_INDEX_QUERY = defineQuery(`
     stage,
     featuredRank,
     blurb,
-    brandColor,
+    themeColor,
     fontKey
   }
 `);
@@ -40,7 +40,7 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  *
  * The full entry document for one slug — UNLIKE the index query, it DOES pull the `body`
  * (the detail route renders it through the Portable Text serializer) plus the theming seeds
- * (`brandColor`, `brandColorDark`, `fontKey`, `componentKey`) that drive `EntryScope` and
+ * (`themeColor`, `themeColorDark`, `fontKey`, `componentKey`) that drive `EntryScope` and
  * module resolution, the facets (`kind`, `stage`, `iterated`, `featuredRank`), and the
  * surrounding `title` / `blurb`. Backlinks resolve both directions: `related[]->`
  * is the outgoing edge; `backlinks` is the INCOMING edge (every entry that references this
@@ -56,11 +56,11 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  * synchronously in the already-awaited result — no async boundary, so the static shell paints
  * flash-free (#166). It is KIND-gated, not presence-gated: a `now` entry ALWAYS wears the authored
  * `/now` page seed, so a now update wears the same theme as the `/now` index, and every themed kind
- * (note/essay/project) wears its own required `brandColor`. The `forbiddenForNow` validator already
- * stops a `now` from carrying a `brandColor`; the kind-gate is the defense-in-depth behind it —
+ * (note/essay/project) wears its own required `themeColor`. The `forbiddenForNow` validator already
+ * stops a `now` from carrying a `themeColor`; the kind-gate is the defense-in-depth behind it —
  * even a validator-bypassing value (a legacy doc, a raw API write) is IGNORED here rather than
- * sourced. A `select()` — not a `coalesce(brandColor, …)` — because coalesce is presence-gated and
- * would (a) source a now entry's own `brandColor` and (b) leave a `brandColor: ""` now entry
+ * sourced. A `select()` — not a `coalesce(themeColor, …)` — because coalesce is presence-gated and
+ * would (a) source a now entry's own `themeColor` and (b) leave a `themeColor: ""` now entry
  * unthemed (coalesce only falls through on null, and `""` is reachable via the API). The route reads
  * `themeSeed` and never branches on `kind`.
  */
@@ -74,11 +74,11 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
     iterated,
     featuredRank,
     blurb,
-    brandColor,
-    brandColorDark,
+    themeColor,
+    themeColorDark,
     fontKey,
     componentKey,
-    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, brandColor),
+    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, themeColor),
     body,
     related[]->{ _id, title, "slug": slug.current, kind },
     "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }
@@ -94,8 +94,8 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
  * Pulls every published entry with the facets the Index reads — `kind` + `stage` (the group
  * headings + maturity badge) and a `linkCount` (outgoing `related` + incoming `references()`,
  * the backlink hint) — plus `title` / `slug` / `blurb` for the row. Deliberately NOT the
- * `body` or theming seeds: the Index wears the global editorial look (no per-row brand), so it
- * needs neither the rich text nor `brandColor`/`fontKey`. Ordered by `kind`, then freshest
+ * `body` or theming seeds: the Index wears the global editorial look (no per-row theme), so it
+ * needs neither the rich text nor `themeColor`/`fontKey`. Ordered by `kind`, then freshest
  * first (`iterated`, falling back to `_createdAt`). Typed as `INDEX_QUERYResult`.
  */
 export const INDEX_QUERY = defineQuery(`
@@ -116,7 +116,7 @@ export const INDEX_QUERY = defineQuery(`
  *
  * The hurried evaluator's reading path: the curated subset an editor promoted (`featuredRank`
  * is set), ordered by rank (lower = earlier). Pulls the card fields — `blurb` + the theming
- * seeds `brandColor` / `fontKey` — because the featured cards ARE branded: each re-binds its
+ * seeds `themeColor` / `fontKey` — because the featured cards ARE themed: each re-binds its
  * own engine-solved palette inline via `cardSwatches`. Deliberately NOT
  * the `body`, keeping the front-door payload small for LCP. Typed as `FEATURED_QUERYResult`.
  */
@@ -128,7 +128,7 @@ export const FEATURED_QUERY = defineQuery(`
     kind,
     stage,
     blurb,
-    brandColor,
+    themeColor,
     fontKey
   }
 `);

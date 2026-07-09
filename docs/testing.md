@@ -56,7 +56,7 @@ owner's "meaningful coverage, not exhaustive" rule.
   sees and can interact with.
 - **Resolvers / `keys.ts` lookups / index queries**; assert the typed
   `NotFound` path and visible fallbacks.
-- **The bad-input / error path** — `brandColor` garbage → safe fallback, never a throw.
+- **The bad-input / error path** — `themeColor` garbage → safe fallback, never a throw.
 - **One integration/E2E of the primary flow** — a jsdom integration test (Sanity mocked) today; Playwright when added.
 
 **Skip:**
@@ -70,7 +70,7 @@ owner's "meaningful coverage, not exhaustive" rule.
 
 > **Adversarial QA authors tests too.** The independent pre-PR QA pass isn't only a
 > read-through — it **writes the breaking test cases the author optimized past** (malformed
-> `brandColor` → fallback never throws, the not-found / error path, both schemes, the empty
+> `themeColor` → fallback never throws, the not-found / error path, both schemes, the empty
 > and boundary inputs) and proves the break with a failing case before the owning author fixes it.
 > Those cases are normal co-located tests held to the same bar as everything here — meaningful, by
 > role/behavior, no snapshot dumps. The dev↔QA loop lives in
@@ -249,12 +249,12 @@ source of truth — read [`../vitest.config.ts`](../vitest.config.ts).
 
 The engine's tests assert the _contract_, hue-by-hue — not a frozen CSS string:
 
-- **Determinism:** same `(brandColor, scheme)` → same `tokenSet`, every run.
+- **Determinism:** same `(themeColor, scheme)` → same `tokenSet`, every run.
 - **Contrast in both schemes:** APCA Lc for text (WCAG 2.x ratio as the compliance
   fallback), asserted in **light and dark**. OKLCH `L` is **not** contrast — a
   fixed ΔL is not a fixed ratio across hues, so assert the **measured** ratio per hue.
 - **Gamut-map first:** contrast is solved on the gamut-mapped color.
-- **Never throws:** bad `brandColor` → safe fallback palette, asserted explicitly.
+- **Never throws:** bad `themeColor` → safe fallback palette, asserted explicitly.
   This covers the **defensive engine layer**. The Sanity author-time validation and
   `unstable_catchError` backstop layers are tested where they live.
 
@@ -266,11 +266,11 @@ APCA Lc targets these assertions check against.
 ## Visual contrast harness
 
 The engine's **exit criterion is observable palette quality, not determinism alone**: a
-visual harness runs over **3–4 brand colors spanning the hue wheel**, and we _additionally_
+visual harness runs over **3–4 theme colors spanning the hue wheel**, and we _additionally_
 pin a **yellow and a cyan** because equal ΔL ≠ equal contrast across hues — those are the
 stressers where the gap bites hardest. The harness renders ramps for
 those colors, **light and dark**, asserting APCA Lc / WCAG ratios on every
-text-on-surface and on-brand pair _after_ gamut-mapping. The engine is not done until this
+text-on-surface and accent-foreground pair _after_ gamut-mapping. The engine is not done until this
 harness is green. This is where accessibility/contrast assertions live — they fold into the
 engine harness, not a separate a11y suite.
 

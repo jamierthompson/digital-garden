@@ -524,7 +524,7 @@ export function resolveTheme(
   }
 
   // Interaction-state fills (#160): accent-hover — a perceptibly-nudged accent fill that still
-  // reads as UI on the surface AND still hosts accent-foreground. Provenance is a accent fill flagged
+  // reads as UI on the surface AND still hosts accent-foreground. Provenance is an accent fill flagged
   // `native: false` (a derived hover, not the seed anchor), with `deltaL` referenced from the
   // seed so a consumer narrates the shift-from-accent provenance-to-provenance.
   const hoverFill = solveAccentHover(

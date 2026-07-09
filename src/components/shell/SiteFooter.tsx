@@ -11,7 +11,7 @@ const COPYRIGHT_YEAR = new Date().getFullYear();
 /**
  * The global site footer — the engineering-journal colophon. A quiet mono row: the copyright
  * on the left, a "browse everything →" wayfinding link to the Index on the right, over a thin
- * rule. Shell chrome (var-consuming editorial tokens, never brand-scoped); rendered once in
+ * rule. Shell chrome (var-consuming editorial tokens, never theme-scoped); rendered once in
  * the root layout so every route carries it.
  */
 export default function SiteFooter() {

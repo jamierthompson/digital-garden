@@ -17,9 +17,9 @@ interface EntryBodyProps {
   value: Body;
   /**
    * The host entry's font-scope seed — set whenever a non-`now` entry themes OR mounts a
-   * module (`brandColor || componentKey`), not just for a project. Keyed on the entry's own
+   * module (`themeColor || componentKey`), not just for a project. Keyed on the entry's own
    * slug, so a module-only entry still scopes its embeds under its own `[data-entry]`. Threaded
-   * to each `liveEmbed` so every embed mounts in its own container wearing the entry's brand
+   * to each `liveEmbed` so every embed mounts in its own container wearing the entry's theme
    * font while the prose between them keeps the editorial body face (color comes from the page's
    * `<html>` theme, inherited by both). The serializer is per-render because the components map
    * closes over it; the map is tiny, so rebuilding it costs nothing measurable.

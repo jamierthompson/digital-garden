@@ -16,13 +16,13 @@ repo & hosting section (Cache Components / PPR) of
 ## 1. Contrast — solved by the engine, not stepped by you
 
 The hard part is automated. The engine takes a **contrast target** and binary-searches
-lightness `L` for on-brand / on-surface pairs against the _relevant background_, on the
+lightness `L` for accent-foreground / on-surface pairs against the _relevant background_, on the
 **gamut-mapped** color (gamut-map _before_ contrast math), re-solved per scheme
 (light/dark). See the OKLCH engine section of [`./architecture.md`](./architecture.md). What this means for you:
 
 - **Never hand-pick a contrast pair or a fixed ΔL offset.** Equal ΔL ≠ equal contrast
   across hues (OKLCH `L` is perceptual lightness, not WCAG luminance or APCA Lc). A fixed
-  step that passes for blue fails for yellow/cyan. Feed the engine a brand color; consume
+  step that passes for blue fails for yellow/cyan. Feed the engine a theme color; consume
   the token it emits.
 - **Read the engine's emitted tokens** (`var(--accent)`, `var(--accent-text)`, focus-ring color) — do
   not invent a foreground color in a CSS Module and hope it clears 4.5:1.
@@ -98,7 +98,7 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 
 The architecture already buys most of this — don't undo it:
 
-- **Keep the featured / Index queries essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `blurb` / `brandColor` /
+- **Keep the featured / Index queries essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `blurb` / `themeColor` /
   `fontKey`, never the essay. Small index payload protects **LCP**. Don't add the essay to
   the card query "for convenience."
 - **Keep the slot's `EntryScope` in the prerendered shell** (PPR via Cache Components — see the repo & hosting section of [`./architecture.md`](./architecture.md)):
@@ -133,7 +133,7 @@ before touching the roster.
   Caching bakes the resolved className into the HTML but emits **no**
   `<link rel=preload as=font>` for a face it couldn't statically identify.
 - **Per-entry faces are applied, not preloaded:** `.variable` on the `[data-entry]`
-  scope, where the slot's generic `--font-face` maps to it; they tolerate `font-display: swap`
+  scope, where the slot's generic `--font-body` maps to it; they tolerate `font-display: swap`
   below the fold.
 - **If an above-the-fold project face genuinely must preload,** emit
   `<link rel="preload" as="font" crossorigin>` **manually** — `crossorigin` is required

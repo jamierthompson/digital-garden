@@ -1,10 +1,10 @@
 /* Site navigation — the "engineering journal" masthead. @layer components — declares its layer
    (unlayered modules outrank every layered rule); var-consuming only. Reads the global
-   editorial semantic tokens (the shell is never brand-scoped). */
+   editorial semantic tokens (the shell is never theme-scoped). */
 @layer components {
   .header {
     /* The signature journal rule: a heavy ink hairline under the masthead. */
-    border-bottom: 2px solid var(--text);
+    border-bottom: 2px solid var(--foreground);
   }
 
   /* The masthead byline band above the nav — full-bleed 1px hairline; its inner row aligns to
@@ -27,13 +27,13 @@
   .byline {
     font-family: var(--font-mono);
     font-size: var(--type-size-2);
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 
   .dateline {
     font-family: var(--font-mono);
     font-size: var(--type-size-2);
-    color: var(--text-muted);
+    color: var(--muted-foreground);
     white-space: nowrap;
   }
 
@@ -54,18 +54,18 @@
     padding: var(--space-4) var(--space-6);
   }
 
-  .brand {
-    font-family: var(--font-display);
+  .wordmark {
+    font-family: var(--font-heading);
     font-weight: var(--font-weight-bold);
     font-size: var(--type-size-6);
     letter-spacing: var(--tracking-tight);
-    color: var(--text);
+    color: var(--foreground);
     text-decoration: none;
   }
 
   /* The trailing `_` of `folio_` — a muted blinking-cursor nod, dimmed against the wordmark. */
   .cursor {
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 
   /* Right cluster — the primary links and the scheme toggle share the nav's right side. */
@@ -94,23 +94,23 @@
     padding-block: var(--space-2);
     /* Journal nav: Space Grotesk, lowercase. A transparent 2px underline reserved so the
        active state (below) doesn't shift the row. */
-    font-family: var(--font-display);
+    font-family: var(--font-heading);
     font-size: var(--type-size-3);
     font-weight: var(--font-weight-medium);
-    color: var(--text-muted);
+    color: var(--muted-foreground);
     text-decoration: none;
     border-bottom: 2px solid transparent;
     transition: color var(--duration-fast) var(--ease-standard);
   }
 
   .link:hover {
-    color: var(--text);
+    color: var(--foreground);
   }
 
   /* Current page — the 2px ink underline from the journal direction (reserved above, so no
      layout shift), plus full-ink text. Paired with `aria-current="page"` on the link. */
   .active {
-    color: var(--text);
-    border-bottom-color: var(--text);
+    color: var(--foreground);
+    border-bottom-color: var(--foreground);
   }
 }

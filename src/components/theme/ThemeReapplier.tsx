@@ -20,7 +20,7 @@ interface ThemeReapplierProps {
  * Re-applies the page's theme to `<html>` across client transitions — the soft-nav half of the
  * flash-free pattern (the guide's `LocalDate` mechanism; see `preventing-flash-before-hydration.md`).
  *
- * The hard-load `:root` `<style>` (`BrandThemeStyle`) themes first paint from the initial HTML; it
+ * The hard-load `:root` `<style>` (`ThemeStyle`) themes first paint from the initial HTML; it
  * does NOT re-apply on client navigation (the persistent chrome doesn't reload). This Client
  * Component fills that gap on two events, both of which re-stamp `<html>` with THIS route's seed
  * (an imperative write that out-ranks the `:root` rule, so the visible route always wins):

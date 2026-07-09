@@ -1,8 +1,8 @@
-/* Ring GEOMETRY only — the ring COLOR is the --focus-ring-color semantic token. */
+/* Ring GEOMETRY only — the ring COLOR is the --ring semantic token. */
 @layer foundation {
   :root {
-    --focus-ring-width: 2px;
-    --focus-ring-offset: 2px;
-    --focus-ring-style: solid;
+    --ring-width: 2px;
+    --ring-offset: 2px;
+    --ring-style: solid;
   }
 }

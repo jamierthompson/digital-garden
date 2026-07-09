@@ -1,4 +1,4 @@
-// QA #131 — EntryBody threads the host entry's brand-scope seed to EVERY liveEmbed
+// QA #131 — EntryBody threads the host entry's theme-scope seed to EVERY liveEmbed
 // while the prose blocks stay plain editorial markup. EmbedBlock (an async RSC) is
 // mocked at the module seam so the serializer's prop threading is what's under test.
 

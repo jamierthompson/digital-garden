@@ -44,7 +44,7 @@ export interface ProviderProps {
 /** The members an entry module MAY export — see `EntryModule` for the at-least-one rule. */
 interface EntryModuleMembers {
   /**
-   * One interactive slot, mounted by the page after the prose inside its own brand scope.
+   * One interactive slot, mounted by the page after the prose inside its own theme scope.
    * The default composition for a module whose experience is a single surface.
    */
   readonly Experience?: ComponentType<ExperienceProps>;

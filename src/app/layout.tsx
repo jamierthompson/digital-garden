@@ -32,10 +32,10 @@ import SanityLiveMount from "@/sanity/SanityLiveMount";
 import VisualEditingControls from "@/sanity/VisualEditingControls";
 
 // The shell's own body face. Source Serif 4 is the GLOBAL EDITORIAL body font — the semantic
-// `--font-face` default (semantic/typography.css) maps to `var(--font-source-serif-4)`, so mounting its
+// `--font-body` default (semantic/typography.css) maps to `var(--font-source-serif-4)`, so mounting its
 // `.variable` on <html> brings that variable into scope for all chrome. Its size-adjusted
-// fallback keeps CLS at zero. A brand slot overrides `--font-face` with its own roster face.
-// The shell's display face (Space Grotesk → `--font-display`, the `folio_` logo + nav) and
+// fallback keeps CLS at zero. A themed slot overrides `--font-body` with its own roster face.
+// The shell's display face (Space Grotesk → `--font-heading`, the `folio_` logo + nav) and
 // mono face (JetBrains Mono → `--font-mono`, metadata/readouts) are ALSO in the per-entry
 // roster, so the shell reuses those roster `.variable`s (mounted below) rather than declaring
 // duplicate loaders.

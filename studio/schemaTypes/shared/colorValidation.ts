@@ -1,10 +1,10 @@
 /**
- * Author-time `brandColor` validation — layer 2 of the three-layer defence,
+ * Author-time `themeColor` validation — layer 2 of the three-layer defence,
  * backed by the engine's *own* color pipeline, not a regex.
  *
  * This runs `@garden/oklch`'s `buildTokenSet` (parse → gamut-map → contrast-solve)
  * and accepts the value iff the engine did NOT fall back. So the author-time check
- * is exactly the render-time contract: if Studio accepts a `brandColor`, the engine
+ * is exactly the render-time contract: if Studio accepts a `themeColor`, the engine
  * will theme with it — it won't silently collapse to the fallback palette at render.
  * A regex couldn't promise that (it passed shapes the engine can't parse and
  * rejected ones it can).
@@ -17,7 +17,7 @@
  */
 import {buildTokenSet} from '@garden/oklch'
 
-export function isBrandColorString(value: string | undefined): true | string {
+export function isThemeColorString(value: string | undefined): true | string {
   // Empty is allowed here — pair with `.required()` where the field is mandatory.
   if (!value) return true
   if (!buildTokenSet(value).meta.isFallback) return true

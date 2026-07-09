@@ -14,7 +14,7 @@ import { STEGA_EXCLUDED_FIELDS, stegaFilter } from "./stega";
  * fields — but it mocks `filterDefault`, so it never proves the REAL `@sanity/client`
  * stega encoder actually honors that `false` and leaves the value byte-clean. That is
  * the property the OKLCH engine and the key resolvers depend on: a single stega
- * zero-width char in `brandColor`/`fontKey`/… breaks the color parse or the key lookup.
+ * zero-width char in `themeColor`/`fontKey`/… breaks the color parse or the key lookup.
  *
  * This drives the genuine encoder (`stegaEncodeSourceMap`, the same function
  * `@sanity/client`'s `_fetch` calls when `stega.enabled`) through our actual

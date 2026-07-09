@@ -66,7 +66,7 @@ Two clients with different trust levels: the public published-content read path 
 - **The browser token is separate and minimum-scope.** `<SanityLive>` exposes `SANITY_API_BROWSER_TOKEN` to the browser EventSource for live preview, so it is a dedicated **Viewer** token, never the read token.
 - **A leaked token = permanent compromise.** Rotate immediately in [sanity.io/manage](https://sanity.io/manage); revoking is the only fix. Give every token the **narrowest scope** that works (read, specific dataset).
 - **CORS allow-list real origins only** — your prod domain and Vercel preview URLs (plus `localhost` for dev). Never wildcard-with-credentials. Configured in **Sanity → API → CORS Origins** at [sanity.io/manage](https://sanity.io/manage), not in the repo.
-- **Stega off on `brandColor`/`fontKey`:** Visual Editing's invisible stega chars break the OKLCH parse and font lookup. This is a correctness landmine, not just cosmetics — the field exclusions are single-sourced in `src/sanity/lib/stega.ts`.
+- **Stega off on `themeColor`/`fontKey`:** Visual Editing's invisible stega chars break the OKLCH parse and font lookup. This is a correctness landmine, not just cosmetics — the field exclusions are single-sourced in `src/sanity/lib/stega.ts`.
 
 ---
 
@@ -121,7 +121,7 @@ What must be true for a **production deploy to actually work** — the env- and 
 
 **Required content (in the `production` dataset):**
 
-- [ ] A **`siteSettings` singleton** (`_id: "siteSettings"`) — it supplies the site title/description (`generateMetadata`); a missing one degrades to safe defaults, never an error. It no longer brands the chrome — editorial chrome is global, brand is scoped to each themed entry's slot.
+- [ ] A **`siteSettings` singleton** (`_id: "siteSettings"`) — it supplies the site title/description (`generateMetadata`); a missing one degrades to safe defaults, never an error. It no longer themes the chrome — editorial chrome is global, the theme is scoped to each themed entry's slot.
 - [ ] At least one **published project-kind `entry`** per flat `/[slug]` route.
 
 ### Every deploy
