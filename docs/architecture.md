@@ -387,7 +387,7 @@ Shared logic lives in a shared module; the project is a presentation of it.
 ### The type engine
 
 Type follows the same shape as color: a pure, isomorphic engine (`@garden/type`, sibling of
-`@garden/oklch`) whose output is **baked into `src/styles/semantic/color.css` and guarded**. Where the color
+`@garden/oklch`) whose output is **baked into `foundation/typography.css` and guarded**. Where the color
 engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WCAG 1.4.4)**.
 
 - **Size is decoupled from role.** The engine deals only in **scale steps**, not roles. It solves
@@ -424,7 +424,7 @@ engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WC
   no exact match.
 - **Bake-and-guard emission.** The global scale is not per-entry runtime-varying (unlike color), so
   the engine's `--type-size-*` output is baked as `clamp()` literals into `foundation/typography.css`;
-  `typeTokens.test.ts` re-derives the ramp from `@garden/type` and fails on any drift (and pins
+  `src/styles/semantic/type.test.ts` re-derives the ramp from `@garden/type` and fails on any drift (and pins
   that roles bind to steps, and that the old Tailwind-named `--text-*` scale is gone).
 
 ### Downward theming

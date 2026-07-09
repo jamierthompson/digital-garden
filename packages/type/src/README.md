@@ -8,7 +8,7 @@ test-enforced (dual-env Vitest), and it must **never** import `next`/`react`/`re
 `server-only`/`client-only`.
 
 This is the **size dimension only** — the first meal of the planned engine. Weight, tracking,
-and leading stay as static tokens in `foundation.css` for now; the engine absorbs them later
+and leading stay as static tokens in `foundation/typography.css` for now; the engine absorbs them later
 (the leading hyperbola, tracking decay, variable-font weight/grade axes, and an interactive
 studio are all deliberately out of scope here).
 
@@ -41,11 +41,11 @@ studio are all deliberately out of scope here).
 ## Emission
 
 `buildTypeScale(config?)` → `typeScaleToDeclarations` / `typeScaleToCss` produce the
-`--type-size-<n>` custom properties. The app **bakes** those literals into `foundation.css` (the
+`--type-size-<n>` custom properties. The app **bakes** those literals into `foundation/typography.css` (the
 global scale is not per-entry runtime-varying, unlike color), and a guard test in the app
 recomputes them via this engine to catch drift — the same bake-and-guard pattern the color tokens
 use. The app's semantic role bundles (`--type-<role>-size: var(--type-size-<n>)`, hand-authored in
-`foundation.css`) bind each role to a step; that binding is deliberately outside the engine.
+`semantic/type.css`) bind each role to a step; that binding is deliberately outside the engine.
 
 ## Versioning stance
 

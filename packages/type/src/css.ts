@@ -12,7 +12,7 @@ export function sizeVarName(index: number): string {
 
 /**
  * The ramp as `[property, value]` pairs, in `--type-size-1 … N` order — the shape the app bakes
- * into `foundation.css` (and a guard test recomputes to catch drift, mirroring the color tokens).
+ * into `foundation/typography.css` (and a guard test recomputes to catch drift, mirroring the color tokens).
  */
 export function typeScaleToDeclarations(
   scale: TypeScale,
@@ -22,7 +22,7 @@ export function typeScaleToDeclarations(
 
 /**
  * The ramp as a CSS text block of declarations (one per line, indented for a `:root { … }` host).
- * Byte-for-byte what a generator would paste under the scale comment in `foundation.css`.
+ * Byte-for-byte what a generator would paste under the scale comment in `foundation/typography.css`.
  */
 export function typeScaleToCss(scale: TypeScale, indent = "    "): string {
   return typeScaleToDeclarations(scale)

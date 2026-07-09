@@ -1,7 +1,7 @@
 /**
  * The public-surface DRIFT GUARD (mirrors `@garden/oklch`'s `api.test.ts`). The engine's exported
  * names — its runtime exports and the `--type-size-<n>` custom properties the serializer emits —
- * are the surface `foundation.css`'s baked tokens and its guard test depend on.
+ * are the surface `foundation/typography.css`'s baked tokens and its guard test depend on.
  *
  * `@garden/type` is internal and single-consumer, so this surface is FREELY changeable — the test
  * is a tripwire against SILENT drift, not a wall. A failure means the surface changed: that is fine

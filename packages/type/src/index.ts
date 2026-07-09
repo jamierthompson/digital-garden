@@ -6,7 +6,7 @@
  * modular scale (Utopia dual-ratio) into a numeric ramp of per-step fluid `clamp()` sizes,
  * applying and flagging the zoom cap, and never throws. `typeScaleToDeclarations` /
  * `typeScaleToCss` serialize it to the `--type-size-<n>` custom properties the app bakes into
- * `foundation.css`. Semantic ROLES (heading/body/…) are the APP's layer — it binds a role to a
+ * `foundation/typography.css`. Semantic ROLES (heading/body/…) are the APP's layer — it binds a role to a
  * step; the engine has no opinion about role names, so a demo can ignore roles and use steps.
  *
  * This surface is DRIFT-GUARDED (`api.test.ts`) — internal and single-consumer, so freely
