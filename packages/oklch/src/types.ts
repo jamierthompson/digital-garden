@@ -112,12 +112,13 @@ export interface EngineRules extends RampRules {
 
 /**
  * The generic, public token names the engine emits, in canonical emission order — the
- * drift-guarded semantic surface (#99, completed to the 34-token model in #160; freely
- * changeable since the engine is internal/single-consumer). Exported so consumers (the
+ * drift-guarded semantic surface (#99, completed to the 34-token model in #160, extended to
+ * the 37-token model in #229 — the neutral `muted` background + the `accent-subtle` pair;
+ * freely changeable since the engine is internal/single-consumer). Exported so consumers (the
  * drift-guard test, Sanity author-time validation, the studio receipt) read the one list
  * rather than restating it.
  *
- * Emission order: the core 10, then a per-status block ×4 (`error`/`warning`/`success`/`info`)
+ * Emission order: the core 13, then a per-status block ×4 (`error`/`warning`/`success`/`info`)
  * of fill · fill-foreground · text · subtle · subtle-foreground, then the three interaction states
  * (`accent-hover`, `surface-hover`, `surface-selected`), then the `scrim` overlay literal. The
  * status roles carry FIXED canonical hues (not seed-derived), harmonized with the slot only
@@ -129,16 +130,19 @@ export interface EngineRules extends RampRules {
  * including the state ones.
  */
 export const THEME_TOKEN_NAMES = [
-  // Core (10)
+  // Core (13)
   "background",
   "surface",
   "surface-elevated",
   "foreground",
+  "muted",
   "muted-foreground",
   "border",
   "accent",
   "accent-text",
   "accent-foreground",
+  "accent-subtle",
+  "accent-subtle-foreground",
   "ring",
   // Status blocks (×4): fill · fill-foreground · text · subtle · subtle-foreground.
   "error",

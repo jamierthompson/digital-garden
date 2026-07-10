@@ -125,16 +125,19 @@ const RUNTIME_EXPORTS = [
 ] as const;
 
 const SEMANTIC_NAMES = [
-  // Core (10).
+  // Core (13).
   "background",
   "surface",
   "surface-elevated",
   "foreground",
+  "muted",
   "muted-foreground",
   "border",
   "accent",
   "accent-text",
   "accent-foreground",
+  "accent-subtle",
+  "accent-subtle-foreground",
   "ring",
   // Status blocks (×4): fill · fill-foreground · text · subtle · subtle-foreground.
   "error",
