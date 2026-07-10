@@ -70,6 +70,11 @@ const FLOORS: Array<[ThemeTokenName, ThemeTokenName, number, number]> = [
   ["info-foreground", "info", 4.5, 60],
   ["info-text", "surface-selected", 4.5, 60],
   ["info-subtle-foreground", "info-subtle", 4.5, 60],
+  // #229 (QA): the new paired floors. `accent-subtle-foreground` solves on the ANCHORED,
+  // seed-chroma accent ramp — the one ramp every policy AND the anchor bend reshape — so the
+  // full cross-product here is the strongest stress this pair gets.
+  ["accent-subtle-foreground", "accent-subtle", 4.5, 60],
+  ["muted-foreground", "muted", 4.5, 60],
 ];
 
 // Stresser seeds: blue seed, the yellow/cyan APCA stressers, near-white / near-black

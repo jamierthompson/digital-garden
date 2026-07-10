@@ -3,7 +3,11 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { buildTokenSet, tokenSetToDeclarations } from "@garden/oklch";
+import {
+  buildTokenSet,
+  THEME_TOKEN_NAMES,
+  tokenSetToDeclarations,
+} from "@garden/oklch";
 
 /**
  * Executable receipt for the baked fallback theme in `semantic/color.css`: re-derives the engine
@@ -40,6 +44,17 @@ describe("semantic/color.css IS the engine's complete fallback token set", () =>
     expect(Object.keys(SHEET_DECLS).length).toBeGreaterThan(10);
     expect(ENGINE_TOKENS.length).toBeGreaterThanOrEqual(30);
     expect(SHEET_DECLS["--background"]).toBeDefined();
+  });
+
+  // QA #229: the bijection above compares sheet ⇄ engine-output-of-the-moment — if the
+  // engine ever silently dropped a token, BOTH sides would shrink and the suite would stay
+  // green. Pin the engine set to the canonical 37-name contract so the sheet is transitively
+  // pinned to THEME_TOKEN_NAMES itself (`--muted` + the `--accent-subtle` pair included).
+  it("the engine set IS the canonical 37-token contract (sheet transitively pinned to it)", () => {
+    expect([...ENGINE_TOKENS].sort()).toEqual(
+      THEME_TOKEN_NAMES.map((name) => `--${name}`).sort(),
+    );
+    expect(THEME_TOKEN_NAMES).toHaveLength(37);
   });
 
   for (const token of ENGINE_TOKENS) {

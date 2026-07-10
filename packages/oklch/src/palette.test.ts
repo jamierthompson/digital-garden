@@ -44,9 +44,12 @@ const TOKEN_ROLE: Partial<Record<ThemeTokenName, RampRole>> = {
   surface: "neutral",
   "surface-elevated": "neutral",
   foreground: "neutral",
+  muted: "neutral",
   "muted-foreground": "neutral",
   border: "neutral",
   "accent-text": "accent",
+  "accent-subtle": "accent",
+  "accent-subtle-foreground": "accent",
   ring: "accent",
   "error-text": "error",
   "error-subtle": "error",
@@ -1189,6 +1192,11 @@ describe("generative rules threading (#101)", () => {
         ["info-foreground", "info", 4.5, 60],
         ["info-text", "surface-selected", 4.5, 60],
         ["info-subtle-foreground", "info-subtle", 4.5, 60],
+        // #229 (QA): the two new PAIRED floors. `accent-subtle-foreground` sits on the
+        // ANCHORED accent ramp (unlike the un-anchored status ramps), so a policy that
+        // reshapes/desaturates the accent ramp is exactly where this pair could break first.
+        ["accent-subtle-foreground", "accent-subtle", 4.5, 60],
+        ["muted-foreground", "muted", 4.5, 60],
       ];
       for (const rules of VARIATIONS)
         for (const seed of ["#2563eb", "#eab308", "#06b6d4"])
@@ -1523,5 +1531,152 @@ describe("QA — adversarial: hostile themeColor inputs (never-throws, #160)", (
 
   it("a pathologically long string falls back without throwing", () => {
     expect(buildTokenSet("a".repeat(100_000)).meta.isFallback).toBe(true);
+  });
+});
+
+// QA #229 — adversarial: the muted + accent-subtle pair. The committed CONTRACT sweep covers
+// `accent-subtle-foreground` on a mid-range seed grid (L 0.4–0.82, C 0.15/0.28) — it never
+// visits an achromatic seed, a near-white/near-black seed, or `tintedNeutrals: false`, and
+// `--muted` ships with NO test pairing it against `muted-foreground` at all (the pairing held
+// only transitively, through `muted` ≡ `surface` — exactly the identity a future step change
+// would break silently). These pin the pairing guarantees directly, on the BAKED literals.
+describe("QA #229 — adversarial: muted + accent-subtle pairing guarantees", () => {
+  const bake = (c: OkLCH): OkLCH => parseColor(formatOklch(c))!;
+  const PAIR_FLOOR = { wcag: 4.5, apca: 60 } as const;
+  // Hostile corners first: achromatic (C=0), near-white, near-black, the too-light
+  // dark-native seed, the yellow/cyan APCA stressers, and the fallback.
+  const HOSTILE_SEEDS: unknown[] = [
+    "#808080",
+    "#ffffff",
+    "#000000",
+    "#faf3c0",
+    "#eab308",
+    "#06b6d4",
+    "#3b82f6",
+    "garbage",
+  ];
+  const GAMUTS = ["srgb", "p3"] as const;
+
+  it("muted binds the neutral 100/900 step — and (by design, #229) equals surface today", () => {
+    for (const scheme of SCHEMES) {
+      const { tokens, ramps } = resolveTheme("#3b82f6", scheme);
+      const label = scheme === "light" ? "100" : "900";
+      const step = ramps.neutral.find((s) => s.label === label)!;
+      expect(tokens.muted, scheme).toEqual(step.color);
+      // The documented intent: same fallback color as `surface`, distinct role. If this
+      // ever fails, `muted` moved off the surface step — re-verify the pairing floors.
+      expect(tokens.muted, scheme).toEqual(tokens.surface);
+    }
+  });
+
+  it("accent-subtle binds the accent ramp's SUBTLE_STEP (100/900), mirroring the status subtles", () => {
+    for (const seed of ["#3b82f6", "#e11d48", "#808080"])
+      for (const scheme of SCHEMES) {
+        const { tokens, ramps } = resolveTheme(seed, scheme);
+        const label = scheme === "light" ? "100" : "900";
+        const step = ramps.accent.find((s) => s.label === label)!;
+        expect(tokens["accent-subtle"], `${seed}/${scheme}`).toEqual(
+          step.color,
+        );
+      }
+  });
+
+  it(
+    "muted-foreground clears its floor against the ACTUAL baked muted background (hostile seeds × schemes × gamuts)",
+    () => {
+      for (const gamut of GAMUTS)
+        for (const scheme of SCHEMES)
+          for (const seed of HOSTILE_SEEDS) {
+            const { tokens } = resolveTheme(seed, scheme, { gamut });
+            const fg = bake(tokens["muted-foreground"]);
+            const bg = bake(tokens.muted);
+            const where = `muted-foreground/${scheme}/${gamut}/${String(seed)}`;
+            expect(
+              contrastWCAG(fg, bg),
+              `${where} WCAG`,
+            ).toBeGreaterThanOrEqual(PAIR_FLOOR.wcag);
+            expect(apcaLc(fg, bg), `${where} APCA`).toBeGreaterThanOrEqual(
+              PAIR_FLOOR.apca,
+            );
+          }
+    },
+    SWEEP_TIMEOUT,
+  );
+
+  it(
+    "accent-subtle-foreground clears its floor against the ACTUAL baked accent-subtle (hostile seeds × schemes × gamuts)",
+    () => {
+      for (const gamut of GAMUTS)
+        for (const scheme of SCHEMES)
+          for (const seed of HOSTILE_SEEDS) {
+            const { tokens } = resolveTheme(seed, scheme, { gamut });
+            const fg = bake(tokens["accent-subtle-foreground"]);
+            const bg = bake(tokens["accent-subtle"]);
+            const where = `accent-subtle-foreground/${scheme}/${gamut}/${String(seed)}`;
+            expect(
+              contrastWCAG(fg, bg),
+              `${where} WCAG`,
+            ).toBeGreaterThanOrEqual(PAIR_FLOOR.wcag);
+            expect(apcaLc(fg, bg), `${where} APCA`).toBeGreaterThanOrEqual(
+              PAIR_FLOOR.apca,
+            );
+          }
+    },
+    SWEEP_TIMEOUT,
+  );
+
+  it(
+    "both pairs hold at the seed-L extremes where the accent-ramp anchor bend bites hardest",
+    () => {
+      // The anchor clamps a near-white/near-black seed just inside ~0.15…0.98 and bends the
+      // accent ramp around it — compressing the very shoulder steps `accent-subtle` pins.
+      const seeds: string[] = [];
+      for (const H of [0, 80, 145, 264, 330])
+        for (const L of [0.03, 0.15, 0.5, 0.98, 1.0])
+          seeds.push(`oklch(${L} 0.2 ${H})`);
+      for (const scheme of SCHEMES)
+        for (const seed of seeds) {
+          const { tokens } = resolveTheme(seed, scheme);
+          for (const [fgName, bgName] of [
+            ["accent-subtle-foreground", "accent-subtle"],
+            ["muted-foreground", "muted"],
+          ] as const) {
+            const fg = bake(tokens[fgName]);
+            const bg = bake(tokens[bgName]);
+            const where = `${fgName}/${scheme}/${seed}`;
+            expect(
+              contrastWCAG(fg, bg),
+              `${where} WCAG`,
+            ).toBeGreaterThanOrEqual(PAIR_FLOOR.wcag);
+            expect(apcaLc(fg, bg), `${where} APCA`).toBeGreaterThanOrEqual(
+              PAIR_FLOOR.apca,
+            );
+          }
+        }
+    },
+    SWEEP_TIMEOUT,
+  );
+
+  it("tintedNeutrals:false (converged grey ramps) keeps both pairings legible", () => {
+    for (const seed of ["#808080", "#3b82f6", "#000000"])
+      for (const scheme of SCHEMES) {
+        const { tokens } = resolveTheme(seed, scheme, {
+          rules: { tintedNeutrals: false },
+        });
+        for (const [fgName, bgName] of [
+          ["accent-subtle-foreground", "accent-subtle"],
+          ["muted-foreground", "muted"],
+        ] as const) {
+          const where = `${fgName}/${scheme}/${seed}/untinted`;
+          expect(
+            contrastWCAG(bake(tokens[fgName]), bake(tokens[bgName])),
+            `${where} WCAG`,
+          ).toBeGreaterThanOrEqual(PAIR_FLOOR.wcag);
+          expect(
+            apcaLc(bake(tokens[fgName]), bake(tokens[bgName])),
+            `${where} APCA`,
+          ).toBeGreaterThanOrEqual(PAIR_FLOOR.apca);
+        }
+      }
   });
 });
