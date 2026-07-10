@@ -4,7 +4,7 @@
   /* Column flow + gap are owned by the `Stack` primitive wrapping `<main>` (asChild); this rule
      keeps only the page frame — width, centering, padding. */
   .main {
-    max-width: var(--width-content);
+    max-width: var(--width-page);
     margin: 0 auto;
     padding: var(--space-8) var(--space-5);
   }
@@ -30,7 +30,7 @@
     text-transform: uppercase;
     color: var(--muted-foreground);
     padding-bottom: var(--space-2);
-    border-bottom: 1px solid var(--border);
+    border-bottom: var(--border-width) solid var(--border);
   }
 
   /* Column flow + gap are owned by the `Stack` primitive wrapping the `<ul>` (asChild). */
@@ -68,8 +68,8 @@
     text-transform: capitalize;
     color: var(--muted-foreground);
     padding: 0.1em 0.6em;
-    border: 1px solid var(--border);
-    border-radius: 999px;
+    border: var(--border-width) solid var(--border);
+    border-radius: var(--radius-full);
   }
 
   .blurb {

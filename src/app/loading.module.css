@@ -3,7 +3,7 @@
    the [slug] state boundaries' treatment. */
 @layer components {
   .state {
-    max-width: var(--width-prose);
+    max-width: var(--width-measure);
     margin: 0 auto;
     padding: var(--space-8) var(--space-6);
     text-align: center;

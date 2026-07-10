@@ -3,8 +3,9 @@
   .missing {
     margin: var(--space-5) 0;
     padding: var(--space-4);
-    border: 1px dashed color-mix(in oklab, var(--foreground) 40%, transparent);
-    border-radius: 0.5rem;
+    border: var(--border-width) dashed
+      color-mix(in oklab, var(--foreground) 40%, transparent);
+    border-radius: var(--radius-md);
     background: color-mix(in oklab, var(--foreground) 4%, transparent);
   }
 

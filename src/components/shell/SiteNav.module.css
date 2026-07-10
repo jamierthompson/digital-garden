@@ -4,13 +4,13 @@
 @layer components {
   .header {
     /* The signature journal rule: a heavy ink hairline under the masthead. */
-    border-bottom: 2px solid var(--foreground);
+    border-bottom: var(--border-width-thick) solid var(--foreground);
   }
 
   /* The masthead byline band above the nav — full-bleed 1px hairline; its inner row aligns to
      the same content column as the nav, so byline ↔ folio_ left edges line up. */
   .masthead {
-    border-bottom: 1px solid var(--border);
+    border-bottom: var(--border-width) solid var(--border);
   }
 
   .mastheadInner {
@@ -18,7 +18,7 @@
     align-items: baseline;
     justify-content: space-between;
     gap: var(--space-4);
-    max-width: var(--width-content);
+    max-width: var(--width-page);
     margin: 0 auto;
     padding: var(--space-2) var(--space-6);
   }
@@ -49,7 +49,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-5);
-    max-width: var(--width-content);
+    max-width: var(--width-page);
     margin: 0 auto;
     padding: var(--space-4) var(--space-6);
   }
@@ -89,8 +89,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 1.5rem;
-    min-width: 1.5rem;
+    min-height: var(--size-control);
+    min-width: var(--size-control);
     padding-block: var(--space-2);
     /* Journal nav: Space Grotesk, lowercase. A transparent 2px underline reserved so the
        active state (below) doesn't shift the row. */
@@ -99,7 +99,7 @@
     font-weight: var(--font-weight-medium);
     color: var(--muted-foreground);
     text-decoration: none;
-    border-bottom: 2px solid transparent;
+    border-bottom: var(--border-width-thick) solid transparent;
     transition: color var(--duration-fast) var(--ease-standard);
   }
 

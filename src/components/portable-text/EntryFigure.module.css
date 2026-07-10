@@ -8,8 +8,9 @@
     display: grid;
     place-items: center;
     min-block-size: 8rem;
-    border: 1px dashed color-mix(in oklab, var(--foreground) 30%, transparent);
-    border-radius: 0.5rem;
+    border: var(--border-width) dashed
+      color-mix(in oklab, var(--foreground) 30%, transparent);
+    border-radius: var(--radius-md);
     background: color-mix(in oklab, var(--accent) 5%, transparent);
   }
 

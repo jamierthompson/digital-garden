@@ -85,6 +85,16 @@ describe("SiteNav .link — WCAG 2.5.8 target size floor", () => {
   // Isolate the `.link { … }` rule body (not `.link:hover`).
   const linkRule = css.match(/\.link\s*\{([\s\S]*?)\}/)?.[1] ?? "";
 
+  // The floor snaps to `--size-control` (foundation/dimension.css). Resolve its rem value so
+  // the guard still proves the box clears 24px, not merely that a token is referenced.
+  const dimensionCss = readFileSync(
+    resolve(process.cwd(), "src/styles/foundation/dimension.css"),
+    "utf8",
+  );
+  const sizeControlRem = Number(
+    dimensionCss.match(/--size-control:\s*([0-9.]+)rem/)?.[1],
+  );
+
   it("finds the .link rule", () => {
     expect(linkRule, "expected a .link {…} rule in the module").not.toBe("");
   });
@@ -94,18 +104,16 @@ describe("SiteNav .link — WCAG 2.5.8 target size floor", () => {
     expect(linkRule).toMatch(/align-items:\s*center/);
   });
 
-  it("floors the height at 24px (min-height: 1.5rem)", () => {
-    const minHeight = linkRule.match(/min-height:\s*([0-9.]+)rem/)?.[1];
-    expect(minHeight, "expected a rem-based min-height").toBeDefined();
-    // 1.5rem = 24px at the 16px root — the 2.5.8 floor.
-    expect(Number(minHeight)).toBeGreaterThanOrEqual(1.5);
+  it("floors the height at 24px via --size-control", () => {
+    expect(linkRule).toMatch(/min-height:\s*var\(--size-control\)/);
+    // --size-control = 1.5rem = 24px at the 16px root — the 2.5.8 floor.
+    expect(sizeControlRem).toBeGreaterThanOrEqual(1.5);
   });
 
-  it("floors the width at 24px (min-width: 1.5rem)", () => {
-    const minWidth = linkRule.match(/min-width:\s*([0-9.]+)rem/)?.[1];
-    expect(minWidth, "expected a rem-based min-width").toBeDefined();
-    // 1.5rem = 24px — floors the WIDTH axis mechanically, not via label length.
-    expect(Number(minWidth)).toBeGreaterThanOrEqual(1.5);
+  it("floors the width at 24px via --size-control", () => {
+    expect(linkRule).toMatch(/min-width:\s*var\(--size-control\)/);
+    // --size-control = 1.5rem = 24px — floors the WIDTH axis mechanically, not via label length.
+    expect(sizeControlRem).toBeGreaterThanOrEqual(1.5);
     // centered so a label narrower than the floor sits centered in the 24px box.
     expect(linkRule).toMatch(/justify-content:\s*center/);
   });
