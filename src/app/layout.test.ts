@@ -68,8 +68,8 @@ describe("layout.tsx global-CSS import order", () => {
   it("imports EVERY sheet in src/styles — an orphan sheet would silently never load", () => {
     // The by-family split (#227) made "add a file to src/styles/" and "the file actually
     // loads" two separate steps: sheets load only via the ordered side-effect imports above.
-    // A sheet added to the tree (e.g. the reserved foundation/radius.css / border.css /
-    // elevation.css homes) but not imported here ships ZERO of its tokens, and lint:css /
+    // A sheet added to the tree (e.g. a new foundation/ or semantic/ sheet) but not imported
+    // here ships ZERO of its tokens, and lint:css /
     // the co-located tests all stay green. Pin disk ⊆ imports so the failure is loud.
     const stylesDir = resolve(process.cwd(), "src/styles");
     // breakpoints.css is definitions-only (@custom-media) and injected into every compiled

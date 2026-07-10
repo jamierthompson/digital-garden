@@ -125,8 +125,8 @@ async function Card({ theme }: { theme: string }) {
 
 **Tokens are three layers** (the deep treatment is architecture.md's Token & theming architecture section — the layer names below are what you need to apply the `@layer` rule):
 
-1. **Foundation** (primitives: spacing, motion, breakpoints, z-index, type-scale) → global `:root` in `src/styles/foundation/*` (one file per family), with the base reset in `src/styles/reset.css`.
-2. **Semantic** (generic role tokens components actually read) → the layer components consume; radius, border weight, shadow, and density live here too — they're just more semantic tokens, not a separate "feel/geometry" tier.
+1. **Foundation** (primitives: spacing, radius, border-width, control sizes, motion, breakpoints, z-index, type-scale — raw value scales; there is **no** separate "feel/geometry" tier) → global `:root` in `src/styles/foundation/*` (one file per family), with the base reset in `src/styles/reset.css`.
+2. **Semantic** (generic role tokens components actually read) → the layer components consume; a role that needs a geometry primitive binds it here, exactly as the spacing roles alias `--space-*`.
 3. **Theme** → a project **slot**'s full scoped override of the semantic layer — engine-scoped to the `[data-entry]` wrapper, emitted by the OKLCH engine; page chrome stays on the global editorial foundation.
 
 Components read **generic semantic tokens** — `--surface`, `--foreground`, `--accent`, … `--font-body`, `--space-*`. There are **no `--<proj>-*` per-entry prefixed token names**: the `[data-entry]` scope provides the isolation, so a slot overrides the same generic names the rest of the app reads.
