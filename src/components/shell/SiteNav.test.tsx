@@ -172,3 +172,39 @@ describe("SiteNav border-width-thick pair — no active-state layout shift", () 
     );
   });
 });
+
+/**
+ * SiteNav's masthead reflows intrinsically: the byline/dateline row `flex-wrap`s, so the dateline
+ * drops to its own line when the row is tight — no `@media` query. jsdom performs no layout, so
+ * these read the source.
+ */
+describe("SiteNav masthead — intrinsic reflow", () => {
+  const css = readFileSync(
+    resolve(process.cwd(), "src/components/shell/SiteNav.module.css"),
+    "utf8",
+  );
+
+  const rule = (selector: string): string =>
+    css.match(
+      new RegExp(
+        `${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\{([\\s\\S]*?)\\}`,
+      ),
+    )?.[1] ?? "";
+
+  it("reflows the masthead row with flex-wrap", () => {
+    const masthead = rule(".mastheadInner");
+    expect(masthead).toMatch(/display:\s*flex/);
+    expect(masthead).toMatch(/flex-wrap:\s*wrap/);
+  });
+
+  it("uses no @media query", () => {
+    expect(css).not.toMatch(/@media/);
+  });
+
+  it("references no @custom-media or --xs-down token", () => {
+    // A `@media (--token)` custom-media query has no PostCSS substitution in this config, so it
+    // would ship verbatim and silently never match.
+    expect(css).not.toMatch(/@custom-media/);
+    expect(css).not.toContain("--xs-down");
+  });
+});

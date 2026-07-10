@@ -50,7 +50,7 @@ src/
     reset.css              base reset + element defaults (@layer foundation)
     foundation/            tier-1 primitives: space · typography · motion · dimension · focus · radius · border
     semantic/              tier-2 role tokens components read: space · type · typography · color (baked engine fallback)
-  lib/                     resolvers, keys, cardSwatches, breakpoints (build-time, NOT :root vars)
+  lib/                     resolvers, keys, cardSwatches
   entries/<slug>/          self-contained entry modules (registry-resolved, literal imports)
   fonts/roster.ts          curated next/font faces, one per key (preload:false)
   sanity/lib/              Sanity client + env + the defineLive read path

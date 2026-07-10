@@ -15,6 +15,7 @@
 
   .mastheadInner {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
     gap: var(--space-4);
@@ -35,13 +36,6 @@
     font-size: var(--type-size-2);
     color: var(--muted-foreground);
     white-space: nowrap;
-  }
-
-  /* On narrow viewports the byline takes the row; drop the decorative dateline. */
-  @media (--xs-down) {
-    .dateline {
-      display: none;
-    }
   }
 
   .nav {

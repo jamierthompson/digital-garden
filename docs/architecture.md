@@ -47,7 +47,7 @@ These are the through-lines; everything else follows from them.
   token group, a component, an entry module — ships its own defaults and is themed by whatever
   composes it _downward_. Nothing depends on **themeable** ambient context (a theme value) provided
   by an ancestor it doesn't own. It _may_ depend on the global **foundation** layer (spacing,
-  motion, breakpoints, z-index) — that's shared plumbing, not a look. This is the precise form of
+  motion, z-index) — that's shared plumbing, not a look. This is the precise form of
   "don't reach up the tree," and it generalizes the `var(--public-override, var(--_internal-default))`
   pattern from leaf primitives across the system — but as **composition-time** theming (a host sets
   the tokens a child reads), not runtime re-derivation of an engine's computed ramp.
@@ -97,11 +97,11 @@ are owned by the site rather than any entry, and wear their own authored theme (
 
 Tokens are organized in **three tiers**, each consuming the one before it:
 
-| Tier           | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| -------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Foundation** | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, content-width measures (`--width-measure` 42rem / `--width-content` 48rem / `--width-page` 72rem), the radius scale (`--radius` 10px, with `--radius-sm`/`-md`/`-lg`/`-xl` = 6/8/10/14px and `--radius-full`), border widths (`--border-width` 1px / `--border-width-thick` 2px), control sizes (`--size-control` 24px / `--size-control-lg` 44px / `--size-icon` 16px), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, breakpoint constants, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
-| **Semantic**   | global `:root` (the neutral fallback)             | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the neutral ground for surfaces that render with no `<html>` theme.                                                                                                                                                                                   |
-| **Theme**      | `<html>` (color) + the slot `[data-entry]` (font) | the theme override, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **font** is a per-slot override, an inline `--font-body` on `[data-entry]` (`EntryScope`).                                                                                                                                                                                                                                                                                                                                                                                      |
+| Tier           | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| -------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Foundation** | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, content-width measures (`--width-measure` 42rem / `--width-content` 48rem / `--width-page` 72rem), the radius scale (`--radius` 10px, with `--radius-sm`/`-md`/`-lg`/`-xl` = 6/8/10/14px and `--radius-full`), border widths (`--border-width` 1px / `--border-width-thick` 2px), control sizes (`--size-control` 24px / `--size-control-lg` 44px / `--size-icon` 16px), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
+| **Semantic**   | global `:root` (the neutral fallback)             | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the neutral ground for surfaces that render with no `<html>` theme.                                                                                                                                                             |
+| **Theme**      | `<html>` (color) + the slot `[data-entry]` (font) | the theme override, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **font** is a per-slot override, an inline `--font-body` on `[data-entry]` (`EntryScope`).                                                                                                                                                                                                                                                                                                                                                                |
 
 The model is layered, not partitioned: the **semantic layer is the contract** components code
 against, and a theme simply re-defines those same semantic tokens with its own values — the page's
@@ -127,7 +127,7 @@ them).
 ```
 global :root  (foundation primitives + the semantic NEUTRAL FALLBACK)
    ├─ FOUNDATION: spacing ramp · content widths · motion curves · type-scale ratios
-   │              · breakpoint constants · z-index · focus-ring GEOMETRY · reset  (no color ramp)
+   │              · z-index · focus-ring GEOMETRY · reset  (no color ramp)
    ├─ SEMANTIC (engine fallback token set): --surface · --foreground · --accent · --font-body · …
    │              ← the generic contract; the neutral ground for surfaces with no <html> theme
    └─ @layer foundation, semantic, components;   ← bare order statement, loaded first
@@ -158,7 +158,7 @@ Key points:
   are only the neutral **fallback** for surfaces that render un-themed (404 / error / loading). The
   global typography is fixed house style — Space Grotesk headings + Source Serif 4 body — and an
   entry's theme **font** overrides `--font-body` in its own interactive slot only (an inline style
-  on `[data-entry]`), never the page chrome. Spacing, motion, breakpoints, and type-ratios are
+  on `[data-entry]`), never the page chrome. Spacing, motion, and type-ratios are
   themeable-in-principle but invariant-in-practice.
 
 - **Every CSS Module must declare its `@layer`.** Next does **not** auto-assign CSS Modules to a
@@ -173,12 +173,15 @@ Key points:
   accidents instead of fighting specificity. The global order statement must register before
   `next/font` — pinned by import order in the root layout.
 
-- **Breakpoints are not `:root` custom properties.** CSS variables are invalid inside `@media`
-  conditions, so breakpoints are build-time constants / container queries; custom props can still
-  feed JS. Slot-responsive layout uses container queries scoped to the slot. The constants are
-  `@custom-media` tokens in `src/styles/breakpoints.css` (`--xs-down`, `--sm-up`, …), injected
-  into every compiled sheet and substituted at build time via `postcss.config.mjs` — note a
-  custom PostCSS config replaces Next's defaults, so that file re-declares them.
+- **Responsive layout is container-query-first.** There is no shared breakpoint layer or breakpoint
+  tokens. The order of preference is: **intrinsic** first (`auto-fit`/`auto-fill` + `minmax`, `flex-wrap`,
+  `clamp()` — layout that reflows with no query at all, e.g. the browse grid's
+  `repeat(auto-fill, minmax(…, 1fr))`); then **container queries** (`container-type: inline-size`
+  on a component's own box + `@container`) for component-context responsiveness, the right tool for
+  the bounded interactive entry slots — a slot responds to _its own_ width, not the viewport's; and
+  **viewport `@media` only for genuine page chrome** whose collapse is a function of the viewport,
+  not any container. Write the literal query (`@media (max-width: …)`) — CSS variables are invalid
+  inside `@media` conditions, so there is nothing to tokenize.
 
 ### Site-wide `<html>` theme delivery (#166)
 

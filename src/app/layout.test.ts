@@ -72,13 +72,11 @@ describe("layout.tsx global-CSS import order", () => {
     // here ships ZERO of its tokens, and lint:css /
     // the co-located tests all stay green. Pin disk ⊆ imports so the failure is loud.
     const stylesDir = resolve(process.cwd(), "src/styles");
-    // breakpoints.css is definitions-only (@custom-media) and injected into every compiled
-    // sheet by @csstools/postcss-global-data (postcss.config.mjs) — never imported here.
-    const postcssInjected = new Set(["breakpoints.css"]);
+    // Every sheet in src/styles/ loads via the ordered side-effect imports above — no exceptions,
+    // so disk ⊆ imports with no filtering.
     const sheetsOnDisk = readdirSync(stylesDir, { recursive: true })
       .map((entry) => String(entry).split("\\").join("/"))
-      .filter((entry) => entry.endsWith(".css"))
-      .filter((entry) => !postcssInjected.has(entry));
+      .filter((entry) => entry.endsWith(".css"));
     expect(sheetsOnDisk.length).toBeGreaterThan(0);
     for (const sheet of sheetsOnDisk) {
       expect(

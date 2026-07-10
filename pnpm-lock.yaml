@@ -36,9 +36,6 @@ importers:
         specifier: ^0.0.1
         version: 0.0.1
     devDependencies:
-      '@csstools/postcss-global-data':
-        specifier: ^4.0.0
-        version: 4.0.0(postcss@8.5.15)
       '@testing-library/jest-dom':
         specifier: ^6.9.1
         version: 6.9.1
@@ -942,12 +939,6 @@ packages:
 
   '@csstools/postcss-gamut-mapping@3.0.6':
     resolution: {integrity: sha512-lopCMFvN6ohy33lLmOY46matUrpL1ymVGOyebflzMb44pXoGy+f27glXCXz0PfQmfv8On3a8eVTIQfkX7nf6gQ==}
-    engines: {node: '>=20.19.0'}
-    peerDependencies:
-      postcss: ^8.4
-
-  '@csstools/postcss-global-data@4.0.0':
-    resolution: {integrity: sha512-mPKrL3Tzt8k1V+hTkU8XTH6JKRekB97oKHv/MekC9nfmRa+gMf1swlHRt8YK722sYN4xOipl17FZst99jsScLA==}
     engines: {node: '>=20.19.0'}
     peerDependencies:
       postcss: ^8.4
@@ -4924,10 +4915,6 @@ packages:
   graceful-fs@4.2.10:
     resolution: {integrity: sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==}
 
-  groq-js@1.30.2:
-    resolution: {integrity: sha512-FqF7NNzBxya6Oq4VkTl9lg3W5Gjd3Cjwc6Et2OeAcTdmHOClwcYeAZkWR6wIm+KPtvESSYtzP59aj/+9egOKZQ==}
-    engines: {node: '>= 14'}
-
   groq-js@1.30.3:
     resolution: {integrity: sha512-X3Zppy8KO/mDLSu5RylcO9zON+IwxV6y6aeIWsfNNBz0PaRboUmsTVgk3Zndqp9TgWCTFvCk+Z2W0uu0R3i5DA==}
     engines: {node: '>= 14'}
@@ -8430,10 +8417,6 @@ snapshots:
       '@csstools/css-tokenizer': 4.0.0
       postcss: 8.5.15
 
-  '@csstools/postcss-global-data@4.0.0(postcss@8.5.15)':
-    dependencies:
-      postcss: 8.5.15
-
   '@csstools/postcss-gradients-interpolation-method@6.0.6(postcss@8.5.15)':
     dependencies:
       '@csstools/css-color-parser': 4.1.9(@csstools/css-parser-algorithms@4.0.0(@csstools/css-tokenizer@4.0.0))(@csstools/css-tokenizer@4.0.0)
@@ -10591,7 +10574,7 @@ snapshots:
       execa: 9.6.1
       form-data: 4.0.6
       get-latest-version: 6.0.1
-      groq-js: 1.30.2
+      groq-js: 1.30.3
       gunzip-maybe: 1.4.2
       import-meta-resolve: 4.2.0
       is-installed-globally: 1.0.0
@@ -10683,7 +10666,7 @@ snapshots:
       debug: 4.4.3(supports-color@8.1.1)
       globby: 11.1.0
       groq: 6.2.0
-      groq-js: 1.30.2
+      groq-js: 1.30.3
       json5: 2.2.3
       lodash-es: 4.18.1
       prettier: 3.8.4
@@ -10832,7 +10815,7 @@ snapshots:
       console-table-printer: 2.16.1
       debug: 4.4.3(supports-color@8.1.1)
       fast-fifo: 1.3.2
-      groq-js: 1.30.2
+      groq-js: 1.30.3
       p-map: 7.0.4
     transitivePeerDependencies:
       - '@types/react'
@@ -10895,7 +10878,7 @@ snapshots:
       cardinal: 2.1.1
       empathic: 2.0.1
       eventsource: 4.1.0
-      groq-js: 1.30.2
+      groq-js: 1.30.3
       jiti: 2.7.0
       mime-types: 3.0.2
       ora: 9.4.1
@@ -10928,7 +10911,7 @@ snapshots:
       '@sanity/generate-help-url': 4.0.0
       '@sanity/types': 6.2.0(@types/react@19.2.17)
       arrify: 3.0.0
-      groq-js: 1.30.2
+      groq-js: 1.30.3
       humanize-list: 1.0.1
       leven: 4.1.0
       lodash-es: 4.18.1
@@ -10952,7 +10935,7 @@ snapshots:
       '@sanity/telemetry': 1.1.0(react@19.2.7)
       '@sanity/types': 6.2.0(@types/react@19.2.17)
       groq: 3.88.1-typegen-experimental.0
-      groq-js: 1.30.2
+      groq-js: 1.30.3
       reselect: 5.2.0
       rxjs: 7.8.2
       zustand: 5.0.14(@types/react@19.2.17)(react@19.2.7)(use-sync-external-store@1.6.0(react@19.2.7))
@@ -12904,12 +12887,6 @@ snapshots:
 
   graceful-fs@4.2.10: {}
 
-  groq-js@1.30.2:
-    dependencies:
-      debug: 4.4.3(supports-color@8.1.1)
-    transitivePeerDependencies:
-      - supports-color
-
   groq-js@1.30.3:
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
@@ -14654,7 +14631,7 @@ snapshots:
       debug: 4.4.3(supports-color@8.1.1)
       exif-component: 1.0.1
       fast-deep-equal: 3.1.3
-      groq-js: 1.30.2
+      groq-js: 1.30.3
       history: 5.3.0
       i18next: 26.3.2(typescript@5.9.3)
       is-hotkey-esm: 1.0.0
