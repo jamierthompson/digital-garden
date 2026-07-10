@@ -50,14 +50,20 @@ const root = new URL("../", import.meta.url);
 // `liveEmbed` blocks; `liveEmbedBlockCount` reuses that SAME `_type == "liveEmbed"` filter
 // but never touches the `embedKey` field, so it stays valid even if `embedKey` is renamed.
 // All fields confirmed against the live production dataset while designing this script.
-const PUBLISHED_KEYS_QUERY = `{
+//
+// Each key line's `defined(...)` document filter is load-bearing: `body` is schema-optional
+// (a title-only entry — e.g. a now-update — is a valid, intended shape), so a body-less
+// entry's null `.body` would otherwise leak into the flatten and poison the `embedKeys`
+// result. `defined(body)` drops those documents at the source, matching the `defined(fontKey)`
+// / `defined(componentKey)` guards on the sibling lines.
+export const PUBLISHED_KEYS_QUERY = `{
   "entryCount": count(*[_type == "entry"]),
   "siteSettingsCount": count(*[_type == "siteSettings"]),
   "nonSketchProjectCount": count(*[_type == "entry" && kind == "project" && stage != "sketch"]),
   "liveEmbedBlockCount": count(*[_type == "entry" && count(body[_type == "liveEmbed"]) > 0]),
   "fontKeys": array::unique(*[_type in ["entry", "siteSettings"] && defined(fontKey)].fontKey),
   "componentKeys": array::unique(*[_type == "entry" && defined(componentKey)].componentKey),
-  "embedKeys": array::unique(*[_type == "entry"].body[_type == "liveEmbed" && defined(embedKey)].embedKey)
+  "embedKeys": array::unique(*[_type == "entry" && defined(body)].body[_type == "liveEmbed" && defined(embedKey)].embedKey)
 }`;
 
 /**

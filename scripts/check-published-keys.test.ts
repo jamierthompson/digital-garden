@@ -16,6 +16,7 @@ import { describe, expect, it } from "vitest";
 import {
   findBrokenQuerySignals,
   findUnresolvedKeys,
+  PUBLISHED_KEYS_QUERY,
 } from "./check-published-keys.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -189,6 +190,22 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
       embedKeys: [],
     });
     expect(signals).toHaveLength(3);
+  });
+});
+
+describe("PUBLISHED_KEYS_QUERY — string canary (the GROQ itself is not unit-testable)", () => {
+  it("guards embedKeys against body-less entries with a `defined(body)` document filter", () => {
+    // `body` is schema-optional (a title-only entry is a valid, intended shape); without this
+    // filter a body-less entry's null `.body` leaks into the flatten and poisons embedKeys —
+    // the #217 false-fail. String-canaried because the query runs only against the live CDN
+    // (mirrors src/styles/foundation/border.test.ts canarying un-runnable CSS).
+    expect(PUBLISHED_KEYS_QUERY).toContain('_type == "entry" && defined(body)');
+  });
+
+  it("keeps the document-level `defined(...)` guard on every key line", () => {
+    expect(PUBLISHED_KEYS_QUERY).toContain("defined(fontKey)");
+    expect(PUBLISHED_KEYS_QUERY).toContain("defined(componentKey)");
+    expect(PUBLISHED_KEYS_QUERY).toContain("defined(body)");
   });
 });
 
