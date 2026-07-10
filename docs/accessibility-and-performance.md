@@ -74,6 +74,7 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 | 1.4.11 Non-Text Contrast               | Focus ring ≥ 3:1 vs adjacent colors                   | Ring color is engine-emitted per slot surface — consume it; don't recolor it ad hoc.                     |
 | 2.4.11 Focus Not Obscured (new in 2.2) | Focused element not fully hidden by sticky/overlay UI | Sticky shell nav / any sticky header must not cover the focused element.                                 |
 | 2.5.8 Target Size (new in 2.2)         | Pointer targets ≥ **24×24** CSS px                    | Nav links, featured-home cards, embed controls. Treat 24×24 as a firm floor.                             |
+| 2.4.1 Bypass Blocks                    | A mechanism to skip repeated blocks (the shell nav)   | The skip-link + the `<main>` landmark, below.                                                            |
 
 - **Focus-ring split:** _geometry_ (width, offset, style, the `:focus-visible` policy) is
   **global foundation** (the token & theming architecture section of [`./architecture.md`](./architecture.md)); _color_ is the **engine token** (contrast-solved per slot).
@@ -83,6 +84,16 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
   dodge the floor**. Default to 24×24; use the exception only with a deliberate reason.
 - For browsers without `:focus-visible`, mirror the rule inside
   `@supports not (selector(:focus-visible))`.
+- **Skip-link + `<main>` landmark (2.4.1):** the shell mounts a `SkipLink`
+  (`src/components/shell/SkipLink.tsx`) as the **first focusable in the document** — off-screen until
+  focused, then a visible chip above all page chrome. It targets the shared `MAIN_CONTENT_ID`
+  (`src/lib/landmarks.ts`) — the `id` **every view's single `<main>` carries**: the `Page` layout
+  primitive stamps it on the `<main>` it renders (the token & theming architecture / Layout
+  primitives section of [`./architecture.md`](./architecture.md)), and the cold-state frames
+  (loading / not-found / error), which render their own `<main>` outside `Page`, carry it too. The target
+  `<main>` takes `tabIndex={-1}` so activation moves focus there, not just the scroll position. One
+  skip target on every view — a keyboard user bypasses the nav in one tab. (The shared constant
+  keeps the anchor and its targets from drifting into a dead link.)
 
 ---
 

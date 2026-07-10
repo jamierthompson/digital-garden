@@ -1,3 +1,5 @@
+import { MAIN_CONTENT_ID } from "@/lib/landmarks";
+
 import styles from "./states.module.css";
 
 // The loading boundary for `/<slug>`. Shown while the route's dynamic holes
@@ -6,7 +8,12 @@ import styles from "./states.module.css";
 // themed shell paints from the static HTML; this is only the transient hole filler.
 export default function WorkLoading() {
   return (
-    <main className={styles.state} aria-busy="true">
+    <main
+      id={MAIN_CONTENT_ID}
+      tabIndex={-1}
+      className={styles.state}
+      aria-busy="true"
+    >
       <p className={styles.body}>Loading entry…</p>
     </main>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
@@ -57,8 +58,8 @@ export default async function NowPage() {
   return (
     <>
       <PageTheme seed={themeSeed} />
-      <Stack asChild gap={space(6)}>
-        <main className={styles.main}>
+      <Page width="content">
+        <Stack gap={space(6)}>
           <header className={styles.header}>
             <Heading level={1}>Now</Heading>
             <Text variant="lead" className={styles.intro}>
@@ -122,8 +123,8 @@ export default async function NowPage() {
             </a>
             , and you could make one too.
           </Text>
-        </main>
-      </Stack>
+        </Stack>
+      </Page>
     </>
   );
 }

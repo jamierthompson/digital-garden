@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { VisuallyHidden } from "radix-ui";
 
 import EntryCard from "@/components/entry/EntryCard";
+import Page from "@/components/layout/Page";
+import Stack from "@/components/layout/Stack";
 import Heading from "@/components/typography/Heading";
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
+import { space } from "@/lib/tokens";
 import { FEATURED_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
 
@@ -32,35 +35,37 @@ export default async function Home() {
   return (
     <>
       <PageTheme seed={themeSeed} />
-      <main className={styles.main}>
-        <section className={styles.hero}>
-          {/* The landing statement is the one place the oversized `display` role is used; a
+      <Page width="page">
+        <Stack gap={space(9)}>
+          <section className={styles.hero}>
+            {/* The landing statement is the one place the oversized `display` role is used; a
             content page's h1 defaults to the quieter `title` role. */}
-          <Heading level={1} variant="display" className={styles.title}>
-            Notes, essays, and things I&rsquo;m building in the open.
-          </Heading>
-        </section>
+            <Heading level={1} variant="display" className={styles.title}>
+              Notes, essays, and things I&rsquo;m building in the open.
+            </Heading>
+          </section>
 
-        {featured.length > 0 ? (
-          <section
-            className={styles.featured}
-            aria-labelledby="featured-heading"
-          >
-            {/* The visual design (mockup 4a) omits a "Featured" label — the plates follow the
+          {featured.length > 0 ? (
+            <section
+              className={styles.featured}
+              aria-labelledby="featured-heading"
+            >
+              {/* The visual design (mockup 4a) omits a "Featured" label — the plates follow the
               hero directly. The heading is kept but visually hidden (Radix VisuallyHidden via
               `asChild`, so it stays a real <h2>) — the section keeps its accessible name and
               the document outline stays intact. */}
-            <VisuallyHidden.Root asChild>
-              <h2 id="featured-heading">Featured</h2>
-            </VisuallyHidden.Root>
-            <ul className={styles.grid}>
-              {featured.map((entry) => (
-                <EntryCard key={entry._id} entry={entry} />
-              ))}
-            </ul>
-          </section>
-        ) : null}
-      </main>
+              <VisuallyHidden.Root asChild>
+                <h2 id="featured-heading">Featured</h2>
+              </VisuallyHidden.Root>
+              <ul className={styles.grid}>
+                {featured.map((entry) => (
+                  <EntryCard key={entry._id} entry={entry} />
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </Stack>
+      </Page>
     </>
   );
 }

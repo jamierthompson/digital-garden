@@ -76,56 +76,30 @@ describe("no retired width token name survives anywhere in the source tree (#202
   });
 });
 
-describe("every migrated width consumer resolves to its HISTORICAL rem value (#202)", () => {
-  // file → [selector-fragment, token expected, historical rem value]. The token is the NEW
-  // name; the rem is what the consumer rendered at BEFORE the rename. If the double-map slipped,
-  // the token here would map to a different rem and this table would go red.
+describe("every width consumer resolves to its HISTORICAL rem value (#202)", () => {
+  // The token is the NEW name; the rem is what the consumer rendered at BEFORE the rename. If the
+  // double-map slipped, the token here would map to a different rem and the table would go red.
   const val = (token: string): string =>
     dimension[`--${token.replace(/^--/, "")}`];
 
-  const cases: Array<[string, string, string, string]> = [
-    // [slug]/page.module.css uses BOTH old names — the highest-risk file.
-    [
-      "src/app/[slug]/page.module.css",
-      "max-width: var(--width-page)",
-      "width-page",
-      "72rem",
-    ],
+  // (a) CSS files that consume a --width-* token directly in a rule: the cold-state frames, the
+  // shell chrome, the [slug] article grid's reading-measure columns, and Page's conduit fallback.
+  const cssCases: Array<[string, string, string, string]> = [
+    // [slug]/page.module.css consumes --width-content in the article grid's reading-measure column
+    // and the non-article child cap.
     [
       "src/app/[slug]/page.module.css",
       "min(var(--width-content), 100%)",
       "width-content",
       "48rem",
     ],
+    // The Page frame — every route's frame width flows through this --page-width conduit, with a
+    // --width-content fallback.
     [
-      "src/app/now/page.module.css",
-      "max-width: var(--width-content)",
+      "src/components/layout/Page.module.css",
+      "var(--page-width, var(--width-content))",
       "width-content",
       "48rem",
-    ],
-    [
-      "src/app/browse/page.module.css",
-      "max-width: var(--width-page)",
-      "width-page",
-      "72rem",
-    ],
-    [
-      "src/app/page.module.css",
-      "max-width: var(--width-page)",
-      "width-page",
-      "72rem",
-    ],
-    [
-      "src/app/about/page.module.css",
-      "max-width: var(--width-measure)",
-      "width-measure",
-      "42rem",
-    ],
-    [
-      "src/app/system/page.module.css",
-      "max-width: var(--width-measure)",
-      "width-measure",
-      "42rem",
     ],
     [
       "src/app/loading.module.css",
@@ -153,10 +127,32 @@ describe("every migrated width consumer resolves to its HISTORICAL rem value (#2
     ],
   ];
 
-  for (const [file, fragment, token, rem] of cases) {
+  for (const [file, fragment, token, rem] of cssCases) {
     it(`${file} :: ${fragment} → ${rem}`, () => {
       const css = read(file);
       expect(css, `expected "${fragment}" in ${file}`).toContain(fragment);
+      expect(val(token), `--${token} must resolve to ${rem}`).toBe(rem);
+    });
+  }
+
+  // (b) Each route selects its frame width via the `width` role prop on <Page>, which maps to
+  // var(--width-<role>). Pin each route to the role whose rem it must render at — a wrong role
+  // would silently reflow the page.
+  const routeCases: Array<[string, string, string, string]> = [
+    ["src/app/page.tsx", "page", "width-page", "72rem"],
+    ["src/app/browse/page.tsx", "page", "width-page", "72rem"],
+    ["src/app/now/page.tsx", "content", "width-content", "48rem"],
+    ["src/app/about/page.tsx", "measure", "width-measure", "42rem"],
+    ["src/app/system/page.tsx", "measure", "width-measure", "42rem"],
+    ["src/app/[slug]/page.tsx", "page", "width-page", "72rem"],
+  ];
+
+  for (const [file, role, token, rem] of routeCases) {
+    it(`${file} :: <Page width="${role}"> → ${rem}`, () => {
+      const src = read(file);
+      expect(src, `expected <Page width="${role}"> in ${file}`).toContain(
+        `<Page width="${role}"`,
+      );
       expect(val(token), `--${token} must resolve to ${rem}`).toBe(rem);
     });
   }

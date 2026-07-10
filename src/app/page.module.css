@@ -2,18 +2,6 @@
    outranks every layered rule). Var-consuming editorial frame only (reads the global semantic
    tokens); the themed card slots live in `EntryCard` (its own module + inline swatches). */
 @layer components {
-  .main {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-9);
-    max-width: var(--width-page);
-    margin: 0 auto;
-    /* Horizontal inset MUST match the shell (nav/masthead/footer use --space-6), so the hero
-       and cards sit on the same content column as the `folio_` wordmark — a 24 vs 32px
-       mismatch here left the h1 8px off the byline (browser QA). */
-    padding: var(--space-9) var(--space-6);
-  }
-
   .hero {
     display: flex;
     flex-direction: column;

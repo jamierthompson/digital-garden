@@ -1,3 +1,5 @@
+import { MAIN_CONTENT_ID } from "@/lib/landmarks";
+
 import styles from "./loading.module.css";
 
 // The root loading boundary — the Suspense boundary for every segment that doesn't
@@ -9,7 +11,12 @@ import styles from "./loading.module.css";
 // Loading components take no props (`node_modules/.../03-file-conventions/loading.md`).
 export default function RootLoading() {
   return (
-    <main className={styles.state} aria-busy="true">
+    <main
+      id={MAIN_CONTENT_ID}
+      tabIndex={-1}
+      className={styles.state}
+      aria-busy="true"
+    >
       <p className={styles.body}>Loading…</p>
     </main>
   );
