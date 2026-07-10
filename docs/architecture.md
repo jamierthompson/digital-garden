@@ -124,6 +124,18 @@ light/dark neutral step, and so on. Consumers still read only the generic semant
 math stays behind them (the raw `--<role>-<step>` steps are also emitted for a consumer that wants
 them).
 
+Because every color token is **contrast-solved this way, it is immutable at the point of use**: a
+consumer reads it, it never derives a new color from it. Three forms are forbidden — `color-mix()`ing
+a token, slash-alpha-fading it (`var(--token) / <alpha>`), and re-deriving it through relative-color
+syntax (`oklch(from var(--token) …)`) — because each discards the very contrast the engine solved
+for. A lower-emphasis or tinted role is its **own** designed token — `--muted-foreground`, `--muted`,
+`--accent-subtle`, the `*-subtle` status families — solved for its own ground, not a runtime
+weakening of a stronger one; derivation belongs in the engine, not component CSS. This is a CI gate
+(`pnpm lint:color`, `scripts/check-color-immutability.mjs`): it derives the color-token set from
+`semantic/color.css` and flags all three forms on any of them, exempting `currentColor` and
+non-color vars (spacing, radius, border-width). A missing role is a gap to add to the semantic
+contract, never a mutation to reach for.
+
 ```
 global :root  (foundation primitives + the semantic NEUTRAL FALLBACK)
    ├─ FOUNDATION: spacing ramp · content widths · motion curves · type-scale ratios
