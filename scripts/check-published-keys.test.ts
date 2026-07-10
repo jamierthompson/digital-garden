@@ -3,14 +3,16 @@
  *
  * `findUnresolvedKeys` is pure (no network, no process) and imported directly, unlike
  * check-key-drift.mjs's tests — this script pulls in no `next/font` chain, so a plain
- * import is safe. The network path itself is exercised only via child process, and only
- * for the graceful-degradation branch (missing env vars) — the suite must stay offline,
- * so it never spawns the script against the live dataset.
+ * import is safe. The GROQ query is exercised offline by evaluating it with `groq-js`
+ * against an in-memory dataset (no network, no CDN) — the same pattern as
+ * src/sanity/lib/queries.test.ts. The only child-process spawn is the graceful-degradation
+ * branch (missing env vars); the suite never spawns the script against the live dataset.
  */
 
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { evaluate, parse } from "groq-js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -193,12 +195,13 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
   });
 });
 
-describe("PUBLISHED_KEYS_QUERY — string canary (the GROQ itself is not unit-testable)", () => {
+describe("PUBLISHED_KEYS_QUERY — source-text canary", () => {
   it("guards embedKeys against body-less entries with a `defined(body)` document filter", () => {
-    // `body` is schema-optional (a title-only entry is a valid, intended shape); without this
-    // filter a body-less entry's null `.body` leaks into the flatten and poisons embedKeys —
-    // the #217 false-fail. String-canaried because the query runs only against the live CDN
-    // (mirrors src/styles/foundation/border.test.ts canarying un-runnable CSS).
+    // A cheap spelling guard that fails fast if the filter is deleted from the source, without
+    // parsing or executing the query. It complements — does not replace — the executed groq-js
+    // behavioral tests below, which are what actually prove the guard works. `body` is
+    // schema-optional: a title-only entry (e.g. a now-update) is a valid, intended shape, so
+    // its null `.body` must not leak into the flatten (the #217 false-fail).
     expect(PUBLISHED_KEYS_QUERY).toContain('_type == "entry" && defined(body)');
   });
 
@@ -206,6 +209,125 @@ describe("PUBLISHED_KEYS_QUERY — string canary (the GROQ itself is not unit-te
     expect(PUBLISHED_KEYS_QUERY).toContain("defined(fontKey)");
     expect(PUBLISHED_KEYS_QUERY).toContain("defined(componentKey)");
     expect(PUBLISHED_KEYS_QUERY).toContain("defined(body)");
+  });
+});
+
+describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (groq-js, offline; QA)", () => {
+  // The slice's own comment calls the GROQ "not unit-testable" and settles for a string
+  // canary — but `groq-js` (the reference evaluator Sanity's CDN runs) is a declared
+  // devDependency already used this way in src/sanity/lib/queries.test.ts. Executing the
+  // ACTUAL query against a synthetic dataset tests the *behavior* the fix claims, not the
+  // *spelling* of the source; it is what would have caught #217 in the first place, and it
+  // stays fully offline (in-memory dataset, no network). Schema facts pinned:
+  // studio/schemaTypes/documents/entry.ts (`body` is optional) and
+  // studio/schemaTypes/objects/liveEmbed.ts (`embedKey` is required).
+
+  /** Run the production query against an in-memory dataset — no network, no token. */
+  async function runQuery(dataset: unknown[]): Promise<{
+    entryCount: number;
+    liveEmbedBlockCount: number;
+    fontKeys: unknown[];
+    componentKeys: unknown[];
+    embedKeys: unknown[];
+  }> {
+    const result = await (
+      await evaluate(parse(PUBLISHED_KEYS_QUERY), { dataset })
+    ).get();
+    return result as {
+      entryCount: number;
+      liveEmbedBlockCount: number;
+      fontKeys: unknown[];
+      componentKeys: unknown[];
+      embedKeys: unknown[];
+    };
+  }
+
+  // A dataset that exercises every `body` shape a title-only garden can hold, alongside two
+  // entries that carry real liveEmbed blocks. This is the #217 shape: body-less entries
+  // sitting next to embed-bearing ones in the same flatten.
+  const MIXED_DATASET: unknown[] = [
+    {
+      _type: "entry",
+      _id: "e1",
+      body: [{ _type: "liveEmbed", embedKey: "demo-a" }],
+    },
+    { _type: "entry", _id: "e2-title-only" }, // body absent (the #217 shape)
+    { _type: "entry", _id: "e3-body-null", body: null }, // body explicitly null
+    { _type: "entry", _id: "e4-body-empty", body: [] }, // defined but empty
+    {
+      _type: "entry",
+      _id: "e5",
+      body: [
+        { _type: "liveEmbed", embedKey: "demo-b" },
+        { _type: "block", children: [] },
+      ],
+    },
+    { _type: "siteSettings", _id: "settings", fontKey: "inter" },
+  ];
+
+  it("collects real embedKeys and leaks NO null when body-less entries sit in the flatten (#217)", async () => {
+    const { embedKeys } = await runQuery(MIXED_DATASET);
+    // The core regression: the pre-fix query flattened absent/null `.body` into the array
+    // as `null` — here it produced ["demo-a", null, null, "demo-b"]. The fix drops those
+    // documents at the source, leaving only the real keys.
+    expect(embedKeys).toEqual(["demo-a", "demo-b"]);
+    expect(embedKeys).not.toContain(null);
+  });
+
+  it("produces zero FALSE drift end-to-end — the null never reaches findUnresolvedKeys (#217)", async () => {
+    // The money test: this is exactly the pipeline main() runs. Pre-fix, the leaked nulls
+    // arrived here as unresolved keys and the guard exited 1 — the false-fail. Post-fix the
+    // published set is clean, so a known-set covering the real keys yields no drift.
+    const { embedKeys } = await runQuery(MIXED_DATASET);
+    expect(findUnresolvedKeys(embedKeys, ["demo-a", "demo-b"])).toEqual([]);
+  });
+
+  it("keeps liveEmbedBlockCount and embedKeys consistent — defined(body) desyncs neither", async () => {
+    // The canary pair in findBrokenQuerySignals only holds if the count and the keys agree.
+    // A body-less entry contributes 0 to BOTH (no body → no liveEmbed block, and dropped by
+    // defined(body)), so the pairing stays sound on a mixed dataset.
+    const published = await runQuery(MIXED_DATASET);
+    expect(published.liveEmbedBlockCount).toBe(2);
+    expect(published.embedKeys).toHaveLength(2);
+    expect(findBrokenQuerySignals(published)).toEqual([]);
+  });
+
+  it("a title-only garden (every entry body-less) resolves to an empty embedKeys with no null and no broken signal", async () => {
+    const published = await runQuery([
+      { _type: "entry", _id: "n1" },
+      { _type: "entry", _id: "n2", body: null },
+      { _type: "entry", _id: "n3", body: [] },
+    ]);
+    expect(published.embedKeys).toEqual([]);
+    expect(published.liveEmbedBlockCount).toBe(0);
+    expect(findBrokenQuerySignals(published)).toEqual([]);
+  });
+
+  it("does not regress the sibling fontKey/componentKey flattens on the same dataset", async () => {
+    const published = await runQuery([
+      ...MIXED_DATASET,
+      {
+        _type: "entry",
+        _id: "proj",
+        kind: "project",
+        stage: "shipped",
+        fontKey: "newsreader",
+        componentKey: "mod-x",
+        body: [{ _type: "liveEmbed", embedKey: "demo-c" }],
+      },
+    ]);
+    expect(published.fontKeys).toContain("inter");
+    expect(published.fontKeys).toContain("newsreader");
+    expect(published.componentKeys).toEqual(["mod-x"]);
+    expect(published.embedKeys).toContain("demo-c");
+    expect(published.embedKeys).not.toContain(null);
+  });
+
+  it("stays empty (not broken) on a genuinely empty dataset", async () => {
+    const published = await runQuery([]);
+    expect(published.entryCount).toBe(0);
+    expect(published.embedKeys).toEqual([]);
+    expect(findBrokenQuerySignals(published)).toEqual([]);
   });
 });
 
