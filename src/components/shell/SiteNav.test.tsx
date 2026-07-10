@@ -123,3 +123,52 @@ describe("SiteNav .link — WCAG 2.5.8 target size floor", () => {
     expect(linkRule).toMatch(/padding-block:\s*var\(--space-2\)/);
   });
 });
+
+/**
+ * The masthead ink rule and the nav active-underline are BOTH the "thick" 2px border
+ * (`--border-width-thick`). They must stay EQUAL and `.active` must override only the COLOR —
+ * if `.active` re-declared the border width, or the placeholder and heading widths diverged,
+ * activating a link would shift the whole nav row by a pixel. (jsdom performs no layout; this
+ * pins the declarations at the source.)
+ */
+describe("SiteNav border-width-thick pair — no active-state layout shift", () => {
+  const css = readFileSync(
+    resolve(process.cwd(), "src/components/shell/SiteNav.module.css"),
+    "utf8",
+  );
+
+  const rule = (selector: string): string => {
+    const re = new RegExp(
+      `${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\{([\\s\\S]*?)\\}`,
+    );
+    return css.match(re)?.[1] ?? "";
+  };
+
+  it("the masthead heading rule uses --border-width-thick", () => {
+    expect(rule(".header")).toMatch(
+      /border-bottom:\s*var\(--border-width-thick\)\s+solid/,
+    );
+  });
+
+  it("the .link underline placeholder reserves --border-width-thick (transparent)", () => {
+    expect(rule(".link")).toMatch(
+      /border-bottom:\s*var\(--border-width-thick\)\s+solid\s+transparent/,
+    );
+  });
+
+  it("the .active rule overrides ONLY the color, never the border width", () => {
+    const active = rule(".active");
+    expect(active, "expected an .active rule").not.toBe("");
+    expect(active).toMatch(/border-bottom-color:/);
+    // The failure mode: if .active sets `border-bottom` or `border-bottom-width`, the reserved
+    // placeholder width no longer governs and the row can shift on activation.
+    expect(active).not.toMatch(/border-bottom-width:/);
+    expect(active).not.toMatch(/border-bottom:\s*[^;]*\d/);
+  });
+
+  it("the masthead hairline stays the THIN (1px) width, distinct from the ink rule", () => {
+    expect(rule(".masthead")).toMatch(
+      /border-bottom:\s*var\(--border-width\)\s+solid/,
+    );
+  });
+});
