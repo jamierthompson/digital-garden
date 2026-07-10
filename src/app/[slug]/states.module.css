@@ -3,7 +3,7 @@
    subtree), so var-consuming from foundation scales only (--space-*, the --text-* type scale), never the themed semantic tokens. */
 @layer components {
   .state {
-    max-width: var(--width-prose);
+    max-width: var(--width-measure);
     margin: 0 auto;
     padding: var(--space-8) var(--space-6);
     text-align: center;
@@ -23,8 +23,8 @@
     display: inline-block;
     margin-top: var(--space-5);
     padding: var(--space-2) var(--space-4);
-    border: 1px solid currentColor;
-    border-radius: 0.5rem;
+    border: var(--border-width) solid currentColor;
+    border-radius: var(--radius-md);
     background: none;
     color: inherit;
     font: inherit;

@@ -1,9 +1,9 @@
 /* Global site footer — the journal colophon. @layer components (var-consuming shell chrome; reads
    the global editorial semantic tokens, never theme-scoped). Its inner row aligns to the same
-   content column as the nav and page frames (--width-content). */
+   content column as the nav and page frames (--width-page). */
 @layer components {
   .footer {
-    border-top: 1px solid var(--border);
+    border-top: var(--border-width) solid var(--border);
     /* Push the footer to the viewport floor on short pages (body is a flex column); collapses
        to 0 when content is tall, so it simply follows the content. */
     margin-top: auto;
@@ -14,7 +14,7 @@
     align-items: baseline;
     justify-content: space-between;
     gap: var(--space-4);
-    max-width: var(--width-content);
+    max-width: var(--width-page);
     margin: 0 auto;
     padding: var(--space-5) var(--space-6);
     font-family: var(--font-mono);
@@ -23,6 +23,12 @@
   }
 
   .link {
+    /* ≥24px hit area (WCAG 2.2 SC 2.5.8 Target Size) — the bare mono link ran ~19px tall.
+       inline-flex + min-block-size floors the interactive box at the control size and centers the
+       label, growing the target without changing the type size. */
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--size-control);
     color: var(--muted-foreground);
     text-decoration: none;
     transition: color var(--duration-fast) var(--ease-standard);

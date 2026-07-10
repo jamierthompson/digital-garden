@@ -7,7 +7,7 @@
     display: flex;
     background: var(--accent);
     color: var(--accent-foreground);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-lg);
     overflow: hidden;
   }
 

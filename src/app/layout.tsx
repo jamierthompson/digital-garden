@@ -13,6 +13,8 @@ import "../styles/foundation/typography.css";
 import "../styles/foundation/motion.css";
 import "../styles/foundation/dimension.css";
 import "../styles/foundation/focus.css";
+import "../styles/foundation/radius.css";
+import "../styles/foundation/border.css";
 import "../styles/semantic/space.css";
 import "../styles/semantic/type.css";
 import "../styles/semantic/typography.css";

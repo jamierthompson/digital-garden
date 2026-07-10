@@ -48,7 +48,7 @@ src/
   styles/                  design-system CSS, split by tier & family
     layers.css             the @layer foundation, semantic, components order (imported first)
     reset.css              base reset + element defaults (@layer foundation)
-    foundation/            tier-1 primitives: space · typography · motion · dimension · focus (radius/border/elevation land here)
+    foundation/            tier-1 primitives: space · typography · motion · dimension · focus · radius · border
     semantic/              tier-2 role tokens components read: space · type · typography · color (baked engine fallback)
   lib/                     resolvers, keys, cardSwatches, breakpoints (build-time, NOT :root vars)
   entries/<slug>/          self-contained entry modules (registry-resolved, literal imports)

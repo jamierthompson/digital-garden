@@ -6,7 +6,7 @@
    `grid-column: full`). */
 @layer components {
   .module {
-    max-width: var(--width-content);
+    max-width: var(--width-page);
     margin: 0 auto;
     padding: var(--space-7) var(--space-6);
     font-family: var(--font-body);
@@ -32,7 +32,7 @@
     display: grid;
     grid-template-columns:
       [full-start] minmax(0, 1fr)
-      [prose-start] min(var(--width-text), 100%)
+      [prose-start] min(var(--width-content), 100%)
       [prose-end] minmax(0, 1fr)
       [full-end];
     font-size: var(--type-body-size);
@@ -61,7 +61,7 @@
   /* The non-article page pieces (related entries, the Experience slot) hold the reading
      measure — only the article's breakout `[full]` slots use the wide frame. */
   .module > :where(:not(.article)) {
-    max-width: var(--width-text);
+    max-width: var(--width-content);
     margin-inline: auto;
   }
 }

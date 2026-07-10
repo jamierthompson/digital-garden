@@ -1,8 +1,12 @@
 @layer foundation {
   :root {
-    --width-prose: 42rem;
-    --width-text: 48rem;
-    --width-content: 72rem;
+    --width-measure: 42rem;
+    --width-content: 48rem;
+    --width-page: 72rem;
+
+    --size-control: 1.5rem; /* 24px — the WCAG 2.2 SC 2.5.8 pointer-target floor */
+    --size-control-lg: 2.75rem; /* 44px */
+    --size-icon: 1rem;
 
     --z-base: 0;
     --z-dropdown: 100;

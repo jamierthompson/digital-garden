@@ -4,7 +4,7 @@
   /* Column flow + gap are owned by the `Stack` primitive wrapping `<main>` (asChild); this rule
      keeps only the page frame — width, centering, padding. */
   .main {
-    max-width: var(--width-text);
+    max-width: var(--width-content);
     margin: 0 auto;
     padding: var(--space-8) var(--space-6);
   }
