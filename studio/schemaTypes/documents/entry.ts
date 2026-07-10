@@ -176,6 +176,7 @@ export const entry = defineType({
       name: 'body',
       title: 'Body',
       type: 'portableText',
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'related',
