@@ -9,6 +9,7 @@
  */
 
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -127,6 +128,94 @@ describe("findColorMutations — line reporting across a sheet", () => {
     expect(found).toEqual([
       { line: 3, kind: "color-mix", token: "--foreground" },
     ]);
+  });
+});
+
+// ── QA: adversarial locks on the detector's edges (added by fresh QA, #201) ──
+
+describe("QA — casing / whitespace / argument-position (color-mix must still catch)", () => {
+  it("flags UPPERCASE COLOR-MIX( on a color token", () => {
+    expect(
+      detectMutations(
+        "COLOR-MIX(in oklab, var(--foreground) 65%, transparent)",
+        COLOR_TOKENS,
+      ),
+    ).toEqual([{ kind: "color-mix", token: "--foreground" }]);
+  });
+
+  it("flags an internally-spaced var( --foreground ) inside the mix", () => {
+    expect(
+      detectMutations(
+        "color-mix(in oklab, var( --foreground ) 65%, transparent)",
+        COLOR_TOKENS,
+      ),
+    ).toEqual([{ kind: "color-mix", token: "--foreground" }]);
+  });
+
+  it("flags a color token in the SECOND argument slot of the mix", () => {
+    expect(
+      detectMutations(
+        "color-mix(in oklab, white 50%, var(--accent))",
+        COLOR_TOKENS,
+      ),
+    ).toEqual([{ kind: "color-mix", token: "--accent" }]);
+  });
+
+  it("flags slash-alpha with NO spaces around the slash", () => {
+    expect(detectMutations("var(--accent)/0.5", COLOR_TOKENS)).toEqual([
+      { kind: "slash-alpha", token: "--accent" },
+    ]);
+  });
+});
+
+// A designed color token carries a solved alpha; fading it via relative color syntax
+// (`oklch(from var(--token) l c h / <alpha>)`) mutates that alpha exactly like slash-alpha does,
+// and produces the SAME faded-token effect the migrated debts used (`--accent 5%` → subtle).
+// The lint claims to forbid "alpha applied to a COLOR token" (#201) — this path bypasses it.
+describe("QA — relative-color-syntax alpha bypass (false negative)", () => {
+  it("flags an alpha override on a color token via oklch(from …)", () => {
+    const found = detectMutations(
+      "oklch(from var(--accent) l c h / 0.05)",
+      COLOR_TOKENS,
+    );
+    expect(found.map((f) => f.token)).toContain("--accent");
+  });
+
+  it("flags an alpha override on a color token via rgb(from …)", () => {
+    const found = detectMutations(
+      "rgb(from var(--foreground) r g b / 50%)",
+      COLOR_TOKENS,
+    );
+    expect(found.map((f) => f.token)).toContain("--foreground");
+  });
+});
+
+describe("QA — parseColorTokenNames derives the FULL real contract", () => {
+  const REAL_CONTRACT = join(REPO_ROOT, "src/styles/semantic/color.css");
+  const realTokens = parseColorTokenNames(readFileSync(REAL_CONTRACT, "utf8"));
+
+  it("includes the singletons and per-status families a hole would drop", () => {
+    for (const t of [
+      "--scrim",
+      "--ring",
+      "--accent",
+      "--accent-subtle",
+      "--muted",
+      "--muted-foreground",
+      "--error",
+      "--error-subtle-foreground",
+      "--warning-subtle-foreground",
+      "--info-text",
+      "--success-foreground",
+      "--surface-selected",
+    ]) {
+      expect(realTokens.has(t)).toBe(true);
+    }
+  });
+
+  it("does not accidentally absorb the non-custom color-scheme declaration", () => {
+    expect(realTokens.has("--color-scheme")).toBe(false);
+    expect([...realTokens].every((t) => t.startsWith("--"))).toBe(true);
   });
 });
 

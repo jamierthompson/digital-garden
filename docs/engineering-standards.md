@@ -133,11 +133,15 @@ Components read **generic semantic tokens** — `--surface`, `--foreground`, `--
 
 ### Color tokens are immutable — never mix or fade one
 
-A semantic **color** token is a **solved value**: the OKLCH engine derives it contrast-solved against a mapped background per color scheme. Applying `color-mix()` to it, or dropping its alpha (`var(--foreground) / 50%`), silently breaks the contrast it was solved for — a muted foreground built as `color-mix(in oklab, var(--foreground) 65%, transparent)` no longer clears its ratio. So:
+A semantic **color** token is a **solved value**: the OKLCH engine derives it contrast-solved against a mapped background per color scheme. Deriving a new color from it silently breaks the contrast it was solved for — a muted foreground built as `color-mix(in oklab, var(--foreground) 65%, transparent)` no longer clears its ratio. Three forms are all the same sin:
 
-> **Never `color-mix()` a color token and never slash-alpha one.** When you need a lower-emphasis or tinted role, read the **designed token for it** — `--muted-foreground`, `--muted`, `--accent-subtle`, a `*-subtle` status family — not a mutation of a stronger one. If no designed token fits, that's a gap to fill in the semantic contract (`src/styles/semantic/color.css`), not to paper over with a mix.
+1. **color-mix** — `color-mix(… var(--token) …)`
+2. **slash-alpha** — `var(--token) / <alpha>`
+3. **relative color** — `oklch(from var(--token) …)` (or any `oklab`/`lab`/`lch`/`rgb`/`hsl`/`hwb`/`color()` relative form)
 
-Enforced by `pnpm lint:color` (`scripts/check-color-immutability.mjs`, a CI gate): the color-token set is derived from the `--name:` declarations in `src/styles/semantic/color.css`, so the guard targets **only** color tokens. `color-mix()` / alpha on `currentColor` or on a non-color var (`--space-*`, a border-width) is exempt — those aren't solved colors.
+> **Never `color-mix()`, slash-alpha, or relative-color-derive a color token.** When you need a lower-emphasis or tinted role, read the **designed token for it** — `--muted-foreground`, `--muted`, `--accent-subtle`, a `*-subtle` status family — not a mutation of a stronger one. Derivation belongs in the OKLCH engine (`packages/oklch`), not component CSS. If no designed token fits, that's a gap to fill in the semantic contract (`src/styles/semantic/color.css`), not to paper over.
+
+Enforced by `pnpm lint:color` (`scripts/check-color-immutability.mjs`, a CI gate): the color-token set is derived from the `--name:` declarations in `src/styles/semantic/color.css`, so the guard targets **only** color tokens. Any of the three forms on `currentColor` or on a non-color var (`--space-*`, a border-width) is exempt — those aren't solved colors.
 
 ### The `@layer` trap — read this
 
