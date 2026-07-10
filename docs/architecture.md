@@ -554,20 +554,20 @@ import { space } from "@/lib/tokens";
 ### `Page`
 
 The page-frame primitive (`src/components/layout/Page.tsx`): the **single `<main>` landmark and
-content frame every route mounts**, replacing the six hand-rolled per-route frames (home / browse /
-about / now / system / `[slug]`). It owns one structural concern — the content-width cap, horizontal
-centering, and the page gutter — and is the **skip-link target**.
+content frame every route mounts**. It owns one structural concern — the content-width cap,
+horizontal centering, and the page gutter — and is the **skip-link target**.
 
 - **`width?: "measure" | "content" | "page"`** — the content-width role, selecting the matching
-  `--width-<role>` foundation measure (42 / 48 / 72rem) through the `--page-width` conduit. Defaults
-  to `content`. Because the width lands as a custom property the CSS reads, an engine value can
-  override it in CSS without touching the call site (same conduit rationale as `Stack`'s `gap`).
+  `--width-<role>` foundation measure through the `--page-width` conduit. Defaults to `content`.
+  Because the width lands as a custom property the CSS reads, it can be overridden in CSS — a
+  container query, a scoped override — without touching the call site (same conduit rationale as
+  `Stack`'s `gap`).
 - **`asChild?: boolean`** — render the single child instead of the wrapping `<main>` (Radix `Slot`),
   merging the frame's class, `--page-width`, and `id` onto it — for a route whose frame must be a
   different element while still owning the landmark.
 - Extends `React.ComponentPropsWithRef<"main">`, so every native attribute, a `ref`, and a caller
-  `style`/`className` compose. `[slug]` uses this: it passes its retained `.module` class (the
-  entry's editorial `font-family`/`color` defaults + the breakout article-grid rules) alongside
+  `style`/`className` compose. `[slug]` uses this: it passes its own `.module` class (the entry's
+  editorial `font-family`/`color` defaults + the breakout article-grid rules) alongside
   `width="page"`, so `Page` owns the frame while the class carries the entry-specific layout.
 
 It renders `<main id="main-content">` — the anchor the shell's skip-link targets (see

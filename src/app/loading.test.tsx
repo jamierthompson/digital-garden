@@ -5,7 +5,8 @@ import RootLoading from "./loading";
 
 // The root Suspense fallback renders its own `<main>` while a segment streams. The global
 // `SkipLink` (#main-content) is on screen during this state too, so the fallback's landmark must
-// carry the skip target (WCAG 2.4.1 — accessibility-and-performance.md §2). Renders outside `Page`.
+// carry the skip target (WCAG 2.4.1 — accessibility-and-performance.md, Focus & interaction).
+// Renders outside `Page`.
 describe("RootLoading — skip-link target", () => {
   it("renders a single <main> landmark", () => {
     render(<RootLoading />);

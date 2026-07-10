@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 import EntryNotFound from "./not-found";
 
 // The global `SkipLink` (mounted in layout.tsx, rendered on EVERY view incl. this 404) targets
-// `#main-content`. The accessibility contract (accessibility-and-performance.md §2, WCAG 2.4.1)
+// `#main-content`. The accessibility contract (accessibility-and-performance.md, Focus &
+// interaction; WCAG 2.4.1)
 // is "one `<main id="main-content">` per route" so a keyboard user can always bypass the shell
 // nav. This state frame renders its own `<main>` OUTSIDE the `Page` primitive, so it must still
 // carry the skip target — otherwise the skip-link is a dead anchor on the not-found view.

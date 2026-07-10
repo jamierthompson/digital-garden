@@ -88,9 +88,9 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
   (`src/components/shell/SkipLink.tsx`) as the **first focusable in the document** — off-screen until
   focused, then a visible chip above all page chrome. It targets the shared `MAIN_CONTENT_ID`
   (`src/lib/landmarks.ts`) — the `id` **every view's single `<main>` carries**: the `Page` layout
-  primitive stamps it on the six route frames (the token & theming architecture / Layout primitives
-  section of [`./architecture.md`](./architecture.md)), and the cold-state frames (loading /
-  not-found / error), which render their own `<main>` outside `Page`, carry it too. The target
+  primitive stamps it on the `<main>` it renders (the token & theming architecture / Layout
+  primitives section of [`./architecture.md`](./architecture.md)), and the cold-state frames
+  (loading / not-found / error), which render their own `<main>` outside `Page`, carry it too. The target
   `<main>` takes `tabIndex={-1}` so activation moves focus there, not just the scroll position. One
   skip target on every view — a keyboard user bypasses the nav in one tab. (The shared constant
   keeps the anchor and its targets from drifting into a dead link.)

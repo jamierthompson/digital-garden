@@ -9,9 +9,10 @@ type PageWidth = "measure" | "content" | "page";
 
 interface PageProps extends React.ComponentPropsWithRef<"main"> {
   /**
-   * The content-width role — `measure` (42rem) · `content` (48rem) · `page` (72rem). Selects the
-   * `--width-<role>` foundation token, passed through the `--page-width` conduit so a future engine
-   * value could override it in CSS without touching the call site. Defaults to `content`.
+   * The content-width role — `measure` · `content` · `page`. Selects the matching `--width-<role>`
+   * foundation token, passed through the `--page-width` conduit so the width can be overridden in
+   * CSS — a container query, a scoped override — without touching the call site. Defaults to
+   * `content`.
    */
   readonly width?: PageWidth;
   /**
@@ -23,10 +24,10 @@ interface PageProps extends React.ComponentPropsWithRef<"main"> {
 }
 
 /**
- * The page-frame primitive — the single `<main>` landmark and content frame every route mounts,
- * replacing the hand-rolled per-route frames. It owns one structural concern: the width cap (from
- * the `width` role), horizontal centering, and the page gutter. It is the skip-link target
- * (`id="main-content"`, set once here, overridable via passthrough).
+ * The page-frame primitive — the single `<main>` landmark and content frame every route mounts. It
+ * owns one structural concern: the width cap (from the `width` role), horizontal centering, and the
+ * page gutter. It is the skip-link target (`id="main-content"`, set once here, overridable via
+ * passthrough).
  */
 export default function Page({
   width = "content",

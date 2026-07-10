@@ -5,7 +5,7 @@ import WorkLoading from "./loading";
 
 // The `/[slug]` loading boundary renders `<main>` while the entry streams; the global `SkipLink`
 // (#main-content) is on screen, so this fallback's landmark must carry the skip target
-// (WCAG 2.4.1 — accessibility-and-performance.md §2). Renders outside `Page`.
+// (WCAG 2.4.1 — accessibility-and-performance.md, Focus & interaction). Renders outside `Page`.
 describe("WorkLoading — skip-link target", () => {
   it("renders a single <main> landmark", () => {
     render(<WorkLoading />);

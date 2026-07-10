@@ -5,7 +5,7 @@ import WorkError from "./error";
 
 // The global `SkipLink` renders on the error view too; its `#main-content` anchor must resolve
 // here. This frame renders `<main role="alert">` outside `Page`, so it needs the id itself
-// (WCAG 2.4.1 — accessibility-and-performance.md §2).
+// (WCAG 2.4.1 — accessibility-and-performance.md, Focus & interaction).
 describe("WorkError — skip-link target", () => {
   const error = Object.assign(new Error("boom"), { digest: "abc" });
 

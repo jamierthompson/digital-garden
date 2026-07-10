@@ -82,20 +82,19 @@ describe("every width consumer resolves to its HISTORICAL rem value (#202)", () 
   const val = (token: string): string =>
     dimension[`--${token.replace(/^--/, "")}`];
 
-  // (a) CSS files that still consume a --width-* token directly — the ones NOT migrated onto the
-  // `Page` primitive's frame (#207): the cold-state frames, the shell chrome, the [slug] article
-  // grid's own reading-measure columns, and Page's own conduit fallback.
+  // (a) CSS files that consume a --width-* token directly in a rule: the cold-state frames, the
+  // shell chrome, the [slug] article grid's reading-measure columns, and Page's conduit fallback.
   const cssCases: Array<[string, string, string, string]> = [
-    // [slug]/page.module.css keeps the article grid's reading-measure column + the non-article
-    // child cap; the frame's own max-width moved onto <Page> (#207).
+    // [slug]/page.module.css consumes --width-content in the article grid's reading-measure column
+    // and the non-article child cap.
     [
       "src/app/[slug]/page.module.css",
       "min(var(--width-content), 100%)",
       "width-content",
       "48rem",
     ],
-    // The Page primitive's frame — the single consumer the six migrated routes now share, via the
-    // --page-width conduit with a --width-content fallback.
+    // The Page frame — every route's frame width flows through this --page-width conduit, with a
+    // --width-content fallback.
     [
       "src/components/layout/Page.module.css",
       "var(--page-width, var(--width-content))",
@@ -136,9 +135,9 @@ describe("every width consumer resolves to its HISTORICAL rem value (#202)", () 
     });
   }
 
-  // (b) The six route frames migrated onto <Page width=…> (#207): the historical frame width is
-  // now selected by the `width` role prop, which Page maps to var(--width-<role>). Pin each route
-  // to the role that PRESERVES its pre-migration rem — a wrong role would silently reflow the page.
+  // (b) Each route selects its frame width via the `width` role prop on <Page>, which maps to
+  // var(--width-<role>). Pin each route to the role whose rem it must render at — a wrong role
+  // would silently reflow the page.
   const routeCases: Array<[string, string, string, string]> = [
     ["src/app/page.tsx", "page", "width-page", "72rem"],
     ["src/app/browse/page.tsx", "page", "width-page", "72rem"],
