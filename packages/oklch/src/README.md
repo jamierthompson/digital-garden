@@ -9,7 +9,7 @@ or carry `server-only`/`client-only`.
 
 "Pure" here means **deterministic and observably side-effect-free** to callers, not
 allocation-free: `gamutMap` is **internally memoized** (#41 — a bounded module-level cache
-keyed by exact `(L, C, H, gamut)`) so the interactive Studio's repeated re-solves stay
+keyed by exact `(L, C, H, gamut)`) so the interactive Color Engine's repeated re-solves stay
 cheap. The memo is a transparent optimization of a pure function — every result is
 bit-identical to a fresh compute — so the purity/determinism contract is unchanged.
 
@@ -45,7 +45,7 @@ bit-identical to a fresh compute — so the purity/determinism contract is uncha
   token contract and the canonical-hue status colors, and **non-contrast-bearing by
   default** — a consumer that puts text on one runs `checkContrast` (or `solveForeground`)
   itself.
-- **Generative rules** (`EngineOptions.rules`, surfaced by the Studio #73): **lightness
+- **Generative rules** (`EngineOptions.rules`, surfaced by the Color Engine #73): **lightness
   distribution** (`tailwind` default · `linear` · `eased` · `punchy` · `soft`) reshapes only
   the scheme's **text-zone interior** — the five **surface** steps and the far text-extreme
   step are **pinned**, which is what keeps every contrast guarantee intact under every policy
@@ -71,7 +71,7 @@ bit-identical to a fresh compute — so the purity/determinism contract is uncha
 ```ts
 import { resolveTheme, buildTokenSet, tokenSetToCss } from "@garden/oklch";
 
-// One scheme → { ramps, tokens, seed, isFallback } (cardSwatches; the studio, #70):
+// One scheme → { ramps, tokens, seed, isFallback } (cardSwatches; the Color Engine, #70):
 const { ramps, tokens, seed, isFallback } = resolveTheme("#3b82f6", "light");
 ramps.accent[7]; // → { label: "700", color: {…}, oog: false }
 
@@ -103,7 +103,7 @@ oog }`). `tokenSetToDeclarations` emits the semantic tier only; `rampSetToDeclar
 ramp tier only; `tokenSetToCss` both.
 
 Binding provenance (the receipt): each result reports **which ramp step every semantic token
-bound to**, so a consumer (the Studio token table, #70) can print a truthful "`--foreground` →
+bound to**, so a consumer (the Color Engine token table, #70) can print a truthful "`--foreground` →
 `neutral · 800`" without reverse-engineering it by value-matching — a scan that _lies_ where
 the accent and neutral ramps converge (an achromatic seed, `tintedNeutrals: false`) and scan
 order, not the schema, would pick the role. `SchemeResult.bindings` is
@@ -124,7 +124,7 @@ The derivation contract (the receipt's other half, #150): `CONTRAST_TARGETS` —
 tiers each pair is measured against (`bodyText` 4.5/75, `mutedText`/`accentText`/`accentForeground`
 4.5/60, `ui` 3/45, `border` 3/30) — and `DEFAULT_BINDING_SCHEMA`, the read-only
 `Record<ThemeTokenName, TokenBinding>` the engine solves against. Together they let the
-Studio answer, for any token, WHICH binding kind it is (`step`/`auto`/`accent`/`accent-foreground`/
+Color Engine answer, for any token, WHICH binding kind it is (`step`/`auto`/`accent`/`accent-foreground`/
 `literal`), against WHICH role's ramp, to WHICH tier — reading the solver's own table rather
 than restating it. Each `auto` binding's `target` is a `CONTRAST_TARGETS` object by identity,
 so the receipt's target and the solver's are one value. `ContrastTargetName` names the tiers.
@@ -141,11 +141,11 @@ fine as long as it was deliberate and the guard is updated in the same PR.
 - **Additions are fine** (new export, new token) — extend the drift-guard's lists in the
   same commit, and update this README.
 - **Renames/removals are breaking** — migrate every consumer (`EntryScope`,
-  `cardSwatches`, Studio validation, the studio module) in the same PR. There is no
+  `cardSwatches`, Studio validation, the Color Engine module) in the same PR. There is no
   deprecation window inside a monorepo; the PR is the migration.
 - Never adjust the guard to make accidental drift pass.
 
-### Export formats (for the studio export UI, #107)
+### Export formats (for the Color Engine export UI, #107)
 
 Portable serializations of a `TokenSet`, each taking `{ format?: "oklch" | "hex" | "rgb" }`
 (default `oklch`, the native lossless literal; `hex`/`rgb` are the clamped sRGB rendering):
