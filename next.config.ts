@@ -3,9 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Prerendered shell + streamed dynamic holes; opt into caching via `use cache`.
   cacheComponents: true,
-  // The OKLCH engine is a TypeScript-source workspace package — Next transpiles
-  // it as part of the app bundle (it ships no prebuilt JS).
-  transpilePackages: ["@garden/oklch"],
+  // The OKLCH and type engines are TypeScript-source workspace packages — Next
+  // transpiles them as part of the app bundle (they ship no prebuilt JS).
+  transpilePackages: ["@garden/oklch", "@garden/type"],
   experimental: {
     // LOAD-BEARING for the scheme toggle (#133) and the whole `light-dark()` token model.
     // Turbopack's Lightning CSS, at the default browser targets, POLYFILLS `light-dark()`
