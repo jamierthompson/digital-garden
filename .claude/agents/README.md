@@ -12,8 +12,8 @@ especially the parallel-review mode.
 | Agent                                                     | Use when                                                                                                                                                                                   |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [`oklch-engine-reviewer`](./oklch-engine-reviewer.md)     | A change touches `packages/oklch/` (`@garden/oklch`) — isomorphism, gamut-map-before-contrast, scheme-aware output, never-throws fallback.                                                 |
-| [`theming-reviewer`](./theming-reviewer.md)               | A change touches tokens, CSS Modules / `@layer`, `EntryScope`, or slot scoping — three-tier model, generic semantic names, global chrome vs slot-scoped brand, flash-free.                 |
-| [`sanity-content-reviewer`](./sanity-content-reviewer.md) | A change touches `studio/`, the schema, GROQ, `keys.ts`, or content fetching — one `entry` type + maturity + backlinks, stega off `brandColor`/`fontKey`, `defineLive`, committed TypeGen. |
+| [`theming-reviewer`](./theming-reviewer.md)               | A change touches tokens, CSS Modules / `@layer`, `EntryScope`, or slot scoping — three-tier model, generic semantic names, per-page theme vs slot-scoped font, flash-free.                 |
+| [`sanity-content-reviewer`](./sanity-content-reviewer.md) | A change touches `studio/`, the schema, GROQ, `keys.ts`, or content fetching — one `entry` type + maturity + backlinks, stega off `themeColor`/`fontKey`, `defineLive`, committed TypeGen. |
 
 ## Generic process agents live globally
 

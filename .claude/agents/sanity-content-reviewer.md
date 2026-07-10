@@ -1,6 +1,6 @@
 ---
 name: sanity-content-reviewer
-description: Reviews Sanity schema, stega, TypeGen, and content-model work — the single `entry` type with a `kind` discriminator (note · essay · project · now), `stage`/`iterated`, and Day-1 backlinks, stega excluded on `brandColor`/`fontKey`, the single `defineLive` read path, and regenerated-and-committed `sanity.types.ts`. Use proactively after editing anything under `studio/`, GROQ queries, the shared `keys.ts`, or content-fetching code.
+description: Reviews Sanity schema, stega, TypeGen, and content-model work — the single `entry` type with a `kind` discriminator (note · essay · project · now), `stage`/`iterated`, and Day-1 backlinks, stega excluded on `themeColor`/`fontKey`, the single `defineLive` read path, and regenerated-and-committed `sanity.types.ts`. Use proactively after editing anything under `studio/`, GROQ queries, the shared `keys.ts`, or content-fetching code.
 tools: Read, Grep, Glob
 ---
 
@@ -35,14 +35,17 @@ for schema and GROQ specifics.
 3. **Day-1 backlinks via real references.** An `entry` carries a `related` **self-referencing** array
    (`entry` → `entry`); incoming backlinks resolve via GROQ `references()` (the edge is authored once and
    shows both ends, cross-kind). Backlinks must be real `reference` fields — never strings or slugs.
-   `brandColor` / `componentKey` are **conditionally required when `kind == "project"`** and optional for
-   the other kinds. Flag a backlink stored as a string/slug, a one-directional link that can't resolve
-   the incoming side, or brand/component made unconditionally required (breaks note/essay/now authoring).
+   `themeColor` is **required for every themed kind** (note · essay · project, any stage); `fontKey` /
+   `componentKey` are required only for a `project` **past the sketch stage** (a sketch project is an
+   honest placeholder with no module yet) and optional-but-honored for a note/essay. A `now` carries
+   none (it inherits the `/now` page seed). Flag a backlink stored as a string/slug, a one-directional
+   link that can't resolve the incoming side, `themeColor` made optional for a themed kind, or
+   `fontKey`/`componentKey` made unconditionally required (breaks sketch-stage and note/essay/now authoring).
 
-4. **Stega off `brandColor` and `fontKey`.** These feed the engine and are used as **keys**, not
+4. **Stega off `themeColor` and `fontKey`.** These feed the engine and are used as **keys**, not
    display copy — stega encoding must be excluded on them (an invisible-character payload would corrupt
    a color parse or a key lookup). Click-to-edit / overlay targets should attach to the caption, not the
-   interactive region. Flag stega left on `brandColor` / `fontKey`, or a click-to-edit target on the
+   interactive region. Flag stega left on `themeColor` / `fontKey`, or a click-to-edit target on the
    live interactive area.
 
 5. **TypeGen regenerated and committed.** After **any** schema change, TypeGen must be re-run and the
