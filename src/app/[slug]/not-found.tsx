@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { MAIN_CONTENT_ID } from "@/lib/landmarks";
+
 import styles from "./states.module.css";
 
 // The not-found boundary for `/<slug>`. Rendered when the route calls `notFound()` — an
@@ -9,7 +11,7 @@ import styles from "./states.module.css";
 // by the defensive engine + `unstable_catchError` backstop, NOT by this file.)
 export default function EntryNotFound() {
   return (
-    <main className={styles.state}>
+    <main id={MAIN_CONTENT_ID} tabIndex={-1} className={styles.state}>
       <h1 className={styles.heading}>Not found</h1>
       <p className={styles.body}>
         That page doesn’t exist, or its content is no longer available.

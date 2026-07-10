@@ -86,10 +86,14 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
   `@supports not (selector(:focus-visible))`.
 - **Skip-link + `<main>` landmark (2.4.1):** the shell mounts a `SkipLink`
   (`src/components/shell/SkipLink.tsx`) as the **first focusable in the document** — off-screen until
-  focused, then a visible chip above all page chrome. It targets `#main-content`, the `id` the
-  **`Page` layout primitive** stamps on the single `<main>` it renders (the token & theming
-  architecture / Layout primitives section of [`./architecture.md`](./architecture.md)). One `<main>`
-  per route via `Page`, one skip target — a keyboard user bypasses the nav in one tab.
+  focused, then a visible chip above all page chrome. It targets the shared `MAIN_CONTENT_ID`
+  (`src/lib/landmarks.ts`) — the `id` **every view's single `<main>` carries**: the `Page` layout
+  primitive stamps it on the six route frames (the token & theming architecture / Layout primitives
+  section of [`./architecture.md`](./architecture.md)), and the cold-state frames (loading /
+  not-found / error), which render their own `<main>` outside `Page`, carry it too. The target
+  `<main>` takes `tabIndex={-1}` so activation moves focus there, not just the scroll position. One
+  skip target on every view — a keyboard user bypasses the nav in one tab. (The shared constant
+  keeps the anchor and its targets from drifting into a dead link.)
 
 ---
 

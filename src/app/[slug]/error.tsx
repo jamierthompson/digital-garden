@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+import { MAIN_CONTENT_ID } from "@/lib/landmarks";
+
 import styles from "./states.module.css";
 
 // The page-level error boundary for `/<slug>`. Error boundaries MUST be Client
@@ -25,7 +27,12 @@ export default function WorkError({
   }, [error]);
 
   return (
-    <main className={styles.state} role="alert">
+    <main
+      id={MAIN_CONTENT_ID}
+      tabIndex={-1}
+      className={styles.state}
+      role="alert"
+    >
       <h1 className={styles.heading}>Something went wrong</h1>
       <p className={styles.body}>This entry couldn’t be loaded right now.</p>
       <button

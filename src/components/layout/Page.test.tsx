@@ -92,6 +92,19 @@ describe("Page", () => {
     expect(el.style.getPropertyValue("--page-width")).toBe("var(--width-page)");
   });
 
+  it("LATENT RISK: under asChild a child's own id overrides the landmark target (Slot child-wins)", () => {
+    // Radix Slot lets the child's own props win for plain attributes, so an asChild consumer whose
+    // child element carries its own `id` silently loses the `id="main-content"` skip target. No
+    // current consumer does this ([slug] uses asChild=false), but this characterizes the footgun:
+    // if the skip target ever vanishes on an asChild route, this is why.
+    render(
+      <Page asChild data-testid="page">
+        <article id="its-own-id">content</article>
+      </Page>,
+    );
+    expect(screen.getByTestId("page")).toHaveAttribute("id", "its-own-id");
+  });
+
   it("fails LOUDLY when asChild receives multiple children (no silent swallow)", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     expect(() =>

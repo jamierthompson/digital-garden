@@ -1,5 +1,7 @@
 import { Slot } from "radix-ui";
 
+import { MAIN_CONTENT_ID } from "@/lib/landmarks";
+
 import styles from "./Page.module.css";
 
 /** The content-width roles a page frame can take — each names a `--width-*` foundation measure. */
@@ -36,7 +38,11 @@ export default function Page({
   const Component = asChild ? Slot.Root : "main";
   return (
     <Component
-      id="main-content"
+      id={MAIN_CONTENT_ID}
+      // The skip-link moves focus here; a `<main>` isn't focusable by default, so `tabIndex={-1}`
+      // lets it receive programmatic focus (the standard skip-target pattern). Both are ahead of
+      // `{...rest}`, so a caller can still override either.
+      tabIndex={-1}
       className={[styles.page, className].filter(Boolean).join(" ")}
       // The `style` prop is a shared channel (the primitive writes its width token here), so merge
       // deliberately: token var first, caller's `style` last — an explicit caller override wins
