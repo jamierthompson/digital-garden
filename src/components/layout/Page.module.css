@@ -1,0 +1,11 @@
+/* Page — the page-frame primitive. @layer components, strictly var-consuming.
+   Owns the <main> landmark's frame: the content-width cap (from the `width` role, via the
+   --page-width conduit), horizontal centering, and the page gutter. Vertical rhythm between the
+   frame's children is a Stack concern, not the frame's. */
+@layer components {
+  .page {
+    max-width: var(--page-width, var(--width-content));
+    margin-inline: auto;
+    padding: var(--space-gutter);
+  }
+}

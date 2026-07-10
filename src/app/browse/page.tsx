@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
@@ -55,8 +56,8 @@ export default async function IndexPage() {
   return (
     <>
       <PageTheme seed={themeSeed} />
-      <Stack asChild gap={space(8)}>
-        <main className={styles.main}>
+      <Page width="page">
+        <Stack gap={space(8)}>
           <header className={styles.header}>
             <Heading level={1}>Index</Heading>
             <Text variant="lead" className={styles.intro}>
@@ -133,8 +134,8 @@ export default async function IndexPage() {
               );
             })
           )}
-        </main>
-      </Stack>
+        </Stack>
+      </Page>
     </>
   );
 }

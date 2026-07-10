@@ -76,56 +76,31 @@ describe("no retired width token name survives anywhere in the source tree (#202
   });
 });
 
-describe("every migrated width consumer resolves to its HISTORICAL rem value (#202)", () => {
-  // file → [selector-fragment, token expected, historical rem value]. The token is the NEW
-  // name; the rem is what the consumer rendered at BEFORE the rename. If the double-map slipped,
-  // the token here would map to a different rem and this table would go red.
+describe("every width consumer resolves to its HISTORICAL rem value (#202)", () => {
+  // The token is the NEW name; the rem is what the consumer rendered at BEFORE the rename. If the
+  // double-map slipped, the token here would map to a different rem and the table would go red.
   const val = (token: string): string =>
     dimension[`--${token.replace(/^--/, "")}`];
 
-  const cases: Array<[string, string, string, string]> = [
-    // [slug]/page.module.css uses BOTH old names — the highest-risk file.
-    [
-      "src/app/[slug]/page.module.css",
-      "max-width: var(--width-page)",
-      "width-page",
-      "72rem",
-    ],
+  // (a) CSS files that still consume a --width-* token directly — the ones NOT migrated onto the
+  // `Page` primitive's frame (#207): the cold-state frames, the shell chrome, the [slug] article
+  // grid's own reading-measure columns, and Page's own conduit fallback.
+  const cssCases: Array<[string, string, string, string]> = [
+    // [slug]/page.module.css keeps the article grid's reading-measure column + the non-article
+    // child cap; the frame's own max-width moved onto <Page> (#207).
     [
       "src/app/[slug]/page.module.css",
       "min(var(--width-content), 100%)",
       "width-content",
       "48rem",
     ],
+    // The Page primitive's frame — the single consumer the six migrated routes now share, via the
+    // --page-width conduit with a --width-content fallback.
     [
-      "src/app/now/page.module.css",
-      "max-width: var(--width-content)",
+      "src/components/layout/Page.module.css",
+      "var(--page-width, var(--width-content))",
       "width-content",
       "48rem",
-    ],
-    [
-      "src/app/browse/page.module.css",
-      "max-width: var(--width-page)",
-      "width-page",
-      "72rem",
-    ],
-    [
-      "src/app/page.module.css",
-      "max-width: var(--width-page)",
-      "width-page",
-      "72rem",
-    ],
-    [
-      "src/app/about/page.module.css",
-      "max-width: var(--width-measure)",
-      "width-measure",
-      "42rem",
-    ],
-    [
-      "src/app/system/page.module.css",
-      "max-width: var(--width-measure)",
-      "width-measure",
-      "42rem",
     ],
     [
       "src/app/loading.module.css",
@@ -153,10 +128,32 @@ describe("every migrated width consumer resolves to its HISTORICAL rem value (#2
     ],
   ];
 
-  for (const [file, fragment, token, rem] of cases) {
+  for (const [file, fragment, token, rem] of cssCases) {
     it(`${file} :: ${fragment} → ${rem}`, () => {
       const css = read(file);
       expect(css, `expected "${fragment}" in ${file}`).toContain(fragment);
+      expect(val(token), `--${token} must resolve to ${rem}`).toBe(rem);
+    });
+  }
+
+  // (b) The six route frames migrated onto <Page width=…> (#207): the historical frame width is
+  // now selected by the `width` role prop, which Page maps to var(--width-<role>). Pin each route
+  // to the role that PRESERVES its pre-migration rem — a wrong role would silently reflow the page.
+  const routeCases: Array<[string, string, string, string]> = [
+    ["src/app/page.tsx", "page", "width-page", "72rem"],
+    ["src/app/browse/page.tsx", "page", "width-page", "72rem"],
+    ["src/app/now/page.tsx", "content", "width-content", "48rem"],
+    ["src/app/about/page.tsx", "measure", "width-measure", "42rem"],
+    ["src/app/system/page.tsx", "measure", "width-measure", "42rem"],
+    ["src/app/[slug]/page.tsx", "page", "width-page", "72rem"],
+  ];
+
+  for (const [file, role, token, rem] of routeCases) {
+    it(`${file} :: <Page width="${role}"> → ${rem}`, () => {
+      const src = read(file);
+      expect(src, `expected <Page width="${role}"> in ${file}`).toContain(
+        `<Page width="${role}"`,
+      );
       expect(val(token), `--${token} must resolve to ${rem}`).toBe(rem);
     });
   }

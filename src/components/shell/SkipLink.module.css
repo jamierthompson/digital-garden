@@ -1,0 +1,26 @@
+/* Skip-to-content link. @layer components — declares its layer (an unlayered module outranks every
+   layered rule); var-consuming only. Kept in the a11y tree + tab order (not display:none) but
+   translated off-screen until focused, then it slides into view as a chip above all page chrome. */
+@layer components {
+  .skipLink {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: var(--z-toast);
+    margin: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: var(--surface-elevated);
+    color: var(--foreground);
+    border: var(--border-width) solid var(--border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transform: translateY(-150%);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+
+  .skipLink:focus-visible {
+    transform: translateY(0);
+    outline: var(--ring-width) var(--ring-style) var(--ring);
+    outline-offset: var(--ring-offset);
+  }
+}

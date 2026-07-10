@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import EntryBody from "@/components/portable-text/EntryBody";
+import Page from "@/components/layout/Page";
 import PageTheme from "@/components/theme/PageTheme";
 import EntryScope from "@/components/entry-scope/EntryScope";
 import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
@@ -165,7 +166,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
   return (
     <>
       {pageTheme}
-      <main className={styles.module}>
+      <Page width="page" className={styles.module}>
         {/* The provider is a state frame, not a theme: prose inside stays server-rendered
           editorial content (children pass-through). Rendered as deep as possible per the
           bundled composition docs. */}
@@ -189,7 +190,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
           related={entry.related}
           backlinks={entry.backlinks}
         />
-      </main>
+      </Page>
     </>
   );
 }

@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 
+import Page from "@/components/layout/Page";
+import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
+import { space } from "@/lib/tokens";
 
 import styles from "./page.module.css";
 
@@ -27,14 +30,16 @@ export default async function SystemPage() {
   return (
     <>
       <PageTheme seed={themeSeed} />
-      <main className={styles.main}>
-        <Heading level={1}>System</Heading>
-        <Text variant="lead" className={styles.lede}>
-          The design system behind the garden — the token tiers, the OKLCH color
-          engine, the type system, and the stack, documented in the open. This
-          page is being written.
-        </Text>
-      </main>
+      <Page width="measure">
+        <Stack gap={space(4)}>
+          <Heading level={1}>System</Heading>
+          <Text variant="lead" className={styles.lede}>
+            The design system behind the garden — the token tiers, the OKLCH
+            color engine, the type system, and the stack, documented in the
+            open. This page is being written.
+          </Text>
+        </Stack>
+      </Page>
     </>
   );
 }

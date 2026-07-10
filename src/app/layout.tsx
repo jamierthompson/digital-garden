@@ -26,6 +26,7 @@ import { Geist_Mono, Source_Serif_4 } from "next/font/google";
 
 import SiteNav from "@/components/shell/SiteNav";
 import SiteFooter from "@/components/shell/SiteFooter";
+import SkipLink from "@/components/shell/SkipLink";
 import { FONT_FACES } from "@/fonts/roster";
 import { SCHEME_INIT_SCRIPT } from "@/lib/scheme";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
@@ -108,6 +109,9 @@ export default function RootLayout({
             "system"/no-override do nothing (the CSS `light dark` default already follows the
             OS). See `@/lib/scheme`. */}
         <script dangerouslySetInnerHTML={{ __html: SCHEME_INIT_SCRIPT }} />
+        {/* First focusable in the document — lets a keyboard user bypass the shell nav and jump
+            to the page's `<main id="main-content">` (Page primitive), per WCAG 2.4.1. */}
+        <SkipLink />
         <SiteNav />
         {children}
         <SiteFooter />
