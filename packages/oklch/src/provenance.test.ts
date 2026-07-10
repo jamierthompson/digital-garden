@@ -5,7 +5,7 @@
  * Two obligations proven here:
  *   1. DETERMINISTIC SNAPSHOT. The full `buildTokenSet` output (every token, ramp, and the
  *      `meta.bindings` receipt) is bit-for-bit stable — pinned against a committed golden
- *      snapshot (`__fixtures__/tokenset-golden.json`, regenerated wholesale with the 34-token
+ *      snapshot (`__fixtures__/tokenset-golden.json`, regenerated wholesale with the 37-token
  *      contract, #160). Any accidental value drift in a future change fails here.
  *   2. TRUTHFUL. The report names the binding SCHEMA's role — not whatever a value-scan
  *      across the ramps would find. In the reachable states where the accent and neutral
@@ -68,11 +68,14 @@ const EXPECTED_ROLE: Partial<Record<ThemeTokenName, RampRole>> = {
   "surface-elevated": "neutral",
   "surface-hover": "neutral",
   "surface-selected": "neutral",
+  muted: "neutral",
   foreground: "neutral",
   "muted-foreground": "neutral",
   border: "neutral",
-  // Accent foregrounds (auto).
+  // Accent foregrounds (auto) + the accent subtle surface (step) & its label (auto-on).
   "accent-text": "accent",
+  "accent-subtle": "accent",
+  "accent-subtle-foreground": "accent",
   ring: "accent",
   // Status `<status>-text` (auto), `<status>-subtle` (step), `<status>-subtle-foreground` (auto-on).
   "error-text": "error",
@@ -97,7 +100,7 @@ describe("deterministic snapshot (#70/#160): the full token set is bit-for-bit s
     ({ key, seed, opts }) => {
       // The engine is a pure, deterministic function of its inputs — the FULL output (values +
       // the reported provenance) is pinned to the committed golden (regenerated wholesale for
-      // the 34-token contract). A future change that accidentally perturbs any baked value or
+      // the 37-token contract). A future change that accidentally perturbs any baked value or
       // any receipt fails here. Round-tripped through JSON so the compare matches the fixture's
       // shape exactly (no `undefined` / prototype differences).
       const set = JSON.parse(JSON.stringify(buildTokenSet(seed, opts)));

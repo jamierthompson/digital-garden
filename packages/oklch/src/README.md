@@ -80,14 +80,22 @@ const set = buildTokenSet("#3b82f6"); // { gamut: "p3" } to opt into wide gamut
 const css = tokenSetToCss(set, '[data-entry="garden"]'); // @layer semantic, tokens + ramps
 ```
 
-Tokens (generic semantic contract, emitted as bare `--<name>`) — the **34-token** model
-(#160): the core 10 (`background`, `surface`, `surface-elevated`, `foreground`, `muted-foreground`, `border`, `accent`,
-`accent-text`, `accent-foreground`, `ring`); a status **trio + subtle surface** block ×4
+Tokens (generic semantic contract, emitted as bare `--<name>`) — the **37-token** model
+(#160, extended in **#229**): the core 13 (`background`, `surface`, `surface-elevated`, `foreground`,
+`muted`, `muted-foreground`, `border`, `accent`, `accent-text`, `accent-foreground`, `accent-subtle`,
+`accent-subtle-foreground`, `ring`); a status **trio + subtle surface** block ×4
 (`error`/`warning`/`success`/`info` × `<status>` fill · `<status>-foreground` label · `<status>-text` ·
 `<status>-subtle` · `<status>-subtle-foreground`); the interaction states `accent-hover`,
-`surface-hover`, `surface-selected`; and the translucent `scrim` overlay literal. The canonical
-lists are exported (`THEME_TOKEN_NAMES`, `RAMP_ROLES`, `RAMP_LABELS`) — import them, don't
-restate them.
+`surface-hover`, `surface-selected`; and the translucent `scrim` overlay literal.
+
+The **3 net-new tokens** #229 added (34 → 37), each reusing existing binding machinery — no new
+binding kind: **`muted`** — a faint neutral background (quiet sections, code blocks, disabled
+rows), the neutral counterpart to the per-hue `<status>-subtle` and the pairing partner of the
+existing `muted-foreground`; it pins the same neutral step as `surface` (`100`/`900`), a distinct
+role that resolves to the same fallback color by design. **`accent-subtle`** + **`accent-subtle-foreground`**
+— a soft accent-tinted surface and its legible label, mirroring a `<status>-subtle` pair on the
+accent ramp so `accent` is symmetric with the four statuses. The canonical lists are exported
+(`THEME_TOKEN_NAMES`, `RAMP_ROLES`, `RAMP_LABELS`) — import them, don't restate them.
 
 Ramps (the primitive tier, emitted as `--<role>-<step>`): one per role — `accent`, `neutral`,
 `success`, `error`, `warning`, `info` — each 11 `50…950` steps (`RampStep` = `{ label, color,

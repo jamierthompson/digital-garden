@@ -871,7 +871,7 @@ describe("themeColor validation contract (the Studio's isFallback oracle)", () =
   });
 });
 
-describe("baked literals clear the TRUE contrast floor (#79, 34-token contract #160)", () => {
+describe("baked literals clear the TRUE contrast floor (#79, 37-token contract #160, #229)", () => {
   // Each solved foreground token, the background it is solved against, and the TRUE floor
   // (no margin) it must clear. The engine solves with a small margin (`withSolveMargin`,
   // contrast.ts) so the 4-dp-rounded SHIPPED literal — not just the pre-round math — still
@@ -893,6 +893,8 @@ describe("baked literals clear the TRUE contrast floor (#79, 34-token contract #
     accent: { bg: "surface-selected", wcag: 3, apca: 45 },
     "accent-hover": { bg: "surface-selected", wcag: 3, apca: 45 },
     "accent-foreground": { bg: "accent", wcag: 4.5, apca: 60 },
+    // Accent subtle: the subtle-foreground label solved against its ACTUAL subtle-surface color.
+    "accent-subtle-foreground": { bg: "accent-subtle", wcag: 4.5, apca: 60 },
     // Status TRIOS: fill (UI) · fill-foreground (label on fill) · text (accent-text tier on surface).
     error: { bg: "surface-selected", wcag: 3, apca: 45 },
     "error-foreground": { bg: "error", wcag: 4.5, apca: 60 },

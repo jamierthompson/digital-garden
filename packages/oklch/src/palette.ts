@@ -107,7 +107,7 @@ const STATUS_HUE: Record<"success" | "error" | "warning" | "info", number> = {
 // gamut-mapped ramp rather than a uniform ΔL step.
 const STATUS_CHROMA = 0.15;
 
-// The four status roles, in the token EMISSION order of the 34-token contract (#160): each
+// The four status roles, in the token EMISSION order of the 37-token contract (#160, #229): each
 // contributes a fill + fill-foreground + text + subtle + subtle-foreground block.
 const STATUS_ROLES = ["error", "warning", "success", "info"] as const;
 
@@ -188,6 +188,9 @@ export const DEFAULT_BINDING_SCHEMA: Readonly<
     light: "200",
     dark: "800",
   },
+  // `muted` is the neutral member of the "subtle" family — a faint neutral background that pins
+  // the SAME step as `surface` (`100`/`900`); distinct role, shared fallback color by design.
+  muted: { kind: "step", role: "neutral", light: "100", dark: "900" },
   // Near-neutral foregrounds — bound to the neutral ramp (the accent tint desaturates at the
   // dark steps via gamut-mapping, so any hue clears body-text contrast).
   foreground: {
@@ -204,6 +207,20 @@ export const DEFAULT_BINDING_SCHEMA: Readonly<
   // Accent identity — the faithful continuous accent + its accent-foreground label.
   accent: { kind: "fill", role: "accent" },
   "accent-foreground": { kind: "fill-foreground", role: "accent" },
+  // Accent subtle surface + its label — mirrors a `<status>-subtle` pair on the accent ramp, so
+  // `accent` is symmetric with the four statuses (a soft accent-tinted surface + a legible label).
+  "accent-subtle": {
+    kind: "step",
+    role: "accent",
+    light: SUBTLE_STEP.light,
+    dark: SUBTLE_STEP.dark,
+  },
+  "accent-subtle-foreground": {
+    kind: "auto-on",
+    role: "accent",
+    against: SUBTLE_STEP,
+    target: CONTRAST_TARGETS.accentText,
+  },
   // accent-colored foregrounds — bound to the full-chroma accent ramp.
   "accent-text": {
     kind: "auto",

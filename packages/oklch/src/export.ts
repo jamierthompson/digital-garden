@@ -168,7 +168,7 @@ export function tokenSetToDesignTokens(
 
 // ── The batteries-included harmony tier (#152) — an OPT-IN, clearly-separated decorative
 // annex. It is emitted ONLY through these dedicated serializers (opt-in by being a separate
-// call, so the guarded 34-token semantic surface and the `tokenSetTo*` outputs never grow),
+// call, so the guarded 37-token semantic surface and the `tokenSetTo*` outputs never grow),
 // each labeling the tier under a `harmony-` group. The `HarmonyTier` comes from
 // `buildHarmonyTier` (`harmony-tier.ts`); a studio export UI concatenates the semantic block
 // and the harmony block when the user opts in.
