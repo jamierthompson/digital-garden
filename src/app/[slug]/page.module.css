@@ -3,9 +3,8 @@
    default; each themed slot re-binds them inside its own scoped container). The `Page` primitive
    owns the wide frame (width/centering/gutter) and the `<main>` landmark — `.module` is merged
    onto it and carries only the entry's editorial defaults + the breakout grid rules below. Breakout
-   layout: the frame runs wide (demo, not essay), the prose keeps its reading measure via the
-   article grid's named [prose] column, and a liveEmbed slot spans [full] (EmbedBlock sets
-   `grid-column: full`). */
+   layout: the frame runs wide, the prose keeps its reading measure via the article grid's named
+   [prose] column, and a liveEmbed slot spans [full] (EmbedBlock sets `grid-column: full`). */
 @layer components {
   .module {
     font-family: var(--font-body);
