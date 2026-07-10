@@ -1,6 +1,6 @@
 ---
 name: oklch-engine-reviewer
-description: Reviews changes to the OKLCH color engine (`packages/oklch/`, imported as `@garden/oklch`) — isomorphism, gamut-map-before-contrast, scheme-aware `light-dark()` output, and the never-throws fallback. Use proactively after editing anything under `packages/oklch/` or its tests, or when a change touches contrast solving, gamut mapping, brand-token generation, or per-slot status colors.
+description: Reviews changes to the OKLCH color engine (`packages/oklch/`, imported as `@garden/oklch`) — isomorphism, gamut-map-before-contrast, scheme-aware `light-dark()` output, and the never-throws fallback. Use proactively after editing anything under `packages/oklch/` or its tests, or when a change touches contrast solving, gamut mapping, accent-ramp generation, or the canonical-hue status colors.
 tools: Read, Grep, Glob
 ---
 
@@ -41,12 +41,12 @@ training data.
    contrast ratio, and the same step passes for a blue brand and fails for yellow/cyan. Flag any
    hard-coded lightness offset standing in for a contrast solve.
 
-4. **Scheme-aware output.** The signature is `(brandColor, scheme) → tokenSet`. One `brandColor`
+4. **Scheme-aware output.** The signature is `(themeColor, scheme) → tokenSet`. One `themeColor`
    yields **both** light and dark via `light-dark()` so scheme switching is pure CSS; seed lightness
-   auto-directs (light vs dark brand). Flag a path that emits only one scheme, or that branches on
+   auto-directs (light vs dark seed). Flag a path that emits only one scheme, or that branches on
    scheme in a way that breaks the single-block `light-dark()` output.
 
-5. **Never throws — returns a safe fallback.** `brandColor` comes from an editor and may be invalid or
+5. **Never throws — returns a safe fallback.** `themeColor` comes from an editor and may be invalid or
    out-of-gamut. The engine parses / clamps / gamut-validates and **returns a safe fallback palette**;
    it must never throw or return `NaN`/`undefined` tokens. This is the first layer of a three-layer
    defense (engine fallback + Sanity author-time validation + an `EntryScope` backstop). Throw garbage
@@ -58,13 +58,14 @@ training data.
    CSS relative-color (`oklch(from …)`) is only acceptable for **decorative, non-contrast** deltas,
    never for a value whose contrast was solved. Flag a contrast-bearing token left as relative-color.
 
-7. **Per-slot status colors.** Success / warning / danger / info are brand-derived per slot by the
-   engine — scheme-aware and contrast-solved like the rest of the ramp. Flag a fixed global status
-   palette or a status color that skips the contrast solve.
+7. **Canonical-hue status colors.** `success` / `warning` / `error` / `info` use **fixed canonical
+   hues** (green / amber / red / blue) — recognizable, **not** accent-derived — harmonized with the
+   slot only through the shared contrast treatment (still scheme-aware and contrast-solved for their
+   fills). Flag a status role derived from the accent hue, or a status fill that skips the contrast solve.
 
 ## Output
 
 A ranked finding list. For each: `file:line`, the rule, the concrete failure (inputs → wrong output /
 throw), and the doc that contains the rule. If a rule has no test proving it, say so — a missing
-adversarial test (bad `brandColor`, both schemes, gamut edge) is itself a finding. If the change is
+adversarial test (bad `themeColor`, both schemes, gamut edge) is itself a finding. If the change is
 clean, say which rules you verified and how.

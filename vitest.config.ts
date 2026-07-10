@@ -12,12 +12,11 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
-    // Headroom over Vitest's 5s default. The suite has genuinely compute-heavy tests — the
-    // engine's dense-grid property checks and the Palette Studio's full-component renders
-    // (each runs real engine derivation) — that clear 5s comfortably in isolation but, under
-    // the parallel load of the whole suite on an oversubscribed machine, can starve past it
-    // and time out spuriously. A higher ceiling doesn't hide a hang: a truly stuck test still
-    // fails here. Inherited by both projects via `extends: true`.
+    // Headroom over Vitest's 5s default. Some tests are genuinely compute-heavy — real engine
+    // derivation and dense property-based checks — and clear 5s comfortably in isolation but,
+    // under the parallel load of the whole suite on an oversubscribed machine, can starve past
+    // it and time out spuriously. A higher ceiling doesn't hide a hang: a truly stuck test
+    // still fails here. Inherited by both projects via `extends: true`.
     testTimeout: 20000,
     // Agent-team worktrees live in-root at .claude/worktrees/<slug>/ (each a full repo
     // checkout with its own tests, possibly mid-edit) — without this exclude the root

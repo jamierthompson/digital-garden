@@ -1,6 +1,6 @@
 ---
 name: theming-reviewer
-description: Reviews token, `@layer`, EntryScope, and slot-scoping work — the three-tier token model (foundation → semantic → brand), the generic semantic contract (no project-prefixed names), `@layer` discipline, global editorial chrome vs slot-scoped brand, and flash-free theming. Use proactively after editing CSS Modules, global CSS, token definitions, `EntryScope`, or anything that themes a brand slot.
+description: Reviews token, `@layer`, EntryScope, and slot-scoping work — the three-tier token model (foundation → semantic → theme), the generic semantic contract (no project-prefixed names), `@layer` discipline, per-page `<html>` theme delivery vs slot-scoped theme font, and flash-free theming. Use proactively after editing CSS Modules, global CSS, token definitions, `PageTheme`/`EntryScope`, or anything that themes a page or slot.
 tools: Read, Grep, Glob
 ---
 
@@ -20,40 +20,42 @@ server-emitted `<style>`. Verify against the docs above and the real code, not t
 ## What to check
 
 1. **Three token tiers, in order.** Tokens are **foundation** (primitives) → **semantic** (the role
-   tokens components actually read) → **brand** (a brand slot's full scoped override of the semantic
-   layer). There is **no separate "feel/geometry" tier**. Flag a component reading a foundation
+   tokens components actually read) → **theme** (the engine's per-page override of the semantic color
+   tokens). There is **no separate "feel/geometry" tier** — radius, border-width, and control sizes are
+   foundation values. Flag a component reading a foundation
    primitive directly where it should read a semantic role token, or a new tier invented outside this
    model.
 
 2. **Generic semantic contract — no project-prefixed names.** The public contract is the generic
-   semantic layer; isolation comes from the `[data-entry]` scope, **not** from naming. No
-   project-slug-prefixed token names. Slot ramps are generic `--ramp-1..12` primitives. Flag any
-   `--<slug>-…` token or a slot that leaks a project-specific name into the shared contract.
+   semantic layer (`THEME_TOKEN_NAMES`); isolation comes from the `[data-entry]` scope, **not** from
+   naming. No project-slug-prefixed token names. Flag any `--<slug>-…` token or a slot that leaks a
+   project-specific name into the shared contract.
 
 3. **Every CSS Module declares its `@layer`.** Each module declares `@layer foundation`,
-   `@layer brand`, or `@layer components` — or stays **strictly var-consuming** (sets no competing
+   `@layer semantic`, or `@layer components` — or stays **strictly var-consuming** (sets no competing
    properties). An **unlayered** module outranks **every** layered style (the "@layer trap"), silently
    winning the cascade. This is enforced by `pnpm lint:css`; flag any new module that declares no layer
    and isn't purely var-consuming.
 
-4. **Editorial chrome is global; brand is slot-scoped.** The editorial foundation (Source Serif 4 + the
-   neutral ramp) themes **all** page chrome — the shell, home, about, `/now`, and the project page
-   _around_ the slot. A project's **brand color + font** scope **only** to its bounded interactive slot
-   (`[data-entry]` / the `<Experience/>`). Flag brand color or a project font bleeding onto page
-   chrome, or editorial chrome being overridden inside a slot's scope for no reason.
+4. **Every page is themed from an authored seed; the editorial _type_ is global.** Each page mounts one
+   `<PageTheme seed>` that stamps the engine's tokens on `:root`/`<html>`; the persistent chrome
+   (`SiteNav`/`SiteFooter`) **inherits** the visible page's theme. What is global is the editorial
+   **type** (Space Grotesk + Source Serif 4) plus the neutral fallback for un-themed surfaces
+   (404 / error / loading). An entry's theme **font** scopes **only** to its bounded slot
+   (`[data-entry]` / the `<Experience/>`). Flag a theme font bleeding onto page chrome, or a route that
+   renders content without a `<PageTheme>` seed where one belongs.
 
-5. **Downward theming has one owner.** The project's slot scope is the single owner of brand + feel
+5. **Downward theming has one owner.** The project's slot scope is the single owner of the theme + font
    within the slot; the experience and embedded components beneath it read the **same scoped tokens**
    passed down. A shared primitive must not assume tokens that only exist inside a slot. Flag a
    component reaching up to or hard-coding a value the slot scope should provide.
 
-6. **Flash-free.** `EntryScope` emits the slot's `<style>` **server-side** (the `brandColor` is known
-   at request time), so color is flash-free with no hydration mismatch — emitted via
-   `dangerouslySetInnerHTML`. Streamed `<style>` with React 19 `precedence` + a slug `href` is only for
-   when `EntryScope` can be suspended; plain inline when it's in the initial shell. Flag a client-side
-   theming path that would FOUC, or a streamed-precedence style used where a plain inline block belongs.
+6. **Flash-free.** Page color is a server-rendered `:root` `<style>` (`ThemeStyle`, React-19-hoisted
+   into `<head>` ahead of the body) re-stamped on `<html>` by `ThemeReapplier` on soft nav; the slot
+   **font** is an inline style on `[data-entry]` (`EntryScope`), server-known at request time. Both are
+   flash-free with no hydration mismatch. Flag a client-side theming path that would FOUC.
 
-7. **Layer order is established first.** The layer-establishing global CSS (`foundation.css`) is
+7. **Layer order is established first.** The layer-establishing global CSS (`layers.css`) is
    imported **first** in the root layout so the `@layer` order is defined before any module loads; this
    is pinned by an import-order test. Flag a change that imports it later or reorders it.
 

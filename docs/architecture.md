@@ -85,8 +85,8 @@ the content model). The experience's logic lives in a headless core when it earn
 interactive experience section), but that's ordinary code organization, not a boundary the site has
 to maintain.
 
-The shell's top-level pages — the featured home, the browsable Index, about, `/now` — are owned by
-the site rather than any entry, and wear their own authored theme (seeded from
+The shell's top-level pages — the featured home, the browsable Index, about, `/now`, and `/system` —
+are owned by the site rather than any entry, and wear their own authored theme (seeded from
 `siteSettings.pageThemes`) like every other page (see the token & theming architecture).
 
 ---

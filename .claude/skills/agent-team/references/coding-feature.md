@@ -73,7 +73,7 @@ that stops teammates marking work complete without testing. See
 _developer-done_, not _review-done_. For **every** coding agent, spawn **one fresh QA teammate**
 (`pr-review-toolkit:code-reviewer` / `feature-dev:code-reviewer`) — **never the agent that wrote the
 slice**; the isolated context is the point. Brief it per the briefing checklist to **try to break** the slice, not skim
-it: malformed / boundary / empty / hostile input (garbage `brandColor` → safe fallback, never a
+it: malformed / boundary / empty / hostile input (garbage `themeColor` → safe fallback, never a
 throw), the error and not-found paths, both color schemes, the focus/interaction floor on any rendered
 surface — and to **write the missing test cases** a product-team QA engineer would, proving each break
 with a failing case first. Findings go back to the **owning** agent to fix; QA re-checks; repeat until
