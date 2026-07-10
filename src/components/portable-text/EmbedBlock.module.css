@@ -12,7 +12,7 @@
   .caption {
     margin-top: var(--space-2);
     font-size: var(--type-size-2);
-    color: color-mix(in oklab, var(--foreground) 65%, transparent);
+    color: var(--muted-foreground);
     text-align: center;
   }
 }

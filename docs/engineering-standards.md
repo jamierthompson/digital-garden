@@ -131,6 +131,14 @@ async function Card({ theme }: { theme: string }) {
 
 Components read **generic semantic tokens** — `--surface`, `--foreground`, `--accent`, … `--font-body`, `--space-*`. There are **no `--<proj>-*` per-entry prefixed token names**: the `[data-entry]` scope provides the isolation, so a slot overrides the same generic names the rest of the app reads.
 
+### Color tokens are immutable — never mix or fade one
+
+A semantic **color** token is a **solved value**: the OKLCH engine derives it contrast-solved against a mapped background per color scheme. Applying `color-mix()` to it, or dropping its alpha (`var(--foreground) / 50%`), silently breaks the contrast it was solved for — a muted foreground built as `color-mix(in oklab, var(--foreground) 65%, transparent)` no longer clears its ratio. So:
+
+> **Never `color-mix()` a color token and never slash-alpha one.** When you need a lower-emphasis or tinted role, read the **designed token for it** — `--muted-foreground`, `--muted`, `--accent-subtle`, a `*-subtle` status family — not a mutation of a stronger one. If no designed token fits, that's a gap to fill in the semantic contract (`src/styles/semantic/color.css`), not to paper over with a mix.
+
+Enforced by `pnpm lint:color` (`scripts/check-color-immutability.mjs`, a CI gate): the color-token set is derived from the `--name:` declarations in `src/styles/semantic/color.css`, so the guard targets **only** color tokens. `color-mix()` / alpha on `currentColor` or on a non-color var (`--space-*`, a border-width) is exempt — those aren't solved colors.
+
 ### The `@layer` trap — read this
 
 **Next does NOT auto-assign CSS Modules to a cascade layer.** Per the CSS cascade-layers spec (CSS Cascading and Inheritance Level 5; see MDN "Cascade layers"), an **unlayered** declaration **outranks every `@layer` style** regardless of specificity — and Next leaves Modules unlayered. So:

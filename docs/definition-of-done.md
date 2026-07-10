@@ -24,6 +24,7 @@ Run the full chain locally. Same scripts, same order as CI:
 ```bash
 pnpm lint && \
 pnpm lint:css && \
+pnpm lint:color && \
 pnpm lint:routes && \
 pnpm lint:keys && \
 pnpm lint:docs && \
@@ -50,6 +51,7 @@ re-run from the top, don't cherry-pick steps.
 | ------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Lint          | `pnpm lint`                                                             | ESLint + **import boundaries** + **isomorphism** (`eslint.config.mjs`)                                                                                                                                                                  | Read the boundary message — it tells you which rule. Don't suppress; restructure.                                                                                                               |
 | CSS layers    | `pnpm lint:css`                                                         | The **`@layer` trap** — every `*.module.css` rule must be inside `@layer` or the module stays var-consuming (an unlayered module outranks every `@layer` style)                                                                         | Wrap rules in `@layer foundation\|semantic\|components`. (`scripts/check-css-layers.mjs`)                                                                                                       |
+| Color tokens  | `pnpm lint:color`                                                       | **Color-token immutability** — no `color-mix()` on, or slash-alpha off, a solved semantic color token (`--foreground`, `--accent`, …); mutating one breaks its solved contrast (`currentColor` / non-color vars are exempt)             | Read a designed token instead (`--muted-foreground`, `--accent-subtle`, `--muted`, …). (`scripts/check-color-immutability.mjs`)                                                                 |
 | Routing thin  | `pnpm lint:routes`                                                      | **`src/app/` holds only route files** + their co-located tests/private helpers + `*.module.css` / assets — non-route logic, components, and token CSS keep drifting in                                                                  | Move the flagged file to its `src/` home (logic → a module, styles → `src/styles/`, tests → beside their subject); the message names the file + where it goes. (`scripts/check-app-routes.mjs`) |
 | Key drift     | `pnpm lint:keys`                                                        | `keys.ts` ↔ resolver drift — well-formed key arrays + the compile-time `satisfies` guards stay wired. (The published-keys GROQ net runs as a separate CI job — `check-published-keys.mjs` / `pnpm lint:keys:published`.)                | Read the failure; fix `keys.ts` or restore the dropped `satisfies`. (`scripts/check-key-drift.mjs`)                                                                                             |
 | Doc-gate sync | `pnpm lint:docs`                                                        | The gate chain is identical across its two declarations — this file's one command and `ci.yml` (`verify`) — plus markdown link/anchor integrity across every tracked doc and the retired-citation guard (`check-retired-citations.mjs`) | Sync the divergent source (`scripts/check-doc-gate-sync.mjs`) or fix the broken link/anchor (`scripts/check-doc-links.mjs`); the failure prints the mismatch.                                   |
@@ -153,7 +155,7 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
 ## 7. Final gate (copy-paste)
 
 ```text
-[ ] pnpm lint · lint:css · lint:routes · lint:keys · lint:docs · format:check · typecheck · test · build  — all green
+[ ] pnpm lint · lint:css · lint:color · lint:routes · lint:keys · lint:docs · format:check · typecheck · test · build  — all green
 [ ] sanity.types.ts regenerated & committed (after ANY Studio schema change)
 [ ] Cache Components: dynamic reads in <Suspense> or 'use cache'
 [ ] "Don't reach up": every unit self-sufficient; full litmus for shared prims → "Don't reach up" litmus in architecture.md

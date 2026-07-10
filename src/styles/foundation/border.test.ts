@@ -71,17 +71,4 @@ describe("every snapped consumer reads the border-width token, not a raw literal
       expect(read(file)).toMatch(re);
     });
   }
-
-  // The migrated dashed-border colors (#201 territory) must be BYTE-IDENTICAL color-mix — only
-  // the width token changed. A snap that also touched the color would trip this.
-  it("EntryFigure/MissingEmbed keep their color-mix border color untouched", () => {
-    expect(read("src/components/portable-text/EntryFigure.module.css")).toMatch(
-      /var\(--border-width\)\s+dashed\s+color-mix\(in oklab, var\(--foreground\) 30%, transparent\)/,
-    );
-    expect(
-      read("src/components/portable-text/MissingEmbed.module.css"),
-    ).toMatch(
-      /var\(--border-width\)\s+dashed\s+color-mix\(in oklab, var\(--foreground\) 40%, transparent\)/,
-    );
-  });
 });

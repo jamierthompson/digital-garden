@@ -25,7 +25,7 @@
   .blurb {
     margin-top: var(--space-3);
     max-width: 52ch;
-    color: color-mix(in oklab, var(--foreground) 80%, transparent);
+    color: var(--muted-foreground);
   }
 
   .article {
