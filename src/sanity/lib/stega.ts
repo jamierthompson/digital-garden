@@ -24,7 +24,8 @@ import type { StegaConfig } from "@sanity/client/stega";
  *   sections (found via #131's mounted-draft review).
  *
  * The entry's `theme` object is excluded by ANCESTOR instead (see below) — its leaf names
- * (`color` / `bodyFont`) are common words that must NOT be denylisted globally.
+ * (`color` / `headingFont` / `bodyFont` / `monoFont`) are common words that must NOT be
+ * denylisted globally.
  *
  * Sanity's default stega denylist skips `color`/`hex`/slugs but NOT these field
  * names, so we exclude them explicitly.
@@ -40,8 +41,9 @@ export const STEGA_EXCLUDED_FIELDS = new Set([
  * Ancestor objects whose every nested field is a code-consumed seed, excluded by ANCESTOR
  * because their leaf names are common words we must NOT denylist globally:
  *
- * - `theme` — the entry's `{ color, colorDark, bodyFont }`: `color`/`colorDark` are parsed by the
- *   OKLCH engine, `bodyFont` is resolved against the font roster by key; both break on stega chars.
+ * - `theme` — the entry's `{ color, colorDark, headingFont, bodyFont, monoFont }`: `color`/`colorDark`
+ *   are parsed by the OKLCH engine, the three font faces are resolved against the font roster by key;
+ *   both break on stega chars.
  * - `pageThemes` — `siteSettings`'s per-page seeds (`home` / `browse` / `about` / `now` / `system`),
  *   theme colors parsed by the OKLCH engine (#166), sharing the same hazard.
  */

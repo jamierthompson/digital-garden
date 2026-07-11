@@ -2,11 +2,7 @@ import {describe, expect, it} from 'vitest'
 
 import {isThemeColorString} from '../shared/colorValidation'
 import {entry} from './entry'
-import {
-  forbiddenForNow,
-  requiredForNonSketchProject,
-  requiredForThemedKind,
-} from './entryValidators'
+import {forbiddenForNow, requiredForThemedKind} from './entryValidators'
 
 /**
  * Asserts the `entry` schema's required fields declare `rule.required()`. `required()` is a
@@ -99,10 +95,16 @@ describe('entry schema — the theme object (#249)', () => {
   const themeField = (name: string): FieldDef | undefined =>
     theme?.fields?.find((f) => f.name === name)
 
-  it('declares theme as an object of exactly { color, colorDark, bodyFont }', () => {
+  it('declares theme as an object of exactly { color, colorDark, headingFont, bodyFont, monoFont }', () => {
     expect(theme, 'expected a theme field').toBeDefined()
     expect(theme?.type).toBe('object')
-    expect(theme?.fields?.map((f) => f.name)).toEqual(['color', 'colorDark', 'bodyFont'])
+    expect(theme?.fields?.map((f) => f.name)).toEqual([
+      'color',
+      'colorDark',
+      'headingFont',
+      'bodyFont',
+      'monoFont',
+    ])
   })
 
   it('hides the whole theme object for a now update (and only for now)', () => {
@@ -126,14 +128,23 @@ describe('entry schema — the theme object (#249)', () => {
     ])
   })
 
-  it('attaches requiredForNonSketchProject to theme.bodyFont (the behavior-preserving floor)', () => {
-    expect(customValidators(themeField('bodyFont'))).toEqual([requiredForNonSketchProject])
+  it('declares the three font faces as optional string fields with no validation (#226)', () => {
+    for (const face of ['headingFont', 'bodyFont', 'monoFont']) {
+      const f = themeField(face)
+      expect(f, `expected a theme.${face} field`).toBeDefined()
+      expect(f?.type).toBe('string')
+      // Each face is optional — an absent key inherits the site type palette — so it carries
+      // no required floor and no custom validator.
+      expect(customValidators(f)).toEqual([])
+    }
   })
 
-  it('keeps componentKey a TOP-LEVEL field (not part of the theme) with the same floor', () => {
+  it('keeps componentKey a TOP-LEVEL field (not part of the theme), optional and unvalidated', () => {
     const componentKey = field('componentKey')
     expect(componentKey, 'expected a top-level componentKey').toBeDefined()
-    expect(customValidators(componentKey)).toEqual([requiredForNonSketchProject])
+    expect(componentKey?.type).toBe('string')
+    // componentKey mounts a module purely on PRESENCE for any non-`now` kind — no validation.
+    expect(customValidators(componentKey)).toEqual([])
   })
 
   it('carries no stray flat theming fields — themeColor / themeColorDark / fontKey are gone', () => {

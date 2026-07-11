@@ -1,7 +1,7 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
 import {isThemeColorString} from '../shared/colorValidation'
-import {forbiddenForNow, requiredForNonSketchProject, requiredForThemedKind} from './entryValidators'
+import {forbiddenForNow, requiredForThemedKind} from './entryValidators'
 
 /**
  * An `entry` — the single content type for the whole garden.
@@ -12,26 +12,25 @@ import {forbiddenForNow, requiredForNonSketchProject, requiredForThemedKind} fro
  * drives the Index's type filter and the on-card label; the kinds differ by scope and
  * emphasis, not fields. See docs/architecture.md → Content model.
  *
- * An entry carries ONE first-class `theme` object — `{ color, colorDark, bodyFont }` — a
- * named, reference-by-key thing consumed by code, NOT prose (see the stega exclusions in
- * src/sanity/lib/stega.ts, which exclude the whole object by ancestor). `color` dresses the
- * page chrome and every interactive slot; `bodyFont` names the roster face the slot's type
- * wears; `colorDark` is an optional hand-tuned dark override. The required rules below are a
- * floor: under the site-wide engine-theming model (#166) every page derives its theme from an
- * authored seed, so `theme.color` is required for every THEMED kind — note, essay, AND project
- * (any stage: the project card plate consumes it even for a sketch, and a note/essay page themes
- * from it too). `theme.bodyFont` names a coded module's face, so it stays required only for a
- * `project` PAST the sketch stage — a `stage: sketch` project is an honest placeholder with no
- * module yet, so it carries a color but no bodyFont — and is OPTIONAL-but-honored for a
- * note/essay. `componentKey` is SEPARATE from the theme (it MOUNTS a module; it is not part of the
- * theme the module reads), so it stays a top-level field. `now` is chrome + prose by design — its
- * whole `theme` object is hidden and it CANNOT set a color (the single `/now` page seed themes all
- * `now` content: the `/now` index and every `now` entry, resolved in ENTRY_DETAIL_QUERY);
- * `forbiddenForNow` rejects a color on a `now`.
+ * An entry carries ONE first-class `theme` object — `{ color, colorDark, headingFont, bodyFont,
+ * monoFont }` — a named, reference-by-key thing consumed by code, NOT prose (see the stega
+ * exclusions in src/sanity/lib/stega.ts, which exclude the whole object by ancestor). `color`
+ * dresses the page chrome and every interactive slot; the three font faces name the roster faces
+ * the slot's type wears — heading, body, and mono, each independent; `colorDark` is an optional
+ * hand-tuned dark override. Under the site-wide engine-theming model (#166) every page derives its
+ * theme from an authored seed, so `theme.color` is required for every THEMED kind — note, essay,
+ * AND project (any stage: the project card plate consumes it even for a sketch, and a note/essay
+ * page themes from it too). The three font faces are each OPTIONAL for every kind — an absent face
+ * inherits the site type palette, so a slot with no font override wears the constant site faces.
+ * `componentKey` is SEPARATE from the theme (it MOUNTS a module; it is not part of the theme the
+ * module reads), so it stays a top-level field — also OPTIONAL, mounting a module purely on its
+ * PRESENCE for any non-`now` kind. `now` is chrome + prose by design — its whole `theme` object is
+ * hidden and it CANNOT set a color (the single `/now` page seed themes all `now` content: the
+ * `/now` index and every `now` entry, resolved in ENTRY_DETAIL_QUERY); `forbiddenForNow` rejects a
+ * color on a `now`.
  *
- * NOTE: `theme.bodyFont` and `componentKey` are plain string fields here on purpose — the
- * standalone Studio bundle must not import app code (keys.ts / next/font / lazy project
- * bundles).
+ * NOTE: the three font faces and `componentKey` are plain string fields here on purpose — the
+ * standalone Studio bundle must not import app code (keys.ts / next/font / lazy slot bundles).
  */
 const KINDS = [
   {title: 'Note', value: 'note'},
@@ -131,8 +130,9 @@ export const entry = defineType({
 
     // The entry's theme: one first-class object, reference-by-key, consumed by code, stega-
     // excluded by ancestor. `color` is required for every themed kind (the page/card derives its
-    // theme from it); `bodyFont` names a coded module's face, required only PAST the sketch stage.
-    // The whole object is hidden for a `now` update, which inherits the /now page seed instead.
+    // theme from it); the three font faces (headingFont/bodyFont/monoFont) are each optional — an
+    // absent face inherits the site type palette. The whole object is hidden for a `now` update,
+    // which inherits the /now page seed instead.
     defineField({
       name: 'theme',
       title: 'Theme',
@@ -160,12 +160,25 @@ export const entry = defineType({
           validation: (rule) => rule.custom(forbiddenForNow).custom(isThemeColorString),
         }),
         defineField({
+          name: 'headingFont',
+          title: 'Heading font key',
+          type: 'string',
+          description:
+            'Optional. Name of the roster font this entry’s slot headings wear — ask a developer for the valid keys. Leave empty to inherit the site heading face.',
+        }),
+        defineField({
           name: 'bodyFont',
           title: 'Body font key',
           type: 'string',
           description:
-            'Name of the roster font this entry’s slot wears — ask a developer for the valid keys. Required for a project past the sketch stage.',
-          validation: (rule) => rule.custom(requiredForNonSketchProject),
+            'Optional. Name of the roster font this entry’s slot body text wears — ask a developer for the valid keys. Leave empty to inherit the site body face.',
+        }),
+        defineField({
+          name: 'monoFont',
+          title: 'Mono font key',
+          type: 'string',
+          description:
+            'Optional. Name of the roster font this entry’s slot monospace text wears — ask a developer for the valid keys. Leave empty to inherit the site mono face.',
         }),
       ],
     }),
@@ -174,8 +187,7 @@ export const entry = defineType({
       title: 'Component key',
       type: 'string',
       description:
-        'Name of the coded component this entry mounts — ask a developer for the valid keys. Required for a project past the sketch stage; optional for a note or essay, where setting it also mounts that component.',
-      validation: (rule) => rule.custom(requiredForNonSketchProject),
+        'Optional. Name of the coded component this entry mounts — ask a developer for the valid keys. Setting it mounts that component (for any kind except “now”); leave empty for a prose-only entry.',
     }),
 
     defineField({

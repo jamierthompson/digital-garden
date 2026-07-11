@@ -5,17 +5,17 @@ import type {ValidationContext} from 'sanity'
  * can be unit-tested directly. All are PURE functions of `(value, context.document)` with no
  * Sanity runtime dependency (the `ValidationContext` import is type-only and erased at build), so
  * a test needs no Studio runtime — it just calls them with a synthetic `{document}` context. They
- * read `context.document.kind`/`.stage` (always the ROOT document), so they attach unchanged to the
- * nested `theme.color` / `theme.colorDark` / `theme.bodyFont` sub-fields and the top-level
- * `componentKey`. See `entry.ts` for how they attach.
+ * read `context.document.kind` (always the ROOT document), so they attach unchanged to the nested
+ * `theme.color` / `theme.colorDark` sub-fields. See `entry.ts` for how they attach.
  *
- * Two shapes of rule: a REQUIRED floor (`requiredForThemedKind`, `requiredForNonSketchProject`)
- * and a PROHIBITION (`forbiddenForNow`). Theming/mounting is otherwise capability-gated — the
- * route themes / mounts on the PRESENCE of a field, so a `note`/`essay` that sets `componentKey`
- * mounts its module even though the key is not *required* of it. The one hard exception is a `now`
- * entry's COLOR: it inherits the single `/now` seed and may not set `theme.color`/`theme.colorDark`
- * at all (`forbiddenForNow` rejects it); its other theming fields (`theme.bodyFont`/`componentKey`)
- * remain accept-but-ignore. See docs/architecture.md → Content model.
+ * Two shapes of rule: a REQUIRED floor (`requiredForThemedKind`) and a PROHIBITION
+ * (`forbiddenForNow`), both governing only the entry's COLOR. Everything else is capability-gated:
+ * the route themes / mounts on the PRESENCE of a field, so the three font faces and `componentKey`
+ * are plain optional fields the app honors when set (a `note`/`essay`/`project` that sets
+ * `componentKey` mounts its module) and ignores when absent — no validation. The one hard exception
+ * is a `now` entry's COLOR: it inherits the single `/now` seed and may not set
+ * `theme.color`/`theme.colorDark` at all (`forbiddenForNow` rejects it). See docs/architecture.md
+ * → Content model.
  */
 
 /**
@@ -56,22 +56,5 @@ export function forbiddenForNow(value: unknown, context: ValidationContext): tru
   const kind = (context.document as {kind?: unknown} | undefined)?.kind
   return kind === 'now' && value
     ? 'A “now” entry inherits the /now page seed and can’t set its own color.'
-    : true
-}
-
-/**
- * `componentKey` / `theme.bodyFont` are required only for a `project` PAST the sketch stage: they
- * name a coded module + face, and a `stage: sketch` project has no module yet, so it carries
- * a `theme.color` but no componentKey/bodyFont until it graduates to prototype/shipped.
- * Optional for every other kind — but honored when set: a `note` / `essay` that names a
- * `componentKey` mounts that module, and its `theme.bodyFont` themes the slot. `now` ignores both.
- */
-export function requiredForNonSketchProject(
-  value: unknown,
-  context: ValidationContext,
-): true | string {
-  const doc = context.document as {kind?: unknown; stage?: unknown} | undefined
-  return doc?.kind === 'project' && doc?.stage !== 'sketch' && !value
-    ? 'Required for a project past the sketch stage.'
     : true
 }

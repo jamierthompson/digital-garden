@@ -183,7 +183,7 @@ describe("ENTRY_DETAIL_QUERY", () => {
     }
     // The theme is projected as a nested object, not flat fields.
     expect(ENTRY_DETAIL_QUERY).toContain(
-      "theme { color, colorDark, bodyFont }",
+      "theme { color, colorDark, headingFont, bodyFont, monoFont }",
     );
     // Incoming backlinks resolve via references() against this document's id.
     expect(ENTRY_DETAIL_QUERY).toContain("references(^._id)");
