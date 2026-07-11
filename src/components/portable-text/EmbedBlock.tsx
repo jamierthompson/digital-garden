@@ -17,11 +17,12 @@ interface EmbedBlockProps {
   /**
    * The host entry's font-scope seed. Present whenever a non-`now` entry themes OR mounts a
    * module (`theme.color || componentKey`, not just a project): each embed then mounts inside its
-   * OWN `EntryScope` container, so it wears the entry's theme font while the prose around it
-   * keeps the editorial body face. Color is inherited from the page's `<html>` theme, so this
-   * seed carries only the slug + `fontKey`. A module-only entry (no `fontKey`) still gets a seed
-   * keyed on its own slug, so its embeds fall back to the shell font. Absent (a `now`, or an
-   * entry that neither themes nor mounts a module) → the embed mounts bare.
+   * OWN `EntryScope` container, so it wears the entry's theme fonts while the prose around it
+   * keeps the editorial faces. Color is inherited from the page's `<html>` theme, so this seed
+   * carries only the slug + the entry's per-role font keys (heading/body/mono). A module-only
+   * entry (no font keys) still gets a seed keyed on its own slug, so its embeds inherit the site
+   * palette. Absent (a `now`, or an entry that neither themes nor mounts a module) → the embed
+   * mounts bare.
    */
   scope?: ScopeSeed;
 }

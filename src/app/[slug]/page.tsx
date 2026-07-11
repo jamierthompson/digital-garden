@@ -137,14 +137,20 @@ export default async function EntryPage({ params }: EntryPageProps) {
   const Provider = entryModule?.Provider ?? null;
 
   // The font seed for the entry's slot(s), threaded to the body so each `liveEmbed` — and the
-  // `Experience` slot — mounts in its own `[data-entry]` wearing the entry's theme font. Built
+  // `Experience` slot — mounts in its own `[data-entry]` wearing the entry's theme fonts. Built
   // whenever this entry either themes (`theme.color`) OR mounts a module: keyed on the REAL `slug`
-  // so a scope never collapses to the shared `data-entry="fallback"`. An absent `theme.bodyFont`
-  // is a safe empty string: the keystone falls back to the shell font without throwing. The slot's
-  // COLOR comes from the page's `<html>` theme (inherited); this seed carries only the font.
+  // so a scope never collapses to the shared `data-entry="fallback"`. Each of the three role fonts
+  // is passed as `undefined` when absent (never coerced to `""`): the keystone omits an absent
+  // role's override so it inherits `:root`, without throwing. The slot's COLOR comes from the
+  // page's `<html>` theme (inherited); this seed carries only the fonts.
   const scope: ScopeSeed | undefined =
     !isNow && (entry.theme?.color || entryModule)
-      ? { slug, fontKey: entry.theme?.bodyFont ?? "" }
+      ? {
+          slug,
+          headingFont: entry.theme?.headingFont ?? undefined,
+          bodyFont: entry.theme?.bodyFont ?? undefined,
+          monoFont: entry.theme?.monoFont ?? undefined,
+        }
       : undefined;
 
   const article = (

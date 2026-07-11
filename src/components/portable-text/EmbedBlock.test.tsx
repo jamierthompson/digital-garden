@@ -15,14 +15,13 @@ vi.mock("next/font/google", () => ({
   Newsreader: () => ({ variable: "mock-newsreader" }),
   Fraunces: () => ({ variable: "mock-fraunces" }),
   Space_Grotesk: () => ({ variable: "mock-space-grotesk" }),
-  JetBrains_Mono: () => ({ variable: "mock-jetbrains-mono" }),
 }));
 
 import EmbedBlock from "./EmbedBlock";
 
 const SCOPE = {
   slug: "color-engine",
-  fontKey: "jetbrains-mono",
+  bodyFont: "space-grotesk",
 };
 
 describe("EmbedBlock", () => {

@@ -51,7 +51,7 @@ const BODY = [
 
 const SCOPE: ScopeSeed = {
   slug: "color-engine",
-  fontKey: "jetbrains-mono",
+  bodyFont: "space-grotesk",
 };
 
 describe("EntryBody", () => {
