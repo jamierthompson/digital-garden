@@ -90,7 +90,7 @@ describe("semantic role layer binds to the ramp", () => {
 
 describe("the --type-*-family bindings re-derive inside a themed slot (#226)", () => {
   // A custom property substitutes its var() references at the element that DECLARES it
-  // (css-variables-1 §3.4: computed value = specified value with variables substituted —
+  // (css-variables-1, custom property value processing: computed value = specified value with variables substituted —
   // https://www.w3.org/TR/css-variables-1/#defining-variables). So a family binding declared
   // only at :root freezes to the site face THERE, and descendants inherit the resolved
   // string — a slot's [data-entry] --font-* override never reaches a primitive that reads
