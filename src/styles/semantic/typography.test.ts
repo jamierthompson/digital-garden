@@ -12,7 +12,7 @@ describe("semantic/typography.css house faces", () => {
   it.each([
     ["--font-body", "--font-source-serif-4"],
     ["--font-heading", "--font-space-grotesk"],
-    ["--font-mono", "--font-jetbrains-mono"],
+    ["--font-mono", "--font-geist-mono"],
   ])("%s maps to %s", (token, nextFontVar) => {
     const decl = SHEET.match(new RegExp(`${token}\\s*:\\s*([^;]+);`))?.[1];
     expect(decl, `expected ${token} declared`).toBeDefined();

@@ -7,7 +7,6 @@ vi.mock("next/font/google", () => ({
   Newsreader: () => ({ variable: "mock-newsreader" }),
   Fraunces: () => ({ variable: "mock-fraunces" }),
   Space_Grotesk: () => ({ variable: "mock-space-grotesk" }),
-  JetBrains_Mono: () => ({ variable: "mock-jetbrains-mono" }),
 }));
 
 import { FONT_KEYS } from "@/lib/keys";
@@ -31,9 +30,6 @@ describe("font roster", () => {
     expect(FONT_FACES.inter.cssVariable).toBe("--font-inter");
     expect(FONT_FACES["space-grotesk"].cssVariable).toBe(
       "--font-space-grotesk",
-    );
-    expect(FONT_FACES["jetbrains-mono"].cssVariable).toBe(
-      "--font-jetbrains-mono",
     );
     expect(FONT_FACES.newsreader.cssVariable).toBe("--font-newsreader");
     expect(FONT_FACES.fraunces.cssVariable).toBe("--font-fraunces");

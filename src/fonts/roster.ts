@@ -14,13 +14,7 @@
 //     `<link rel="preload" as="font" crossorigin>`, not by flipping this.
 //   • `display: "swap"` — zero-CLS via next/font's size-adjusted fallback.
 
-import {
-  Fraunces,
-  Inter,
-  JetBrains_Mono,
-  Newsreader,
-  Space_Grotesk,
-} from "next/font/google";
+import { Fraunces, Inter, Newsreader, Space_Grotesk } from "next/font/google";
 
 import type { FontKey } from "@/lib/keys";
 
@@ -43,7 +37,6 @@ const INTER_VAR = "--font-inter";
 const NEWSREADER_VAR = "--font-newsreader";
 const FRAUNCES_VAR = "--font-fraunces";
 const SPACE_GROTESK_VAR = "--font-space-grotesk";
-const JETBRAINS_MONO_VAR = "--font-jetbrains-mono";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -73,13 +66,6 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk", // must equal SPACE_GROTESK_VAR
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-  variable: "--font-jetbrains-mono", // must equal JETBRAINS_MONO_VAR
-});
-
 /**
  * `FontKey → FontFace`. `satisfies Record<FontKey, FontFace>` makes a missing
  * face a **compile error** the moment a key is added to `FONT_KEYS`. The
@@ -93,9 +79,5 @@ export const FONT_FACES = {
   "space-grotesk": {
     variable: spaceGrotesk.variable,
     cssVariable: SPACE_GROTESK_VAR,
-  },
-  "jetbrains-mono": {
-    variable: jetbrainsMono.variable,
-    cssVariable: JETBRAINS_MONO_VAR,
   },
 } satisfies Record<FontKey, FontFace>;

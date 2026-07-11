@@ -1,6 +1,7 @@
 // Reference-by-key contracts — the single source of truth for which keys exist.
-// Sanity stores these keys — `componentKey` and `embedKey`, plus the font key as the
-// entry's `theme.bodyFont` — on its documents; code resolves them. This module owns the *allowed key
+// Sanity stores these keys — `componentKey` and `embedKey`, plus the per-role font keys as the
+// entry's `theme.{headingFont,bodyFont,monoFont}` — on its documents; code resolves them. This
+// module owns the *allowed key
 // values* and their types; resolvers (src/lib/resolvers/**) and the font roster
 // (src/fonts/roster.ts) key off these, and the Sanity schema builds its dropdowns
 // from them. Resolvers are typed `satisfies Record<Key, …>` so a missing entry is
@@ -22,7 +23,6 @@ export const FONT_KEYS = [
   "newsreader",
   "fraunces",
   "space-grotesk",
-  "jetbrains-mono",
 ] as const;
 export type FontKey = (typeof FONT_KEYS)[number];
 
