@@ -204,4 +204,56 @@ describe("Grid", () => {
     ).toThrow(/single React element child/i);
     spy.mockRestore();
   });
+
+  // Radix Slot renders nothing (not an error) when asChild gets NO child — the complement to the
+  // multiple-children throw above. Pins that the misuse degrades to an empty render, not a crash.
+  it("renders nothing without throwing when asChild receives no child", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { container } = render(<Grid asChild min="20rem" gap={space(5)} />);
+    expect(container).toBeEmptyDOMElement();
+    spy.mockRestore();
+  });
+
+  // --- Boundary: empty-string props are the silent-breakage edge ---
+
+  // The props are required `string`s with no truthiness gate, so `min=""` writes a *guaranteed-
+  // invalid* custom-property value: React/jsdom drops the declaration entirely (`--grid-min` is
+  // absent from the style, only `--grid-gap` remains). In a real browser `var(--grid-min)` then
+  // has no value and no fallback, so `grid-template-columns` becomes invalid and falls back to
+  // `none` — the grid silently collapses to a single stacked column. This pins that behavior: an
+  // empty floor is caller misuse the primitive does NOT guard (consistent with Stack/Page trusting
+  // callers to pass real CSS), so the floor must always be a real length.
+  it("drops the --grid-min declaration when min is an empty string (silent-breakage boundary)", () => {
+    render(<Grid min="" gap={space(5)} data-testid="grid" />);
+    const el = screen.getByTestId("grid");
+    expect(el.style.getPropertyValue("--grid-min")).toBe("");
+    expect(el.getAttribute("style")).not.toContain("--grid-min");
+    // The other conduit is unaffected — the drop is per-property, not all-or-nothing.
+    expect(el.style.getPropertyValue("--grid-gap")).toBe("var(--space-5)");
+  });
+
+  it("drops the --grid-gap declaration when gap is an empty string (silent-breakage boundary)", () => {
+    render(<Grid min="20rem" gap="" data-testid="grid" />);
+    const el = screen.getByTestId("grid");
+    expect(el.style.getPropertyValue("--grid-gap")).toBe("");
+    expect(el.getAttribute("style")).not.toContain("--grid-gap");
+    expect(el.style.getPropertyValue("--grid-min")).toBe("20rem");
+  });
+
+  // Overriding ONE conduit via the caller `style` must not disturb the other — the merge is a
+  // per-property spread, not a wholesale replacement. Complements the "caller wins" test, which
+  // overrides both at once and so wouldn't catch an all-or-nothing merge bug.
+  it("preserves the un-overridden conduit when a caller style overrides only the other", () => {
+    render(
+      <Grid
+        min="20rem"
+        gap={space(5)}
+        style={{ "--grid-gap": space(2) } as React.CSSProperties}
+        data-testid="grid"
+      />,
+    );
+    const el = screen.getByTestId("grid");
+    expect(el.style.getPropertyValue("--grid-gap")).toBe("var(--space-2)");
+    expect(el.style.getPropertyValue("--grid-min")).toBe("20rem");
+  });
 });
