@@ -496,7 +496,7 @@ Type safety comes from a **typed accessor**, not from constraining the prop:
   without hand-writing `var(--space-6)` and without being able to pick an off-scale number.
 - The module is **dependency-free and side-effect-free** (mirroring `src/lib/keys.ts`): a token
   contract the app — or the standalone Studio — can import without pulling in app code. It only
-  _names_ the steps; the scale **values** live in `foundation/typography.css` (`@layer foundation`).
+  _names_ the steps; the scale **values** live in `foundation/space.css` (`@layer foundation`).
 - The prop itself stays a plain `string`, so the escape hatch (a raw token, an engine `clamp()`)
   is always open; `space()` is the ergonomic, guarded default, not a gate.
 
