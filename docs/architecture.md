@@ -496,7 +496,7 @@ Type safety comes from a **typed accessor**, not from constraining the prop:
   without hand-writing `var(--space-6)` and without being able to pick an off-scale number.
 - The module is **dependency-free and side-effect-free** (mirroring `src/lib/keys.ts`): a token
   contract the app — or the standalone Studio — can import without pulling in app code. It only
-  _names_ the steps; the scale **values** live in `foundation/typography.css` (`@layer foundation`).
+  _names_ the steps; the scale **values** live in `foundation/space.css` (`@layer foundation`).
 - The prop itself stays a plain `string`, so the escape hatch (a raw token, an engine `clamp()`)
   is always open; `space()` is the ergonomic, guarded default, not a gate.
 
@@ -521,6 +521,7 @@ covers the rest):
 | `--space-gutter`  | `--space-6` | the page frame's inline breathing room (edge padding)    |
 | `--space-stack`   | `--space-4` | default vertical rhythm between stacked blocks           |
 | `--space-cluster` | `--space-3` | gap between inline items in a wrapping row (meta, chips) |
+| `--space-grid`    | `--space-5` | gap between cells in an intrinsic responsive grid        |
 
 A `@garden/type`-style derivation of the space scale would later _back_ these same names — so
 components and templates commit to the **role names now**, and the values become derived later
@@ -560,28 +561,93 @@ horizontal centering, and the page gutter — and is the **skip-link target**.
 - **`width?: "measure" | "content" | "page"`** — the content-width role, selecting the matching
   `--width-<role>` foundation measure through the `--page-width` conduit. Defaults to `content`.
   Because the width lands as a custom property the CSS reads, it can be overridden in CSS — a
-  container query, a scoped override — without touching the call site (same conduit rationale as
-  `Stack`'s `gap`).
+  container query, a scoped override — without touching the call site.
 - **`asChild?: boolean`** — render the single child instead of the wrapping `<main>` (Radix `Slot`),
   merging the frame's class, `--page-width`, and `id` onto it — for a route whose frame must be a
   different element while still owning the landmark.
 - Extends `React.ComponentPropsWithRef<"main">`, so every native attribute, a `ref`, and a caller
-  `style`/`className` compose. `[slug]` uses this: it passes its own `.module` class (the entry's
-  editorial `font-family`/`color` defaults + the breakout article-grid rules) alongside
-  `width="page"`, so `Page` owns the frame while the class carries the entry-specific layout.
+  `style`/`className` compose — a route can pass its own class alongside `width` to layer
+  route-specific layout onto the frame.
 
 It renders `<main id="main-content">` — the anchor the shell's skip-link targets (see
 [`accessibility-and-performance.md`](./accessibility-and-performance.md)); the `id` is overridable
 via passthrough. Its CSS Module is `@layer components` and strictly var-consuming: the width cap
 reads `var(--page-width, var(--width-content))` and the frame padding is `var(--space-gutter)`.
-Vertical rhythm between the frame's children is a `Stack` concern, not the frame's — a route that
-needs it composes `<Page><Stack>…</Stack></Page>`.
+Vertical rhythm between the frame's children is not the frame's concern — compose it separately.
 
 ```tsx
 import Page from "@/components/layout/Page";
 
 <Page width="page">…</Page>                       // wide frame; renders <main id="main-content">
-<Page width="measure"><Stack gap={space(6)}>…</Stack></Page>  // reading measure + vertical rhythm
+<Page width="measure">…</Page>                    // narrow reading measure
+```
+
+### `Grid`
+
+The intrinsic-responsive-columns primitive (`src/components/layout/Grid.tsx`): lays its children
+into as many equal columns as fit, each at least `min` wide, wrapping with **no media queries**.
+The responsiveness is intrinsic — this repo has no breakpoint layer.
+
+- **`min: string`** (required) — the column floor (the `minmax()` minimum), passed through the
+  `--grid-min` conduit. A CSS length; a narrower container wraps to fewer columns on its own. It has
+  no default: a column floor is design-specific per grid, so the caller always names one.
+- **`gap?: string`** — the cell gap, passed through the `--grid-gap` conduit. Omit for the default
+  (the `--space-grid` semantic role); use `space(n)` to name a step.
+- **`asChild?: boolean`** — render the single child instead of a wrapping `<div>` (Radix `Slot`),
+  merging the grid's class + tokens onto it — e.g. `<Grid asChild><ul>…</ul></Grid>` to lay out
+  real list items with no extra wrapper.
+- Extends `React.ComponentPropsWithRef<"div">`, so every native attribute, a `ref`, and a caller
+  `style`/`className` compose.
+
+Its CSS Module is `@layer components` and strictly var-consuming. `auto-fit` is **hard-coded** (no
+fill/fit variant prop — the minimal API commits to one fill mode), and the floor is wrapped in
+`min(…, 100%)` so a single column can't overflow a viewport narrower than `min`. The gap reads the
+`--space-grid` role by default, overridden by the conduit prop:
+
+```css
+grid-template-columns: repeat(
+  auto-fit,
+  minmax(min(var(--grid-min), 100%), 1fr)
+);
+gap: var(--grid-gap, var(--space-grid));
+```
+
+Under `asChild` it merges onto the child, so the child owns only its own concerns (a `<ul>`'s
+list-reset, say) while `Grid` owns the columns and the default `--space-grid` gap.
+
+```tsx
+import Grid from "@/components/layout/Grid";
+import { space } from "@/lib/tokens";
+
+<Grid min="20rem">…</Grid>                         // responsive columns, default --space-grid gap
+<Grid asChild min="20rem"><ul>…</ul></Grid>        // no wrapper; real list items
+<Grid min="20rem" gap={space(6)}>…</Grid>          // override the gap with a named step
+```
+
+### `Cluster`
+
+The wrapping-row primitive (`src/components/layout/Cluster.tsx`): lays its children out in a row
+that wraps, with one consistent gap, and owns nothing else — for meta rows and chip lists.
+
+- **`gap?: string`** — the inline gap, passed through the `--cluster-gap` conduit. Omit for the
+  default meta-row spacing (the `--space-cluster` semantic role). Use `space(n)` to name a step.
+- **`asChild?: boolean`** — render the single child instead of a wrapping `<div>` (Radix `Slot`),
+  merging the cluster's class + token onto it — e.g. `<Cluster asChild><div>…</div></Cluster>` to
+  make an existing row wrap inline with no extra element.
+- Extends the intrinsic `<div>` props (`React.ComponentPropsWithRef<"div">`), so every native
+  attribute, a `ref` (forwarded to the underlying element — or, under `asChild`, the child via
+  Radix `Slot`), and a caller `style`/`className` compose.
+
+Its CSS Module is `@layer components` and strictly var-consuming: `display: flex`, `flex-wrap: wrap`,
+and `gap: var(--cluster-gap, var(--space-cluster))` — the conduit prop wins when set, the semantic
+role is the default. It deliberately sets **no cross-axis `align-items`**, so a consumer keeps its
+own alignment with no same-layer cascade conflict.
+
+```tsx
+import Cluster from "@/components/layout/Cluster";
+
+<Cluster>…</Cluster>                              // default --space-cluster gap; wraps
+<Cluster asChild><div>…</div></Cluster>          // wrap an existing row inline
 ```
 
 ---

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { VisuallyHidden } from "radix-ui";
 
 import EntryCard from "@/components/entry/EntryCard";
+import Grid from "@/components/layout/Grid";
 import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import Heading from "@/components/typography/Heading";
@@ -57,11 +58,13 @@ export default async function Home() {
               <VisuallyHidden.Root asChild>
                 <h2 id="featured-heading">Featured</h2>
               </VisuallyHidden.Root>
-              <ul className={styles.grid}>
-                {featured.map((entry) => (
-                  <EntryCard key={entry._id} entry={entry} />
-                ))}
-              </ul>
+              <Grid asChild min="20rem">
+                <ul className={styles.grid}>
+                  {featured.map((entry) => (
+                    <EntryCard key={entry._id} entry={entry} />
+                  ))}
+                </ul>
+              </Grid>
             </section>
           ) : null}
         </Stack>

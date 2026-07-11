@@ -4,5 +4,6 @@
     --space-gutter: var(--space-6);
     --space-stack: var(--space-4);
     --space-cluster: var(--space-3);
+    --space-grid: var(--space-5);
   }
 }

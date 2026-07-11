@@ -30,12 +30,6 @@
   }
 
   .grid {
-    display: grid;
-    /* Three across on the 72rem frame: a ~20rem floor is wide enough that a 4th column can't
-       fit the ~69rem inner width, and it collapses to 2 / 1 on smaller screens. `min(…,100%)`
-       stops a single column overflowing a viewport narrower than the floor. */
-    grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
-    gap: var(--space-5);
     list-style: none;
     padding: 0;
   }

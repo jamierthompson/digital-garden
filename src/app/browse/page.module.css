@@ -25,7 +25,6 @@
     border-bottom: var(--border-width) solid var(--border);
   }
 
-  /* Column flow + gap are owned by the `Stack` primitive wrapping the `<ul>` (asChild). */
   .list {
     list-style: none;
     padding: 0;
@@ -38,10 +37,7 @@
   }
 
   .itemHead {
-    display: flex;
     align-items: baseline;
-    gap: var(--space-3);
-    flex-wrap: wrap;
   }
 
   .itemLink {
