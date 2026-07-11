@@ -29,8 +29,6 @@
     gap: var(--space-4);
   }
 
-  /* The featured list's own reset; the grid layout (columns + gap) is the `Grid` primitive's,
-     applied via `asChild`. This slim class carries only what a <ul> needs. */
   .grid {
     list-style: none;
     padding: 0;

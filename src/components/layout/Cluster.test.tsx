@@ -198,15 +198,14 @@ describe("Cluster", () => {
   // --- asChild: the real adoption shape (a slotted child that already carries class + style) ---
 
   it("merges its class onto a slotted child that already has its own className (both survive)", () => {
-    // The `/browse` adoption: <Cluster asChild><div className={styles.itemHead}>…</div>. Radix Slot
-    // must keep the child's own class AND add the cluster's — neither clobbers the other.
+    // Radix Slot must keep the child's own class AND add the cluster's — neither clobbers the other.
     render(
       <Cluster asChild>
-        <div className="itemHead" data-testid="cluster" />
+        <div className="caller" data-testid="cluster" />
       </Cluster>,
     );
     const el = screen.getByTestId("cluster");
-    expect(el).toHaveClass("itemHead"); // child's own class kept
+    expect(el).toHaveClass("caller"); // child's own class kept
     // The cluster's hashed class is present too (2+ classes in the merged list).
     expect(el.className.trim().split(/\s+/).length).toBeGreaterThanOrEqual(2);
   });

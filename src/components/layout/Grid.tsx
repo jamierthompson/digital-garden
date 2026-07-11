@@ -6,8 +6,8 @@ interface GridProps extends React.ComponentPropsWithRef<"div"> {
   /**
    * The column floor — the `minmax()` minimum each column is laid out to, as a CSS length. Passed
    * through the `--grid-min` conduit; columns then fill intrinsically (`auto-fit`, no breakpoints),
-   * so a narrower container wraps to fewer columns on its own. Required: a column floor is a length,
-   * not a spacing role, and is intrinsically per-grid — there is no scale step to default it to.
+   * so a narrower container wraps to fewer columns on its own. Required — a column floor is
+   * design-specific per grid, with no universal default, so the caller always names one.
    */
   readonly min: string;
   /**
