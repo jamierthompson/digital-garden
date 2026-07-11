@@ -102,27 +102,39 @@ describe("the --type-*-family bindings re-derive inside a themed slot (#226)", (
     /\/\*[\s\S]*?\*\//g,
     "",
   );
-  const rootFamilies = Object.fromEntries(
-    Object.entries(SHEET_DECLS).filter(([token]) =>
-      /^--type-[a-z]+-family$/.test(token),
-    ),
+  // Parse the `:root` and `[data-entry]` blocks SEPARATELY (not the merged SHEET_DECLS) so a
+  // divergence in EITHER direction is visible. Non-greedy up to the first `}` — neither block nests.
+  const familiesIn = (block: string): Record<string, string> =>
+    Object.fromEntries(
+      Object.entries(parseDeclarations(block)).filter(([token]) =>
+        /^--type-[a-z]+-family$/.test(token),
+      ),
+    );
+  const rootFamilies = familiesIn(
+    sheet.match(/:root\s*\{([\s\S]*?)\}/)?.[1] ?? "",
   );
-  const slotBlocks = [...sheet.matchAll(/\[data-entry\][^{]*\{([^}]*)\}/g)]
-    .map((m) => m[1])
-    .join("\n");
-  const slotFamilies = parseDeclarations(slotBlocks);
+  const slotFamilies = familiesIn(
+    sheet.match(/\[data-entry\][^{]*\{([\s\S]*?)\}/)?.[1] ?? "",
+  );
 
-  it("parsed the :root family bindings (false-green guard)", () => {
+  it("parsed a non-trivial family set in BOTH scopes (false-green guard)", () => {
     expect(Object.keys(rootFamilies).length).toBeGreaterThanOrEqual(8);
+    expect(Object.keys(slotFamilies).length).toBeGreaterThanOrEqual(8);
   });
 
+  // The invariant the owner mandated: the `[data-entry]` family block is identical to the
+  // `:root` family block — same tokens, same values, in BOTH directions. A changed value, or a
+  // family token added / removed / typo'd in only one scope, fails here. The family for a role is
+  // ONE truth declared in two places; this shouts the instant they diverge.
+  it("[data-entry] re-declares EXACTLY the :root family bindings — both directions, values included", () => {
+    expect(slotFamilies).toEqual(rootFamilies);
+  });
+
+  // Per-token receipts for a readable failure message when the bijection above trips.
   it.each(Object.keys(rootFamilies))(
-    "%s is re-declared under [data-entry] with its :root binding",
+    "%s is re-bound identically under [data-entry] (else it freezes to the site face at :root)",
     (token) => {
-      expect(
-        slotFamilies[token],
-        `${token} must be re-bound at the [data-entry] scope — declared only at :root it freezes to the site face and the slot's --font-* overrides can never reach it`,
-      ).toBe(rootFamilies[token]);
+      expect(slotFamilies[token]).toBe(rootFamilies[token]);
     },
   );
 });
