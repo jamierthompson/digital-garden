@@ -185,4 +185,65 @@ describe("Cluster", () => {
     ).toThrow(/single React element child/i);
     spy.mockRestore();
   });
+
+  it("writes a units-bearing zero gap through the conduit (gap='0px' is a real length)", () => {
+    // The truthiness gate only drops "" — every other non-empty string, including a units-bearing
+    // zero, is a valid length and passes straight through (companion to the bare `gap="0"` case).
+    render(<Cluster gap="0px" data-testid="cluster" />);
+    expect(
+      screen.getByTestId("cluster").style.getPropertyValue("--cluster-gap"),
+    ).toBe("0px");
+  });
+
+  // --- asChild: the real adoption shape (a slotted child that already carries class + style) ---
+
+  it("merges its class onto a slotted child that already has its own className (both survive)", () => {
+    // The `/browse` adoption: <Cluster asChild><div className={styles.itemHead}>…</div>. Radix Slot
+    // must keep the child's own class AND add the cluster's — neither clobbers the other.
+    render(
+      <Cluster asChild>
+        <div className="itemHead" data-testid="cluster" />
+      </Cluster>,
+    );
+    const el = screen.getByTestId("cluster");
+    expect(el).toHaveClass("itemHead"); // child's own class kept
+    // The cluster's hashed class is present too (2+ classes in the merged list).
+    expect(el.className.trim().split(/\s+/).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("lets the cluster's gap conduit and the child's own non-gap style coexist under asChild", () => {
+    render(
+      <Cluster asChild gap={space(6)}>
+        <div data-testid="cluster" style={{ color: "blue" }} />
+      </Cluster>,
+    );
+    const el = screen.getByTestId("cluster");
+    expect(el.style.getPropertyValue("--cluster-gap")).toBe("var(--space-6)");
+    expect(el.style.color).toBe("blue"); // child's own style is not dropped
+  });
+
+  it("lets a slotted child's own --cluster-gap win over the cluster's gap prop (escape hatch under asChild)", () => {
+    // Under asChild the child IS the caller, so the "caller wins" merge means a child that sets
+    // its own --cluster-gap overrides the primitive's gap prop — the escape hatch still holds.
+    render(
+      <Cluster asChild gap={space(6)}>
+        <div
+          data-testid="cluster"
+          style={{ "--cluster-gap": space(1) } as React.CSSProperties}
+        />
+      </Cluster>,
+    );
+    expect(
+      screen.getByTestId("cluster").style.getPropertyValue("--cluster-gap"),
+    ).toBe("var(--space-1)");
+  });
+
+  it("renders nothing (no throw) when asChild has zero element children", () => {
+    // Radix Slot with no child renders null rather than crashing — pin the graceful degradation
+    // so an empty conditional child can't take the layout down.
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { container } = render(<Cluster asChild />);
+    expect(container.innerHTML).toBe("");
+    spy.mockRestore();
+  });
 });
