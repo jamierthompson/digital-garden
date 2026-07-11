@@ -857,8 +857,8 @@ Practical notes:
   `notFound()` for any kind, and no key at all renders prose-only (a sketch project renders
   prose-only, never a 404). **A module mount always implies a scope seed** — the route builds the
   `ScopeSeed` whenever a non-`now` entry _themes or mounts a module_ (`theme.color || a resolvable
-componentKey`), always **keyed on the entry's own slug**, with the slug + each of `theme.headingFont` /
-  `bodyFont` / `monoFont` defaulting to `""`. So a
+componentKey`), always **keyed on the entry's own slug**, with each absent `theme.headingFont` /
+  `bodyFont` / `monoFont` passed as `undefined` (never coerced to `""`). So a
   module-only entry (a resolvable `componentKey`, no `theme.color`) still gets its **own** per-entry
   `[data-entry]` scope rather than collapsing onto a shared fallback slug — two such entries must not
   share one `data-entry` and cross-contaminate themes — and its empty theme fields resolve to the
