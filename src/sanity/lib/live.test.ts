@@ -82,7 +82,7 @@ describe("the Live base client", () => {
     const filter = config.client.config().stega?.filter;
     expect(filter).toBeTypeOf("function");
     const skip = filter!({
-      sourcePath: ["themeColor"],
+      sourcePath: ["theme", "color"],
       filterDefault: () => true,
     } as unknown as Parameters<NonNullable<typeof filter>>[0]);
     expect(skip).toBe(false);

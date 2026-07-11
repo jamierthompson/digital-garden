@@ -74,8 +74,8 @@ Two homes:
 - **Sanity** — content & theme seeds: one `entry` document type covering every content kind — a
   `kind` discriminator (note · essay · project · now), a Portable Text body (rich text with embeds),
   a `stage` (sketch → prototype → shipped), an authored `iterated` date, self-referencing `related`
-  backlinks, an optional `featuredRank`, and the per-entry `themeColor` / `fontKey` / `componentKey`
-  reference-by-key seeds.
+  backlinks, an optional `featuredRank`, the per-entry `theme` object (`color` / `colorDark` /
+  `bodyFont`), and the top-level `componentKey` — all reference-by-key seeds.
 
 Within a project the division is code vs content, but the line isn't a wall. The interactive
 experience and the components are code; the essay is content. The essay is _rich_, though — it
@@ -299,14 +299,14 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   author-time Sanity validation (see the content model) and an `EntryScope` backstop (the content
   model and repo & hosting sections).
 
-- Runs **per page** — once per route, seeded by the page's authored `themeColor` (`PageTheme`
+- Runs **per page** — once per route, seeded by the page's authored theme color (`PageTheme`
   stamps the result on `<html>`; see the site-wide delivery section). **Cards are a lighter call**:
   a featured-home card needs a few colors, not the full token set, so it derives them from the same
   engine (via `cardSwatches`) and spreads them inline as generic semantic-token overrides — its own
-  entry's `themeColor`.
+  entry's `theme.color`.
 
 - Delivered as a **hoisted `:root` `<style>`** (`PageTheme` → `ThemeStyle`, re-stamped imperatively
-  on `<html>` on soft nav). On Vercel this is genuinely **flash-free for color**: the `themeColor` is
+  on `<html>` on soft nav). On Vercel this is genuinely **flash-free for color**: the theme color is
   known on the _server_, so the baked declarations are in the initial `<head>` — ahead of the chrome —
   server/client RSC payloads agree, and there's no hydration mismatch and no FOUC. The imperative
   soft-nav write to one node can't collide
@@ -357,14 +357,14 @@ small color _system_. It is **both a feature and a project — same logic, two-p
 **Three call sites, one engine:**
 
 - **Author-time validation (`studio/schemaTypes/shared/colorValidation.ts`)**: the Studio's
-  `themeColor` validation runs the same `buildTokenSet` pipeline (parse → gamut-map →
-  contrast-solve) for editor feedback (see the content model).
+  `theme.color` / `theme.colorDark` validation runs the same `buildTokenSet` pipeline (parse →
+  gamut-map → contrast-solve) for editor feedback (see the content model).
 - **Per-page delivery (`resolveThemeDeclarations`)**: `PageTheme` runs the **same engine**
   (`buildTokenSet` + `tokenSetToDeclarations`) to stamp a page's authored theme on `<html>` (see the
   site-wide delivery section).
 - **Preview swatches (`cardSwatches`)**: a featured-home card calls `cardSwatches(themeColor)` — the
   **same engine**, returning a few stops spread inline as generic semantic-token overrides
-  (`--surface`/`--foreground`/`--border`/`--accent`), so each card wears its own entry's `themeColor` with
+  (`--surface`/`--foreground`/`--border`/`--accent`), so each card wears its own entry's `theme.color` with
   no slot scope and no `<style>` block.
 
 The **Color Engine** — an entry module whose experience re-runs the pure engine in JS
@@ -715,7 +715,7 @@ showcases the shared engine's output rather than holding the engine (see the OKL
 ### The CMS ↔ code registry
 
 ```
-Sanity entry doc { kind, componentKey: "<slug>", themeColor, fontKey, body, stage, iterated, related, featuredRank }
+Sanity entry doc { kind, componentKey: "<slug>", theme { color, colorDark, bodyFont }, body, stage, iterated, related, featuredRank }
         │
         ▼
 src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the entry module
@@ -761,7 +761,7 @@ scope, so it themes identically.
 ## Fonts
 
 **Store-the-key (roster-by-key).** A curated roster of faces is declared in code (each a `next/font`
-export, in a single shared module); Sanity stores a `fontKey` per entry and the editor picks from
+export, in a single shared module); Sanity stores the entry's `theme.bodyFont` key and the editor picks from
 a dropdown; the entry's **slot scope** applies the face that key resolves to, via that face's
 **`.variable` class** on the `[data-entry]` wrapper, with the slot's `--font-body` mapping to it;
 page chrome stays on the editorial face. This keeps
@@ -777,9 +777,9 @@ Two facts make a large roster cheap:
 1. **Declaration ≠ download.** Calling `next/font` emits an `@font-face` + a CSS variable; the
    browser only fetches a font file when rendered text uses that family. Declaring fifty fonts costs
    zero downloads on a page that uses none of them.
-2. **Preload is build-time static analysis — and `fontKey` is a runtime index.** `next/font`
+2. **Preload is build-time static analysis — and the entry's font key is a runtime index.** `next/font`
    injects `<link rel=preload>` for a face it can _statically_ see a route reference. Because the
-   roster resolves `fontKey` (a Sanity string) → face at **runtime**, Next cannot target the
+   roster resolves the entry's `theme.bodyFont` (a Sanity string) → face at **runtime**, Next cannot target the
    resolved per-entry face for preload. This is **not** an SSG-vs-dynamic question (that
    route-level toggle is gone under Next 16 `cacheComponents`; see repo & hosting) — it's a
    build-time-static-analyzability question, independent of caching.
@@ -803,7 +803,7 @@ Mapped onto the layers:
 
 - **The editorial face** (the site's global identity — Source Serif 4) → root layout, `preload: false`;
   any above-the-fold preload is a manual `<link>`. Every page's chrome uses it. Keep to 1–2 faces.
-- **Per-entry fonts** → resolved from the entry doc's `fontKey` against the code-side roster,
+- **Per-entry fonts** → resolved from the entry doc's `theme.bodyFont` against the code-side roster,
   applied at the entry's `[data-entry]` **slot** scope via `.variable` — they theme the slot,
   not the page.
 - **Shared fonts** → the roster _is_ the single declaration point, so a face two projects use is
@@ -835,29 +835,29 @@ Practical notes:
   interactions slotted in; a _project_ is an interactive experience with more slots; a _now_ is a dated
   "now" update that drives the reverse-chronological `/now` stream and also mixes into the Index.
   **Downstream, theming and interactivity key on capability (presence), not kind:** every kind but
-  `now` scopes on a present `themeColor` and mounts on a present `componentKey`. (`themeColor`
+  `now` scopes on a present `theme.color` and mounts on a present `componentKey`. (`theme.color`
   additionally carries a required _floor_ for note/essay/project — see below — but the mount/scope
-  logic keys on presence, not kind.) A present `themeColor` gives the entry its own brand
+  logic keys on presence, not kind.) A present `theme.color` gives the entry its own brand
   `[data-entry]` scope (and mounts its
   `liveEmbed`s in their own scoped containers, exactly as a project's embeds do); a present
   `componentKey` resolves and mounts the coded module — a declared key that fails to resolve is a
   `notFound()` for any kind, and no key at all renders prose-only (a sketch project renders
   prose-only, never a 404). **A module mount always implies a scope seed** — the route builds the
-  `ScopeSeed` whenever a non-`now` entry _themes or mounts a module_ (`themeColor || a resolvable
-componentKey`), always **keyed on the entry's own slug**, with `themeColor`/`fontKey` defaulting to
+  `ScopeSeed` whenever a non-`now` entry _themes or mounts a module_ (`theme.color || a resolvable
+componentKey`), always **keyed on the entry's own slug**, with the slug + `theme.bodyFont` defaulting to
   `""`. So a
-  module-only entry (a resolvable `componentKey`, no `themeColor`) still gets its **own** per-entry
+  module-only entry (a resolvable `componentKey`, no `theme.color`) still gets its **own** per-entry
   `[data-entry]` scope rather than collapsing onto a shared fallback slug — two such entries must not
   share one `data-entry` and cross-contaminate themes — and its empty theme fields resolve to the
   engine's fallback palette + the shell's mono fallback face (Geist Mono, `--font-geist-mono`) — the
   never-throws keystone, unchanged.
-  `themeColor` is **required for every themed kind** — note, essay, and project (each page derives its
-  theme from an authored seed). `componentKey`/`fontKey` stay **conditionally required for a
+  `theme.color` is **required for every themed kind** — note, essay, and project (each page derives its
+  theme from an authored seed). `componentKey`/`theme.bodyFont` stay **conditionally required for a
   `project`** (past the sketch stage) and **optional-but-honored** for a `note`/`essay`. A `now`
-  update is chrome + prose by design: it **cannot set its own `themeColor`** (the field is hidden for
-  a `now` in the Studio and rejected on write by `forbiddenForNow`) and **inherits the `/now` page
-  seed** instead — the single `/now` seed themes the `/now` index and every `now` entry alike. `stage`
-  does not
+  update is chrome + prose by design: it **cannot set its own `theme.color`** (the whole `theme` object
+  is hidden for a `now` in the Studio and a color is rejected on write by `forbiddenForNow`) and
+  **inherits the `/now` page seed** instead — the single `/now` seed themes the `/now` index and every
+  `now` entry alike. `stage` does not
   apply to a `now`. A second document type is deferred until a kind genuinely proves divergent fields.
 - **`stage` is maturity; `iterated` is freshness.** **`stage`** (sketch → prototype → shipped —
   stable stored values, labels re-wordable in the UI) is the honesty badge on every entry, independent
@@ -866,23 +866,24 @@ componentKey`), always **keyed on the entry's own slug**, with `themeColor`/`fon
   tended.
 - **The essay is rich content (portable text), not plain text.** Alongside text it carries typed
   embed blocks — media and live components referenced by key and resolved in code.
-- **`themeColor` is per-entry, typed, and validated.** It's a field on the `entry`
-  document (the slot seed), stored as a validated string (hex or `oklch()`). Author-time Sanity
-  `validation` runs the engine's own color pipeline (parse → gamut-map → confirm in-spec contrast)
-  for editor feedback. Defense-in-depth: the engine itself never throws (see the OKLCH engine) and
-  `EntryScope` falls back to a safe default. `siteSettings` holds the site title/description **and the
-  per-page theme seeds**: a `pageThemes` object carries one authored, engine-validated theme seed for
-  each site-owned page (`/`, `/browse`, `/about`, `/now`, `/system`) — the pages with no backing
-  `entry` — exposed by `SITE_SETTINGS_QUERY`. A `now` entry has no `themeColor` of its own, so
-  `ENTRY_DETAIL_QUERY` resolves a **kind-gated** `themeSeed`
-  (`select(kind == "now" => …pageThemes.now, themeColor)`): a `now` update always wears the `/now`
-  seed (its own `themeColor` ignored), every themed kind wears its own — resolved in-query so it lands
+- **`theme` is a per-entry, first-class object** — `{ color, colorDark, bodyFont }`, separate from
+  the top-level `componentKey` (which _mounts_ a module, not part of the theme the module _reads_).
+  `color` is a validated string (hex or `oklch()`) — the slot seed, stored on the `entry` document.
+  Author-time Sanity `validation` runs the engine's own color pipeline (parse → gamut-map → confirm
+  in-spec contrast) for editor feedback. Defense-in-depth: the engine itself never throws (see the
+  OKLCH engine) and `EntryScope` falls back to a safe default. `siteSettings` holds the site
+  title/description **and the per-page theme seeds**: a `pageThemes` object carries one authored,
+  engine-validated theme seed for each site-owned page (`/`, `/browse`, `/about`, `/now`, `/system`)
+  — the pages with no backing `entry` — exposed by `SITE_SETTINGS_QUERY`. A `now` entry has no
+  `theme.color` of its own, so `ENTRY_DETAIL_QUERY` resolves a **kind-gated** `themeSeed`
+  (`select(kind == "now" => …pageThemes.now, theme.color)`): a `now` update always wears the `/now`
+  seed (its own `theme.color` ignored), every themed kind wears its own — resolved in-query so it lands
   in the static shell, flash-free. Wiring each page to consume its seed is the site-wide
   theming-delivery slice.
-- **`fontKey` is per-entry** — a field on the `entry` document, chosen from the curated roster
-  (see fonts). Reference-by-key, exactly like `componentKey` and `themeColor`.
-- **No per-scheme color field.** Dark mode is a render-time axis; one `themeColor` generates
-  both schemes. A project needing a hand-tuned dark brand gets an _optional_ `themeColorDark`
+- **`theme.bodyFont` is per-entry** — the roster face this entry's slot wears, chosen from the
+  curated roster (see fonts). Reference-by-key, exactly like `componentKey` and `theme.color`.
+- **No per-scheme color field.** Dark mode is a render-time axis; one `theme.color` generates
+  both schemes. A project needing a hand-tuned dark brand gets an _optional_ `theme.colorDark`
   override, defaulted from the engine — never a required parallel field. (A seed too light to be the
   light-mode primary is auto-assigned as the dark theme; see the OKLCH engine.)
 - **Keys are a contract; the Studio never imports implementations.** Each reference-by-key
@@ -902,11 +903,12 @@ componentKey`), always **keyed on the entry's own slug**, with `themeColor`/`fon
   into two registered keys. Litmus: _editor writes/curates it → typed block; developer decides it →
   registry; neither → it's not an input._
 - **The card queries refuse to over-fetch.** The featured-home query pulls the card fields —
-  `title`/`slug`/`blurb`/`stage`/`kind` plus the `themeColor` each card themes its plate from — but
+  `title`/`slug`/`blurb`/`stage`/`kind` plus the `theme.color` each card themes its plate from — but
   **not** the body. That enforces "a few colors per card" at the data layer (cards feed
   `cardSwatches`) and keeps the front-door payload small for CWV.
 - **`EntryScope` is the font-slot keystone.** One server component takes a scope's `slug` +
-  `fontKey` and emits the `[data-entry]` wrapper with the entry's `--font-body` set inline (plus the
+  font key (sourced from the entry's `theme.bodyFont`) and emits the `[data-entry]` wrapper with the
+  entry's `--font-body` set inline (plus the
   resolved face's `.variable` class), flash-free in the initial HTML. It wraps a themed entry's
   **interactive slot(s)** (and any homepage slot `siteSettings` seeds), not the page chrome. Color is
   NOT re-bound here — the slot inherits every color token from the page's `<html>` theme. It is
@@ -914,7 +916,7 @@ componentKey`), always **keyed on the entry's own slug**, with `themeColor`/`fon
   `unstable_catchError` (`next/error`) as a backstop, **not** a segment `error.tsx` (which doesn't
   catch its own layout's throw — see repo & hosting). It renders in the prerendered shell; the slot's
   subtree reads the inherited color tokens plus the slot's `var(--font-body)`.
-- **Visual editing details.** Disable Sanity **stega** on `themeColor`/`fontKey` — the
+- **Visual editing details.** Disable Sanity **stega** on the entry's `theme` object (by ancestor) — the
   invisible encoding chars break the OKLCH parse and the font-class lookup. `liveEmbed`
   click-to-edit targets the caption/`embedKey` field, not the interactive region.
 - **Backlinks are Day-1.** An `entry` carries a `related` **self-referencing** array (`entry` →
@@ -931,7 +933,7 @@ componentKey`), always **keyed on the entry's own slug**, with `themeColor`/`fon
   and `/now` — wears the page's authored `<html>` theme (see the token & theming architecture). Their
   _content_ differs by intent: the Index is a uniform editorial list, and the **featured home's cards
   are themed plates** — each spreads its own entry's engine-solved palette inline via `cardSwatches`,
-  because a card is a bounded slot, not chrome. So a card carries its own `themeColor` while the frame
+  because a card is a bounded slot, not chrome. So a card carries its own `theme.color` while the frame
   around it wears the page theme.
 - **TypeGen + `defineQuery`**: typed GROQ; run TypeGen after any schema or query change (a committed
   script + a CI `git diff --exit-code` on the generated types keeps it from rotting); `defineQuery`

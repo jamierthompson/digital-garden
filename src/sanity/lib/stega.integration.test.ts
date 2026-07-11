@@ -14,7 +14,8 @@ import { STEGA_EXCLUDED_FIELDS, stegaFilter } from "./stega";
  * fields — but it mocks `filterDefault`, so it never proves the REAL `@sanity/client`
  * stega encoder actually honors that `false` and leaves the value byte-clean. That is
  * the property the OKLCH engine and the key resolvers depend on: a single stega
- * zero-width char in `themeColor`/`fontKey`/… breaks the color parse or the key lookup.
+ * zero-width char in a `theme.color` / `theme.bodyFont` / `componentKey` value breaks the
+ * color parse or the key lookup.
  *
  * This drives the genuine encoder (`stegaEncodeSourceMap`, the same function
  * `@sanity/client`'s `_fetch` calls when `stega.enabled`) through our actual
@@ -73,4 +74,60 @@ describe("stega encoding honors the exclusions end-to-end", () => {
       expect(encoded[field]).toBe(result[field]);
     },
   );
+});
+
+/**
+ * The entry's `theme` object is excluded by ANCESTOR, not by leaf name — so this drives the real
+ * encoder through a NESTED `theme.color` / `theme.bodyFont` path and proves the ancestor rule
+ * leaves both byte-clean, while a prose sibling at the same depth still gets encoded.
+ */
+describe("stega encoding excludes the theme object by ancestor end-to-end", () => {
+  const doc = {
+    theme: { color: "#4f46e5", bodyFont: "newsreader" },
+    caption: "A themed slot",
+  };
+  const paths = [
+    "$['theme']['color']",
+    "$['theme']['bodyFont']",
+    "$['caption']",
+  ];
+  const sourceMap = {
+    documents: [{ _id: "entry-1", _type: "entry" }],
+    paths,
+    mappings: Object.fromEntries(
+      paths.map((p, i) => [
+        p,
+        {
+          source: { type: "documentValue", document: 0, path: i },
+          type: "value",
+        },
+      ]),
+    ),
+  };
+
+  const encoded = stegaEncodeSourceMap(
+    doc,
+    sourceMap as unknown as Parameters<typeof stegaEncodeSourceMap>[1],
+    {
+      enabled: true,
+      studioUrl: "https://studio.example.test",
+      filter: stegaFilter,
+    } as unknown as Parameters<typeof stegaEncodeSourceMap>[2],
+  ) as typeof doc;
+
+  const carriesStega = (value: string) => value !== vercelStegaCleanAll(value);
+
+  it("sanity-checks the fixture: the prose sibling `caption` IS encoded", () => {
+    expect(carriesStega(encoded.caption)).toBe(true);
+  });
+
+  it("leaves theme.color byte-clean (ancestor exclusion) so the OKLCH engine can parse it", () => {
+    expect(carriesStega(encoded.theme.color)).toBe(false);
+    expect(encoded.theme.color).toBe(doc.theme.color);
+  });
+
+  it("leaves theme.bodyFont byte-clean (ancestor exclusion) so the roster can resolve it", () => {
+    expect(carriesStega(encoded.theme.bodyFont)).toBe(false);
+    expect(encoded.theme.bodyFont).toBe(doc.theme.bodyFont);
+  });
 });

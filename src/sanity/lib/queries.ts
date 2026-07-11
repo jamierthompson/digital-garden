@@ -1,26 +1,21 @@
 import { defineQuery } from "next-sanity";
 
 /**
- * Project feed query (RSS) — project-kind entries.
+ * Entry feed query (RSS) — every published entry, any `kind`.
  *
- * Pulls only what the feed needs — `blurb`, plus the `kind` / `stage` / `featuredRank`
- * facets (and id / title / slug for the link) — and deliberately NOT the `body`, keeping the
- * read small. Filters to `kind == "project"`: the RSS feed is the portfolio's project stream.
- * (The old `/work` index this once fed folded into `/browse`; only `rss.xml` reads it now.)
+ * The digital garden syndicates everything published — notes, essays, projects, AND `now`
+ * updates — newest first by the authored `iterated` date (falling back to `_createdAt`). Pulls
+ * only what the feed renders — `blurb` plus id / title / slug for the `<item>` link — and
+ * deliberately NOT the `body`, keeping the read small. Its only reader is `rss.xml/route.ts`.
  * The over-fetch guard is asserted in queries.test.ts. Typed by Sanity TypeGen as
- * `WORK_INDEX_QUERYResult`. `defineQuery` must wrap the literal — no runtime interpolation.
+ * `ENTRY_FEED_QUERYResult`. `defineQuery` must wrap the literal — no runtime interpolation.
  */
-export const WORK_INDEX_QUERY = defineQuery(`
-  *[_type == "entry" && kind == "project" && defined(slug.current)] | order(_createdAt desc) {
+export const ENTRY_FEED_QUERY = defineQuery(`
+  *[_type == "entry" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {
     _id,
     title,
     "slug": slug.current,
-    kind,
-    stage,
-    featuredRank,
-    blurb,
-    themeColor,
-    fontKey
+    blurb
   }
 `);
 
@@ -39,9 +34,9 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  * Entry-detail query (`/[slug]`, any `kind`).
  *
  * The full entry document for one slug — UNLIKE the index query, it DOES pull the `body`
- * (the detail route renders it through the Portable Text serializer) plus the theming seeds
- * (`themeColor`, `themeColorDark`, `fontKey`, `componentKey`) that drive `EntryScope` and
- * module resolution, the facets (`kind`, `stage`, `iterated`, `featuredRank`), and the
+ * (the detail route renders it through the Portable Text serializer) plus the entry's `theme`
+ * object (`color`, `colorDark`, `bodyFont`) and the top-level `componentKey` that drive
+ * `EntryScope` and module resolution, the facets (`kind`, `stage`, `iterated`, `featuredRank`), and the
  * surrounding `title` / `blurb`. Backlinks resolve both directions: `related[]->`
  * is the outgoing edge; `backlinks` is the INCOMING edge (every entry that references this
  * one) via GROQ `references()`, so an edge authored once shows on both ends. `[0]` collapses
@@ -56,11 +51,11 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  * synchronously in the already-awaited result — no async boundary, so the static shell paints
  * flash-free (#166). It is KIND-gated, not presence-gated: a `now` entry ALWAYS wears the authored
  * `/now` page seed, so a now update wears the same theme as the `/now` index, and every themed kind
- * (note/essay/project) wears its own required `themeColor`. The `forbiddenForNow` validator already
- * stops a `now` from carrying a `themeColor`; the kind-gate is the defense-in-depth behind it —
+ * (note/essay/project) wears its own required `theme.color`. The `forbiddenForNow` validator already
+ * stops a `now` from carrying a `theme.color`; the kind-gate is the defense-in-depth behind it —
  * even a validator-bypassing value (a legacy doc, a raw API write) is IGNORED here rather than
- * sourced. A `select()` — not a `coalesce(themeColor, …)` — because coalesce is presence-gated and
- * would (a) source a now entry's own `themeColor` and (b) leave a `themeColor: ""` now entry
+ * sourced. A `select()` — not a `coalesce(theme.color, …)` — because coalesce is presence-gated and
+ * would (a) source a now entry's own `theme.color` and (b) leave a `theme.color: ""` now entry
  * unthemed (coalesce only falls through on null, and `""` is reachable via the API). The route reads
  * `themeSeed` and never branches on `kind`.
  */
@@ -74,11 +69,9 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
     iterated,
     featuredRank,
     blurb,
-    themeColor,
-    themeColorDark,
-    fontKey,
+    theme { color, colorDark, bodyFont },
     componentKey,
-    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, themeColor),
+    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),
     body,
     related[]->{ _id, title, "slug": slug.current, kind },
     "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }
@@ -94,8 +87,8 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
  * Pulls every published entry with the facets the Index reads — `kind` + `stage` (the group
  * headings + maturity badge) and a `linkCount` (outgoing `related` + incoming `references()`,
  * the backlink hint) — plus `title` / `slug` / `blurb` for the row. Deliberately NOT the
- * `body` or theming seeds: the Index wears the global editorial look (no per-row theme), so it
- * needs neither the rich text nor `themeColor`/`fontKey`. Ordered by `kind`, then freshest
+ * `body` or the `theme` object: the Index wears the global editorial look (no per-row theme), so
+ * it needs neither the rich text nor the entry's theme. Ordered by `kind`, then freshest
  * first (`iterated`, falling back to `_createdAt`). Typed as `INDEX_QUERYResult`.
  */
 export const INDEX_QUERY = defineQuery(`
@@ -115,10 +108,11 @@ export const INDEX_QUERY = defineQuery(`
  * Featured query (`/`, curated front door) — entries with a `featuredRank`, any `kind`.
  *
  * The hurried evaluator's reading path: the curated subset an editor promoted (`featuredRank`
- * is set), ordered by rank (lower = earlier). Pulls the card fields — `blurb` + the theming
- * seeds `themeColor` / `fontKey` — because the featured cards ARE themed: each re-binds its
- * own engine-solved palette inline via `cardSwatches`. Deliberately NOT
- * the `body`, keeping the front-door payload small for LCP. Typed as `FEATURED_QUERYResult`.
+ * is set), ordered by rank (lower = earlier). Pulls the card fields — `blurb` + the theme's
+ * `color` — because the featured cards ARE themed: each re-binds its own engine-solved palette
+ * inline via `cardSwatches`. Only `theme.color` is read (the card never wears the slot font).
+ * Deliberately NOT the `body`, keeping the front-door payload small for LCP. Typed as
+ * `FEATURED_QUERYResult`.
  */
 export const FEATURED_QUERY = defineQuery(`
   *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {
@@ -128,8 +122,7 @@ export const FEATURED_QUERY = defineQuery(`
     kind,
     stage,
     blurb,
-    themeColor,
-    fontKey
+    theme { color }
   }
 `);
 

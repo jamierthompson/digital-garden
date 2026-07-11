@@ -1,6 +1,12 @@
 import {describe, expect, it} from 'vitest'
 
+import {isThemeColorString} from '../shared/colorValidation'
 import {entry} from './entry'
+import {
+  forbiddenForNow,
+  requiredForNonSketchProject,
+  requiredForThemedKind,
+} from './entryValidators'
 
 /**
  * Asserts the `entry` schema's required fields declare `rule.required()`. `required()` is a
@@ -60,5 +66,80 @@ describe('entry schema — required floors (#217)', () => {
     expect(calledRules(field('title'))).toContain('required')
     expect(calledRules(field('kind'))).toContain('required')
     expect(calledRules(field('slug'))).toContain('required')
+  })
+})
+
+/**
+ * QA (#249): `entryValidators.test.ts` proves the validators BEHAVE correctly, but nothing
+ * proved they are ATTACHED to the nested `theme` fields — a schema edit could detach
+ * `forbiddenForNow` from `theme.color` and every test would stay green. Drive each field's
+ * `validation` with a spy Rule that RECORDS the functions handed to `.custom()`, and assert
+ * identity against the imported validators.
+ */
+type ThemeField = FieldDef & {
+  fields?: ReadonlyArray<FieldDef>
+  hidden?: (ctx: {document?: Record<string, unknown>}) => boolean
+}
+
+function customValidators(f: FieldDef | undefined): ReadonlyArray<unknown> {
+  const collected: unknown[] = []
+  const rule = {
+    required: () => rule,
+    custom: (fn: unknown) => {
+      collected.push(fn)
+      return rule
+    },
+  }
+  f?.validation?.(rule as unknown as Rule)
+  return collected
+}
+
+describe('entry schema — the theme object (#249)', () => {
+  const theme = field('theme') as ThemeField | undefined
+  const themeField = (name: string): FieldDef | undefined =>
+    theme?.fields?.find((f) => f.name === name)
+
+  it('declares theme as an object of exactly { color, colorDark, bodyFont }', () => {
+    expect(theme, 'expected a theme field').toBeDefined()
+    expect(theme?.type).toBe('object')
+    expect(theme?.fields?.map((f) => f.name)).toEqual(['color', 'colorDark', 'bodyFont'])
+  })
+
+  it('hides the whole theme object for a now update (and only for now)', () => {
+    expect(theme?.hidden?.({document: {kind: 'now'}})).toBe(true)
+    expect(theme?.hidden?.({document: {kind: 'project'}})).toBe(false)
+    expect(theme?.hidden?.({document: {}})).toBe(false)
+  })
+
+  it('attaches requiredForThemedKind + forbiddenForNow + isThemeColorString to theme.color', () => {
+    expect(customValidators(themeField('color'))).toEqual([
+      requiredForThemedKind,
+      forbiddenForNow,
+      isThemeColorString,
+    ])
+  })
+
+  it('attaches forbiddenForNow + isThemeColorString to theme.colorDark (optional, never required)', () => {
+    expect(customValidators(themeField('colorDark'))).toEqual([
+      forbiddenForNow,
+      isThemeColorString,
+    ])
+  })
+
+  it('attaches requiredForNonSketchProject to theme.bodyFont (the behavior-preserving floor)', () => {
+    expect(customValidators(themeField('bodyFont'))).toEqual([requiredForNonSketchProject])
+  })
+
+  it('keeps componentKey a TOP-LEVEL field (not part of the theme) with the same floor', () => {
+    const componentKey = field('componentKey')
+    expect(componentKey, 'expected a top-level componentKey').toBeDefined()
+    expect(customValidators(componentKey)).toEqual([requiredForNonSketchProject])
+  })
+
+  it('carries no stray flat theming fields — themeColor / themeColorDark / fontKey are gone', () => {
+    const names = fields.map((f) => f.name)
+    expect(names).not.toContain('themeColor')
+    expect(names).not.toContain('themeColorDark')
+    expect(names).not.toContain('fontKey')
   })
 })

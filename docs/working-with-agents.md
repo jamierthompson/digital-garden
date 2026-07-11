@@ -94,7 +94,7 @@ the relevant rule and obey it.
 - **Security and performance are agents' documented blind spots** — agents over-index on
   "make it work" and under-test the non-functional edges (research on agent context files
   flags these as the most common gaps; [arXiv 2511.12884](https://arxiv.org/html/2511.12884v1)).
-  Hold the line on the `themeColor` 500-risk three-layer defense and the font-preload
+  Hold the line on the `theme.color` 500-risk three-layer defense and the font-preload
   policy even when they feel like overhead. See
   [`./accessibility-and-performance.md`](./accessibility-and-performance.md) and
   [`./security-and-ops.md`](./security-and-ops.md).
@@ -109,7 +109,7 @@ is read by a range of agent tools.
   `<!-- BEGIN:nextjs-agent-rules -->` block. **Never hand-edit inside those markers** —
   `create-next-app` regenerates them. Any house content goes _outside_ the markers.
 - **Nesting: nearest file wins.** In this multi-package pnpm workspace (app + `studio/` + `packages/oklch` + `packages/type`), a nested
-  `studio/AGENTS.md` (Sanity schema / TypeGen / stega-off-`themeColor` rules) takes
+  `studio/AGENTS.md` (Sanity schema / TypeGen / stega-off-`theme` rules) takes
   precedence for agents working in `studio/`.
 - **Keep it lean — bloat actively harms.** Research on agent context files finds that
   padding them (e.g. LLM-generated boilerplate) _reduced_ task success and raised cost
@@ -269,7 +269,7 @@ each tool call.**
   diff only**, never the author's reasoning). **QA is adversarial, not a once-over:**
   - **Try to break it — think like a QA engineer on a product team.** Don't just confirm the happy
     path renders. Attack the edges the author optimized past: malformed / boundary / empty / hostile
-    input (a garbage `themeColor` → safe fallback, never a throw), the error and not-found
+    input (a garbage `theme.color` → safe fallback, never a throw), the error and not-found
     paths, both color schemes, the interaction/focus floor on any rendered surface. **Write the
     missing test cases** the author didn't — co-located, meaningful (see [`./testing.md`](./testing.md)) —
     and prove the break with a failing case before it's fixed. (This is exactly what worked well in
