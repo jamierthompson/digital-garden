@@ -143,9 +143,9 @@ before touching the roster.
   static-vs-dynamic boundary is component-level (`use cache` placement), not a route toggle.
   Caching bakes the resolved className into the HTML but emits **no**
   `<link rel=preload as=font>` for a face it couldn't statically identify.
-- **Per-entry faces are applied, not preloaded:** `.variable` on the `[data-entry]`
-  scope, where the slot's generic `--font-body` maps to it; they tolerate `font-display: swap`
-  below the fold.
+- **Per-entry faces are applied, not preloaded:** each resolved face's `.variable` on the
+  `[data-entry]` scope, where it re-binds its role token (`--font-heading` / `--font-body` /
+  `--font-mono`); they tolerate `font-display: swap` below the fold.
 - **If an above-the-fold project face genuinely must preload,** emit
   `<link rel="preload" as="font" crossorigin>` **manually** — `crossorigin` is required
   for fonts even same-origin.
@@ -214,8 +214,9 @@ the Font-preload policy section's `<head>` check. Committed automated coverage s
    Don't claim "WCAG 3 compliant."
 5. **`outline: none` without a visible replacement fails 2.4.7** — always pair with a
    `:focus-visible` ring ≥ 3:1.
-6. **Don't expect per-entry fonts to preload** — the runtime `theme.bodyFont` index defeats static
-   analysis. Set `preload: false` and verify the `<head>` empirically.
+6. **Don't expect per-entry fonts to preload** — the runtime per-entry face keys
+   (`theme.headingFont` / `bodyFont` / `monoFont`) defeat static analysis. Set `preload: false` and
+   verify the `<head>` empirically.
 7. **Sticky nav can obscure focus** (2.4.11); **tap targets ≥ 24×24px** (2.5.8) on
    nav / cards / embed controls.
 8. **Don't bloat the featured / Index queries** — keep it essay-free to protect LCP (see the Content model section of [`./architecture.md`](./architecture.md)).

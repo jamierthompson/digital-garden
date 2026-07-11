@@ -38,8 +38,10 @@ These are the through-lines; everything else follows from them.
   site page's) theme color runs through the OKLCH engine and is stamped on `<html>`, so all chrome +
   prose + slots wear it. The global typography is fixed house style — Space Grotesk headings +
   Source Serif 4 body — and a **themed entry** (any kind but a `now` update) additionally carries its
-  **own theme font**, scoped to its **interactive slot(s)** (the `<Experience/>` / `[data-entry]`
-  wrapper, or each interleaved embed's container), where it re-binds `--font-body` only. The `:root`
+  **own theme fonts** — up to three optional faces (heading / body / mono) — scoped to its
+  **interactive slot(s)** (the `<Experience/>` / `[data-entry]` wrapper, or each interleaved embed's
+  container), where each resolved face re-binds its role token (`--font-heading` / `--font-body` /
+  `--font-mono`) for the slot and an unset role simply inherits the site face. The `:root`
   semantic color tokens are just the neutral **fallback** for surfaces that render un-themed. Entries
   are not variations of one global _look_; they are self-assembled from shared parts.
 
@@ -56,7 +58,7 @@ These are the through-lines; everything else follows from them.
   shippable packages. Slot-scoped theming, downward theming, and the don't-reach-up discipline stay
   only where they earn their keep. The foundation and the semantic defaults are shared globally (the
   neutral fallback for un-themed surfaces); a page's authored **color** theme rides on `<html>`, and
-  only the **theme font** is scoped to each themed entry's slot. A small foundation _coordination_ layer is the norm (see
+  only the **theme fonts** are scoped to each themed entry's slot. A small foundation _coordination_ layer is the norm (see
   the token & theming architecture below), the embed registry starts single-tier (see entry
   modules), and the don't-reach-up litmus applies to shared primitives, not every component.
   Concentrate the sophistication where it pays — the OKLCH engine (the load-bearing, genuinely hard
@@ -75,7 +77,7 @@ Two homes:
   `kind` discriminator (note · essay · project · now), a Portable Text body (rich text with embeds),
   a `stage` (sketch → prototype → shipped), an authored `iterated` date, self-referencing `related`
   backlinks, an optional `featuredRank`, the per-entry `theme` object (`color` / `colorDark` /
-  `bodyFont`), and the top-level `componentKey` — all reference-by-key seeds.
+  `headingFont` / `bodyFont` / `monoFont`), and the top-level `componentKey` — all reference-by-key seeds.
 
 Within a project the division is code vs content, but the line isn't a wall. The interactive
 experience and the components are code; the essay is content. The essay is _rich_, though — it
@@ -101,7 +103,7 @@ Tokens are organized in **three tiers**, each consuming the one before it:
 | -------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Foundation** | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, content-width measures (`--width-measure` 42rem / `--width-content` 48rem / `--width-page` 72rem), the radius scale (`--radius` 10px, with `--radius-sm`/`-md`/`-lg`/`-xl` = 6/8/10/14px and `--radius-full`), border widths (`--border-width` 1px / `--border-width-thick` 2px), control sizes (`--size-control` 24px / `--size-control-lg` 44px / `--size-icon` 16px), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
 | **Semantic**   | global `:root` (the neutral fallback)             | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the neutral ground for surfaces that render with no `<html>` theme.                                                                                                                                                             |
-| **Theme**      | `<html>` (color) + the slot `[data-entry]` (font) | the theme override, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **font** is a per-slot override, an inline `--font-body` on `[data-entry]` (`EntryScope`).                                                                                                                                                                                                                                                                                                                                                                |
+| **Theme**      | `<html>` (color) + the slot `[data-entry]` (font) | the theme override, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **fonts** are per-slot role-token overrides (up to three — `--font-heading` / `--font-body` / `--font-mono`) on `[data-entry]` (`EntryScope`), each inherited from `:root` when unset.                                                                                                                                                                                                                                                                    |
 
 The model is layered, not partitioned: the **semantic layer is the contract** components code
 against, and a theme simply re-defines those same semantic tokens with its own values — the page's
@@ -147,11 +149,12 @@ global :root  (foundation primitives + the semantic NEUTRAL FALLBACK)
 <html style="--surface:… --foreground:… --accent:… --success:…">   ◄── OKLCH engine ◄── the page's seed (Sanity)
    │        chrome (nav · headers · prose · shell) + slots ALL inherit this one write — one imperative
    │        node, so it can't collide across the routes <Activity> keeps mounted at once (#168)
-          │ and inside a themed entry, each bounded slot re-binds ONLY its font ↓
-[data-entry="<slug>" style="--font-body: var(<face>), …"]   the font slot — an inline style per
-   │        island (EntryScope). A page mounts one (the after-prose experience) or MANY (slots
+          │ and inside a themed entry, each bounded slot re-binds ONLY its fonts ↓
+[data-entry="<slug>" style="--font-heading: … --font-body: … --font-mono: …"]   the font slot — inline
+   │        role overrides per island (EntryScope), one line per RESOLVED face; an unset face emits no
+   │        override and inherits :root. A page mounts one (the after-prose experience) or MANY (slots
    │        interleaved through the prose); each is per-element, so distinct slots never collide.
-   │        Color is inherited from <html>; only --font-body is overridden here.
+   │        Color is inherited from <html>; only the resolved font roles are overridden here.
           │ themes downward, within the slot ↓
    the slot's experience + embeds   read the SAME generic semantic tokens (--surface, --accent, --font-body, …)
           └─ [data-experience-surface]  optional scoped reset for an interactive surface
@@ -162,24 +165,25 @@ Key points:
 - **The public token contract is the SEMANTIC layer.** Shared, cross-project units read the
   generic role tokens (`--surface`, `--foreground`, `--accent`, `--font-body`, `--space-*`) — never a
   project-prefixed name, because a shared embed cannot know which project hosts it. Isolation comes
-  from **scope, not prefix**: color from the page's `<html>` write (inherited), font from the
-  `[data-entry]` slot's inline `--font-body`.
+  from **scope, not prefix**: color from the page's `<html>` write (inherited), fonts from the
+  `[data-entry]` slot's inline role-token overrides (`--font-heading` / `--font-body` / `--font-mono`).
 
-- **Color themes the page; font themes the slot.** Every route stamps its authored color theme on
+- **Color themes the page; fonts theme the slot.** Every route stamps its authored color theme on
   `<html>` (`PageTheme`), so all chrome + prose + slots wear it; the `:root` semantic color tokens
   are only the neutral **fallback** for surfaces that render un-themed (404 / error / loading). The
-  global typography is fixed house style — Space Grotesk headings + Source Serif 4 body — and an
-  entry's theme **font** overrides `--font-body` in its own interactive slot only (an inline style
-  on `[data-entry]`), never the page chrome. Spacing, motion, and type-ratios are
-  themeable-in-principle but invariant-in-practice.
+  global typography is fixed house style — Space Grotesk headings + Source Serif 4 body + Geist Mono
+  mono — and an entry's theme **fonts** (up to three optional faces) override their role tokens
+  (`--font-heading` / `--font-body` / `--font-mono`) in the entry's own interactive slot only (inline
+  styles on `[data-entry]`; an unset role inherits `:root`), never the page chrome. Spacing, motion,
+  and type-ratios are themeable-in-principle but invariant-in-practice.
 
 - **Every CSS Module must declare its `@layer`.** Next does **not** auto-assign CSS Modules to a
   cascade layer, and an _unlayered_ module's plain declarations outrank **every** `@layer` style
   regardless of specificity or source order. So any component CSS Module that sets real properties
   must wrap its body in `@layer components { … }` (or stay strictly var-_consuming_); the bare
   `@layer foundation, semantic, components;` order statement is emitted in a global sheet loaded
-  first. The entry font slot needs no layer — an inline `--font-body` on `[data-entry]` out-ranks
-  every layer. Lint-enforced (see the don't-reach-up litmus).
+  first. The entry font slot needs no layer — the inline role-token overrides on `[data-entry]`
+  out-rank every layer. Lint-enforced (see the don't-reach-up litmus).
 
 - **Cascade order via `@layer`** (foundation < semantic < components) to kill CSS-module insertion-order
   accidents instead of fighting specificity. The global order statement must register before
@@ -324,7 +328,7 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   headroom. Consumers see the generic semantic **names** (`--surface`, `--accent`, … bound to,
   e.g., `neutral`'s `800` step) — the ramp math stays behind them. The page's `<html>` write carries
   the full token set (incl. the `--ring` alias and status); the entry's slot adds only
-  the `--font-body` mapping, inline on `[data-entry]`. The raw `--<role>-<step>` primitives are
+  its per-role font overrides (`--font-heading` / `--font-body` / `--font-mono`), inline on `[data-entry]`. The raw `--<role>-<step>` primitives are
   emitted alongside for a consumer that wants them (`tokenSetToCss` / `rampSetToDeclarations`). Dark re-generates each ramp (reduced chroma) and re-solves every
   binding against dark's own surfaces — not a mirror-label flip. The **accent** ramp is additionally
   **anchored to the seed**: one step (keyed off the seed's native direction, reported as
@@ -679,7 +683,7 @@ enforces at least one:
   interleaved through the prose share state via context. The prose stays server-rendered
   (children pass-through); the provider adds state, never markup that re-themes the
   editorial register. The page threads the font seed to the serializer, and each embed
-  mounts in its own `EntryScope` container (an inline `--font-body` per island; color is
+  mounts in its own `EntryScope` container (its own per-role face overrides per island; color is
   inherited from the page's `<html>` theme).
 
 Nothing more is templated: the page is the editorial `<article>` (prose) plus the module's
@@ -715,7 +719,7 @@ showcases the shared engine's output rather than holding the engine (see the OKL
 ### The CMS ↔ code registry
 
 ```
-Sanity entry doc { kind, componentKey: "<slug>", theme { color, colorDark, bodyFont }, body, stage, iterated, related, featuredRank }
+Sanity entry doc { kind, componentKey: "<slug>", theme { color, colorDark, headingFont, bodyFont, monoFont }, body, stage, iterated, related, featuredRank }
         │
         ▼
 src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the entry module
@@ -799,8 +803,8 @@ So, the policy:
   `<link rel="preload" as="font">` — confirm the policy holds (expect only the manually-linked
   above-the-fold face, if any).
 - **Where the link lands** (initial shell vs streamed hole) is the other axis: keep `EntryScope`
-  in the prerendered shell (see repo & hosting) so the slot's resolved font reference (its
-  `.variable` class + inline `--font-body`) is in the initial static HTML.
+  in the prerendered shell (see repo & hosting) so the slot's resolved font references (its
+  `.variable` classes + inline role-token overrides) are in the initial static HTML.
 
 Mapped onto the layers:
 
@@ -853,8 +857,8 @@ Practical notes:
   `notFound()` for any kind, and no key at all renders prose-only (a sketch project renders
   prose-only, never a 404). **A module mount always implies a scope seed** — the route builds the
   `ScopeSeed` whenever a non-`now` entry _themes or mounts a module_ (`theme.color || a resolvable
-componentKey`), always **keyed on the entry's own slug**, with the slug + `theme.bodyFont` defaulting to
-  `""`. So a
+componentKey`), always **keyed on the entry's own slug**, with the slug + each of `theme.headingFont` /
+  `bodyFont` / `monoFont` defaulting to `""`. So a
   module-only entry (a resolvable `componentKey`, no `theme.color`) still gets its **own** per-entry
   `[data-entry]` scope rather than collapsing onto a shared fallback slug — two such entries must not
   share one `data-entry` and cross-contaminate themes — and its empty theme fields resolve to the
@@ -892,8 +896,10 @@ componentKey`), always **keyed on the entry's own slug**, with the slug + `theme
   seed (its own `theme.color` ignored), every themed kind wears its own — resolved in-query so it lands
   in the static shell, flash-free. Wiring each page to consume its seed is the site-wide
   theming-delivery slice.
-- **`theme.bodyFont` is per-entry** — the roster face this entry's slot wears, chosen from the
-  curated roster (see fonts). Reference-by-key, exactly like `componentKey` and `theme.color`.
+- **`theme.headingFont` / `bodyFont` / `monoFont` are per-entry** — up to three roster faces this
+  entry's slot wears, each an independent, optional choice from the curated roster (see fonts); an
+  unset face inherits the site face for that role. Reference-by-key, exactly like `componentKey` and
+  `theme.color`.
 - **No per-scheme color field.** Dark mode is a render-time axis; one `theme.color` generates
   both schemes. A project needing a hand-tuned dark brand gets an _optional_ `theme.colorDark`
   override, defaulted from the engine — never a required parallel field. (A seed too light to be the
@@ -918,16 +924,17 @@ componentKey`), always **keyed on the entry's own slug**, with the slug + `theme
   `title`/`slug`/`blurb`/`stage`/`kind` plus the `theme.color` each card themes its plate from — but
   **not** the body. That enforces "a few colors per card" at the data layer (cards feed
   `cardSwatches`) and keeps the front-door payload small for CWV.
-- **`EntryScope` is the font-slot keystone.** One server component takes a scope's `slug` +
-  font key (sourced from the entry's `theme.bodyFont`) and emits the `[data-entry]` wrapper with the
-  entry's `--font-body` set inline (plus the
-  resolved face's `.variable` class), flash-free in the initial HTML. It wraps a themed entry's
-  **interactive slot(s)** (and any homepage slot `siteSettings` seeds), not the page chrome. Color is
-  NOT re-bound here — the slot inherits every color token from the page's `<html>` theme. It is
-  **defensive** — resolution returns the shell font on bad input, and the component is wrapped in
-  `unstable_catchError` (`next/error`) as a backstop, **not** a segment `error.tsx` (which doesn't
-  catch its own layout's throw — see repo & hosting). It renders in the prerendered shell; the slot's
-  subtree reads the inherited color tokens plus the slot's `var(--font-body)`.
+- **`EntryScope` is the font-slot keystone.** One server component takes a scope's `slug` + up to
+  three font keys (sourced from the entry's `theme.headingFont` / `bodyFont` / `monoFont`) and emits
+  the `[data-entry]` wrapper with each resolved face's role token (`--font-heading` / `--font-body` /
+  `--font-mono`) set inline plus that face's `.variable` class, flash-free in the initial HTML. It
+  wraps a themed entry's **interactive slot(s)** (and any homepage slot `siteSettings` seeds), not the
+  page chrome. Color is NOT re-bound here — the slot inherits every color token from the page's
+  `<html>` theme. It is **defensive** — an unset or unresolvable face emits no override for that role
+  (which then inherits `:root`), and the component is wrapped in `unstable_catchError` (`next/error`)
+  as a backstop, **not** a segment `error.tsx` (which doesn't catch its own layout's throw — see repo
+  & hosting). It renders in the prerendered shell; the slot's subtree reads the inherited color tokens
+  plus whichever font roles the slot binds.
 - **Visual editing details.** Disable Sanity **stega** on the entry's `theme` object (by ancestor) — the
   invisible encoding chars break the OKLCH parse and the font-class lookup. `liveEmbed`
   click-to-edit targets the caption/`embedKey` field, not the interactive region.
@@ -963,7 +970,7 @@ componentKey`), always **keyed on the entry's own slug**, with the slug + `theme
   routes are dynamic-by-default with PPR baked in, and static-vs-dynamic is a **component-level**
   concern (`use cache` + where request-time APIs are touched). A route is a **prerendered shell with
   dynamic holes**. `EntryScope` (wrapping a themed entry's slot) renders into the prerendered shell so its
-  inline `--font-body` and the resolved font class are in the **initial static HTML** (flash-free, no
+  inline role-token font overrides and the resolved font classes are in the **initial static HTML** (flash-free, no
   streamed delay), while the essay streams; the page's color theme lands flash-free the same way, via
   `PageTheme`'s `<html>` script. This is an app-wide rendering model (request APIs need Suspense or
   arg-passing; `<Activity>`-based state preservation across nav).
