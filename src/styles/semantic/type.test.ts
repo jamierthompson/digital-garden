@@ -88,6 +88,45 @@ describe("semantic role layer binds to the ramp", () => {
   );
 });
 
+describe("the --type-*-family bindings re-derive inside a themed slot (#226)", () => {
+  // A custom property substitutes its var() references at the element that DECLARES it
+  // (css-variables-1 §3.4: computed value = specified value with variables substituted —
+  // https://www.w3.org/TR/css-variables-1/#defining-variables). So a family binding declared
+  // only at :root freezes to the site face THERE, and descendants inherit the resolved
+  // string — a slot's [data-entry] --font-* override never reaches a primitive that reads
+  // the --type-*-family bundle. The sheet must therefore re-declare every :root family
+  // binding under a [data-entry] scope, where substitution re-runs against the slot's
+  // overridden role tokens. Verified live: without this block the /color-engine specimen
+  // renders every role in the shell faces despite correct inline overrides on the wrapper.
+  const sheet = read("src/styles/semantic/type.css").replace(
+    /\/\*[\s\S]*?\*\//g,
+    "",
+  );
+  const rootFamilies = Object.fromEntries(
+    Object.entries(SHEET_DECLS).filter(([token]) =>
+      /^--type-[a-z]+-family$/.test(token),
+    ),
+  );
+  const slotBlocks = [...sheet.matchAll(/\[data-entry\][^{]*\{([^}]*)\}/g)]
+    .map((m) => m[1])
+    .join("\n");
+  const slotFamilies = parseDeclarations(slotBlocks);
+
+  it("parsed the :root family bindings (false-green guard)", () => {
+    expect(Object.keys(rootFamilies).length).toBeGreaterThanOrEqual(8);
+  });
+
+  it.each(Object.keys(rootFamilies))(
+    "%s is re-declared under [data-entry] with its :root binding",
+    (token) => {
+      expect(
+        slotFamilies[token],
+        `${token} must be re-bound at the [data-entry] scope — declared only at :root it freezes to the site face and the slot's --font-* overrides can never reach it`,
+      ).toBe(rootFamilies[token]);
+    },
+  );
+});
+
 describe("the Tailwind-named --text-* size scale is gone", () => {
   it.each(["sm", "base", "lg", "xl", "2xl", "3xl", "4xl", "5xl"])(
     "--text-%s is no longer declared",
