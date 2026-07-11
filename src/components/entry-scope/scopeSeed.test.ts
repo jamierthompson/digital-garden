@@ -142,6 +142,62 @@ describe("resolveScope — three-role, defensive, never throws", () => {
 });
 
 /**
+ * Adversarial-QA additions (#226): the edges the three-role suite above skips — array seeds
+ * (`typeof [] === "object"`, so an array passes the object guard), the exact-match font-key
+ * contract, and the COARSENESS of the belt-and-suspenders catch.
+ */
+describe("resolveScope — QA hardening edges", () => {
+  it.each([
+    ["an empty array", []],
+    ["an array of key-like strings", ["inter", "newsreader"]],
+  ])(
+    "collapses %s to the fallback scope (arrays pass the object guard)",
+    (_label, input) => {
+      // An array IS `typeof "object"`, so it survives the seed-shape guard; its `slug` /
+      // role properties are undefined → fallback slug, no faces, no throw.
+      const scope = resolveScope(input);
+      expect(scope.slug).toBe(FALLBACK_SLUG);
+      expect(scope.faces).toEqual({});
+    },
+  );
+
+  it.each(["Inter", "INTER", " inter", "inter ", "inter​"])(
+    "does NOT resolve %j — font keys are exact-match, never normalized",
+    (key) => {
+      // Deliberate asymmetry: the SLUG is lowercased/stripped (it only keys a selector),
+      // but a font key is matched EXACTLY against FONT_KEYS — no trim, no case-fold, no
+      // stega-char tolerance. A "helpful" normalization added later would silently widen
+      // the roster contract; this pins that a near-miss key drops the role instead.
+      const scope = resolveScope({ slug: "entry", bodyFont: key });
+      expect(scope.faces.body).toBeUndefined();
+      expect(scope.faces).toEqual({});
+    },
+  );
+
+  it("falls back to the constant slug when every slug char is hostile (nothing survives the strip)", () => {
+    const scope = resolveScope({ slug: '"]{};:/\\*', bodyFont: "inter" });
+    expect(scope.slug).toBe(FALLBACK_SLUG);
+    expect(scope.faces.body).toEqual(FONT_FACES.inter);
+  });
+
+  it("collapses the WHOLE scope — valid slug and resolvable siblings included — when a font getter throws", () => {
+    // Characterizes the catch's coarseness: a throwing role getter aborts resolution
+    // mid-build, so even the valid slug and the already-resolvable sibling keys degrade
+    // to the constant fallback with NO faces. Cheaper than partial recovery, and safe:
+    // the slot renders unthemed rather than not at all.
+    const scope = resolveScope({
+      slug: "oklch-engine",
+      headingFont: "space-grotesk",
+      get monoFont(): string {
+        throw new Error("boom");
+      },
+    });
+    expect(scope.slug).toBe(FALLBACK_SLUG);
+    expect(scope.faces).toEqual({});
+  });
+});
+
+/**
  * Adversarial-QA characterization suite: pins the LIMIT of `vetSlug`'s isolation guarantee.
  *
  * `scopeSeed.ts` claims a per-entry sanitized slug "stays UNIQUE per entry". That is only true

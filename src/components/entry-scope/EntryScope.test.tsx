@@ -180,6 +180,77 @@ describe("EntryScope (three-role font slot)", () => {
     expect(wrapper).not.toHaveAttribute("class");
   });
 
+  // ── QA additions (#226): the role-combination edges the suite above skips ──
+
+  it.each([
+    ["heading", "headingFont", "--font-heading", "sans-serif"],
+    ["mono", "monoFont", "--font-mono", "monospace"],
+  ] as const)(
+    "a %s-ONLY seed overrides exactly that role — the other two emit nothing and inherit",
+    (_role, seedKey, property, generic) => {
+      // The suite pins body-only; a data-driven ROLE_BINDINGS makes a transposition (right
+      // face, wrong property or generic) possible per role, so pin the remaining two
+      // single-role combinations by exact value AND by the absence of both siblings.
+      render(
+        <EntryScope seed={{ slug: "e", [seedKey]: "fraunces" }}>
+          <p>single role</p>
+        </EntryScope>,
+      );
+      const wrapper = screen.getByText("single role").closest("[data-entry]");
+      expect(propOf(wrapper, property)).toBe(
+        `var(${FONT_FACES.fraunces.cssVariable}), ${generic}`,
+      );
+      for (const other of Object.keys(GENERIC).filter((p) => p !== property)) {
+        expect(propOf(wrapper, other)).toBe("");
+      }
+      expect(wrapper).toHaveClass(FONT_FACES.fraunces.variable);
+    },
+  );
+
+  it("applies ONE face to all three roles when the seed repeats it (each role gets its own override)", () => {
+    // An editor can pick the same roster face for heading, body, AND mono. Each role still
+    // emits its own override (same face var, role-correct generic tail); repeating the
+    // face's `.variable` class is harmless (classList membership, not count, is what CSS sees).
+    render(
+      <EntryScope
+        seed={{
+          slug: "mono-brand",
+          headingFont: "inter",
+          bodyFont: "inter",
+          monoFont: "inter",
+        }}
+      >
+        <p>one face everywhere</p>
+      </EntryScope>,
+    );
+    const wrapper = screen
+      .getByText("one face everywhere")
+      .closest("[data-entry]");
+    expect(propOf(wrapper, "--font-heading")).toBe(
+      `var(${FONT_FACES.inter.cssVariable}), sans-serif`,
+    );
+    expect(propOf(wrapper, "--font-body")).toBe(
+      `var(${FONT_FACES.inter.cssVariable}), serif`,
+    );
+    expect(propOf(wrapper, "--font-mono")).toBe(
+      `var(${FONT_FACES.inter.cssVariable}), monospace`,
+    );
+    expect(wrapper).toHaveClass(FONT_FACES.inter.variable);
+  });
+
+  it("collapses an ARRAY seed to the fallback scope (arrays pass the typeof-object guard)", () => {
+    expect(() =>
+      render(
+        <EntryScope seed={["inter", "newsreader"]}>
+          <p>array seed</p>
+        </EntryScope>,
+      ),
+    ).not.toThrow();
+    const wrapper = screen.getByText("array seed").closest("[data-entry]");
+    expect(wrapper).toHaveAttribute("data-entry", "fallback");
+    expect(wrapper).not.toHaveAttribute("class");
+  });
+
   it("gives two distinct entries their OWN inline fonts (per-element, no cross-slot bleed)", () => {
     // The inline style is per-element, so two co-mounted slots can never share (or overwrite)
     // one another's fonts — the failure a shared hoisted <style> once risked.
