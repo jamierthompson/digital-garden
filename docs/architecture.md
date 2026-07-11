@@ -761,12 +761,15 @@ scope, so it themes identically.
 ## Fonts
 
 **Store-the-key (roster-by-key).** A curated roster of faces is declared in code (each a `next/font`
-export, in a single shared module); Sanity stores the entry's `theme.bodyFont` key and the editor picks from
-a dropdown; the entry's **slot scope** applies the face that key resolves to, via that face's
-**`.variable` class** on the `[data-entry]` wrapper, with the slot's `--font-body` mapping to it;
-page chrome stays on the editorial face. This keeps
-`next/font`'s self-hosting, subsetting, and zero-CLS sizing while putting an entry's type choice on
-its document alongside its theme color.
+export, in a single shared module); Sanity stores up to **three** per-entry face keys —
+`theme.headingFont` / `theme.bodyFont` / `theme.monoFont` — and the editor picks each from a dropdown.
+The entry's **slot scope** applies each resolved face via that face's **`.variable` class** on the
+`[data-entry]` wrapper, re-binding that role's token (`--font-heading` / `--font-body` / `--font-mono`)
+for the slot only. Each face is **independent and optional**: an unset — or unresolvable — role emits
+**no override** and simply inherits the site palette, so page chrome, and any role the entry doesn't
+theme, stays on the site faces (the never-throws fallback is "inherit `:root`", not a hardcoded face).
+This keeps `next/font`'s self-hosting, subsetting, and zero-CLS sizing while putting an entry's type
+choice on its document alongside its theme color.
 
 `next/font` must be called at module scope, so the roster can't be _arbitrary_: an editor picks from
 the curated set, never a free-text name or upload. **Adding a face to the roster is a code change;
@@ -779,8 +782,8 @@ Two facts make a large roster cheap:
    zero downloads on a page that uses none of them.
 2. **Preload is build-time static analysis — and the entry's font key is a runtime index.** `next/font`
    injects `<link rel=preload>` for a face it can _statically_ see a route reference. Because the
-   roster resolves the entry's `theme.bodyFont` (a Sanity string) → face at **runtime**, Next cannot target the
-   resolved per-entry face for preload. This is **not** an SSG-vs-dynamic question (that
+   roster resolves a per-entry face key (`theme.headingFont` / `bodyFont` / `monoFont`, Sanity strings) →
+   face at **runtime**, Next cannot target the resolved per-entry face for preload. This is **not** an SSG-vs-dynamic question (that
    route-level toggle is gone under Next 16 `cacheComponents`; see repo & hosting) — it's a
    build-time-static-analyzability question, independent of caching.
 
@@ -801,15 +804,21 @@ So, the policy:
 
 Mapped onto the layers:
 
-- **The editorial face** (the site's global identity — Source Serif 4) → root layout, `preload: false`;
-  any above-the-fold preload is a manual `<link>`. Every page's chrome uses it. Keep to 1–2 faces.
-- **Per-entry fonts** → resolved from the entry doc's `theme.bodyFont` against the code-side roster,
-  applied at the entry's `[data-entry]` **slot** scope via `.variable` — they theme the slot,
-  not the page.
-- **Shared fonts** → the roster _is_ the single declaration point, so a face two projects use is
-  declared **once** and resolved by both.
-- **Experience & embed fonts** → neither declares its own `next/font`; each reads the generic
-  `--font-body` token, which the slot fills from the resolved face.
+- **The site faces** (the global identity — **Space Grotesk** headings, **Source Serif 4** body,
+  **Geist Mono** mono) → root layout, `preload: false`; any above-the-fold preload is a manual
+  `<link>`. Every page's chrome uses them, and they are the palette every un-themed slot role inherits.
+- **Per-entry fonts** → resolved from the entry doc's `theme.headingFont` / `bodyFont` / `monoFont`
+  against the code-side roster, applied at the entry's `[data-entry]` **slot** scope via each face's
+  `.variable` + its role-token override — they theme the slot, not the page.
+- **Shared fonts** → the roster _is_ the single declaration point, so a face two entries use is
+  declared **once** and resolved by both. (Geist Mono is the site mono; **JetBrains Mono** is a roster
+  face an entry can pick for a slot — a roster face is _not_ mounted globally, only per-entry.)
+- **Slot & embed fonts** → nothing declares its own `next/font`; content reads the role tokens
+  (`--font-heading` / `--font-body` / `--font-mono`), which the slot fills from the resolved faces (or
+  inherits from `:root` when a role is unset). Because `reset.css` resolves `font-family` once on
+  `<body>`, a `[data-entry] { font-family: var(--font-body) }` rule re-establishes the body baseline
+  inside the slot so plain slot text wears the entry's body face; headings and mono repaint via their
+  own per-element rules.
 
 Practical notes:
 
@@ -849,11 +858,14 @@ componentKey`), always **keyed on the entry's own slug**, with the slug + `theme
   module-only entry (a resolvable `componentKey`, no `theme.color`) still gets its **own** per-entry
   `[data-entry]` scope rather than collapsing onto a shared fallback slug — two such entries must not
   share one `data-entry` and cross-contaminate themes — and its empty theme fields resolve to the
-  engine's fallback palette + the shell's mono fallback face (Geist Mono, `--font-geist-mono`) — the
-  never-throws keystone, unchanged.
+  engine's fallback color palette and, for each unset font role, the inherited site face
+  (`--font-heading` / `--font-body` / `--font-mono` from `:root`) — the never-throws keystone is
+  "emit no override, inherit `:root`", not a hardcoded fallback face.
   `theme.color` is **required for every themed kind** — note, essay, and project (each page derives its
-  theme from an authored seed). `componentKey`/`theme.bodyFont` stay **conditionally required for a
-  `project`** (past the sketch stage) and **optional-but-honored** for a `note`/`essay`. A `now`
+  theme from an authored seed). `componentKey` and the three `theme` face keys are **optional and
+  mount/theme on presence** for every kind but `now` — a `project` past the sketch stage is no longer
+  forced to name a module or a face (a prose-only project is valid), and a `note`/`essay` that sets a
+  `componentKey` mounts it. A `now`
   update is chrome + prose by design: it **cannot set its own `theme.color`** (the whole `theme` object
   is hidden for a `now` in the Studio and a color is rejected on write by `forbiddenForNow`) and
   **inherits the `/now` page seed** instead — the single `/now` seed themes the `/now` index and every
@@ -866,8 +878,8 @@ componentKey`), always **keyed on the entry's own slug**, with the slug + `theme
   tended.
 - **The essay is rich content (portable text), not plain text.** Alongside text it carries typed
   embed blocks — media and live components referenced by key and resolved in code.
-- **`theme` is a per-entry, first-class object** — `{ color, colorDark, bodyFont }`, separate from
-  the top-level `componentKey` (which _mounts_ a module, not part of the theme the module _reads_).
+- **`theme` is a per-entry, first-class object** — `{ color, colorDark, headingFont, bodyFont, monoFont }`,
+  separate from the top-level `componentKey` (which _mounts_ a module, not part of the theme the module _reads_).
   `color` is a validated string (hex or `oklch()`) — the slot seed, stored on the `entry` document.
   Author-time Sanity `validation` runs the engine's own color pipeline (parse → gamut-map → confirm
   in-spec contrast) for editor feedback. Defense-in-depth: the engine itself never throws (see the
