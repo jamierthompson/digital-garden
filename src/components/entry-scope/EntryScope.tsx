@@ -39,6 +39,12 @@ const ROLE_BINDINGS = [
  * server-rendered div → the value is in the initial shell HTML (flash-free) and is per-element, so
  * distinct slots can never collide.
  *
+ * The wrapper also carries `font-family: var(--font-body)` UNCONDITIONALLY — its type baseline:
+ * `reset.css` resolves that token once on `<body>`, so plain slot text would otherwise inherit the
+ * resolved string and never see the slot's `--font-body` override. Re-reading the token here is
+ * what makes the authored body face actually paint on the slot's prose (heading/mono repaint via
+ * their own per-element rules; see the inline note).
+ *
  * Defensive by construction: `resolveScope` never throws — it collapses any bad seed to a safe
  * slug + an empty face set (every role inherits `:root`). It is ALSO wrapped at the route in
  * `unstable_catchError` (see `EntryScopeBoundary`) as the last-resort backstop: `error.tsx` can't
@@ -50,7 +56,15 @@ const ROLE_BINDINGS = [
 export default function EntryScope({ seed, children }: EntryScopeProps) {
   const scope = resolveScope(seed);
 
-  const style: Record<string, string> = {};
+  // Re-declare `font-family: var(--font-body)` on the wrapper so plain slot text repaints in the
+  // slot's body face. `reset.css` resolves `font-family: var(--font-body)` ONCE on `<body>`, so
+  // descendants inherit the resolved *string*, not the live token — re-binding `--font-body` here
+  // alone wouldn't repaint them. Only an element that re-reads the token does; this baseline makes
+  // the wrapper (and its inheriting descendants) that element. Unconditional: when a bodyFont
+  // resolved, `--font-body` is the slot's override and the slot wears it; when absent, `--font-body`
+  // inherits `:root` and the baseline is a harmless no-op. Heading/mono repaint via their own
+  // per-element `font-family` rules, so they need no baseline here.
+  const style: Record<string, string> = { fontFamily: "var(--font-body)" };
   const classNames: string[] = [];
   for (const { role, property, generic } of ROLE_BINDINGS) {
     const face = scope.faces[role];

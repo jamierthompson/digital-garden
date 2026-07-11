@@ -67,6 +67,31 @@ describe("EntryScope (three-role font slot)", () => {
     expect(propOf(wrapper, "--font-mono")).toBe(
       `var(${FONT_FACES.inter.cssVariable}), ${GENERIC["--font-mono"]}`,
     );
+    // …and the baseline coexists with the per-role overrides, undisturbed.
+    expect(propOf(wrapper, "font-family")).toBe("var(--font-body)");
+  });
+
+  it("wears `font-family: var(--font-body)` as its type baseline, regardless of which faces resolve", () => {
+    // The slot re-reads the `--font-body` token here so plain slot text actually repaints in the
+    // authored body face (reset.css resolves the token once on <body>, so descendants inherit the
+    // resolved string, not the live token). Unconditional: present whether or not a body face
+    // resolved — when a bodyFont is set it wears the override, when absent it inherits :root.
+    for (const seed of [
+      ALL_THREE, // all three roles resolved
+      { slug: "e", bodyFont: "newsreader" }, // body only
+      { slug: "e", monoFont: "inter" }, // no body face
+      { slug: "e", bodyFont: "nope" }, // nothing resolves
+      42, // garbage → fallback scope
+    ] as const) {
+      const { container, unmount } = render(
+        <EntryScope seed={seed}>
+          <p>slot text</p>
+        </EntryScope>,
+      );
+      const wrapper = container.querySelector("[data-entry]");
+      expect(propOf(wrapper, "font-family")).toBe("var(--font-body)");
+      unmount();
+    }
   });
 
   it("never appends the site palette or a self-reference to an override", () => {
