@@ -23,6 +23,7 @@ export const FONT_KEYS = [
   "newsreader",
   "fraunces",
   "space-grotesk",
+  "jetbrains-mono",
 ] as const;
 export type FontKey = (typeof FONT_KEYS)[number];
 

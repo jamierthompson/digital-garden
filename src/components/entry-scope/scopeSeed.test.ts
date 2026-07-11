@@ -7,6 +7,7 @@ vi.mock("next/font/google", () => ({
   Newsreader: () => ({ variable: "mock-newsreader" }),
   Fraunces: () => ({ variable: "mock-fraunces" }),
   Space_Grotesk: () => ({ variable: "mock-space-grotesk" }),
+  JetBrains_Mono: () => ({ variable: "mock-jetbrains-mono" }),
 }));
 
 import { FONT_FACES } from "@/fonts/roster";
