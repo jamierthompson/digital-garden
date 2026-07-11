@@ -58,7 +58,7 @@ export default async function Home() {
               <VisuallyHidden.Root asChild>
                 <h2 id="featured-heading">Featured</h2>
               </VisuallyHidden.Root>
-              <Grid asChild min="20rem" gap={space(5)}>
+              <Grid asChild min="20rem">
                 <ul className={styles.grid}>
                   {featured.map((entry) => (
                     <EntryCard key={entry._id} entry={entry} />

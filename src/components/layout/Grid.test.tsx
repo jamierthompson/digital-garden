@@ -68,10 +68,10 @@ describe("Grid", () => {
     expect(el.style.getPropertyValue("--grid-gap")).toBe("var(--space-5)");
   });
 
-  // --- Boundary: the conduit writes exactly what it's given (no truthiness gate) ---
+  // --- Boundary: the gap conduit's truthiness gate (mirrors Stack) ---
 
-  // Unlike Stack's optional gap, Grid's props are required and always written — there is no
-  // `? … : null` gate, so even a literal zero passes straight through as a real length.
+  // `gap` is optional with a `? … : null` gate, but a literal "0" is a truthy string, so it is
+  // written through as a real zero length rather than being mistaken for "omitted".
   it("writes a literal zero gap through the conduit unchanged", () => {
     render(<Grid min="20rem" gap="0" data-testid="grid" />);
     expect(
@@ -214,15 +214,15 @@ describe("Grid", () => {
     spy.mockRestore();
   });
 
-  // --- Boundary: empty-string props are the silent-breakage edge ---
+  // --- Boundary: an empty-string min is the silent-breakage edge ---
 
-  // The props are required `string`s with no truthiness gate, so `min=""` writes a *guaranteed-
-  // invalid* custom-property value: React/jsdom drops the declaration entirely (`--grid-min` is
-  // absent from the style, only `--grid-gap` remains). In a real browser `var(--grid-min)` then
-  // has no value and no fallback, so `grid-template-columns` becomes invalid and falls back to
-  // `none` — the grid silently collapses to a single stacked column. This pins that behavior: an
-  // empty floor is caller misuse the primitive does NOT guard (consistent with Stack/Page trusting
-  // callers to pass real CSS), so the floor must always be a real length.
+  // `min` is required and written unconditionally (no truthiness gate — unlike `gap`, it has no
+  // role default to fall back to), so `min=""` writes a *guaranteed-invalid* custom-property value:
+  // React/jsdom drops the declaration entirely (`--grid-min` is absent from the style). In a real
+  // browser `var(--grid-min)` then has no value and no fallback, so `grid-template-columns` becomes
+  // invalid and falls back to `none` — the grid silently collapses to a single stacked column. This
+  // pins that behavior: an empty floor is caller misuse the primitive does NOT guard (consistent
+  // with Stack/Page trusting callers to pass real CSS), so the floor must always be a real length.
   it("drops the --grid-min declaration when min is an empty string (silent-breakage boundary)", () => {
     render(<Grid min="" gap={space(5)} data-testid="grid" />);
     const el = screen.getByTestId("grid");
@@ -232,10 +232,21 @@ describe("Grid", () => {
     expect(el.style.getPropertyValue("--grid-gap")).toBe("var(--space-5)");
   });
 
-  it("drops the --grid-gap declaration when gap is an empty string (silent-breakage boundary)", () => {
+  // Omitting `gap` writes no `--grid-gap`, so the CSS falls back to the `--space-grid` semantic
+  // role — the default-gap path, mirroring how Stack omits `--stack-gap` to fall back to
+  // `--space-stack`.
+  it("omits the --grid-gap declaration when gap is not provided (falls back to --space-grid)", () => {
+    render(<Grid min="20rem" data-testid="grid" />);
+    const el = screen.getByTestId("grid");
+    expect(el.getAttribute("style")).not.toContain("--grid-gap");
+    expect(el.style.getPropertyValue("--grid-min")).toBe("20rem");
+  });
+
+  // An empty-string gap is falsy, so the truthiness gate treats it as omitted (no `--grid-gap`) —
+  // the same default-fallback path, not a written empty declaration.
+  it("treats an empty-string gap as omitted (no --grid-gap; falls back to --space-grid)", () => {
     render(<Grid min="20rem" gap="" data-testid="grid" />);
     const el = screen.getByTestId("grid");
-    expect(el.style.getPropertyValue("--grid-gap")).toBe("");
     expect(el.getAttribute("style")).not.toContain("--grid-gap");
     expect(el.style.getPropertyValue("--grid-min")).toBe("20rem");
   });

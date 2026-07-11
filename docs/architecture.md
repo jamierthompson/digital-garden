@@ -521,6 +521,7 @@ covers the rest):
 | `--space-gutter`  | `--space-6` | the page frame's inline breathing room (edge padding)    |
 | `--space-stack`   | `--space-4` | default vertical rhythm between stacked blocks           |
 | `--space-cluster` | `--space-3` | gap between inline items in a wrapping row (meta, chips) |
+| `--space-grid`    | `--space-5` | gap between cells in an intrinsic responsive grid        |
 
 A `@garden/type`-style derivation of the space scale would later _back_ these same names — so
 components and templates commit to the **role names now**, and the values become derived later
@@ -590,13 +591,13 @@ The intrinsic-responsive-columns primitive (`src/components/layout/Grid.tsx`): l
 into as many equal columns as fit, each at least `min` wide, wrapping with **no media queries**.
 The responsiveness is intrinsic — this repo has no breakpoint layer.
 
-- **`min: string`** — the column floor (the `minmax()` minimum), passed through the `--grid-min`
-  conduit. A CSS length; a narrower container wraps to fewer columns on its own.
-- **`gap: string`** — the cell gap, passed through the `--grid-gap` conduit. Use `space(n)` to name
-  a step. **Both props are required** — a deliberate divergence from `Stack`'s _optional_ `gap`: a
-  grid has no single universal floor or gap to default to the way `Stack`'s rhythm defaults to
-  `--space-stack`, so the caller names both honestly rather than inheriting a guessed default. (No
-  new `--space-grid` role is minted — "gap" is a caller-passed token, not a semantic role.)
+- **`min: string`** (required) — the column floor (the `minmax()` minimum), passed through the
+  `--grid-min` conduit. A CSS length; a narrower container wraps to fewer columns on its own. Unlike
+  `gap`, `min` has no default: a column floor is a length, not a spacing role, and is intrinsically
+  per-grid — there is no scale step to default it to, so the caller names one.
+- **`gap?: string`** — the cell gap, passed through the `--grid-gap` conduit. Omit for the default
+  (the `--space-grid` semantic role); use `space(n)` to name a step. Optional-with-a-role-default,
+  the same shape as `Stack`'s `gap` (→ `--space-stack`) and `Cluster`'s (→ `--space-cluster`).
 - **`asChild?: boolean`** — render the single child instead of a wrapping `<div>` (Radix `Slot`),
   merging the grid's class + tokens onto it — e.g. `<Grid asChild><ul>…</ul></Grid>` to lay out
   real list items with no extra wrapper.
@@ -605,25 +606,27 @@ The responsiveness is intrinsic — this repo has no breakpoint layer.
 
 Its CSS Module is `@layer components` and strictly var-consuming. `auto-fit` is **hard-coded** (no
 fill/fit variant prop — the minimal API commits to one fill mode), and the floor is wrapped in
-`min(…, 100%)` so a single column can't overflow a viewport narrower than `min`:
+`min(…, 100%)` so a single column can't overflow a viewport narrower than `min`. The gap reads the
+`--space-grid` role by default, overridden by the conduit prop:
 
 ```css
 grid-template-columns: repeat(
   auto-fit,
   minmax(min(var(--grid-min), 100%), 1fr)
 );
-gap: var(--grid-gap);
+gap: var(--grid-gap, var(--space-grid));
 ```
 
-The home featured grid uses it: `<Grid asChild min="20rem" gap={space(5)}><ul>…</ul></Grid>`, the
-`<ul>` keeping only its list-reset while `Grid` owns the columns.
+The home featured grid uses it: `<Grid asChild min="20rem"><ul>…</ul></Grid>`, the `<ul>` keeping
+only its list-reset while `Grid` owns the columns at the default `--space-grid` gap.
 
 ```tsx
 import Grid from "@/components/layout/Grid";
 import { space } from "@/lib/tokens";
 
-<Grid min="20rem" gap={space(5)}>…</Grid>              // responsive columns, ~20rem floor
-<Grid asChild min="20rem" gap={space(5)}><ul>…</ul></Grid>  // no wrapper; real list items
+<Grid min="20rem">…</Grid>                         // responsive columns, default --space-grid gap
+<Grid asChild min="20rem"><ul>…</ul></Grid>        // no wrapper; real list items
+<Grid min="20rem" gap={space(6)}>…</Grid>          // override the gap with a named step
 ```
 
 ### `Cluster`

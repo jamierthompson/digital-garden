@@ -6,16 +6,15 @@ interface GridProps extends React.ComponentPropsWithRef<"div"> {
   /**
    * The column floor — the `minmax()` minimum each column is laid out to, as a CSS length. Passed
    * through the `--grid-min` conduit; columns then fill intrinsically (`auto-fit`, no breakpoints),
-   * so a narrower container wraps to fewer columns on its own. Required: a grid has no universal
-   * default floor the way `Stack`'s rhythm defaults to `--space-stack`.
+   * so a narrower container wraps to fewer columns on its own. Required: a column floor is a length,
+   * not a spacing role, and is intrinsically per-grid — there is no scale step to default it to.
    */
   readonly min: string;
   /**
    * The gap between cells, passed through the `--grid-gap` conduit — use `space(n)` from
-   * `@/lib/tokens`. Required: unlike `Stack`'s vertical rhythm there is no single universal grid
-   * gap to default to, so the caller names one deliberately.
+   * `@/lib/tokens`. Omit for the default (the `--space-grid` semantic role).
    */
-  readonly gap: string;
+  readonly gap?: string;
   /**
    * Render the single child element instead of a wrapping `<div>` (Radix `Slot`), merging the
    * grid's class + tokens onto it — e.g. `<Grid asChild><ul>…</ul></Grid>` to lay out real list
@@ -49,7 +48,7 @@ export default function Grid({
       style={
         {
           "--grid-min": min,
-          "--grid-gap": gap,
+          ...(gap ? { "--grid-gap": gap } : null),
           ...style,
         } as React.CSSProperties
       }
