@@ -1,0 +1,15 @@
+/* Grid — intrinsic responsive-columns primitive. @layer components, strictly var-consuming.
+   Owns the column flow + gap; both come from the component's `--grid-min` / `--grid-gap` custom
+   properties (its `min` / `gap` props). `auto-fit` is baked in — the columns fill intrinsically,
+   so a narrower container wraps to fewer with no media query. `min(var(--grid-min), 100%)` stops a
+   single column overflowing a viewport narrower than the floor. */
+@layer components {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(min(var(--grid-min), 100%), 1fr)
+    );
+    gap: var(--grid-gap);
+  }
+}

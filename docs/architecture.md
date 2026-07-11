@@ -584,6 +584,48 @@ import Page from "@/components/layout/Page";
 <Page width="measure"><Stack gap={space(6)}>…</Stack></Page>  // reading measure + vertical rhythm
 ```
 
+### `Grid`
+
+The intrinsic-responsive-columns primitive (`src/components/layout/Grid.tsx`): lays its children
+into as many equal columns as fit, each at least `min` wide, wrapping with **no media queries**.
+The responsiveness is intrinsic — this repo has no breakpoint layer.
+
+- **`min: string`** — the column floor (the `minmax()` minimum), passed through the `--grid-min`
+  conduit. A CSS length; a narrower container wraps to fewer columns on its own.
+- **`gap: string`** — the cell gap, passed through the `--grid-gap` conduit. Use `space(n)` to name
+  a step. **Both props are required** — a deliberate divergence from `Stack`'s _optional_ `gap`: a
+  grid has no single universal floor or gap to default to the way `Stack`'s rhythm defaults to
+  `--space-stack`, so the caller names both honestly rather than inheriting a guessed default. (No
+  new `--space-grid` role is minted — "gap" is a caller-passed token, not a semantic role.)
+- **`asChild?: boolean`** — render the single child instead of a wrapping `<div>` (Radix `Slot`),
+  merging the grid's class + tokens onto it — e.g. `<Grid asChild><ul>…</ul></Grid>` to lay out
+  real list items with no extra wrapper.
+- Extends `React.ComponentPropsWithRef<"div">`, so every native attribute, a `ref`, and a caller
+  `style`/`className` compose.
+
+Its CSS Module is `@layer components` and strictly var-consuming. `auto-fit` is **hard-coded** (no
+fill/fit variant prop — the minimal API commits to one fill mode), and the floor is wrapped in
+`min(…, 100%)` so a single column can't overflow a viewport narrower than `min`:
+
+```css
+grid-template-columns: repeat(
+  auto-fit,
+  minmax(min(var(--grid-min), 100%), 1fr)
+);
+gap: var(--grid-gap);
+```
+
+The home featured grid uses it: `<Grid asChild min="20rem" gap={space(5)}><ul>…</ul></Grid>`, the
+`<ul>` keeping only its list-reset while `Grid` owns the columns.
+
+```tsx
+import Grid from "@/components/layout/Grid";
+import { space } from "@/lib/tokens";
+
+<Grid min="20rem" gap={space(5)}>…</Grid>              // responsive columns, ~20rem floor
+<Grid asChild min="20rem" gap={space(5)}><ul>…</ul></Grid>  // no wrapper; real list items
+```
+
 ---
 
 ## Entry modules
