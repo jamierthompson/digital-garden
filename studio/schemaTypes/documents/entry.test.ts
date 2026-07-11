@@ -154,3 +154,42 @@ describe('entry schema — the theme object (#249)', () => {
     expect(names).not.toContain('fontKey')
   })
 })
+
+/**
+ * QA (#226): the sibling assertions above use `customValidators`, which records only the
+ * functions handed to `.custom()` — it is BLIND to a built-in `rule.required()`. So
+ * `customValidators(face).toEqual([])` would stay green if a regression re-imposed a required
+ * FLOOR on a font face or `componentKey` via `rule.required()` (or re-attached the deleted
+ * `requiredForNonSketchProject` as `.custom()` — that one the sibling catches, this one also
+ * catches). These fields being TRULY optional — zero validation of ANY kind — is the whole #226
+ * contract (a face absent inherits the site palette) and the #250 fix (a non-sketch project
+ * publishes with no `componentKey`). `calledRules` records BOTH `required` and `custom`, so an
+ * empty result is the tightest proof the field imposes no floor at all.
+ */
+describe('entry schema — the three faces + componentKey are truly unvalidated (#226/#250)', () => {
+  const theme = field('theme') as ThemeField | undefined
+  const themeField = (name: string): FieldDef | undefined =>
+    theme?.fields?.find((f) => f.name === name)
+
+  it.each(['headingFont', 'bodyFont', 'monoFont'])(
+    'theme.%s invokes NEITHER required nor custom — no floor of any kind',
+    (face) => {
+      const f = themeField(face)
+      expect(f, `expected a theme.${face} field`).toBeDefined()
+      expect(calledRules(f)).toEqual([])
+    },
+  )
+
+  it('componentKey invokes NEITHER required nor custom — a non-sketch project publishes without it (#250 fix)', () => {
+    // The deleted `requiredForNonSketchProject` used to force `componentKey` on a project past
+    // sketch; its live symptom was a prose-only shipped project that could not publish. With the
+    // floor gone, `componentKey` must carry no validation at all — mount-on-presence only.
+    expect(calledRules(field('componentKey'))).toEqual([])
+  })
+
+  it('theme.color KEEPS its floor — the deletion did not over-reach into the color rules', () => {
+    // Guard the blast radius: removing the font/componentKey floor must NOT strip the color
+    // required floor. `calledRules` here should still record the three custom color validators.
+    expect(calledRules(themeField('color'))).toEqual(['custom', 'custom', 'custom'])
+  })
+})

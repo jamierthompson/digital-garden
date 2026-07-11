@@ -331,6 +331,96 @@ describe("ENTRY_DETAIL_QUERY themeSeed — executed GROQ semantics (#173 QA)", (
 });
 
 /**
+ * QA (#226): the string-match test above proves the projection TEXT is
+ * `theme { color, colorDark, headingFont, bodyFont, monoFont }`, but nothing proves the projection
+ * actually round-trips all three faces from a real document — a dropped or renamed sub-field in the
+ * projected shape would evade a substring assertion of the whole line. Execute the full detail query
+ * against a dataset and inspect the projected `theme` object directly. This also pins the #226
+ * inheritance contract at the query layer: an ABSENT face must come back `null` (the app treats
+ * null as "inherit the site face"), never undefined or a thrown read.
+ */
+describe("ENTRY_DETAIL_QUERY theme projection — executed GROQ semantics (#226 QA)", () => {
+  async function resolveTheme(
+    theme: Record<string, unknown> | undefined,
+  ): Promise<Record<string, unknown> | null> {
+    const entry = {
+      _type: "entry",
+      _id: "e-under-test",
+      kind: "project",
+      stage: "shipped",
+      title: "Under test",
+      slug: { current: "under-test" },
+      ...(theme ? { theme } : {}),
+    };
+    const result = await (
+      await evaluate(parse(ENTRY_DETAIL_QUERY), {
+        dataset: [entry],
+        params: { slug: "under-test" },
+      })
+    ).get();
+    return (result as { theme: Record<string, unknown> | null }).theme;
+  }
+
+  it("projects all five theme keys when every face is authored", async () => {
+    const theme = await resolveTheme({
+      color: "#4f46e5",
+      colorDark: "#312e81",
+      headingFont: "fraunces",
+      bodyFont: "newsreader",
+      monoFont: "jetbrains-mono",
+    });
+    expect(theme).toEqual({
+      color: "#4f46e5",
+      colorDark: "#312e81",
+      headingFont: "fraunces",
+      bodyFont: "newsreader",
+      monoFont: "jetbrains-mono",
+    });
+  });
+
+  it("resolves an ABSENT face to null, not undefined — the #226 inheritance shape", async () => {
+    // An entry that overrides ONLY the body face: heading + mono must come back null so the app
+    // falls back to the site heading/mono faces. A projection that dropped the unset keys (making
+    // them `undefined`) would break the resolver's explicit null check and silently diverge from
+    // the color half, which is already null-shaped.
+    const theme = await resolveTheme({
+      color: "#4f46e5",
+      bodyFont: "newsreader",
+    });
+    expect(theme).toEqual({
+      color: "#4f46e5",
+      colorDark: null,
+      headingFont: null,
+      bodyFont: "newsreader",
+      monoFont: null,
+    });
+  });
+
+  it("projects the whole theme object as null when the entry carries no theme at all", async () => {
+    // A theme-less doc (reachable before an editor authors one) must yield theme === null, not a
+    // shell of null-valued keys — the detail route reads `entry.theme?.bodyFont`, which relies on
+    // the object itself being nullable.
+    expect(await resolveTheme(undefined)).toBeNull();
+  });
+
+  it("keeps a malformed face value intact — the schema imposes no constraint, so GROQ passes it through", async () => {
+    // #226 leaves the faces unvalidated: an empty string or a non-roster key is accepted by the
+    // schema and must survive the projection untouched (the app-side resolver owns never-throws
+    // fallback, not the query). Proves the projection does not coerce or drop odd values.
+    const theme = await resolveTheme({
+      color: "#4f46e5",
+      headingFont: "",
+      bodyFont: "not-a-roster-key",
+    });
+    expect(theme).toMatchObject({
+      headingFont: "",
+      bodyFont: "not-a-roster-key",
+      monoFont: null,
+    });
+  });
+});
+
+/**
  * The settings query guards the singleton intent at the data layer: `[0]` returns one
  * document (or null), so the shell never assumes an array. Under #166 it also carries the
  * per-page theme seeds for the site-owned pages (which have no backing entry).

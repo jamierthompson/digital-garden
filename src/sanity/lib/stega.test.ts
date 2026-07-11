@@ -27,9 +27,12 @@ describe("stega exclusions", () => {
     },
   );
 
-  it.each(["color", "colorDark", "bodyFont"])(
+  it.each(["color", "colorDark", "headingFont", "bodyFont", "monoFont"])(
     "flags the entry's theme.%s seed via its ancestor (leaf names are common words)",
     (leaf) => {
+      // QA (#226): all three font faces — heading/body/mono — are excluded by the `theme`
+      // ancestor, NOT their leaf names, so a stega char can never corrupt a roster-key lookup.
+      // Parametrized over the new faces to pin #226's "theme.* font keys are stega-excluded".
       expect(isStegaExcludedField(["theme", leaf])).toBe(true);
     },
   );
