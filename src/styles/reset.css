@@ -35,8 +35,9 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* The one place headings get the display face; a themed slot re-binds only --font-body, so
-     headings hold the shell face in or out of a slot. */
+  /* The one place headings get the display face. Headings read `--font-heading`, which a themed
+     slot may re-bind to the entry's heading face — so a slot heading follows that override, and a
+     heading outside any slot holds the shell display face. */
   h1,
   h2,
   h3,
@@ -44,6 +45,15 @@
   h5,
   h6 {
     font-family: var(--font-heading);
+  }
+
+  /* A themed slot re-establishes the body baseline: reset.css resolves font-family
+     once on <body>, so descendants inherit the RESOLVED family, not the live token —
+     re-binding --font-body deeper only repaints elements that re-read the token. This
+     makes plain slot text wear the entry's body face; headings/mono repaint via their
+     own per-element rules. */
+  [data-entry] {
+    font-family: var(--font-body);
   }
 
   img,
