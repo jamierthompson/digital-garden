@@ -626,6 +626,34 @@ import { space } from "@/lib/tokens";
 <Grid asChild min="20rem" gap={space(5)}><ul>…</ul></Grid>  // no wrapper; real list items
 ```
 
+### `Cluster`
+
+The wrapping-row primitive (`src/components/layout/Cluster.tsx`) — `Stack`'s horizontal sibling:
+lays its children out in a row that wraps, with one consistent gap, and owns nothing else. For meta
+rows and chip lists (the entry meta lines it's adopted on).
+
+- **`gap?: string`** — the inline gap, passed through the `--cluster-gap` conduit. Omit for the
+  default meta-row spacing (the `--space-cluster` semantic role). Use `space(n)` to name a step.
+- **`asChild?: boolean`** — render the single child instead of a wrapping `<div>` (Radix `Slot`),
+  merging the cluster's class + token onto it — e.g. `<Cluster asChild><div>…</div></Cluster>` to
+  make an existing row wrap inline with no extra element.
+- Extends the intrinsic `<div>` props (`React.ComponentPropsWithRef<"div">`), so every native
+  attribute, a `ref` (forwarded to the underlying element — or, under `asChild`, the child via
+  Radix `Slot`), and a caller `style`/`className` compose.
+
+Its CSS Module is `@layer components` and strictly var-consuming: `display: flex`, `flex-wrap: wrap`,
+and `gap: var(--cluster-gap, var(--space-cluster))` — the conduit prop wins when set, the semantic
+role is the default. It deliberately sets **no cross-axis `align-items`** (mirroring `Stack`), so a
+consumer keeps its own alignment (the `/browse` meta row keeps `align-items: baseline`) with no
+same-layer cascade conflict.
+
+```tsx
+import Cluster from "@/components/layout/Cluster";
+
+<Cluster>…</Cluster>                              // default --space-cluster gap; wraps
+<Cluster asChild><div className={styles.itemHead}>…</div></Cluster>  // wrap an existing row
+```
+
 ---
 
 ## Entry modules

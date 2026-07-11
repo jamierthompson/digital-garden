@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import Cluster from "@/components/layout/Cluster";
 import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
@@ -90,32 +91,34 @@ export default async function IndexPage() {
                     <ul className={styles.list}>
                       {inKind.map((entry) => (
                         <li key={entry._id} className={styles.item}>
-                          <div className={styles.itemHead}>
-                            <Heading level={3}>
-                              {entry.slug ? (
-                                <Link
-                                  href={`/${entry.slug}`}
-                                  className={styles.itemLink}
-                                >
-                                  {entry.title ?? "Untitled entry"}
-                                </Link>
-                              ) : (
-                                <span className={styles.itemLink}>
-                                  {entry.title ?? "Untitled entry"}
-                                </span>
-                              )}
-                            </Heading>
-                            {entry.stage ? (
-                              <Text variant="meta" asChild>
-                                <span
-                                  className={styles.stage}
-                                  data-stage={entry.stage}
-                                >
-                                  {entry.stage}
-                                </span>
-                              </Text>
-                            ) : null}
-                          </div>
+                          <Cluster asChild>
+                            <div className={styles.itemHead}>
+                              <Heading level={3}>
+                                {entry.slug ? (
+                                  <Link
+                                    href={`/${entry.slug}`}
+                                    className={styles.itemLink}
+                                  >
+                                    {entry.title ?? "Untitled entry"}
+                                  </Link>
+                                ) : (
+                                  <span className={styles.itemLink}>
+                                    {entry.title ?? "Untitled entry"}
+                                  </span>
+                                )}
+                              </Heading>
+                              {entry.stage ? (
+                                <Text variant="meta" asChild>
+                                  <span
+                                    className={styles.stage}
+                                    data-stage={entry.stage}
+                                  >
+                                    {entry.stage}
+                                  </span>
+                                </Text>
+                              ) : null}
+                            </div>
+                          </Cluster>
                           {entry.blurb ? (
                             <Text className={styles.blurb}>{entry.blurb}</Text>
                           ) : null}
