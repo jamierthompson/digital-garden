@@ -20,7 +20,7 @@ export type SitePageKey = keyof NonNullable<
 /**
  * Resolve a site-owned page's authored theme seed from `siteSettings.pageThemes`.
  *
- * Returns the raw authored `themeColor` string (or `null` when unauthored / no settings doc) —
+ * Returns the raw authored theme-color string (or `null` when unauthored / no settings doc) —
  * `PageTheme` resolves it defensively, collapsing null/blank/unparseable to the safe fallback
  * palette, so a page never has to branch on a missing seed.
  *

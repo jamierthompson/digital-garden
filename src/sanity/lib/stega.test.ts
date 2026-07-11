@@ -16,26 +16,30 @@ import {
 describe("stega exclusions", () => {
   it("excludes exactly the code-consumed fields", () => {
     expect([...STEGA_EXCLUDED_FIELDS].sort()).toEqual(
-      [
-        "themeColor",
-        "themeColorDark",
-        "componentKey",
-        "embedKey",
-        "fontKey",
-        "kind",
-        "stage",
-      ].sort(),
+      ["componentKey", "embedKey", "kind", "stage"].sort(),
     );
   });
 
-  it.each([
-    "themeColor",
-    "themeColorDark",
-    "fontKey",
-    "componentKey",
-    "embedKey",
-  ])("flags %s (the leaf of the source path) as excluded", (field) => {
-    expect(isStegaExcludedField(["someParent", field])).toBe(true);
+  it.each(["componentKey", "embedKey"])(
+    "flags %s (the leaf of the source path) as excluded",
+    (field) => {
+      expect(isStegaExcludedField(["someParent", field])).toBe(true);
+    },
+  );
+
+  it.each(["color", "colorDark", "bodyFont"])(
+    "flags the entry's theme.%s seed via its ancestor (leaf names are common words)",
+    (leaf) => {
+      expect(isStegaExcludedField(["theme", leaf])).toBe(true);
+    },
+  );
+
+  it("no longer flags the retired flat theming field names on their own", () => {
+    // themeColor / themeColorDark / fontKey are gone — the theme is a nested object now,
+    // excluded by its `theme` ancestor, not by these standalone leaf names.
+    expect(isStegaExcludedField(["themeColor"])).toBe(false);
+    expect(isStegaExcludedField(["themeColorDark"])).toBe(false);
+    expect(isStegaExcludedField(["fontKey"])).toBe(false);
   });
 
   it("does not flag prose fields like title/blurb/essay", () => {
@@ -44,6 +48,13 @@ describe("stega exclusions", () => {
     expect(isStegaExcludedField(["essay", 0, "children", 0, "text"])).toBe(
       false,
     );
+  });
+
+  it("does not flag a same-named prose leaf OUTSIDE the theme ancestor", () => {
+    // `color` / `bodyFont` as bare leaves (a hypothetical prose field) must NOT be excluded —
+    // only leaves nested under the `theme` ancestor are code-consumed.
+    expect(isStegaExcludedField(["color"])).toBe(false);
+    expect(isStegaExcludedField(["bodyFont"])).toBe(false);
   });
 
   it.each(["home", "browse", "about", "now", "system"])(
@@ -78,7 +89,7 @@ describe("stega exclusions", () => {
   });
 
   it("still excludes a leaf-name field nested arbitrarily deep", () => {
-    expect(isStegaExcludedField(["a", "b", "c", "themeColor"])).toBe(true);
+    expect(isStegaExcludedField(["a", "b", "c", "componentKey"])).toBe(true);
   });
 
   it("does not over-match a segment that merely CONTAINS 'pageThemes' (exact match only)", () => {
@@ -98,13 +109,30 @@ describe("stega exclusions", () => {
   it("returns false (no crash) for an empty source path", () => {
     expect(isStegaExcludedField([])).toBe(false);
   });
+
+  // --- QA hardening (#249): the `theme` ancestor mirrors the pageThemes properties ---
+
+  it("excludes a theme leaf when `theme` is a DEEP ancestor (e.g. a dereferenced entry's theme)", () => {
+    // The `.some` scans the whole path, so `related[0].theme.color`-shaped paths are covered
+    // even though today's queries never project a referenced entry's theme.
+    expect(isStegaExcludedField(["related", 0, "theme", "color"])).toBe(true);
+  });
+
+  it("does not over-match a segment that merely CONTAINS 'theme' (exact match only)", () => {
+    // A prose field like `themeEssay` (or the retired `themeColor`) must not be swept in.
+    expect(isStegaExcludedField(["themeEssay", "title"])).toBe(false);
+  });
+
+  it("tolerates array indices inside a theme path without throwing", () => {
+    expect(isStegaExcludedField(["theme", 0, "color"])).toBe(true);
+  });
 });
 
 describe("stegaFilter", () => {
   it("returns false (skip encoding) for an excluded field, without consulting the default", () => {
     const filterDefault = vi.fn(() => true);
     const result = stegaFilter({
-      sourcePath: ["themeColor"],
+      sourcePath: ["componentKey"],
       filterDefault,
       // The remaining FilterDefault props are unused by our branch; cast for the test.
     } as unknown as Parameters<typeof stegaFilter>[0]);

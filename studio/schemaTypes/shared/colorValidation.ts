@@ -1,10 +1,10 @@
 /**
- * Author-time `themeColor` validation — layer 2 of the three-layer defence,
+ * Author-time theme-color validation — layer 2 of the three-layer defence,
  * backed by the engine's *own* color pipeline, not a regex.
  *
  * This runs `@garden/oklch`'s `buildTokenSet` (parse → gamut-map → contrast-solve)
  * and accepts the value iff the engine did NOT fall back. So the author-time check
- * is exactly the render-time contract: if Studio accepts a `themeColor`, the engine
+ * is exactly the render-time contract: if Studio accepts a theme color, the engine
  * will theme with it — it won't silently collapse to the fallback palette at render.
  * A regex couldn't promise that (it passed shapes the engine can't parse and
  * rejected ones it can).

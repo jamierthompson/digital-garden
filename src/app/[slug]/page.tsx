@@ -40,13 +40,13 @@ import styles from "./page.module.css";
 //     and a note/essay simply never has one). A module composes one (or both) of two ways —
 //     `Experience` (one slot mounted after the prose) and/or `Provider` (a client frame around
 //     the article so interleaved `liveEmbed` slots share state).
-//   • Theming — a `themeColor`: present → build the scope seed and thread it to the body so
+//   • Theming — a `theme.color`: present → build the scope seed and thread it to the body so
 //     each `liveEmbed` (and the `Experience` slot) mounts in its own scoped container.
 //
 // `now` is the ONE exception, excluded by design: it stays chrome + prose — never a scope,
-// never a module — even if it happens to carry `themeColor`/`componentKey`, because a `now`
+// never a module — even if it happens to carry `theme`/`componentKey`, because a `now`
 // note is an editorial status update, not an interactive slot. The keystone stays defensive:
-// the scope never throws on a bad themeColor/fontKey, so an empty seed field is always safe.
+// the scope never throws on a bad theme color/font, so an empty seed field is always safe.
 
 interface EntryPageProps {
   params: Promise<{ slug: string }>;
@@ -101,14 +101,14 @@ export default async function EntryPage({ params }: EntryPageProps) {
 
   // The page's authored theme, applied flash-free (#166/#187). `themeSeed` is resolved
   // KIND-GATED in the query (a `now` update wears the `/now` seed; every other kind wears its
-  // own required `themeColor`), so the page never branches on `kind` here. `entry` is already
+  // own required `theme.color`), so the page never branches on `kind` here. `entry` is already
   // awaited above, so the synchronous `<PageTheme>` emits its `:root` `<style>` into the
   // prerendered static shell — React hoists it into `<head>`, ahead of the chrome.
   const pageTheme = <PageTheme seed={entry.themeSeed} />;
 
   // `now` is excluded from BOTH capabilities by design (an editorial status update, never an
   // interactive slot) — so it never resolves a key and never builds a scope, even if the doc
-  // happens to carry `componentKey`/`themeColor`.
+  // happens to carry `componentKey`/`theme`.
   const isNow = entry.kind === "now";
 
   // Module gate — capability, not kind. A DECLARED `componentKey` must resolve for any kind
@@ -138,13 +138,13 @@ export default async function EntryPage({ params }: EntryPageProps) {
 
   // The font seed for the entry's slot(s), threaded to the body so each `liveEmbed` — and the
   // `Experience` slot — mounts in its own `[data-entry]` wearing the entry's theme font. Built
-  // whenever this entry either themes (`themeColor`) OR mounts a module: keyed on the REAL `slug`
-  // so a scope never collapses to the shared `data-entry="fallback"`. An absent `fontKey` is a
-  // safe empty string: the keystone falls back to the shell font without throwing. The slot's
+  // whenever this entry either themes (`theme.color`) OR mounts a module: keyed on the REAL `slug`
+  // so a scope never collapses to the shared `data-entry="fallback"`. An absent `theme.bodyFont`
+  // is a safe empty string: the keystone falls back to the shell font without throwing. The slot's
   // COLOR comes from the page's `<html>` theme (inherited); this seed carries only the font.
   const scope: ScopeSeed | undefined =
-    !isNow && (entry.themeColor || entryModule)
-      ? { slug, fontKey: entry.fontKey ?? "" }
+    !isNow && (entry.theme?.color || entryModule)
+      ? { slug, fontKey: entry.theme?.bodyFont ?? "" }
       : undefined;
 
   const article = (

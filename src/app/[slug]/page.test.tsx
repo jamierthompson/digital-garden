@@ -132,11 +132,9 @@ function entry(over: EntryOverrides = {}): Record<string, unknown> {
     slug: "an-entry",
     kind: "note",
     blurb: "A blurb.",
-    themeColor: null,
-    themeColorDark: null,
-    fontKey: null,
+    theme: { color: null, colorDark: null, bodyFont: null },
     componentKey: null,
-    // The kind-gated seed the page themes from (query-resolved: `now`→/now seed, else themeColor).
+    // The kind-gated seed the page themes from (query-resolved: `now`→/now seed, else theme.color).
     themeSeed: null,
     body: null,
     related: null,
@@ -179,15 +177,14 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
   });
 
   it("threads the theme scope to the body for a themed note (its liveEmbeds get their own scope)", async () => {
-    // Theming is a CAPABILITY: a `themeColor` on ANY kind but `now` builds the seed and hands
+    // Theming is a CAPABILITY: a `theme.color` on ANY kind but `now` builds the seed and hands
     // it to the body, so each `liveEmbed` mounts in its own scoped container — exactly as a
     // project's do. No componentKey here → no after-prose Experience slot, prose + scoped embeds.
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "note",
         componentKey: null,
-        themeColor: "oklch(0.7 0.15 70)",
-        fontKey: "newsreader",
+        theme: { color: "oklch(0.7 0.15 70)", bodyFont: "newsreader" },
         ...withBody,
       }),
     );
@@ -213,7 +210,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       await EntryPage({ params: params("an-entry") }),
     );
     expect(screen.getByTestId("experience")).toBeInTheDocument();
-    // The scope is built even WITHOUT a themeColor (module present), and keyed on the REAL
+    // The scope is built even WITHOUT a theme.color (module present), and keyed on the REAL
     // slug — never the shared `data-entry="fallback"` that would cross-contaminate entries.
     const slot = container.querySelector("[data-entry]");
     expect(slot).toHaveAttribute("data-entry", "an-entry");
@@ -236,7 +233,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(frame.querySelector("h1")).not.toBeNull();
   });
 
-  it("never themes and never mounts a `now`, even carrying themeColor + a resolvable componentKey", async () => {
+  it("never themes and never mounts a `now`, even carrying a theme + a resolvable componentKey", async () => {
     // `now` is the ONE excluded kind — an editorial status update, never a slot. Even a doc
     // that carries BOTH capability fields renders chrome + prose: no module resolved, no scope.
     resolveComponentKeyMock.mockReturnValue(foundExperience());
@@ -244,8 +241,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       entry({
         kind: "now",
         componentKey: "color-engine",
-        themeColor: "oklch(0.7 0.15 70)",
-        fontKey: "newsreader",
+        theme: { color: "oklch(0.7 0.15 70)", bodyFont: "newsreader" },
         ...withBody,
       }),
     );
@@ -294,7 +290,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
   );
 
   it("renders a project with NO componentKey prose-only (a sketch, no module yet)", async () => {
-    // A `stage: sketch` project carries a themeColor but no coded module, so its detail page
+    // A `stage: sketch` project carries a theme.color but no coded module, so its detail page
     // renders title + blurb like a note/essay — it must NOT 404, and it mounts no after-prose
     // slot (nothing resolves the key it doesn't have).
     fetchMock.mockResolvedValueOnce(
@@ -360,8 +356,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       entry({
         kind: "project",
         componentKey: "color-engine",
-        themeColor: "oklch(0.7 0.15 70)",
-        fontKey: "newsreader",
+        theme: { color: "oklch(0.7 0.15 70)", bodyFont: "newsreader" },
         slug: "color-engine",
         related: [
           { _id: "r1", title: "A related note", slug: "related", kind: "note" },
@@ -407,8 +402,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       entry({
         kind: "project",
         componentKey: "color-engine",
-        themeColor: "oklch(0.7 0.15 70)",
-        fontKey: "newsreader",
+        theme: { color: "oklch(0.7 0.15 70)", bodyFont: "newsreader" },
         slug: "color-engine",
       }),
     );
@@ -439,7 +433,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       entry({
         kind: "note",
         componentKey: "color-engine",
-        themeColor: "oklch(0.7 0.15 70)",
+        theme: { color: "oklch(0.7 0.15 70)" },
         ...withBody,
       }),
     );
@@ -502,8 +496,8 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(resolveComponentKeyMock).not.toHaveBeenCalled();
   });
 
-  it("never throws on a hostile themeColor threaded through the REAL EntryScope, and still keys the slot on the real slug", async () => {
-    // The keystone contract at the PAGE seam: a garbage `themeColor` reaching the real
+  it("never throws on a hostile theme.color threaded through the REAL EntryScope, and still keys the slot on the real slug", async () => {
+    // The keystone contract at the PAGE seam: a garbage `theme.color` reaching the real
     // `EntryScope` → `resolveScope` → OKLCH engine must degrade to the fallback palette, never
     // throw, and the slot stays keyed on the vetted real slug (injection-safe). Uses a
     // resolvable Experience so the real EntryScope actually mounts (not the mocked EntryBody).
@@ -512,7 +506,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       entry({
         kind: "note",
         componentKey: "color-engine",
-        themeColor: 'javascript:alert(1)"]{}body{display:none}',
+        theme: { color: 'javascript:alert(1)"]{}body{display:none}' },
       }),
     );
     const { container } = render(
@@ -526,7 +520,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
 
   it("threads the theme scope to the body under a Provider frame (a themed essay's embeds are scoped even though the frame is not)", async () => {
     // A Provider-only module frames the article for shared state but introduces NO page-level
-    // scope of its own (#131). A themed essay must still hand its `themeColor` scope to the body
+    // scope of its own (#131). A themed essay must still hand its `theme.color` scope to the body
     // so each interleaved `liveEmbed` mounts in its own scoped container. Pins scope-threading on
     // the Provider path — the existing Provider test carries no body, so it never checks this.
     resolveComponentKeyMock.mockReturnValue(foundProvider());
@@ -534,8 +528,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       entry({
         kind: "essay",
         componentKey: "color-engine",
-        themeColor: "oklch(0.7 0.15 70)",
-        fontKey: "newsreader",
+        theme: { color: "oklch(0.7 0.15 70)", bodyFont: "newsreader" },
         slug: "an-essay",
         ...withBody,
       }),
@@ -553,18 +546,82 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(body).toHaveAttribute("data-scope-font", "newsreader");
   });
 
-  it("does NOT build a scope for a lone fontKey (no themeColor, no module) — a fontKey alone has no slot to apply to", async () => {
-    // CHARACTERIZATION of the current capability gate: the scope is built on `themeColor ||
-    // module` only, so a `fontKey` set WITHOUT a themeColor or a module is silently dropped —
+  it("does NOT build a scope for a lone theme.bodyFont (no theme.color, no module) — a font alone has no slot to apply to", async () => {
+    // CHARACTERIZATION of the current capability gate: the scope is built on `theme.color ||
+    // module` only, so a `theme.bodyFont` set WITHOUT a theme.color or a module is silently dropped —
     // the body gets no scope and no `[data-entry]` mounts. This is a deliberate consequence of
     // "the theme is scoped to the slot, never the prose", but it means font-only theming of a note's
-    // embeds is a NON-feature today. If that intent ever matters, the gate must add `fontKey`.
+    // embeds is a NON-feature today. If that intent ever matters, the gate must add `theme.bodyFont`.
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "note",
         componentKey: null,
-        themeColor: null,
-        fontKey: "newsreader",
+        theme: { color: null, bodyFont: "newsreader" },
+        ...withBody,
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    expect(container.querySelector("[data-entry]")).toBeNull();
+    expect(screen.getByTestId("essay-body")).toHaveAttribute(
+      "data-has-scope",
+      "no",
+    );
+  });
+
+  // ── QA additions (#249): the nullable `theme` OBJECT itself (not just null leaves) ──
+
+  it("mounts a module-only entry whose theme is NULL entirely: scope keyed on the REAL slug, empty font seed", async () => {
+    // ENTRY_DETAIL_QUERY types `theme` as `{...} | null` — a doc with no theme object at all
+    // (e.g. a module-only note) hands the page `theme: null`, not `{ color: null }`. The gate
+    // reads `entry.theme?.color` / `entry.theme?.bodyFont ?? ""`, so the scope must still build
+    // (module present), key on the real slug — never `fallback` — and seed an empty font.
+    resolveComponentKeyMock.mockReturnValue(foundExperience());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "note",
+        componentKey: "color-engine",
+        theme: null,
+        ...withBody,
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    expect(screen.getByTestId("experience")).toBeInTheDocument();
+    const slot = container.querySelector("[data-entry]");
+    expect(slot).toHaveAttribute("data-entry", "an-entry");
+    const body = screen.getByTestId("essay-body");
+    expect(body).toHaveAttribute("data-has-scope", "yes");
+    expect(body).toHaveAttribute("data-scope-font", "");
+  });
+
+  it("renders a NULL-theme, module-less entry prose-only without crashing (no scope, no slot)", async () => {
+    fetchMock.mockResolvedValueOnce(
+      entry({ kind: "essay", componentKey: null, theme: null, ...withBody }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    expect(
+      screen.getByRole("heading", { level: 1, name: /an entry/i }),
+    ).toBeInTheDocument();
+    expect(container.querySelector("[data-entry]")).toBeNull();
+    expect(screen.getByTestId("essay-body")).toHaveAttribute(
+      "data-has-scope",
+      "no",
+    );
+  });
+
+  it("treats an EMPTY-STRING theme.color as unthemed (falsy gate): no scope without a module", async () => {
+    // "" is reachable via the API (isThemeColorString("") passes); the `entry.theme?.color ||`
+    // gate must treat it as absent — no scope, no crash — mirroring the componentKey "" case.
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "note",
+        componentKey: null,
+        theme: { color: "", colorDark: null, bodyFont: "newsreader" },
         ...withBody,
       }),
     );

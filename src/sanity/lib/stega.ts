@@ -15,23 +15,21 @@ import type { StegaConfig } from "@sanity/client/stega";
  * Fields whose string values are consumed by CODE, not rendered as prose, so they
  * must never carry stega's invisible zero-width characters.
  *
- * - `themeColor` / `themeColorDark` are parsed by the OKLCH engine; stega chars
- *   break the color parse.
- * - `fontKey` / `componentKey` / `embedKey` are resolved against code by key; stega
- *   chars break the lookup (and reintroduce key-drift).
+ * - `componentKey` / `embedKey` are resolved against code by key; stega chars break the
+ *   lookup (and reintroduce key-drift).
  * - `kind` / `stage` are discriminators compared in code (`entry.kind === "project"`
  *   gates the module mount and the browse sections; `stage` feeds a `data-stage`
  *   CSS attribute selector). Stega chars make every comparison false — in Draft Mode
  *   that silently degraded a project entry to prose-only and emptied the browse
  *   sections (found via #131's mounted-draft review).
  *
+ * The entry's `theme` object is excluded by ANCESTOR instead (see below) — its leaf names
+ * (`color` / `bodyFont`) are common words that must NOT be denylisted globally.
+ *
  * Sanity's default stega denylist skips `color`/`hex`/slugs but NOT these field
  * names, so we exclude them explicitly.
  */
 export const STEGA_EXCLUDED_FIELDS = new Set([
-  "themeColor",
-  "themeColorDark",
-  "fontKey",
   "componentKey",
   "embedKey",
   "kind",
@@ -39,13 +37,15 @@ export const STEGA_EXCLUDED_FIELDS = new Set([
 ]);
 
 /**
- * The `siteSettings.pageThemes` object's per-page seeds (`home` / `browse` / `about` /
- * `now` / `system`) are theme colors parsed by the OKLCH engine (#166), so they share
- * `themeColor`'s stega hazard — but their leaf names are common words we must NOT denylist
- * globally. So they're excluded by ANCESTOR: any field nested under `pageThemes` is a
- * code-consumed seed.
+ * Ancestor objects whose every nested field is a code-consumed seed, excluded by ANCESTOR
+ * because their leaf names are common words we must NOT denylist globally:
+ *
+ * - `theme` — the entry's `{ color, colorDark, bodyFont }`: `color`/`colorDark` are parsed by the
+ *   OKLCH engine, `bodyFont` is resolved against the font roster by key; both break on stega chars.
+ * - `pageThemes` — `siteSettings`'s per-page seeds (`home` / `browse` / `about` / `now` / `system`),
+ *   theme colors parsed by the OKLCH engine (#166), sharing the same hazard.
  */
-const STEGA_EXCLUDED_ANCESTORS = new Set(["pageThemes"]);
+const STEGA_EXCLUDED_ANCESTORS = new Set(["theme", "pageThemes"]);
 
 /**
  * Where the standalone Studio lives, for Visual Editing click-to-edit deep links.

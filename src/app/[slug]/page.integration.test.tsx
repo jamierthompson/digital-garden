@@ -34,9 +34,11 @@ const THEMED_ENTRY = {
   title: "A Themed Slot",
   slug: "themed-slot",
   blurb: "A representative themed entry.",
-  themeColor: "oklch(0.7 0.15 70)",
-  themeColorDark: null,
-  fontKey: "newsreader",
+  theme: {
+    color: "oklch(0.7 0.15 70)",
+    colorDark: null,
+    bodyFont: "newsreader",
+  },
   notes: null,
 };
 
@@ -46,13 +48,13 @@ vi.mock("@/sanity/lib/client", () => ({
 }));
 
 describe("/[slug] primary flow (Sanity mocked)", () => {
-  it("drives a real scope from the doc's slug + fontKey", () => {
+  it("drives a real scope from the doc's slug + theme.bodyFont", () => {
     // EntryScope is handed { slug, fontKey }. The slug passes through `vetSlug` (sanitized
     // `[a-z0-9-]`, unique per entry) to its OWN scope — it does not collapse to `fallback` for a
-    // valid slug — and the roster resolves the requested face.
+    // valid slug — and the roster resolves the requested face from the entry's theme.
     const scope = resolveScope({
       slug: THEMED_ENTRY.slug,
-      fontKey: THEMED_ENTRY.fontKey,
+      fontKey: THEMED_ENTRY.theme.bodyFont,
     });
     expect(scope.slug).toBe("themed-slot");
     // The roster font resolved (newsreader is a real key), so its variable class is present.
@@ -63,7 +65,7 @@ describe("/[slug] primary flow (Sanity mocked)", () => {
   it("renders the slot under its data-entry scope wearing the entry's theme font", () => {
     const { container } = render(
       <EntryScope
-        seed={{ slug: THEMED_ENTRY.slug, fontKey: THEMED_ENTRY.fontKey }}
+        seed={{ slug: THEMED_ENTRY.slug, fontKey: THEMED_ENTRY.theme.bodyFont }}
       >
         <p>essay</p>
       </EntryScope>,

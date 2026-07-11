@@ -66,7 +66,7 @@ Two clients with different trust levels: the public published-content read path 
 - **The browser token is separate and minimum-scope.** `<SanityLive>` exposes `SANITY_API_BROWSER_TOKEN` to the browser EventSource for live preview, so it is a dedicated **Viewer** token, never the read token.
 - **A leaked token = permanent compromise.** Rotate immediately in [sanity.io/manage](https://sanity.io/manage); revoking is the only fix. Give every token the **narrowest scope** that works (read, specific dataset).
 - **CORS allow-list real origins only** — your prod domain and Vercel preview URLs (plus `localhost` for dev). Never wildcard-with-credentials. Configured in **Sanity → API → CORS Origins** at [sanity.io/manage](https://sanity.io/manage), not in the repo.
-- **Stega off on `themeColor`/`fontKey`:** Visual Editing's invisible stega chars break the OKLCH parse and font lookup. This is a correctness landmine, not just cosmetics — the field exclusions are single-sourced in `src/sanity/lib/stega.ts`.
+- **Stega off on the entry's `theme` object:** Visual Editing's invisible stega chars break the OKLCH parse and font lookup. This is a correctness landmine, not just cosmetics — the whole `theme` object is excluded by ancestor (alongside `componentKey`), single-sourced in `src/sanity/lib/stega.ts`.
 
 ---
 

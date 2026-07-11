@@ -109,9 +109,9 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 
 The architecture already buys most of this — don't undo it:
 
-- **Keep the featured / Index queries essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `blurb` / `themeColor` /
-  `fontKey`, never the essay. Small index payload protects **LCP**. Don't add the essay to
-  the card query "for convenience."
+- **Keep the featured / Index queries essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `blurb` /
+  `theme.color` (the card's plate seed), never the essay. Small index payload protects **LCP**. Don't
+  add the essay to the card query "for convenience."
 - **Keep the slot's `EntryScope` in the prerendered shell** (PPR via Cache Components — see the repo & hosting section of [`./architecture.md`](./architecture.md)):
   the slot's theme `<style>` + font class land in the **initial static HTML** (flash-free); the
   essay/notes stream. Don't push the slot scope into a streamed hole.
@@ -214,7 +214,7 @@ the Font-preload policy section's `<head>` check. Committed automated coverage s
    Don't claim "WCAG 3 compliant."
 5. **`outline: none` without a visible replacement fails 2.4.7** — always pair with a
    `:focus-visible` ring ≥ 3:1.
-6. **Don't expect per-entry fonts to preload** — runtime `fontKey` defeats static
+6. **Don't expect per-entry fonts to preload** — the runtime `theme.bodyFont` index defeats static
    analysis. Set `preload: false` and verify the `<head>` empirically.
 7. **Sticky nav can obscure focus** (2.4.11); **tap targets ≥ 24×24px** (2.5.8) on
    nav / cards / embed controls.

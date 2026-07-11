@@ -9,7 +9,7 @@ function entry(over: Partial<EntryCardEntry> = {}): EntryCardEntry {
     slug: "a-card",
     blurb: "A short blurb.",
     stage: "prototype",
-    themeColor: "oklch(0.7 0.15 70)",
+    theme: { color: "oklch(0.7 0.15 70)" },
     ...over,
   };
 }
@@ -52,19 +52,23 @@ describe("EntryCard", () => {
   });
 
   it("renders the mono meta readout: maturity stage · OKLCH seed", () => {
-    renderCard(entry({ stage: "shipped", themeColor: "oklch(0.6 0.2 260)" }));
+    renderCard(
+      entry({ stage: "shipped", theme: { color: "oklch(0.6 0.2 260)" } }),
+    );
     expect(
       screen.getByText("shipped · oklch(0.6 0.2 260)"),
     ).toBeInTheDocument();
   });
 
   it("shows only what it has when part of the meta is missing", () => {
-    renderCard(entry({ stage: "sketch", themeColor: null }));
+    renderCard(entry({ stage: "sketch", theme: { color: null } }));
     expect(screen.getByText("sketch")).toBeInTheDocument();
   });
 
   it("omits the meta row entirely when there is no stage or seed", () => {
-    const { container } = renderCard(entry({ stage: null, themeColor: null }));
+    const { container } = renderCard(
+      entry({ stage: null, theme: { color: null } }),
+    );
     // Title still renders; nothing left to read out.
     expect(
       screen.getByRole("heading", { level: 3, name: /a card/i }),
@@ -79,11 +83,21 @@ describe("EntryCard", () => {
     expect(style).toContain("--accent-foreground");
   });
 
-  it("survives a null / garbage themeColor via the engine fallback (never throws)", () => {
-    expect(() => renderCard(entry({ themeColor: null }))).not.toThrow();
+  it("survives a null / garbage theme.color via the engine fallback (never throws)", () => {
+    expect(() => renderCard(entry({ theme: { color: null } }))).not.toThrow();
     expect(() =>
-      renderCard(entry({ themeColor: "not-a-color" as string })),
+      renderCard(entry({ theme: { color: "not-a-color" } })),
     ).not.toThrow();
+  });
+
+  it("survives an entirely absent theme (a featured now-entry carries none)", () => {
+    // The theme object is nullable now — a featured entry with no theme at all (e.g. a `now`
+    // update promoted onto the front door) must fall back to the engine palette and omit the
+    // color from the meta readout, never crash.
+    renderCard(entry({ stage: "shipped", theme: null }));
+    expect(screen.getByText("shipped")).toBeInTheDocument();
+    const style = screen.getByRole("listitem").getAttribute("style") ?? "";
+    expect(style).toContain("--accent");
   });
 });
 
@@ -111,6 +125,51 @@ describe("EntryCard — title/slug boundaries", () => {
     expect(screen.queryByRole("link")).toBeNull();
     expect(
       screen.getByRole("heading", { level: 3, name: /a card/i }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("EntryCard — malformed theme shapes (QA #249)", () => {
+  // The type contract says `{ color: string | null } | null`, but the card renders live/draft
+  // data — a raw API write can hand it shapes the type forbids. `entry.theme?.color` +
+  // cardSwatches' totality must absorb them all: render, bake a fallback palette, never throw.
+  it("survives a theme object MISSING its color key entirely", () => {
+    renderCard(entry({ theme: {} as EntryCardEntry["theme"] }));
+    expect(
+      screen.getByRole("heading", { level: 3, name: /a card/i }),
+    ).toBeInTheDocument();
+    const style = screen.getByRole("listitem").getAttribute("style") ?? "";
+    expect(style).toContain("--accent");
+  });
+
+  it("survives a NON-STRING theme.color (number / object) via the engine fallback", () => {
+    expect(() =>
+      renderCard(
+        entry({ theme: { color: 123 } as unknown as EntryCardEntry["theme"] }),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      renderCard(
+        entry({
+          theme: {
+            color: { seed: "#fff" },
+          } as unknown as EntryCardEntry["theme"],
+        }),
+      ),
+    ).not.toThrow();
+  });
+
+  it("keeps a hostile theme.color string inert in the mono readout (rendered as text, palette falls back)", () => {
+    renderCard(
+      entry({
+        stage: "shipped",
+        theme: { color: '"><img src=x onerror=alert(1)>' },
+      }),
+    );
+    // React escapes by construction — assert the value surfaced as TEXT, not markup.
+    expect(document.querySelector("img[src='x']")).toBeNull();
+    expect(
+      screen.getByText(/shipped · "><img src=x onerror=alert\(1\)>/),
     ).toBeInTheDocument();
   });
 });

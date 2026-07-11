@@ -11,8 +11,8 @@ import {isThemeColorString} from '../shared/colorValidation'
  *   • Per-page theme seeds — `pageThemes`, one authored theme color per site-owned page
  *     (`/`, `/browse`, `/about`, `/now`, `/system`). Under the site-wide engine-theming model
  *     (#166), every page derives its theme from an authored OKLCH seed: an `entry` seeds from
- *     its own `themeColor`, and these site-owned pages — which have no backing `entry` — seed
- *     from here. A `now`-kind entry has no `themeColor` of its own and inherits the `/now` seed
+ *     its own `theme.color`, and these site-owned pages — which have no backing `entry` — seed
+ *     from here. A `now`-kind entry has no `theme.color` of its own and inherits the `/now` seed
  *     (`pageThemes.now`), resolved in `ENTRY_DETAIL_QUERY`. Dark mode is auto-derived by the
  *     engine, so there is no per-page dark override.
  *

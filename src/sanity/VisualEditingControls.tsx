@@ -10,8 +10,8 @@ import { VisualEditing } from "next-sanity/visual-editing";
  * - `<VisualEditing />` (next-sanity) — the click-to-edit overlay that reads the
  *   stega-encoded source map the draft client emits and deep-links each editable
  *   string back to the Studio. Click-to-edit is scoped at the data
- *   layer: `themeColor`/`fontKey`/etc. are stega-excluded in `client.ts`, so the
- *   overlay only targets prose/caption fields, never the code-consumed ones.
+ *   layer: the entry's `theme` object / `componentKey` / etc. are stega-excluded in
+ *   `stega.ts`, so the overlay only targets prose/caption fields, never the code-consumed ones.
  * - an "Exit preview" link to the disable route, with `prefetch={false}` so a
  *   prefetch can't silently delete the bypass cookie (per the bundled draft-mode
  *   doc, node_modules/next/dist/docs/.../04-functions/draft-mode.md).

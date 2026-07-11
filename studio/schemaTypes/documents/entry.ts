@@ -12,22 +12,24 @@ import {forbiddenForNow, requiredForNonSketchProject, requiredForThemedKind} fro
  * drives the Index's type filter and the on-card label; the kinds differ by scope and
  * emphasis, not fields. See docs/architecture.md → Content model.
  *
- * Theming seeds (`themeColor` / `fontKey` / `componentKey`) are reference-by-key values
- * consumed by code, NOT prose — see the stega exclusions in src/sanity/lib/client.ts. They
- * are CAPABILITY fields: the route themes / mounts a module on their PRESENCE, for any kind
- * except `now`. The required rules below are only a floor: under the site-wide engine-theming
- * model (#166) every page derives its theme from an authored seed, so `themeColor` is required
- * for every THEMED kind — note, essay, AND project (any stage: the project card plate consumes
- * it even for a sketch, and a note/essay page themes from it too). `fontKey` / `componentKey`
- * name a coded module + its face, so they stay required only for a `project` PAST the sketch
- * stage — a `stage: sketch` project is an honest placeholder with no module yet, so it carries a
- * themeColor but no fontKey/componentKey. `fontKey` / `componentKey` remain OPTIONAL-but-honored
- * for a note/essay (one that sets `componentKey` mounts that module). `now` is chrome + prose by
- * design — it CANNOT set a `themeColor` (the single `/now` page seed themes all `now` content: the
- * `/now` index and every `now` entry, resolved in ENTRY_DETAIL_QUERY); `forbiddenForNow` rejects a
- * color on a `now`, and any other theming field it carries is ignored downstream.
+ * An entry carries ONE first-class `theme` object — `{ color, colorDark, bodyFont }` — a
+ * named, reference-by-key thing consumed by code, NOT prose (see the stega exclusions in
+ * src/sanity/lib/stega.ts, which exclude the whole object by ancestor). `color` dresses the
+ * page chrome and every interactive slot; `bodyFont` names the roster face the slot's type
+ * wears; `colorDark` is an optional hand-tuned dark override. The required rules below are a
+ * floor: under the site-wide engine-theming model (#166) every page derives its theme from an
+ * authored seed, so `theme.color` is required for every THEMED kind — note, essay, AND project
+ * (any stage: the project card plate consumes it even for a sketch, and a note/essay page themes
+ * from it too). `theme.bodyFont` names a coded module's face, so it stays required only for a
+ * `project` PAST the sketch stage — a `stage: sketch` project is an honest placeholder with no
+ * module yet, so it carries a color but no bodyFont — and is OPTIONAL-but-honored for a
+ * note/essay. `componentKey` is SEPARATE from the theme (it MOUNTS a module; it is not part of the
+ * theme the module reads), so it stays a top-level field. `now` is chrome + prose by design — its
+ * whole `theme` object is hidden and it CANNOT set a color (the single `/now` page seed themes all
+ * `now` content: the `/now` index and every `now` entry, resolved in ENTRY_DETAIL_QUERY);
+ * `forbiddenForNow` rejects a color on a `now`.
  *
- * NOTE: `componentKey` / `fontKey` are plain string fields here on purpose — the
+ * NOTE: `theme.bodyFont` and `componentKey` are plain string fields here on purpose — the
  * standalone Studio bundle must not import app code (keys.ts / next/font / lazy project
  * bundles).
  */
@@ -127,41 +129,45 @@ export const entry = defineType({
           .error('Blurb exceeds the 300-character hard cap — the card layout cannot absorb the overflow.'),
     }),
 
-    // Theming seeds: reference-by-key, consumed by code, stega-excluded. themeColor is required
-    // for every themed kind — note, essay, and project (the page/card derives its theme from it);
-    // fontKey / componentKey name a coded module + face, so they are required only PAST the sketch
-    // stage. A `now` update carries none and inherits the /now page seed.
+    // The entry's theme: one first-class object, reference-by-key, consumed by code, stega-
+    // excluded by ancestor. `color` is required for every themed kind (the page/card derives its
+    // theme from it); `bodyFont` names a coded module's face, required only PAST the sketch stage.
+    // The whole object is hidden for a `now` update, which inherits the /now page seed instead.
     defineField({
-      name: 'themeColor',
-      title: 'Theme color',
-      type: 'string',
-      description:
-        'Hex or oklch() accent that themes this entry’s page and interactive component. Required for every note, essay, and project. (A “now” update inherits the /now page seed and cannot set its own color.)',
-      // Hidden for a `now` update, mirroring `stage`: a `now` cannot carry a color (it inherits the
-      // /now page seed), so the field is both HIDDEN in the Studio and REJECTED by `forbiddenForNow`
-      // — hiding is UX, the validator is the belt that guards the API/import path.
+      name: 'theme',
+      title: 'Theme',
+      type: 'object',
+      // Hidden for a `now` update, mirroring `stage`: a `now` inherits the /now page seed, so it
+      // has no theme of its own to author. Hiding is UX; `forbiddenForNow` on `color`/`colorDark`
+      // is the belt that guards the API/import path.
       hidden: ({document}) => document?.kind === 'now',
-      validation: (rule) =>
-        rule.custom(requiredForThemedKind).custom(forbiddenForNow).custom(isThemeColorString),
-    }),
-    defineField({
-      name: 'themeColorDark',
-      title: 'Theme color (dark override)',
-      type: 'string',
-      description:
-        'Optional dark-mode override. Leave empty to derive it automatically from the theme color.',
-      // Hidden AND rejected for `now` alongside its paired `themeColor` — a dark override with no
-      // base color to override makes no sense on a kind that inherits the /now seed.
-      hidden: ({document}) => document?.kind === 'now',
-      validation: (rule) => rule.custom(forbiddenForNow).custom(isThemeColorString),
-    }),
-    defineField({
-      name: 'fontKey',
-      title: 'Font key',
-      type: 'string',
-      description:
-        'Name of the roster font for this entry’s component — ask a developer for the valid keys. Required for a project past the sketch stage.',
-      validation: (rule) => rule.custom(requiredForNonSketchProject),
+      fields: [
+        defineField({
+          name: 'color',
+          title: 'Theme color',
+          type: 'string',
+          description:
+            'Hex or oklch() accent that dresses this entry’s page chrome and every interactive slot. Required for every note, essay, and project.',
+          validation: (rule) =>
+            rule.custom(requiredForThemedKind).custom(forbiddenForNow).custom(isThemeColorString),
+        }),
+        defineField({
+          name: 'colorDark',
+          title: 'Theme color (dark override)',
+          type: 'string',
+          description:
+            'Optional dark-mode override. Leave empty to derive it automatically from the theme color.',
+          validation: (rule) => rule.custom(forbiddenForNow).custom(isThemeColorString),
+        }),
+        defineField({
+          name: 'bodyFont',
+          title: 'Body font key',
+          type: 'string',
+          description:
+            'Name of the roster font this entry’s slot wears — ask a developer for the valid keys. Required for a project past the sketch stage.',
+          validation: (rule) => rule.custom(requiredForNonSketchProject),
+        }),
+      ],
     }),
     defineField({
       name: 'componentKey',

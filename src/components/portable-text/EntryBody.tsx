@@ -17,7 +17,7 @@ interface EntryBodyProps {
   value: Body;
   /**
    * The host entry's font-scope seed — set whenever a non-`now` entry themes OR mounts a
-   * module (`themeColor || componentKey`), not just for a project. Keyed on the entry's own
+   * module (`theme.color || componentKey`), not just for a project. Keyed on the entry's own
    * slug, so a module-only entry still scopes its embeds under its own `[data-entry]`. Threaded
    * to each `liveEmbed` so every embed mounts in its own container wearing the entry's theme
    * font while the prose between them keeps the editorial body face (color comes from the page's

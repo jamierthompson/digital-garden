@@ -16,7 +16,7 @@ interface EmbedBlockProps {
   caption?: string;
   /**
    * The host entry's font-scope seed. Present whenever a non-`now` entry themes OR mounts a
-   * module (`themeColor || componentKey`, not just a project): each embed then mounts inside its
+   * module (`theme.color || componentKey`, not just a project): each embed then mounts inside its
    * OWN `EntryScope` container, so it wears the entry's theme font while the prose around it
    * keeps the editorial body face. Color is inherited from the page's `<html>` theme, so this
    * seed carries only the slug + `fontKey`. A module-only entry (no `fontKey`) still gets a seed

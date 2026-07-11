@@ -5,9 +5,9 @@ import ThemeReapplier from "./ThemeReapplier";
 
 interface PageThemeProps {
   /**
-   * The page's authored theme seed (a `themeColor` from Sanity, or the `/color-engine` play
-   * seed). Untrusted — the engine collapses an unparseable seed to a safe fallback, so this
-   * never throws.
+   * The page's authored theme seed (an entry's `theme.color`, a `pageThemes` page seed, or the
+   * `/color-engine` play seed). Untrusted — the engine collapses an unparseable seed to a safe
+   * fallback, so this never throws.
    */
   seed: unknown;
 }
