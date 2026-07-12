@@ -1,10 +1,10 @@
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 
-import styles from "./ColorEngineExperience.module.css";
+import styles from "./ColorEngine.module.css";
 
 /**
- * The Color Engine entry's interactive surface, shared by its `Experience` slot and every
+ * The Color Engine entry's interactive surface, shared by its after-prose `Slot` and every
  * `liveEmbed` slot (`slots/*`). It takes no props — it ignores `slug` and embed context.
  *
  * Standing in for the module while it's rebuilt, it renders a small TYPE SPECIMEN through the
@@ -12,7 +12,7 @@ import styles from "./ColorEngineExperience.module.css";
  * to `--font-heading`/`--font-body`/`--font-mono`, so the entry's three authored faces (which the
  * enclosing `[data-entry]` scope re-binds) all show through with no bespoke font-family here.
  */
-export default function ColorEngineExperience(): React.ReactElement {
+export default function ColorEngine(): React.ReactElement {
   return (
     <div className={styles.specimen}>
       <Text variant="label" className={styles.muted}>

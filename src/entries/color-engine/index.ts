@@ -4,10 +4,10 @@
 
 import type { EntryModule } from "@/entries/types";
 
-import ColorEngineExperience from "./ColorEngineExperience";
+import ColorEngine from "./ColorEngine";
 
 const colorEngine: EntryModule = {
-  Slot: ColorEngineExperience,
+  Slot: ColorEngine,
 };
 
 export default colorEngine;
