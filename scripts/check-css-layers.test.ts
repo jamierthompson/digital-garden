@@ -144,6 +144,86 @@ describe("check-css-layers.mjs — global sheets", () => {
   });
 });
 
+// QA (adversarial, #254): prove the two-name enforcement holds against every form a stray
+// layer name can arrive in — statement lists, nested blocks, casing — and pin the anonymous
+// exemption. These lock the collapse against a silent regression to three names.
+describe("check-css-layers.mjs — @layer name enforcement edges (QA #254)", () => {
+  it("FAILS a multi-name statement that mixes an allowed name with a stray (`@layer base, legacy;`)", () => {
+    // The stray must be caught even when a valid name sits beside it in the same statement —
+    // otherwise a retired name re-enters the order statement unnoticed.
+    const { status, stderr } = run({
+      "globals.css": [
+        "@layer base, legacy;",
+        "",
+        "@layer base { .a { color: red; } }",
+        "",
+      ].join("\n"),
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/name outside \{base, components\}/);
+    expect(stderr).toMatch(/@layer "legacy"/);
+  });
+
+  it("FAILS a stray name on the INNER of a nested `@layer` block", () => {
+    const { status, stderr } = run({
+      "globals.css": [
+        "@layer base {",
+        "  @layer legacy {",
+        "    .a { color: red; }",
+        "  }",
+        "}",
+        "",
+      ].join("\n"),
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/@layer "legacy"/);
+  });
+
+  it("FAILS a case-mismatched name (`@layer Base`) — CSS layer names are case-sensitive", () => {
+    const { status, stderr } = run({
+      "globals.css": "@layer Base { .a { color: red; } }\n",
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/@layer "Base"/);
+  });
+
+  it("PASSES an anonymous layer block (`@layer { … }`) — empty params are a valid, exempt form", () => {
+    const { status, stdout } = run({
+      "globals.css": "@layer { .a { color: red; } }\n",
+    });
+    expect(status).toBe(0);
+    expect(stdout).toMatch(/all rules .* are layered/);
+  });
+
+  it("FAILS each retired cascade-layer name individually (foundation/semantic/brand/project)", () => {
+    for (const name of ["foundation", "semantic", "brand", "project"]) {
+      const { status, stderr } = run({
+        "globals.css": `@layer ${name} { .a { color: red; } }\n`,
+      });
+      expect(status, `retired name "${name}" slipped past the guard`).toBe(1);
+      expect(stderr).toMatch(new RegExp(`@layer "${name}"`));
+    }
+  });
+
+  it("DEFECT: a retired name reintroduced via `@import … layer(name)` is NOT caught", () => {
+    // `@import "x.css" layer(foundation);` is the spec'd way to assign an imported sheet to a
+    // cascade layer (CSS Cascading & Inheritance L5). The guard only walks `@layer` at-rules,
+    // so the layer NAME carried on an `@import`'s `layer()` function slips through — a retired
+    // name can re-enter the cascade this way with no gate failure. This assertion encodes the
+    // EXPECTED behavior (catch it) and currently FAILS, proving the enforcement gap. The repo
+    // imports CSS via JS side-effects today, so this is defense-in-depth, not an active break —
+    // but the guard's stated contract ("enforce the exact two names") does not hold for this form.
+    const { status } = run({
+      "globals.css": [
+        '@import "x.css" layer(foundation);',
+        "@layer base { .a { color: red; } }",
+        "",
+      ].join("\n"),
+    });
+    expect(status).toBe(1);
+  });
+});
+
 describe("check-css-layers.mjs — @media / @supports nesting", () => {
   it("PASSES a rule nested in @media that is itself inside @layer", () => {
     const { status } = run({

@@ -5,9 +5,9 @@
 // default; either way an unlayered rule silently outranks every @layer style
 // regardless of specificity (the "@layer trap"). Wrap rules in the appropriate @layer
 // (base | components): global sheets (reset + token tiers) are `base`, CSS Modules are
-// `components`. `@layer` statements/blocks, `@import`, and `@media`/`@supports` wrapping
-// layered rules are all fine — only a bare top-level style rule, or a stray layer name, is a
-// violation.
+// `components`. `@layer` statements/blocks and `@media`/`@supports` wrapping layered rules are
+// all fine — only a bare top-level style rule, or a stray layer name (in an `@layer` at-rule OR
+// an `@import … layer(<name>)`), is a violation.
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -66,6 +66,15 @@ for (const file of findCss(SRC)) {
       if (name && !ALLOWED_LAYERS.has(name)) {
         badNames.push(`${at(layer)}  @layer "${name}"`);
       }
+    }
+  });
+  // A layer name can also enter the cascade via `@import "x.css" layer(<name>);` (CSS Cascade L5) —
+  // a form `@layer` walking alone misses. Catch a named `layer(...)`; the anonymous `layer` keyword
+  // (no parens) is exempt, like an anonymous `@layer { … }`.
+  root.walkAtRules("import", (imp) => {
+    const name = imp.params.match(/\blayer\(([^)]*)\)/)?.[1].trim();
+    if (name && !ALLOWED_LAYERS.has(name)) {
+      badNames.push(`${at(imp)}  @import layer("${name}")`);
     }
   });
 }
