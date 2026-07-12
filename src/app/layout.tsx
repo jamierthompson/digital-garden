@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
 // LOAD-BEARING IMPORT ORDER — do not reorder, and do not enable an import-sorter.
-// layers.css declares `@layer foundation, semantic, components;` and MUST be the first side-effect
+// layers.css declares `@layer base, components;` and MUST be the first side-effect
 // import; every style sheet MUST precede `next/font` and the component imports. Turbopack anchors
 // the route's FIRST emitted stylesheet to whatever is imported first; if a `next/font`/component
-// chunk lands first it registers `@layer components` as the LOWEST layer, so the foundation reset
+// chunk lands first it registers `@layer components` as the LOWEST layer, so the base reset
 // out-ranks every component rule and zeroes their padding/margin. Pinned by layout.test.ts.
 import "../styles/layers.css";
 import "../styles/reset.css";
@@ -24,9 +24,9 @@ import "../styles/semantic/color.css";
 // so they sit safely after the global sheets.
 import { Geist_Mono, Source_Serif_4 } from "next/font/google";
 
-import SiteNav from "@/components/shell/SiteNav";
-import SiteFooter from "@/components/shell/SiteFooter";
-import SkipLink from "@/components/shell/SkipLink";
+import SiteNav from "@/components/page-chrome/SiteNav";
+import SiteFooter from "@/components/page-chrome/SiteFooter";
+import SkipLink from "@/components/page-chrome/SkipLink";
 import { FONT_FACES } from "@/fonts/roster";
 import { SCHEME_INIT_SCRIPT } from "@/lib/scheme";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";

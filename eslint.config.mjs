@@ -59,7 +59,7 @@ const eslintConfig = defineConfig([
           capture: ["slug"],
         },
         // The resolver registries are the ONLY sanctioned shared→entry importers:
-        // the contract mandates that a `componentKey` / `embedKey` resolves to a literal
+        // the contract mandates that a `componentKey` / `slotKey` resolves to a literal
         // `() => import("@/entries/…")` right there. Modeling the registries as their
         // own element — matched before the `shared` catch-all, since first match wins —
         // lets them import `entry` modules while the `shared`→`entry` ban below still
@@ -68,7 +68,7 @@ const eslintConfig = defineConfig([
         {
           type: "registry",
           mode: "file",
-          pattern: "src/lib/resolvers/{components,embeds}.ts",
+          pattern: "src/lib/resolvers/{components,slots}.ts",
         },
         { type: "shared", mode: "file", pattern: "src/**/*" },
       ],

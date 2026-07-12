@@ -1,7 +1,7 @@
-/* Layered so it can't out-rank the semantic/components tiers (the "@layer trap"): an unlayered
+/* Layered as `base` so it can't out-rank the component modules (the "@layer trap"): an unlayered
    create-next-app body rule was flipping the editorial look on soft nav. Body reads the semantic
    tokens, inherited everywhere. */
-@layer foundation {
+@layer base {
   *,
   *::before,
   *::after {

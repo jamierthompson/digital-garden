@@ -39,12 +39,12 @@ describe("check-key-drift.mjs — drift detection (fixtures)", () => {
   const dirs: string[] = [];
 
   // Build a throwaway tree: scripts/<script>, src/lib/keys.ts, src/fonts/roster.ts,
-  // src/lib/resolvers/{components,embeds}.ts — overriding only what each case needs.
+  // src/lib/resolvers/{components,slots}.ts — overriding only what each case needs.
   function fixture(overrides: {
     keys?: string;
     roster?: string;
     components?: string;
-    embeds?: string;
+    slots?: string;
   }): string {
     const base = mkdtempSync(join(tmpdir(), "key-drift-"));
     dirs.push(base);
@@ -63,7 +63,7 @@ describe("check-key-drift.mjs — drift detection (fixtures)", () => {
       overrides.keys ??
         `export const FONT_KEYS = ["inter"] as const;
          export const COMPONENT_KEYS = [] as const;
-         export const EMBED_KEYS = [] as const;`,
+         export const SLOT_KEYS = [] as const;`,
     );
     write(
       "src/fonts/roster.ts",
@@ -76,9 +76,9 @@ describe("check-key-drift.mjs — drift detection (fixtures)", () => {
         `const ENTRY_LOADERS = {} satisfies Record<ComponentKey, EntryLoader>;`,
     );
     write(
-      "src/lib/resolvers/embeds.ts",
-      overrides.embeds ??
-        `const EMBED_LOADERS = {} satisfies Record<EmbedKey, EmbedLoader>;`,
+      "src/lib/resolvers/slots.ts",
+      overrides.slots ??
+        `const SLOT_LOADERS = {} satisfies Record<SlotKey, SlotLoader>;`,
     );
 
     return join(base, "scripts/check-key-drift.mjs");
@@ -97,7 +97,7 @@ describe("check-key-drift.mjs — drift detection (fixtures)", () => {
     const script = fixture({
       keys: `export const FONT_KEYS = ["Inter"] as const;
              export const COMPONENT_KEYS = [] as const;
-             export const EMBED_KEYS = [] as const;`,
+             export const SLOT_KEYS = [] as const;`,
     });
     const { status, stderr } = run(script);
     expect(status).toBe(1);
@@ -108,7 +108,7 @@ describe("check-key-drift.mjs — drift detection (fixtures)", () => {
     const script = fixture({
       keys: `export const FONT_KEYS = ["inter", "inter"] as const;
              export const COMPONENT_KEYS = [] as const;
-             export const EMBED_KEYS = [] as const;`,
+             export const SLOT_KEYS = [] as const;`,
     });
     const { status, stderr } = run(script);
     expect(status).toBe(1);
@@ -119,7 +119,7 @@ describe("check-key-drift.mjs — drift detection (fixtures)", () => {
     const script = fixture({
       keys: `export const FONT_KEYS = ["shared"] as const;
              export const COMPONENT_KEYS = ["shared"] as const;
-             export const EMBED_KEYS = [] as const;`,
+             export const SLOT_KEYS = [] as const;`,
     });
     const { status, stderr } = run(script);
     expect(status).toBe(1);
@@ -144,6 +144,28 @@ describe("check-key-drift.mjs — drift detection (fixtures)", () => {
       // closing brace) once defeated the line-anchored pattern. Comment-stripping
       // must remove it so the real (now-absent) annotation can't false-pass.
       roster: `export const FONT_FACES = {}; /* TODO restore: } satisfies Record<FontKey, FontFace> */`,
+    });
+    const { status, stderr } = run(script);
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/missing its compile-time guard/);
+  });
+
+  it("fails when the SLOT_LOADERS registry drops its `satisfies Record<SlotKey, …>` guard (#250 rename)", () => {
+    // The rename repointed this guard from embeds.ts/EmbedKey to slots.ts/SlotKey —
+    // mutation-proof that the repointed pattern still bites on the file it now watches.
+    const script = fixture({
+      slots: `const SLOT_LOADERS = {};`,
+    });
+    const { status, stderr } = run(script);
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/SLOT_LOADERS must stay/);
+  });
+
+  it("fails when the slots guard still carries the RETIRED EmbedKey type name (a half-rename)", () => {
+    // A `satisfies Record<EmbedKey, …>` survivor would satisfy a lazier pattern; the
+    // guard requires the NEW type name, so a half-renamed registry is caught.
+    const script = fixture({
+      slots: `const SLOT_LOADERS = {} satisfies Record<EmbedKey, SlotLoader>;`,
     });
     const { status, stderr } = run(script);
     expect(status).toBe(1);

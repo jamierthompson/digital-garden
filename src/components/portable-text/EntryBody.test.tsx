@@ -1,5 +1,5 @@
-// QA #131 — EntryBody threads the host entry's theme-scope seed to EVERY liveEmbed
-// while the prose blocks stay plain editorial markup. EmbedBlock (an async RSC) is
+// QA #131 — EntryBody threads the host entry's theme-scope seed to EVERY slot
+// while the prose blocks stay plain editorial markup. SlotBlock (an async RSC) is
 // mocked at the module seam so the serializer's prop threading is what's under test.
 
 import { render, screen } from "@testing-library/react";
@@ -9,18 +9,18 @@ import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 
 import EntryBody from "./EntryBody";
 
-interface CapturedEmbedProps {
-  embedKey?: string;
+interface CapturedSlotProps {
+  slotKey?: string;
   caption?: string;
   scope?: ScopeSeed;
 }
 
-const captured: CapturedEmbedProps[] = [];
+const captured: CapturedSlotProps[] = [];
 
-vi.mock("./EmbedBlock", () => ({
-  default: (props: CapturedEmbedProps) => {
+vi.mock("./SlotBlock", () => ({
+  default: (props: CapturedSlotProps) => {
     captured.push(props);
-    return <div data-testid="embed" data-embed-key={props.embedKey} />;
+    return <div data-testid="slot" data-slot-key={props.slotKey} />;
   },
 }));
 
@@ -37,15 +37,15 @@ const BODY = [
     ],
   },
   {
-    _type: "liveEmbed",
+    _type: "slot",
     _key: "e1",
-    embedKey: "color-engine-seed",
+    slotKey: "color-engine-seed",
     caption: "seed caption",
   },
   {
-    _type: "liveEmbed",
+    _type: "slot",
     _key: "e2",
-    embedKey: "color-engine-tokens",
+    slotKey: "color-engine-tokens",
   },
 ] as unknown as Body;
 
@@ -55,11 +55,11 @@ const SCOPE: ScopeSeed = {
 };
 
 describe("EntryBody", () => {
-  it("threads the scope seed to every liveEmbed in the body", () => {
+  it("threads the scope seed to every slot in the body", () => {
     captured.length = 0;
     render(<EntryBody value={BODY} scope={SCOPE} />);
-    expect(screen.getAllByTestId("embed")).toHaveLength(2);
-    expect(captured.map((p) => p.embedKey)).toEqual([
+    expect(screen.getAllByTestId("slot")).toHaveLength(2);
+    expect(captured.map((p) => p.slotKey)).toEqual([
       "color-engine-seed",
       "color-engine-tokens",
     ]);
@@ -71,7 +71,7 @@ describe("EntryBody", () => {
     expect(captured[1]?.caption).toBeUndefined();
   });
 
-  it("leaves embeds unscoped for a non-project entry (no scope prop)", () => {
+  it("leaves slots unscoped for a non-project entry (no scope prop)", () => {
     captured.length = 0;
     render(<EntryBody value={BODY} />);
     for (const props of captured) {
@@ -79,9 +79,46 @@ describe("EntryBody", () => {
     }
   });
 
-  it("renders the prose blocks as plain paragraphs alongside the embeds", () => {
+  it("renders the prose blocks as plain paragraphs alongside the slots", () => {
     render(<EntryBody value={BODY} scope={SCOPE} />);
     const p = screen.getByText("Editorial prose.");
     expect(p.closest("p")).not.toBeNull();
+  });
+
+  // Content can drift from code: a published body may carry a block whose `_type` the serializer
+  // doesn't handle — a type removed from code, or authored ahead of a code change. The serializer
+  // must degrade: render the rest of the essay, never crash on the unknown type, and never
+  // misroute it into a slot.
+  describe("an unknown block type (content drifted from code)", () => {
+    const DRIFTED_BODY = [
+      {
+        _type: "block",
+        _key: "b1",
+        style: "normal",
+        markDefs: [],
+        children: [
+          { _type: "span", _key: "s1", text: "Editorial prose.", marks: [] },
+        ],
+      },
+      {
+        _type: "unknownBlock",
+        _key: "u1",
+      },
+    ] as unknown as Body;
+
+    it("does not throw on an unknown block type and keeps rendering the prose", () => {
+      captured.length = 0;
+      expect(() =>
+        render(<EntryBody value={DRIFTED_BODY} scope={SCOPE} />),
+      ).not.toThrow();
+      expect(screen.getByText("Editorial prose.")).toBeInTheDocument();
+    });
+
+    it("never routes an unknown block type into SlotBlock", () => {
+      captured.length = 0;
+      render(<EntryBody value={DRIFTED_BODY} scope={SCOPE} />);
+      expect(captured).toHaveLength(0);
+      expect(screen.queryByTestId("slot")).toBeNull();
+    });
   });
 });

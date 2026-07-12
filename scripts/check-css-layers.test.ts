@@ -89,12 +89,12 @@ describe("check-css-layers.mjs — global sheets", () => {
     expect(stderr).toMatch(/globals\.css:1\s+"\.foo"/);
   });
 
-  it("PASSES a correctly layered global sheet (mirrors foundation.css)", () => {
+  it("PASSES a correctly layered global sheet (mirrors the base token sheets)", () => {
     const { status, stdout } = run({
       "foundation.css": [
-        "@layer foundation, semantic, brand, components;",
+        "@layer base, components;",
         "",
-        "@layer foundation {",
+        "@layer base {",
         "  :root {",
         "    --space-1: 0.25rem;",
         "  }",
@@ -106,12 +106,12 @@ describe("check-css-layers.mjs — global sheets", () => {
     expect(stdout).toMatch(/all rules .* are layered/);
   });
 
-  it("PASSES the bare `@layer a, b, c;` statement form (no block) alongside a layered rule", () => {
+  it("PASSES the bare `@layer base, components;` statement form (no block) alongside a layered rule", () => {
     const { status, stdout } = run({
       "globals.css": [
-        "@layer foundation, semantic, brand, components;",
+        "@layer base, components;",
         "",
-        "@layer foundation {",
+        "@layer base {",
         "  .foo { color: red; }",
         "}",
         "",
@@ -119,6 +119,20 @@ describe("check-css-layers.mjs — global sheets", () => {
     });
     expect(status).toBe(0);
     expect(stdout).toMatch(/all rules .* are layered/);
+  });
+
+  it("FAILS a global sheet whose @layer name is outside {base, components}", () => {
+    const { status, stderr } = run({
+      "globals.css": [
+        "@layer legacy {",
+        "  .foo { color: red; }",
+        "}",
+        "",
+      ].join("\n"),
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/name outside \{base, components\}/);
+    expect(stderr).toMatch(/globals\.css:1\s+@layer "legacy"/);
   });
 
   it("FAILS a bare top-level `:root` block (not just class selectors)", () => {
@@ -130,11 +144,89 @@ describe("check-css-layers.mjs — global sheets", () => {
   });
 });
 
+// QA (adversarial, #254): prove the two-name enforcement holds against every form a stray
+// layer name can arrive in — statement lists, nested blocks, casing — and pin the anonymous
+// exemption. These lock the collapse against a silent regression to three names.
+describe("check-css-layers.mjs — @layer name enforcement edges (QA #254)", () => {
+  it("FAILS a multi-name statement that mixes an allowed name with a stray (`@layer base, legacy;`)", () => {
+    // The stray must be caught even when a valid name sits beside it in the same statement —
+    // otherwise a retired name re-enters the order statement unnoticed.
+    const { status, stderr } = run({
+      "globals.css": [
+        "@layer base, legacy;",
+        "",
+        "@layer base { .a { color: red; } }",
+        "",
+      ].join("\n"),
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/name outside \{base, components\}/);
+    expect(stderr).toMatch(/@layer "legacy"/);
+  });
+
+  it("FAILS a stray name on the INNER of a nested `@layer` block", () => {
+    const { status, stderr } = run({
+      "globals.css": [
+        "@layer base {",
+        "  @layer legacy {",
+        "    .a { color: red; }",
+        "  }",
+        "}",
+        "",
+      ].join("\n"),
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/@layer "legacy"/);
+  });
+
+  it("FAILS a case-mismatched name (`@layer Base`) — CSS layer names are case-sensitive", () => {
+    const { status, stderr } = run({
+      "globals.css": "@layer Base { .a { color: red; } }\n",
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/@layer "Base"/);
+  });
+
+  it("PASSES an anonymous layer block (`@layer { … }`) — empty params are a valid, exempt form", () => {
+    const { status, stdout } = run({
+      "globals.css": "@layer { .a { color: red; } }\n",
+    });
+    expect(status).toBe(0);
+    expect(stdout).toMatch(/all rules .* are layered/);
+  });
+
+  it("FAILS each retired cascade-layer name individually (foundation/semantic/brand/project)", () => {
+    for (const name of ["foundation", "semantic", "brand", "project"]) {
+      const { status, stderr } = run({
+        "globals.css": `@layer ${name} { .a { color: red; } }\n`,
+      });
+      expect(status, `retired name "${name}" slipped past the guard`).toBe(1);
+      expect(stderr).toMatch(new RegExp(`@layer "${name}"`));
+    }
+  });
+
+  it("flags a retired layer name carried on `@import … layer(name)`", () => {
+    // `@import "x.css" layer(foundation);` assigns an imported sheet to a cascade layer (CSS
+    // Cascading & Inheritance L5) — a second route by which a retired name can re-enter the
+    // cascade, besides an `@layer` at-rule. The guard walks `@import`'s `layer()` function too,
+    // so this form is caught. Defense-in-depth: the repo imports CSS via JS side-effects today,
+    // not `@import`, but the guard's contract ("enforce the exact two names") holds for every form.
+    const { status } = run({
+      "globals.css": [
+        '@import "x.css" layer(foundation);',
+        "@layer base { .a { color: red; } }",
+        "",
+      ].join("\n"),
+    });
+    expect(status).toBe(1);
+  });
+});
+
 describe("check-css-layers.mjs — @media / @supports nesting", () => {
   it("PASSES a rule nested in @media that is itself inside @layer", () => {
     const { status } = run({
       "globals.css": [
-        "@layer foundation {",
+        "@layer base {",
         "  @media (min-width: 100px) {",
         "    .bar { color: blue; }",
         "  }",
@@ -177,7 +269,7 @@ describe("check-css-layers.mjs — @media / @supports nesting", () => {
   it("PASSES a rule nested in @supports that is itself inside @layer", () => {
     const { status } = run({
       "globals.css": [
-        "@layer foundation {",
+        "@layer base {",
         "  @supports (display: grid) {",
         "    .foo { display: grid; }",
         "  }",

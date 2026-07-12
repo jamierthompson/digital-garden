@@ -15,7 +15,7 @@ import type { StegaConfig } from "@sanity/client/stega";
  * Fields whose string values are consumed by CODE, not rendered as prose, so they
  * must never carry stega's invisible zero-width characters.
  *
- * - `componentKey` / `embedKey` are resolved against code by key; stega chars break the
+ * - `componentKey` / `slotKey` are resolved against code by key; stega chars break the
  *   lookup (and reintroduce key-drift).
  * - `kind` / `stage` are discriminators compared in code (`entry.kind === "project"`
  *   gates the module mount and the browse sections; `stage` feeds a `data-stage`
@@ -32,7 +32,7 @@ import type { StegaConfig } from "@sanity/client/stega";
  */
 export const STEGA_EXCLUDED_FIELDS = new Set([
   "componentKey",
-  "embedKey",
+  "slotKey",
   "kind",
   "stage",
 ]);

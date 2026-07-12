@@ -4,7 +4,7 @@
    owns the wide frame (width/centering/gutter) and the `<main>` landmark — `.module` is merged
    onto it and carries only the entry's editorial defaults + the breakout grid rules below. Breakout
    layout: the frame runs wide, the prose keeps its reading measure via the article grid's named
-   [prose] column, and a liveEmbed slot spans [full] (EmbedBlock sets `grid-column: full`). */
+   [prose] column, and a slot spans [full] (SlotBlock sets `grid-column: full`). */
 @layer components {
   .module {
     font-family: var(--font-body);
@@ -56,7 +56,7 @@
     max-width: 64ch;
   }
 
-  /* The non-article page pieces (related entries, the Experience slot) hold the reading
+  /* The non-article page pieces (related entries, the slot) hold the reading
      measure — only the article's breakout `[full]` slots use the wide frame. */
   .module > :where(:not(.article)) {
     max-width: var(--width-content);

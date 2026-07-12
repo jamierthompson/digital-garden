@@ -6,7 +6,7 @@ import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 // it) — this relative hop up to the root types file is intentional, not a deep `src` chain.
 import type { ENTRY_DETAIL_QUERY_RESULT } from "../../../sanity.types";
 
-import EmbedBlock from "./EmbedBlock";
+import SlotBlock from "./SlotBlock";
 import EntryFigure from "./EntryFigure";
 
 // Lifted off the typed detail query so serializer and query can't drift. `NonNullable`
@@ -18,8 +18,8 @@ interface EntryBodyProps {
   /**
    * The host entry's font-scope seed — set whenever a non-`now` entry themes OR mounts a
    * module (`theme.color || componentKey`), not just for a project. Keyed on the entry's own
-   * slug, so a module-only entry still scopes its embeds under its own `[data-entry]`. Threaded
-   * to each `liveEmbed` so every embed mounts in its own container wearing the entry's theme
+   * slug, so a module-only entry still scopes its slots under its own `[data-entry]`. Threaded
+   * to each `slot` so every slot mounts in its own container wearing the entry's theme
    * fonts while the prose between them keeps the editorial faces (color comes from the page's
    * `<html>` theme, inherited by both). The serializer is per-render because the components map
    * closes over it; the map is tiny, so rebuilding it costs nothing measurable.
@@ -29,17 +29,17 @@ interface EntryBodyProps {
 
 /**
  * The Portable Text serializer for an entry's body. Renders the body's
- * blocks plus the two authored embed kinds — `liveEmbed` → `EmbedBlock` (resolves the
- * `embedKey`, falls back to a visible placeholder on a miss) and `figure` →
+ * blocks plus the two authored slot kinds — `slot` → `SlotBlock` (resolves the
+ * `slotKey`, falls back to a visible placeholder on a miss) and `figure` →
  * `EntryFigure`; standard text blocks use the library defaults. The serializer is the
- * ONE place the body meets code, so the embed-resolution seam lives here, not in the route.
+ * ONE place the body meets code, so the slot-resolution seam lives here, not in the route.
  */
 export default function EntryBody({ value, scope }: EntryBodyProps) {
   const components: PortableTextComponents = {
     types: {
-      liveEmbed: ({ value: block }) => (
-        <EmbedBlock
-          embedKey={block.embedKey}
+      slot: ({ value: block }) => (
+        <SlotBlock
+          slotKey={block.slotKey}
           caption={block.caption}
           scope={scope}
         />

@@ -1,8 +1,8 @@
 # Architecture — system model
 
 The system model for the portfolio + digital garden. Each project is a **self-contained
-module** — its `/[slug]` page (the editorial article plus its interactive experience), the
-components its essay embeds, and its tokens — composed within the site.
+module** — its `/[slug]` page (the editorial article plus its interactive slot), the
+slot components its essay mounts, and its tokens — composed within the site.
 Hosted on Vercel; essay + theme seeds in Sanity.
 
 This is the **reference for how the system is designed**; code and the other docs point back to
@@ -19,7 +19,7 @@ These are the through-lines; everything else follows from them.
 
 - **Modules, not a monolith.** The thing to avoid is a single fused bundle with no internal
   seams. Each project is a self-contained module — its tokens, UI, pages, and interactive
-  experience — that the site's routes load. Genuinely shared parts (token recipes, the OKLCH
+  slot — that the site's routes load. Genuinely shared parts (token recipes, the OKLCH
   engine, the odd reused primitive) live in plain shared modules. No fused bundle; no premature
   abstraction either.
 
@@ -39,7 +39,7 @@ These are the through-lines; everything else follows from them.
   prose + slots wear it. The global typography is fixed house style — Space Grotesk headings +
   Source Serif 4 body — and a **themed entry** (any kind but a `now` update) additionally carries its
   **own theme fonts** — up to three optional faces (heading / body / mono) — scoped to its
-  **interactive slot(s)** (the `<Experience/>` / `[data-entry]` wrapper, or each interleaved embed's
+  **interactive slot(s)** (the `Slot` / `[data-entry]` wrapper, or each interleaved slot's
   container), where each resolved face re-binds its role token (`--font-heading` / `--font-body` /
   `--font-mono`) for the slot and an unset role simply inherits the site face. The `:root`
   semantic color tokens are just the neutral **fallback** for surfaces that render un-themed. Entries
@@ -59,7 +59,7 @@ These are the through-lines; everything else follows from them.
   only where they earn their keep. The foundation and the semantic defaults are shared globally (the
   neutral fallback for un-themed surfaces); a page's authored **color** theme rides on `<html>`, and
   only the **theme fonts** are scoped to each themed entry's slot. A small foundation _coordination_ layer is the norm (see
-  the token & theming architecture below), the embed registry starts single-tier (see entry
+  the token & theming architecture below), the slot registry starts single-tier (see entry
   modules), and the don't-reach-up litmus applies to shared primitives, not every component.
   Concentrate the sophistication where it pays — the OKLCH engine (the load-bearing, genuinely hard
   piece), the content model, performance — and let the rest be boringly simple.
@@ -70,21 +70,21 @@ These are the through-lines; everything else follows from them.
 
 Two homes:
 
-- **The Next app** — all code: each project's pages, its interactive experience (a working
-  demo), and the components its essay embeds. Each project is a self-contained module under
+- **The Next app** — all code: each project's pages, its interactive slot (a working
+  demo), and the slot components its essay mounts. Each project is a self-contained module under
   `src/entries/<slug>/`; shared parts live in plain shared modules.
 - **Sanity** — content & theme seeds: one `entry` document type covering every content kind — a
-  `kind` discriminator (note · essay · project · now), a Portable Text body (rich text with embeds),
+  `kind` discriminator (note · essay · project · now), a Portable Text body (rich text with inline slots),
   a `stage` (sketch → prototype → shipped), an authored `iterated` date, self-referencing `related`
   backlinks, an optional `featuredRank`, the per-entry `theme` object (`color` / `colorDark` /
   `headingFont` / `bodyFont` / `monoFont`), and the top-level `componentKey` — all reference-by-key seeds.
 
 Within a project the division is code vs content, but the line isn't a wall. The interactive
-experience and the components are code; the essay is content. The essay is _rich_, though — it
-can embed media and live components (including the demo itself, in place of screenshots) by key —
+slot and the components are code; the essay is content. The essay is _rich_, though — it
+can mount media and live components as inline slots (including the demo itself, in place of screenshots) by key —
 per-entry or shared, the same reference-by-key move as `componentKey` (see entry modules and
-the content model). The experience's logic lives in a headless core when it earns one (see the
-interactive experience section), but that's ordinary code organization, not a boundary the site has
+the content model). The slot's logic lives in a headless core when it earns one (see the
+interactive slot section), but that's ordinary code organization, not a boundary the site has
 to maintain.
 
 The shell's top-level pages — the featured home, the browsable Index, about, `/now`, and `/system` —
@@ -95,28 +95,40 @@ are owned by the site rather than any entry, and wear their own authored theme (
 
 ## Token & theming architecture
 
-### Three tiers: foundation (primitives) → semantic (role tokens) → theme (theme override)
+### Two tiers + a theme override: foundation (primitives) → semantic (role tokens)
 
-Tokens are organized in **three tiers**, each consuming the one before it:
+Tokens are organized in **two tiers** — the semantic tier consuming the foundation — plus a **theme** that re-binds the semantic tier per scope (not a third tier of token names; there are no `--theme-*` names):
 
-| Tier           | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| -------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Foundation** | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, content-width measures (`--width-measure` 42rem / `--width-content` 48rem / `--width-page` 72rem), the radius scale (`--radius` 10px, with `--radius-sm`/`-md`/`-lg`/`-xl` = 6/8/10/14px and `--radius-full`), border widths (`--border-width` 1px / `--border-width-thick` 2px), control sizes (`--size-control` 24px / `--size-control-lg` 44px / `--size-icon` 16px), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
-| **Semantic**   | global `:root` (the neutral fallback)             | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the neutral ground for surfaces that render with no `<html>` theme.                                                                                                                                                             |
-| **Theme**      | `<html>` (color) + the slot `[data-entry]` (font) | the theme override, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **fonts** are per-slot role-token overrides (up to three — `--font-heading` / `--font-body` / `--font-mono`) on `[data-entry]` (`EntryScope`), each inherited from `:root` when unset.                                                                                                                                                                                                                                                                    |
+| Tier                   | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Foundation**         | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, content-width measures (`--width-measure` 42rem / `--width-content` 48rem / `--width-page` 72rem), the radius scale (`--radius` 10px, with `--radius-sm`/`-md`/`-lg`/`-xl` = 6/8/10/14px and `--radius-full`), border widths (`--border-width` 1px / `--border-width-thick` 2px), control sizes (`--size-control` 24px / `--size-control-lg` 44px / `--size-icon` 16px), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
+| **Semantic**           | global `:root` (the neutral fallback)             | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the neutral ground for surfaces that render with no `<html>` theme.                                                                                                                                                             |
+| **Theme** _(override)_ | `<html>` (color) + the slot `[data-entry]` (font) | re-binds the semantic tier, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **fonts** are per-slot role-token overrides (up to three — `--font-heading` / `--font-body` / `--font-mono`) on `[data-entry]` (`EntryScope`), each inherited from `:root` when unset.                                                                                                                                                                                                                                                            |
 
-The model is layered, not partitioned: the **semantic layer is the contract** components code
-against, and a theme simply re-defines those same semantic tokens with its own values — the page's
-`<html>` write for color, the slot's inline style for font. There is **no separate "feel" or
-"geometry" tier** — radius, border-width, and control sizes are **foundation value
-primitives** (raw scales like the spacing ramp), and any role that needs one binds it in the
-semantic layer, exactly as the spacing roles alias `--space-*`. Color varies per **page** (every
-route wears its authored theme); font varies per
-**slot** (the interactive island wears the entry's theme face while the prose keeps the editorial
-body face).
+The model is a **derivation taxonomy, not a partition**: the **semantic tier is the contract**
+components code against, and a theme simply re-defines those same semantic tokens with its own
+values — the page's `<html>` write for color, the slot's inline style for font. There is **no
+separate "feel" or "geometry" tier** — radius, border-width, and control sizes are **foundation value
+primitives** (raw scales like the spacing ramp), and any role that needs one binds it in the semantic
+tier, exactly as the spacing roles alias `--space-*`. Color varies per **page** (every route wears
+its authored theme); font varies per **slot** (the interactive island wears the entry's theme face
+while the prose keeps the editorial body face).
+
+**Token tiers are not cascade `@layer`s — keep the two systems apart.** The two tiers above
+(foundation → semantic, re-bound per scope by a theme) are a _derivation taxonomy_: where a value comes from, expressed by
+the **directories** (`foundation/`, `semantic/`) and the **engines**, not by any cascade name. The
+CSS cascade `@layer` is an unrelated _rule-conflict tool_ with exactly **two** names chosen for their
+jobs: `base` (the reset + every token sheet) **loses** to `components` (every CSS Module). That one
+boundary is all the cascade decides — a global element/attribute rule must lose to a component rule
+regardless of CSS-module insertion order. The retired `foundation`/`semantic` _layer_ names were
+taxonomy wearing cascade clothing: the two sheets declare disjoint `:root` custom properties, so that
+boundary never resolved a real conflict, and collapsing them to `base` changes no computed style.
+**Theme delivery sits outside the cascade entirely** — an authored theme is stamped as inline
+`<html>` / `[data-entry]` styles plus a hoisted _unlayered_ `<style>`, all of which out-rank **every**
+`@layer` (the "@layer trap"), so a theme always wins without needing a layer of its own.
 
 Every page's chrome (title, prose, nav) reads the **semantic tokens as written on `<html>`** by the
-visible page's theme. Its **interactive slot** and the embedded components read those **same generic
+visible page's theme. Its **interactive slot** and the components it mounts read those **same generic
 semantic tokens** (inherited from `<html>`), plus the entry's `--font-body` re-bound on the
 `[data-entry]` scope. Components never read a project-prefixed name — there are **no `--<proj>-*`
 tokens**. Under the hood the engine emits a **per-role `50…950` ramp primitive** (`accent`,
@@ -144,7 +156,7 @@ global :root  (foundation primitives + the semantic NEUTRAL FALLBACK)
    │              · z-index · focus-ring GEOMETRY · reset  (no color ramp)
    ├─ SEMANTIC (engine fallback token set): --surface · --foreground · --accent · --font-body · …
    │              ← the generic contract; the neutral ground for surfaces with no <html> theme
-   └─ @layer foundation, semantic, components;   ← bare order statement, loaded first
+   └─ @layer base, components;   ← cascade order statement (base loses to components), loaded first
           │ every ROUTE stamps its authored color theme on <html> (PageTheme), which out-ranks :root ↓
 <html style="--surface:… --foreground:… --accent:… --success:…">   ◄── OKLCH engine ◄── the page's seed (Sanity)
    │        chrome (nav · headers · prose · shell) + slots ALL inherit this one write — one imperative
@@ -154,19 +166,18 @@ global :root  (foundation primitives + the semantic NEUTRAL FALLBACK)
    │        per-face overrides stamped in TS by EntryScope, per RESOLVED face: the leaf --font-*
    │        tokens (element rules read them) AND every --type-<role>-family bundle mapped to that face
    │        (the type primitives read them) — solved values, no CSS re-derivation. An unset face
-   │        stamps NEITHER channel and inherits :root. A page mounts one (the after-prose experience)
+   │        stamps NEITHER channel and inherits :root. A page mounts one (the after-prose slot)
    │        or MANY (slots interleaved through the prose); each is per-element, so distinct slots never
    │        collide. Color is inherited from <html>; only the resolved font roles are overridden here.
           │ themes downward, within the slot ↓
-   the slot's experience + embeds   read the SAME generic semantic tokens (--surface, --accent, --font-body, …)
-          └─ [data-experience-surface]  optional scoped reset for an interactive surface
+   the interactive slot + interleaved slots   read the SAME generic semantic tokens (--surface, --accent, --font-body, …)
 ```
 
 Key points:
 
 - **The public token contract is the SEMANTIC layer.** Shared, cross-project units read the
   generic role tokens (`--surface`, `--foreground`, `--accent`, `--font-body`, `--space-*`) — never a
-  project-prefixed name, because a shared embed cannot know which project hosts it. Isolation comes
+  project-prefixed name, because a shared slot cannot know which project hosts it. Isolation comes
   from **scope, not prefix**: color from the page's `<html>` write (inherited), fonts from the
   `[data-entry]` slot's inline role-token overrides (`--font-heading` / `--font-body` / `--font-mono`).
 
@@ -183,13 +194,14 @@ Key points:
   cascade layer, and an _unlayered_ module's plain declarations outrank **every** `@layer` style
   regardless of specificity or source order. So any component CSS Module that sets real properties
   must wrap its body in `@layer components { … }` (or stay strictly var-_consuming_); the bare
-  `@layer foundation, semantic, components;` order statement is emitted in a global sheet loaded
+  `@layer base, components;` order statement is emitted in a global sheet loaded
   first. The entry font slot needs no layer — the inline role-token overrides on `[data-entry]`
   out-rank every layer. Lint-enforced (see the don't-reach-up litmus).
 
-- **Cascade order via `@layer`** (foundation < semantic < components) to kill CSS-module insertion-order
-  accidents instead of fighting specificity. The global order statement must register before
-  `next/font` — pinned by import order in the root layout.
+- **Cascade order via `@layer`** (`base` < `components`) to kill CSS-module insertion-order
+  accidents instead of fighting specificity. The token tiers (`foundation/`, `semantic/`) both live in
+  the single `base` layer — their split is a directory taxonomy, not a cascade boundary. The global
+  order statement must register before `next/font` — pinned by import order in the root layout.
 
 - **Responsive layout is container-query-first.** There is no shared breakpoint layer or breakpoint
   tokens. The order of preference is: **intrinsic** first (`auto-fit`/`auto-fill` + `minmax`, `flex-wrap`,
@@ -223,7 +235,7 @@ The mechanism follows Next's _Preventing flash before hydration → Themes_ patt
   declarations as a `:root { … }` `<style>` (`ThemeStyle`), which React 19 hoists into `<head>` —
   **ahead of the body chrome** — so the theme applies before ANY content paints, with no script and
   no parse-order dependency. This is `EntryCard`'s server-rendered baked-CSS approach lifted to
-  `:root`. The `<style>` is **unlayered**, so it out-ranks the `@layer foundation` fallback `:root`
+  `:root`. The `<style>` is **unlayered**, so it out-ranks the `@layer base` fallback `:root`
   (the "@layer trap"). The read path (`sanityFetch`) is `use cache`, so a public request prerenders
   the page into the **static shell** and the `<style>` is in the initial `<head>`. (An inline
   _script_ can't do this — React doesn't hoist inline scripts, so a page-rendered one lands **after**
@@ -247,7 +259,7 @@ surfaces that render with **no** page theme (404 / error / loading + the chrome 
 which never mount a `<PageTheme>`); a themed route's `:root` `<style>` (and the imperative `<html>`
 re-applier) out-rank them. There is no canvas wash and no `:has()`-scoped body re-bind: the page
 theme supplies `--background` to every route. The cascade order is
-`@layer foundation, semantic, components;` — there is no `theme` layer, because the entry's theme
+`@layer base, components;` — there is no `theme` layer, because the entry's theme
 font scopes to its own slot via an inline style on `[data-entry]` (`EntryScope`), not a cascade
 layer.
 
@@ -373,7 +385,7 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   (`--surface`/`--foreground`/`--border`/`--accent`), so each card wears its own entry's `theme.color` with
   no slot scope and no `<style>` block.
 
-The **Color Engine** — an entry module whose experience re-runs the pure engine in JS
+The **Color Engine** — an entry module whose interactive slot re-runs the pure engine in JS
 on each control change (type a seed, watch the palette regenerate) — ships as the
 `color-engine` module (`src/entries/color-engine/`), the component registry's first real
 key. A showcase module renders its slot's baked tokens by consuming the scope's CSS variables;
@@ -384,8 +396,8 @@ measured contrast, the anchor readout).
 Its interactive demo has been **removed pending a rebuild** on the deliberate design-system
 foundation (the old surfaces carried pre-foundation type literals). The `color-engine` key stays
 registered to a placeholder so the published entry still resolves; the tool is rebuilt later as a
-**multi-page project** (#149). There is no bespoke page template for it: a project that resolves an
-`Experience` mounts that slot in the **one editorial template** every entry uses, after the prose —
+**multi-page project** (#149). There is no bespoke page template for it: a project that exports a
+`Slot` mounts it in the **one editorial template** every entry uses, after the prose —
 the canvas template and the `layout: "wide"` module option were dropped with the demo.
 
 When rebuilt, it is meant to be the **one place a visitor plays with a seed** — the provider holding
@@ -454,8 +466,8 @@ engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WC
 
 The **themed entry's slot scope is the single downward-theming owner** for the theme: it re-defines the
 semantic tokens with the entry's theme values (from the OKLCH engine) plus any other semantic
-overrides, and themes everything beneath it — the slot's interactive experience and the components
-it embeds — by passing those values _down_. They all read the same generic semantic tokens; the
+overrides, and themes everything beneath it — the interactive slot and the interleaved slot blocks —
+by passing those values _down_. They all read the same generic semantic tokens; the
 slot scope is the authority. The page chrome around the slot reads the semantic color tokens as
 written on `<html>` by the page's theme, and the global editorial font; the foundation primitives
 sit above, shared.
@@ -502,7 +514,7 @@ Type safety comes from a **typed accessor**, not from constraining the prop:
   without hand-writing `var(--space-6)` and without being able to pick an off-scale number.
 - The module is **dependency-free and side-effect-free** (mirroring `src/lib/keys.ts`): a token
   contract the app — or the standalone Studio — can import without pulling in app code. It only
-  _names_ the steps; the scale **values** live in `foundation/space.css` (`@layer foundation`).
+  _names_ the steps; the scale **values** live in `foundation/space.css` (`@layer base`).
 - The prop itself stays a plain `string`, so the escape hatch (a raw token, an engine `clamp()`)
   is always open; `space()` is the ergonomic, guarded default, not a gate.
 
@@ -513,10 +525,10 @@ deliberately** — token first, caller's `style` last — and an explicit caller
 
 Two layers, matching the token architecture:
 
-| Layer                | Tokens                                                     | Role                                                                                                                                                                                                                           |
-| -------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Foundation** scale | `--space-1 … --space-9` (`foundation/space.css`)           | raw steps on a 4px grid (`0.25rem … 6rem`). No `0` step (use a smaller step or none); a step past `--space-9` is appended when something needs it. Radix/Tailwind-parity 1–9.                                                  |
-| **Semantic** roles   | `--space-{inset,gutter,stack,cluster}` (`@layer semantic`) | the thin layer of **named** structural spacing primitives and templates read, so a page expresses _intent_ ("inset", "gutter") over a magnitude. Each aliases a foundation step — retune one alias to reflow the whole system. |
+| Layer                | Tokens                                                 | Role                                                                                                                                                                                                                           |
+| -------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Foundation** scale | `--space-1 … --space-9` (`foundation/space.css`)       | raw steps on a 4px grid (`0.25rem … 6rem`). No `0` step (use a smaller step or none); a step past `--space-9` is appended when something needs it. Radix/Tailwind-parity 1–9.                                                  |
+| **Semantic** roles   | `--space-{inset,gutter,stack,cluster}` (`@layer base`) | the thin layer of **named** structural spacing primitives and templates read, so a page expresses _intent_ ("inset", "gutter") over a magnitude. Each aliases a foundation step — retune one alias to reflow the whole system. |
 
 The semantic roles are deliberately few — space, unlike color, needs only a handful (the raw scale
 covers the rest):
@@ -664,13 +676,13 @@ import Cluster from "@/components/layout/Cluster";
 
 ```
 src/entries/<slug>/
-  ├─ experience.tsx     the interactive experience (the working demo); the route mounts it
-  ├─ core/              headless core — ONLY when the experience's logic earns extraction
-  ├─ embeds.ts          entry-local embed map (key → component) — bespoke inline embeds
+  ├─ <Module>.tsx       the interactive slot component (the working demo); the route mounts it
+  ├─ core/              headless core — ONLY when the slot's logic earns extraction
+  ├─ slots/             the module's inline slot components, resolved by slotKey
   ├─ tokens.css         the project's slot-scoped semantic override (generic names, theme values)
   └─ index.ts           registry entry
 src/fonts/roster.ts        curated next/font declarations, one per face, exported by key
-src/lib/resolvers/embeds.ts      embedKey → embed-component loader — cross-entry widgets
+src/lib/resolvers/slots.ts       slotKey → slot-component loader — cross-entry widgets
 src/lib/resolvers/components.ts  componentKey → () => import("@/entries/<slug>")  [literal imports]
 src/*/keys.ts              string-constant key contracts (Studio imports these; resolvers don't)
 ```
@@ -679,19 +691,19 @@ An entry renders as a single `/[slug]` page. Its registry entry (the `EntryModul
 `src/entries/types.ts`) exports one or both of two composition members — a compile error
 enforces at least one:
 
-- **`Experience`** — one interactive slot the page mounts after the prose, inside its own
+- **`Slot`** — one interactive slot the page mounts after the prose, inside its own
   theme scope. The default for a module whose demo is a single surface.
-- **`Provider`** — a client frame the page wraps the `<article>` in, so `liveEmbed` slots
+- **`Provider`** — a client frame the page wraps the `<article>` in, so `slot` blocks
   interleaved through the prose share state via context. The prose stays server-rendered
   (children pass-through); the provider adds state, never markup that re-themes the
-  editorial register. The page threads the font seed to the serializer, and each embed
+  editorial register. The page threads the font seed to the serializer, and each slot
   mounts in its own `EntryScope` container (its own per-role face overrides per island; color is
   inherited from the page's `<html>` theme).
 
 Nothing more is templated: the page is the editorial `<article>` (prose) plus the module's
 composition. A headless `core/` is **not** templated into every module — let it
-emerge only when an experience's logic warrants extraction (same deferral discipline as the
-embed tiers; see the interactive experience section). Code lives under `src/entries/<slug>/`;
+emerge only when a slot's logic warrants extraction (same deferral discipline as the
+slot tiers; see the interactive slot section). Code lives under `src/entries/<slug>/`;
 **routes are flat** — `/` is the
 **featured** front door, a browsable **Index** (nav-labelled "Index") lists every entry at
 **`/browse`**, and a root-level `/[slug]` (a dynamic segment that cedes precedence to the static
@@ -701,12 +713,12 @@ stable even if its `kind` changes. There is no `/work` prefix. The browse route 
 `/index`**: Next.js reserves `index` for the root segment's prerender output (`app/index.html`), so a
 route literally named `index` silently serves the home page.
 
-**Start single-tier** — one shared `src/lib/resolvers/embeds.ts` until a second project actually reuses a
-widget; introduce the entry-local tier only then. Once you do, embeds follow the **same
+**Start single-tier** — one shared `src/lib/resolvers/slots.ts` until a second project actually reuses a
+widget; introduce the entry-local tier only then. Once you do, slots follow the **same
 per-entry-plus-shared shape as tokens and fonts**. For a given project the resolver composes the
 two (`{ ...shared, ...entryLocal }`) so an entry-local key **overrides** a shared one of the same
 name — the downward-override spirit of `var(--public-override, var(--_internal-default))`. A
-_shared_ embed themes off the **generic semantic tokens** (`--surface`, `--accent`, `--font-body`),
+_shared_ slot themes off the **generic semantic tokens** (`--surface`, `--accent`, `--font-body`),
 never anything project-specific. Promote a widget into the shared registry only once it's genuinely
 reused; both tiers lazy-import.
 
@@ -727,19 +739,19 @@ Sanity entry doc { kind, componentKey: "<slug>", theme { color, colorDark, headi
 src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the entry module
         │
         ▼
-src/entries/<slug>/   its page (editorial article + interactive experience) + embeddable components
+src/entries/<slug>/   its page (editorial article + interactive slot) + inline slot components
 ```
 
 - **Content references; code resolves.** The essay comes from Sanity and references coded
-  components by key, resolved against the entry-local `embeds.ts` first, then the shared
-  `src/lib/resolvers/embeds.ts`. The CMS never reimplements interaction.
+  components by key, resolved against the entry-local `slots.ts` first, then the shared
+  `src/lib/resolvers/slots.ts`. The CMS never reimplements interaction.
 - **Keys are a contract with no referential integrity — guard the seam.** `keys.ts` is the
   **single source of truth** for which keys exist; resolvers are typed `satisfies Record<Key, …>`
   so a missing resolver entry is a **compile error** (converts code→code drift from a runtime crash
   into a build break). Resolvers return a typed `NotFound`, never a bare `map[key]` lookup, so the
   content→code direction (a saved Sanity key whose code was renamed/deleted) degrades to a visible
-  fallback instead of crashing — `not-found.tsx` for a `componentKey`/slug miss, a "missing embed"
-  placeholder in the Portable Text serializer for an `embedKey` miss. (A CI check that GROQs all
+  fallback instead of crashing — `not-found.tsx` for a `componentKey`/slug miss, a "missing slot"
+  placeholder in the Portable Text serializer for a `slotKey` miss. (A CI check that GROQs all
   _published_ keys and asserts each exists in code is an additive safety net — the `published-keys`
   CI job, `scripts/check-published-keys.mjs` / `pnpm lint:keys:published` — not a schema decision.)
 - **Lazy-load each module** via a **literal** dynamic import per key
@@ -748,17 +760,17 @@ src/entries/<slug>/   its page (editorial article + interactive experience) + em
   buys conditional inclusion, and the real client-bundle savings come from the Client Components
   _inside_ each module.
 
-### The interactive experience: logic in a headless core (when it earns one)
+### The interactive slot: logic in a headless core (when it earns one)
 
-Each project's interactive experience is a demo that actually works. As a general engineering
+Each project's interactive slot is a demo that actually works. As a general engineering
 practice — not for any packaging or reuse goal — its logic _can_ live in a **headless core** (hooks
 / pure functions — state machines, reducers, derivations), with presentation as separate primitives
-the experience composes. That split is internal hygiene only, and it is **not mandatory**: a
+the slot composes. That split is internal hygiene only, and it is **not mandatory**: a
 toggle/slider demo doesn't need a state machine in a separate folder. Extract a `core/` when the
 logic warrants it.
 
-There's no demo-vs-experience boundary to maintain. The experience owns its own state and renders
-directly. The same interactive experience — or smaller bespoke live components — can be **embedded
+There's no demo-vs-slot boundary to maintain. The slot owns its own state and renders
+directly. The same interactive slot — or smaller bespoke live components — can be **mounted
 inline in an essay** by key, in place of screenshots (see the content model), under the same project
 scope, so it themes identically.
 
@@ -822,7 +834,7 @@ Mapped onto the layers:
 - **Shared fonts** → the roster _is_ the single declaration point, so a face two entries use is
   declared **once** and resolved by both. (Geist Mono is the site mono; **JetBrains Mono** is a roster
   face an entry can pick for a slot — a roster face is _not_ mounted globally, only per-entry.)
-- **Slot & embed fonts** → nothing declares its own `next/font`; content reads the role tokens
+- **Slot fonts** → nothing declares its own `next/font`; content reads the role tokens
   (`--font-heading` / `--font-body` / `--font-mono`), which the slot fills from the resolved faces (or
   inherits from `:root` when a role is unset). The type primitives (`Heading` / `Text`) carry the entry
   faces via the `--type-*-family` bundles the slot stamps, and `reset.css`'s `h1–h6` rule carries
@@ -852,14 +864,14 @@ Practical notes:
   _data_: it drives the Index's type filter and the on-card label, so the difference is legible without
   being a `_type` split. The kinds differ by **scope and emphasis, not fields** — a _note_ is a small,
   often single-component piece (and doubles as a shareable social post); an _essay_ is writing-led with
-  interactions slotted in; a _project_ is an interactive experience with more slots; a _now_ is a dated
+  interactions slotted in; a _project_ is an interactive piece with more slots; a _now_ is a dated
   "now" update that drives the reverse-chronological `/now` stream and also mixes into the Index.
   **Downstream, theming and interactivity key on capability (presence), not kind:** every kind but
   `now` scopes on a present `theme.color` and mounts on a present `componentKey`. (`theme.color`
   additionally carries a required _floor_ for note/essay/project — see below — but the mount/scope
   logic keys on presence, not kind.) A present `theme.color` gives the entry its own brand
   `[data-entry]` scope (and mounts its
-  `liveEmbed`s in their own scoped containers, exactly as a project's embeds do); a present
+  `slot`s in their own scoped containers, exactly as a project's slots do); a present
   `componentKey` resolves and mounts the coded module — a declared key that fails to resolve is a
   `notFound()` for any kind, and no key at all renders prose-only (a sketch project renders
   prose-only, never a 404). **A module mount always implies a scope seed** — the route builds the
@@ -888,7 +900,7 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   date — not Sanity's automatic `_updatedAt` — an intentional signal that the portfolio is living and
   tended.
 - **The essay is rich content (portable text), not plain text.** Alongside text it carries typed
-  embed blocks — media and live components referenced by key and resolved in code.
+  blocks — media (figures) and live components (slots) referenced by key and resolved in code.
 - **`theme` is a per-entry, first-class object** — `{ color, colorDark, headingFont, bodyFont, monoFont }`,
   separate from the top-level `componentKey` (which _mounts_ a module, not part of the theme the module _reads_).
   `color` is a validated string (hex or `oklch()`) — the slot seed, stored on the `entry` document.
@@ -912,18 +924,18 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   override, defaulted from the engine — never a required parallel field. (A seed too light to be the
   light-mode primary is auto-assigned as the dark theme; see the OKLCH engine.)
 - **Keys are a contract; the Studio never imports implementations.** Each reference-by-key field —
-  the three faces, `componentKey`, `embedKey` — is a **free-text string** in the Studio schema whose
+  the three faces, `componentKey`, `slotKey` — is a **free-text string** in the Studio schema whose
   description says _"ask a developer for the valid keys"_; the standalone Studio bundle deliberately
   imports **nothing** from the app, so there is no dropdown and no shared key package. The allowed
   values live app-side in `keys.ts` (string constants) with a separate resolver each —
-  `lib/resolvers/{components,fonts,embeds}.ts` — which the Studio never imports, keeping `next/font`
+  `lib/resolvers/{components,fonts,slots}.ts` — which the Studio never imports, keeping `next/font`
   and lazy project bundles out of the Studio bundle. A **CI drift net** closes the loop in place of a
   shared import: `check-key-drift.mjs` guards code ↔ `keys.ts`, and `check-published-keys.mjs` GROQs
   every published key and asserts it resolves in `keys.ts`. See the CMS ↔ code registry for the
   typed-resolver + fallback discipline that makes the soft foreign key safe.
-- **Embeds: generic `liveEmbed` by default; a typed block only for editorial content.** A
-  `liveEmbed` block stores an `embedKey` + a caption — use it whenever the only authored inputs are
-  key + caption (the demo and the majority of in-essay embeds; adding one is zero schema change).
+- **Slots: generic `slot` by default; a typed block only for editorial content.** A
+  `slot` block stores a `slotKey` + a caption — use it whenever the only authored inputs are
+  key + caption (the demo and the majority of in-essay slots; adding one is zero schema change).
   Give a widget its **own typed block only when an editor must author structured _content_** (text
   they write, an image they pick, a list they curate). **Never** model code-level config (variants,
   sizes, initial state) as a block or an untyped `props` blob — default it in the registry, or split
@@ -949,14 +961,14 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   & hosting). It renders in the prerendered shell; the slot's subtree reads the inherited color tokens
   plus whichever font roles the slot binds.
 - **Visual editing details.** Disable Sanity **stega** on the entry's `theme` object (by ancestor) — the
-  invisible encoding chars break the OKLCH parse and the font-class lookup. `liveEmbed`
-  click-to-edit targets the caption/`embedKey` field, not the interactive region.
+  invisible encoding chars break the OKLCH parse and the font-class lookup. `slot`
+  click-to-edit targets the caption/`slotKey` field, not the interactive region.
 - **Backlinks are Day-1.** An `entry` carries a `related` **self-referencing** array (`entry` →
   `entry`) — **real Sanity `reference` fields**, not free-text slugs (or `references()` finds nothing
   and you reintroduce key-drift) — and the read path resolves **incoming** backlinks via GROQ
   `references()`, so an edge authored once shows on both ends. Because there is one type, the graph is
   cross-kind for free: a project links a note links an essay. A note stays lightweight (chrome + shared
-  components) and pulls a demo bundle only if it explicitly embeds one.
+  components) and pulls a demo bundle only if it explicitly mounts one.
 - **Two reading paths over one content graph.** The **featured home** (`/`) is a curated front door —
   the entries with a `featuredRank`, of _any_ `kind`, ordered by rank — for a hurried evaluator. The
   **Index** (at `/browse`) is the full browsable list of every entry, filtered by `kind` and `stage`
@@ -1023,8 +1035,8 @@ Before shipping a **shared** unit (the litmus is for shared primitives, not ever
       reaching up?
 - [ ] If it has a CSS Module, does that module **declare its `@layer`** (or stay strictly
       var-consuming)?
-- [ ] If it registers an embed, is the key **namespaced with the project's prefix** so a
-      entry-local embed can't silently shadow a shared one?
+- [ ] If it registers a slot, is the key **namespaced with the project's prefix** so a
+      entry-local slot can't silently shadow a shared one?
 
 The litmus is an **advisory** PR checklist for shared primitives; the parts that can be a lint rule
 (import boundaries, `@layer` declaration) are enforced automatically, not left to human review.

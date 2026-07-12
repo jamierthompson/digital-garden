@@ -32,7 +32,10 @@ describe("SiteFooter", () => {
   // the source so the floor can't silently drop; the real ≥24×24 check is a browser QA pass.
   it("declares the ≥24px tap-target floor on footer links", () => {
     const css = readFileSync(
-      resolve(process.cwd(), "src/components/shell/SiteFooter.module.css"),
+      resolve(
+        process.cwd(),
+        "src/components/page-chrome/SiteFooter.module.css",
+      ),
       "utf8",
     );
     expect(css).toMatch(/min-block-size:\s*var\(--size-control\)/);

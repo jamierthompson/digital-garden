@@ -11,9 +11,9 @@ describe("resolution result", () => {
   });
 
   it("notFound() carries the kind and echoes the unresolved key", () => {
-    const result = notFound("embed", "ghost-widget");
+    const result = notFound("slot", "ghost-widget");
     expect(result.found).toBe(false);
-    expect(result.kind).toBe("embed");
+    expect(result.kind).toBe("slot");
     expect(result.key).toBe("ghost-widget");
     expect(isNotFound(result)).toBe(true);
   });

@@ -5,11 +5,11 @@
 // `map[key]` lookup that can hand back `undefined` and crash a render — it
 // returns this discriminated `Resolution<T>`. Callers narrow with `isNotFound`
 // and render a visible fallback (`not-found.tsx` for a `componentKey` miss, a
-// "missing embed" placeholder in the Portable Text serializer for an `embedKey`
+// "missing slot" placeholder in the Portable Text serializer for a `slotKey`
 // miss), so a content→code drift degrades gracefully instead of throwing.
 
 /** Which kind of key failed to resolve — for fallback messaging / logging. */
-export type ResolutionKind = "component" | "font" | "embed";
+export type ResolutionKind = "component" | "font" | "slot";
 
 /** A successful resolution carrying the resolved value. */
 export interface Found<T> {

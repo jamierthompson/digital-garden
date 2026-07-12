@@ -18,7 +18,7 @@
  *     re-runs on `<Activity>` reveal — see `ThemeReapplier`.)
  *
  * The two layers compose by the cascade: the imperative `<html>.style` write (soft nav) out-ranks
- * the `:root` rule (hard load), which is UNLAYERED so it out-ranks the `@layer` foundation fallback
+ * the `:root` rule (hard load), which is UNLAYERED so it out-ranks the `@layer base` fallback
  * (the "@layer trap"). So under `<Activity>` (React keeps several routes mounted) the visible
  * route's imperative write always wins — lingering `:root` styles from hidden routes are inert.
  *

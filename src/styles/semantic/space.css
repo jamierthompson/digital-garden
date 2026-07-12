@@ -1,4 +1,4 @@
-@layer semantic {
+@layer base {
   :root {
     --space-inset: var(--space-5);
     --space-gutter: var(--space-6);

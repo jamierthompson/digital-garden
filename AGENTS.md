@@ -54,8 +54,8 @@ These silently break *this* stack. Most are lint/CI-enforced; know them so you d
   slice and writes the missing test cases a product-team QA engineer would, the owning author fixes,
   QA re-checks. This holds on **every** session — solo (lead is also author → one QA) or team (one QA per
   coding agent). The lead owns the loop (see the dev↔QA loop in [`docs/working-with-agents.md`](./docs/working-with-agents.md)).
-- **Every CSS Module declares its `@layer`** (`foundation|semantic|components`) or stays strictly
-  var-consuming. An unlayered module outranks **every** `@layer` style — the "@layer trap".
+- **Every CSS Module declares its `@layer`** (`base|components` — modules are `components`) or stays
+  strictly var-consuming. An unlayered module outranks **every** `@layer` style — the "@layer trap".
   Enforced by `pnpm lint:css`.
 - **The engine packages stay isomorphic** — never add `server-only` / `client-only` to `packages/oklch/` (`@garden/oklch`, color) or `packages/type/` (`@garden/type`, type-scale); both are pure isomorphic engines the Studio can import. Guarded by a shared `eslint.config.mjs` block on `packages/{oklch,type}/**`.
 - **Literal dynamic imports only:** `() => import("@/entries/<slug>")` per key — never a templated

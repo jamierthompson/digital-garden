@@ -31,18 +31,21 @@ server-emitted `<style>`. Verify against the docs above and the real code, not t
    naming. No project-slug-prefixed token names. Flag any `--<slug>-…` token or a slot that leaks a
    project-specific name into the shared contract.
 
-3. **Every CSS Module declares its `@layer`.** Each module declares `@layer foundation`,
-   `@layer semantic`, or `@layer components` — or stays **strictly var-consuming** (sets no competing
-   properties). An **unlayered** module outranks **every** layered style (the "@layer trap"), silently
-   winning the cascade. This is enforced by `pnpm lint:css`; flag any new module that declares no layer
-   and isn't purely var-consuming.
+3. **Every CSS Module declares its `@layer`.** The cascade has **two** layers, named for their jobs —
+   `base` (loses) and `components` (wins) — distinct from the token _tiers_ in check 1: layers are a
+   rule-conflict tool, tiers are a derivation taxonomy. Each module declares `@layer components` (or
+   stays **strictly var-consuming**, setting no competing properties); the global sheets (reset + the
+   token tiers) are `@layer base`. An **unlayered** module outranks **every** layered style (the
+   "@layer trap"), silently winning the cascade. Enforced by `pnpm lint:css` (which also flags any
+   `@layer` name outside `{base, components}`); flag any new module that declares no layer and isn't
+   purely var-consuming.
 
 4. **Every page is themed from an authored seed; the editorial _type_ is global.** Each page mounts one
    `<PageTheme seed>` that stamps the engine's tokens on `:root`/`<html>`; the persistent chrome
    (`SiteNav`/`SiteFooter`) **inherits** the visible page's theme. What is global is the editorial
    **type** (Space Grotesk + Source Serif 4) plus the neutral fallback for un-themed surfaces
    (404 / error / loading). An entry's theme **font** scopes **only** to its bounded slot
-   (`[data-entry]` / the `<Experience/>`). Flag a theme font bleeding onto page chrome, or a route that
+   (`[data-entry]` / the `Slot`). Flag a theme font bleeding onto page chrome, or a route that
    renders content without a `<PageTheme>` seed where one belongs.
 
 5. **Downward theming has one owner.** The project's slot scope is the single owner of the theme + font

@@ -1,5 +1,5 @@
 // Reference-by-key contracts — the single source of truth for which keys exist.
-// Sanity stores these keys — `componentKey` and `embedKey`, plus the per-role font keys as the
+// Sanity stores these keys — `componentKey` and `slotKey`, plus the per-role font keys as the
 // entry's `theme.{headingFont,bodyFont,monoFont}` — as FREE-TEXT string fields on its documents:
 // the standalone Studio schema deliberately can't import this module (see the NOTE in
 // studio/schemaTypes/documents/entry.ts), so there is no dropdown — code resolves the keys. This
@@ -48,26 +48,26 @@ export const COMPONENT_KEYS = [
 export type ComponentKey = (typeof COMPONENT_KEYS)[number];
 
 /**
- * Embed keys — in-essay live components / widgets, resolved in
- * `src/lib/resolvers/embeds.ts`. The registry starts single-tier; a
+ * Slot keys — in-essay live components / widgets, resolved in
+ * `src/lib/resolvers/slots.ts`. The registry starts single-tier; a
  * entry-local tier is added only on a genuine second use.
  *
  * The `color-engine-*` keys are the Color Engine's slots (#131): the Color Engine composes
- * as an editorial page whose prose interleaves these embeds, each in its own theme-scoped
+ * as an editorial page whose prose interleaves these slots, each in its own theme-scoped
  * container, sharing state through the module's `Provider`.
  */
-export const EMBED_KEYS = [
+export const SLOT_KEYS = [
   "color-engine-seed",
   "color-engine-rules",
   "color-engine-tokens",
   "color-engine-preview",
   "color-engine-export",
 ] as const satisfies readonly string[];
-export type EmbedKey = (typeof EMBED_KEYS)[number];
+export type SlotKey = (typeof SLOT_KEYS)[number];
 
 const FONT_KEY_SET: ReadonlySet<string> = new Set(FONT_KEYS);
 const COMPONENT_KEY_SET: ReadonlySet<string> = new Set(COMPONENT_KEYS);
-const EMBED_KEY_SET: ReadonlySet<string> = new Set(EMBED_KEYS);
+const SLOT_KEY_SET: ReadonlySet<string> = new Set(SLOT_KEYS);
 
 /** Narrow an arbitrary string (e.g. a Sanity value) to a known `FontKey`. */
 export function isFontKey(value: string): value is FontKey {
@@ -79,7 +79,7 @@ export function isComponentKey(value: string): value is ComponentKey {
   return COMPONENT_KEY_SET.has(value);
 }
 
-/** Narrow an arbitrary string to a known `EmbedKey`. */
-export function isEmbedKey(value: string): value is EmbedKey {
-  return EMBED_KEY_SET.has(value);
+/** Narrow an arbitrary string to a known `SlotKey`. */
+export function isSlotKey(value: string): value is SlotKey {
+  return SLOT_KEY_SET.has(value);
 }

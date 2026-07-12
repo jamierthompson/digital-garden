@@ -1,11 +1,13 @@
 // Fails if any CSS under `src/` — CSS Modules AND global sheets alike (reset.css and
-// the src/styles token sheets, …) — has a style rule outside an `@layer` block. Next does not
+// the src/styles token sheets, …) — has a style rule outside an `@layer` block, OR declares
+// an `@layer` name outside the allowed two-name set. Next does not
 // auto-layer CSS Modules, and a plain global stylesheet is just as unlayered by
 // default; either way an unlayered rule silently outranks every @layer style
 // regardless of specificity (the "@layer trap"). Wrap rules in the appropriate @layer
-// (foundation | semantic | components). `@layer` statements/blocks, `@import`,
-// and `@media`/`@supports` wrapping layered rules are all fine — only a bare
-// top-level style rule is a violation.
+// (base | components): global sheets (reset + token tiers) are `base`, CSS Modules are
+// `components`. `@layer` statements/blocks and `@media`/`@supports` wrapping layered rules are
+// all fine — only a bare top-level style rule, or a stray layer name (in an `@layer` at-rule OR
+// an `@import … layer(<name>)`), is a violation.
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -41,25 +43,56 @@ function isInsideKeyframes(node) {
   return false;
 }
 
-const violations = [];
+// The cascade collapses to two layers named for their jobs — `base` (reset + token tiers, loses)
+// and `components` (CSS Modules, wins). A stray third name would silently re-introduce the
+// tier/layer conflation this set exists to prevent, so enforce the exact two.
+const ALLOWED_LAYERS = new Set(["base", "components"]);
+
+const unlayered = [];
+const badNames = [];
 for (const file of findCss(SRC)) {
   const root = postcss.parse(readFileSync(file, "utf8"), { from: file });
+  const at = (node) =>
+    `${relative(process.cwd(), file)}:${node.source.start.line}`;
   root.walkRules((rule) => {
     if (isInsideKeyframes(rule)) return;
     if (!isInsideLayer(rule)) {
-      violations.push(
-        `${relative(process.cwd(), file)}:${rule.source.start.line}  "${rule.selector}"`,
-      );
+      unlayered.push(`${at(rule)}  "${rule.selector}"`);
+    }
+  });
+  root.walkAtRules("layer", (layer) => {
+    for (const name of layer.params.split(",").map((n) => n.trim())) {
+      // Skip anonymous layers (`@layer { … }`, empty params) — a valid, unused-here form.
+      if (name && !ALLOWED_LAYERS.has(name)) {
+        badNames.push(`${at(layer)}  @layer "${name}"`);
+      }
+    }
+  });
+  // A layer name can also enter the cascade via `@import "x.css" layer(<name>);` (CSS Cascade L5) —
+  // a form `@layer` walking alone misses. Catch a named `layer(...)`; the anonymous `layer` keyword
+  // (no parens) is exempt, like an anonymous `@layer { … }`.
+  root.walkAtRules("import", (imp) => {
+    const name = imp.params.match(/\blayer\(([^)]*)\)/)?.[1].trim();
+    if (name && !ALLOWED_LAYERS.has(name)) {
+      badNames.push(`${at(imp)}  @import layer("${name}")`);
     }
   });
 }
 
-if (violations.length) {
-  console.error("CSS with rules outside an @layer block:\n");
-  for (const v of violations) console.error(`  ${v}`);
+if (unlayered.length || badNames.length) {
+  if (unlayered.length) {
+    console.error("CSS with rules outside an @layer block:\n");
+    for (const v of unlayered) console.error(`  ${v}`);
+  }
+  if (badNames.length) {
+    console.error("\nCSS with an @layer name outside {base, components}:\n");
+    for (const v of badNames) console.error(`  ${v}`);
+  }
   console.error(
-    `\n${violations.length} violation(s). Wrap rules in @layer (foundation | semantic | components).`,
+    `\n${unlayered.length + badNames.length} violation(s). Wrap rules in @layer (base | components).`,
   );
   process.exit(1);
 }
-console.log("CSS: all rules (modules + global sheets) are layered.");
+console.log(
+  "CSS: all rules (modules + global sheets) are layered as base | components.",
+);

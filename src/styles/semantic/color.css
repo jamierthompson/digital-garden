@@ -2,7 +2,7 @@
    as light-dark() literals; guarded byte-for-byte by color.test.ts. A route stamps its authored
    theme on <html> (PageTheme), out-ranking this :root; these values only paint un-themed surfaces
    (404 / error / loading + their chrome). Never hand-edit — regenerate. */
-@layer semantic {
+@layer base {
   :root {
     color-scheme: light dark;
     --background: light-dark(

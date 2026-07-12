@@ -1,3 +1,3 @@
 /* Must be the first emitted style rule so it fixes cascade order lowest-first. An unlayered rule
    out-ranks every @layer (the "@layer trap"), so every module opts into a layer or stays var-only. */
-@layer foundation, semantic, components;
+@layer base, components;

@@ -1,5 +1,5 @@
 /* Ring GEOMETRY only — the ring COLOR is the --ring semantic token. */
-@layer foundation {
+@layer base {
   :root {
     --ring-width: 2px;
     --ring-offset: 2px;

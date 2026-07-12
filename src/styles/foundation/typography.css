@@ -1,5 +1,5 @@
 /* --type-size-* is baked @garden/type output — regenerate via the engine; guarded by semantic/type.test.ts. */
-@layer foundation {
+@layer base {
   :root {
     --type-size-1: clamp(0.6331rem, 0.7148rem - 0.1022vw, 0.6944rem);
     --type-size-2: clamp(0.8333rem, 0.8297rem + 0.0178vw, 0.844rem);

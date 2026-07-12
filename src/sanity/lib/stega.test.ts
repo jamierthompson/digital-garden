@@ -16,11 +16,11 @@ import {
 describe("stega exclusions", () => {
   it("excludes exactly the code-consumed fields", () => {
     expect([...STEGA_EXCLUDED_FIELDS].sort()).toEqual(
-      ["componentKey", "embedKey", "kind", "stage"].sort(),
+      ["componentKey", "slotKey", "kind", "stage"].sort(),
     );
   });
 
-  it.each(["componentKey", "embedKey"])(
+  it.each(["componentKey", "slotKey"])(
     "flags %s (the leaf of the source path) as excluded",
     (field) => {
       expect(isStegaExcludedField(["someParent", field])).toBe(true);
@@ -36,6 +36,15 @@ describe("stega exclusions", () => {
       expect(isStegaExcludedField(["theme", leaf])).toBe(true);
     },
   );
+
+  it("no longer flags the retired embedKey field name (#250 — slot rename)", () => {
+    // `embedKey` was renamed to `slotKey` (schema + stored data, one migration). The
+    // exclusion moved WITH the field: `slotKey` is excluded (pinned above), and the
+    // retired name earns no leftover entry. If un-migrated `embedKey` data ever
+    // resurfaces, it is unprotected by design — the migration, not stega, owns it.
+    expect(isStegaExcludedField(["embedKey"])).toBe(false);
+    expect(isStegaExcludedField(["someParent", "embedKey"])).toBe(false);
+  });
 
   it("no longer flags the retired flat theming field names on their own", () => {
     // themeColor / themeColorDark / fontKey are gone — the theme is a nested object now,

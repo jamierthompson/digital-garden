@@ -1,4 +1,4 @@
-@layer semantic {
+@layer base {
   :root {
     --font-body: var(--font-source-serif-4), Georgia, "Times New Roman", serif;
     --font-heading:
