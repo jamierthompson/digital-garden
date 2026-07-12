@@ -1,4 +1,5 @@
 import styles from "./EntryFigure.module.css";
+import { firstNonEmpty } from "./mediaLabel";
 
 interface FigureValue {
   alt?: string;
@@ -16,7 +17,7 @@ interface FigureValue {
  * + caption as a labelled placeholder. Var-consuming, themed by the surrounding scope.
  */
 export default function EntryFigure({ value }: { value: FigureValue }) {
-  const label = value.alt ?? value.caption ?? "Figure";
+  const label = firstNonEmpty([value.alt, value.caption], "Figure");
   return (
     <figure className={styles.figure}>
       <div className={styles.placeholder} role="img" aria-label={label}>
