@@ -100,8 +100,8 @@ The `@garden/oklch` (color) and `@garden/type` (type-scale) engines are each the
 `packages/*` workspace package (the app **and** the Studio can depend on them); the Sanity Studio
 is a standalone package in `studio/`.
 
-Each entry module owns its single `/[slug]` page (editorial article + interactive experience), its
-scoped tokens, and the components its essay embeds. A typed reference-by-key resolver maps a Sanity
+Each entry module owns its single `/[slug]` page (editorial article + interactive slot), its
+scoped tokens, and the slot components its essay mounts. A typed reference-by-key resolver maps a Sanity
 `componentKey` to a literal dynamic import, and dependencies point **entry modules → shared, never
 back** (lint-enforced).
 

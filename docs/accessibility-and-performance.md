@@ -85,7 +85,7 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 - For browsers without `:focus-visible`, mirror the rule inside
   `@supports not (selector(:focus-visible))`.
 - **Skip-link + `<main>` landmark (2.4.1):** the shell mounts a `SkipLink`
-  (`src/components/shell/SkipLink.tsx`) as the **first focusable in the document** — off-screen until
+  (`src/components/page-chrome/SkipLink.tsx`) as the **first focusable in the document** — off-screen until
   focused, then a visible chip above all page chrome. It targets the shared `MAIN_CONTENT_ID`
   (`src/lib/landmarks.ts`) — the `id` **every view's single `<main>` carries**: the `Page` layout
   primitive stamps it on the `<main>` it renders (the token & theming architecture / Layout

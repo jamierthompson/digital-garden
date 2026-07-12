@@ -147,12 +147,12 @@ Enforced by `pnpm lint:color` (`scripts/check-color-immutability.mjs`, a CI gate
 
 **Next does NOT auto-assign CSS Modules to a cascade layer.** Per the CSS cascade-layers spec (CSS Cascading and Inheritance Level 5; see MDN "Cascade layers"), an **unlayered** declaration **outranks every `@layer` style** regardless of specificity — and Next leaves Modules unlayered. So:
 
-> **Every `*.module.css` MUST wrap its rules in `@layer foundation` / `@layer semantic` / `@layer components` — or stay strictly var-consuming (no bare rules).**
+> **Every `*.module.css` MUST wrap its rules in `@layer components` — or stay strictly var-consuming (no bare rules).**
 
-This is enforced by `pnpm lint:css` (`scripts/check-css-layers.mjs`, a CI gate): any rule outside an `@layer` block fails the build. Layer order is declared once, first, in `src/styles/layers.css` (imported before every other sheet):
+This is enforced by `pnpm lint:css` (`scripts/check-css-layers.mjs`, a CI gate): any rule outside an `@layer` block fails the build. The cascade collapses to two layers named for their jobs — `base` (the reset + the foundation/semantic token tiers, loses) and `components` (CSS Modules, wins). Layer order is declared once, first, in `src/styles/layers.css` (imported before every other sheet):
 
 ```css
-@layer foundation, semantic, components; /* foundation < semantic < components */
+@layer base, components; /* base < components */
 ```
 
 An entry's theme fonts (up to three optional faces) scope to its own slot via inline role-token overrides on `[data-entry]` (`EntryScope`), not a cascade layer — an unset role inherits `:root`; its color is the page's `<html>` theme, inherited. Note: Next's own CSS doc (`…/01-getting-started/11-css.md`) covers only import-order chunking — it never assigns Modules to a layer, which is exactly the gap this rule closes.
@@ -192,14 +192,14 @@ The contract is also test-enforced: the engine suite runs under **both** `node` 
 
 House rule: **establish the pattern early, instantiate it late** (the deferral discipline). Name where each kind of code _will_ live, but don't stand up the structure until a concrete trigger earns it — a genuine second use or an actual prop-drill. "I'll need it later" is not a trigger. Each rule below pairs with the **trigger** that says it's time — none of this is built pre-emptively.
 
-| Concern                                             | Where it lives                                                                                                  | Instantiate when…                                                                                                                        |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Pure logic / utilities (no React, no I/O)           | `src/lib/*` (`cardSwatches`, `scheme`, resolvers); the `@garden/oklch` + `@garden/type` engines in `packages/*` | always — logic stays out of components                                                                                                   |
-| Data fetching / external I/O (the "services" layer) | `src/sanity/lib/*`                                                                                              | a new external source appears. **No generic `services/`** — RSCs fetch directly and `sanity/lib` is the I/O home                         |
-| Interaction logic / state (reducers, machines)      | a hook beside the component, or a headless `core/`                                                              | a component's logic outgrows its render — extract a `core/` **then**, not by template (architecture.md's interactive experience section) |
-| Presentation                                        | the component, reading **tokens + props**                                                                       | —                                                                                                                                        |
+| Concern                                             | Where it lives                                                                                                  | Instantiate when…                                                                                                                  |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Pure logic / utilities (no React, no I/O)           | `src/lib/*` (`cardSwatches`, `scheme`, resolvers); the `@garden/oklch` + `@garden/type` engines in `packages/*` | always — logic stays out of components                                                                                             |
+| Data fetching / external I/O (the "services" layer) | `src/sanity/lib/*`                                                                                              | a new external source appears. **No generic `services/`** — RSCs fetch directly and `sanity/lib` is the I/O home                   |
+| Interaction logic / state (reducers, machines)      | a hook beside the component, or a headless `core/`                                                              | a component's logic outgrows its render — extract a `core/` **then**, not by template (architecture.md's interactive slot section) |
+| Presentation                                        | the component, reading **tokens + props**                                                                       | —                                                                                                                                  |
 
-**Separation of concerns.** A component renders; it does not _also_ own a reducer, derive data, and fetch. Keep those concerns separable even before you split them — when logic starts to crowd render, lift it into a hook / `core/` and feed the component tokens and props. This is architecture.md's interactive experience section's headless-core idea applied everywhere, not only to an experience.
+**Separation of concerns.** A component renders; it does not _also_ own a reducer, derive data, and fetch. Keep those concerns separable even before you split them — when logic starts to crowd render, lift it into a hook / `core/` and feed the component tokens and props. This is architecture.md's interactive slot section's headless-core idea applied everywhere, not only to a slot.
 
 **State at the lowest common owner.** Client state starts as local `useState` in the leaf Client Component (`'use client'` as low as possible, the React section). **Trigger to lift:** the moment you're prop-drilling — threading one value through 2+ components that don't themselves use it — raise it to the lowest common parent, or introduce Context / a small store _at that point_, never pre-emptively. Most "state" here is server data (RSC + cookies + `'use cache'`, the Cache Components section); a client store is only for genuinely client-only state shared across a subtree.
 

@@ -45,7 +45,7 @@ server-emitted `<style>`. Verify against the docs above and the real code, not t
    (`SiteNav`/`SiteFooter`) **inherits** the visible page's theme. What is global is the editorial
    **type** (Space Grotesk + Source Serif 4) plus the neutral fallback for un-themed surfaces
    (404 / error / loading). An entry's theme **font** scopes **only** to its bounded slot
-   (`[data-entry]` / the `<Experience/>`). Flag a theme font bleeding onto page chrome, or a route that
+   (`[data-entry]` / the `Slot`). Flag a theme font bleeding onto page chrome, or a route that
    renders content without a `<PageTheme>` seed where one belongs.
 
 5. **Downward theming has one owner.** The project's slot scope is the single owner of the theme + font

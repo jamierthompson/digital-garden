@@ -9,7 +9,7 @@ import type { ThemeDeclaration } from "@/lib/theme";
  * This is exactly `EntryCard`'s server-rendered baked-CSS approach (`cardSwatches` spread inline
  * on the `<li>`), lifted to `:root` so the persistent chrome inherits it. First paint is the EASY
  * case — the seed is server-known, so it bakes into the initial HTML as CSS. It is **unlayered**,
- * so it out-ranks the `@layer foundation`/`semantic` fallback `:root` via the "@layer trap" —
+ * so it out-ranks the `@layer base` fallback `:root` via the "@layer trap" —
  * the same way a card's inline style out-ranks the layered defaults.
  *
  * `ThemeReapplier` (the sibling in `PageTheme`) exists SOLELY for soft navigation: the persistent

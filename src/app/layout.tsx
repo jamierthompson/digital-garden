@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
 // LOAD-BEARING IMPORT ORDER — do not reorder, and do not enable an import-sorter.
-// layers.css declares `@layer foundation, semantic, components;` and MUST be the first side-effect
+// layers.css declares `@layer base, components;` and MUST be the first side-effect
 // import; every style sheet MUST precede `next/font` and the component imports. Turbopack anchors
 // the route's FIRST emitted stylesheet to whatever is imported first; if a `next/font`/component
-// chunk lands first it registers `@layer components` as the LOWEST layer, so the foundation reset
+// chunk lands first it registers `@layer components` as the LOWEST layer, so the base reset
 // out-ranks every component rule and zeroes their padding/margin. Pinned by layout.test.ts.
 import "../styles/layers.css";
 import "../styles/reset.css";

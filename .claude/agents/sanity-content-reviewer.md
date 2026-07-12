@@ -65,13 +65,13 @@ for schema and GROQ specifics.
 
 7. **Studio is a workspace package; keys are an app-side contract.** The Studio is a standalone Vite
    workspace package under `studio/`, **not** a `/studio` route, and it deliberately imports nothing
-   from the Next app — the schema's key fields (the three faces, `componentKey`, `embedKey`) are
+   from the Next app — the schema's key fields (the three faces, `componentKey`, `slotKey`) are
    free-text strings, not dropdowns built from `keys.ts`. The `keys.ts` single source of truth lives
    **app-side** (`src/lib/keys.ts`); because the schema can't import it, a CI drift net
    (`check-key-drift.mjs` + `check-published-keys.mjs`) asserts published keys stay members. Flag schema
    or Studio code drifting into the Next app, or a key defined outside `keys.ts`.
 
-8. **Embeds are modeled right.** Use the generic `liveEmbed` (embedKey + caption) by default; a typed
+8. **Slots are modeled right.** Use the generic `slot` (slotKey + caption) by default; a typed
    Portable Text block only when an editor authors genuinely structured content; **never** model code
    configuration as a Portable Text block. Flag code config smuggled into a content block.
 

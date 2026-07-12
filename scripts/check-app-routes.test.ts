@@ -160,7 +160,7 @@ describe("check-app-routes.mjs — violations (the guard bites)", () => {
   it("FAILS a root `globals.css` (global/token CSS belongs in `src/styles/`)", () => {
     const { status, stderr } = run({
       "page.tsx": "export default function Page(){ return null }",
-      "globals.css": "@layer foundation {}",
+      "globals.css": "@layer base {}",
     });
     expect(status).toBe(1);
     expect(stderr).toMatch(/globals\.css/);
