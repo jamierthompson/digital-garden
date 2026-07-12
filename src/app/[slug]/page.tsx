@@ -28,7 +28,7 @@ import styles from "./page.module.css";
 //
 //     <main> editorial chrome
 //       ├ <article> the entry's essay (PT serializer) — editorial
-//       ├ EntryScopeBoundary + EntryScope + <Experience/> — the themed slot,
+//       ├ EntryScopeBoundary + EntryScope + <Slot/> — the themed slot,
 //       │   rendered for ANY entry (except `now`) that resolves a module
 //       └ <RelatedEntries> — editorial (outgoing `related` + incoming backlinks)
 //
@@ -38,10 +38,10 @@ import styles from "./page.module.css";
 //     renamed/deleted module (drift) → `notFound()`, for ANY kind. NO `componentKey` →
 //     prose-only, never a 404 (a `stage: sketch` project keeps its key null until it ships,
 //     and a note/essay simply never has one). A module composes one (or both) of two ways —
-//     `Experience` (one slot mounted after the prose) and/or `Provider` (a client frame around
+//     `Slot` (one slot mounted after the prose) and/or `Provider` (a client frame around
 //     the article so interleaved `liveEmbed` slots share state).
 //   • Theming — a `theme.color`: present → build the scope seed and thread it to the body so
-//     each `liveEmbed` (and the `Experience` slot) mounts in its own scoped container.
+//     each `liveEmbed` (and the after-prose `Slot`) mounts in its own scoped container.
 //
 // `now` is the ONE exception, excluded by design: it stays chrome + prose — never a scope,
 // never a module — even if it happens to carry `theme`/`componentKey`, because a `now`
@@ -126,18 +126,18 @@ export default async function EntryPage({ params }: EntryPageProps) {
 
   // Load the resolved module. Past the guard above, a non-null `resolution` is `found`, so this
   // mounts for ANY kind (except `now`) that declared a resolvable key. The module composes one
-  // (or both) of two ways: `Experience` = one slot after the prose; `Provider` = a client frame
+  // (or both) of two ways: `Slot` = one slot after the prose; `Provider` = a client frame
   // around the article so `liveEmbed` slots interleaved through the prose share state (see
   // `EntryModule`).
   const entryModule =
     resolution && !isNotFound(resolution)
       ? ((await resolution.value()) as { default: EntryModule }).default
       : null;
-  const Experience = entryModule?.Experience ?? null;
+  const Slot = entryModule?.Slot ?? null;
   const Provider = entryModule?.Provider ?? null;
 
   // The font seed for the entry's slot(s), threaded to the body so each `liveEmbed` — and the
-  // `Experience` slot — mounts in its own `[data-entry]` wearing the entry's theme fonts. Built
+  // after-prose `Slot` — mounts in its own `[data-entry]` wearing the entry's theme fonts. Built
   // whenever this entry either themes (`theme.color`) OR mounts a module: keyed on the REAL `slug`
   // so a scope never collapses to the shared `data-entry="fallback"`. Each of the three role fonts
   // is passed as `undefined` when absent (never coerced to `""`): the keystone omits an absent
@@ -178,15 +178,15 @@ export default async function EntryPage({ params }: EntryPageProps) {
           bundled composition docs. */}
         {Provider ? <Provider slug={slug}>{article}</Provider> : article}
         {/* The theme is scoped to the interactive slot ONLY — the engine theme wraps
-          <Experience/>, not the editorial article/related around it. Rendered only when a
+          <Slot/>, not the editorial article/related around it. Rendered only when a
           module resolved (any kind but `now`); an entry without one is prose-only. The wrapper
           `<div>` is a direct `.module` child, so it holds the reading-measure cap
           (`.module > :not(.article)`) like every non-article child. */}
-        {Experience ? (
+        {Slot ? (
           <div>
             <EntryScopeBoundary>
               <EntryScope seed={scope}>
-                <Experience slug={slug} />
+                <Slot slug={slug} />
               </EntryScope>
             </EntryScopeBoundary>
           </div>

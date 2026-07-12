@@ -7,7 +7,7 @@ import type { EntryModule } from "@/entries/types";
 import ColorEngineExperience from "./ColorEngineExperience";
 
 const colorEngine: EntryModule = {
-  Experience: ColorEngineExperience,
+  Slot: ColorEngineExperience,
 };
 
 export default colorEngine;

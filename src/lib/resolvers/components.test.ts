@@ -29,7 +29,7 @@ describe("resolveComponentKey", () => {
   });
 
   // Every declared ComponentKey must resolve to a module whose default satisfies the
-  // EntryModule contract — at least one composition member (`Experience` and/or
+  // EntryModule contract — at least one composition member (`Slot` and/or
   // `Provider`), each a renderable component. Iterating the source-of-truth key array
   // means any module that lands with a broken or missing loader trips here, not in
   // prod. Guarded so an empty registry is still a passing no-op.
@@ -39,10 +39,10 @@ describe("resolveComponentKey", () => {
       expect(isNotFound(result)).toBe(false);
       if (isNotFound(result)) throw new Error(`expected a loader for ${key}`);
       const mod = (await result.value()) as {
-        default: { Experience?: unknown; Provider?: unknown };
+        default: { Slot?: unknown; Provider?: unknown };
       };
       expect(mod.default).toBeTruthy();
-      const members = [mod.default.Experience, mod.default.Provider].filter(
+      const members = [mod.default.Slot, mod.default.Provider].filter(
         (member) => member !== undefined,
       );
       expect(
