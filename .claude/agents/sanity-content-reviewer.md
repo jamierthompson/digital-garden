@@ -1,6 +1,6 @@
 ---
 name: sanity-content-reviewer
-description: Reviews Sanity schema, stega, TypeGen, and content-model work — the single `entry` type with a `kind` discriminator (note · essay · project · now), `stage`/`iterated`, and Day-1 backlinks, stega excluded on `themeColor`/`fontKey`, the single `defineLive` read path, and regenerated-and-committed `sanity.types.ts`. Use proactively after editing anything under `studio/`, GROQ queries, the shared `keys.ts`, or content-fetching code.
+description: Reviews Sanity schema, stega, TypeGen, and content-model work — the single `entry` type with a `kind` discriminator (note · essay · project · now), `stage`/`iterated`, and Day-1 backlinks, stega excluded on the whole `theme` object by ancestor, the single `defineLive` read path, and regenerated-and-committed `sanity.types.ts`. Use proactively after editing anything under `studio/`, GROQ queries, `keys.ts`, or content-fetching code.
 tools: Read, Grep, Glob
 ---
 
@@ -35,18 +35,23 @@ for schema and GROQ specifics.
 3. **Day-1 backlinks via real references.** An `entry` carries a `related` **self-referencing** array
    (`entry` → `entry`); incoming backlinks resolve via GROQ `references()` (the edge is authored once and
    shows both ends, cross-kind). Backlinks must be real `reference` fields — never strings or slugs.
-   `themeColor` is **required for every themed kind** (note · essay · project, any stage); `fontKey` /
-   `componentKey` are required only for a `project` **past the sketch stage** (a sketch project is an
-   honest placeholder with no module yet) and optional-but-honored for a note/essay. A `now` carries
-   none (it inherits the `/now` page seed). Flag a backlink stored as a string/slug, a one-directional
-   link that can't resolve the incoming side, `themeColor` made optional for a themed kind, or
-   `fontKey`/`componentKey` made unconditionally required (breaks sketch-stage and note/essay/now authoring).
+   `theme.color` is **required for every themed kind** (note · essay · project, any stage); the three
+   font faces (`theme.headingFont` / `bodyFont` / `monoFont`) **and** `componentKey` are
+   **unconditionally optional**, theming/mounting purely on **presence** for every kind but `now`
+   (#226 deleted the `requiredForNonSketchProject` validator — a prose-only shipped project is valid).
+   A `now` carries no theme of its own (it inherits the `/now` page seed). Flag a backlink stored as a
+   string/slug, a one-directional link that can't resolve the incoming side, `theme.color` made
+   optional for a themed kind, or a face / `componentKey` made required for any kind (breaks prose-only
+   and note/essay/now authoring).
 
-4. **Stega off `themeColor` and `fontKey`.** These feed the engine and are used as **keys**, not
-   display copy — stega encoding must be excluded on them (an invisible-character payload would corrupt
-   a color parse or a key lookup). Click-to-edit / overlay targets should attach to the caption, not the
-   interactive region. Flag stega left on `themeColor` / `fontKey`, or a click-to-edit target on the
-   live interactive area.
+4. **Stega off the whole `theme` object.** `theme` (`color` / `colorDark` + the three font faces) feeds
+   the OKLCH engine and font roster and is used as **keys**, not display copy — an invisible-character
+   payload would corrupt a color parse or a key lookup. Stega is excluded on the **entire object by
+   ANCESTOR** (`STEGA_EXCLUDED_ANCESTORS` in `src/sanity/lib/stega.ts`), not by leaf field-name
+   denylisting — the leaf names (`color` / `headingFont` / …) are common words Sanity's default denylist
+   misses. Click-to-edit / overlay targets should attach to the caption, not the interactive region.
+   Flag a `theme` leaf that stega reaches (the ancestor exclusion dropped or bypassed), or a
+   click-to-edit target on the live interactive area.
 
 5. **TypeGen regenerated and committed.** After **any** schema change, TypeGen must be re-run and the
    regenerated, root-anchored `sanity.types.ts` committed — CI git-diffs it and fails on drift. This is
@@ -58,10 +63,13 @@ for schema and GROQ specifics.
    `createClient`/`fetch` read path bypassing `defineLive`, or a revalidate tag that doesn't follow the
    contract.
 
-7. **Studio is a workspace package; keys are shared.** The Studio is a standalone Vite workspace package
-   under `studio/`, **not** a `/studio` route; the `keys.ts` single source of truth lives in a shared
-   workspace package. Flag schema or Studio code drifting into the Next app, or a key defined outside
-   the shared `keys.ts`.
+7. **Studio is a workspace package; keys are an app-side contract.** The Studio is a standalone Vite
+   workspace package under `studio/`, **not** a `/studio` route, and it deliberately imports nothing
+   from the Next app — the schema's key fields (the three faces, `componentKey`, `embedKey`) are
+   free-text strings, not dropdowns built from `keys.ts`. The `keys.ts` single source of truth lives
+   **app-side** (`src/lib/keys.ts`); because the schema can't import it, a CI drift net
+   (`check-key-drift.mjs` + `check-published-keys.mjs`) asserts published keys stay members. Flag schema
+   or Studio code drifting into the Next app, or a key defined outside `keys.ts`.
 
 8. **Embeds are modeled right.** Use the generic `liveEmbed` (embedKey + caption) by default; a typed
    Portable Text block only when an editor authors genuinely structured content; **never** model code
