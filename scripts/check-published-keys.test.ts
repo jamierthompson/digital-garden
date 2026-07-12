@@ -148,10 +148,12 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
     ).toEqual([]);
   });
 
-  it("flags a broken fontKey path — siteSettings published but zero fontKeys resolved", () => {
-    const signals = findBrokenQuerySignals({ ...CLEAN, fontKeys: [] });
-    expect(signals).toHaveLength(1);
-    expect(signals[0]).toMatch(/fontKey query is likely broken/);
+  it("does NOT flag an empty fontKeys array — the three faces are optional (#226), so no font canary", () => {
+    // Every theme face is optional, so zero resolved font keys is a legitimate state (no entry
+    // set any face) — indistinguishable from, and treated the same as, a benign empty. There is
+    // no schema-required face to anchor a "should be non-empty" check, so removing the old
+    // siteSettings.fontKey canary is correct. Regression guard for that removal.
+    expect(findBrokenQuerySignals({ ...CLEAN, fontKeys: [] })).toEqual([]);
   });
 
   it("flags a broken componentKey path — a non-sketch project exists but zero componentKeys resolved", () => {
@@ -182,13 +184,15 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
   });
 
   it("reports every broken category at once, not just the first", () => {
+    // Two canaries remain (componentKey + embedKey); fonts have none (all faces optional), so an
+    // empty fontKeys array contributes no signal here.
     const signals = findBrokenQuerySignals({
       ...CLEAN,
       fontKeys: [],
       componentKeys: [],
       embedKeys: [],
     });
-    expect(signals).toHaveLength(3);
+    expect(signals).toHaveLength(2);
   });
 });
 

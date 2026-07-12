@@ -2,13 +2,14 @@
 //
 // `scripts/check-key-drift.mjs` guards direction (a) — code <-> keys.ts — and explicitly
 // defers direction (b): a published Sanity key with no code resolver. This script is (b):
-// GROQ every DISTINCT published `fontKey` / `componentKey` / `embedKey` from the `production`
+// GROQ every DISTINCT published font key / `componentKey` / `embedKey` from the `production`
 // dataset and assert each one is a member of the corresponding array in `src/lib/keys.ts`
-// (the reference-by-key contract — see docs/architecture.md). It is additive: no schema
-// change, and it never touches keys.ts.
+// (the reference-by-key contract — see docs/architecture.md). It is a read-only net: it
+// queries published data and asserts against keys.ts, mutating neither.
 //
 // Field provenance (verified against the live schema, not memory — `studio/schemaTypes/`):
-//   - `fontKey`      lives on both `entry` and `siteSettings`.
+//   - font keys      live on `entry.theme` as `headingFont` / `bodyFont` / `monoFont` — three
+//                     optional roster keys; the query gathers all three (siteSettings has none).
 //   - `componentKey` lives on `entry` only.
 //   - `embedKey`     lives on `entry.body[]`, nested inside the `liveEmbed` block type —
 //                     NOT a top-level field, so it needs an array-flatten in the query.
@@ -55,7 +56,11 @@ const PUBLISHED_KEYS_QUERY = `{
   "siteSettingsCount": count(*[_type == "siteSettings"]),
   "nonSketchProjectCount": count(*[_type == "entry" && kind == "project" && stage != "sketch"]),
   "liveEmbedBlockCount": count(*[_type == "entry" && count(body[_type == "liveEmbed"]) > 0]),
-  "fontKeys": array::unique(*[_type in ["entry", "siteSettings"] && defined(fontKey)].fontKey),
+  "fontKeys": array::unique(
+    *[_type == "entry" && defined(theme.headingFont)].theme.headingFont
+    + *[_type == "entry" && defined(theme.bodyFont)].theme.bodyFont
+    + *[_type == "entry" && defined(theme.monoFont)].theme.monoFont
+  ),
   "componentKeys": array::unique(*[_type == "entry" && defined(componentKey)].componentKey),
   "embedKeys": array::unique(*[_type == "entry"].body[_type == "liveEmbed" && defined(embedKey)].embedKey)
 }`;
@@ -74,9 +79,9 @@ export function findUnresolvedKeys(publishedKeys, knownKeys) {
  * `[]` because nothing is published (benign) vs. `[]` because the field path inside the
  * query is wrong (a silent false pass). Each check pairs a structural count — one that does
  * NOT depend on the key field name — with a real schema guarantee that ties it to a
- * non-empty key array:
- *   - `siteSettings.fontKey` is `rule.required()` — a published siteSettings doc with zero
- *     resolved fontKeys means the fontKey path broke.
+ * non-empty key array. There is no font canary: the three `theme` faces are all OPTIONAL
+ * (#226), so no schema-required face exists to anchor one — an empty fontKeys array is a
+ * legitimate state, not necessarily a broken query.
  *   - a NON-SKETCH "project"-kind `entry.componentKey` is `required()` (a `stage: sketch`
  *     project has no coded module yet, so componentKey is required only PAST sketch — see
  *     studio/schemaTypes/documents/entry.ts). So the canary counts only non-sketch projects:
@@ -92,12 +97,11 @@ export function findUnresolvedKeys(publishedKeys, knownKeys) {
  */
 export function findBrokenQuerySignals(published) {
   const signals = [];
-  if (published.siteSettingsCount > 0 && published.fontKeys.length === 0) {
-    signals.push(
-      "siteSettings is published (its fontKey is schema-required) but zero fontKey " +
-        "values resolved — the fontKey query is likely broken, not a benign empty dataset.",
-    );
-  }
+  // NOTE: there is no font canary. Every theme face (`theme.headingFont` / `bodyFont` /
+  // `monoFont`) is OPTIONAL (#226), so an empty `fontKeys` array is a legitimate state — no
+  // schema-required face exists to anchor a "should be non-empty" check against (unlike the
+  // required-in-context componentKey / embedKey below). The font query's shape is instead
+  // pinned by this script's unit test.
   if (
     published.nonSketchProjectCount > 0 &&
     published.componentKeys.length === 0
