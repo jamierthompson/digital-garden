@@ -23,18 +23,52 @@ const ALL_THREE = {
   monoFont: "inter",
 } as const;
 
-// The per-role generic family that tails each override (heading→sans-serif, body→serif,
-// mono→monospace) — the ONLY fallback appended after the face's var.
-const GENERIC = {
-  "--font-heading": "sans-serif",
-  "--font-body": "serif",
-  "--font-mono": "monospace",
+// The role→face contract EntryScope stamps in TS (mirrors `:root` in semantic/type.css and
+// FACE_BINDINGS in the component). Each face, when resolved, stamps TWO channels: its leaf
+// `--font-*` token (var(<face>) + generic) AND every `--type-<role>-family` bundle mapped to it,
+// valued `var(<leaf>)`. An unresolved face stamps NEITHER channel, so its roles inherit `:root`.
+const FACE_SPEC = {
+  heading: {
+    leaf: "--font-heading",
+    generic: "sans-serif",
+    roles: ["display", "title", "heading", "subheading", "label"],
+  },
+  body: { leaf: "--font-body", generic: "serif", roles: ["lead", "body"] },
+  mono: { leaf: "--font-mono", generic: "monospace", roles: ["meta"] },
 } as const;
 
 // Read an inline custom property straight off the element's style, so the assertion doesn't
 // depend on jsdom computing cascaded custom properties.
 const propOf = (el: Element | null, property: string): string =>
   (el as HTMLElement).style.getPropertyValue(property);
+
+type FaceKey = keyof typeof FACE_SPEC;
+
+// A resolved face stamped BOTH channels: its leaf (var(<face>) + generic) and every
+// `--type-<role>-family` bundle mapped to it (var(<leaf>) — the leaf co-declared on this element).
+const expectFaceStamped = (
+  wrapper: Element | null,
+  face: FaceKey,
+  fontKey: keyof typeof FONT_FACES,
+): void => {
+  const { leaf, generic, roles } = FACE_SPEC[face];
+  expect(propOf(wrapper, leaf)).toBe(
+    `var(${FONT_FACES[fontKey].cssVariable}), ${generic}`,
+  );
+  for (const role of roles) {
+    expect(propOf(wrapper, `--type-${role}-family`)).toBe(`var(${leaf})`);
+  }
+};
+
+// An absent/unresolvable face stamped NEITHER channel — its leaf AND every mapped role bundle are
+// empty, so those roles inherit `:root`'s editorial face.
+const expectFaceAbsent = (wrapper: Element | null, face: FaceKey): void => {
+  const { leaf, roles } = FACE_SPEC[face];
+  expect(propOf(wrapper, leaf)).toBe("");
+  for (const role of roles) {
+    expect(propOf(wrapper, `--type-${role}-family`)).toBe("");
+  }
+};
 
 // EntryScope is a SYNC server component, so jsdom can render it (async RSCs cannot).
 describe("EntryScope (three-role font slot)", () => {
@@ -52,26 +86,45 @@ describe("EntryScope (three-role font slot)", () => {
     expect(wrapper).toHaveClass(FONT_FACES.inter.variable);
   });
 
-  it("emits an override per resolved role: var(<face>) + the role's generic", () => {
+  it("stamps both channels per resolved face: the leaf --font-* AND every --type-<role>-family bundle", () => {
     render(
       <EntryScope seed={ALL_THREE}>
         <p>themed</p>
       </EntryScope>,
     );
     const wrapper = screen.getByText("themed").closest("[data-entry]");
-    expect(propOf(wrapper, "--font-heading")).toBe(
-      `var(${FONT_FACES["space-grotesk"].cssVariable}), ${GENERIC["--font-heading"]}`,
-    );
-    expect(propOf(wrapper, "--font-body")).toBe(
-      `var(${FONT_FACES.newsreader.cssVariable}), ${GENERIC["--font-body"]}`,
-    );
-    expect(propOf(wrapper, "--font-mono")).toBe(
-      `var(${FONT_FACES.inter.cssVariable}), ${GENERIC["--font-mono"]}`,
-    );
+    // Each face stamps its leaf (var(<face>) + generic) and every role bundle mapped to it.
+    expectFaceStamped(wrapper, "heading", "space-grotesk");
+    expectFaceStamped(wrapper, "body", "newsreader");
+    expectFaceStamped(wrapper, "mono", "inter");
     // The wrapper carries no inline `font-family` — the body baseline that CONSUMES `--font-body`
     // is a static `[data-entry]` rule in reset.css (pinned by reset.test.ts); this component emits
     // only the per-entry token values.
     expect(propOf(wrapper, "font-family")).toBe("");
+  });
+
+  it("stamps every --type-<role>-family bundle as var(<leaf>), keeping the generic tail on the leaf", () => {
+    // The bundle value references the leaf co-declared on the SAME element — never the face var
+    // directly and never a duplicated generic. So the generic fallback stays declared once.
+    render(
+      <EntryScope seed={ALL_THREE}>
+        <p>bundles</p>
+      </EntryScope>,
+    );
+    const wrapper = screen.getByText("bundles").closest("[data-entry]");
+    const bundles = {
+      "--type-display-family": "var(--font-heading)",
+      "--type-title-family": "var(--font-heading)",
+      "--type-heading-family": "var(--font-heading)",
+      "--type-subheading-family": "var(--font-heading)",
+      "--type-label-family": "var(--font-heading)",
+      "--type-lead-family": "var(--font-body)",
+      "--type-body-family": "var(--font-body)",
+      "--type-meta-family": "var(--font-mono)",
+    } as const;
+    for (const [token, value] of Object.entries(bundles)) {
+      expect(propOf(wrapper, token)).toBe(value);
+    }
   });
 
   it("never appends the site palette or a self-reference to an override", () => {
@@ -92,23 +145,24 @@ describe("EntryScope (three-role font slot)", () => {
     expect(body).not.toContain("--font-space-grotesk");
   });
 
-  it("omits the override for an absent role so it inherits :root", () => {
+  it("omits BOTH channels for an absent face so its roles inherit :root", () => {
     render(
       <EntryScope seed={{ slug: "e", bodyFont: "newsreader" }}>
         <p>partial</p>
       </EntryScope>,
     );
     const wrapper = screen.getByText("partial").closest("[data-entry]");
-    // Only the body role was seeded → heading + mono emit NO inline override (inherit).
-    expect(propOf(wrapper, "--font-body")).not.toBe("");
-    expect(propOf(wrapper, "--font-heading")).toBe("");
-    expect(propOf(wrapper, "--font-mono")).toBe("");
+    // Only body was seeded → body stamps both channels; heading + mono stamp NEITHER (leaf and
+    // every role bundle mapped to them stay unset → inherit :root).
+    expectFaceStamped(wrapper, "body", "newsreader");
+    expectFaceAbsent(wrapper, "heading");
+    expectFaceAbsent(wrapper, "mono");
     // Only the body face's class mounts.
     expect(wrapper).toHaveClass(FONT_FACES.newsreader.variable);
     expect(wrapper).not.toHaveClass(FONT_FACES["space-grotesk"].variable);
   });
 
-  it("omits the override for a role whose key does not resolve", () => {
+  it("omits BOTH channels for a face whose key does not resolve", () => {
     render(
       <EntryScope
         seed={{ slug: "e", bodyFont: "not-a-font", monoFont: "inter" }}
@@ -117,11 +171,10 @@ describe("EntryScope (three-role font slot)", () => {
       </EntryScope>,
     );
     const wrapper = screen.getByText("bad body").closest("[data-entry]");
-    // Unknown body key → no body override; the resolvable mono sibling still applies.
-    expect(propOf(wrapper, "--font-body")).toBe("");
-    expect(propOf(wrapper, "--font-mono")).toBe(
-      `var(${FONT_FACES.inter.cssVariable}), monospace`,
-    );
+    // Unknown body key → no body leaf and no body role bundles; the resolvable mono sibling still
+    // stamps both channels.
+    expectFaceAbsent(wrapper, "body");
+    expectFaceStamped(wrapper, "mono", "inter");
   });
 
   it("emits NO class attribute and NO overrides when no role resolves", () => {
@@ -132,11 +185,12 @@ describe("EntryScope (three-role font slot)", () => {
     );
     const wrapper = screen.getByText("all inherit").closest("[data-entry]");
     expect(wrapper).toHaveAttribute("data-entry", "e");
-    // No resolvable face → no class attribute (avoid an empty class) and every role inherits.
+    // No resolvable face → no class attribute (avoid an empty class) and every role inherits —
+    // neither the leaves nor any --type-<role>-family bundle is stamped.
     expect(wrapper).not.toHaveAttribute("class");
-    expect(propOf(wrapper, "--font-heading")).toBe("");
-    expect(propOf(wrapper, "--font-body")).toBe("");
-    expect(propOf(wrapper, "--font-mono")).toBe("");
+    expectFaceAbsent(wrapper, "heading");
+    expectFaceAbsent(wrapper, "body");
+    expectFaceAbsent(wrapper, "mono");
   });
 
   it("keeps a safe unregistered slug as its own scope (never throws)", () => {
@@ -183,25 +237,23 @@ describe("EntryScope (three-role font slot)", () => {
   // ── QA additions (#226): the role-combination edges the suite above skips ──
 
   it.each([
-    ["heading", "headingFont", "--font-heading", "sans-serif"],
-    ["mono", "monoFont", "--font-mono", "monospace"],
-  ] as const)(
-    "a %s-ONLY seed overrides exactly that role — the other two emit nothing and inherit",
-    (_role, seedKey, property, generic) => {
-      // The suite pins body-only; a data-driven ROLE_BINDINGS makes a transposition (right
-      // face, wrong property or generic) possible per role, so pin the remaining two
-      // single-role combinations by exact value AND by the absence of both siblings.
+    ["heading", "headingFont"],
+    ["mono", "monoFont"],
+  ] as const satisfies ReadonlyArray<readonly [FaceKey, string]>)(
+    "a %s-ONLY seed stamps both channels for that face — the other two faces stamp neither and inherit",
+    (face, seedKey) => {
+      // The suite pins body-only; a data-driven FACE_BINDINGS makes a transposition (right face,
+      // wrong leaf/generic, or a role bundle mapped to the wrong face) possible per role, so pin
+      // the remaining two single-role seeds by BOTH channels AND by the absence of both siblings.
       render(
         <EntryScope seed={{ slug: "e", [seedKey]: "fraunces" }}>
           <p>single role</p>
         </EntryScope>,
       );
       const wrapper = screen.getByText("single role").closest("[data-entry]");
-      expect(propOf(wrapper, property)).toBe(
-        `var(${FONT_FACES.fraunces.cssVariable}), ${generic}`,
-      );
-      for (const other of Object.keys(GENERIC).filter((p) => p !== property)) {
-        expect(propOf(wrapper, other)).toBe("");
+      expectFaceStamped(wrapper, face, "fraunces");
+      for (const other of Object.keys(FACE_SPEC) as FaceKey[]) {
+        if (other !== face) expectFaceAbsent(wrapper, other);
       }
       expect(wrapper).toHaveClass(FONT_FACES.fraunces.variable);
     },
@@ -226,15 +278,11 @@ describe("EntryScope (three-role font slot)", () => {
     const wrapper = screen
       .getByText("one face everywhere")
       .closest("[data-entry]");
-    expect(propOf(wrapper, "--font-heading")).toBe(
-      `var(${FONT_FACES.inter.cssVariable}), sans-serif`,
-    );
-    expect(propOf(wrapper, "--font-body")).toBe(
-      `var(${FONT_FACES.inter.cssVariable}), serif`,
-    );
-    expect(propOf(wrapper, "--font-mono")).toBe(
-      `var(${FONT_FACES.inter.cssVariable}), monospace`,
-    );
+    // Every face resolves to the same roster face, so each stamps its own leaf (role-correct
+    // generic) and its own role bundles — all eight bundles present, each pointing at its leaf.
+    expectFaceStamped(wrapper, "heading", "inter");
+    expectFaceStamped(wrapper, "body", "inter");
+    expectFaceStamped(wrapper, "mono", "inter");
     expect(wrapper).toHaveClass(FONT_FACES.inter.variable);
   });
 

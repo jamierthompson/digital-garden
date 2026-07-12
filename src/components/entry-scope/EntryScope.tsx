@@ -11,19 +11,39 @@ interface EntryScopeProps {
   children: ReactNode;
 }
 
-// Each themeable role → the semantic token it re-binds + the CSS generic family that TAILS the
-// override. The generic keyword is the ONLY fallback appended: never the site palette face (that
-// would hardcode the palette this slot must stay decoupled from) and never a self-referential
-// `var(--font-<role>)` (a CSS cycle → the whole declaration is dropped). When a role's face is
-// absent the override is omitted entirely and the role inherits `:root`.
-const ROLE_BINDINGS = [
-  { role: "heading", property: "--font-heading", generic: "sans-serif" },
-  { role: "body", property: "--font-body", generic: "serif" },
-  { role: "mono", property: "--font-mono", generic: "monospace" },
+// Each themeable face → the leaf `--font-*` token it re-binds, the CSS generic that TAILS that
+// leaf, and every `--type-<role>-family` bundle that maps to it. This is the ONE place the
+// role→face mapping lives; `:root` in `type.css` declares the same mapping as the site default.
+//
+// The generic keyword is the ONLY fallback appended to the leaf: never the site palette face
+// (that would hardcode the palette this slot must stay decoupled from) and never a self-referential
+// `var(--font-<face>)` (a CSS cycle → the whole declaration is dropped). A role bundle's value is
+// `var(--font-<face>)`, referencing the leaf co-declared on this same element — so the generic
+// fallback stays declared once, on the leaf.
+const FACE_BINDINGS = [
+  {
+    face: "heading",
+    leaf: "--font-heading",
+    generic: "sans-serif",
+    roles: ["display", "title", "heading", "subheading", "label"],
+  },
+  {
+    face: "body",
+    leaf: "--font-body",
+    generic: "serif",
+    roles: ["lead", "body"],
+  },
+  {
+    face: "mono",
+    leaf: "--font-mono",
+    generic: "monospace",
+    roles: ["meta"],
+  },
 ] as const satisfies ReadonlyArray<{
-  role: keyof ScopeFaces;
-  property: string;
+  face: keyof ScopeFaces;
+  leaf: string;
   generic: string;
+  roles: ReadonlyArray<string>;
 }>;
 
 /**
@@ -32,19 +52,28 @@ const ROLE_BINDINGS = [
  *
  * Color is NOT re-bound here: the page stamps its authored seed on `<html>` (see `PageTheme`),
  * and the slot inherits every color token from it — the page and its slot are one seed. The only
- * per-slot overrides are the fonts, so this maps each RESOLVED role (`--font-heading`/`--font-body`/
- * `--font-mono`) to its roster face as an **inline style** on the wrapper (alongside that face's
- * `.variable` class, which brings `var(<cssVariable>)` into scope). A role whose key was absent or
- * unresolvable emits NO override, so it inherits `:root`'s editorial palette. Inline on a
- * server-rendered div → the value is in the initial shell HTML (flash-free) and is per-element, so
- * distinct slots can never collide.
+ * per-slot overrides are the fonts. For each RESOLVED face this stamps TWO channels of solved
+ * values inline on the wrapper (alongside the face's `.variable` class, which brings
+ * `var(<cssVariable>)` into scope):
  *
- * The slot's body baseline — `[data-entry] { font-family: var(--font-body) }` — lives in
- * `reset.css`, not here: `reset.css` resolves that token once on `<body>`, so plain slot text would
- * otherwise inherit the resolved string and never see the slot's `--font-body` override. The
- * static `[data-entry]` rule re-reads the token so the authored body face actually paints on the
- * slot's prose (heading/mono repaint via their own per-element rules). This component only supplies
- * the per-entry token values that rule consumes.
+ *   1. The **leaf** `--font-heading|body|mono` token, read by the element-level rules in
+ *      `reset.css` (the `[data-entry]` body baseline, `h1–h6`, mono/code) that substitute at
+ *      their own element.
+ *   2. Every **`--type-<role>-family` bundle** mapped to that face, read by the typography
+ *      primitives (`Heading`/`Text`). The value is `var(--font-<face>)`, resolving against the
+ *      leaf co-declared on this same element.
+ *
+ * Both channels carry solved values from TS — there is NO CSS re-derivation. `:root` in `type.css`
+ * declares the site-default role→face mapping; this slot restates the theme's faces onto the same
+ * two channels so both element rules and primitives wear the entry's face. (A custom property
+ * substitutes its `var()` refs at the element that DECLARES it, so a `:root`-only `--type-*-family`
+ * binding freezes to the site face there and a `[data-entry]` `--font-*` override never re-enters
+ * it — restamping the bundle here is what lets the primitive see the slot's face.)
+ *
+ * A face whose key was absent or unresolvable emits NOTHING — not its leaf, not its role bundles,
+ * not its class — so every role mapped to it inherits `:root`'s editorial face. Inline on a
+ * server-rendered div → the values are in the initial shell HTML (flash-free) and per-element, so
+ * distinct slots can never collide.
  *
  * Defensive by construction: `resolveScope` never throws — it collapses any bad seed to a safe
  * slug + an empty face set (every role inherits `:root`). It is ALSO wrapped at the route in
@@ -57,22 +86,20 @@ const ROLE_BINDINGS = [
 export default function EntryScope({ seed, children }: EntryScopeProps) {
   const scope = resolveScope(seed);
 
-  // This emits only the per-entry token VALUES (the `--font-*` overrides below). CONSUMING them —
-  // the static `font-family: var(--font-body)` body baseline that makes plain slot text repaint —
-  // is a documented `[data-entry]` rule in `reset.css` (@layer foundation), not an inline style:
-  // that string is identical for every entry, so it belongs in the render-blocking CSS, while only
-  // these values are per-entry and must ship inline in the shell for flash-free theming.
   const style: Record<string, string> = {};
   const classNames: string[] = [];
-  for (const { role, property, generic } of ROLE_BINDINGS) {
-    const face = scope.faces[role];
-    if (!face) continue;
-    style[property] = `var(${face.cssVariable}), ${generic}`;
-    classNames.push(face.variable);
+  for (const { face, leaf, generic, roles } of FACE_BINDINGS) {
+    const resolved = scope.faces[face];
+    if (!resolved) continue;
+    style[leaf] = `var(${resolved.cssVariable}), ${generic}`;
+    classNames.push(resolved.variable);
+    for (const role of roles) {
+      style[`--type-${role}-family`] = `var(${leaf})`;
+    }
   }
 
   return (
-    // A role with no resolved face contributes no class and no override, so when nothing resolves
+    // A face with no resolved value contributes no class and no override, so when nothing resolves
     // `className` is omitted (no empty class attribute) and the slot inherits `:root` wholesale.
     <div
       data-entry={scope.slug}

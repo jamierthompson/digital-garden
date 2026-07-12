@@ -88,57 +88,6 @@ describe("semantic role layer binds to the ramp", () => {
   );
 });
 
-describe("the --type-*-family bindings re-derive inside a themed slot (#226)", () => {
-  // A custom property substitutes its var() references at the element that DECLARES it
-  // (css-variables-1, custom property value processing: computed value = specified value with variables substituted —
-  // https://www.w3.org/TR/css-variables-1/#defining-variables). So a family binding declared
-  // only at :root freezes to the site face THERE, and descendants inherit the resolved
-  // string — a slot's [data-entry] --font-* override never reaches a primitive that reads
-  // the --type-*-family bundle. The sheet must therefore re-declare every :root family
-  // binding under a [data-entry] scope, where substitution re-runs against the slot's
-  // overridden role tokens. Verified live: without this block the /color-engine specimen
-  // renders every role in the shell faces despite correct inline overrides on the wrapper.
-  const sheet = read("src/styles/semantic/type.css").replace(
-    /\/\*[\s\S]*?\*\//g,
-    "",
-  );
-  // Parse the `:root` and `[data-entry]` blocks SEPARATELY (not the merged SHEET_DECLS) so a
-  // divergence in EITHER direction is visible. Non-greedy up to the first `}` — neither block nests.
-  const familiesIn = (block: string): Record<string, string> =>
-    Object.fromEntries(
-      Object.entries(parseDeclarations(block)).filter(([token]) =>
-        /^--type-[a-z]+-family$/.test(token),
-      ),
-    );
-  const rootFamilies = familiesIn(
-    sheet.match(/:root\s*\{([\s\S]*?)\}/)?.[1] ?? "",
-  );
-  const slotFamilies = familiesIn(
-    sheet.match(/\[data-entry\][^{]*\{([\s\S]*?)\}/)?.[1] ?? "",
-  );
-
-  it("parsed a non-trivial family set in BOTH scopes (false-green guard)", () => {
-    expect(Object.keys(rootFamilies).length).toBeGreaterThanOrEqual(8);
-    expect(Object.keys(slotFamilies).length).toBeGreaterThanOrEqual(8);
-  });
-
-  // The invariant the owner mandated: the `[data-entry]` family block is identical to the
-  // `:root` family block — same tokens, same values, in BOTH directions. A changed value, or a
-  // family token added / removed / typo'd in only one scope, fails here. The family for a role is
-  // ONE truth declared in two places; this shouts the instant they diverge.
-  it("[data-entry] re-declares EXACTLY the :root family bindings — both directions, values included", () => {
-    expect(slotFamilies).toEqual(rootFamilies);
-  });
-
-  // Per-token receipts for a readable failure message when the bijection above trips.
-  it.each(Object.keys(rootFamilies))(
-    "%s is re-bound identically under [data-entry] (else it freezes to the site face at :root)",
-    (token) => {
-      expect(slotFamilies[token]).toBe(rootFamilies[token]);
-    },
-  );
-});
-
 describe("the Tailwind-named --text-* size scale is gone", () => {
   it.each(["sm", "base", "lg", "xl", "2xl", "3xl", "4xl", "5xl"])(
     "--text-%s is no longer declared",
