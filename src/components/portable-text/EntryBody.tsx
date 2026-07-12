@@ -8,6 +8,8 @@ import type { ENTRY_DETAIL_QUERY_RESULT } from "../../../sanity.types";
 
 import SlotBlock from "./SlotBlock";
 import EntryFigure from "./EntryFigure";
+import EntryVideo from "./EntryVideo";
+import EntryQuote from "./EntryQuote";
 
 // Lifted off the typed detail query so serializer and query can't drift. `NonNullable`
 // drops the `body: … | null` arm — the caller only renders this when a body exists.
@@ -28,11 +30,12 @@ interface EntryBodyProps {
 }
 
 /**
- * The Portable Text serializer for an entry's body. Renders the body's
- * blocks plus the two authored slot kinds — `slot` → `SlotBlock` (resolves the
- * `slotKey`, falls back to a visible placeholder on a miss) and `figure` →
- * `EntryFigure`; standard text blocks use the library defaults. The serializer is the
- * ONE place the body meets code, so the slot-resolution seam lives here, not in the route.
+ * The Portable Text serializer for an entry's body. Renders the body's prose blocks plus the
+ * four typed blocks in the shared palette — `slot` → `SlotBlock` (resolves the `slotKey`,
+ * falls back to a visible placeholder on a miss), `figure` → `EntryFigure`, `video` →
+ * `EntryVideo`, and `quote` → `EntryQuote`; standard text blocks use the library defaults.
+ * The serializer is the ONE place the body meets code, so the slot-resolution seam lives
+ * here, not in the route.
  */
 export default function EntryBody({ value, scope }: EntryBodyProps) {
   const components: PortableTextComponents = {
@@ -45,6 +48,8 @@ export default function EntryBody({ value, scope }: EntryBodyProps) {
         />
       ),
       figure: ({ value: block }) => <EntryFigure value={block} />,
+      video: ({ value: block }) => <EntryVideo value={block} />,
+      quote: ({ value: block }) => <EntryQuote value={block} />,
     },
   };
   return <PortableText value={value} components={components} />;

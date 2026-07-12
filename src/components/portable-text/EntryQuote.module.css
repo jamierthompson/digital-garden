@@ -1,0 +1,22 @@
+/* Pull-quote block. @layer components — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by the surrounding entry scope). */
+@layer components {
+  .quote {
+    margin: var(--space-6) 0;
+    padding-inline-start: var(--space-4);
+    border-inline-start: var(--border-width-thick) solid var(--accent);
+  }
+
+  .text {
+    font-size: var(--type-size-4);
+    line-height: var(--leading-snug);
+    color: var(--foreground);
+  }
+
+  .attribution {
+    display: block;
+    margin-top: var(--space-2);
+    font-size: var(--type-size-2);
+    font-style: normal;
+    color: var(--muted-foreground);
+  }
+}

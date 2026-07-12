@@ -3,9 +3,10 @@ import {defineArrayMember, defineType} from 'sanity'
 /**
  * Reusable rich-text (Portable Text) body.
  *
- * Standard text blocks + the generic `slot` (the default interactive slot) + the
- * typed editorial `figure` block. It is the shared `entry.body` surface, so the
- * in-body authoring experience is identical for every kind (note · essay · project).
+ * The shared `entry.body` surface — ONE palette for every kind (note · essay · project ·
+ * now), so the in-body authoring experience is identical throughout. `kind` places an entry;
+ * it does not restrict the palette. The palette: prose (`block`) · `figure` · `video` · the
+ * generic themeable `slot` · `quote`.
  */
 export const portableText = defineType({
   name: 'portableText',
@@ -13,7 +14,9 @@ export const portableText = defineType({
   type: 'array',
   of: [
     defineArrayMember({type: 'block'}),
-    defineArrayMember({type: 'slot'}),
     defineArrayMember({type: 'figure'}),
+    defineArrayMember({type: 'video'}),
+    defineArrayMember({type: 'slot'}),
+    defineArrayMember({type: 'quote'}),
   ],
 })

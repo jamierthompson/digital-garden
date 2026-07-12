@@ -85,6 +85,48 @@ describe("EntryBody", () => {
     expect(p.closest("p")).not.toBeNull();
   });
 
+  // The shared palette carries two typed non-slot blocks — `video` and `quote`. The
+  // serializer routes each to its own renderer (real components, not mocked here) rather
+  // than dropping it or misrouting it into a slot.
+  describe("the typed video and quote blocks", () => {
+    const MEDIA_BODY = [
+      {
+        _type: "quote",
+        _key: "q1",
+        text: "A pull quote.",
+        attribution: "Someone",
+      },
+      {
+        _type: "video",
+        _key: "v1",
+        url: "https://example.com/v.mp4",
+        caption: "A clip",
+      },
+    ] as unknown as Body;
+
+    it("routes a quote block to a semantic blockquote", () => {
+      captured.length = 0;
+      render(<EntryBody value={MEDIA_BODY} scope={SCOPE} />);
+      expect(
+        screen.getByText("A pull quote.").closest("blockquote"),
+      ).not.toBeNull();
+      expect(screen.getByText("Someone").closest("cite")).not.toBeNull();
+    });
+
+    it("routes a video block to its captioned placeholder", () => {
+      captured.length = 0;
+      render(<EntryBody value={MEDIA_BODY} scope={SCOPE} />);
+      expect(screen.getByRole("img", { name: "A clip" })).toBeInTheDocument();
+    });
+
+    it("never routes a video or quote block into SlotBlock", () => {
+      captured.length = 0;
+      render(<EntryBody value={MEDIA_BODY} scope={SCOPE} />);
+      expect(captured).toHaveLength(0);
+      expect(screen.queryByTestId("slot")).toBeNull();
+    });
+  });
+
   // Content can drift from code: a published body may carry a block whose `_type` the serializer
   // doesn't handle — a type removed from code, or authored ahead of a code change. The serializer
   // must degrade: render the rest of the essay, never crash on the unknown type, and never

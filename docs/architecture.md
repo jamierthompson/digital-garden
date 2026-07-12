@@ -899,8 +899,14 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   of scope (`kind`) and of curation (`featuredRank`). **`iterated`** is an _authored_ "last worked on"
   date — not Sanity's automatic `_updatedAt` — an intentional signal that the portfolio is living and
   tended.
-- **The essay is rich content (portable text), not plain text.** Alongside text it carries typed
-  blocks — media (figures) and live components (slots) referenced by key and resolved in code.
+- **The body is rich content (portable text), not plain text.** One shared palette serves every
+  kind — `kind` places an entry, it does not restrict the palette (single author, maximum authoring
+  flexibility). Alongside prose the palette carries four typed blocks: **`figure`** and **`video`**
+  (media — each a labelled placeholder + caption until a real image/embed pipeline is needed), the
+  themeable **`slot`** (a live component resolved by `slotKey` in code, wearing the entry's theme),
+  and **`quote`** (a semantic pull-quote, distinct from the inline `blockquote` prose style). A
+  `now` update may carry a `slot` like any kind; with no entry theme of its own it simply renders
+  under the page chrome.
 - **`theme` is a per-entry, first-class object** — `{ color, colorDark, headingFont, bodyFont, monoFont }`,
   separate from the top-level `componentKey` (which _mounts_ a module, not part of the theme the module _reads_).
   `color` is a validated string (hex or `oklch()`) — the slot seed, stored on the `entry` document.
