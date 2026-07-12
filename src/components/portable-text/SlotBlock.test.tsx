@@ -32,6 +32,14 @@ describe("SlotBlock", () => {
     expect(screen.getByRole("note")).toHaveTextContent("(none)");
   });
 
+  it("renders the placeholder when the slotKey is an empty string (falsy, not just absent)", async () => {
+    // Sanity stores slotKey as free text; an emptied-then-saved field can round-trip as
+    // "". The falsy guard must catch it — never hand "" to the resolver as a real key.
+    render(await SlotBlock({ slotKey: "" }));
+    expect(screen.getByRole("note")).toHaveTextContent("Slot unavailable");
+    expect(screen.getByRole("note")).toHaveTextContent("(none)");
+  });
+
   it("renders the placeholder (echoing the key) for an unknown slotKey", async () => {
     render(await SlotBlock({ slotKey: "retired-widget" }));
     const note = screen.getByRole("note");

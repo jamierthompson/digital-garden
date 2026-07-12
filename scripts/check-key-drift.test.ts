@@ -150,6 +150,28 @@ describe("check-key-drift.mjs — drift detection (fixtures)", () => {
     expect(stderr).toMatch(/missing its compile-time guard/);
   });
 
+  it("fails when the SLOT_LOADERS registry drops its `satisfies Record<SlotKey, …>` guard (#250 rename)", () => {
+    // The rename repointed this guard from embeds.ts/EmbedKey to slots.ts/SlotKey —
+    // mutation-proof that the repointed pattern still bites on the file it now watches.
+    const script = fixture({
+      slots: `const SLOT_LOADERS = {};`,
+    });
+    const { status, stderr } = run(script);
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/SLOT_LOADERS must stay/);
+  });
+
+  it("fails when the slots guard still carries the RETIRED EmbedKey type name (a half-rename)", () => {
+    // A `satisfies Record<EmbedKey, …>` survivor would satisfy a lazier pattern; the
+    // guard requires the NEW type name, so a half-renamed registry is caught.
+    const script = fixture({
+      slots: `const SLOT_LOADERS = {} satisfies Record<EmbedKey, SlotLoader>;`,
+    });
+    const { status, stderr } = run(script);
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/missing its compile-time guard/);
+  });
+
   it("passes when a legit `satisfies` is reflowed across lines (Prettier tolerance)", () => {
     const script = fixture({
       // The brace, `satisfies`, and the `Record<…>` type args all wrap onto

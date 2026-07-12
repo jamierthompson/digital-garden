@@ -84,4 +84,43 @@ describe("EntryBody", () => {
     const p = screen.getByText("Editorial prose.");
     expect(p.closest("p")).not.toBeNull();
   });
+
+  // QA (#250 slot rename): the deploy→migration window. Between deploying this
+  // serializer (which keys on `_type: "slot"`) and running the one-time content
+  // migration, published bodies can still carry legacy `liveEmbed` blocks. The
+  // serializer must degrade — never crash the whole essay on the unknown type.
+  describe("unmigrated legacy blocks (the migration window)", () => {
+    const LEGACY_BODY = [
+      {
+        _type: "block",
+        _key: "b1",
+        style: "normal",
+        markDefs: [],
+        children: [
+          { _type: "span", _key: "s1", text: "Editorial prose.", marks: [] },
+        ],
+      },
+      {
+        _type: "liveEmbed",
+        _key: "e1",
+        embedKey: "color-engine-seed",
+        caption: "legacy caption",
+      },
+    ] as unknown as Body;
+
+    it("does not throw on a legacy liveEmbed block and keeps rendering the prose", () => {
+      captured.length = 0;
+      expect(() =>
+        render(<EntryBody value={LEGACY_BODY} scope={SCOPE} />),
+      ).not.toThrow();
+      expect(screen.getByText("Editorial prose.")).toBeInTheDocument();
+    });
+
+    it("never routes a legacy liveEmbed block into SlotBlock (it is an unknown type, not a slot)", () => {
+      captured.length = 0;
+      render(<EntryBody value={LEGACY_BODY} scope={SCOPE} />);
+      expect(captured).toHaveLength(0);
+      expect(screen.queryByTestId("slot")).toBeNull();
+    });
+  });
 });

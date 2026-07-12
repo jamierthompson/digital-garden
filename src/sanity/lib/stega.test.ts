@@ -37,6 +37,15 @@ describe("stega exclusions", () => {
     },
   );
 
+  it("no longer flags the retired embedKey field name (#250 — slot rename)", () => {
+    // `embedKey` was renamed to `slotKey` (schema + stored data, one migration). The
+    // exclusion moved WITH the field: `slotKey` is excluded (pinned above), and the
+    // retired name earns no leftover entry. If un-migrated `embedKey` data ever
+    // resurfaces, it is unprotected by design — the migration, not stega, owns it.
+    expect(isStegaExcludedField(["embedKey"])).toBe(false);
+    expect(isStegaExcludedField(["someParent", "embedKey"])).toBe(false);
+  });
+
   it("no longer flags the retired flat theming field names on their own", () => {
     // themeColor / themeColorDark / fontKey are gone — the theme is a nested object now,
     // excluded by its `theme` ancestor, not by these standalone leaf names.

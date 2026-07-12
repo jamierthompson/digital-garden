@@ -37,6 +37,20 @@ describe("key contracts", () => {
     for (const key of COMPONENT_KEYS) expect(typeof key).toBe("string");
   });
 
+  it("SLOT_KEYS holds exactly the published slot-key values (#250 rename)", () => {
+    // These VALUES are stored data: published `slot` blocks carry them as free-text
+    // `slotKey` strings, so the vocabulary rename must never touch them. Dropping or
+    // renaming one silently degrades a published essay to the MissingSlot placeholder —
+    // a deliberate content migration, not a refactor. This pin makes it show up in review.
+    expect([...SLOT_KEYS].sort()).toEqual([
+      "color-engine-export",
+      "color-engine-preview",
+      "color-engine-rules",
+      "color-engine-seed",
+      "color-engine-tokens",
+    ]);
+  });
+
   it("SLOT_KEYS is a unique set holding the Color Engine's slots (#131)", () => {
     // The first real slots: the Color Engine's slots, interleaved through its entry's
     // prose. Every key is mapped to a literal dynamic import in the slots resolver.
