@@ -105,15 +105,27 @@ Tokens are organized in **three tiers**, each consuming the one before it:
 | **Semantic**   | global `:root` (the neutral fallback)             | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the neutral ground for surfaces that render with no `<html>` theme.                                                                                                                                                             |
 | **Theme**      | `<html>` (color) + the slot `[data-entry]` (font) | the theme override, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **fonts** are per-slot role-token overrides (up to three — `--font-heading` / `--font-body` / `--font-mono`) on `[data-entry]` (`EntryScope`), each inherited from `:root` when unset.                                                                                                                                                                                                                                                                    |
 
-The model is layered, not partitioned: the **semantic layer is the contract** components code
-against, and a theme simply re-defines those same semantic tokens with its own values — the page's
-`<html>` write for color, the slot's inline style for font. There is **no separate "feel" or
-"geometry" tier** — radius, border-width, and control sizes are **foundation value
-primitives** (raw scales like the spacing ramp), and any role that needs one binds it in the
-semantic layer, exactly as the spacing roles alias `--space-*`. Color varies per **page** (every
-route wears its authored theme); font varies per
-**slot** (the interactive island wears the entry's theme face while the prose keeps the editorial
-body face).
+The model is a **derivation taxonomy, not a partition**: the **semantic tier is the contract**
+components code against, and a theme simply re-defines those same semantic tokens with its own
+values — the page's `<html>` write for color, the slot's inline style for font. There is **no
+separate "feel" or "geometry" tier** — radius, border-width, and control sizes are **foundation value
+primitives** (raw scales like the spacing ramp), and any role that needs one binds it in the semantic
+tier, exactly as the spacing roles alias `--space-*`. Color varies per **page** (every route wears
+its authored theme); font varies per **slot** (the interactive island wears the entry's theme face
+while the prose keeps the editorial body face).
+
+**Token tiers are not cascade `@layer`s — keep the two systems apart.** The tiers above
+(foundation → semantic → theme) are a _derivation taxonomy_: where a value comes from, expressed by
+the **directories** (`foundation/`, `semantic/`) and the **engines**, not by any cascade name. The
+CSS cascade `@layer` is an unrelated _rule-conflict tool_ with exactly **two** names chosen for their
+jobs: `base` (the reset + every token sheet) **loses** to `components` (every CSS Module). That one
+boundary is all the cascade decides — a global element/attribute rule must lose to a component rule
+regardless of CSS-module insertion order. The retired `foundation`/`semantic` _layer_ names were
+taxonomy wearing cascade clothing: the two sheets declare disjoint `:root` custom properties, so that
+boundary never resolved a real conflict, and collapsing them to `base` changes no computed style.
+**Theme delivery sits outside the cascade entirely** — an authored theme is stamped as inline
+`<html>` / `[data-entry]` styles plus a hoisted _unlayered_ `<style>`, all of which out-rank **every**
+`@layer` (the "@layer trap"), so a theme always wins without needing a layer of its own.
 
 Every page's chrome (title, prose, nav) reads the **semantic tokens as written on `<html>`** by the
 visible page's theme. Its **interactive slot** and the embedded components read those **same generic
@@ -144,7 +156,7 @@ global :root  (foundation primitives + the semantic NEUTRAL FALLBACK)
    │              · z-index · focus-ring GEOMETRY · reset  (no color ramp)
    ├─ SEMANTIC (engine fallback token set): --surface · --foreground · --accent · --font-body · …
    │              ← the generic contract; the neutral ground for surfaces with no <html> theme
-   └─ @layer foundation, semantic, components;   ← bare order statement, loaded first
+   └─ @layer base, components;   ← cascade order statement (base loses to components), loaded first
           │ every ROUTE stamps its authored color theme on <html> (PageTheme), which out-ranks :root ↓
 <html style="--surface:… --foreground:… --accent:… --success:…">   ◄── OKLCH engine ◄── the page's seed (Sanity)
    │        chrome (nav · headers · prose · shell) + slots ALL inherit this one write — one imperative
@@ -183,13 +195,14 @@ Key points:
   cascade layer, and an _unlayered_ module's plain declarations outrank **every** `@layer` style
   regardless of specificity or source order. So any component CSS Module that sets real properties
   must wrap its body in `@layer components { … }` (or stay strictly var-_consuming_); the bare
-  `@layer foundation, semantic, components;` order statement is emitted in a global sheet loaded
+  `@layer base, components;` order statement is emitted in a global sheet loaded
   first. The entry font slot needs no layer — the inline role-token overrides on `[data-entry]`
   out-rank every layer. Lint-enforced (see the don't-reach-up litmus).
 
-- **Cascade order via `@layer`** (foundation < semantic < components) to kill CSS-module insertion-order
-  accidents instead of fighting specificity. The global order statement must register before
-  `next/font` — pinned by import order in the root layout.
+- **Cascade order via `@layer`** (`base` < `components`) to kill CSS-module insertion-order
+  accidents instead of fighting specificity. The token tiers (`foundation/`, `semantic/`) both live in
+  the single `base` layer — their split is a directory taxonomy, not a cascade boundary. The global
+  order statement must register before `next/font` — pinned by import order in the root layout.
 
 - **Responsive layout is container-query-first.** There is no shared breakpoint layer or breakpoint
   tokens. The order of preference is: **intrinsic** first (`auto-fit`/`auto-fill` + `minmax`, `flex-wrap`,
@@ -223,7 +236,7 @@ The mechanism follows Next's _Preventing flash before hydration → Themes_ patt
   declarations as a `:root { … }` `<style>` (`ThemeStyle`), which React 19 hoists into `<head>` —
   **ahead of the body chrome** — so the theme applies before ANY content paints, with no script and
   no parse-order dependency. This is `EntryCard`'s server-rendered baked-CSS approach lifted to
-  `:root`. The `<style>` is **unlayered**, so it out-ranks the `@layer foundation` fallback `:root`
+  `:root`. The `<style>` is **unlayered**, so it out-ranks the `@layer base` fallback `:root`
   (the "@layer trap"). The read path (`sanityFetch`) is `use cache`, so a public request prerenders
   the page into the **static shell** and the `<style>` is in the initial `<head>`. (An inline
   _script_ can't do this — React doesn't hoist inline scripts, so a page-rendered one lands **after**
@@ -247,7 +260,7 @@ surfaces that render with **no** page theme (404 / error / loading + the chrome 
 which never mount a `<PageTheme>`); a themed route's `:root` `<style>` (and the imperative `<html>`
 re-applier) out-rank them. There is no canvas wash and no `:has()`-scoped body re-bind: the page
 theme supplies `--background` to every route. The cascade order is
-`@layer foundation, semantic, components;` — there is no `theme` layer, because the entry's theme
+`@layer base, components;` — there is no `theme` layer, because the entry's theme
 font scopes to its own slot via an inline style on `[data-entry]` (`EntryScope`), not a cascade
 layer.
 
