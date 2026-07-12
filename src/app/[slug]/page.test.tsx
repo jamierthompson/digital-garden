@@ -45,9 +45,9 @@ vi.mock("@/lib/resolvers/components", () => ({
 }));
 
 // Mock EntryBody to CAPTURE the `scope` seed the page threads to the body. The real
-// serializer's `liveEmbed` → EmbedBlock path is async and jsdom-untestable (async RSC), so
+// serializer's `slot` → SlotBlock path is async and jsdom-untestable (async RSC), so
 // the theming contract we assert HERE is "does the page hand the body the right scope?" — the
-// rendered scoped embed itself is the integration test's / browser check's job.
+// rendered scoped slot itself is the integration test's / browser check's job.
 vi.mock("@/components/portable-text/EntryBody", () => ({
   default: ({
     scope,
@@ -182,7 +182,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("A blurb.")).toBeInTheDocument();
-    // No interactive slot, and the body was handed no scope (unthemed embeds).
+    // No interactive slot, and the body was handed no scope (unthemed slots).
     expect(container.querySelector("[data-entry]")).toBeNull();
     expect(screen.queryByTestId("slot")).not.toBeInTheDocument();
     expect(screen.getByTestId("essay-body")).toHaveAttribute(
@@ -193,10 +193,10 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(resolveComponentKeyMock).not.toHaveBeenCalled();
   });
 
-  it("threads the theme scope to the body for a themed note (its liveEmbeds get their own scope)", async () => {
+  it("threads the theme scope to the body for a themed note (its slots get their own scope)", async () => {
     // Theming is a CAPABILITY: a `theme.color` on ANY kind but `now` builds the seed and hands
-    // it to the body, so each `liveEmbed` mounts in its own scoped container — exactly as a
-    // project's do. No componentKey here → no after-prose `Slot`, prose + scoped embeds.
+    // it to the body, so each `slot` mounts in its own scoped container — exactly as a
+    // project's do. No componentKey here → no after-prose `Slot`, prose + scoped slots.
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "note",
@@ -215,7 +215,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(body).toHaveAttribute("data-has-scope", "yes");
     expect(body).toHaveAttribute("data-scope-slug", "an-entry");
     // The scope carries all three of the entry's role fonts — color is on `<html>`, inherited
-    // by the embeds.
+    // by the slots.
     expect(body).toHaveAttribute("data-scope-heading", "space-grotesk");
     expect(body).toHaveAttribute("data-scope-body", "newsreader");
     expect(body).toHaveAttribute("data-scope-mono", "inter");
@@ -419,9 +419,9 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
 
   it("wraps the article in the module's Provider when it exports one (no after-prose slot)", async () => {
     // The #131 composition: a Provider-only module gets a client frame AROUND the
-    // article (so interleaved liveEmbed slots share state) and mounts NO monolithic
+    // article (so interleaved slot blocks share state) and mounts NO monolithic
     // Slot after the prose. The frame is state-only — it must not introduce a
-    // theme scope of its own (each embed brings its own scoped container).
+    // theme scope of its own (each slot brings its own scoped container).
     resolveComponentKeyMock.mockReturnValue(foundProvider());
     fetchMock.mockResolvedValueOnce(
       entry({
@@ -543,10 +543,10 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(slot).toHaveAttribute("data-entry", "an-entry");
   });
 
-  it("threads the theme scope to the body under a Provider frame (a themed essay's embeds are scoped even though the frame is not)", async () => {
+  it("threads the theme scope to the body under a Provider frame (a themed essay's slots are scoped even though the frame is not)", async () => {
     // A Provider-only module frames the article for shared state but introduces NO page-level
     // scope of its own (#131). A themed essay must still hand its `theme.color` scope to the body
-    // so each interleaved `liveEmbed` mounts in its own scoped container. Pins scope-threading on
+    // so each interleaved `slot` mounts in its own scoped container. Pins scope-threading on
     // the Provider path — the existing Provider test carries no body, so it never checks this.
     resolveComponentKeyMock.mockReturnValue(foundProvider());
     fetchMock.mockResolvedValueOnce(
@@ -564,7 +564,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(screen.getByTestId("provider")).toBeInTheDocument();
     // Frame introduces no page-level scope wrapper.
     expect(container.querySelector("[data-entry]")).toBeNull();
-    // …but the body was handed the font scope for its embeds.
+    // …but the body was handed the font scope for its slots.
     const body = screen.getByTestId("essay-body");
     expect(body).toHaveAttribute("data-has-scope", "yes");
     expect(body).toHaveAttribute("data-scope-slug", "an-essay");
@@ -576,7 +576,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     // module` only, so a `theme.bodyFont` set WITHOUT a theme.color or a module is silently dropped —
     // the body gets no scope and no `[data-entry]` mounts. This is a deliberate consequence of
     // "the theme is scoped to the slot, never the prose", but it means font-only theming of a note's
-    // embeds is a NON-feature today. If that intent ever matters, the gate must add `theme.bodyFont`.
+    // slots is a NON-feature today. If that intent ever matters, the gate must add `theme.bodyFont`.
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "note",

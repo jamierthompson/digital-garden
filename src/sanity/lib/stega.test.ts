@@ -16,11 +16,11 @@ import {
 describe("stega exclusions", () => {
   it("excludes exactly the code-consumed fields", () => {
     expect([...STEGA_EXCLUDED_FIELDS].sort()).toEqual(
-      ["componentKey", "embedKey", "kind", "stage"].sort(),
+      ["componentKey", "slotKey", "kind", "stage"].sort(),
     );
   });
 
-  it.each(["componentKey", "embedKey"])(
+  it.each(["componentKey", "slotKey"])(
     "flags %s (the leaf of the source path) as excluded",
     (field) => {
       expect(isStegaExcludedField(["someParent", field])).toBe(true);

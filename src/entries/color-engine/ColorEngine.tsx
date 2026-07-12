@@ -5,7 +5,7 @@ import styles from "./ColorEngine.module.css";
 
 /**
  * The Color Engine entry's interactive surface, shared by its after-prose `Slot` and every
- * `liveEmbed` slot (`slots/*`). It takes no props — it ignores `slug` and embed context.
+ * `slot` block (`slots/*`). It takes no props — it ignores `slug` and slot context.
  *
  * Standing in for the module while it's rebuilt, it renders a small TYPE SPECIMEN through the
  * `Heading`/`Text` primitives — each role reads a semantic `--type-*-family` token that resolves

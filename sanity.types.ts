@@ -32,9 +32,9 @@ export type Figure = {
   caption?: string;
 };
 
-export type LiveEmbed = {
-  _type: "liveEmbed";
-  embedKey?: string;
+export type Slot = {
+  _type: "slot";
+  slotKey?: string;
   caption?: string;
 };
 
@@ -59,7 +59,7 @@ export type PortableText = Array<
     }
   | ({
       _key: string;
-    } & LiveEmbed)
+    } & Slot)
   | ({
       _key: string;
     } & Figure)
@@ -240,7 +240,7 @@ export type Geopoint = {
 export type AllSanitySchemaTypes =
   | SanityImageAssetReference
   | Figure
-  | LiveEmbed
+  | Slot
   | PortableText
   | SiteSettings
   | EntryReference

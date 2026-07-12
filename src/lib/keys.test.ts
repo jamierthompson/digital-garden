@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   COMPONENT_KEYS,
-  EMBED_KEYS,
   FONT_KEYS,
+  SLOT_KEYS,
   isComponentKey,
-  isEmbedKey,
   isFontKey,
+  isSlotKey,
 } from "./keys";
 
 describe("key contracts", () => {
@@ -37,12 +37,12 @@ describe("key contracts", () => {
     for (const key of COMPONENT_KEYS) expect(typeof key).toBe("string");
   });
 
-  it("EMBED_KEYS is a unique set holding the Color Engine's slots (#131)", () => {
-    // The first real embeds: the Color Engine's seven slots, interleaved through its entry's
-    // prose. Every key is mapped to a literal dynamic import in the embeds resolver.
-    expect(new Set(EMBED_KEYS).size).toBe(EMBED_KEYS.length);
-    expect(EMBED_KEYS.length).toBeGreaterThan(0);
-    for (const key of EMBED_KEYS) {
+  it("SLOT_KEYS is a unique set holding the Color Engine's slots (#131)", () => {
+    // The first real slots: the Color Engine's slots, interleaved through its entry's
+    // prose. Every key is mapped to a literal dynamic import in the slots resolver.
+    expect(new Set(SLOT_KEYS).size).toBe(SLOT_KEYS.length);
+    expect(SLOT_KEYS.length).toBeGreaterThan(0);
+    for (const key of SLOT_KEYS) {
       expect(typeof key).toBe("string");
       expect(key).toMatch(/^color-engine-/);
     }
@@ -58,8 +58,8 @@ describe("key contracts", () => {
     expect(isComponentKey("color-engine")).toBe(true);
     expect(isComponentKey("first-light")).toBe(false);
     expect(isComponentKey("log-explorer")).toBe(false);
-    // The embed registry is still empty — every embed key misses.
-    expect(isEmbedKey("sunrise-meter")).toBe(false);
-    expect(isEmbedKey("hue-slider")).toBe(false);
+    // Unknown slot keys miss.
+    expect(isSlotKey("sunrise-meter")).toBe(false);
+    expect(isSlotKey("hue-slider")).toBe(false);
   });
 });

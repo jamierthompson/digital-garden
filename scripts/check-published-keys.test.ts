@@ -104,10 +104,10 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
   const CLEAN = {
     entryCount: 12,
     siteSettingsCount: 1,
-    liveEmbedBlockCount: 3,
+    slotBlockCount: 3,
     fontKeys: ["inter"],
     componentKeys: ["some-module"],
-    embedKeys: ["some-embed"],
+    slotKeys: ["some-slot"],
   };
 
   it("returns no signals when every structural count and key array agree", () => {
@@ -116,15 +116,15 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
 
   it("stays clean on a genuinely empty dataset", () => {
     // Every count — structural AND key — drops to zero together. The one guard (gated on
-    // liveEmbedBlockCount > 0) does not fire.
+    // slotBlockCount > 0) does not fire.
     expect(
       findBrokenQuerySignals({
         entryCount: 0,
         siteSettingsCount: 0,
-        liveEmbedBlockCount: 0,
+        slotBlockCount: 0,
         fontKeys: [],
         componentKeys: [],
-        embedKeys: [],
+        slotKeys: [],
       }),
     ).toEqual([]);
   });
@@ -146,36 +146,36 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
     expect(findBrokenQuerySignals({ ...CLEAN, fontKeys: [] })).toEqual([]);
   });
 
-  it("flags a broken embedKey path — a liveEmbed block exists but zero embedKeys resolved", () => {
-    const signals = findBrokenQuerySignals({ ...CLEAN, embedKeys: [] });
+  it("flags a broken slotKey path — a slot block exists but zero slotKeys resolved", () => {
+    const signals = findBrokenQuerySignals({ ...CLEAN, slotKeys: [] });
     expect(signals).toHaveLength(1);
-    expect(signals[0]).toMatch(/embedKey query is likely broken/);
+    expect(signals[0]).toMatch(/slotKey query is likely broken/);
   });
 
-  it("does NOT flag embedKey as broken when the dataset legitimately has no embeds", () => {
-    // No liveEmbed blocks is a valid content state (an all-notes or all-sketch garden) — the
+  it("does NOT flag slotKey as broken when the dataset legitimately has no slots", () => {
+    // No slot blocks is a valid content state (an all-notes or all-sketch garden) — the
     // structural count being zero must not read as breakage.
     expect(
       findBrokenQuerySignals({
         ...CLEAN,
-        liveEmbedBlockCount: 0,
-        embedKeys: [],
+        slotBlockCount: 0,
+        slotKeys: [],
       }),
     ).toEqual([]);
   });
 
-  it("counts only the embedKey break — empty fontKeys/componentKeys add no signal on top", () => {
-    // embedKey is the ONLY remaining canary (fonts and componentKey are both optional, #226), so
-    // even with all three arrays empty the signal list is exactly the one embedKey break — never
+  it("counts only the slotKey break — empty fontKeys/componentKeys add no signal on top", () => {
+    // slotKey is the ONLY remaining canary (fonts and componentKey are both optional, #226), so
+    // even with all three arrays empty the signal list is exactly the one slotKey break — never
     // a fonts or componentKey signal.
     const signals = findBrokenQuerySignals({
       ...CLEAN,
       fontKeys: [],
       componentKeys: [],
-      embedKeys: [],
+      slotKeys: [],
     });
     expect(signals).toHaveLength(1);
-    expect(signals[0]).toMatch(/embedKey query is likely broken/);
+    expect(signals[0]).toMatch(/slotKey query is likely broken/);
   });
 });
 
@@ -194,7 +194,7 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
   )?.[1];
 
   // Every entry carries a `body` — it is schema-required (#217), so published data always has
-  // one; an entry without it would make the embedKeys traversal emit spurious nulls that the
+  // one; an entry without it would make the slotKeys traversal emit spurious nulls that the
   // real dataset can never produce.
   const PROSE = [{ _type: "block", children: [] }];
   const DATASET = [
@@ -220,7 +220,7 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
         bodyFont: "newsreader",
         monoFont: "jetbrains-mono",
       },
-      body: [...PROSE, { _type: "liveEmbed", embedKey: "color-engine-seed" }],
+      body: [...PROSE, { _type: "slot", slotKey: "color-engine-seed" }],
     },
     {
       _id: "project-sketch",
@@ -256,13 +256,13 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
     ]);
   });
 
-  it("keeps componentKeys / embedKeys and the telemetry + embedKey-canary counts intact", async () => {
+  it("keeps componentKeys / slotKeys and the telemetry + slotKey-canary counts intact", async () => {
     const result = await runQuery(DATASET);
     expect(result.componentKeys).toEqual(["color-engine"]);
-    expect(result.embedKeys).toEqual(["color-engine-seed"]);
+    expect(result.slotKeys).toEqual(["color-engine-seed"]);
     expect(result.entryCount).toBe(3);
     expect(result.siteSettingsCount).toBe(1);
-    expect(result.liveEmbedBlockCount).toBe(1);
+    expect(result.slotBlockCount).toBe(1);
   });
 
   it("resolves fontKeys to [] (not an error) when no entry sets any face — the legitimate-empty state", async () => {

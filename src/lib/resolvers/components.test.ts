@@ -57,7 +57,7 @@ describe("resolveComponentKey", () => {
     }
   });
   // Pins the Object.hasOwn guard (QA-131 D1): same prototype-lookup hole as
-  // resolveEmbedKey — an unguarded plain-object index would return "__proto__"/
+  // resolveSlotKey — an unguarded plain-object index would return "__proto__"/
   // "constructor" as Found, pass EntryPage's drift guard, and crash on `.value()`.
   // These keys must stay NotFound.
   it.each(["__proto__", "constructor"])(

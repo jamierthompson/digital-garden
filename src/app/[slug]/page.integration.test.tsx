@@ -12,22 +12,22 @@ vi.mock("next/font/google", () => ({
   JetBrains_Mono: () => ({ variable: "mock-jetbrains-mono" }),
 }));
 
-import EmbedBlock from "@/components/portable-text/EmbedBlock";
+import SlotBlock from "@/components/portable-text/SlotBlock";
 import EntryScope from "@/components/entry-scope/EntryScope";
 import { resolveScope } from "@/components/entry-scope/scopeSeed";
 import { resolveComponentKey } from "@/lib/resolvers/components";
 import { isNotFound } from "@/lib/resolvers/resolution";
 
 // Integration test of the primary flow — Sanity document → themed slot → essay
-// embed — with the Sanity fetch MOCKED so no network touches Vitest. It exercises the
-// SYNCHRONOUS seams of the flow (scope resolution, scope render, the missing-embed
+// slot — with the Sanity fetch MOCKED so no network touches Vitest. It exercises the
+// SYNCHRONOUS seams of the flow (scope resolution, scope render, the missing-slot
 // fallback); the async-RSC page render itself is jsdom-untestable and is the Chrome
 // DevTools MCP browser check's job / Playwright's (testing.md "Async RSCs").
 //
-// The fixture is a representative themed-entry doc shape — the theming/embed infrastructure
-// is exercised directly here (no coded entry module or registered embed ships post-#109,
+// The fixture is a representative themed-entry doc shape — the theming/slot infrastructure
+// is exercised directly here (no coded entry module or registered slot ships post-#109,
 // so the full page only mounts a slot once a real module lands; the seams below are the
-// durable contract, and the embed registry now resolves every key to the missing-embed seam).
+// durable contract, and the slot registry now resolves every key to the missing-slot seam).
 
 const THEMED_ENTRY = {
   _id: "themed-entry-fixture",
@@ -82,10 +82,10 @@ describe("/[slug] primary flow (Sanity mocked)", () => {
     );
   });
 
-  it("shows the missing-embed placeholder for an unresolved embed key (no crash)", async () => {
-    const ui = await EmbedBlock({ embedKey: "ghost-widget" });
+  it("shows the missing-slot placeholder for an unresolved slot key (no crash)", async () => {
+    const ui = await SlotBlock({ slotKey: "ghost-widget" });
     render(ui);
-    expect(screen.getByText(/Embed unavailable/i)).toBeInTheDocument();
+    expect(screen.getByText(/Slot unavailable/i)).toBeInTheDocument();
     expect(screen.getByText(/ghost-widget/)).toBeInTheDocument();
   });
 

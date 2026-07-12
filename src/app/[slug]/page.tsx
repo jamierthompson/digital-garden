@@ -39,9 +39,9 @@ import styles from "./page.module.css";
 //     prose-only, never a 404 (a `stage: sketch` project keeps its key null until it ships,
 //     and a note/essay simply never has one). A module composes one (or both) of two ways —
 //     `Slot` (one slot mounted after the prose) and/or `Provider` (a client frame around
-//     the article so interleaved `liveEmbed` slots share state).
+//     the article so interleaved `slot` blocks share state).
 //   • Theming — a `theme.color`: present → build the scope seed and thread it to the body so
-//     each `liveEmbed` (and the after-prose `Slot`) mounts in its own scoped container.
+//     each `slot` block (and the after-prose `Slot`) mounts in its own scoped container.
 //
 // `now` is the ONE exception, excluded by design: it stays chrome + prose — never a scope,
 // never a module — even if it happens to carry `theme`/`componentKey`, because a `now`
@@ -127,7 +127,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
   // Load the resolved module. Past the guard above, a non-null `resolution` is `found`, so this
   // mounts for ANY kind (except `now`) that declared a resolvable key. The module composes one
   // (or both) of two ways: `Slot` = one slot after the prose; `Provider` = a client frame
-  // around the article so `liveEmbed` slots interleaved through the prose share state (see
+  // around the article so `slot` blocks interleaved through the prose share state (see
   // `EntryModule`).
   const entryModule =
     resolution && !isNotFound(resolution)
@@ -136,7 +136,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
   const Slot = entryModule?.Slot ?? null;
   const Provider = entryModule?.Provider ?? null;
 
-  // The font seed for the entry's slot(s), threaded to the body so each `liveEmbed` — and the
+  // The font seed for the entry's slot(s), threaded to the body so each `slot` block — and the
   // after-prose `Slot` — mounts in its own `[data-entry]` wearing the entry's theme fonts. Built
   // whenever this entry either themes (`theme.color`) OR mounts a module: keyed on the REAL `slug`
   // so a scope never collapses to the shared `data-entry="fallback"`. Each of the three role fonts

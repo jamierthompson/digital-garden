@@ -2,7 +2,7 @@
 //
 // `scripts/check-key-drift.mjs` guards direction (a) — code <-> keys.ts — and explicitly
 // defers direction (b): a published Sanity key with no code resolver. This script is (b):
-// GROQ every DISTINCT published font key / `componentKey` / `embedKey` from the `production`
+// GROQ every DISTINCT published font key / `componentKey` / `slotKey` from the `production`
 // dataset and assert each one is a member of the corresponding array in `src/lib/keys.ts`
 // (the reference-by-key contract — see docs/architecture.md). It is a read-only net: it
 // queries published data and asserts against keys.ts, mutating neither.
@@ -11,7 +11,7 @@
 //   - font keys      live on `entry.theme` as `headingFont` / `bodyFont` / `monoFont` — three
 //                     optional roster keys; the query gathers all three (siteSettings has none).
 //   - `componentKey` lives on `entry` only.
-//   - `embedKey`     lives on `entry.body[]`, nested inside the `liveEmbed` block type —
+//   - `slotKey`      lives on `entry.body[]`, nested inside the `slot` block type —
 //                     NOT a top-level field, so it needs an array-flatten in the query.
 //
 // Sanity config + token: reuses `src/sanity/lib/env.ts` for projectId/dataset/apiVersion
@@ -34,9 +34,9 @@
 // Vacuous-green hardening: `array::unique()` on a renamed/typo'd field resolves to `[]`
 // with no error — a broken query and a genuinely empty dataset are indistinguishable from
 // the key arrays alone. `findBrokenQuerySignals` below anchors the one published key with a
-// schema-required source — `embedKey` (a `liveEmbed` block's key is `required()`) — against a
-// STRUCTURAL count (a liveEmbed *block* count that never references the `embedKey` field name),
-// so it FAILs on a broken embedKey query but stays silent when that array is legitimately empty.
+// schema-required source — `slotKey` (a `slot` block's key is `required()`) — against a
+// STRUCTURAL count (a slot *block* count that never references the `slotKey` field name),
+// so it FAILs on a broken slotKey query but stays silent when that array is legitimately empty.
 // `fontKey` and `componentKey` are both OPTIONAL (#226), so neither can be anchored this way;
 // their query shapes are pinned by this script's unit test instead.
 
@@ -45,24 +45,24 @@ import { fileURLToPath } from "node:url";
 
 const root = new URL("../", import.meta.url);
 
-// Published key-bearing fields (de-duplicated), plus the liveEmbed-block structural count
-// `findBrokenQuerySignals` cross-checks `embedKeys` against and the entry/siteSettings counts
-// used only for the OK-line telemetry. `embedKeys` flattens `entry.body[]` (an array of arrays
-// across all entries) with the `[]` unwrap before filtering to `liveEmbed` blocks;
-// `liveEmbedBlockCount` reuses that SAME `_type == "liveEmbed"` filter but never touches the
-// `embedKey` field, so it stays valid even if `embedKey` is renamed. All fields confirmed
+// Published key-bearing fields (de-duplicated), plus the slot-block structural count
+// `findBrokenQuerySignals` cross-checks `slotKeys` against and the entry/siteSettings counts
+// used only for the OK-line telemetry. `slotKeys` flattens `entry.body[]` (an array of arrays
+// across all entries) with the `[]` unwrap before filtering to `slot` blocks;
+// `slotBlockCount` reuses that SAME `_type == "slot"` filter but never touches the
+// `slotKey` field, so it stays valid even if `slotKey` is renamed. All fields confirmed
 // against the live production dataset while designing this script.
 const PUBLISHED_KEYS_QUERY = `{
   "entryCount": count(*[_type == "entry"]),
   "siteSettingsCount": count(*[_type == "siteSettings"]),
-  "liveEmbedBlockCount": count(*[_type == "entry" && count(body[_type == "liveEmbed"]) > 0]),
+  "slotBlockCount": count(*[_type == "entry" && count(body[_type == "slot"]) > 0]),
   "fontKeys": array::unique(
     *[_type == "entry" && defined(theme.headingFont)].theme.headingFont
     + *[_type == "entry" && defined(theme.bodyFont)].theme.bodyFont
     + *[_type == "entry" && defined(theme.monoFont)].theme.monoFont
   ),
   "componentKeys": array::unique(*[_type == "entry" && defined(componentKey)].componentKey),
-  "embedKeys": array::unique(*[_type == "entry"].body[_type == "liveEmbed" && defined(embedKey)].embedKey)
+  "slotKeys": array::unique(*[_type == "entry"].body[_type == "slot" && defined(slotKey)].slotKey)
 }`;
 
 /**
@@ -78,10 +78,10 @@ export function findUnresolvedKeys(publishedKeys, knownKeys) {
  * Schema-grounded canary against the vacuous-green failure mode: a key array reading `[]`
  * because nothing is published (benign) vs. `[]` because the field path inside the query is
  * wrong (a silent false pass). Only ONE published key has a schema-required source to anchor
- * against: a `liveEmbed` block's `embedKey` is `rule.required()`, and `liveEmbedBlockCount` is
- * derived from `_type == "liveEmbed"` matching ALONE (no `embedKey` reference), so it still
- * holds even if `embedKey` itself were renamed — a published entry with a liveEmbed block but
- * zero resolved embedKeys means the embedKey path broke.
+ * against: a `slot` block's `slotKey` is `rule.required()`, and `slotBlockCount` is
+ * derived from `_type == "slot"` matching ALONE (no `slotKey` reference), so it still
+ * holds even if `slotKey` itself were renamed — a published entry with a slot block but
+ * zero resolved slotKeys means the slotKey path broke.
  *
  * `fontKey` and `componentKey` carry NO such anchor: every `theme` face AND `componentKey` are
  * OPTIONAL for every kind (#226 deleted `componentKey`'s required-past-sketch validator, joining
@@ -89,16 +89,16 @@ export function findUnresolvedKeys(publishedKeys, knownKeys) {
  * project publishes zero componentKeys, an entry that sets no face publishes zero fontKeys — not
  * necessarily a broken query. Their query shapes are pinned by this script's unit test instead.
  *
- * The check is gated on `liveEmbedBlockCount > 0`, so a genuinely empty dataset — or a garden
- * with no embeds — trips nothing; the net stays a clean pass, not a false alarm. Exported and
+ * The check is gated on `slotBlockCount > 0`, so a genuinely empty dataset — or a garden
+ * with no slots — trips nothing; the net stays a clean pass, not a false alarm. Exported and
  * unit-tested directly, same as `findUnresolvedKeys`.
  */
 export function findBrokenQuerySignals(published) {
   const signals = [];
-  if (published.liveEmbedBlockCount > 0 && published.embedKeys.length === 0) {
+  if (published.slotBlockCount > 0 && published.slotKeys.length === 0) {
     signals.push(
-      `${published.liveEmbedBlockCount} published entry(ies) contain a liveEmbed block ` +
-        "but zero embedKey values resolved — the embedKey query is likely broken.",
+      `${published.slotBlockCount} published entry(ies) contain a slot block ` +
+        "but zero slotKey values resolved — the slotKey query is likely broken.",
     );
   }
   return signals;
@@ -181,9 +181,9 @@ async function main() {
       known: keys.COMPONENT_KEYS,
     },
     {
-      name: "embedKey",
-      published: published.embedKeys,
-      known: keys.EMBED_KEYS,
+      name: "slotKey",
+      published: published.slotKeys,
+      known: keys.SLOT_KEYS,
     },
   ];
 
@@ -210,7 +210,7 @@ async function main() {
   console.log(
     `check-published-keys: OK — every published key resolves in src/lib/keys.ts (${counts}; ` +
       `entries=${published.entryCount}, siteSettings=${published.siteSettingsCount}, ` +
-      `liveEmbedBlocks=${published.liveEmbedBlockCount}).`,
+      `slotBlocks=${published.slotBlockCount}).`,
   );
   process.exit(0);
 }

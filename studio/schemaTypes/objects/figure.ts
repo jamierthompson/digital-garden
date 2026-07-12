@@ -5,7 +5,7 @@ import {defineField, defineType} from 'sanity'
  *
  * This is the case a typed block is reserved for: genuine editorial *content*
  * the editor authors and curates — they pick an image asset and write its alt
- * text + caption. Contrast with the generic `liveEmbed` (just key + caption),
+ * text + caption. Contrast with the generic `slot` (just key + caption),
  * which is the default for everything that is merely a key reference.
  */
 export const figure = defineType({

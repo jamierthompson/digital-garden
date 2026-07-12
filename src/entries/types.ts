@@ -5,7 +5,7 @@
 // export satisfies, so a thin `/[slug]` route can mount it without knowing the
 // concrete project. A module composes with the editorial page in one (or both) of two
 // ways — `Slot` (one interactive slot mounted after the prose) and/or `Provider`
-// (a client frame around the article so `liveEmbed` slots interleaved through the prose
+// (a client frame around the article so `slot` blocks interleaved through the prose
 // can share state) — and must export at least one; the union below makes an
 // empty module a compile error.
 //
@@ -34,7 +34,7 @@ export interface ProviderProps {
   /** The route's own slug — same collision rationale as `SlotProps.slug`. */
   readonly slug: string;
   /**
-   * The server-rendered article (prose + interleaved `liveEmbed` slots), passed through
+   * The server-rendered article (prose + interleaved `slot` blocks), passed through
    * as rendered output — the provider adds shared client state around it, never markup
    * that re-themes the editorial register.
    */
@@ -51,7 +51,7 @@ interface EntryModuleMembers {
   /**
    * A client component the page wraps the `<article>` in when the module exports it. The
    * prose stays server-rendered (`children` pass-through); the provider exists so the
-   * module's `liveEmbed` slots — mounted between prose blocks, each in its own scoped
+   * module's `slot` blocks — mounted between prose blocks, each in its own scoped
    * container — can share state via context. The documented interleaving pattern:
    * `node_modules/next/dist/docs/01-app/01-getting-started/05-server-and-client-components.md`.
    */

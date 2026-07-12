@@ -1,12 +1,12 @@
 // Key-drift guard.
 //
 // `src/lib/keys.ts` is the single source of truth for which keys exist (`FONT_KEYS`,
-// `COMPONENT_KEYS`, `EMBED_KEYS`). Sanity stores a key on a project; code resolves it.
+// `COMPONENT_KEYS`, `SLOT_KEYS`). Sanity stores a key on a project; code resolves it.
 // Two drift directions:
 //
 //   (a) code <-> keys.ts — a registry that doesn't cover every declared key (or covers a
 //       missing one). ALREADY compile-time-enforced: every registry is typed
-//       `satisfies Record<XKey,…>` (FONT_FACES, ENTRY_LOADERS, EMBED_LOADERS), so a gap
+//       `satisfies Record<XKey,…>` (FONT_FACES, ENTRY_LOADERS, SLOT_LOADERS), so a gap
 //       is a `pnpm typecheck` error. This script can't re-prove that at runtime — the
 //       registries import `next/font`, which a plain node script can't load. Instead it
 //       guards that the enforcement stays WIRED (check 3): drop a `satisfies` and the
@@ -64,7 +64,7 @@ const keys = await import(new URL("src/lib/keys.ts", root).href).catch(
 const KEY_ARRAYS = {
   FONT_KEYS: keys.FONT_KEYS,
   COMPONENT_KEYS: keys.COMPONENT_KEYS,
-  EMBED_KEYS: keys.EMBED_KEYS,
+  SLOT_KEYS: keys.SLOT_KEYS,
 };
 
 for (const [name, value] of Object.entries(KEY_ARRAYS)) {
@@ -140,9 +140,9 @@ const SATISFIES_GUARDS = [
     note: "ENTRY_LOADERS must stay `satisfies Record<ComponentKey, EntryLoader>`",
   },
   {
-    file: "src/lib/resolvers/embeds.ts",
-    pattern: /\}\s*satisfies\s+Record<\s*EmbedKey\s*,/,
-    note: "EMBED_LOADERS must stay `satisfies Record<EmbedKey, EmbedLoader>`",
+    file: "src/lib/resolvers/slots.ts",
+    pattern: /\}\s*satisfies\s+Record<\s*SlotKey\s*,/,
+    note: "SLOT_LOADERS must stay `satisfies Record<SlotKey, SlotLoader>`",
   },
 ];
 
