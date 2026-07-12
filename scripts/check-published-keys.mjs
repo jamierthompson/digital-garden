@@ -33,28 +33,28 @@
 //
 // Vacuous-green hardening: `array::unique()` on a renamed/typo'd field resolves to `[]`
 // with no error — a broken query and a genuinely empty dataset are indistinguishable from
-// the key arrays alone. `findBrokenQuerySignals` below cross-checks each key array against
-// a STRUCTURAL count (entry/siteSettings/non-sketch-project counts, and a liveEmbed *block*
-// count that doesn't reference the `embedKey` field name) tied to an actual schema
-// requirement, so it FAILs on a broken query but stays silent when a key array is legitimately
-// empty — a genuinely empty dataset, or a garden of only sketch-stage projects (which carry
-// no componentKey), where the paired structural count is likewise zero.
+// the key arrays alone. `findBrokenQuerySignals` below anchors the one published key with a
+// schema-required source — `embedKey` (a `liveEmbed` block's key is `required()`) — against a
+// STRUCTURAL count (a liveEmbed *block* count that never references the `embedKey` field name),
+// so it FAILs on a broken embedKey query but stays silent when that array is legitimately empty.
+// `fontKey` and `componentKey` are both OPTIONAL (#226), so neither can be anchored this way;
+// their query shapes are pinned by this script's unit test instead.
 
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = new URL("../", import.meta.url);
 
-// Published key-bearing fields (de-duplicated) alongside the structural canary counts
-// `findBrokenQuerySignals` cross-checks them against. `embedKeys` flattens `entry.body[]`
-// (an array of arrays across all entries) with the `[]` unwrap before filtering to
-// `liveEmbed` blocks; `liveEmbedBlockCount` reuses that SAME `_type == "liveEmbed"` filter
-// but never touches the `embedKey` field, so it stays valid even if `embedKey` is renamed.
-// All fields confirmed against the live production dataset while designing this script.
+// Published key-bearing fields (de-duplicated), plus the liveEmbed-block structural count
+// `findBrokenQuerySignals` cross-checks `embedKeys` against and the entry/siteSettings counts
+// used only for the OK-line telemetry. `embedKeys` flattens `entry.body[]` (an array of arrays
+// across all entries) with the `[]` unwrap before filtering to `liveEmbed` blocks;
+// `liveEmbedBlockCount` reuses that SAME `_type == "liveEmbed"` filter but never touches the
+// `embedKey` field, so it stays valid even if `embedKey` is renamed. All fields confirmed
+// against the live production dataset while designing this script.
 const PUBLISHED_KEYS_QUERY = `{
   "entryCount": count(*[_type == "entry"]),
   "siteSettingsCount": count(*[_type == "siteSettings"]),
-  "nonSketchProjectCount": count(*[_type == "entry" && kind == "project" && stage != "sketch"]),
   "liveEmbedBlockCount": count(*[_type == "entry" && count(body[_type == "liveEmbed"]) > 0]),
   "fontKeys": array::unique(
     *[_type == "entry" && defined(theme.headingFont)].theme.headingFont
@@ -75,43 +75,26 @@ export function findUnresolvedKeys(publishedKeys, knownKeys) {
 }
 
 /**
- * Schema-grounded canaries against the vacuous-green failure mode: a key array reading
- * `[]` because nothing is published (benign) vs. `[]` because the field path inside the
- * query is wrong (a silent false pass). Each check pairs a structural count — one that does
- * NOT depend on the key field name — with a real schema guarantee that ties it to a
- * non-empty key array. There is no font canary: the three `theme` faces are all OPTIONAL
- * (#226), so no schema-required face exists to anchor one — an empty fontKeys array is a
- * legitimate state, not necessarily a broken query.
- *   - a NON-SKETCH "project"-kind `entry.componentKey` is `required()` (a `stage: sketch`
- *     project has no coded module yet, so componentKey is required only PAST sketch — see
- *     studio/schemaTypes/documents/entry.ts). So the canary counts only non-sketch projects:
- *     a published non-sketch project with zero resolved componentKeys means the componentKey
- *     path broke. (An all-sketch garden legitimately has zero componentKeys AND zero
- *     non-sketch projects, so it never trips this.)
- *   - a `liveEmbed` block's `embedKey` is `rule.required()` too, and `liveEmbedBlockCount`
- *     is derived from `_type == "liveEmbed"` matching ALONE (no `embedKey` reference), so
- *     it still holds even if `embedKey` itself were renamed.
- * Every check is gated on its structural count being > 0, so a genuinely empty dataset — or
- * a garden of only sketch-stage projects — trips none of them; the net stays a clean pass,
- * not a false alarm. Exported and unit-tested directly, same as `findUnresolvedKeys`.
+ * Schema-grounded canary against the vacuous-green failure mode: a key array reading `[]`
+ * because nothing is published (benign) vs. `[]` because the field path inside the query is
+ * wrong (a silent false pass). Only ONE published key has a schema-required source to anchor
+ * against: a `liveEmbed` block's `embedKey` is `rule.required()`, and `liveEmbedBlockCount` is
+ * derived from `_type == "liveEmbed"` matching ALONE (no `embedKey` reference), so it still
+ * holds even if `embedKey` itself were renamed — a published entry with a liveEmbed block but
+ * zero resolved embedKeys means the embedKey path broke.
+ *
+ * `fontKey` and `componentKey` carry NO such anchor: every `theme` face AND `componentKey` are
+ * OPTIONAL for every kind (#226 deleted `componentKey`'s required-past-sketch validator, joining
+ * the three faces), so an empty array for either is a legitimate state — a prose-only shipped
+ * project publishes zero componentKeys, an entry that sets no face publishes zero fontKeys — not
+ * necessarily a broken query. Their query shapes are pinned by this script's unit test instead.
+ *
+ * The check is gated on `liveEmbedBlockCount > 0`, so a genuinely empty dataset — or a garden
+ * with no embeds — trips nothing; the net stays a clean pass, not a false alarm. Exported and
+ * unit-tested directly, same as `findUnresolvedKeys`.
  */
 export function findBrokenQuerySignals(published) {
   const signals = [];
-  // NOTE: there is no font canary. Every theme face (`theme.headingFont` / `bodyFont` /
-  // `monoFont`) is OPTIONAL (#226), so an empty `fontKeys` array is a legitimate state — no
-  // schema-required face exists to anchor a "should be non-empty" check against (unlike the
-  // required-in-context componentKey / embedKey below). The font query's shape is instead
-  // pinned by this script's unit test.
-  if (
-    published.nonSketchProjectCount > 0 &&
-    published.componentKeys.length === 0
-  ) {
-    signals.push(
-      `${published.nonSketchProjectCount} published non-sketch "project"-kind entry(ies) exist ` +
-        "(componentKey is schema-required past the sketch stage) but zero componentKey values " +
-        "resolved — the componentKey query is likely broken.",
-    );
-  }
   if (published.liveEmbedBlockCount > 0 && published.embedKeys.length === 0) {
     signals.push(
       `${published.liveEmbedBlockCount} published entry(ies) contain a liveEmbed block ` +
@@ -227,7 +210,7 @@ async function main() {
   console.log(
     `check-published-keys: OK — every published key resolves in src/lib/keys.ts (${counts}; ` +
       `entries=${published.entryCount}, siteSettings=${published.siteSettingsCount}, ` +
-      `nonSketchProjects=${published.nonSketchProjectCount}, liveEmbedBlocks=${published.liveEmbedBlockCount}).`,
+      `liveEmbedBlocks=${published.liveEmbedBlockCount}).`,
   );
   process.exit(0);
 }

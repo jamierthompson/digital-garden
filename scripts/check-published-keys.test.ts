@@ -104,7 +104,6 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
   const CLEAN = {
     entryCount: 12,
     siteSettingsCount: 1,
-    nonSketchProjectCount: 6,
     liveEmbedBlockCount: 3,
     fontKeys: ["inter"],
     componentKeys: ["some-module"],
@@ -116,13 +115,12 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
   });
 
   it("stays clean on a genuinely empty dataset", () => {
-    // Every count — structural AND key — drops to zero together. None of the guards
-    // (each gated on its structural count being > 0) should fire.
+    // Every count — structural AND key — drops to zero together. The one guard (gated on
+    // liveEmbedBlockCount > 0) does not fire.
     expect(
       findBrokenQuerySignals({
         entryCount: 0,
         siteSettingsCount: 0,
-        nonSketchProjectCount: 0,
         liveEmbedBlockCount: 0,
         fontKeys: [],
         componentKeys: [],
@@ -131,23 +129,13 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
     ).toEqual([]);
   });
 
-  it("stays clean on an all-sketch garden — sketch projects carry no componentKey (#109)", () => {
-    // The live post-swap state: published project entries exist but they're all `stage:
-    // sketch`, so componentKey is legitimately absent. The canary counts only NON-sketch
-    // projects, so `nonSketchProjectCount` is zero and the empty componentKeys array is
-    // correctly read as benign, not a broken query. (Regression guard for the schema
-    // relaxation that made componentKey required only past the sketch stage.)
-    expect(
-      findBrokenQuerySignals({
-        entryCount: 8,
-        siteSettingsCount: 1,
-        nonSketchProjectCount: 0,
-        liveEmbedBlockCount: 0,
-        fontKeys: ["fraunces"],
-        componentKeys: [],
-        embedKeys: [],
-      }),
-    ).toEqual([]);
+  it("does NOT flag an empty componentKeys array — componentKey is optional everywhere (#226)", () => {
+    // #226 deleted the `requiredForNonSketchProject` validator, so a prose-only shipped project
+    // publishing zero componentKeys is legitimate content — componentKey now carries no schema
+    // anchor (like the three faces), so an empty componentKeys array must NOT read as a broken
+    // query. Regression guard for the componentKey-canary removal: the old canary false-red'd
+    // exactly this dataset (a non-sketch project with zero resolved componentKeys).
+    expect(findBrokenQuerySignals({ ...CLEAN, componentKeys: [] })).toEqual([]);
   });
 
   it("does NOT flag an empty fontKeys array — the three faces are optional (#226), so no font canary", () => {
@@ -158,43 +146,36 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
     expect(findBrokenQuerySignals({ ...CLEAN, fontKeys: [] })).toEqual([]);
   });
 
-  it("flags a broken componentKey path — a non-sketch project exists but zero componentKeys resolved", () => {
-    const signals = findBrokenQuerySignals({ ...CLEAN, componentKeys: [] });
-    expect(signals).toHaveLength(1);
-    expect(signals[0]).toMatch(/componentKey query is likely broken/);
-  });
-
   it("flags a broken embedKey path — a liveEmbed block exists but zero embedKeys resolved", () => {
     const signals = findBrokenQuerySignals({ ...CLEAN, embedKeys: [] });
     expect(signals).toHaveLength(1);
     expect(signals[0]).toMatch(/embedKey query is likely broken/);
   });
 
-  it("does NOT flag componentKey/embedKey as broken when the dataset legitimately has none", () => {
-    // No published non-sketch project entries and no liveEmbed blocks is a valid content
-    // state (an all-notes or all-sketch garden) — the structural counts being zero must not
-    // read as breakage.
+  it("does NOT flag embedKey as broken when the dataset legitimately has no embeds", () => {
+    // No liveEmbed blocks is a valid content state (an all-notes or all-sketch garden) — the
+    // structural count being zero must not read as breakage.
     expect(
       findBrokenQuerySignals({
         ...CLEAN,
-        nonSketchProjectCount: 0,
         liveEmbedBlockCount: 0,
-        componentKeys: [],
         embedKeys: [],
       }),
     ).toEqual([]);
   });
 
-  it("reports every broken category at once, not just the first", () => {
-    // Two canaries remain (componentKey + embedKey); fonts have none (all faces optional), so an
-    // empty fontKeys array contributes no signal here.
+  it("counts only the embedKey break — empty fontKeys/componentKeys add no signal on top", () => {
+    // embedKey is the ONLY remaining canary (fonts and componentKey are both optional, #226), so
+    // even with all three arrays empty the signal list is exactly the one embedKey break — never
+    // a fonts or componentKey signal.
     const signals = findBrokenQuerySignals({
       ...CLEAN,
       fontKeys: [],
       componentKeys: [],
       embedKeys: [],
     });
-    expect(signals).toHaveLength(2);
+    expect(signals).toHaveLength(1);
+    expect(signals[0]).toMatch(/embedKey query is likely broken/);
   });
 });
 
@@ -275,13 +256,12 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
     ]);
   });
 
-  it("keeps componentKeys / embedKeys and the structural canary counts intact", async () => {
+  it("keeps componentKeys / embedKeys and the telemetry + embedKey-canary counts intact", async () => {
     const result = await runQuery(DATASET);
     expect(result.componentKeys).toEqual(["color-engine"]);
     expect(result.embedKeys).toEqual(["color-engine-seed"]);
     expect(result.entryCount).toBe(3);
     expect(result.siteSettingsCount).toBe(1);
-    expect(result.nonSketchProjectCount).toBe(1);
     expect(result.liveEmbedBlockCount).toBe(1);
   });
 
