@@ -768,7 +768,10 @@ scope, so it themes identically.
 
 **Store-the-key (roster-by-key).** A curated roster of faces is declared in code (each a `next/font`
 export, in a single shared module); Sanity stores up to **three** per-entry face keys —
-`theme.headingFont` / `theme.bodyFont` / `theme.monoFont` — and the editor picks each from a dropdown.
+`theme.headingFont` / `theme.bodyFont` / `theme.monoFont` — each authored as a **free-text key**
+in the Studio (no dropdown: the schema deliberately can't import the roster, so its field
+descriptions say _"ask a developer for the valid keys"_; the `published-keys` CI net catches an
+unknown key).
 The entry's **slot scope** applies each resolved face via that face's **`.variable` class** on the
 `[data-entry]` wrapper, re-binding that role's token (`--font-heading` / `--font-body` / `--font-mono`)
 for the slot only. Each face is **independent and optional**: an unset — or unresolvable — role emits
@@ -823,8 +826,9 @@ Mapped onto the layers:
   (`--font-heading` / `--font-body` / `--font-mono`), which the slot fills from the resolved faces (or
   inherits from `:root` when a role is unset). Because `reset.css` resolves `font-family` once on
   `<body>`, a `[data-entry] { font-family: var(--font-body) }` rule re-establishes the body baseline
-  inside the slot so plain slot text wears the entry's body face; headings and mono repaint via their
-  own per-element rules.
+  inside the slot so plain slot text wears the entry's body face; headings repaint via the `h1–h6`
+  rule. Mono has **no** reset rule — a slot's mono face reaches text only through `--type-meta-family`
+  (the type primitives) and component modules that read `var(--font-mono)`.
 
 Practical notes:
 
@@ -906,14 +910,16 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   both schemes. A project needing a hand-tuned dark brand gets an _optional_ `theme.colorDark`
   override, defaulted from the engine — never a required parallel field. (A seed too light to be the
   light-mode primary is auto-assigned as the dark theme; see the OKLCH engine.)
-- **Keys are a contract; the Studio never imports implementations.** Each reference-by-key
-  pair is split: a tiny `keys.ts` of string constants (imported by the schema to build its dropdown)
-  and a separate resolver in the app — `lib/resolvers/components.ts`, `lib/resolvers/fonts.ts`,
-  `lib/resolvers/embeds.ts` — which the Studio never imports. This keeps `next/font` and lazy project
-  bundles out of the Studio bundle. With the **standalone Studio** this separation is
-  structural (different workspace package), so `keys.ts` lives in a shared workspace package both
-  consume rather than being duplicated. See the CMS ↔ code registry for the typed-resolver +
-  fallback discipline that makes the soft foreign key safe.
+- **Keys are a contract; the Studio never imports implementations.** Each reference-by-key field —
+  the three faces, `componentKey`, `embedKey` — is a **free-text string** in the Studio schema whose
+  description says _"ask a developer for the valid keys"_; the standalone Studio bundle deliberately
+  imports **nothing** from the app, so there is no dropdown and no shared key package. The allowed
+  values live app-side in `keys.ts` (string constants) with a separate resolver each —
+  `lib/resolvers/{components,fonts,embeds}.ts` — which the Studio never imports, keeping `next/font`
+  and lazy project bundles out of the Studio bundle. A **CI drift net** closes the loop in place of a
+  shared import: `check-key-drift.mjs` guards code ↔ `keys.ts`, and `check-published-keys.mjs` GROQs
+  every published key and asserts it resolves in `keys.ts`. See the CMS ↔ code registry for the
+  typed-resolver + fallback discipline that makes the soft foreign key safe.
 - **Embeds: generic `liveEmbed` by default; a typed block only for editorial content.** A
   `liveEmbed` block stores an `embedKey` + a caption — use it whenever the only authored inputs are
   key + caption (the demo and the majority of in-essay embeds; adding one is zero schema change).

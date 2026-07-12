@@ -50,8 +50,9 @@
   /* A themed slot re-establishes the body baseline: reset.css resolves font-family
      once on <body>, so descendants inherit the RESOLVED family, not the live token —
      re-binding --font-body deeper only repaints elements that re-read the token. This
-     makes plain slot text wear the entry's body face; headings/mono repaint via their
-     own per-element rules. */
+     makes plain slot text wear the entry's body face; headings re-read --font-heading via
+     the h1–h6 rule above. There is NO mono rule here — a slot's mono face reaches text only
+     through --type-meta-family (the type primitives) and modules that read var(--font-mono). */
   [data-entry] {
     font-family: var(--font-body);
   }

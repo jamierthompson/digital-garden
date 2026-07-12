@@ -1,17 +1,18 @@
 // Reference-by-key contracts — the single source of truth for which keys exist.
 // Sanity stores these keys — `componentKey` and `embedKey`, plus the per-role font keys as the
-// entry's `theme.{headingFont,bodyFont,monoFont}` — on its documents; code resolves them. This
-// module owns the *allowed key
-// values* and their types; resolvers (src/lib/resolvers/**) and the font roster
-// (src/fonts/roster.ts) key off these, and the Sanity schema builds its dropdowns
-// from them. Resolvers are typed `satisfies Record<Key, …>` so a missing entry is
-// a compile error, and return a typed `NotFound` for an unknown key (a saved
-// Sanity key whose code was renamed/deleted) rather than crashing.
+// entry's `theme.{headingFont,bodyFont,monoFont}` — as FREE-TEXT string fields on its documents:
+// the standalone Studio schema deliberately can't import this module (see the NOTE in
+// studio/schemaTypes/documents/entry.ts), so there is no dropdown — code resolves the keys. This
+// module owns the *allowed key values* and their types; resolvers (src/lib/resolvers/**) and the
+// font roster (src/fonts/roster.ts) key off these, and the drift-net scripts
+// (scripts/check-key-drift.mjs, scripts/check-published-keys.mjs) assert published Sanity keys stay
+// members. Resolvers are typed `satisfies Record<Key, …>` so a missing entry is a compile error,
+// and return a typed `NotFound` for an unknown key (a saved Sanity key whose code was
+// renamed/deleted) rather than crashing.
 //
-// IMPORTANT — keep this module dependency-free and side-effect-free. It is the
-// contract both the app and the standalone Studio consume, so it must not
-// pull in `next/font`, entry-module bundles, or any app-only code (the Studio can't
-// import `src/*`).
+// IMPORTANT — keep this module dependency-free and side-effect-free. It is imported by the app AND
+// by the plain-Node drift-check scripts, so it must not pull in `next/font`, entry-module bundles,
+// or any app-only code.
 
 /**
  * Font keys — each resolves to a curated `next/font` face in the roster
@@ -36,10 +37,10 @@ export type FontKey = (typeof FONT_KEYS)[number];
  * `componentKey` is capability-gated, not kind-gated: any kind but `now` can declare one.
  * An entry with no `componentKey` renders prose-only (a sketch project carrying a
  * `theme.color` but no key yet, or an unkeyed note/essay); an entry that declares its key
- * here has the resolver map it to a literal dynamic import. A key is required for a project
- * past the sketch stage and optional-but-honored for a note or essay; a declared key that
- * fails to resolve is a `notFound()` for any kind. The first real module is the Color
- * Engine (#70).
+ * here has the resolver map it to a literal dynamic import. `componentKey` is OPTIONAL for
+ * every kind but `now`, mounting purely on presence (#226 removed the required-past-sketch
+ * validator); a declared key that fails to resolve is a `notFound()` for any kind. The first
+ * real module is the Color Engine (#70).
  */
 export const COMPONENT_KEYS = [
   "color-engine",

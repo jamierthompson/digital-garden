@@ -8,8 +8,8 @@ import { found, notFound, type Resolution } from "./resolution";
 
 /**
  * Resolve a `fontKey` (an arbitrary string from Sanity) to its roster face.
- * Returns `NotFound` when the key is not in `FONT_KEYS` — the caller
- * (`EntryScope`) falls back to the shell font on a miss.
+ * Returns `NotFound` when the key is not in `FONT_KEYS` — the caller (`scopeSeed`)
+ * drops that role on a miss, so the slot emits no override and the role inherits `:root`.
  */
 export function resolveFontKey(key: string): Resolution<FontFace> {
   return isFontKey(key) ? found(FONT_FACES[key]) : notFound("font", key);
