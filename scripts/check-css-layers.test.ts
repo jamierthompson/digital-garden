@@ -205,14 +205,12 @@ describe("check-css-layers.mjs — @layer name enforcement edges (QA #254)", () 
     }
   });
 
-  it("DEFECT: a retired name reintroduced via `@import … layer(name)` is NOT caught", () => {
-    // `@import "x.css" layer(foundation);` is the spec'd way to assign an imported sheet to a
-    // cascade layer (CSS Cascading & Inheritance L5). The guard only walks `@layer` at-rules,
-    // so the layer NAME carried on an `@import`'s `layer()` function slips through — a retired
-    // name can re-enter the cascade this way with no gate failure. This assertion encodes the
-    // EXPECTED behavior (catch it) and currently FAILS, proving the enforcement gap. The repo
-    // imports CSS via JS side-effects today, so this is defense-in-depth, not an active break —
-    // but the guard's stated contract ("enforce the exact two names") does not hold for this form.
+  it("flags a retired layer name carried on `@import … layer(name)`", () => {
+    // `@import "x.css" layer(foundation);` assigns an imported sheet to a cascade layer (CSS
+    // Cascading & Inheritance L5) — a second route by which a retired name can re-enter the
+    // cascade, besides an `@layer` at-rule. The guard walks `@import`'s `layer()` function too,
+    // so this form is caught. Defense-in-depth: the repo imports CSS via JS side-effects today,
+    // not `@import`, but the guard's contract ("enforce the exact two names") holds for every form.
     const { status } = run({
       "globals.css": [
         '@import "x.css" layer(foundation);',
