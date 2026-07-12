@@ -89,12 +89,12 @@ describe("check-css-layers.mjs — global sheets", () => {
     expect(stderr).toMatch(/globals\.css:1\s+"\.foo"/);
   });
 
-  it("PASSES a correctly layered global sheet (mirrors foundation.css)", () => {
+  it("PASSES a correctly layered global sheet (mirrors the base token sheets)", () => {
     const { status, stdout } = run({
       "foundation.css": [
-        "@layer foundation, semantic, brand, components;",
+        "@layer base, components;",
         "",
-        "@layer foundation {",
+        "@layer base {",
         "  :root {",
         "    --space-1: 0.25rem;",
         "  }",
@@ -106,12 +106,12 @@ describe("check-css-layers.mjs — global sheets", () => {
     expect(stdout).toMatch(/all rules .* are layered/);
   });
 
-  it("PASSES the bare `@layer a, b, c;` statement form (no block) alongside a layered rule", () => {
+  it("PASSES the bare `@layer base, components;` statement form (no block) alongside a layered rule", () => {
     const { status, stdout } = run({
       "globals.css": [
-        "@layer foundation, semantic, brand, components;",
+        "@layer base, components;",
         "",
-        "@layer foundation {",
+        "@layer base {",
         "  .foo { color: red; }",
         "}",
         "",
@@ -119,6 +119,20 @@ describe("check-css-layers.mjs — global sheets", () => {
     });
     expect(status).toBe(0);
     expect(stdout).toMatch(/all rules .* are layered/);
+  });
+
+  it("FAILS a global sheet whose @layer name is outside {base, components}", () => {
+    const { status, stderr } = run({
+      "globals.css": [
+        "@layer legacy {",
+        "  .foo { color: red; }",
+        "}",
+        "",
+      ].join("\n"),
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/name outside \{base, components\}/);
+    expect(stderr).toMatch(/globals\.css:1\s+@layer "legacy"/);
   });
 
   it("FAILS a bare top-level `:root` block (not just class selectors)", () => {
@@ -134,7 +148,7 @@ describe("check-css-layers.mjs — @media / @supports nesting", () => {
   it("PASSES a rule nested in @media that is itself inside @layer", () => {
     const { status } = run({
       "globals.css": [
-        "@layer foundation {",
+        "@layer base {",
         "  @media (min-width: 100px) {",
         "    .bar { color: blue; }",
         "  }",
@@ -177,7 +191,7 @@ describe("check-css-layers.mjs — @media / @supports nesting", () => {
   it("PASSES a rule nested in @supports that is itself inside @layer", () => {
     const { status } = run({
       "globals.css": [
-        "@layer foundation {",
+        "@layer base {",
         "  @supports (display: grid) {",
         "    .foo { display: grid; }",
         "  }",

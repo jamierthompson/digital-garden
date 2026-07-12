@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest";
 
 /**
  * The `@layer` statement fixes cascade priority lowest-first (`components` strongest).
- * `check-css-layers.mjs` only proves every rule is INSIDE some layer — it can't catch a reordering
- * or a stray `brand`/`project` layer, so pin the statement here.
+ * `check-css-layers.mjs` proves every rule is inside a layer named from the allowed set, but not the
+ * relative ORDER of those names — so pin the statement itself here.
  */
 const SHEET = readFileSync(
   resolve(process.cwd(), "src/styles/layers.css"),
@@ -14,12 +14,16 @@ const SHEET = readFileSync(
 );
 
 describe("layers.css @layer order statement", () => {
-  it("declares the three layers lowest-first: foundation, semantic, components", () => {
-    expect(SHEET).toContain("@layer foundation, semantic, components;");
+  it("declares the two layers lowest-first: base, components", () => {
+    expect(SHEET).toContain("@layer base, components;");
   });
 
-  it("excludes the `brand` and `project` layers", () => {
-    expect(/@layer[^{;]*\bbrand\b/.test(SHEET)).toBe(false);
-    expect(/@layer[^{;]*\bproject\b/.test(SHEET)).toBe(false);
+  it("carries no retired layer name (foundation/semantic/brand/project)", () => {
+    for (const name of ["foundation", "semantic", "brand", "project"]) {
+      expect(
+        new RegExp(`@layer[^{;]*\\b${name}\\b`).test(SHEET),
+        `retired @layer name "${name}" still present`,
+      ).toBe(false);
+    }
   });
 });

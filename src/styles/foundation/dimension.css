@@ -1,4 +1,4 @@
-@layer foundation {
+@layer base {
   :root {
     --width-measure: 42rem;
     --width-content: 48rem;

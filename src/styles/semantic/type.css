@@ -1,4 +1,4 @@
-@layer semantic {
+@layer base {
   :root {
     --type-display-family: var(--font-heading);
     --type-display-size: var(--type-size-8);
