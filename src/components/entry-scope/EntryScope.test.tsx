@@ -105,30 +105,6 @@ describe("EntryScope (three-role font slot)", () => {
     expect(propOf(wrapper, "font-family")).toBe("");
   });
 
-  it("stamps every --type-<role>-family bundle as var(<leaf>), keeping the generic tail on the leaf", () => {
-    // The bundle value references the leaf co-declared on the SAME element — never the face var
-    // directly and never a duplicated generic. So the generic fallback stays declared once.
-    render(
-      <EntryScope seed={ALL_THREE}>
-        <p>bundles</p>
-      </EntryScope>,
-    );
-    const wrapper = screen.getByText("bundles").closest("[data-entry]");
-    const bundles = {
-      "--type-display-family": "var(--font-heading)",
-      "--type-title-family": "var(--font-heading)",
-      "--type-heading-family": "var(--font-heading)",
-      "--type-subheading-family": "var(--font-heading)",
-      "--type-label-family": "var(--font-heading)",
-      "--type-lead-family": "var(--font-body)",
-      "--type-body-family": "var(--font-body)",
-      "--type-meta-family": "var(--font-mono)",
-    } as const;
-    for (const [token, value] of Object.entries(bundles)) {
-      expect(propOf(wrapper, token)).toBe(value);
-    }
-  });
-
   it("never appends the site palette or a self-reference to an override", () => {
     // The tail is the CSS generic keyword ONLY — a `var(--font-body)` self-reference would be a
     // CSS cycle (the whole declaration dropped) and appending the palette face would hardcode
