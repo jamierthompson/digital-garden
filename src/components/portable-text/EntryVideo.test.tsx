@@ -33,4 +33,27 @@ describe("EntryVideo", () => {
     expect(() => render(<EntryVideo value={{}} />)).not.toThrow();
     expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
   });
+
+  // QA — DEFECT: `label = value.caption ?? "Video"` uses `??`, which only substitutes for
+  // null/undefined. An empty-string caption (a raw API write, or an emptied field) is a
+  // string, so it is NOT replaced — the placeholder gets `aria-label=""`, an EMPTY accessible
+  // name on a role="img" element (WCAG 2.2 SC 1.1.1). The author's own "labelled placeholder"
+  // contract wants the "Video" fallback here. Fix: use `||`, or guard the empty string.
+  it("falls back to the generic label when the caption is an empty string", () => {
+    const { container } = render(
+      <EntryVideo value={{ url: "https://example.com/v.mp4", caption: "" }} />,
+    );
+    expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
+    // An empty caption is not a real caption — no figcaption is emitted for it.
+    expect(container.querySelector("figcaption")).toBeNull();
+  });
+
+  // The placeholder is deferred (#128): the URL must never reach an href/src, so a
+  // `javascript:`-style or otherwise hostile URL cannot be navigated to or loaded.
+  it("never renders the URL into a navigable/loadable attribute", () => {
+    const hostile = "javascript:alert(1)";
+    const { container } = render(<EntryVideo value={{ url: hostile }} />);
+    expect(container.querySelector("a, [href], [src]")).toBeNull();
+    expect(container.innerHTML).not.toContain(hostile);
+  });
 });

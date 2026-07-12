@@ -125,6 +125,47 @@ describe("EntryBody", () => {
       expect(captured).toHaveLength(0);
       expect(screen.queryByTestId("slot")).toBeNull();
     });
+
+    // Integration: the whole shared palette in one body — prose · figure · video · slot ·
+    // quote plus a drifted unknown — must render totally, each block to its own renderer,
+    // with the slot still threaded and the unknown silently dropped.
+    it("renders the full mixed palette totally in one body", () => {
+      const FULL_BODY = [
+        {
+          _type: "block",
+          _key: "b1",
+          style: "normal",
+          markDefs: [],
+          children: [
+            { _type: "span", _key: "s1", text: "Editorial prose.", marks: [] },
+          ],
+        },
+        { _type: "figure", _key: "f1", alt: "A figure", caption: "Fig cap" },
+        {
+          _type: "video",
+          _key: "v1",
+          url: "https://ex.com/v.mp4",
+          caption: "Clip",
+        },
+        { _type: "slot", _key: "e1", slotKey: "color-engine-seed" },
+        { _type: "quote", _key: "q1", text: "Quoted.", attribution: "Author" },
+        { _type: "unknownBlock", _key: "u1" },
+      ] as unknown as Body;
+
+      captured.length = 0;
+      expect(() =>
+        render(<EntryBody value={FULL_BODY} scope={SCOPE} />),
+      ).not.toThrow();
+      expect(screen.getByText("Editorial prose.")).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: "A figure" })).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: "Clip" })).toBeInTheDocument();
+      expect(screen.getByText("Quoted.").closest("blockquote")).not.toBeNull();
+      expect(screen.getByTestId("slot")).toHaveAttribute(
+        "data-slot-key",
+        "color-engine-seed",
+      );
+      expect(captured[0]?.scope).toEqual(SCOPE);
+    });
   });
 
   // Content can drift from code: a published body may carry a block whose `_type` the serializer

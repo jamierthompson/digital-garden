@@ -15,7 +15,11 @@ interface VideoValue {
  * Var-consuming, themed by the surrounding entry scope.
  */
 export default function EntryVideo({ value }: { value: VideoValue }) {
-  const label = value.caption ?? "Video";
+  // `||`, not `??`: an empty-string caption (reachable via a raw API write) is falsy and must
+  // fall back to the generic label — `??` would let `""` through and leave the placeholder's
+  // `role="img"` with an empty accessible name (WCAG 2.2 SC 1.1.1). Mirrors the figcaption's
+  // own falsy `value.caption ?` check below, so an empty caption yields no figcaption either.
+  const label = value.caption || "Video";
   return (
     <figure className={styles.video}>
       <div className={styles.placeholder} role="img" aria-label={label}>
