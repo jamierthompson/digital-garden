@@ -229,3 +229,33 @@ describe("vetSlug is not injective — isolation rests on upstream uniqueness", 
     );
   });
 });
+
+/**
+ * QA (#226 rework): prototype-shaped seeds. `resolveScope` reads its keys by dot access, which
+ * walks the prototype chain — pin what that means at both ends of the hostility spectrum.
+ */
+describe("resolveScope — prototype-shaped seeds (QA #226 rework)", () => {
+  it('treats a JSON "__proto__" key as inert — no pollution, no face pickup', () => {
+    // JSON.parse creates "__proto__" as an ORDINARY own property (it never invokes the
+    // setter), so the payload's `bodyFont` is not reachable via `seed.bodyFont` and
+    // Object.prototype stays clean.
+    const seed: unknown = JSON.parse(
+      '{"slug":"entry","__proto__":{"bodyFont":"inter"}}',
+    );
+    const scope = resolveScope(seed);
+    expect(scope.slug).toBe("entry");
+    expect(scope.faces).toEqual({});
+    expect(({} as { bodyFont?: unknown }).bodyFont).toBeUndefined();
+  });
+
+  it("characterizes dot-access: a prototype-INHERITED font key is honored", () => {
+    // Not reachable from Sanity (parsed JSON carries own properties only) — pinned so a
+    // future switch to own-property reads is a deliberate contract change, not an accident.
+    const seed: unknown = Object.assign(Object.create({ bodyFont: "inter" }), {
+      slug: "entry",
+    });
+    const scope = resolveScope(seed);
+    expect(scope.slug).toBe("entry");
+    expect(scope.faces.body).toEqual(FONT_FACES.inter);
+  });
+});

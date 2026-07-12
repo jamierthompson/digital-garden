@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -321,6 +324,67 @@ describe("EntryScope (three-role font slot)", () => {
     );
     expect(propOf(b, "--font-body")).toBe(
       `var(${FONT_FACES.fraunces.cssVariable}), serif`,
+    );
+  });
+});
+
+/**
+ * QA (#226 rework): FACE_BINDINGS ↔ `semantic/type.css` sync. EntryScope's docblock claims its
+ * role→face map "mirrors `:root` in `type.css`", but the two live in different files with no
+ * compiler holding them together — and the suite above asserts against FACE_SPEC, a third
+ * hand-copied statement of the same map. Parse the sheet's actual
+ * `--type-<role>-family: var(--font-<face>)` bindings and assert, on a fully-themed render, that
+ * (a) every sheet role is stamped pointing at the SAME face the sheet maps it to, and (b) the
+ * slot stamps NO family bundle the sheet doesn't declare. Adding a role to type.css without
+ * extending FACE_BINDINGS (or re-mapping a role to a different face in only one place) fails
+ * here instead of silently splitting a themed slot between entry and site faces.
+ */
+describe("EntryScope role→face map mirrors semantic/type.css (QA #226 rework)", () => {
+  const sheet = readFileSync(
+    resolve(process.cwd(), "src/styles/semantic/type.css"),
+    "utf8",
+  );
+  const sheetBindings = [
+    ...sheet.matchAll(
+      /--type-([a-z0-9]+)-family:\s*var\(--font-(heading|body|mono)\)/g,
+    ),
+  ].map(([, role, face]) => ({ role, face }));
+
+  it("parses the full role set out of the sheet (false-green guard)", () => {
+    expect(sheetBindings.map(({ role }) => role).sort()).toEqual([
+      "body",
+      "display",
+      "heading",
+      "label",
+      "lead",
+      "meta",
+      "subheading",
+      "title",
+    ]);
+  });
+
+  it("stamps every sheet role onto the face the sheet maps it to — and no bundle the sheet lacks", () => {
+    render(
+      <EntryScope seed={ALL_THREE}>
+        <p>sheet sync</p>
+      </EntryScope>,
+    );
+    const wrapper = screen
+      .getByText("sheet sync")
+      .closest("[data-entry]") as HTMLElement;
+    for (const { role, face } of sheetBindings) {
+      expect(
+        propOf(wrapper, `--type-${role}-family`),
+        `--type-${role}-family should re-bind to the slot's --font-${face}`,
+      ).toBe(`var(--font-${face})`);
+    }
+    // Reverse direction: the slot declares no `--type-*-family` the sheet doesn't — a stamped
+    // bundle no primitive reads would be dead weight that hides a rename drift.
+    const stamped = Array.from(wrapper.style)
+      .filter((property) => /^--type-[a-z0-9]+-family$/.test(property))
+      .sort();
+    expect(stamped).toEqual(
+      sheetBindings.map(({ role }) => `--type-${role}-family`).sort(),
     );
   });
 });
