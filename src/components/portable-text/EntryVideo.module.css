@@ -4,10 +4,11 @@
     margin: var(--space-6) 0;
   }
 
+  /* The Radix AspectRatio box supplies the 16:9 sizing (and its own position); this only
+     dresses and centers the label inside it. */
   .placeholder {
     display: grid;
     place-items: center;
-    min-block-size: 10rem;
     border-radius: var(--radius-md);
     background: var(--accent-subtle);
   }
