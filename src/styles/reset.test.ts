@@ -24,19 +24,3 @@ describe("reset.css base heading element rule", () => {
     );
   });
 });
-
-/**
- * The `[data-entry]` body baseline is the ONE place a themed slot re-reads `--font-body` so plain
- * slot prose repaints in the entry's authored body face (reset.css resolves the token once on
- * `<body>`, so descendants inherit the resolved family, not the live token). It's a STATIC rule —
- * the string is identical for every entry; `EntryScope` supplies only the per-entry token values.
- * Pinned here so dropping it (and silently reverting to invisible body theming) is impossible.
- */
-describe("reset.css themed-slot body baseline rule", () => {
-  const slotRule = CODE.match(/\[data-entry\]\s*\{([^}]*)\}/);
-
-  it("binds --font-body on [data-entry]", () => {
-    expect(slotRule).not.toBeNull();
-    expect(/font-family:\s*var\(--font-body\)/.test(slotRule![1])).toBe(true);
-  });
-});

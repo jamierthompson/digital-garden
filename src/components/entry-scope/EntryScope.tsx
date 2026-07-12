@@ -56,10 +56,11 @@ const FACE_BINDINGS = [
  * values inline on the wrapper (alongside the face's `.variable` class, which brings
  * `var(<cssVariable>)` into scope):
  *
- *   1. The **leaf** `--font-heading` / `--font-body` / `--font-mono` token. `reset.css` reads two
- *      of them at the element level — `--font-body` (the `[data-entry]` body baseline) and
- *      `--font-heading` (`h1–h6`); `--font-mono` has no reset rule and is read by component modules
- *      that resolve `var(--font-mono)`. Each substitutes at its own element.
+ *   1. The **leaf** `--font-heading` / `--font-body` / `--font-mono` token. The role bundles
+ *      (channel 2) resolve against these leaves via `var(--font-<face>)`; two are ALSO consumed
+ *      directly at the element level — `--font-heading` by `reset.css`'s `h1–h6` rule, and
+ *      `--font-mono` by component modules that read `var(--font-mono)`. Each substitutes at its
+ *      own element.
  *   2. Every **`--type-<role>-family` bundle** mapped to that face, read by the typography
  *      primitives (`Heading`/`Text`). The value is `var(--font-<face>)`, resolving against the
  *      leaf co-declared on this same element.

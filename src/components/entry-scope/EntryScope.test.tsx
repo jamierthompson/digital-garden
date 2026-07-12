@@ -100,9 +100,8 @@ describe("EntryScope (three-role font slot)", () => {
     expectFaceStamped(wrapper, "heading", "space-grotesk");
     expectFaceStamped(wrapper, "body", "newsreader");
     expectFaceStamped(wrapper, "mono", "inter");
-    // The wrapper carries no inline `font-family` — the body baseline that CONSUMES `--font-body`
-    // is a static `[data-entry]` rule in reset.css (pinned by reset.test.ts); this component emits
-    // only the per-entry token values.
+    // The wrapper carries no inline `font-family` — this component emits only the per-entry token
+    // values (the leaves + role bundles); it never sets `font-family` on the wrapper itself.
     expect(propOf(wrapper, "font-family")).toBe("");
   });
 

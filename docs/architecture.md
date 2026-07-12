@@ -824,11 +824,12 @@ Mapped onto the layers:
   face an entry can pick for a slot — a roster face is _not_ mounted globally, only per-entry.)
 - **Slot & embed fonts** → nothing declares its own `next/font`; content reads the role tokens
   (`--font-heading` / `--font-body` / `--font-mono`), which the slot fills from the resolved faces (or
-  inherits from `:root` when a role is unset). Because `reset.css` resolves `font-family` once on
-  `<body>`, a `[data-entry] { font-family: var(--font-body) }` rule re-establishes the body baseline
-  inside the slot so plain slot text wears the entry's body face; headings repaint via the `h1–h6`
-  rule. Mono has **no** reset rule — a slot's mono face reaches text only through `--type-meta-family`
-  (the type primitives) and component modules that read `var(--font-mono)`.
+  inherits from `:root` when a role is unset). The type primitives (`Heading` / `Text`) carry the entry
+  faces via the `--type-*-family` bundles the slot stamps, and `reset.css`'s `h1–h6` rule carries
+  `--font-heading`. There is **no** `[data-entry]` body baseline rule: every slot descendant is a
+  primitive that self-sets `font-family` from a bundle, so plain non-primitive slot text inherits the
+  site body face. Mono likewise has no reset rule — a slot's mono face reaches text only through
+  `--type-meta-family` (the type primitives) and component modules that read `var(--font-mono)`.
 
 Practical notes:
 
