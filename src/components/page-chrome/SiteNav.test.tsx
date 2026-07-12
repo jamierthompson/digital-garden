@@ -78,7 +78,7 @@ describe("SiteNav", () => {
  */
 describe("SiteNav .link — WCAG 2.5.8 target size floor", () => {
   const css = readFileSync(
-    resolve(process.cwd(), "src/components/shell/SiteNav.module.css"),
+    resolve(process.cwd(), "src/components/page-chrome/SiteNav.module.css"),
     "utf8",
   );
 
@@ -133,7 +133,7 @@ describe("SiteNav .link — WCAG 2.5.8 target size floor", () => {
  */
 describe("SiteNav border-width-thick pair — no active-state layout shift", () => {
   const css = readFileSync(
-    resolve(process.cwd(), "src/components/shell/SiteNav.module.css"),
+    resolve(process.cwd(), "src/components/page-chrome/SiteNav.module.css"),
     "utf8",
   );
 
@@ -180,7 +180,7 @@ describe("SiteNav border-width-thick pair — no active-state layout shift", () 
  */
 describe("SiteNav masthead — intrinsic reflow", () => {
   const css = readFileSync(
-    resolve(process.cwd(), "src/components/shell/SiteNav.module.css"),
+    resolve(process.cwd(), "src/components/page-chrome/SiteNav.module.css"),
     "utf8",
   );
 

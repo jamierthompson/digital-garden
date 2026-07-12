@@ -24,9 +24,9 @@ import "../styles/semantic/color.css";
 // so they sit safely after the global sheets.
 import { Geist_Mono, Source_Serif_4 } from "next/font/google";
 
-import SiteNav from "@/components/shell/SiteNav";
-import SiteFooter from "@/components/shell/SiteFooter";
-import SkipLink from "@/components/shell/SkipLink";
+import SiteNav from "@/components/page-chrome/SiteNav";
+import SiteFooter from "@/components/page-chrome/SiteFooter";
+import SkipLink from "@/components/page-chrome/SkipLink";
 import { FONT_FACES } from "@/fonts/roster";
 import { SCHEME_INIT_SCRIPT } from "@/lib/scheme";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
