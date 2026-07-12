@@ -35,7 +35,7 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  *
  * The full entry document for one slug — UNLIKE the index query, it DOES pull the `body`
  * (the detail route renders it through the Portable Text serializer) plus the entry's `theme`
- * object (`color`, `colorDark`, `bodyFont`) and the top-level `componentKey` that drive
+ * object (`color`, `colorDark`, `headingFont`, `bodyFont`, `monoFont`) and the top-level `componentKey` that drive
  * `EntryScope` and module resolution, the facets (`kind`, `stage`, `iterated`, `featuredRank`), and the
  * surrounding `title` / `blurb`. Backlinks resolve both directions: `related[]->`
  * is the outgoing edge; `backlinks` is the INCOMING edge (every entry that references this
@@ -69,7 +69,7 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
     iterated,
     featuredRank,
     blurb,
-    theme { color, colorDark, bodyFont },
+    theme { color, colorDark, headingFont, bodyFont, monoFont },
     componentKey,
     "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),
     body,

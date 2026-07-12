@@ -49,12 +49,23 @@ vi.mock("@/lib/resolvers/components", () => ({
 // the theming contract we assert HERE is "does the page hand the body the right scope?" — the
 // rendered scoped embed itself is the integration test's / browser check's job.
 vi.mock("@/components/portable-text/EntryBody", () => ({
-  default: ({ scope }: { scope?: { slug: string; fontKey: string } }) => (
+  default: ({
+    scope,
+  }: {
+    scope?: {
+      slug: string;
+      headingFont?: string;
+      bodyFont?: string;
+      monoFont?: string;
+    };
+  }) => (
     <div
       data-testid="essay-body"
       data-has-scope={scope ? "yes" : "no"}
       data-scope-slug={scope?.slug ?? ""}
-      data-scope-font={scope?.fontKey ?? ""}
+      data-scope-heading={scope?.headingFont ?? ""}
+      data-scope-body={scope?.bodyFont ?? ""}
+      data-scope-mono={scope?.monoFont ?? ""}
     />
   ),
 }));
@@ -132,7 +143,13 @@ function entry(over: EntryOverrides = {}): Record<string, unknown> {
     slug: "an-entry",
     kind: "note",
     blurb: "A blurb.",
-    theme: { color: null, colorDark: null, bodyFont: null },
+    theme: {
+      color: null,
+      colorDark: null,
+      headingFont: null,
+      bodyFont: null,
+      monoFont: null,
+    },
     componentKey: null,
     // The kind-gated seed the page themes from (query-resolved: `now`→/now seed, else theme.color).
     themeSeed: null,
@@ -184,7 +201,12 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       entry({
         kind: "note",
         componentKey: null,
-        theme: { color: "oklch(0.7 0.15 70)", bodyFont: "newsreader" },
+        theme: {
+          color: "oklch(0.7 0.15 70)",
+          headingFont: "space-grotesk",
+          bodyFont: "newsreader",
+          monoFont: "inter",
+        },
         ...withBody,
       }),
     );
@@ -192,8 +214,11 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     const body = screen.getByTestId("essay-body");
     expect(body).toHaveAttribute("data-has-scope", "yes");
     expect(body).toHaveAttribute("data-scope-slug", "an-entry");
-    // The scope carries the entry's font — color is on `<html>`, inherited by the embeds.
-    expect(body).toHaveAttribute("data-scope-font", "newsreader");
+    // The scope carries all three of the entry's role fonts — color is on `<html>`, inherited
+    // by the embeds.
+    expect(body).toHaveAttribute("data-scope-heading", "space-grotesk");
+    expect(body).toHaveAttribute("data-scope-body", "newsreader");
+    expect(body).toHaveAttribute("data-scope-mono", "inter");
     // Themed, but no module → no after-prose interactive slot.
     expect(screen.queryByTestId("experience")).not.toBeInTheDocument();
   });
@@ -543,7 +568,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     const body = screen.getByTestId("essay-body");
     expect(body).toHaveAttribute("data-has-scope", "yes");
     expect(body).toHaveAttribute("data-scope-slug", "an-essay");
-    expect(body).toHaveAttribute("data-scope-font", "newsreader");
+    expect(body).toHaveAttribute("data-scope-body", "newsreader");
   });
 
   it("does NOT build a scope for a lone theme.bodyFont (no theme.color, no module) — a font alone has no slot to apply to", async () => {
@@ -594,7 +619,10 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(slot).toHaveAttribute("data-entry", "an-entry");
     const body = screen.getByTestId("essay-body");
     expect(body).toHaveAttribute("data-has-scope", "yes");
-    expect(body).toHaveAttribute("data-scope-font", "");
+    // No theme object → every role font seed is empty (undefined → ""), so the slot inherits.
+    expect(body).toHaveAttribute("data-scope-heading", "");
+    expect(body).toHaveAttribute("data-scope-body", "");
+    expect(body).toHaveAttribute("data-scope-mono", "");
   });
 
   it("renders a NULL-theme, module-less entry prose-only without crashing (no scope, no slot)", async () => {

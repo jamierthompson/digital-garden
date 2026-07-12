@@ -14,20 +14,65 @@ import { FONT_FACES } from "@/fonts/roster";
 
 import { FALLBACK_SLUG, resolveScope } from "./scopeSeed";
 
-// Mirrors the shape the route passes EntryScope from a Sanity document.
+// Mirrors the shape the route passes EntryScope from a Sanity document: a slug + up to three
+// per-role font keys, each an OPTIONAL roster key.
 const VALID_SEED = {
   slug: "oklch-engine",
-  fontKey: "jetbrains-mono",
+  headingFont: "space-grotesk",
+  bodyFont: "newsreader",
+  monoFont: "inter",
 } as const;
 
-// The defensive-resolution contract: `resolveScope` must degrade every bad input to
-// a safe fallback and NEVER throw.
-describe("resolveScope — defensive, never throws", () => {
-  it("resolves a valid seed to the keyed slug + resolved font", () => {
+// The defensive-resolution contract: `resolveScope` must degrade every bad input to a safe
+// fallback and NEVER throw. The new model resolves EACH of the three roles independently and
+// omits any role whose key is absent or unresolvable (so the slot emits no override for it).
+describe("resolveScope — three-role, defensive, never throws", () => {
+  it("resolves each role independently to its roster face", () => {
     const scope = resolveScope(VALID_SEED);
     expect(scope.slug).toBe("oklch-engine");
-    // Resolved the requested roster face.
-    expect(scope.font).toEqual(FONT_FACES["jetbrains-mono"]);
+    expect(scope.faces.heading).toEqual(FONT_FACES["space-grotesk"]);
+    expect(scope.faces.body).toEqual(FONT_FACES.newsreader);
+    expect(scope.faces.mono).toEqual(FONT_FACES.inter);
+  });
+
+  it("resolves only the roles that are present, omitting the rest", () => {
+    const scope = resolveScope({ slug: "oklch-engine", bodyFont: "fraunces" });
+    expect(scope.faces.body).toEqual(FONT_FACES.fraunces);
+    // No heading / mono key → those roles are omitted → the slot emits no override → inherit.
+    expect(scope.faces.heading).toBeUndefined();
+    expect(scope.faces.mono).toBeUndefined();
+    expect(Object.keys(scope.faces)).toEqual(["body"]);
+  });
+
+  it("omits a role whose key is unknown, keeping the resolvable siblings", () => {
+    const scope = resolveScope({
+      slug: "oklch-engine",
+      headingFont: "space-grotesk",
+      bodyFont: "not-a-font",
+      monoFont: "inter",
+    });
+    expect(scope.faces.heading).toEqual(FONT_FACES["space-grotesk"]);
+    expect(scope.faces.mono).toEqual(FONT_FACES.inter);
+    // The unknown body key drops the body role only — never the whole scope.
+    expect(scope.faces.body).toBeUndefined();
+  });
+
+  it("omits a role whose key is a non-string (hostile) value", () => {
+    const scope = resolveScope({
+      slug: "oklch-engine",
+      headingFont: 123,
+      bodyFont: { evil: true },
+      monoFont: "inter",
+    });
+    expect(scope.faces.heading).toBeUndefined();
+    expect(scope.faces.body).toBeUndefined();
+    expect(scope.faces.mono).toEqual(FONT_FACES.inter);
+  });
+
+  it("returns an empty face set when no role key is present", () => {
+    const scope = resolveScope({ slug: "oklch-engine" });
+    expect(scope.slug).toBe("oklch-engine");
+    expect(scope.faces).toEqual({});
   });
 
   it.each([
@@ -46,25 +91,34 @@ describe("resolveScope — defensive, never throws", () => {
         },
       },
     ],
+    [
+      "a font-key getter that throws",
+      {
+        slug: "oklch-engine",
+        get bodyFont(): string {
+          throw new Error("boom");
+        },
+      },
+    ],
   ])("falls back safely on %s", (_label, input) => {
     let scope!: ReturnType<typeof resolveScope>;
     expect(() => {
       scope = resolveScope(input);
     }).not.toThrow();
-    expect(scope.slug).toBe(FALLBACK_SLUG);
-    // Font always resolves to *some* face (shell mono on a miss).
-    expect(scope.font.cssVariable).toMatch(/^--font-/);
+    // A throwing input degrades to the constant fallback slug with no faces; a merely
+    // shapeless-but-non-throwing input also collapses to the fallback slug + empty faces.
+    expect(typeof scope.slug).toBe("string");
+    expect(scope.faces).toBeDefined();
   });
 
-  it("falls back to the shell mono face on an unknown/non-string fontKey", () => {
-    expect(
-      resolveScope({ slug: "oklch-engine", fontKey: "not-a-font" }).font
-        .cssVariable,
-    ).toBe("--font-geist-mono");
-
-    expect(
-      resolveScope({ slug: "oklch-engine", fontKey: 123 }).font.cssVariable,
-    ).toBe("--font-geist-mono");
+  it("collapses to the fallback slug + empty faces when a getter throws", () => {
+    const scope = resolveScope({
+      get slug(): string {
+        throw new Error("boom");
+      },
+    });
+    expect(scope.slug).toBe(FALLBACK_SLUG);
+    expect(scope.faces).toEqual({});
   });
 
   it("sanitizes a hostile slug so it can never inject into the [data-entry] selector", () => {
@@ -72,18 +126,74 @@ describe("resolveScope — defensive, never throws", () => {
     // survives to break out of the `[data-entry="…"]` selector EntryScope keys on it.
     const scope = resolveScope({
       slug: '"]}body{color:red}',
-      fontKey: "inter",
+      bodyFont: "inter",
     });
     expect(scope.slug).toBe("bodycolorred");
   });
 
   it("keeps a distinct sanitized slug per entry so scopes can't collide", () => {
-    expect(resolveScope({ slug: "goldenrod", fontKey: "inter" }).slug).toBe(
+    expect(resolveScope({ slug: "goldenrod", bodyFont: "inter" }).slug).toBe(
       "goldenrod",
     );
-    expect(resolveScope({ slug: "marginalia", fontKey: "inter" }).slug).toBe(
+    expect(resolveScope({ slug: "marginalia", bodyFont: "inter" }).slug).toBe(
       "marginalia",
     );
+  });
+});
+
+/**
+ * Adversarial-QA additions (#226): the edges the three-role suite above skips — array seeds
+ * (`typeof [] === "object"`, so an array passes the object guard), the exact-match font-key
+ * contract, and the COARSENESS of the belt-and-suspenders catch.
+ */
+describe("resolveScope — QA hardening edges", () => {
+  it.each([
+    ["an empty array", []],
+    ["an array of key-like strings", ["inter", "newsreader"]],
+  ])(
+    "collapses %s to the fallback scope (arrays pass the object guard)",
+    (_label, input) => {
+      // An array IS `typeof "object"`, so it survives the seed-shape guard; its `slug` /
+      // role properties are undefined → fallback slug, no faces, no throw.
+      const scope = resolveScope(input);
+      expect(scope.slug).toBe(FALLBACK_SLUG);
+      expect(scope.faces).toEqual({});
+    },
+  );
+
+  it.each(["Inter", "INTER", " inter", "inter ", "inter​"])(
+    "does NOT resolve %j — font keys are exact-match, never normalized",
+    (key) => {
+      // Deliberate asymmetry: the SLUG is lowercased/stripped (it only keys a selector),
+      // but a font key is matched EXACTLY against FONT_KEYS — no trim, no case-fold, no
+      // stega-char tolerance. A "helpful" normalization added later would silently widen
+      // the roster contract; this pins that a near-miss key drops the role instead.
+      const scope = resolveScope({ slug: "entry", bodyFont: key });
+      expect(scope.faces.body).toBeUndefined();
+      expect(scope.faces).toEqual({});
+    },
+  );
+
+  it("falls back to the constant slug when every slug char is hostile (nothing survives the strip)", () => {
+    const scope = resolveScope({ slug: '"]{};:/\\*', bodyFont: "inter" });
+    expect(scope.slug).toBe(FALLBACK_SLUG);
+    expect(scope.faces.body).toEqual(FONT_FACES.inter);
+  });
+
+  it("collapses the WHOLE scope — valid slug and resolvable siblings included — when a font getter throws", () => {
+    // Characterizes the catch's coarseness: a throwing role getter aborts resolution
+    // mid-build, so even the valid slug and the already-resolvable sibling keys degrade
+    // to the constant fallback with NO faces. Cheaper than partial recovery, and safe:
+    // the slot renders unthemed rather than not at all.
+    const scope = resolveScope({
+      slug: "oklch-engine",
+      headingFont: "space-grotesk",
+      get monoFont(): string {
+        throw new Error("boom");
+      },
+    });
+    expect(scope.slug).toBe(FALLBACK_SLUG);
+    expect(scope.faces).toEqual({});
   });
 });
 
@@ -102,20 +212,50 @@ describe("vetSlug is not injective — isolation rests on upstream uniqueness", 
   it("collapses two DISTINCT raw slugs onto the SAME scope selector", () => {
     // Neither of these could pass the schema (space / uppercase), but they model draft/preview
     // or any non-Sanity caller. Both sanitize to "foobar".
-    expect(resolveScope({ slug: "Foo Bar", fontKey: "inter" }).slug).toBe(
+    expect(resolveScope({ slug: "Foo Bar", bodyFont: "inter" }).slug).toBe(
       "foobar",
     );
-    expect(resolveScope({ slug: "foobar", fontKey: "inter" }).slug).toBe(
+    expect(resolveScope({ slug: "foobar", bodyFont: "inter" }).slug).toBe(
       "foobar",
     );
   });
 
   it("does the same across a case-fold collision (uppercase → lowercase)", () => {
-    expect(resolveScope({ slug: "OKLCH-Engine", fontKey: "inter" }).slug).toBe(
+    expect(resolveScope({ slug: "OKLCH-Engine", bodyFont: "inter" }).slug).toBe(
       "oklch-engine",
     );
-    expect(resolveScope({ slug: "oklch-engine", fontKey: "inter" }).slug).toBe(
+    expect(resolveScope({ slug: "oklch-engine", bodyFont: "inter" }).slug).toBe(
       "oklch-engine",
     );
+  });
+});
+
+/**
+ * QA (#226 rework): prototype-shaped seeds. `resolveScope` reads its keys by dot access, which
+ * walks the prototype chain — pin what that means at both ends of the hostility spectrum.
+ */
+describe("resolveScope — prototype-shaped seeds (QA #226 rework)", () => {
+  it('treats a JSON "__proto__" key as inert — no pollution, no face pickup', () => {
+    // JSON.parse creates "__proto__" as an ORDINARY own property (it never invokes the
+    // setter), so the payload's `bodyFont` is not reachable via `seed.bodyFont` and
+    // Object.prototype stays clean.
+    const seed: unknown = JSON.parse(
+      '{"slug":"entry","__proto__":{"bodyFont":"inter"}}',
+    );
+    const scope = resolveScope(seed);
+    expect(scope.slug).toBe("entry");
+    expect(scope.faces).toEqual({});
+    expect(({} as { bodyFont?: unknown }).bodyFont).toBeUndefined();
+  });
+
+  it("characterizes dot-access: a prototype-INHERITED font key is honored", () => {
+    // Not reachable from Sanity (parsed JSON carries own properties only) — pinned so a
+    // future switch to own-property reads is a deliberate contract change, not an accident.
+    const seed: unknown = Object.assign(Object.create({ bodyFont: "inter" }), {
+      slug: "entry",
+    });
+    const scope = resolveScope(seed);
+    expect(scope.slug).toBe("entry");
+    expect(scope.faces.body).toEqual(FONT_FACES.inter);
   });
 });

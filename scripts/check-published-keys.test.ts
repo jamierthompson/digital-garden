@@ -9,8 +9,10 @@
  */
 
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { evaluate, parse } from "groq-js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -102,7 +104,6 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
   const CLEAN = {
     entryCount: 12,
     siteSettingsCount: 1,
-    nonSketchProjectCount: 6,
     liveEmbedBlockCount: 3,
     fontKeys: ["inter"],
     componentKeys: ["some-module"],
@@ -114,13 +115,12 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
   });
 
   it("stays clean on a genuinely empty dataset", () => {
-    // Every count — structural AND key — drops to zero together. None of the guards
-    // (each gated on its structural count being > 0) should fire.
+    // Every count — structural AND key — drops to zero together. The one guard (gated on
+    // liveEmbedBlockCount > 0) does not fire.
     expect(
       findBrokenQuerySignals({
         entryCount: 0,
         siteSettingsCount: 0,
-        nonSketchProjectCount: 0,
         liveEmbedBlockCount: 0,
         fontKeys: [],
         componentKeys: [],
@@ -129,35 +129,21 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
     ).toEqual([]);
   });
 
-  it("stays clean on an all-sketch garden — sketch projects carry no componentKey (#109)", () => {
-    // The live post-swap state: published project entries exist but they're all `stage:
-    // sketch`, so componentKey is legitimately absent. The canary counts only NON-sketch
-    // projects, so `nonSketchProjectCount` is zero and the empty componentKeys array is
-    // correctly read as benign, not a broken query. (Regression guard for the schema
-    // relaxation that made componentKey required only past the sketch stage.)
-    expect(
-      findBrokenQuerySignals({
-        entryCount: 8,
-        siteSettingsCount: 1,
-        nonSketchProjectCount: 0,
-        liveEmbedBlockCount: 0,
-        fontKeys: ["fraunces"],
-        componentKeys: [],
-        embedKeys: [],
-      }),
-    ).toEqual([]);
+  it("does NOT flag an empty componentKeys array — componentKey is optional everywhere (#226)", () => {
+    // #226 deleted the `requiredForNonSketchProject` validator, so a prose-only shipped project
+    // publishing zero componentKeys is legitimate content — componentKey now carries no schema
+    // anchor (like the three faces), so an empty componentKeys array must NOT read as a broken
+    // query. Regression guard for the componentKey-canary removal: the old canary false-red'd
+    // exactly this dataset (a non-sketch project with zero resolved componentKeys).
+    expect(findBrokenQuerySignals({ ...CLEAN, componentKeys: [] })).toEqual([]);
   });
 
-  it("flags a broken fontKey path — siteSettings published but zero fontKeys resolved", () => {
-    const signals = findBrokenQuerySignals({ ...CLEAN, fontKeys: [] });
-    expect(signals).toHaveLength(1);
-    expect(signals[0]).toMatch(/fontKey query is likely broken/);
-  });
-
-  it("flags a broken componentKey path — a non-sketch project exists but zero componentKeys resolved", () => {
-    const signals = findBrokenQuerySignals({ ...CLEAN, componentKeys: [] });
-    expect(signals).toHaveLength(1);
-    expect(signals[0]).toMatch(/componentKey query is likely broken/);
+  it("does NOT flag an empty fontKeys array — the three faces are optional (#226), so no font canary", () => {
+    // Every theme face is optional, so zero resolved font keys is a legitimate state (no entry
+    // set any face) — indistinguishable from, and treated the same as, a benign empty. There is
+    // no schema-required face to anchor a "should be non-empty" check, so removing the old
+    // siteSettings.fontKey canary is correct. Regression guard for that removal.
+    expect(findBrokenQuerySignals({ ...CLEAN, fontKeys: [] })).toEqual([]);
   });
 
   it("flags a broken embedKey path — a liveEmbed block exists but zero embedKeys resolved", () => {
@@ -166,29 +152,122 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
     expect(signals[0]).toMatch(/embedKey query is likely broken/);
   });
 
-  it("does NOT flag componentKey/embedKey as broken when the dataset legitimately has none", () => {
-    // No published non-sketch project entries and no liveEmbed blocks is a valid content
-    // state (an all-notes or all-sketch garden) — the structural counts being zero must not
-    // read as breakage.
+  it("does NOT flag embedKey as broken when the dataset legitimately has no embeds", () => {
+    // No liveEmbed blocks is a valid content state (an all-notes or all-sketch garden) — the
+    // structural count being zero must not read as breakage.
     expect(
       findBrokenQuerySignals({
         ...CLEAN,
-        nonSketchProjectCount: 0,
         liveEmbedBlockCount: 0,
-        componentKeys: [],
         embedKeys: [],
       }),
     ).toEqual([]);
   });
 
-  it("reports every broken category at once, not just the first", () => {
+  it("counts only the embedKey break — empty fontKeys/componentKeys add no signal on top", () => {
+    // embedKey is the ONLY remaining canary (fonts and componentKey are both optional, #226), so
+    // even with all three arrays empty the signal list is exactly the one embedKey break — never
+    // a fonts or componentKey signal.
     const signals = findBrokenQuerySignals({
       ...CLEAN,
       fontKeys: [],
       componentKeys: [],
       embedKeys: [],
     });
-    expect(signals).toHaveLength(3);
+    expect(signals).toHaveLength(1);
+    expect(signals[0]).toMatch(/embedKey query is likely broken/);
+  });
+});
+
+/**
+ * QA (#226 rework): the script's own comment claims the font query's shape "is pinned by this
+ * script's unit test" — this suite is that pin; it did not exist before. Nothing else can catch
+ * a typo'd face path: `array::unique()` on a wrong field resolves to `[]` with no error, and
+ * #226 removed the font canary (every face is optional, so an empty array is legitimate). So
+ * EXECUTE `PUBLISHED_KEYS_QUERY` with groq-js against a synthetic dataset and prove the three
+ * `theme.*` face paths actually round-trip. The query is extracted from the module source —
+ * it is deliberately not exported, and importing the module must stay side-effect-free.
+ */
+describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", () => {
+  const QUERY = readFileSync(SCRIPT, "utf8").match(
+    /const PUBLISHED_KEYS_QUERY = `([\s\S]*?)`;/,
+  )?.[1];
+
+  // Every entry carries a `body` — it is schema-required (#217), so published data always has
+  // one; an entry without it would make the embedKeys traversal emit spurious nulls that the
+  // real dataset can never produce.
+  const PROSE = [{ _type: "block", children: [] }];
+  const DATASET = [
+    {
+      _id: "note-two-faces",
+      _type: "entry",
+      kind: "note",
+      theme: {
+        color: "#123456",
+        headingFont: "fraunces",
+        bodyFont: "newsreader",
+      },
+      body: PROSE,
+    },
+    {
+      _id: "project-shipped",
+      _type: "entry",
+      kind: "project",
+      stage: "shipped",
+      componentKey: "color-engine",
+      theme: {
+        color: "#123456",
+        bodyFont: "newsreader",
+        monoFont: "jetbrains-mono",
+      },
+      body: [...PROSE, { _type: "liveEmbed", embedKey: "color-engine-seed" }],
+    },
+    {
+      _id: "project-sketch",
+      _type: "entry",
+      kind: "project",
+      stage: "sketch",
+      theme: { color: "#123456" },
+      body: PROSE,
+    },
+    { _id: "settings", _type: "siteSettings" },
+  ];
+
+  async function runQuery(
+    dataset: ReadonlyArray<Record<string, unknown>>,
+  ): Promise<Record<string, unknown>> {
+    expect(
+      QUERY,
+      "expected to extract PUBLISHED_KEYS_QUERY from the module source",
+    ).toBeDefined();
+    return (await (
+      await evaluate(parse(QUERY!), { dataset: [...dataset] })
+    ).get()) as Record<string, unknown>;
+  }
+
+  it("gathers ALL THREE theme faces into fontKeys, de-duplicated across entries", async () => {
+    // `newsreader` is authored twice (two entries' bodyFont) → must appear once; the heading
+    // and mono faces come from DIFFERENT entries → the three sub-queries all contribute.
+    const result = await runQuery(DATASET);
+    expect([...(result.fontKeys as string[])].sort()).toEqual([
+      "fraunces",
+      "jetbrains-mono",
+      "newsreader",
+    ]);
+  });
+
+  it("keeps componentKeys / embedKeys and the telemetry + embedKey-canary counts intact", async () => {
+    const result = await runQuery(DATASET);
+    expect(result.componentKeys).toEqual(["color-engine"]);
+    expect(result.embedKeys).toEqual(["color-engine-seed"]);
+    expect(result.entryCount).toBe(3);
+    expect(result.siteSettingsCount).toBe(1);
+    expect(result.liveEmbedBlockCount).toBe(1);
+  });
+
+  it("resolves fontKeys to [] (not an error) when no entry sets any face — the legitimate-empty state", async () => {
+    const result = await runQuery([{ _id: "settings", _type: "siteSettings" }]);
+    expect(result.fontKeys).toEqual([]);
   });
 });
 

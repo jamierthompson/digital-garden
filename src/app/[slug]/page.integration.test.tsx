@@ -49,31 +49,34 @@ vi.mock("@/sanity/lib/client", () => ({
 
 describe("/[slug] primary flow (Sanity mocked)", () => {
   it("drives a real scope from the doc's slug + theme.bodyFont", () => {
-    // EntryScope is handed { slug, fontKey }. The slug passes through `vetSlug` (sanitized
-    // `[a-z0-9-]`, unique per entry) to its OWN scope — it does not collapse to `fallback` for a
-    // valid slug — and the roster resolves the requested face from the entry's theme.
+    // EntryScope is handed { slug, headingFont?, bodyFont?, monoFont? }. The slug passes through
+    // `vetSlug` (sanitized `[a-z0-9-]`, unique per entry) to its OWN scope — it does not collapse
+    // to `fallback` for a valid slug — and the roster resolves the body role from the entry's theme.
     const scope = resolveScope({
       slug: THEMED_ENTRY.slug,
-      fontKey: THEMED_ENTRY.theme.bodyFont,
+      bodyFont: THEMED_ENTRY.theme.bodyFont,
     });
     expect(scope.slug).toBe("themed-slot");
-    // The roster font resolved (newsreader is a real key), so its variable class is present.
-    expect(scope.font.variable).not.toBe("");
-    expect(scope.font.cssVariable).toBe("--font-newsreader");
+    // The roster body face resolved (newsreader is a real key), so it appears in `faces`.
+    expect(scope.faces.body).toBeDefined();
+    expect(scope.faces.body?.cssVariable).toBe("--font-newsreader");
   });
 
   it("renders the slot under its data-entry scope wearing the entry's theme font", () => {
     const { container } = render(
       <EntryScope
-        seed={{ slug: THEMED_ENTRY.slug, fontKey: THEMED_ENTRY.theme.bodyFont }}
+        seed={{
+          slug: THEMED_ENTRY.slug,
+          bodyFont: THEMED_ENTRY.theme.bodyFont,
+        }}
       >
         <p>essay</p>
       </EntryScope>,
     );
     const wrapper = container.querySelector("[data-entry]") as HTMLElement;
     expect(wrapper).toHaveAttribute("data-entry", "themed-slot");
-    // Color is inherited from the page's `<html>` theme; the only per-slot override is the
-    // entry's font, mapped onto `--font-body` inline on this island.
+    // Color is inherited from the page's `<html>` theme; the only per-slot overrides are the
+    // entry's fonts, mapped onto their role tokens inline on this island.
     expect(wrapper.style.getPropertyValue("--font-body")).toContain(
       "var(--font-newsreader)",
     );

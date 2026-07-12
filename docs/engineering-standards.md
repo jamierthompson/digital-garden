@@ -111,7 +111,7 @@ async function Card({ theme }: { theme: string }) {
 }
 ```
 
-**This is the load-bearing pattern for theming:** render the slot's `EntryScope` inside the prerendered shell, `'use cache'` it keyed on the entry's `theme.color`/`theme.bodyFont` with `cacheLife('max')` and no request APIs in that boundary — so the slot's theme `<style>` and the font `.variable` class land in the **initial static HTML** (flash-free).
+**This is the load-bearing pattern for theming:** the route awaits the entry fetch (the `theme` seeds arrive as plain values), then renders `PageTheme` and the slot's `EntryScope` **synchronously** — neither reads a request API nor awaits anything, so the page's theme `<style>`, each resolved face's `.variable` class, and the slot's inline role-token overrides all land in the **initial static HTML** (flash-free) with no `'use cache'` boundary of their own.
 
 **Routing fact that bites:** `middleware.ts` is renamed **`proxy.ts`**, **Node runtime only** — setting `runtime` throws (`…/03-file-conventions/proxy.md`).
 
@@ -155,7 +155,7 @@ This is enforced by `pnpm lint:css` (`scripts/check-css-layers.mjs`, a CI gate):
 @layer foundation, semantic, components; /* foundation < semantic < components */
 ```
 
-An entry's theme font scopes to its own slot via an inline style on `[data-entry]` (`EntryScope`), not a cascade layer; its color is the page's `<html>` theme, inherited. Note: Next's own CSS doc (`…/01-getting-started/11-css.md`) covers only import-order chunking — it never assigns Modules to a layer, which is exactly the gap this rule closes.
+An entry's theme fonts (up to three optional faces) scope to its own slot via inline role-token overrides on `[data-entry]` (`EntryScope`), not a cascade layer — an unset role inherits `:root`; its color is the page's `<html>` theme, inherited. Note: Next's own CSS doc (`…/01-getting-started/11-css.md`) covers only import-order chunking — it never assigns Modules to a layer, which is exactly the gap this rule closes.
 
 ### Other CSS rules
 

@@ -1,11 +1,13 @@
-// The per-entry font roster. A curated `next/font` face per `FontKey`,
-// declared once here and resolved by key against the Sanity `fontKey` (see
-// `src/lib/resolvers/fonts.ts`). The entry scope mounts the resolved face's
-// `.variable` className on its `[data-entry]` wrapper and maps `--font-body` to it.
+// The per-entry font roster. A curated `next/font` face per `FontKey`, declared once here and
+// resolved by key against an entry's `theme.{headingFont,bodyFont,monoFont}` (see
+// `src/lib/resolvers/fonts.ts`). The entry scope mounts each resolved face's `.variable` className
+// on its `[data-entry]` wrapper and maps that role's token (`--font-heading` / `--font-body` /
+// `--font-mono`) to it.
 //
-// next/font must be called at module scope, so the roster is a fixed code-side set —
-// an editor picks from it, never a free-text name. Declaration ≠ download (a face
-// is only fetched when text renders it), so a large roster is cheap.
+// next/font must be called at module scope, so the roster is a fixed code-side set — an editor
+// names one of its keys, never an arbitrary font (the Studio field is free-text, validated against
+// the roster by the `published-keys` drift net). Declaration ≠ download (a face is only fetched
+// when text renders it), so a large roster is cheap.
 //
 // POLICY (do not change without revisiting the font preload rationale):
 //   • `preload: false` on EVERY face — the default is `true`. Only the 1–2 shell faces
@@ -28,7 +30,7 @@ import type { FontKey } from "@/lib/keys";
 export interface FontFace {
   /** The `next/font`-generated className that declares the CSS variable; mount it on the `[data-entry]` scope wrapper. */
   readonly variable: string;
-  /** The CSS custom-property name this face is bound to; the scope maps `--font-body: var(<this>)`. */
+  /** The CSS custom-property name this face is bound to; the scope maps a role token (e.g. `--font-heading: var(<this>)`) to it. */
   readonly cssVariable: string;
 }
 

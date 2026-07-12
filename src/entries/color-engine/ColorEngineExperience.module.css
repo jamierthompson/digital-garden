@@ -1,8 +1,15 @@
-/* Placeholder for the removed Color Engine demo. @layer components, strictly var-consuming. */
+/* The rebuild-placeholder type specimen. @layer components, strictly var-consuming: it owns only
+   layout + a muted tone for the label/meta lines; every face and size comes from the typography
+   primitives' own role tokens. */
 @layer components {
-  .placeholder {
-    padding: var(--space-7) var(--space-inset);
-    text-align: center;
+  .specimen {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-stack);
+    padding: var(--space-gutter) var(--space-inset);
+  }
+
+  .muted {
     color: var(--muted-foreground);
   }
 }

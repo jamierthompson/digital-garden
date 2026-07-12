@@ -38,10 +38,10 @@ import VisualEditingControls from "@/sanity/VisualEditingControls";
 // `--font-body` default (semantic/typography.css) maps to `var(--font-source-serif-4)`, so mounting its
 // `.variable` on <html> brings that variable into scope for all chrome. Its size-adjusted
 // fallback keeps CLS at zero. A themed slot overrides `--font-body` with its own roster face.
-// The shell's display face (Space Grotesk → `--font-heading`, the `folio_` logo + nav) and
-// mono face (JetBrains Mono → `--font-mono`, metadata/readouts) are ALSO in the per-entry
-// roster, so the shell reuses those roster `.variable`s (mounted below) rather than declaring
-// duplicate loaders.
+// The shell's display face (Space Grotesk → `--font-heading`, the `folio_` logo + nav) is ALSO
+// in the per-entry roster, so the shell reuses that roster `.variable` (mounted below) rather
+// than declaring a duplicate loader; the mono face (Geist Mono → `--font-mono`) is shell-only,
+// loaded here directly.
 //
 // `preload: false` matches the existing shell posture (accessibility-and-performance.md): the
 // preload policy preloads only above-the-fold faces via a manual `<link>`, since `next/font`
@@ -52,9 +52,10 @@ const sourceSerif = Source_Serif_4({
   preload: false,
 });
 
-// Geist Mono is the entry scope's shell-font FALLBACK (`--font-geist-mono`, used only when a
-// project's `fontKey` doesn't resolve — see scopeSeed.ts). Kept mounted so that fallback
-// resolves. Never above the fold on the shell routes, so `preload: false`.
+// Geist Mono is the site's mono face — the semantic `--font-mono` default
+// (semantic/typography.css) maps to `var(--font-geist-mono)`, so mounting its `.variable` on
+// <html> brings that variable into scope for all chrome (metadata/readouts). Never above the
+// fold on the shell routes, so `preload: false`.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -101,7 +102,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistMono.variable} ${sourceSerif.variable} ${FONT_FACES["space-grotesk"].variable} ${FONT_FACES["jetbrains-mono"].variable}`}
+      className={`${geistMono.variable} ${sourceSerif.variable} ${FONT_FACES["space-grotesk"].variable}`}
     >
       <body>
         {/* Flash-free scheme: apply the persisted light/dark override before first paint.

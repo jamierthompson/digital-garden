@@ -16,6 +16,19 @@ describe("key contracts", () => {
     for (const key of FONT_KEYS) expect(typeof key).toBe("string");
   });
 
+  it("FONT_KEYS holds exactly the curated roster (#226)", () => {
+    // The roster is a content contract: a Sanity document may already carry any of these
+    // keys, so dropping one silently unthemes published entries. Removing a face is a
+    // deliberate content migration, not a refactor — this pin makes it show up in review.
+    expect([...FONT_KEYS].sort()).toEqual([
+      "fraunces",
+      "inter",
+      "jetbrains-mono",
+      "newsreader",
+      "space-grotesk",
+    ]);
+  });
+
   it("COMPONENT_KEYS is a unique set holding the landed entry modules", () => {
     // The first real coded module is the Color Engine (#70); its key is registered here
     // and mapped to a literal dynamic import in the components resolver.

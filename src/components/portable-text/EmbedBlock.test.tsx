@@ -22,7 +22,7 @@ import EmbedBlock from "./EmbedBlock";
 
 const SCOPE = {
   slug: "color-engine",
-  fontKey: "jetbrains-mono",
+  bodyFont: "space-grotesk",
 };
 
 describe("EmbedBlock", () => {
@@ -55,9 +55,9 @@ describe("EmbedBlock", () => {
     );
     const scoped = container.querySelector('[data-entry="color-engine"]');
     expect(scoped).not.toBeNull();
-    // The embed (the registered Color Engine slot, now a rebuild placeholder) renders inside
-    // the scope — proving the per-slot scoping through the real resolver pipeline.
-    expect(scoped?.textContent).toMatch(/rebuilt on the new foundation/);
+    // The embed (the registered Color Engine slot, now the rebuild-placeholder type specimen)
+    // renders inside the scope — proving the per-slot scoping through the real resolver pipeline.
+    expect(scoped?.textContent).toMatch(/being rebuilt/i);
   });
 
   it("mounts a resolved embed bare (no scope container) when no scope is given", async () => {
@@ -65,10 +65,8 @@ describe("EmbedBlock", () => {
       await EmbedBlock({ embedKey: "color-engine-seed" }),
     );
     expect(container.querySelector("[data-entry]")).toBeNull();
-    // Still renders the resolved slot (the rebuild placeholder).
-    expect(
-      screen.getByText(/rebuilt on the new foundation/),
-    ).toBeInTheDocument();
+    // Still renders the resolved slot (the rebuild-placeholder type specimen).
+    expect(screen.getByText(/being rebuilt/i)).toBeInTheDocument();
   });
 
   it("renders the caption OUTSIDE the theme scope, in the editorial figure", async () => {

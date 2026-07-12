@@ -2,11 +2,7 @@ import {describe, expect, it} from 'vitest'
 
 import {isThemeColorString} from '../shared/colorValidation'
 import {entry} from './entry'
-import {
-  forbiddenForNow,
-  requiredForNonSketchProject,
-  requiredForThemedKind,
-} from './entryValidators'
+import {forbiddenForNow, requiredForThemedKind} from './entryValidators'
 
 /**
  * Asserts the `entry` schema's required fields declare `rule.required()`. `required()` is a
@@ -99,10 +95,16 @@ describe('entry schema — the theme object (#249)', () => {
   const themeField = (name: string): FieldDef | undefined =>
     theme?.fields?.find((f) => f.name === name)
 
-  it('declares theme as an object of exactly { color, colorDark, bodyFont }', () => {
+  it('declares theme as an object of exactly { color, colorDark, headingFont, bodyFont, monoFont }', () => {
     expect(theme, 'expected a theme field').toBeDefined()
     expect(theme?.type).toBe('object')
-    expect(theme?.fields?.map((f) => f.name)).toEqual(['color', 'colorDark', 'bodyFont'])
+    expect(theme?.fields?.map((f) => f.name)).toEqual([
+      'color',
+      'colorDark',
+      'headingFont',
+      'bodyFont',
+      'monoFont',
+    ])
   })
 
   it('hides the whole theme object for a now update (and only for now)', () => {
@@ -126,14 +128,23 @@ describe('entry schema — the theme object (#249)', () => {
     ])
   })
 
-  it('attaches requiredForNonSketchProject to theme.bodyFont (the behavior-preserving floor)', () => {
-    expect(customValidators(themeField('bodyFont'))).toEqual([requiredForNonSketchProject])
+  it('declares the three font faces as optional string fields with no validation (#226)', () => {
+    for (const face of ['headingFont', 'bodyFont', 'monoFont']) {
+      const f = themeField(face)
+      expect(f, `expected a theme.${face} field`).toBeDefined()
+      expect(f?.type).toBe('string')
+      // Each face is optional — an absent key inherits the site type palette — so it carries
+      // no required floor and no custom validator.
+      expect(customValidators(f)).toEqual([])
+    }
   })
 
-  it('keeps componentKey a TOP-LEVEL field (not part of the theme) with the same floor', () => {
+  it('keeps componentKey a TOP-LEVEL field (not part of the theme), optional and unvalidated', () => {
     const componentKey = field('componentKey')
     expect(componentKey, 'expected a top-level componentKey').toBeDefined()
-    expect(customValidators(componentKey)).toEqual([requiredForNonSketchProject])
+    expect(componentKey?.type).toBe('string')
+    // componentKey mounts a module purely on PRESENCE for any non-`now` kind — no validation.
+    expect(customValidators(componentKey)).toEqual([])
   })
 
   it('carries no stray flat theming fields — themeColor / themeColorDark / fontKey are gone', () => {
@@ -141,5 +152,44 @@ describe('entry schema — the theme object (#249)', () => {
     expect(names).not.toContain('themeColor')
     expect(names).not.toContain('themeColorDark')
     expect(names).not.toContain('fontKey')
+  })
+})
+
+/**
+ * QA (#226): the sibling assertions above use `customValidators`, which records only the
+ * functions handed to `.custom()` — it is BLIND to a built-in `rule.required()`. So
+ * `customValidators(face).toEqual([])` would stay green if a regression re-imposed a required
+ * FLOOR on a font face or `componentKey` via `rule.required()` (or re-attached the deleted
+ * `requiredForNonSketchProject` as `.custom()` — that one the sibling catches, this one also
+ * catches). These fields being TRULY optional — zero validation of ANY kind — is the whole #226
+ * contract (a face absent inherits the site palette) and the #250 fix (a non-sketch project
+ * publishes with no `componentKey`). `calledRules` records BOTH `required` and `custom`, so an
+ * empty result is the tightest proof the field imposes no floor at all.
+ */
+describe('entry schema — the three faces + componentKey are truly unvalidated (#226/#250)', () => {
+  const theme = field('theme') as ThemeField | undefined
+  const themeField = (name: string): FieldDef | undefined =>
+    theme?.fields?.find((f) => f.name === name)
+
+  it.each(['headingFont', 'bodyFont', 'monoFont'])(
+    'theme.%s invokes NEITHER required nor custom — no floor of any kind',
+    (face) => {
+      const f = themeField(face)
+      expect(f, `expected a theme.${face} field`).toBeDefined()
+      expect(calledRules(f)).toEqual([])
+    },
+  )
+
+  it('componentKey invokes NEITHER required nor custom — a non-sketch project publishes without it (#250 fix)', () => {
+    // The deleted `requiredForNonSketchProject` used to force `componentKey` on a project past
+    // sketch; its live symptom was a prose-only shipped project that could not publish. With the
+    // floor gone, `componentKey` must carry no validation at all — mount-on-presence only.
+    expect(calledRules(field('componentKey'))).toEqual([])
+  })
+
+  it('theme.color KEEPS its floor — the deletion did not over-reach into the color rules', () => {
+    // Guard the blast radius: removing the font/componentKey floor must NOT strip the color
+    // required floor. `calledRules` here should still record the three custom color validators.
+    expect(calledRules(themeField('color'))).toEqual(['custom', 'custom', 'custom'])
   })
 })
