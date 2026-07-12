@@ -282,17 +282,12 @@ describe("check-css-layers.mjs — @media / @supports nesting", () => {
 });
 
 describe("check-css-layers.mjs — at-rules the selector walker misidentifies", () => {
-  it("DEFECT: flags unlayered @keyframes offset selectors (from/to/N%) as bare rules", () => {
+  it("exempts unlayered @keyframes offset selectors (from/to/N%)", () => {
     // postcss parses `@keyframes` offsets (`from`, `to`, `0%`) as generic Rule nodes with no
-    // special-casing. The walker therefore treats a completely idiomatic, unlayered
-    // `@keyframes` block (the overwhelming norm — almost nobody wraps animation keyframes in
-    // a cascade layer) as if `from`/`to` were CSS selectors that need @layer wrapping, and
-    // reports them with a confusing message ("from"/"to" look nothing like a violating
-    // selector to a developer reading the output).
-    //
-    // This assertion encodes the EXPECTED behavior (keyframe offsets are exempt) and
-    // currently FAILS against the real script — proving the false positive. See the QA
-    // report for the recommended fix (skip rules whose parent atrule is `keyframes`).
+    // special-casing, so a naive walker would treat an idiomatic, unlayered `@keyframes` block
+    // (the near-universal norm — almost nobody wraps animation keyframes in a cascade layer) as
+    // bare style rules needing `@layer`. The checker exempts any rule whose parent at-rule is
+    // `@keyframes` (or a vendor-prefixed variant), so `from`/`to`/`N%` never false-positive.
     const { status, stderr } = run({
       "globals.css": [
         "@keyframes spin {",
