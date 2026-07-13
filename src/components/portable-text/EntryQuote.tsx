@@ -1,3 +1,5 @@
+import Text from "@/components/typography/Text";
+
 import styles from "./EntryQuote.module.css";
 
 interface QuoteValue {
@@ -10,9 +12,10 @@ interface QuoteValue {
  *
  * Distinct from the inline `blockquote` text style (a styled prose paragraph): a first-class
  * block carrying the quoted text plus an optional attribution, rendered as a semantic
- * <blockquote> with a <cite>. Renders nothing when the quote text is absent (content can
- * drift from the schema's required field via a raw API write) — an empty <blockquote> would
- * be noise. Var-consuming, themed by the surrounding entry scope.
+ * <blockquote>/<cite>. Type comes from the `Text` primitive — the `quote` role for the body,
+ * `caption` for the attribution — so the role bundles live in one place, not re-declared here.
+ * Renders nothing when the quote text is absent (content can drift from the schema's required
+ * field via a raw API write) — an empty <blockquote> would be noise.
  */
 export default function EntryQuote({ value }: { value: QuoteValue }) {
   if (!value.text) {
@@ -20,9 +23,13 @@ export default function EntryQuote({ value }: { value: QuoteValue }) {
   }
   return (
     <blockquote className={styles.quote}>
-      <p className={styles.text}>{value.text}</p>
+      <Text variant="quote" asChild>
+        <p className={styles.text}>{value.text}</p>
+      </Text>
       {value.attribution ? (
-        <cite className={styles.attribution}>{value.attribution}</cite>
+        <Text variant="caption" asChild>
+          <cite className={styles.attribution}>{value.attribution}</cite>
+        </Text>
       ) : null}
     </blockquote>
   );

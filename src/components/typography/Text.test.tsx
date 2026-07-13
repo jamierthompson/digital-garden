@@ -13,7 +13,14 @@ describe("Text", () => {
   });
 
   it("selects the role via data-variant", () => {
-    for (const variant of ["body", "label", "meta"] as const) {
+    for (const variant of [
+      "body",
+      "lead",
+      "label",
+      "meta",
+      "caption",
+      "quote",
+    ] as const) {
       const { unmount } = render(
         <Text variant={variant} data-testid="t">
           x

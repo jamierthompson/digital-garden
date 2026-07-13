@@ -1,5 +1,7 @@
 import { AspectRatio } from "radix-ui";
 
+import Text from "@/components/typography/Text";
+
 import styles from "./MediaPlaceholder.module.css";
 import { firstNonEmpty, isNonBlank } from "./mediaLabel";
 
@@ -37,7 +39,11 @@ export default function MediaPlaceholder({
   // name through), and a constant backstops even that — a `role="img"` can NEVER end up with a
   // blank accessible name (WCAG 2.2 SC 1.1.1), whatever the caller passes.
   const label = firstNonEmpty([...labelCandidates, fallbackLabel]) ?? "Media";
-  const labelSpan = <span className={styles.label}>{label}</span>;
+  const labelSpan = (
+    <Text variant="caption" asChild>
+      <span className={styles.label}>{label}</span>
+    </Text>
+  );
   return (
     <figure className={styles.figure}>
       {ratio ? (
@@ -55,7 +61,9 @@ export default function MediaPlaceholder({
         </div>
       )}
       {isNonBlank(caption) ? (
-        <figcaption className={styles.caption}>{caption}</figcaption>
+        <Text variant="caption" asChild>
+          <figcaption className={styles.caption}>{caption}</figcaption>
+        </Text>
       ) : null}
     </figure>
   );

@@ -334,6 +334,7 @@ describe("EntryScope role→face map mirrors semantic/type.css (QA #226 rework)"
       "label",
       "lead",
       "meta",
+      "quote",
       "subheading",
       "title",
     ]);

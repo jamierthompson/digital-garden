@@ -31,7 +31,7 @@ const FACE_BINDINGS = [
     face: "body",
     leaf: "--font-body",
     generic: "serif",
-    roles: ["lead", "body", "caption"],
+    roles: ["lead", "body", "caption", "quote"],
   },
   {
     face: "mono",
