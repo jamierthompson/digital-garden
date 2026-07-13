@@ -42,12 +42,12 @@
     padding: var(--space-4) var(--space-gutter);
   }
 
-  /* The wordmark is a brand mark, not a type role — it keeps its authored foundation faces. */
   .wordmark {
-    font-family: var(--font-heading);
-    font-weight: var(--font-weight-bold);
-    font-size: var(--type-size-6);
-    letter-spacing: var(--tracking-tight);
+    font-family: var(--type-wordmark-family);
+    font-size: var(--type-wordmark-size);
+    font-weight: var(--type-wordmark-weight);
+    letter-spacing: var(--type-wordmark-tracking);
+    line-height: var(--type-wordmark-leading);
     color: var(--accent-text);
     text-decoration: none;
   }
@@ -81,13 +81,14 @@
     min-height: var(--size-control);
     min-width: var(--size-control);
     padding-block: var(--space-2);
-    /* Nav links keep authored foundation values — a deliberate one-off register. A transparent
-       underline is reserved so activating a link doesn't shift the row. */
-    font-family: var(--font-heading);
-    font-size: var(--type-size-3);
-    font-weight: var(--font-weight-medium);
+    font-family: var(--type-nav-family);
+    font-size: var(--type-nav-size);
+    font-weight: var(--type-nav-weight);
+    letter-spacing: var(--type-nav-tracking);
+    line-height: var(--type-nav-leading);
     color: var(--muted-foreground);
     text-decoration: none;
+    /* Transparent underline reserved so activating a link doesn't shift the row. */
     border-bottom: var(--border-width-thick) solid transparent;
     transition: color var(--duration-fast) var(--ease-standard);
   }
