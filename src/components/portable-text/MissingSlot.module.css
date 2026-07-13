@@ -7,15 +7,13 @@
     background: var(--muted);
   }
 
+  /* Type comes from the Text `label`/`caption` roles; these rules own only spacing + color. */
   .label {
-    font-size: var(--type-size-2);
-    font-weight: var(--font-weight-semibold);
     color: var(--foreground);
   }
 
   .detail {
     margin-top: var(--space-2);
-    font-size: var(--type-size-2);
     color: var(--muted-foreground);
   }
 }
