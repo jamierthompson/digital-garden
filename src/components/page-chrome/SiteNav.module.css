@@ -3,7 +3,6 @@
    editorial semantic tokens (the shell is never theme-scoped). */
 @layer components {
   .header {
-    /* The signature journal rule: a heavy accent hairline under the masthead. */
     border-bottom: var(--border-width-thick) solid var(--accent);
   }
 
@@ -24,8 +23,6 @@
     padding: var(--space-2) var(--space-gutter);
   }
 
-  /* Byline + dateline wear the `meta` type role; these rules own only color (+ the dateline's
-     no-wrap). */
   .byline {
     color: var(--muted-foreground);
   }
@@ -55,8 +52,7 @@
     text-decoration: none;
   }
 
-  /* The trailing `_` of `folio_` — a blinking-cursor nod; aria-hidden decorative, so no
-     text-contrast floor applies. */
+  /* aria-hidden decorative — no text-contrast floor applies. */
   .cursor {
     color: var(--accent);
   }
@@ -85,8 +81,8 @@
     min-height: var(--size-control);
     min-width: var(--size-control);
     padding-block: var(--space-2);
-    /* Journal nav, lowercase: a deliberate one-off register, kept on authored foundation values.
-       A transparent 2px underline is reserved so the active state (below) doesn't shift the row. */
+    /* Nav links keep authored foundation values — a deliberate one-off register. A transparent
+       underline is reserved so activating a link doesn't shift the row. */
     font-family: var(--font-heading);
     font-size: var(--type-size-3);
     font-weight: var(--font-weight-medium);

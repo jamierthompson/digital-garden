@@ -41,8 +41,6 @@ describe("SiteFooter", () => {
     expect(css).toMatch(/min-block-size:\s*var\(--size-control\)/);
   });
 
-  // The asChild Slot merge must not swallow the inner <div> or the client link inside it: the
-  // contentinfo still exposes both the copyright and the browse link.
   it("keeps the copyright + browse link inside contentinfo after the asChild merge", () => {
     render(<SiteFooter />);
     const footer = screen.getByRole("contentinfo");

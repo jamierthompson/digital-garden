@@ -7,7 +7,6 @@
     background: var(--muted);
   }
 
-  /* Type comes from the Text `label`/`caption` roles; these rules own only spacing + color. */
   .label {
     color: var(--foreground);
   }

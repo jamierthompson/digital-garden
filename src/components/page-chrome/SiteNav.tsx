@@ -9,11 +9,8 @@ import styles from "./SiteNav.module.css";
 /**
  * The shell's primary navigation — the "engineering journal" masthead.
  *
- * A Server Component: it renders a masthead tagline band, the `folio_` logo (Space Grotesk via
- * `--font-heading`) and mounts the small Client `NavLinks` leaf for the current-page indicator.
- * Var-consuming only. Most chrome reads the editorial semantic tokens (`--font-mono`, `--foreground`,
- * `--border`); the signature marks — the wordmark, its cursor, and the masthead hairline — read the
- * page-accent tokens (`--accent-text`, `--accent`). It carries no theme scope of its own.
+ * A Server Component: it renders a masthead tagline band, the `folio_` logo, and mounts the small
+ * Client `NavLinks` leaf for the current-page indicator.
  */
 export default function SiteNav() {
   return (

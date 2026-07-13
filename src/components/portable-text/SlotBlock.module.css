@@ -9,7 +9,6 @@
     min-width: 0;
   }
 
-  /* Type comes from the Text `caption` role; this rule owns only spacing + color + alignment. */
   .caption {
     margin-top: var(--space-2);
     color: var(--muted-foreground);

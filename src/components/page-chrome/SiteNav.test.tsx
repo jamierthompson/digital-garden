@@ -61,8 +61,6 @@ describe("SiteNav", () => {
     ).toBeNull();
   });
 
-  // The byline/dateline wear the `meta` role through `Text`, which renders a <p>: the byline
-  // stays a paragraph, and the decorative dateline keeps its aria-hidden passthrough.
   it("keeps the byline a paragraph after the meta-role migration", () => {
     render(<SiteNav />);
     const byline = screen.getByText(
@@ -75,7 +73,6 @@ describe("SiteNav", () => {
     render(<SiteNav />);
     const dateline = screen.getByText(/est\. 2026/i);
     expect(dateline).toHaveAttribute("aria-hidden", "true");
-    // Belt-and-braces: it must not be exposed as any accessible role/text either.
     expect(screen.queryByRole("heading", { name: /est\. 2026/i })).toBeNull();
   });
 });

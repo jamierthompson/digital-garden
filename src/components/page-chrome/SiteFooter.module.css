@@ -9,8 +9,6 @@
     margin-top: auto;
   }
 
-  /* The row wears the `meta` type role; this rule owns only layout + color. Its inline padding is
-     the page gutter. */
   .inner {
     display: flex;
     align-items: baseline;

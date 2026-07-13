@@ -100,8 +100,7 @@ describe("SlotBlock", () => {
     expect(container.querySelector("figcaption")).toBeNull();
   });
 
-  // An emptied-then-saved caption round-trips as "" (falsy); the `caption ? …` guard drops it,
-  // so no empty <figcaption> is emitted wearing the caption role.
+  // An emptied-then-saved caption round-trips as "" (falsy), not undefined.
   it("renders no figcaption for an empty-string caption", async () => {
     const { container } = render(
       await SlotBlock({
@@ -113,9 +112,6 @@ describe("SlotBlock", () => {
     expect(container.querySelector("figcaption")).toBeNull();
   });
 
-  // The caption renders through `<Text variant="caption" asChild>`: Radix Slot merges the role
-  // onto the SAME figcaption (not a wrapper), so it stays a <figcaption> AND carries the
-  // `data-variant="caption"` the role CSS selects on — lose either and it drops its type role.
   it("wears the caption role on the figcaption itself (asChild Slot merge intact)", async () => {
     render(
       await SlotBlock({

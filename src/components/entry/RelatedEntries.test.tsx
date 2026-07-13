@@ -184,8 +184,6 @@ describe("RelatedEntries", () => {
     expect(ids.every(Boolean)).toBe(true);
   });
 
-  // The `label` variant styles the "Related" heading as a kicker but must not move it in the
-  // outline: it stays a real <h2>, and its `id`/`aria-labelledby` wiring stays intact.
   it("renders 'Related' as a real level-2 heading (label variant styles type, not outline)", () => {
     render(
       <RelatedEntries
