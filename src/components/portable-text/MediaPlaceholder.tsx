@@ -31,7 +31,7 @@ interface MediaPlaceholderProps {
  * as absent: the guard against the `?? "label"` footgun that would leave a blank accessible name
  * (WCAG 2.2 SC 1.1.1). A constant backstops the name, so no input can blank it. `ratio` gives the
  * box a native CSS `aspect-ratio` (16:9 for video, so the eventual embed lands without layout
- * shift — #128); omit it for variable-ratio media (an image), which gets the min-height box.
+ * shift — #263); omit it for variable-ratio media (an image), which gets the min-height box.
  * Var-consuming, themed by the surrounding entry scope.
  */
 export default function MediaPlaceholder({

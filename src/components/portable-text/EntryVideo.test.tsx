@@ -61,7 +61,7 @@ describe("EntryVideo", () => {
     spy.mockRestore();
   });
 
-  // The placeholder is deferred (#128): the URL must never reach an href/src, so a
+  // The placeholder is deferred (#263): the URL must never reach an href/src, so a
   // `javascript:`-style or otherwise hostile URL cannot be navigated to or loaded.
   it("never renders the URL into a navigable/loadable attribute", () => {
     const hostile = "javascript:alert(1)";
@@ -71,7 +71,7 @@ describe("EntryVideo", () => {
   });
 
   // Adapter contract: the video branch is video-shaped NOW (a 16:9 native CSS aspect-ratio) so
-  // the eventual embed lands without layout shift (#128).
+  // the eventual embed lands without layout shift (#263).
   it("holds the placeholder in a 16:9 box", () => {
     render(<EntryVideo value={{ caption: "A reel" }} />);
     const box = screen.getByRole("img", { name: "Video" });

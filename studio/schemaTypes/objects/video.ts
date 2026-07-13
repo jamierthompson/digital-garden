@@ -6,7 +6,7 @@ import {defineField, defineType} from 'sanity'
  * A typed editorial media block, sibling to `figure`. Like the figure placeholder, the
  * serializer renders a labelled placeholder + caption rather than standing up a
  * provider/embed pipeline before a project needs one (the "name the destination,
- * instantiate late" discipline; a real embed is deferred — see #128).
+ * instantiate late" discipline; a real embed is deferred — see #263).
  */
 export const video = defineType({
   name: 'video',

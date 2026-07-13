@@ -36,7 +36,11 @@ const FACE_SPEC = {
     generic: "sans-serif",
     roles: ["display", "title", "heading", "subheading", "label"],
   },
-  body: { leaf: "--font-body", generic: "serif", roles: ["lead", "body"] },
+  body: {
+    leaf: "--font-body",
+    generic: "serif",
+    roles: ["lead", "body", "caption", "quote"],
+  },
   mono: { leaf: "--font-mono", generic: "monospace", roles: ["meta"] },
 } as const;
 
