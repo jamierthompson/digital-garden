@@ -9,6 +9,8 @@
     margin-top: auto;
   }
 
+  /* The row wears the `meta` type role (mono, muted, wider tracking); this rule owns only layout
+     + color. Its inline padding is the page gutter, aligning to the nav and page frames. */
   .inner {
     display: flex;
     align-items: baseline;
@@ -16,9 +18,7 @@
     gap: var(--space-4);
     max-width: var(--width-page);
     margin: 0 auto;
-    padding: var(--space-5) var(--space-6);
-    font-family: var(--font-mono);
-    font-size: var(--type-size-2);
+    padding: var(--space-5) var(--space-gutter);
     color: var(--muted-foreground);
   }
 

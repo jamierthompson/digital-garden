@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import Text from "@/components/typography/Text";
+
 import NavLinks from "./NavLinks";
 import SchemeToggle from "./SchemeToggle";
 import styles from "./SiteNav.module.css";
@@ -22,13 +24,13 @@ export default function SiteNav() {
           A <p>, not a heading: it's site chrome, so each page keeps its own h1. */}
       <div className={styles.masthead}>
         <div className={styles.mastheadInner}>
-          <p className={styles.byline}>
+          <Text variant="meta" className={styles.byline}>
             The Design-Engineering Garden of Jamie Thompson
-          </p>
+          </Text>
           {/* Quiet masthead balance — decorative journal dateline, hidden from AT. */}
-          <p className={styles.dateline} aria-hidden="true">
+          <Text variant="meta" className={styles.dateline} aria-hidden="true">
             Est. 2026
-          </p>
+          </Text>
         </div>
       </div>
       <nav className={styles.nav} aria-label="Primary">
