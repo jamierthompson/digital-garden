@@ -15,13 +15,21 @@
   }
 
   .label {
-    font-size: var(--type-size-2);
+    font-family: var(--type-caption-family);
+    font-size: var(--type-caption-size);
+    font-weight: var(--type-caption-weight);
+    letter-spacing: var(--type-caption-tracking);
+    line-height: var(--type-caption-leading);
     color: var(--muted-foreground);
   }
 
   .caption {
     margin-top: var(--space-2);
-    font-size: var(--type-size-2);
+    font-family: var(--type-caption-family);
+    font-size: var(--type-caption-size);
+    font-weight: var(--type-caption-weight);
+    letter-spacing: var(--type-caption-tracking);
+    line-height: var(--type-caption-leading);
     color: var(--muted-foreground);
     text-align: center;
   }

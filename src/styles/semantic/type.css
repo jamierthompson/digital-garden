@@ -47,5 +47,14 @@
     --type-meta-weight: var(--font-weight-normal);
     --type-meta-tracking: var(--tracking-wider);
     --type-meta-leading: var(--leading-normal);
+
+    /* Small muted secondary prose — figure/video captions, a pull-quote's attribution. The
+       body family (not meta's mono), no tracking flourish; distinct from `label` (uppercase
+       heading) and `meta` (mono). */
+    --type-caption-family: var(--font-body);
+    --type-caption-size: var(--type-size-2);
+    --type-caption-weight: var(--font-weight-normal);
+    --type-caption-tracking: var(--tracking-normal);
+    --type-caption-leading: var(--leading-normal);
   }
 }

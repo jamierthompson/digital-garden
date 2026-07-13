@@ -328,6 +328,7 @@ describe("EntryScope role→face map mirrors semantic/type.css (QA #226 rework)"
   it("parses the full role set out of the sheet (false-green guard)", () => {
     expect(sheetBindings.map(({ role }) => role).sort()).toEqual([
       "body",
+      "caption",
       "display",
       "heading",
       "label",
