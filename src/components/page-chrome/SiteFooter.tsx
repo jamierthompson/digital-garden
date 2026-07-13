@@ -1,3 +1,4 @@
+import Container from "@/components/layout/Container";
 import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
 import Text from "@/components/typography/Text";
 
@@ -18,14 +19,16 @@ const COPYRIGHT_YEAR = new Date().getFullYear();
 export default function SiteFooter() {
   return (
     <footer className={styles.footer}>
-      <Text variant="meta" asChild>
-        <div className={styles.inner}>
-          <span>© {COPYRIGHT_YEAR} Jamie Thompson</span>
-          <HoverPrefetchLink href="/browse" className={styles.link}>
-            browse everything →
-          </HoverPrefetchLink>
-        </div>
-      </Text>
+      <Container asChild>
+        <Text variant="meta" color="muted-foreground" asChild>
+          <div className={styles.inner}>
+            <span>© {COPYRIGHT_YEAR} Jamie Thompson</span>
+            <HoverPrefetchLink href="/browse" className={styles.link}>
+              browse everything →
+            </HoverPrefetchLink>
+          </div>
+        </Text>
+      </Container>
     </footer>
   );
 }

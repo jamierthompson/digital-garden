@@ -1,0 +1,10 @@
+/* Container — the page-column band primitive. @layer components, strictly var-consuming.
+   Owns one structural concern: capping a band's inner row to the page content column, centered,
+   with the page gutter. Block padding, flex behavior, and ink stay with the consumer. */
+@layer components {
+  .container {
+    max-width: var(--width-page);
+    margin-inline: auto;
+    padding-inline: var(--space-gutter);
+  }
+}
