@@ -1,7 +1,7 @@
 /* Index route. @layer components — declares its layer (an unlayered module outranks every
    layered rule); var-consuming only (global editorial semantic tokens, no per-entry theme).
-   Layout comes from the primitives and static ink from their `color` prop — these rules own
-   only decoration, measure caps, and link states. */
+   Layout comes from the primitives, static ink from their `color` prop, and the list items from
+   `EntrySummary` — these rules own only what's left. */
 @layer components {
   .intro {
     max-width: 60ch;
@@ -17,32 +17,5 @@
   .list {
     list-style: none;
     padding: 0;
-  }
-
-  .itemHead {
-    align-items: baseline;
-  }
-
-  .itemLink {
-    /* Inside a `<Heading level={3}>` — the subheading role owns the type; an <a> doesn't
-       inherit ink from it (UA link color), so the ink is re-stated here with its states. */
-    color: var(--foreground);
-    text-decoration: none;
-  }
-
-  a.itemLink:hover {
-    color: var(--accent);
-    text-decoration: underline;
-  }
-
-  .stage {
-    text-transform: capitalize;
-    padding: 0.1em 0.6em;
-    border: var(--border-width) solid var(--border);
-    border-radius: var(--radius-full);
-  }
-
-  .blurb {
-    max-width: 68ch;
   }
 }

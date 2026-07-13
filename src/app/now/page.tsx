@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import EntrySummary from "@/components/entry/EntrySummary";
 import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
@@ -79,42 +79,17 @@ export default async function NowPage() {
                 {updates.map((update) => {
                   const date = formatDate(update.iterated);
                   return (
-                    <Stack asChild gap={space(2)} key={update._id}>
-                      <li>
-                        {date ? (
-                          <Text variant="meta" color="muted-foreground" asChild>
-                            <time
-                              className={styles.date}
-                              dateTime={update.iterated ?? undefined}
-                            >
-                              {date}
-                            </time>
-                          </Text>
-                        ) : null}
-                        <Heading level={3}>
-                          {update.slug ? (
-                            <Link
-                              href={`/${update.slug}`}
-                              className={styles.itemTitle}
-                            >
-                              {update.title ?? "Untitled update"}
-                            </Link>
-                          ) : (
-                            <span className={styles.itemTitle}>
-                              {update.title ?? "Untitled update"}
-                            </span>
-                          )}
-                        </Heading>
-                        {update.blurb ? (
-                          <Text
-                            color="muted-foreground"
-                            className={styles.blurb}
-                          >
-                            {update.blurb}
-                          </Text>
-                        ) : null}
-                      </li>
-                    </Stack>
+                    <EntrySummary
+                      key={update._id}
+                      title={update.title ?? "Untitled update"}
+                      slug={update.slug}
+                      blurb={update.blurb}
+                      date={
+                        date && update.iterated
+                          ? { dateTime: update.iterated, label: date }
+                          : null
+                      }
+                    />
                   );
                 })}
               </ul>

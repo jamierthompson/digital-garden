@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
-import Cluster from "@/components/layout/Cluster";
+import EntrySummary from "@/components/entry/EntrySummary";
 import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
@@ -94,59 +93,14 @@ export default async function IndexPage() {
                     <Stack asChild gap={space(5)}>
                       <ul className={styles.list}>
                         {inKind.map((entry) => (
-                          <Stack asChild gap={space(2)} key={entry._id}>
-                            <li>
-                              <Cluster asChild>
-                                <div className={styles.itemHead}>
-                                  <Heading level={3}>
-                                    {entry.slug ? (
-                                      <Link
-                                        href={`/${entry.slug}`}
-                                        className={styles.itemLink}
-                                      >
-                                        {entry.title ?? "Untitled entry"}
-                                      </Link>
-                                    ) : (
-                                      <span className={styles.itemLink}>
-                                        {entry.title ?? "Untitled entry"}
-                                      </span>
-                                    )}
-                                  </Heading>
-                                  {entry.stage ? (
-                                    <Text
-                                      variant="meta"
-                                      color="muted-foreground"
-                                      asChild
-                                    >
-                                      <span
-                                        className={styles.stage}
-                                        data-stage={entry.stage}
-                                      >
-                                        {entry.stage}
-                                      </span>
-                                    </Text>
-                                  ) : null}
-                                </div>
-                              </Cluster>
-                              {entry.blurb ? (
-                                <Text
-                                  color="muted-foreground"
-                                  className={styles.blurb}
-                                >
-                                  {entry.blurb}
-                                </Text>
-                              ) : null}
-                              {(entry.linkCount ?? 0) > 0 ? (
-                                <Text
-                                  variant="meta"
-                                  color="muted-foreground"
-                                  asChild
-                                >
-                                  <span>{entry.linkCount} linked</span>
-                                </Text>
-                              ) : null}
-                            </li>
-                          </Stack>
+                          <EntrySummary
+                            key={entry._id}
+                            title={entry.title ?? "Untitled entry"}
+                            slug={entry.slug}
+                            blurb={entry.blurb}
+                            stage={entry.stage}
+                            linkCount={entry.linkCount}
+                          />
                         ))}
                       </ul>
                     </Stack>
