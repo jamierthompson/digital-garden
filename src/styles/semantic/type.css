@@ -67,5 +67,17 @@
     --type-quote-weight: var(--font-weight-normal);
     --type-quote-tracking: var(--tracking-normal);
     --type-quote-leading: var(--leading-snug);
+
+    --type-wordmark-family: var(--font-heading);
+    --type-wordmark-size: var(--type-size-6);
+    --type-wordmark-weight: var(--font-weight-bold);
+    --type-wordmark-tracking: var(--tracking-tight);
+    --type-wordmark-leading: var(--leading-normal);
+
+    --type-nav-family: var(--font-heading);
+    --type-nav-size: var(--type-size-3);
+    --type-nav-weight: var(--font-weight-medium);
+    --type-nav-tracking: var(--tracking-normal);
+    --type-nav-leading: var(--leading-normal);
   }
 }

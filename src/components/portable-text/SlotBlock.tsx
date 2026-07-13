@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import EntryScope from "@/components/entry-scope/EntryScope";
 import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
+import Text from "@/components/typography/Text";
 import { resolveSlotKey } from "@/lib/resolvers/slots";
 import { isNotFound } from "@/lib/resolvers/resolution";
 
@@ -72,7 +73,9 @@ export default async function SlotBlock({
         <Slot />
       )}
       {caption ? (
-        <figcaption className={styles.caption}>{caption}</figcaption>
+        <Text variant="caption" asChild>
+          <figcaption className={styles.caption}>{caption}</figcaption>
+        </Text>
       ) : null}
     </figure>
   );

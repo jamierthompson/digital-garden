@@ -184,6 +184,21 @@ describe("RelatedEntries", () => {
     expect(ids.every(Boolean)).toBe(true);
   });
 
+  it("renders 'Related' as a real level-2 heading (label variant styles type, not outline)", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[entry({ _id: "a", title: "On gardens", slug: "on-gardens" })]}
+        backlinks={null}
+      />,
+    );
+    const heading = screen.getByRole("heading", { level: 2, name: /related/i });
+    expect(heading.tagName).toBe("H2");
+    const section = heading.closest("section");
+    expect(section).toHaveAttribute("aria-labelledby", heading.id);
+    expect(heading.id).not.toBe("");
+  });
+
   it("preserves related-before-backlinks order with multiple entries in each arm", () => {
     render(
       <RelatedEntries

@@ -1,3 +1,5 @@
+import Text from "@/components/typography/Text";
+
 import styles from "./MissingSlot.module.css";
 
 interface MissingSlotProps {
@@ -17,10 +19,12 @@ interface MissingSlotProps {
 export default function MissingSlot({ slotKey }: MissingSlotProps) {
   return (
     <div className={styles.missing} role="note">
-      <p className={styles.label}>Slot unavailable</p>
-      <p className={styles.detail}>
+      <Text variant="label" className={styles.label}>
+        Slot unavailable
+      </Text>
+      <Text variant="caption" className={styles.detail}>
         The <code>{slotKey}</code> slot could not be resolved.
-      </p>
+      </Text>
     </div>
   );
 }

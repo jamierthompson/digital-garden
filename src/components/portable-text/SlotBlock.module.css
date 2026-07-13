@@ -11,7 +11,6 @@
 
   .caption {
     margin-top: var(--space-2);
-    font-size: var(--type-size-2);
     color: var(--muted-foreground);
     text-align: center;
   }

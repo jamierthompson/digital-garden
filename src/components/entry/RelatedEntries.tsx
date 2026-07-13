@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import Heading from "@/components/typography/Heading";
+
 import styles from "./RelatedEntries.module.css";
 
 interface RelatedEntry {
@@ -62,9 +64,14 @@ export default function RelatedEntries({
 
   return (
     <section className={styles.related} aria-labelledby={headingId}>
-      <h2 id={headingId} className={styles.heading}>
+      <Heading
+        level={2}
+        variant="label"
+        id={headingId}
+        className={styles.heading}
+      >
         Related
-      </h2>
+      </Heading>
       <ul className={styles.list}>
         {entries.map((entry) => (
           <li key={entry._id} className={styles.item}>

@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import Text from "@/components/typography/Text";
+
 import NavLinks from "./NavLinks";
 import SchemeToggle from "./SchemeToggle";
 import styles from "./SiteNav.module.css";
@@ -7,11 +9,8 @@ import styles from "./SiteNav.module.css";
 /**
  * The shell's primary navigation — the "engineering journal" masthead.
  *
- * A Server Component: it renders a masthead tagline band, the `folio_` logo (Space Grotesk via
- * `--font-heading`) and mounts the small Client `NavLinks` leaf for the current-page indicator.
- * Var-consuming only: reads the global editorial semantic tokens (`--font-heading`, `--font-mono`,
- * `--foreground`, `--border`). The shell is never theme-scoped — editorial chrome is global; a
- * project's the theme is scoped to its own interactive slot.
+ * A Server Component: it renders a masthead tagline band, the `folio_` logo, and mounts the small
+ * Client `NavLinks` leaf for the current-page indicator.
  */
 export default function SiteNav() {
   return (
@@ -22,13 +21,13 @@ export default function SiteNav() {
           A <p>, not a heading: it's site chrome, so each page keeps its own h1. */}
       <div className={styles.masthead}>
         <div className={styles.mastheadInner}>
-          <p className={styles.byline}>
+          <Text variant="meta" className={styles.byline}>
             The Design-Engineering Garden of Jamie Thompson
-          </p>
+          </Text>
           {/* Quiet masthead balance — decorative journal dateline, hidden from AT. */}
-          <p className={styles.dateline} aria-hidden="true">
+          <Text variant="meta" className={styles.dateline} aria-hidden="true">
             Est. 2026
-          </p>
+          </Text>
         </div>
       </div>
       <nav className={styles.nav} aria-label="Primary">

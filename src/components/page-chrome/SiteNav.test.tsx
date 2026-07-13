@@ -60,6 +60,21 @@ describe("SiteNav", () => {
       }),
     ).toBeNull();
   });
+
+  it("keeps the byline a paragraph after the meta-role migration", () => {
+    render(<SiteNav />);
+    const byline = screen.getByText(
+      /the design-engineering garden of jamie thompson/i,
+    );
+    expect(byline.tagName).toBe("P");
+  });
+
+  it("keeps the decorative dateline hidden from assistive tech (aria-hidden passthrough)", () => {
+    render(<SiteNav />);
+    const dateline = screen.getByText(/est\. 2026/i);
+    expect(dateline).toHaveAttribute("aria-hidden", "true");
+    expect(screen.queryByRole("heading", { name: /est\. 2026/i })).toBeNull();
+  });
 });
 
 /**

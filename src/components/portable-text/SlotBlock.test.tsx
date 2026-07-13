@@ -99,4 +99,29 @@ describe("SlotBlock", () => {
     );
     expect(container.querySelector("figcaption")).toBeNull();
   });
+
+  // An emptied-then-saved caption round-trips as "" (falsy), not undefined.
+  it("renders no figcaption for an empty-string caption", async () => {
+    const { container } = render(
+      await SlotBlock({
+        slotKey: "color-engine-seed",
+        caption: "",
+        scope: SCOPE,
+      }),
+    );
+    expect(container.querySelector("figcaption")).toBeNull();
+  });
+
+  it("wears the caption role on the figcaption itself (asChild Slot merge intact)", async () => {
+    render(
+      await SlotBlock({
+        slotKey: "color-engine-seed",
+        caption: "A caption in the essay voice",
+        scope: SCOPE,
+      }),
+    );
+    const caption = screen.getByText("A caption in the essay voice");
+    expect(caption.tagName).toBe("FIGCAPTION");
+    expect(caption).toHaveAttribute("data-variant", "caption");
+  });
 });
