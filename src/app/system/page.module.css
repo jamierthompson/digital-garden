@@ -1,6 +1,0 @@
-/* System page. @layer components — declares its layer (an unlayered module outranks every layered rule); var-consuming only (global editorial tokens). Type comes from the <Heading>/<Text> primitives (role bundles); these rules own layout + color only. */
-@layer components {
-  .lede {
-    color: var(--muted-foreground);
-  }
-}

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { MAIN_CONTENT_ID } from "@/lib/landmarks";
+import Page from "@/components/layout/Page";
 
 import styles from "./states.module.css";
 
@@ -27,12 +27,7 @@ export default function WorkError({
   }, [error]);
 
   return (
-    <main
-      id={MAIN_CONTENT_ID}
-      tabIndex={-1}
-      className={styles.state}
-      role="alert"
-    >
+    <Page width="measure" className={styles.state} role="alert">
       <h1 className={styles.heading}>Something went wrong</h1>
       <p className={styles.body}>This entry couldn’t be loaded right now.</p>
       <button
@@ -42,6 +37,6 @@ export default function WorkError({
       >
         Try again
       </button>
-    </main>
+    </Page>
   );
 }

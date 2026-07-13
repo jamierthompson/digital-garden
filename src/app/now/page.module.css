@@ -1,36 +1,21 @@
 /* Now page. @layer components — declares its layer (an unlayered module outranks every layered
-   rule); var-consuming only (global editorial semantic tokens, no per-entry theme). */
+   rule); var-consuming only (global editorial semantic tokens, no per-entry theme). Layout comes
+   from the primitives and static ink from their `color` prop — these rules own only decoration,
+   measure caps, and link states. */
 @layer components {
-  .header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .intro {
-    color: var(--muted-foreground);
-  }
-
   /* List reset. */
   .list {
     list-style: none;
     padding: 0;
   }
 
-  .item {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
   .date {
     text-transform: uppercase;
-    color: var(--muted-foreground);
   }
 
   .itemTitle {
-    /* Inside a `<Heading level={3}>` — the subheading role owns the type; this class is a
-       plain wrapper for the href, layout + color only. */
+    /* Inside a `<Heading level={3}>` — the subheading role owns the type; an <a> doesn't
+       inherit ink from it (UA link color), so the ink is re-stated here with its states. */
     color: var(--foreground);
     text-decoration: none;
   }
@@ -42,15 +27,6 @@
 
   .blurb {
     max-width: 62ch;
-    color: var(--muted-foreground);
-  }
-
-  .empty {
-    color: var(--muted-foreground);
-  }
-
-  .footnote {
-    color: var(--muted-foreground);
   }
 
   .link {

@@ -1,13 +1,6 @@
 /* About page. @layer components — declares its layer (an unlayered module outranks every layered rule); var-consuming only (shell theme/font tokens). */
 @layer components {
-  /* Layout + color only — the type comes from the `<Text variant="lead">` role bundle. */
-  .prose {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    color: var(--muted-foreground);
-  }
-
+  /* Inline emphasis inside the prose — a bare <span>, not a type primitive, so it re-inks here. */
   .emphasis {
     color: var(--foreground);
     font-weight: var(--font-weight-semibold);

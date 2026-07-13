@@ -1,4 +1,4 @@
-import { MAIN_CONTENT_ID } from "@/lib/landmarks";
+import Page from "@/components/layout/Page";
 
 import styles from "./loading.module.css";
 
@@ -11,13 +11,8 @@ import styles from "./loading.module.css";
 // Loading components take no props (`node_modules/.../03-file-conventions/loading.md`).
 export default function RootLoading() {
   return (
-    <main
-      id={MAIN_CONTENT_ID}
-      tabIndex={-1}
-      className={styles.state}
-      aria-busy="true"
-    >
+    <Page width="measure" className={styles.state} aria-busy="true">
       <p className={styles.body}>Loading…</p>
-    </main>
+    </Page>
   );
 }
