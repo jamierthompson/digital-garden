@@ -18,6 +18,22 @@ describe("isNonBlank", () => {
   it("is false for a whitespace-only string", () => {
     expect(isNonBlank("   ")).toBe(false);
   });
+
+  // NBSP and other ECMAScript WhiteSpace are covered by trim(), so an NBSP-only caption counts as
+  // blank — no blank figcaption, no blank accessible name.
+  it("is false for a no-break-space-only string", () => {
+    expect(isNonBlank("  ")).toBe(false);
+  });
+
+  // Block fields are untrusted external data: a raw Content Lake write can drift a caption/alt to
+  // any JSON shape. A non-string must count as blank (absent), never reach `.trim()` and throw —
+  // that would crash every article carrying the drifted block.
+  it("treats a non-string value as blank instead of throwing", () => {
+    for (const bad of [42, 0, true, false, {}, ["alt"], null] as unknown[]) {
+      expect(() => isNonBlank(bad), String(bad)).not.toThrow();
+      expect(isNonBlank(bad), String(bad)).toBe(false);
+    }
+  });
 });
 
 describe("firstNonEmpty", () => {
@@ -38,5 +54,13 @@ describe("firstNonEmpty", () => {
 
   it("preserves the original (untrimmed) content when a candidate qualifies", () => {
     expect(firstNonEmpty(["  padded  "])).toBe("  padded  ");
+  });
+
+  // Same totality bar through the finder: a drifted non-string candidate is skipped, and the
+  // first real string still wins.
+  it("skips non-string candidates instead of throwing", () => {
+    const candidates = [42, {}, "real label"] as unknown[];
+    expect(() => firstNonEmpty(candidates)).not.toThrow();
+    expect(firstNonEmpty(candidates)).toBe("real label");
   });
 });

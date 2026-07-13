@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import EntryQuote from "./EntryQuote";
+
+type QuoteValue = Parameters<typeof EntryQuote>[0]["value"];
 
 describe("EntryQuote", () => {
   it("renders a semantic blockquote with the quote text", () => {
@@ -64,6 +66,49 @@ describe("EntryQuote", () => {
   it("renders nothing when the quote text is an empty string", () => {
     const { container } = render(<EntryQuote value={{ text: "" }} />);
     expect(container.querySelector("blockquote")).toBeNull();
+  });
+
+  // Whitespace-only text is treated as absent too (via `isNonBlank`) — otherwise it renders an
+  // empty-looking pull-quote (accent border + blank body), the exact noise the block must avoid.
+  it("renders nothing for whitespace-only quote text", () => {
+    const { container } = render(<EntryQuote value={{ text: "  \n  " }} />);
+    expect(container.querySelector("figure")).toBeNull();
+    expect(container.querySelector("blockquote")).toBeNull();
+  });
+
+  // A whitespace-only attribution is not a real attribution — no figcaption (and so no dangling
+  // decorative em-dash attributed to nobody).
+  it("emits no figcaption for a whitespace-only attribution", () => {
+    const { container } = render(
+      <EntryQuote value={{ text: "A quote.", attribution: "   " }} />,
+    );
+    expect(container.querySelector("figcaption")).toBeNull();
+  });
+
+  // Totality: content can drift in SHAPE, not just presence — a raw API write can put any JSON
+  // where `text` should be. An object is truthy, so without the guard it reaches React children
+  // and throws "Objects are not valid as a React child", crashing the whole article. The block
+  // must degrade to nothing instead.
+  it("renders nothing (not a crash) when text drifts to a non-string shape", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const drifted = {
+      text: { _type: "localeString", en: "Quote" },
+    } as unknown as QuoteValue;
+    expect(() => render(<EntryQuote value={drifted} />)).not.toThrow();
+    spy.mockRestore();
+  });
+
+  // Same drift class on the optional field: a non-string attribution must not reach React
+  // children — text renders, attribution is dropped.
+  it("drops (not crashes on) an attribution drifted to a non-string shape", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const drifted = {
+      text: "A quote.",
+      attribution: { name: "M. McLuhan" },
+    } as unknown as QuoteValue;
+    expect(() => render(<EntryQuote value={drifted} />)).not.toThrow();
+    expect(screen.getByText("A quote.")).toBeInTheDocument();
+    spy.mockRestore();
   });
 
   // Attribution without text must never emit an orphan figcaption in an empty quote.

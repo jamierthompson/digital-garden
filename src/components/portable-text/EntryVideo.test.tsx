@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import EntryVideo from "./EntryVideo";
+
+type VideoValue = Parameters<typeof EntryVideo>[0]["value"];
 
 describe("EntryVideo", () => {
   it("shows the caption in the figcaption, and labels the box generically", () => {
@@ -43,6 +45,20 @@ describe("EntryVideo", () => {
     );
     expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
     expect(container.querySelector("figcaption")).toBeNull();
+  });
+
+  // Shape drift, not just missing fields: a raw Content Lake write can put any JSON where the
+  // caption string should be. A non-string caption must degrade (dropped, box keeps its generic
+  // name), never reach `.trim()` and crash the article.
+  it("survives a caption drifted to a non-string shape", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const drifted = {
+      url: "https://example.com/v.mp4",
+      caption: 42,
+    } as unknown as VideoValue;
+    expect(() => render(<EntryVideo value={drifted} />)).not.toThrow();
+    expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
+    spy.mockRestore();
   });
 
   // The placeholder is deferred (#128): the URL must never reach an href/src, so a

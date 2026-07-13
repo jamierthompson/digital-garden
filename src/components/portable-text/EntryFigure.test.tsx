@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import EntryFigure from "./EntryFigure";
+
+type FigureValue = Parameters<typeof EntryFigure>[0]["value"];
 
 describe("EntryFigure", () => {
   it("names the placeholder with the alt text and shows the caption", () => {
@@ -44,6 +46,20 @@ describe("EntryFigure", () => {
   it("falls back to the generic label when alt and caption are both empty", () => {
     render(<EntryFigure value={{ alt: "", caption: "" }} />);
     expect(screen.getByRole("img", { name: "Figure" })).toBeInTheDocument();
+  });
+
+  // Shape drift, not just missing fields: a raw Content Lake write can put any JSON where the alt
+  // string should be. A non-string alt reaches `firstNonEmpty` → `isNonBlank` and must be skipped
+  // (box falls back to the generic name), never `.trim()`-thrown and crash the article.
+  it("survives an alt drifted to a non-string shape", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const drifted = {
+      alt: { en: "A diagram" },
+      caption: "Fig. 1",
+    } as unknown as FigureValue;
+    expect(() => render(<EntryFigure value={drifted} />)).not.toThrow();
+    expect(screen.getByRole("img", { name: "Figure" })).toBeInTheDocument();
+    spy.mockRestore();
   });
 
   // Adapter contract: an image has no fixed aspect ratio, so the figure branch passes NO ratio
