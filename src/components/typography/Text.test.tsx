@@ -48,6 +48,22 @@ describe("Text", () => {
     expect(screen.getByRole("status")).toBe(el);
   });
 
+  it("stamps data-color for the ink role, independently of the variant", () => {
+    render(
+      <Text variant="lead" color="muted-foreground" data-testid="t">
+        Inked
+      </Text>,
+    );
+    const el = screen.getByTestId("t");
+    expect(el).toHaveAttribute("data-color", "muted-foreground");
+    expect(el).toHaveAttribute("data-variant", "lead");
+  });
+
+  it("sets NO data-color when color is omitted (inherits the ambient ink)", () => {
+    render(<Text data-testid="t">Plain</Text>);
+    expect(screen.getByTestId("t")).not.toHaveAttribute("data-color");
+  });
+
   it("merges a caller className alongside its own", () => {
     render(
       <Text className="caller" data-testid="t">

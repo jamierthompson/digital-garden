@@ -1,6 +1,8 @@
 import { Slot } from "radix-ui";
 
 import styles from "./Text.module.css";
+import type { TextColor } from "./textColor";
+import colorStyles from "./textColor.module.css";
 
 /**
  * The non-heading semantic type roles. Named `variant` on the prop (not `role`) so it can't
@@ -24,6 +26,11 @@ interface TextProps extends React.ComponentPropsWithRef<"p"> {
    */
   readonly variant?: TextVariant;
   /**
+   * The semantic ink role — names the `--<role>` color token the text wears (via the shared
+   * `textColor` rules). Omit to inherit the ambient ink, exactly as before the prop existed.
+   */
+  readonly color?: TextColor;
+  /**
    * Render the single child element instead of a `<p>` wrapper (Radix `Slot`) — e.g.
    * `<Text variant="meta" asChild><time>…</time></Text>` to wear a role on an inline element.
    */
@@ -38,6 +45,7 @@ interface TextProps extends React.ComponentPropsWithRef<"p"> {
  */
 export default function Text({
   variant = "body",
+  color,
   asChild = false,
   className,
   ...rest
@@ -45,9 +53,13 @@ export default function Text({
   const Component = asChild ? Slot.Root : "p";
   return (
     <Component
-      className={[styles.text, className].filter(Boolean).join(" ")}
-      // `data-variant` selects the role bundle in the module (the base class is `body`).
+      className={[styles.text, color && colorStyles.ink, className]
+        .filter(Boolean)
+        .join(" ")}
+      // `data-variant` selects the role bundle in the module (the base class is `body`);
+      // `data-color` (when set) selects the ink.
       data-variant={variant}
+      data-color={color}
       {...rest}
     />
   );

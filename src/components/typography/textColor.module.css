@@ -1,0 +1,18 @@
+/* Ink color for the type primitives — shared by `Heading` and `Text` so the two can't diverge.
+   @layer components, strictly var-consuming. The discrete role travels via `data-color` (the
+   variant mechanism) and lands as a CSS rule, NOT an inline style, so equal-layer state rules
+   (`:hover`, `.active`) and theme scopes can still take the ink. Each value maps 1:1 onto the
+   semantic color token of the same name. */
+@layer components {
+  .ink[data-color="foreground"] {
+    color: var(--foreground);
+  }
+
+  .ink[data-color="muted-foreground"] {
+    color: var(--muted-foreground);
+  }
+
+  .ink[data-color="accent-text"] {
+    color: var(--accent-text);
+  }
+}

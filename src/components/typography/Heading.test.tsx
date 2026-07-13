@@ -75,6 +75,24 @@ describe("Heading", () => {
     expect(el).toHaveAttribute("data-variant", "display");
   });
 
+  it("stamps data-color for the ink role, alongside level + variant", () => {
+    render(
+      <Heading level={1} color="accent-text">
+        Inked
+      </Heading>,
+    );
+    const el = screen.getByRole("heading", { level: 1 });
+    expect(el).toHaveAttribute("data-color", "accent-text");
+    expect(el).toHaveAttribute("data-level", "1");
+  });
+
+  it("sets NO data-color when color is omitted (inherits the ambient ink)", () => {
+    render(<Heading level={2}>Plain</Heading>);
+    expect(screen.getByRole("heading", { level: 2 })).not.toHaveAttribute(
+      "data-color",
+    );
+  });
+
   it("merges a caller className alongside its own", () => {
     render(
       <Heading level={2} className="caller">
