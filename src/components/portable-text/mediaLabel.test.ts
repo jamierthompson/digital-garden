@@ -22,7 +22,7 @@ describe("isNonBlank", () => {
   // NBSP and other ECMAScript WhiteSpace are covered by trim(), so an NBSP-only caption counts as
   // blank — no blank figcaption, no blank accessible name.
   it("is false for a no-break-space-only string", () => {
-    expect(isNonBlank("  ")).toBe(false);
+    expect(isNonBlank("\u00A0\u00A0")).toBe(false);
   });
 
   // Block fields are untrusted external data: a raw Content Lake write can drift a caption/alt to
