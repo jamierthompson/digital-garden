@@ -6,8 +6,8 @@
     padding-top: var(--space-5);
   }
 
+  /* Type comes from the Heading `label` role (section kicker); this rule owns only color. */
   .heading {
-    font-size: var(--type-size-4);
     color: var(--accent-text);
   }
 
