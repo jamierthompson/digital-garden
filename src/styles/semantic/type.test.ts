@@ -67,28 +67,13 @@ describe("the role bundles are declared at BOTH scopes (:root + the entry slot)"
   // under a selector list that ALSO matches the slot element — one set of declarations, two
   // scopes. jsdom can't compute cascaded custom properties, so this receipt parses the selector;
   // regressing it to :root-only would silently strand themed slots on the site faces.
-  it("the rule declaring the bundles matches :root AND [data-entry]", () => {
-    const sheet = read("src/styles/semantic/type.css").replace(
-      /\/\*[\s\S]*?\*\//g,
-      "",
-    );
-    const rule = sheet.match(/([^{}]+)\{[^{}]*--type-body-family/);
-    expect(rule).not.toBeNull();
-    const selector = rule![1].replace(/\s+/g, " ").trim();
-    expect(selector).toContain(":root");
-    expect(selector).toContain(":where([data-entry])");
-  });
-
-  // QA #262: the receipt above uses substring `.toContain`, which cannot tell a selector LIST
-  // (`:root, :where([data-entry])`) from a descendant COMBINATOR (`:root :where([data-entry])`,
-  // a dropped comma). The combinator matches `[data-entry]` slots but NOT `:root` itself, so the
-  // site (root) scope would lose every `--type-*` bundle — headings/text collapse to UA-default
-  // size/weight/tracking/leading site-wide — yet both prior receipts still pass. Assert instead
-  // that `:root` and `:where([data-entry])` are each a COMPLETE member of the comma-separated
-  // list: split on commas, strip all whitespace within each member, and require both as exact
-  // entries. A dropped comma collapses to the single member `:root:where([data-entry])`, which
-  // is neither — so this fails where the substring receipt is fooled.
-  it("declares the bundles as a comma-separated selector LIST, not a descendant combinator", () => {
+  // Assert `:root` and `:where([data-entry])` as COMPLETE members of the comma-separated
+  // selector list — not substrings of it. Substring containment can't tell the list from a
+  // descendant combinator (`:root :where([data-entry])`, a dropped comma), which matches slots
+  // but NOT `:root` itself, stranding the site scope of every `--type-*` bundle while a
+  // substring receipt stays green (QA #262). A dropped comma collapses the split to the single
+  // member `:root:where([data-entry])`, which is neither — so it fails here.
+  it("declares the bundles as a selector LIST containing :root and :where([data-entry])", () => {
     const sheet = read("src/styles/semantic/type.css").replace(
       /\/\*[\s\S]*?\*\//g,
       "",
