@@ -72,4 +72,29 @@ describe("EntrySummary", () => {
     expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
     expect(item.textContent).toBe("Bare");
   });
+
+  it("hides the backlink hint for a negative or null linkCount (bad upstream data stays invisible)", () => {
+    render(
+      <ul>
+        <EntrySummary title="Negative" linkCount={-2} />
+        <EntrySummary title="Nullish" linkCount={null} />
+      </ul>,
+    );
+    expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
+  });
+
+  it("renders plain text for an empty-string slug — no dead link to '/'", () => {
+    renderInList(<EntrySummary title="Slugless" slug="" />);
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Slugless" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("hides the stage badge and blurb for empty strings, not just null", () => {
+    renderInList(<EntrySummary title="Empty" stage="" blurb="" />);
+    const item = screen.getByRole("listitem");
+    expect(item.querySelector("[data-stage]")).toBeNull();
+    expect(item.textContent).toBe("Empty");
+  });
 });
