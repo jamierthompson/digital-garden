@@ -1,8 +1,10 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { createRef } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import Text from "./Text";
+import Text, { type TextVariant } from "./Text";
 
 describe("Text", () => {
   it("renders a <p> in the body role by default", () => {
@@ -194,5 +196,46 @@ describe("Text", () => {
     const el = screen.getByTestId("t");
     expect(el.style.color).toBe("red");
     expect(el.style.marginTop).toBe("1px");
+  });
+});
+
+// Holds `TextVariant` to `Text.module.css`'s `[data-variant]` bundles. Without it, adding a
+// variant to the type but forgetting its module rule renders the text in the `body` bundle (the
+// base class) with the whole gate green — a silent fail. Parse the sheet and pin the set both ways.
+describe("TextVariant ↔ Text.module.css bundle bijection", () => {
+  // Compile-time exhaustiveness: listing a variant the type lacks, or missing one it has, fails
+  // typecheck here — the runtime half below then holds the CSS to the same list.
+  const VARIANTS = [
+    "body",
+    "lead",
+    "label",
+    "meta",
+    "caption",
+    "quote",
+  ] as const satisfies readonly TextVariant[];
+  type Uncovered = Exclude<TextVariant, (typeof VARIANTS)[number]>;
+  const noUncoveredVariant: Uncovered extends never ? true : never = true;
+
+  const sheet = readFileSync(
+    resolve(process.cwd(), "src/components/typography/Text.module.css"),
+    "utf8",
+  );
+  const sheetVariants = [
+    ...sheet.matchAll(/\.text\[data-variant="([a-z0-9]+)"\]/g),
+  ].map(([, variant]) => variant);
+
+  it("declares exactly one bundle per non-base variant, and none the type lacks", () => {
+    expect(noUncoveredVariant).toBe(true);
+    // `body` is the base `.text` rule, not a data-variant bundle.
+    const expected = VARIANTS.filter((variant) => variant !== "body");
+    expect([...sheetVariants].sort()).toEqual([...expected].sort());
+  });
+
+  it("binds every bundle (and the base rule) to its OWN role's family token", () => {
+    for (const variant of VARIANTS) {
+      expect(sheet, `--type-${variant}-family`).toContain(
+        `var(--type-${variant}-family)`,
+      );
+    }
   });
 });
