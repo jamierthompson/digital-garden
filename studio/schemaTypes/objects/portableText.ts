@@ -13,7 +13,19 @@ export const portableText = defineType({
   title: 'Rich text',
   type: 'array',
   of: [
-    defineArrayMember({type: 'block'}),
+    defineArrayMember({
+      type: 'block',
+      // Explicit styles REPLACE the Sanity defaults (verified against @sanity/schema 6.4.0): drop
+      // the inline `blockquote` style so the typed `quote` block is the ONE way to pull-quote, and
+      // drop H1 — the body renders under the page's `<h1>` entry title, so a body H1 is a
+      // double-h1 outline break (WCAG 1.3.1). `lists`/`marks` are left unspecified: omitting them
+      // keeps the defaults (bullet/number lists, decorators, and the link annotation).
+      styles: [
+        {title: 'Normal', value: 'normal'},
+        {title: 'Heading 2', value: 'h2'},
+        {title: 'Heading 3', value: 'h3'},
+      ],
+    }),
     defineArrayMember({type: 'figure'}),
     defineArrayMember({type: 'video'}),
     defineArrayMember({type: 'slot'}),
