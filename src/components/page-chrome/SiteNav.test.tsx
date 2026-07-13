@@ -4,6 +4,8 @@ import { resolve } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import containerStyles from "@/components/layout/Container.module.css";
+
 import SiteNav from "./SiteNav";
 
 // SiteNav mounts the `NavLinks` client leaf, which reads `usePathname`. Under Vitest there is
@@ -74,6 +76,15 @@ describe("SiteNav", () => {
     const dateline = screen.getByText(/est\. 2026/i);
     expect(dateline).toHaveAttribute("aria-hidden", "true");
     expect(screen.queryByRole("heading", { name: /est\. 2026/i })).toBeNull();
+  });
+
+  it("caps the nav row to the page column (Container's class lands on the <nav> via asChild)", () => {
+    render(<SiteNav />);
+    // The composer's one layout responsibility: without this class the nav row silently goes
+    // full-bleed while the masthead and footer stay capped — jsdom can't see the misalignment.
+    expect(screen.getByRole("navigation", { name: /primary/i })).toHaveClass(
+      containerStyles.container,
+    );
   });
 });
 

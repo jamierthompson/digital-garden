@@ -4,6 +4,9 @@ import { resolve } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import containerStyles from "@/components/layout/Container.module.css";
+import colorStyles from "@/components/typography/textColor.module.css";
+
 import SiteFooter from "./SiteFooter";
 
 describe("SiteFooter", () => {
@@ -60,5 +63,23 @@ describe("SiteFooter", () => {
     expect(row).not.toBeNull();
     expect(row).toHaveAttribute("data-variant", "meta");
     expect(row?.tagName).toBe("DIV");
+  });
+
+  it("caps the inner row to the page column (Container's class survives the double Slot chain)", () => {
+    render(<SiteFooter />);
+    // Container → Text → div is two nested asChild merges; if either layer drops className,
+    // the footer row silently goes full-bleed while the nav above stays capped.
+    const row = screen.getByText(/© \d{4} Jamie Thompson/).parentElement;
+    expect(row).toHaveClass(containerStyles.container);
+  });
+
+  it("wears the muted ink via the Text color prop (rule + selector attribute both land)", () => {
+    render(<SiteFooter />);
+    // The ink moved from a module rule (color on .inner) to the color prop — the ink class
+    // AND its data-color selector must both survive the Slot merges, or the colophon
+    // silently renders in full-ink foreground.
+    const row = screen.getByText(/© \d{4} Jamie Thompson/).parentElement;
+    expect(row).toHaveClass(colorStyles.ink);
+    expect(row).toHaveAttribute("data-color", "muted-foreground");
   });
 });

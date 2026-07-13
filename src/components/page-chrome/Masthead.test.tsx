@@ -37,6 +37,30 @@ describe("Masthead", () => {
     expect(inner).toHaveClass(clusterStyles.cluster);
     expect(inner).toHaveClass(containerStyles.container);
   });
+
+  it("keeps the byline↔dateline gap at the space-4 step through the Cluster conduit", () => {
+    render(<Masthead />);
+    // Dropping the gap prop wouldn't fail any class assertion — the row would silently fall
+    // back to the tighter --space-cluster default. Pin the conduit value.
+    const inner = screen.getByText(/est\. 2026/i).parentElement;
+    expect(inner?.style.getPropertyValue("--cluster-gap")).toBe(
+      "var(--space-4)",
+    );
+  });
+
+  it("wears the muted ink on both the byline and the dateline via the color prop", () => {
+    render(<Masthead />);
+    // The ink moved from module rules (.byline/.dateline) to the Text color prop — dropping
+    // the prop would silently promote the chrome copy to full-ink foreground.
+    const byline = screen.getByText(
+      /the design-engineering garden of jamie thompson/i,
+    );
+    expect(byline).toHaveAttribute("data-color", "muted-foreground");
+    expect(screen.getByText(/est\. 2026/i)).toHaveAttribute(
+      "data-color",
+      "muted-foreground",
+    );
+  });
 });
 
 /**
