@@ -17,8 +17,10 @@
   }
 
   /* Type comes from the Text `caption` role; these rules own only color + layout. */
+  /* The chip sits ON `.box`'s `--accent-subtle` plate, so it reads the foreground contrast-solved
+     FOR that surface — not `--muted-foreground` (solved against the base background). */
   .label {
-    color: var(--muted-foreground);
+    color: var(--accent-subtle-foreground);
   }
 
   .caption {

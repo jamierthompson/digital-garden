@@ -13,6 +13,8 @@
   /* Type comes from the Text `quote`/`caption` roles; these rules own only color + layout. */
   .text {
     color: var(--foreground);
+    /* Honor authored newlines in the quote body; soft wraps still reflow. */
+    white-space: pre-line;
   }
 
   .attribution {
@@ -21,8 +23,9 @@
     color: var(--muted-foreground);
   }
 
-  /* The em-dash is presentational — kept out of the DOM so it isn't read as content. */
+  /* The em-dash is decorative. CSS generated content IS in the accessibility tree (CSS accname
+     spec), so the `/ ""` alt-text suppresses it from assistive tech — the dash is seen, not read. */
   .attribution::before {
-    content: "— ";
+    content: "— " / "";
   }
 }
