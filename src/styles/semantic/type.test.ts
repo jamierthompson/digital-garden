@@ -79,6 +79,27 @@ describe("the role bundles are declared at BOTH scopes (:root + the entry slot)"
     expect(selector).toContain(":where([data-entry])");
   });
 
+  // QA #262: the receipt above uses substring `.toContain`, which cannot tell a selector LIST
+  // (`:root, :where([data-entry])`) from a descendant COMBINATOR (`:root :where([data-entry])`,
+  // a dropped comma). The combinator matches `[data-entry]` slots but NOT `:root` itself, so the
+  // site (root) scope would lose every `--type-*` bundle — headings/text collapse to UA-default
+  // size/weight/tracking/leading site-wide — yet both prior receipts still pass. Assert instead
+  // that `:root` and `:where([data-entry])` are each a COMPLETE member of the comma-separated
+  // list: split on commas, strip all whitespace within each member, and require both as exact
+  // entries. A dropped comma collapses to the single member `:root:where([data-entry])`, which
+  // is neither — so this fails where the substring receipt is fooled.
+  it("declares the bundles as a comma-separated selector LIST, not a descendant combinator", () => {
+    const sheet = read("src/styles/semantic/type.css").replace(
+      /\/\*[\s\S]*?\*\//g,
+      "",
+    );
+    const rule = sheet.match(/([^{}]+)\{[^{}]*--type-body-family/);
+    expect(rule).not.toBeNull();
+    const members = rule![1].split(",").map((s) => s.replace(/\s+/g, ""));
+    expect(members).toContain(":root");
+    expect(members).toContain(":where([data-entry])");
+  });
+
   it("every --type-* bundle lives in that ONE rule (no second, :root-only block)", () => {
     const sheet = read("src/styles/semantic/type.css").replace(
       /\/\*[\s\S]*?\*\//g,
