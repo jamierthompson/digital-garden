@@ -4,22 +4,23 @@ import { describe, expect, it } from "vitest";
 import EntryVideo from "./EntryVideo";
 
 describe("EntryVideo", () => {
-  it("labels the placeholder with the caption when present", () => {
+  it("shows the caption in the figcaption, and labels the box generically", () => {
     const { container } = render(
       <EntryVideo
         value={{ url: "https://example.com/v.mp4", caption: "A demo reel" }}
       />,
     );
-    // The caption is both the accessible label of the placeholder and the visible figcaption.
-    expect(
-      screen.getByRole("img", { name: "A demo reel" }),
-    ).toBeInTheDocument();
+    // The caption is the visible figcaption; the box's accessible name is the generic kind, so
+    // the caption is not announced twice.
+    expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
     expect(container.querySelector("figcaption")).toHaveTextContent(
       "A demo reel",
     );
+    // The caption text appears once (the figcaption), not also as the visible chip.
+    expect(screen.getAllByText("A demo reel")).toHaveLength(1);
   });
 
-  it("falls back to a generic label and no figcaption when uncaptioned", () => {
+  it("shows no figcaption when uncaptioned", () => {
     const { container } = render(
       <EntryVideo value={{ url: "https://example.com/v.mp4" }} />,
     );
@@ -34,17 +35,13 @@ describe("EntryVideo", () => {
     expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
   });
 
-  // QA — DEFECT: `label = value.caption ?? "Video"` uses `??`, which only substitutes for
-  // null/undefined. An empty-string caption (a raw API write, or an emptied field) is a
-  // string, so it is NOT replaced — the placeholder gets `aria-label=""`, an EMPTY accessible
-  // name on a role="img" element (WCAG 2.2 SC 1.1.1). The author's own "labelled placeholder"
-  // contract wants the "Video" fallback here. Fix: use `||`, or guard the empty string.
-  it("falls back to the generic label when the caption is an empty string", () => {
+  // A whitespace-only caption is not a real caption — no figcaption is emitted for it, and the
+  // box keeps its generic accessible name.
+  it("emits no figcaption for an empty or whitespace-only caption", () => {
     const { container } = render(
       <EntryVideo value={{ url: "https://example.com/v.mp4", caption: "" }} />,
     );
     expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
-    // An empty caption is not a real caption — no figcaption is emitted for it.
     expect(container.querySelector("figcaption")).toBeNull();
   });
 
@@ -57,14 +54,11 @@ describe("EntryVideo", () => {
     expect(container.innerHTML).not.toContain(hostile);
   });
 
-  // Adapter contract: the video branch is video-shaped NOW so the eventual embed lands
-  // without layout shift (#128) — a 16:9 Radix AspectRatio box (padding-bottom 56.25%).
-  it("holds the placeholder in a 16:9 AspectRatio box", () => {
-    const { container } = render(<EntryVideo value={{ caption: "A reel" }} />);
-    const wrapper = container.querySelector<HTMLElement>(
-      "[data-radix-aspect-ratio-wrapper]",
-    );
-    expect(wrapper).not.toBeNull();
-    expect(wrapper!.style.paddingBottom).toBe("56.25%");
+  // Adapter contract: the video branch is video-shaped NOW (a 16:9 native CSS aspect-ratio) so
+  // the eventual embed lands without layout shift (#128).
+  it("holds the placeholder in a 16:9 box", () => {
+    render(<EntryVideo value={{ caption: "A reel" }} />);
+    const box = screen.getByRole("img", { name: "Video" });
+    expect(box.style.getPropertyValue("--placeholder-ratio")).toBe("16 / 9");
   });
 });

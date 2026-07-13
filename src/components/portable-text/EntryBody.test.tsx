@@ -104,19 +104,20 @@ describe("EntryBody", () => {
       },
     ] as unknown as Body;
 
-    it("routes a quote block to a semantic blockquote", () => {
+    it("routes a quote block to a semantic blockquote with an outside attribution", () => {
       captured.length = 0;
       render(<EntryBody value={MEDIA_BODY} scope={SCOPE} />);
       expect(
         screen.getByText("A pull quote.").closest("blockquote"),
       ).not.toBeNull();
-      expect(screen.getByText("Someone").closest("cite")).not.toBeNull();
+      expect(screen.getByText("Someone").closest("figcaption")).not.toBeNull();
     });
 
     it("routes a video block to its captioned placeholder", () => {
       captured.length = 0;
       render(<EntryBody value={MEDIA_BODY} scope={SCOPE} />);
-      expect(screen.getByRole("img", { name: "A clip" })).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
+      expect(screen.getByText("A clip").closest("figcaption")).not.toBeNull();
     });
 
     it("never routes a video or quote block into SlotBlock", () => {
@@ -158,7 +159,8 @@ describe("EntryBody", () => {
       ).not.toThrow();
       expect(screen.getByText("Editorial prose.")).toBeInTheDocument();
       expect(screen.getByRole("img", { name: "A figure" })).toBeInTheDocument();
-      expect(screen.getByRole("img", { name: "Clip" })).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
+      expect(screen.getByText("Clip").closest("figcaption")).not.toBeNull();
       expect(screen.getByText("Quoted.").closest("blockquote")).not.toBeNull();
       expect(screen.getByTestId("slot")).toHaveAttribute(
         "data-slot-key",

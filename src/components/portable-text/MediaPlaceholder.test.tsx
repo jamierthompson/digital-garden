@@ -7,11 +7,26 @@ describe("MediaPlaceholder", () => {
   it("names the box with the first non-empty candidate", () => {
     render(
       <MediaPlaceholder
-        labelCandidates={[undefined, "A caption"]}
+        labelCandidates={[undefined, "A diagram"]}
         fallbackLabel="Figure"
       />,
     );
-    expect(screen.getByRole("img", { name: "A caption" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "A diagram" })).toBeInTheDocument();
+  });
+
+  // The visible chip names the KIND of deferred media; the descriptor is the box's accessible
+  // name only (aria-label), never rendered as visible text — so nothing is shown twice.
+  it("shows the media kind as the visible chip, distinct from the accessible name", () => {
+    render(
+      <MediaPlaceholder
+        labelCandidates={["A diagram"]}
+        fallbackLabel="Figure"
+      />,
+    );
+    expect(screen.getByText("Figure")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "A diagram" })).toBeInTheDocument();
+    // The descriptor is not visible text (it lives in aria-label only).
+    expect(screen.queryByText("A diagram")).toBeNull();
   });
 
   it("shows the caption as a figcaption when present", () => {
@@ -42,58 +57,10 @@ describe("MediaPlaceholder", () => {
       />,
     );
     expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
-    // No accessible image with an empty name slipped through.
     expect(screen.queryByRole("img", { name: "" })).toBeNull();
   });
 
-  it("renders only placeholder markup — never a navigable/loadable url attribute", () => {
-    const { container } = render(
-      <MediaPlaceholder
-        labelCandidates={["clip"]}
-        fallbackLabel="Video"
-        ratio={16 / 9}
-      />,
-    );
-    // The box is a role="img" stand-in; the deferred embed must not reach an href/src.
-    expect(screen.getByRole("img", { name: "clip" })).toBeInTheDocument();
-    expect(container.querySelector("a, [href], [src]")).toBeNull();
-  });
-
-  it("falls back to the generic label when the candidate array is empty", () => {
-    render(<MediaPlaceholder labelCandidates={[]} fallbackLabel="Figure" />);
-    expect(screen.getByRole("img", { name: "Figure" })).toBeInTheDocument();
-  });
-
-  // Locks the a11y-attribute placement against a future Radix change: role="img", the
-  // accessible name, AND the styled `.box` class must all sit on the SAME fill element that
-  // lives inside the ratio wrapper — not drift onto the wrapper (which would move the visible
-  // dressing off the labelled element).
-  it("lands role/name/box-class together on the fill element inside the 16:9 wrapper", () => {
-    const { container } = render(
-      <MediaPlaceholder
-        labelCandidates={["clip"]}
-        fallbackLabel="Video"
-        ratio={16 / 9}
-      />,
-    );
-    const wrapper = container.querySelector<HTMLElement>(
-      "[data-radix-aspect-ratio-wrapper]",
-    );
-    expect(wrapper).not.toBeNull();
-    // 16 / 9 → padding-bottom 56.25% is the reserved-height box that prevents CLS (#128).
-    expect(wrapper!.style.paddingBottom).toBe("56.25%");
-    const box = screen.getByRole("img", { name: "clip" });
-    expect(box.className).toMatch(/box/);
-    expect(wrapper).toContainElement(box);
-  });
-
-  // QA — DEFECT (chokepoint has a hole): firstNonEmpty returns `fallback` VERBATIM without
-  // re-checking it, so an empty/whitespace-only `fallbackLabel` flows straight to aria-label.
-  // The commit claims a caller "CANNOT produce a blank name", but this one does — a
-  // `role="img"` with a blank accessible name (WCAG 2.2 SC 1.1.1), exactly the footgun the
-  // refactor exists to structurally prevent. Not reachable from today's two adapters (literal
-  // "Figure"/"Video"), but the next media block's fallback is unguarded. Fix: run the fallback
-  // through the same empty-check (or type it so it can't be blank).
+  // Even an empty/whitespace-only fallback can't blank the name — a constant backstops it.
   it("never leaves a blank accessible name even when the fallback itself is empty", () => {
     render(
       <MediaPlaceholder labelCandidates={[undefined, "  "]} fallbackLabel="" />,
@@ -101,11 +68,13 @@ describe("MediaPlaceholder", () => {
     expect(screen.getByRole("img")).toHaveAccessibleName();
   });
 
-  // QA — DEFECT (doc/behavior mismatch): the `caption` prop JSDoc says "empty/whitespace-only
-  // ignored", but the render guard is a bare truthiness check (`caption ? …`), so a
-  // whitespace-only caption renders `<figcaption>   </figcaption>` — an empty visible caption
-  // element. Either trim before the guard (honor the doc) or drop the doc claim.
-  it("emits no figcaption for a whitespace-only caption, per its documented contract", () => {
+  it("falls back to the generic label when the candidate array is empty", () => {
+    render(<MediaPlaceholder labelCandidates={[]} fallbackLabel="Figure" />);
+    expect(screen.getByRole("img", { name: "Figure" })).toBeInTheDocument();
+  });
+
+  // The caption honors its documented contract: whitespace-only is not a real caption.
+  it("emits no figcaption for a whitespace-only caption", () => {
     const { container } = render(
       <MediaPlaceholder
         labelCandidates={["clip"]}
@@ -114,5 +83,41 @@ describe("MediaPlaceholder", () => {
       />,
     );
     expect(container.querySelector("figcaption")).toBeNull();
+  });
+
+  it("renders only placeholder markup — never a navigable/loadable url attribute", () => {
+    const { container } = render(
+      <MediaPlaceholder
+        labelCandidates={["clip"]}
+        fallbackLabel="Video"
+        ratio="16 / 9"
+      />,
+    );
+    expect(screen.getByRole("img", { name: "clip" })).toBeInTheDocument();
+    expect(container.querySelector("a, [href], [src]")).toBeNull();
+  });
+
+  // A fixed ratio is applied via a native CSS aspect-ratio, parameterized by a custom property
+  // on the box — no wrapper element, no padding-hack. The role/name/box-class all sit on the
+  // one box element that carries the ratio.
+  it("parameterizes a native CSS aspect-ratio on the labelled box", () => {
+    render(
+      <MediaPlaceholder
+        labelCandidates={["clip"]}
+        fallbackLabel="Video"
+        ratio="16 / 9"
+      />,
+    );
+    const box = screen.getByRole("img", { name: "clip" });
+    expect(box.style.getPropertyValue("--placeholder-ratio")).toBe("16 / 9");
+    expect(box.className).toMatch(/box/);
+  });
+
+  it("sets no ratio custom property for variable-ratio media", () => {
+    render(
+      <MediaPlaceholder labelCandidates={["alt"]} fallbackLabel="Figure" />,
+    );
+    const box = screen.getByRole("img", { name: "alt" });
+    expect(box.style.getPropertyValue("--placeholder-ratio")).toBe("");
   });
 });

@@ -4,11 +4,13 @@
     margin: var(--space-6) 0;
   }
 
-  /* min-block-size is the floor for the no-ratio (variable-image) case; under a Radix
-     AspectRatio box (video) the ratio sets the height and this floor is inert. */
+  /* `--placeholder-ratio` (set inline for fixed-ratio media, e.g. "16 / 9" for video) gives the
+     box a native CSS aspect-ratio; absent (variable-ratio images) it resolves to `auto` and
+     min-block-size is the height floor. */
   .box {
     display: grid;
     place-items: center;
+    aspect-ratio: var(--placeholder-ratio, auto);
     min-block-size: 8rem;
     border-radius: var(--radius-md);
     background: var(--accent-subtle);
