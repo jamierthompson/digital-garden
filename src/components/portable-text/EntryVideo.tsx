@@ -1,7 +1,4 @@
-import { AspectRatio } from "radix-ui";
-
-import styles from "./EntryVideo.module.css";
-import { firstNonEmpty } from "./mediaLabel";
+import MediaPlaceholder from "./MediaPlaceholder";
 
 interface VideoValue {
   url?: string;
@@ -9,30 +6,20 @@ interface VideoValue {
 }
 
 /**
- * The typed `video` editorial block.
+ * The typed `video` editorial block — a referenced video (URL + optional caption).
  *
- * Renders a labelled placeholder + caption rather than standing up a provider/embed pipeline
- * before any project needs one — the same "name the destination, instantiate late" discipline
- * as EntryFigure (a real embed is deferred; see #128). The placeholder holds a Radix
- * AspectRatio 16:9 box, so it is video-shaped now and the eventual embed swaps in without a
- * layout shift (CLS). Total at the seam: a `video` with no URL still renders the placeholder
- * instead of crashing the article. Var-consuming, themed by the surrounding entry scope.
+ * The real embed is deferred (#128), so it renders the shared `MediaPlaceholder` in a 16:9
+ * AspectRatio box: video-shaped now, and the eventual embed lands without layout shift. The
+ * caption names the box (a generic label otherwise) and shows beneath. Total at the seam — a
+ * `video` with no URL still renders the placeholder rather than crashing the article.
  */
 export default function EntryVideo({ value }: { value: VideoValue }) {
-  const label = firstNonEmpty([value.caption], "Video");
   return (
-    <figure className={styles.video}>
-      <AspectRatio.Root
-        ratio={16 / 9}
-        className={styles.placeholder}
-        role="img"
-        aria-label={label}
-      >
-        <span className={styles.placeholderText}>{label}</span>
-      </AspectRatio.Root>
-      {value.caption ? (
-        <figcaption className={styles.caption}>{value.caption}</figcaption>
-      ) : null}
-    </figure>
+    <MediaPlaceholder
+      labelCandidates={[value.caption]}
+      fallbackLabel="Video"
+      caption={value.caption}
+      ratio={16 / 9}
+    />
   );
 }

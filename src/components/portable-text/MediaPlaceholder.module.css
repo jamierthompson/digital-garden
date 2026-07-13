@@ -1,10 +1,12 @@
-/* Essay figure placeholder. @layer components — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by the surrounding entry scope). */
+/* Deferred-media placeholder (figure/video). @layer components — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by the surrounding entry scope). */
 @layer components {
   .figure {
     margin: var(--space-6) 0;
   }
 
-  .placeholder {
+  /* min-block-size is the floor for the no-ratio (variable-image) case; under a Radix
+     AspectRatio box (video) the ratio sets the height and this floor is inert. */
+  .box {
     display: grid;
     place-items: center;
     min-block-size: 8rem;
@@ -12,7 +14,7 @@
     background: var(--accent-subtle);
   }
 
-  .placeholderText {
+  .label {
     font-size: var(--type-size-2);
     color: var(--muted-foreground);
   }
