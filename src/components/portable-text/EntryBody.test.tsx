@@ -85,6 +85,91 @@ describe("EntryBody", () => {
     expect(p.closest("p")).not.toBeNull();
   });
 
+  // The shared palette carries two typed non-slot blocks — `video` and `quote`. The
+  // serializer routes each to its own renderer (real components, not mocked here) rather
+  // than dropping it or misrouting it into a slot.
+  describe("the typed video and quote blocks", () => {
+    const MEDIA_BODY = [
+      {
+        _type: "quote",
+        _key: "q1",
+        text: "A pull quote.",
+        attribution: "Someone",
+      },
+      {
+        _type: "video",
+        _key: "v1",
+        url: "https://example.com/v.mp4",
+        caption: "A clip",
+      },
+    ] as unknown as Body;
+
+    it("routes a quote block to a semantic blockquote with an outside attribution", () => {
+      captured.length = 0;
+      render(<EntryBody value={MEDIA_BODY} scope={SCOPE} />);
+      expect(
+        screen.getByText("A pull quote.").closest("blockquote"),
+      ).not.toBeNull();
+      expect(screen.getByText("Someone").closest("figcaption")).not.toBeNull();
+    });
+
+    it("routes a video block to its captioned placeholder", () => {
+      captured.length = 0;
+      render(<EntryBody value={MEDIA_BODY} scope={SCOPE} />);
+      expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
+      expect(screen.getByText("A clip").closest("figcaption")).not.toBeNull();
+    });
+
+    it("never routes a video or quote block into SlotBlock", () => {
+      captured.length = 0;
+      render(<EntryBody value={MEDIA_BODY} scope={SCOPE} />);
+      expect(captured).toHaveLength(0);
+      expect(screen.queryByTestId("slot")).toBeNull();
+    });
+
+    // Integration: the whole shared palette in one body — prose · figure · video · slot ·
+    // quote plus a drifted unknown — must render totally, each block to its own renderer,
+    // with the slot still threaded and the unknown silently dropped.
+    it("renders the full mixed palette totally in one body", () => {
+      const FULL_BODY = [
+        {
+          _type: "block",
+          _key: "b1",
+          style: "normal",
+          markDefs: [],
+          children: [
+            { _type: "span", _key: "s1", text: "Editorial prose.", marks: [] },
+          ],
+        },
+        { _type: "figure", _key: "f1", alt: "A figure", caption: "Fig cap" },
+        {
+          _type: "video",
+          _key: "v1",
+          url: "https://ex.com/v.mp4",
+          caption: "Clip",
+        },
+        { _type: "slot", _key: "e1", slotKey: "color-engine-seed" },
+        { _type: "quote", _key: "q1", text: "Quoted.", attribution: "Author" },
+        { _type: "unknownBlock", _key: "u1" },
+      ] as unknown as Body;
+
+      captured.length = 0;
+      expect(() =>
+        render(<EntryBody value={FULL_BODY} scope={SCOPE} />),
+      ).not.toThrow();
+      expect(screen.getByText("Editorial prose.")).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: "A figure" })).toBeInTheDocument();
+      expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
+      expect(screen.getByText("Clip").closest("figcaption")).not.toBeNull();
+      expect(screen.getByText("Quoted.").closest("blockquote")).not.toBeNull();
+      expect(screen.getByTestId("slot")).toHaveAttribute(
+        "data-slot-key",
+        "color-engine-seed",
+      );
+      expect(captured[0]?.scope).toEqual(SCOPE);
+    });
+  });
+
   // Content can drift from code: a published body may carry a block whose `_type` the serializer
   // doesn't handle — a type removed from code, or authored ahead of a code change. The serializer
   // must degrade: render the rest of the essay, never crash on the unknown type, and never

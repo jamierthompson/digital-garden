@@ -1,0 +1,31 @@
+/* Pull-quote block. @layer components — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by the surrounding entry scope). */
+@layer components {
+  .quote {
+    margin: var(--space-6) 0;
+    padding-inline-start: var(--space-4);
+    border-inline-start: var(--border-width-thick) solid var(--accent);
+  }
+
+  .blockquote {
+    margin: 0;
+  }
+
+  /* Type comes from the Text `quote`/`caption` roles; these rules own only color + layout. */
+  .text {
+    color: var(--foreground);
+    /* Honor authored newlines in the quote body; soft wraps still reflow. */
+    white-space: pre-line;
+  }
+
+  .attribution {
+    display: block;
+    margin-top: var(--space-2);
+    color: var(--muted-foreground);
+  }
+
+  /* The em-dash is decorative. CSS generated content IS in the accessibility tree (CSS accname
+     spec), so the `/ ""` alt-text suppresses it from assistive tech — the dash is seen, not read. */
+  .attribution::before {
+    content: "— " / "";
+  }
+}

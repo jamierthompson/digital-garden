@@ -1,0 +1,31 @@
+/* Deferred-media placeholder (figure/video). @layer components — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by the surrounding entry scope). */
+@layer components {
+  .figure {
+    margin: var(--space-6) 0;
+  }
+
+  /* `--placeholder-ratio` (set inline for fixed-ratio media, e.g. "16 / 9" for video) gives the
+     box a native CSS aspect-ratio; absent (variable-ratio images) it resolves to `auto` and
+     min-block-size is the height floor. */
+  .box {
+    display: grid;
+    place-items: center;
+    aspect-ratio: var(--placeholder-ratio, auto);
+    min-block-size: 8rem;
+    border-radius: var(--radius-md);
+    background: var(--accent-subtle);
+  }
+
+  /* Type comes from the Text `caption` role; these rules own only color + layout. */
+  /* The chip sits ON `.box`'s `--accent-subtle` plate, so it reads the foreground contrast-solved
+     FOR that surface — not `--muted-foreground` (solved against the base background). */
+  .label {
+    color: var(--accent-subtle-foreground);
+  }
+
+  .caption {
+    margin-top: var(--space-2);
+    color: var(--muted-foreground);
+    text-align: center;
+  }
+}

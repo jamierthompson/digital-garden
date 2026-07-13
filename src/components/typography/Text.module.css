@@ -34,4 +34,20 @@
     letter-spacing: var(--type-meta-tracking);
     line-height: var(--type-meta-leading);
   }
+
+  .text[data-variant="caption"] {
+    font-family: var(--type-caption-family);
+    font-size: var(--type-caption-size);
+    font-weight: var(--type-caption-weight);
+    letter-spacing: var(--type-caption-tracking);
+    line-height: var(--type-caption-leading);
+  }
+
+  .text[data-variant="quote"] {
+    font-family: var(--type-quote-family);
+    font-size: var(--type-quote-size);
+    font-weight: var(--type-quote-weight);
+    letter-spacing: var(--type-quote-tracking);
+    line-height: var(--type-quote-leading);
+  }
 }

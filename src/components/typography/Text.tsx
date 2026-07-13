@@ -6,14 +6,21 @@ import styles from "./Text.module.css";
  * The non-heading semantic type roles. Named `variant` on the prop (not `role`) so it can't
  * collide with the ARIA `role` attribute, which stays available as a passthrough.
  */
-export type TextVariant = "body" | "lead" | "label" | "meta";
+export type TextVariant =
+  | "body"
+  | "lead"
+  | "label"
+  | "meta"
+  | "caption"
+  | "quote";
 
 interface TextProps extends React.ComponentPropsWithRef<"p"> {
   /**
    * The semantic type role to apply — `body` (running copy, the default), `lead` (an intro /
-   * blurb, a notch larger than body), `label` (kickers / eyebrows / section labels), or `meta`
-   * (metadata, timestamps, mono readouts). Each applies that role's token bundle
-   * (`--type-{body,lead,label,meta}-*` in `semantic/type.css`).
+   * blurb, a notch larger than body), `label` (kickers / eyebrows / section labels), `meta`
+   * (metadata, timestamps, mono readouts), `caption` (small muted secondary prose — figure /
+   * video captions, a quote's attribution), or `quote` (a pull-quote's body). Each applies that
+   * role's token bundle (`--type-{role}-*` in `semantic/type.css`).
    */
   readonly variant?: TextVariant;
   /**

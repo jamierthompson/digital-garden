@@ -1,4 +1,4 @@
-import styles from "./EntryFigure.module.css";
+import MediaPlaceholder from "./MediaPlaceholder";
 
 interface FigureValue {
   alt?: string;
@@ -7,24 +7,21 @@ interface FigureValue {
 }
 
 /**
- * The typed `figure` editorial block.
+ * The typed `figure` editorial block — an editor-picked image with required alt + optional
+ * caption.
  *
- * The essay schema allows a `figure` (editor-picked image, required alt + optional caption),
- * so the serializer must handle the type to stay total — a `figure` must not crash the
- * render. Rather than stand up a Sanity image-URL builder before any project needs one (the
- * "name the destination, instantiate late" discipline), this renders the authored alt
- * + caption as a labelled placeholder. Var-consuming, themed by the surrounding scope.
+ * Rather than stand up a Sanity image-URL builder before any project needs one (the "name the
+ * destination, instantiate late" discipline), it renders the shared `MediaPlaceholder`: the
+ * `alt` names the box for assistive tech (a generic label otherwise), and the caption shows
+ * beneath in the `<figcaption>` — not doubled into the accessible name. An image has no fixed
+ * aspect ratio, so no `ratio` is passed.
  */
 export default function EntryFigure({ value }: { value: FigureValue }) {
-  const label = value.alt ?? value.caption ?? "Figure";
   return (
-    <figure className={styles.figure}>
-      <div className={styles.placeholder} role="img" aria-label={label}>
-        <span className={styles.placeholderText}>{label}</span>
-      </div>
-      {value.caption ? (
-        <figcaption className={styles.caption}>{value.caption}</figcaption>
-      ) : null}
-    </figure>
+    <MediaPlaceholder
+      labelCandidates={[value.alt]}
+      fallbackLabel="Figure"
+      caption={value.caption}
+    />
   );
 }

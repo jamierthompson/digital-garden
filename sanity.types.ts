@@ -15,6 +15,18 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: schema.json
+export type Quote = {
+  _type: "quote";
+  text?: string;
+  attribution?: string;
+};
+
+export type Video = {
+  _type: "video";
+  url?: string;
+  caption?: string;
+};
+
 export type SanityImageAssetReference = {
   _ref: string;
   _type: "reference";
@@ -46,7 +58,7 @@ export type PortableText = Array<
         _type: "span";
         _key: string;
       }>;
-      style?: "normal" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "blockquote";
+      style?: "normal" | "h2" | "h3";
       listItem?: "bullet" | "number";
       markDefs?: Array<{
         href?: string;
@@ -59,10 +71,16 @@ export type PortableText = Array<
     }
   | ({
       _key: string;
+    } & Figure)
+  | ({
+      _key: string;
+    } & Video)
+  | ({
+      _key: string;
     } & Slot)
   | ({
       _key: string;
-    } & Figure)
+    } & Quote)
 >;
 
 export type SiteSettings = {
@@ -238,6 +256,8 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
+  | Quote
+  | Video
   | SanityImageAssetReference
   | Figure
   | Slot

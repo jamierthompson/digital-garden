@@ -36,7 +36,11 @@ const FACE_SPEC = {
     generic: "sans-serif",
     roles: ["display", "title", "heading", "subheading", "label"],
   },
-  body: { leaf: "--font-body", generic: "serif", roles: ["lead", "body"] },
+  body: {
+    leaf: "--font-body",
+    generic: "serif",
+    roles: ["lead", "body", "caption", "quote"],
+  },
   mono: { leaf: "--font-mono", generic: "monospace", roles: ["meta"] },
 } as const;
 
@@ -328,11 +332,13 @@ describe("EntryScope role→face map mirrors semantic/type.css (QA #226 rework)"
   it("parses the full role set out of the sheet (false-green guard)", () => {
     expect(sheetBindings.map(({ role }) => role).sort()).toEqual([
       "body",
+      "caption",
       "display",
       "heading",
       "label",
       "lead",
       "meta",
+      "quote",
       "subheading",
       "title",
     ]);

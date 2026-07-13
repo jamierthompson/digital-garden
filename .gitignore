@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+# studio/.env.production holds only the PUBLIC prod preview origin (inlined into the
+# Studio bundle) — committed so `sanity deploy` never silently fails for a missing var (#193).
+!studio/.env.production
 
 # vercel
 .vercel
