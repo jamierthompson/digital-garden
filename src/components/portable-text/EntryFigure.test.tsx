@@ -40,4 +40,13 @@ describe("EntryFigure", () => {
     render(<EntryFigure value={{ alt: "", caption: "" }} />);
     expect(screen.getByRole("img", { name: "Figure" })).toBeInTheDocument();
   });
+
+  // Adapter contract: an image has no fixed aspect ratio, so the figure branch passes NO
+  // `ratio` — it must render the plain min-height box, never a Radix AspectRatio wrapper.
+  it("renders a variable-ratio box — no AspectRatio wrapper", () => {
+    const { container } = render(<EntryFigure value={{ alt: "A diagram" }} />);
+    expect(
+      container.querySelector("[data-radix-aspect-ratio-wrapper]"),
+    ).toBeNull();
+  });
 });

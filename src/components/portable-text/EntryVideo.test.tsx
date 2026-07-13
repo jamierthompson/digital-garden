@@ -56,4 +56,15 @@ describe("EntryVideo", () => {
     expect(container.querySelector("a, [href], [src]")).toBeNull();
     expect(container.innerHTML).not.toContain(hostile);
   });
+
+  // Adapter contract: the video branch is video-shaped NOW so the eventual embed lands
+  // without layout shift (#128) — a 16:9 Radix AspectRatio box (padding-bottom 56.25%).
+  it("holds the placeholder in a 16:9 AspectRatio box", () => {
+    const { container } = render(<EntryVideo value={{ caption: "A reel" }} />);
+    const wrapper = container.querySelector<HTMLElement>(
+      "[data-radix-aspect-ratio-wrapper]",
+    );
+    expect(wrapper).not.toBeNull();
+    expect(wrapper!.style.paddingBottom).toBe("56.25%");
+  });
 });

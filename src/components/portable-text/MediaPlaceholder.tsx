@@ -1,7 +1,7 @@
 import { AspectRatio } from "radix-ui";
 
 import styles from "./MediaPlaceholder.module.css";
-import { firstNonEmpty } from "./mediaLabel";
+import { firstNonEmpty, isNonBlank } from "./mediaLabel";
 
 interface MediaPlaceholderProps {
   /** Ordered label candidates; the first non-empty one names the box for assistive tech. */
@@ -33,7 +33,10 @@ export default function MediaPlaceholder({
   caption,
   ratio,
 }: MediaPlaceholderProps) {
-  const label = firstNonEmpty(labelCandidates, fallbackLabel);
+  // The fallback is checked like any candidate (an empty `fallbackLabel` must not sneak a blank
+  // name through), and a constant backstops even that — a `role="img"` can NEVER end up with a
+  // blank accessible name (WCAG 2.2 SC 1.1.1), whatever the caller passes.
+  const label = firstNonEmpty([...labelCandidates, fallbackLabel]) ?? "Media";
   const labelSpan = <span className={styles.label}>{label}</span>;
   return (
     <figure className={styles.figure}>
@@ -51,7 +54,7 @@ export default function MediaPlaceholder({
           {labelSpan}
         </div>
       )}
-      {caption ? (
+      {isNonBlank(caption) ? (
         <figcaption className={styles.caption}>{caption}</figcaption>
       ) : null}
     </figure>

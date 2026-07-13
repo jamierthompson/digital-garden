@@ -1,32 +1,42 @@
 import { describe, expect, it } from "vitest";
 
-import { firstNonEmpty } from "./mediaLabel";
+import { firstNonEmpty, isNonBlank } from "./mediaLabel";
+
+describe("isNonBlank", () => {
+  it("is true for a string with content", () => {
+    expect(isNonBlank("hello")).toBe(true);
+  });
+
+  it("is false for undefined", () => {
+    expect(isNonBlank(undefined)).toBe(false);
+  });
+
+  it("is false for an empty string", () => {
+    expect(isNonBlank("")).toBe(false);
+  });
+
+  it("is false for a whitespace-only string", () => {
+    expect(isNonBlank("   ")).toBe(false);
+  });
+});
 
 describe("firstNonEmpty", () => {
   it("returns the first candidate that has content", () => {
-    expect(firstNonEmpty(["alt text", "caption"], "Figure")).toBe("alt text");
+    expect(firstNonEmpty(["alt text", "caption"])).toBe("alt text");
   });
 
-  it("skips undefined candidates", () => {
-    expect(firstNonEmpty([undefined, "caption"], "Figure")).toBe("caption");
+  // The whole point of the guard: undefined, empty, and whitespace-only are all treated as
+  // absent, unlike `??` (which keeps `""`).
+  it("skips undefined, empty, and whitespace-only candidates", () => {
+    expect(firstNonEmpty([undefined, "", "   ", "real"])).toBe("real");
   });
 
-  // The whole point of the guard: an empty string is treated as absent, unlike `??`.
-  it("skips an empty-string candidate", () => {
-    expect(firstNonEmpty(["", "caption"], "Figure")).toBe("caption");
-  });
-
-  // A whitespace-only string is a blank accessible name too — also treated as absent.
-  it("skips a whitespace-only candidate", () => {
-    expect(firstNonEmpty(["   ", "caption"], "Figure")).toBe("caption");
-  });
-
-  it("falls back when every candidate is absent or empty", () => {
-    expect(firstNonEmpty([undefined, "", "  "], "Figure")).toBe("Figure");
-    expect(firstNonEmpty([], "Video")).toBe("Video");
+  it("returns undefined when every candidate is blank", () => {
+    expect(firstNonEmpty([undefined, "", "  "])).toBeUndefined();
+    expect(firstNonEmpty([])).toBeUndefined();
   });
 
   it("preserves the original (untrimmed) content when a candidate qualifies", () => {
-    expect(firstNonEmpty(["  padded  "], "Figure")).toBe("  padded  ");
+    expect(firstNonEmpty(["  padded  "])).toBe("  padded  ");
   });
 });
