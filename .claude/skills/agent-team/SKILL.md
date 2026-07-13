@@ -60,6 +60,30 @@ If it's unset, stop and tell the user — spawning will silently do nothing othe
 
 ---
 
+## The lead stays a director, not a coder (owner's standing preference)
+
+**The owner's working identity is "I direct what we build; the agent writes the code"**
+(`preferences.md`). Honor it literally: **you — Claude #1, the owner's conversation partner — do
+not write the feature code.** Even when the Preflight test says the work would fit a single
+session (small, same-file, sequential), delegate the implementation to **one coder teammate** in
+its own context window, and its adversarial check to a **fresh QA teammate** in another. You
+brief, monitor, curate, run the gate to verify, and think alongside the owner — you don't author.
+
+**Why this overrides the token-cost right-sizing above.** The point isn't parallelism — it's
+keeping _your_ context clean and **interruptible**. The owner stays in the loop and asks
+architecture questions mid-flight; a lead buried in implementation state has to drop and reload it
+on every question. A lead that never authors is always ready to reason about the system. The
+separation is the deliverable, and one extra agent is a price worth paying for it — so for
+**coding work the floor is lead + one coder (+ QA), never the lead authoring solo.** (This is the
+concrete, up-front form of "if the lead starts doing the work instead of delegating, stop," below.)
+
+**What the lead still does directly:** the non-authoring mechanics — git curation, running the
+gate to verify a slice, and quick reads to answer the owner — none of which bury the context the
+way writing a feature does. (Research/review/debug fan-out is unchanged; this rule is about not
+sitting in the _implementation_ seat.)
+
+---
+
 ## The universal mechanics (apply to every mode)
 
 These hold no matter which mode you pick. The mode reference adds the mode-specific recipe on top.
