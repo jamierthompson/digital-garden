@@ -54,8 +54,6 @@
     --type-caption-tracking: var(--tracking-normal);
     --type-caption-leading: var(--leading-normal);
 
-    /* A pull-quote's body is its OWN role, not a `lead`: they merely share a size, so binding a
-       quote to `lead` would retune every quote whenever the lead role changes. */
     --type-quote-family: var(--font-body);
     --type-quote-size: var(--type-size-4);
     --type-quote-weight: var(--font-weight-normal);
