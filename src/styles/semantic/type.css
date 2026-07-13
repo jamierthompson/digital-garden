@@ -1,5 +1,13 @@
 @layer base {
-  :root {
+  /*
+   * Declared at BOTH scopes on purpose. A custom property substitutes its var() refs at the
+   * element that DECLARES it (css-variables-1, "Substituting a var()"), so a :root-only bundle freezes to :root's
+   * --font-* faces and a themed slot's override of a leaf never re-enters it. Listing the slot
+   * scope here re-runs substitution against the leaves stamped on that element — same
+   * declarations, both scopes, so the role→face mapping has exactly one home.
+   */
+  :root,
+  :where([data-entry]) {
     --type-display-family: var(--font-heading);
     --type-display-size: var(--type-size-8);
     --type-display-weight: var(--font-weight-semibold);

@@ -60,6 +60,37 @@ describe("--type-size ramp IS @garden/type's default scale", () => {
   });
 });
 
+describe("the role bundles are declared at BOTH scopes (:root + the entry slot)", () => {
+  // A custom property substitutes its var() refs at the element that DECLARES it
+  // (css-variables-1, "Substituting a var()"), so a :root-only `--type-<role>-family` freezes to the site face and
+  // a slot's `--font-*` override never re-enters it. The sheet therefore declares the bundles
+  // under a selector list that ALSO matches the slot element — one set of declarations, two
+  // scopes. jsdom can't compute cascaded custom properties, so this receipt parses the selector;
+  // regressing it to :root-only would silently strand themed slots on the site faces.
+  it("the rule declaring the bundles matches :root AND [data-entry]", () => {
+    const sheet = read("src/styles/semantic/type.css").replace(
+      /\/\*[\s\S]*?\*\//g,
+      "",
+    );
+    const rule = sheet.match(/([^{}]+)\{[^{}]*--type-body-family/);
+    expect(rule).not.toBeNull();
+    const selector = rule![1].replace(/\s+/g, " ").trim();
+    expect(selector).toContain(":root");
+    expect(selector).toContain(":where([data-entry])");
+  });
+
+  it("every --type-* bundle lives in that ONE rule (no second, :root-only block)", () => {
+    const sheet = read("src/styles/semantic/type.css").replace(
+      /\/\*[\s\S]*?\*\//g,
+      "",
+    );
+    const blocksWithTypeTokens = [
+      ...sheet.matchAll(/[^{}]+\{[^{}]*--type-[a-z]/g),
+    ];
+    expect(blocksWithTypeTokens).toHaveLength(1);
+  });
+});
+
 describe("semantic role layer binds to the ramp", () => {
   const ROLES = [
     "display",

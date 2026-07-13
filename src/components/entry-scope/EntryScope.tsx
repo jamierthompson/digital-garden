@@ -11,39 +11,22 @@ interface EntryScopeProps {
   children: ReactNode;
 }
 
-// Each themeable face → the leaf `--font-*` token it re-binds, the CSS generic that TAILS that
-// leaf, and every `--type-<role>-family` bundle that maps to it. This is the ONE place the
-// role→face mapping lives; `:root` in `type.css` declares the same mapping as the site default.
+// Each themeable face → the leaf `--font-*` token it re-binds and the CSS generic that TAILS
+// that leaf. Which type roles wear which face is NOT known here — that mapping lives solely in
+// `semantic/type.css`, whose role bundles are declared at both `:root` and the slot scope and
+// re-substitute against these leaves.
 //
 // The generic keyword is the ONLY fallback appended to the leaf: never the site palette face
 // (that would hardcode the palette this slot must stay decoupled from) and never a self-referential
-// `var(--font-<face>)` (a CSS cycle → the whole declaration is dropped). A role bundle's value is
-// `var(--font-<face>)`, referencing the leaf co-declared on this same element — so the generic
-// fallback stays declared once, on the leaf.
+// `var(--font-<face>)` (a CSS cycle → the whole declaration is dropped).
 const FACE_BINDINGS = [
-  {
-    face: "heading",
-    leaf: "--font-heading",
-    generic: "sans-serif",
-    roles: ["display", "title", "heading", "subheading", "label"],
-  },
-  {
-    face: "body",
-    leaf: "--font-body",
-    generic: "serif",
-    roles: ["lead", "body", "caption", "quote"],
-  },
-  {
-    face: "mono",
-    leaf: "--font-mono",
-    generic: "monospace",
-    roles: ["meta"],
-  },
+  { face: "heading", leaf: "--font-heading", generic: "sans-serif" },
+  { face: "body", leaf: "--font-body", generic: "serif" },
+  { face: "mono", leaf: "--font-mono", generic: "monospace" },
 ] as const satisfies ReadonlyArray<{
   face: keyof ScopeFaces;
   leaf: string;
   generic: string;
-  roles: ReadonlyArray<string>;
 }>;
 
 /**
@@ -52,30 +35,22 @@ const FACE_BINDINGS = [
  *
  * Color is NOT re-bound here: the page stamps its authored seed on `<html>` (see `PageTheme`),
  * and the slot inherits every color token from it — the page and its slot are one seed. The only
- * per-slot overrides are the fonts. For each RESOLVED face this stamps TWO channels of solved
- * values inline on the wrapper (alongside the face's `.variable` class, which brings
- * `var(<cssVariable>)` into scope):
+ * per-slot overrides are the fonts. For each RESOLVED face this stamps ONE thing inline on the
+ * wrapper: the **leaf** `--font-heading` / `--font-body` / `--font-mono` token (alongside the
+ * face's `.variable` class, which brings `var(<cssVariable>)` into scope).
  *
- *   1. The **leaf** `--font-heading` / `--font-body` / `--font-mono` token. The role bundles
- *      (channel 2) resolve against these leaves via `var(--font-<face>)`; two are ALSO consumed
- *      directly at the element level — `--font-heading` by `reset.css`'s `h1–h6` rule, and
- *      `--font-mono` by component modules that read `var(--font-mono)`. Each substitutes at its
- *      own element.
- *   2. Every **`--type-<role>-family` bundle** mapped to that face, read by the typography
- *      primitives (`Heading`/`Text`). The value is `var(--font-<face>)`, resolving against the
- *      leaf co-declared on this same element.
+ * The `--type-<role>-family` bundles the typography primitives read are NOT stamped here — the
+ * role→face mapping lives solely in `semantic/type.css`, whose bundles are declared at both
+ * `:root` and the slot scope. A custom property substitutes its `var()` refs at the element that
+ * DECLARES it, so the sheet's slot-scope declarations re-substitute against the leaves stamped
+ * on this element; only the per-entry face VALUES vary, and they are all this component emits.
+ * Two leaves are ALSO consumed directly at the element level — `--font-heading` by `reset.css`'s
+ * `h1–h6` rule, and `--font-mono` by component modules that read `var(--font-mono)`.
  *
- * Both channels carry solved values from TS — there is NO CSS re-derivation. `:root` in `type.css`
- * declares the site-default role→face mapping; this slot restates the theme's faces onto the same
- * two channels so both element rules and primitives wear the entry's face. (A custom property
- * substitutes its `var()` refs at the element that DECLARES it, so a `:root`-only `--type-*-family`
- * binding freezes to the site face there and a `[data-entry]` `--font-*` override never re-enters
- * it — restamping the bundle here is what lets the primitive see the slot's face.)
- *
- * A face whose key was absent or unresolvable emits NOTHING — not its leaf, not its role bundles,
- * not its class — so every role mapped to it inherits `:root`'s editorial face. Inline on a
- * server-rendered div → the values are in the initial shell HTML (flash-free) and per-element, so
- * distinct slots can never collide.
+ * A face whose key was absent or unresolvable emits NOTHING — not its leaf, not its class — so
+ * the sheet's slot-scope bundles resolve against the inherited `:root` leaf and every role mapped
+ * to it keeps the editorial face. Inline on a server-rendered div → the values are in the initial
+ * shell HTML (flash-free) and per-element, so distinct slots can never collide.
  *
  * Defensive by construction: `resolveScope` never throws — it collapses any bad seed to a safe
  * slug + an empty face set (every role inherits `:root`). It is ALSO wrapped at the route in
@@ -90,14 +65,11 @@ export default function EntryScope({ seed, children }: EntryScopeProps) {
 
   const style: Record<string, string> = {};
   const classNames: string[] = [];
-  for (const { face, leaf, generic, roles } of FACE_BINDINGS) {
+  for (const { face, leaf, generic } of FACE_BINDINGS) {
     const resolved = scope.faces[face];
     if (!resolved) continue;
     style[leaf] = `var(${resolved.cssVariable}), ${generic}`;
     classNames.push(resolved.variable);
-    for (const role of roles) {
-      style[`--type-${role}-family`] = `var(${leaf})`;
-    }
   }
 
   return (
