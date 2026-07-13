@@ -60,6 +60,43 @@ describe("--type-size ramp IS @garden/type's default scale", () => {
   });
 });
 
+describe("the role bundles are declared at BOTH scopes (:root + the entry slot)", () => {
+  // A custom property substitutes its var() refs at the element that DECLARES it
+  // (css-variables-1, "Substituting a var()"), so a :root-only `--type-<role>-family` freezes to the site face and
+  // a slot's `--font-*` override never re-enters it. The sheet therefore declares the bundles
+  // under a selector list that ALSO matches the slot element — one set of declarations, two
+  // scopes. jsdom can't compute cascaded custom properties, so this receipt parses the selector;
+  // regressing it to :root-only would silently strand themed slots on the site faces.
+  // Assert `:root` and `:where([data-entry])` as COMPLETE members of the comma-separated
+  // selector list — not substrings of it. Substring containment can't tell the list from a
+  // descendant combinator (`:root :where([data-entry])`, a dropped comma), which matches slots
+  // but NOT `:root` itself, stranding the site scope of every `--type-*` bundle while a
+  // substring receipt stays green (QA #262). A dropped comma collapses the split to the single
+  // member `:root:where([data-entry])`, which is neither — so it fails here.
+  it("declares the bundles as a selector LIST containing :root and :where([data-entry])", () => {
+    const sheet = read("src/styles/semantic/type.css").replace(
+      /\/\*[\s\S]*?\*\//g,
+      "",
+    );
+    const rule = sheet.match(/([^{}]+)\{[^{}]*--type-body-family/);
+    expect(rule).not.toBeNull();
+    const members = rule![1].split(",").map((s) => s.replace(/\s+/g, ""));
+    expect(members).toContain(":root");
+    expect(members).toContain(":where([data-entry])");
+  });
+
+  it("every --type-* bundle lives in that ONE rule (no second, :root-only block)", () => {
+    const sheet = read("src/styles/semantic/type.css").replace(
+      /\/\*[\s\S]*?\*\//g,
+      "",
+    );
+    const blocksWithTypeTokens = [
+      ...sheet.matchAll(/[^{}]+\{[^{}]*--type-[a-z]/g),
+    ];
+    expect(blocksWithTypeTokens).toHaveLength(1);
+  });
+});
+
 describe("semantic role layer binds to the ramp", () => {
   const ROLES = [
     "display",

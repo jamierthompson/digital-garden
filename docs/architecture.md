@@ -162,11 +162,12 @@ global :root  (foundation primitives + the semantic NEUTRAL FALLBACK)
    │        chrome (nav · headers · prose · shell) + slots ALL inherit this one write — one imperative
    │        node, so it can't collide across the routes <Activity> keeps mounted at once (#168)
           │ and inside a themed entry, each bounded slot re-binds ONLY its fonts ↓
-[data-entry="<slug>" style="--font-heading:… --font-body:… --font-mono:…  --type-<role>-family:…"]  font slot
-   │        per-face overrides stamped in TS by EntryScope, per RESOLVED face: the leaf --font-*
-   │        tokens (element rules read them) AND every --type-<role>-family bundle mapped to that face
-   │        (the type primitives read them) — solved values, no CSS re-derivation. An unset face
-   │        stamps NEITHER channel and inherits :root. A page mounts one (the after-prose slot)
+[data-entry="<slug>" style="--font-heading:… --font-body:… --font-mono:…"]  font slot
+   │        per-face leaf overrides stamped in TS by EntryScope, per RESOLVED face. The
+   │        --type-<role>-family bundles the type primitives read are declared ONCE in
+   │        semantic/type.css under `:root, :where([data-entry])`, so they re-substitute against
+   │        these leaves inside the slot. An unset face stamps nothing and inherits :root. A page
+   │        mounts one (the after-prose slot)
    │        or MANY (slots interleaved through the prose); each is per-element, so distinct slots never
    │        collide. Color is inherited from <html>; only the resolved font roles are overridden here.
           │ themes downward, within the slot ↓
@@ -837,7 +838,8 @@ Mapped onto the layers:
 - **Slot fonts** → nothing declares its own `next/font`; content reads the role tokens
   (`--font-heading` / `--font-body` / `--font-mono`), which the slot fills from the resolved faces (or
   inherits from `:root` when a role is unset). The type primitives (`Heading` / `Text`) carry the entry
-  faces via the `--type-*-family` bundles the slot stamps, and `reset.css`'s `h1–h6` rule carries
+  faces via the `--type-*-family` bundles — declared once in `semantic/type.css` at both `:root` and
+  the slot scope, re-substituting against the slot's leaves — and `reset.css`'s `h1–h6` rule carries
   `--font-heading`. There is **no** `[data-entry]` body baseline rule: every slot descendant is a
   primitive that self-sets `font-family` from a bundle, so plain non-primitive slot text inherits the
   site body face. Mono likewise has no reset rule — a slot's mono face reaches text only through
@@ -955,12 +957,14 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   `cardSwatches`) and keeps the front-door payload small for CWV.
 - **`EntryScope` is the font-slot keystone.** One server component takes a scope's `slug` + up to
   three font keys (sourced from the entry's `theme.headingFont` / `bodyFont` / `monoFont`) and emits
-  the `[data-entry]` wrapper stamping, per resolved face, TWO channels of solved values inline plus
-  that face's `.variable` class, flash-free in the initial HTML: the leaf role token
-  (`--font-heading` / `--font-body` / `--font-mono`), read by the element-level rules in `reset.css`,
-  AND every `--type-<role>-family` bundle mapped to that face, read by the type primitives
-  (`Heading` / `Text`). The role→face mapping lives in TS (mirrored by `:root` in `semantic/type.css`
-  as the site default); there is no CSS re-derivation of the family bundles inside the slot. It
+  the `[data-entry]` wrapper stamping, per resolved face, ONE solved value inline plus that face's
+  `.variable` class, flash-free in the initial HTML: the leaf face token (`--font-heading` /
+  `--font-body` / `--font-mono`). The role→face mapping — which `--type-<role>-family` bundles read
+  which leaf — lives **solely in `semantic/type.css`**, whose bundles are declared under one
+  selector list matching both `:root` (the site default) and `[data-entry]` (the slot): a custom
+  property substitutes its `var()` refs at the element that declares it, so the same declarations
+  freeze to the site faces at the root and re-substitute against the slot's stamped leaves inside
+  the slot. TS never learns role names; the sheet never learns per-entry values. It
   wraps a themed entry's **interactive slot(s)** (and any homepage slot `siteSettings` seeds), not the
   page chrome. Color is NOT re-bound here — the slot inherits every color token from the page's
   `<html>` theme. It is **defensive** — an unset or unresolvable face emits no override for that role
