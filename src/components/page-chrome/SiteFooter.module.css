@@ -9,8 +9,8 @@
     margin-top: auto;
   }
 
-  /* The row wears the `meta` type role (mono, muted, wider tracking); this rule owns only layout
-     + color. Its inline padding is the page gutter, aligning to the nav and page frames. */
+  /* The row wears the `meta` type role; this rule owns only layout + color. Its inline padding is
+     the page gutter. */
   .inner {
     display: flex;
     align-items: baseline;

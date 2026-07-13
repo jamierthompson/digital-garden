@@ -13,9 +13,7 @@ import styles from "./SiteNav.module.css";
  * `--font-heading`) and mounts the small Client `NavLinks` leaf for the current-page indicator.
  * Var-consuming only. Most chrome reads the editorial semantic tokens (`--font-mono`, `--foreground`,
  * `--border`); the signature marks — the wordmark, its cursor, and the masthead hairline — read the
- * page-accent tokens (`--accent-text`, `--accent`), which the page's own `<html>` theme re-binds, so
- * the masthead picks up each page's accent. The shell itself is never theme-scoped: the accent
- * arrives through the page root, not a shell-local scope.
+ * page-accent tokens (`--accent-text`, `--accent`). It carries no theme scope of its own.
  */
 export default function SiteNav() {
   return (

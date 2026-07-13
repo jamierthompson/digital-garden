@@ -61,9 +61,8 @@ describe("SiteNav", () => {
     ).toBeNull();
   });
 
-  // QA #261 — the byline/dateline migrated onto `<Text variant="meta">`. `Text` renders a
-  // <p> by default, so the byline must STAY a paragraph (never become a heading via the
-  // migration), and the decorative dateline must keep its `aria-hidden` passthrough.
+  // The byline/dateline wear the `meta` role through `Text`, which renders a <p>: the byline
+  // stays a paragraph, and the decorative dateline keeps its aria-hidden passthrough.
   it("keeps the byline a paragraph after the meta-role migration", () => {
     render(<SiteNav />);
     const byline = screen.getByText(

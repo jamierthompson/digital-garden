@@ -184,9 +184,8 @@ describe("RelatedEntries", () => {
     expect(ids.every(Boolean)).toBe(true);
   });
 
-  // QA #261 — the "Related" heading migrated onto `<Heading level={2} variant="label">`.
-  // The `label` variant restyles it as a kicker but must NOT move it in the outline: it stays
-  // a real <h2>, and its `id`/`aria-labelledby` wiring (asserted elsewhere) stays intact.
+  // The `label` variant styles the "Related" heading as a kicker but must not move it in the
+  // outline: it stays a real <h2>, and its `id`/`aria-labelledby` wiring stays intact.
   it("renders 'Related' as a real level-2 heading (label variant styles type, not outline)", () => {
     render(
       <RelatedEntries
@@ -197,7 +196,6 @@ describe("RelatedEntries", () => {
     );
     const heading = screen.getByRole("heading", { level: 2, name: /related/i });
     expect(heading.tagName).toBe("H2");
-    // The section's aria-labelledby must still point at this heading's id.
     const section = heading.closest("section");
     expect(section).toHaveAttribute("aria-labelledby", heading.id);
     expect(heading.id).not.toBe("");

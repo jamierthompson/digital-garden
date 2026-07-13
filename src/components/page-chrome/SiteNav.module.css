@@ -3,8 +3,7 @@
    editorial semantic tokens (the shell is never theme-scoped). */
 @layer components {
   .header {
-    /* The signature journal rule: a heavy hairline under the masthead, filled with the page's
-       theme accent (like the wordmark) — the page `<html>` theme re-binds `--accent`. */
+    /* The signature journal rule: a heavy accent hairline under the masthead. */
     border-bottom: var(--border-width-thick) solid var(--accent);
   }
 
@@ -25,8 +24,8 @@
     padding: var(--space-2) var(--space-gutter);
   }
 
-  /* Byline + dateline wear the `meta` type role (mono, muted, wider tracking); these rules own
-     only color (+ the dateline's no-wrap). */
+  /* Byline + dateline wear the `meta` type role; these rules own only color (+ the dateline's
+     no-wrap). */
   .byline {
     color: var(--muted-foreground);
   }
@@ -46,8 +45,7 @@
     padding: var(--space-4) var(--space-gutter);
   }
 
-  /* The wordmark is a brand mark, not a type role — it keeps its authored foundation faces. Its
-     color reads `--accent-text`, so the page's `<html>` theme fills it with that page's accent. */
+  /* The wordmark is a brand mark, not a type role — it keeps its authored foundation faces. */
   .wordmark {
     font-family: var(--font-heading);
     font-weight: var(--font-weight-bold);
@@ -57,9 +55,8 @@
     text-decoration: none;
   }
 
-  /* The trailing `_` of `folio_` — a blinking-cursor nod. Reads `--accent` (the wordmark's hue at
-     lower contrast) so it follows the page theme yet stays dimmed against the `--accent-text` mark;
-     aria-hidden decorative, so no text-contrast floor applies. */
+  /* The trailing `_` of `folio_` — a blinking-cursor nod; aria-hidden decorative, so no
+     text-contrast floor applies. */
   .cursor {
     color: var(--accent);
   }
@@ -88,9 +85,8 @@
     min-height: var(--size-control);
     min-width: var(--size-control);
     padding-block: var(--space-2);
-    /* Journal nav: Space Grotesk, lowercase. Keeps its authored foundation faces on purpose —
-       no semantic type role carries this size-3/medium register. A transparent 2px underline is
-       reserved so the active state (below) doesn't shift the row. */
+    /* Journal nav, lowercase: a deliberate one-off register, kept on authored foundation values.
+       A transparent 2px underline is reserved so the active state (below) doesn't shift the row. */
     font-family: var(--font-heading);
     font-size: var(--type-size-3);
     font-weight: var(--font-weight-medium);
