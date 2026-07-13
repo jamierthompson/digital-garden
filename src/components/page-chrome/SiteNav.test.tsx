@@ -60,6 +60,25 @@ describe("SiteNav", () => {
       }),
     ).toBeNull();
   });
+
+  // QA #261 — the byline/dateline migrated onto `<Text variant="meta">`. `Text` renders a
+  // <p> by default, so the byline must STAY a paragraph (never become a heading via the
+  // migration), and the decorative dateline must keep its `aria-hidden` passthrough.
+  it("keeps the byline a paragraph after the meta-role migration", () => {
+    render(<SiteNav />);
+    const byline = screen.getByText(
+      /the design-engineering garden of jamie thompson/i,
+    );
+    expect(byline.tagName).toBe("P");
+  });
+
+  it("keeps the decorative dateline hidden from assistive tech (aria-hidden passthrough)", () => {
+    render(<SiteNav />);
+    const dateline = screen.getByText(/est\. 2026/i);
+    expect(dateline).toHaveAttribute("aria-hidden", "true");
+    // Belt-and-braces: it must not be exposed as any accessible role/text either.
+    expect(screen.queryByRole("heading", { name: /est\. 2026/i })).toBeNull();
+  });
 });
 
 /**

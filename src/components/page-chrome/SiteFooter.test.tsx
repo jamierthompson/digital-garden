@@ -40,4 +40,29 @@ describe("SiteFooter", () => {
     );
     expect(css).toMatch(/min-block-size:\s*var\(--size-control\)/);
   });
+
+  // QA #261 — the meta-role row migrated onto `<Text variant="meta" asChild>` wrapping the
+  // inner <div>. Radix Slot must merge the role onto that div WITHOUT swallowing it or the
+  // client `HoverPrefetchLink` inside: the contentinfo still exposes the copyright and the
+  // browse link, and the role lands via `data-variant="meta"` on the merged element.
+  it("keeps the copyright + browse link inside contentinfo after the asChild merge", () => {
+    render(<SiteFooter />);
+    const footer = screen.getByRole("contentinfo");
+    const year = new Date().getFullYear();
+    expect(footer).toHaveTextContent(
+      new RegExp(`©\\s*${year}\\s+Jamie Thompson`),
+    );
+    const link = screen.getByRole("link", { name: /browse everything/i });
+    expect(footer).toContainElement(link);
+  });
+
+  it("merges the meta role onto the inner row (data-variant present, div preserved)", () => {
+    render(<SiteFooter />);
+    const row = screen
+      .getByText(/© \d{4} Jamie Thompson/)
+      .closest("[data-variant]");
+    expect(row).not.toBeNull();
+    expect(row).toHaveAttribute("data-variant", "meta");
+    expect(row?.tagName).toBe("DIV");
+  });
 });

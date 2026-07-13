@@ -99,4 +99,35 @@ describe("SlotBlock", () => {
     );
     expect(container.querySelector("figcaption")).toBeNull();
   });
+
+  // QA #261 — an emptied-then-saved caption round-trips as "" (falsy). The `caption ? …`
+  // guard must drop it, so the semantic-role migration never emits an empty <figcaption>
+  // wearing the caption role.
+  it("renders no figcaption for an empty-string caption", async () => {
+    const { container } = render(
+      await SlotBlock({
+        slotKey: "color-engine-seed",
+        caption: "",
+        scope: SCOPE,
+      }),
+    );
+    expect(container.querySelector("figcaption")).toBeNull();
+  });
+
+  // QA #261 — the caption now renders through `<Text variant="caption" asChild>`. Radix
+  // Slot must merge the role onto the SAME figcaption element (not wrap or replace it):
+  // the element stays a <figcaption> AND carries the `data-variant="caption"` the role CSS
+  // selects on. If either were lost the caption would silently drop its type role.
+  it("wears the caption role on the figcaption itself (asChild Slot merge intact)", async () => {
+    render(
+      await SlotBlock({
+        slotKey: "color-engine-seed",
+        caption: "A caption in the essay voice",
+        scope: SCOPE,
+      }),
+    );
+    const caption = screen.getByText("A caption in the essay voice");
+    expect(caption.tagName).toBe("FIGCAPTION");
+    expect(caption).toHaveAttribute("data-variant", "caption");
+  });
 });
