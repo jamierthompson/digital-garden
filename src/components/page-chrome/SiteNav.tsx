@@ -11,9 +11,11 @@ import styles from "./SiteNav.module.css";
  *
  * A Server Component: it renders a masthead tagline band, the `folio_` logo (Space Grotesk via
  * `--font-heading`) and mounts the small Client `NavLinks` leaf for the current-page indicator.
- * Var-consuming only: reads the global editorial semantic tokens (`--font-heading`, `--font-mono`,
- * `--foreground`, `--border`). The shell is never theme-scoped — editorial chrome is global; a
- * project's the theme is scoped to its own interactive slot.
+ * Var-consuming only. Most chrome reads the editorial semantic tokens (`--font-mono`, `--foreground`,
+ * `--border`); the signature marks — the wordmark, its cursor, and the masthead hairline — read the
+ * page-accent tokens (`--accent-text`, `--accent`), which the page's own `<html>` theme re-binds, so
+ * the masthead picks up each page's accent. The shell itself is never theme-scoped: the accent
+ * arrives through the page root, not a shell-local scope.
  */
 export default function SiteNav() {
   return (

@@ -3,8 +3,9 @@
    editorial semantic tokens (the shell is never theme-scoped). */
 @layer components {
   .header {
-    /* The signature journal rule: a heavy ink hairline under the masthead. */
-    border-bottom: var(--border-width-thick) solid var(--foreground);
+    /* The signature journal rule: a heavy hairline under the masthead, filled with the page's
+       theme accent (like the wordmark) — the page `<html>` theme re-binds `--accent`. */
+    border-bottom: var(--border-width-thick) solid var(--accent);
   }
 
   /* The masthead byline band above the nav — full-bleed 1px hairline; its inner row aligns to
@@ -45,18 +46,22 @@
     padding: var(--space-4) var(--space-gutter);
   }
 
+  /* The wordmark is a brand mark, not a type role — it keeps its authored foundation faces. Its
+     color reads `--accent-text`, so the page's `<html>` theme fills it with that page's accent. */
   .wordmark {
     font-family: var(--font-heading);
     font-weight: var(--font-weight-bold);
     font-size: var(--type-size-6);
     letter-spacing: var(--tracking-tight);
-    color: var(--foreground);
+    color: var(--accent-text);
     text-decoration: none;
   }
 
-  /* The trailing `_` of `folio_` — a muted blinking-cursor nod, dimmed against the wordmark. */
+  /* The trailing `_` of `folio_` — a blinking-cursor nod. Reads `--accent` (the wordmark's hue at
+     lower contrast) so it follows the page theme yet stays dimmed against the `--accent-text` mark;
+     aria-hidden decorative, so no text-contrast floor applies. */
   .cursor {
-    color: var(--muted-foreground);
+    color: var(--accent);
   }
 
   /* Right cluster — the primary links and the scheme toggle share the nav's right side. */
