@@ -1,0 +1,35 @@
+/* Real video embed (iframe / native file). @layer components — declares its layer (an unlayered
+   module would outrank every layered rule); var-consuming only (themed by the surrounding entry
+   scope). */
+@layer components {
+  .figure {
+    margin: var(--space-6) 0;
+  }
+
+  /* Fixed 16:9 box so the embed reserves its space before load — no layout shift. The embed fills
+     it absolutely; the `--accent-subtle` plate shows through while the media loads and behind any
+     letterbox bars, matching the placeholder that occupies the same box on the fallback path. */
+  .frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--accent-subtle);
+  }
+
+  .embed {
+    position: absolute;
+    inset: 0;
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    border: 0;
+    object-fit: contain;
+  }
+
+  /* Type + ink come from the Text `caption` role and its `color` prop; this rule owns only layout. */
+  .caption {
+    margin-top: var(--space-2);
+    text-align: center;
+  }
+}

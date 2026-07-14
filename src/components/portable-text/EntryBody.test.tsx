@@ -99,7 +99,7 @@ describe("EntryBody", () => {
       {
         _type: "video",
         _key: "v1",
-        url: "https://example.com/v.mp4",
+        url: "https://cdn.sanity.io/files/p/d/v.mp4",
         caption: "A clip",
       },
     ] as unknown as Body;
@@ -113,10 +113,16 @@ describe("EntryBody", () => {
       expect(screen.getByText("Someone").closest("figcaption")).not.toBeNull();
     });
 
-    it("routes a video block to its captioned placeholder", () => {
+    it("routes a video block to its captioned embed", () => {
       captured.length = 0;
-      render(<EntryBody value={MEDIA_BODY} scope={SCOPE} />);
-      expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
+      const { container } = render(
+        <EntryBody value={MEDIA_BODY} scope={SCOPE} />,
+      );
+      const video = container.querySelector("video");
+      expect(video?.getAttribute("src")).toBe(
+        "https://cdn.sanity.io/files/p/d/v.mp4",
+      );
+      expect(video?.getAttribute("aria-label")).toBe("A clip");
       expect(screen.getByText("A clip").closest("figcaption")).not.toBeNull();
     });
 
@@ -145,7 +151,7 @@ describe("EntryBody", () => {
         {
           _type: "video",
           _key: "v1",
-          url: "https://ex.com/v.mp4",
+          url: "https://cdn.sanity.io/files/p/d/reel.mp4",
           caption: "Clip",
         },
         { _type: "slot", _key: "e1", slotKey: "color-engine-seed" },
@@ -159,7 +165,9 @@ describe("EntryBody", () => {
       ).not.toThrow();
       expect(screen.getByText("Editorial prose.")).toBeInTheDocument();
       expect(screen.getByRole("img", { name: "A figure" })).toBeInTheDocument();
-      expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
+      expect(document.querySelector("video")?.getAttribute("src")).toBe(
+        "https://cdn.sanity.io/files/p/d/reel.mp4",
+      );
       expect(screen.getByText("Clip").closest("figcaption")).not.toBeNull();
       expect(screen.getByText("Quoted.").closest("blockquote")).not.toBeNull();
       expect(screen.getByTestId("slot")).toHaveAttribute(

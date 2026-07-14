@@ -3,10 +3,11 @@ import {defineField, defineType} from 'sanity'
 /**
  * Video block — a referenced video, authored as a URL plus an optional caption.
  *
- * A typed editorial media block, sibling to `figure`. Like the figure placeholder, the
- * serializer renders a labelled placeholder + caption rather than standing up a
- * provider/embed pipeline before a project needs one (the "name the destination,
- * instantiate late" discipline; a real embed is deferred — see #263).
+ * A typed editorial media block, sibling to `figure`. The serializer resolves the URL through a
+ * security-critical allow-list (this field is validated here, but a raw Content Lake write can
+ * bypass that): a provider URL renders an iframe embed, a hosted media file a native `<video>`,
+ * and anything failing the checks the labelled placeholder — the URL never reaches a `src`
+ * unvalidated (#263).
  */
 export const video = defineType({
   name: 'video',
