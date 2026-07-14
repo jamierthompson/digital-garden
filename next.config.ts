@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
     // NATIVE function, which DOES follow the `color-scheme` property (live + flash-free),
     // at the cost of dropping the polyfill for pre-Baseline-2024 browsers without native
     // `light-dark()`. Documented knob (Next 16.2+, applies to Turbopack): useLightningcss.md.
+    // The dev server's "has no effect without useLightningcss" warning is a FALSE POSITIVE:
+    // its config load doesn't identify the bundler, so the warning's Turbopack exemption never
+    // matches. Do not remove this option on that warning's account — a production build
+    // without it re-emits the polyfill (verified against next@16.2.9).
     lightningCssFeatures: {
       exclude: ["light-dark"],
     },
