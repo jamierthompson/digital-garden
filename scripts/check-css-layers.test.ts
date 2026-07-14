@@ -359,6 +359,91 @@ describe("check-css-layers.mjs — file discovery & scope", () => {
   });
 });
 
+// #257: within the single `base` layer the winner is decided by SHEET IMPORT ORDER, not tier,
+// so two base sheets that set the same (selector, property) are one reorder from silently
+// flipping. These pin that cross-sheet collisions fail while the legitimate patterns (different
+// properties on a shared `:root`, same-file duplicates, the components layer) stay green.
+describe("check-css-layers.mjs — base-layer cross-sheet property disjointness (#257)", () => {
+  it("FAILS when two base sheets set the same property on the same selector", () => {
+    const { status, stderr } = run({
+      "styles/foundation/a.css": "@layer base { :root { --x: 1; } }\n",
+      "styles/semantic/b.css": "@layer base { :root { --x: 2; } }\n",
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/property collision across sheets/);
+    // Names both offending sheets and the colliding (selector, property).
+    expect(stderr).toMatch(/":root" \{ --x \}/);
+    expect(stderr).toMatch(/styles\/foundation\/a\.css/);
+    expect(stderr).toMatch(/styles\/semantic\/b\.css/);
+  });
+
+  it("PASSES two base sheets that set DIFFERENT properties on a shared :root (the real token pattern)", () => {
+    // foundation/* and semantic/* both write `:root`, but each owns distinct custom properties —
+    // the intended architecture, which must not trip the guard.
+    const { status, stdout } = run({
+      "styles/foundation/a.css": "@layer base { :root { --space-1: 1px; } }\n",
+      "styles/semantic/b.css": "@layer base { :root { --surface: red; } }\n",
+    });
+    expect(status).toBe(0);
+    expect(stdout).toMatch(/property-disjoint/);
+  });
+
+  it("PASSES a same-FILE duplicate (author-visible source order, not silent cross-sheet drift)", () => {
+    const { status } = run({
+      "styles/foundation/a.css":
+        "@layer base { :root { --x: 1; } :root { --x: 2; } }\n",
+    });
+    expect(status).toBe(0);
+  });
+
+  it("PASSES the same property on DIFFERENT selectors across base sheets", () => {
+    const { status } = run({
+      "styles/foundation/a.css": "@layer base { .a { color: red; } }\n",
+      "styles/semantic/b.css": "@layer base { .b { color: blue; } }\n",
+    });
+    expect(status).toBe(0);
+  });
+
+  it("does NOT flag a collision in the components layer — only base sheets are guarded", () => {
+    // CSS Modules hash their class names, so cross-module same-selector collisions are
+    // structurally impossible and intended to be independent; the guard is base-only.
+    const { status } = run({
+      "components/A.module.css":
+        "@layer components { .root { color: red; } }\n",
+      "components/B.module.css":
+        "@layer components { .root { color: blue; } }\n",
+    });
+    expect(status).toBe(0);
+  });
+
+  it("normalizes selector lists — `:root, .x` collides with `:root` on a shared property", () => {
+    const { status, stderr } = run({
+      "styles/foundation/a.css": "@layer base { :root, .x { --x: 1; } }\n",
+      "styles/semantic/b.css": "@layer base { :root { --x: 2; } }\n",
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/":root" \{ --x \}/);
+  });
+
+  it("folds case for a STANDARD property (`COLOR` collides with `color`)", () => {
+    const { status } = run({
+      "styles/foundation/a.css": "@layer base { .a { COLOR: red; } }\n",
+      "styles/semantic/b.css": "@layer base { .a { color: blue; } }\n",
+    });
+    expect(status).toBe(1);
+  });
+
+  it("keeps case for a CUSTOM property (`--Foo` does NOT collide with `--foo`)", () => {
+    // Custom property names are case-sensitive per CSS Variables — `--Foo` and `--foo` are
+    // distinct properties, so this is not a collision.
+    const { status } = run({
+      "styles/foundation/a.css": "@layer base { :root { --Foo: 1; } }\n",
+      "styles/semantic/b.css": "@layer base { :root { --foo: 2; } }\n",
+    });
+    expect(status).toBe(0);
+  });
+});
+
 describe("check-css-layers.mjs — malformed input", () => {
   it("exits non-zero on unparsable CSS rather than silently passing", () => {
     // postcss.parse() is not wrapped in try/catch, so a syntax error throws a raw
