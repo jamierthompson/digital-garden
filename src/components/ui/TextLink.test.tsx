@@ -25,7 +25,7 @@ describe("TextLink", () => {
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  it.each(["quiet", "accent", "muted", "brand"] as const)(
+  it.each(["quiet", "accent", "muted"] as const)(
     "stamps data-variant=%s so the module selects that ink bundle",
     (variant) => {
       render(
@@ -174,15 +174,6 @@ describe("TextLink", () => {
       expect(css).toMatch(
         /\[data-variant="muted"\]\[aria-current="page"\][\s\S]*?color:\s*var\(--foreground\)/,
       );
-    });
-
-    it("brand rests on --accent-text and brightens to --accent on hover, no underline", () => {
-      const rest =
-        css.match(/\[data-variant="brand"\]\s*\{([^}]*)\}/)?.[1] ?? "";
-      expect(rest).toMatch(/color:\s*var\(--accent-text\)/);
-      const hover =
-        css.match(/\[data-variant="brand"\]:hover\s*\{([^}]*)\}/)?.[1] ?? "";
-      expect(hover).toMatch(/color:\s*var\(--accent\)/);
     });
   });
 });

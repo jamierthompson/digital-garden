@@ -33,14 +33,4 @@
   .link[data-variant="muted"][aria-current="page"] {
     color: var(--foreground);
   }
-
-  /* brand — the wordmark / branded home link: accent ink at rest, brightening to `--accent` on
-     hover, never underlined (an underline reads wrong on a wordmark). */
-  .link[data-variant="brand"] {
-    color: var(--accent-text);
-  }
-
-  .link[data-variant="brand"]:hover {
-    color: var(--accent);
-  }
 }
