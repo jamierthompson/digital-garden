@@ -49,11 +49,15 @@ export default function EntryBody({ value, scope }: EntryBodyProps) {
     marks: {
       // The default link annotation renders through the shared inline-link primitive so body
       // links wear the editorial accent treatment, not the UA default ink. External targets
-      // (absolute http(s)) get the safe-rel + new-tab treatment; relative ones stay in-tab.
+      // (absolute http(s) or scheme-relative //) get the safe-rel + new-tab treatment;
+      // relative ones stay in-tab. An annotation with no usable href renders its children
+      // unlinked — never an href="" anchor that self-navigates and traps keyboard/AT focus.
       link: ({ value, children }) => {
         const raw = (value as LinkAnnotation | undefined)?.href;
-        const href = typeof raw === "string" ? raw : "";
-        const external = /^https?:\/\//i.test(href);
+        if (typeof raw !== "string" || raw.trim() === "")
+          return <>{children}</>;
+        const href = raw;
+        const external = /^(?:https?:)?\/\//i.test(href);
         return (
           <TextLink
             variant="accent"
