@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { fireEvent, render, screen } from "@testing-library/react";
 import Link from "next/link";
 import { describe, expect, it, vi } from "vitest";
@@ -22,7 +25,7 @@ describe("TextLink", () => {
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  it.each(["quiet", "accent", "muted"] as const)(
+  it.each(["quiet", "accent", "muted", "brand"] as const)(
     "stamps data-variant=%s so the module selects that ink bundle",
     (variant) => {
       render(
@@ -149,5 +152,37 @@ describe("TextLink", () => {
       "data-variant",
       "accent",
     );
+  });
+
+  // jsdom applies no CSS, so the ink-role bindings that make the variants correct are pinned
+  // at the source (same pragmatic approach as SiteFooter/NavLinks). The real painted contrast
+  // is a browser QA pass.
+  describe("variant ink roles (module source)", () => {
+    const css = readFileSync(
+      resolve(process.cwd(), "src/components/ui/TextLink.module.css"),
+      "utf8",
+    );
+
+    it("uses text-grade --accent-text for quiet's hover so it stays size-safe (not UI-grade --accent)", () => {
+      const rule =
+        css.match(/\[data-variant="quiet"\]:hover\s*\{([^}]*)\}/)?.[1] ?? "";
+      expect(rule).toMatch(/color:\s*var\(--accent-text\)/);
+      expect(rule).not.toMatch(/color:\s*var\(--accent\)/);
+    });
+
+    it("lights the current page (aria-current) with the same foreground ink as muted's hover", () => {
+      expect(css).toMatch(
+        /\[data-variant="muted"\]\[aria-current="page"\][\s\S]*?color:\s*var\(--foreground\)/,
+      );
+    });
+
+    it("brand rests on --accent-text and brightens to --accent on hover, no underline", () => {
+      const rest =
+        css.match(/\[data-variant="brand"\]\s*\{([^}]*)\}/)?.[1] ?? "";
+      expect(rest).toMatch(/color:\s*var\(--accent-text\)/);
+      const hover =
+        css.match(/\[data-variant="brand"\]:hover\s*\{([^}]*)\}/)?.[1] ?? "";
+      expect(hover).toMatch(/color:\s*var\(--accent\)/);
+    });
   });
 });

@@ -3,14 +3,15 @@ import { Slot } from "radix-ui";
 import styles from "./TextLink.module.css";
 
 /** The inline text-link treatments — the ink + state bundle a link wears. */
-export type TextLinkVariant = "quiet" | "accent" | "muted";
+export type TextLinkVariant = "quiet" | "accent" | "muted" | "brand";
 
 interface TextLinkProps extends React.ComponentPropsWithRef<"a"> {
   /**
-   * The link treatment: `quiet` (a title/heading link — foreground ink, accent + underline on
-   * hover), `accent` (an inline prose link — always underlined, accent ink), or `muted` (quiet
-   * chrome wayfinding — muted ink, foreground on hover, no underline). Each applies that
-   * variant's `--<role>` ink bundle (selected by `data-variant` in the module).
+   * The link treatment: `quiet` (a title/heading link — ambient ink, text-grade accent +
+   * underline on hover), `accent` (an inline prose link — always underlined, accent ink),
+   * `muted` (quiet chrome wayfinding — muted ink, foreground on hover / for the current page, no
+   * underline), or `brand` (the wordmark home link — accent ink, brightening on hover, no
+   * underline). Each applies that variant's `--<role>` ink bundle (selected by `data-variant`).
    */
   readonly variant: TextLinkVariant;
   /**

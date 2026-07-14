@@ -35,3 +35,16 @@ describe("reset.css base heading element rule", () => {
     );
   });
 });
+
+describe("reset.css base anchor ink rule", () => {
+  // Isolate `a { … }` — not `a:hover`/`a:focus`, and not the `canvas`/`textarea` element rules.
+  const anchorRule = CODE.match(/(?:^|\s)a\s*\{([^}]*)\}/)?.[1] ?? "";
+
+  it("makes anchors inherit ambient ink so TextLink owns link colour", () => {
+    expect(anchorRule).toMatch(/color:\s*inherit/);
+  });
+
+  it("touches colour only — the UA underline stays as the non-colour link cue (WCAG 1.4.1)", () => {
+    expect(anchorRule).not.toMatch(/text-decoration/);
+  });
+});
