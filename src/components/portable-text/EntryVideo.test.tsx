@@ -136,6 +136,28 @@ describe("EntryVideo", () => {
       });
     });
 
+    it("rebuilds the file source from validated parts — userinfo and port never reach the src", () => {
+      expect(
+        resolveVideoEmbed("https://user:pass@cdn.sanity.io/files/p/d/v.mp4"),
+      ).toEqual({
+        kind: "file",
+        src: "https://cdn.sanity.io/files/p/d/v.mp4",
+      });
+      expect(
+        resolveVideoEmbed("https://cdn.sanity.io:8443/files/p/d/v.mp4"),
+      ).toEqual({
+        kind: "file",
+        src: "https://cdn.sanity.io/files/p/d/v.mp4",
+      });
+      // The query string survives the rebuild (Sanity CDN download params).
+      expect(
+        resolveVideoEmbed("https://cdn.sanity.io/files/p/d/v.mp4?dl=v.mp4"),
+      ).toEqual({
+        kind: "file",
+        src: "https://cdn.sanity.io/files/p/d/v.mp4?dl=v.mp4",
+      });
+    });
+
     // The native-file path is pinned to a host set, not just an extension: a media file on any
     // other host would be the product's first arbitrary-host fetch from a reader's browser (an
     // IP/referrer leak), so it must fall back to the placeholder — even with a valid extension.

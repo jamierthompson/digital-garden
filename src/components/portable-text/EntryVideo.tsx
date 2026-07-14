@@ -64,9 +64,8 @@ type VideoEmbed =
   | { readonly kind: "file"; readonly src: string };
 
 /** The first non-empty path segment of a URL (`/embed/ID/` → `embed`), or `undefined`. */
-function firstSegment(pathname: string, index = 0): string | undefined {
-  const segment = pathname.split("/").filter(Boolean)[index];
-  return segment === "" ? undefined : segment;
+function firstSegment(pathname: string): string | undefined {
+  return pathname.split("/").filter(Boolean)[0];
 }
 
 /** The YouTube video id from a watch / short / embed / youtu.be URL, if one is present. */
@@ -100,7 +99,9 @@ function vimeoId(parsed: URL): string | undefined {
  * too); iframe hosts are exact-matched against the allow-list; the embed URL is rebuilt from a
  * format-validated id, so no attacker-controlled string is interpolated into it; and the native
  * `<video>` file path is exact-matched against its own pinned host set too, so it can't become an
- * arbitrary-host fetch from the reader's browser.
+ * arbitrary-host fetch from the reader's browser. Both paths REBUILD their `src` from validated
+ * parts rather than echoing the input — the file path from the pinned hostname + parsed
+ * pathname/query, which drops userinfo and any port.
  */
 export function resolveVideoEmbed(url: unknown): VideoEmbed | null {
   if (typeof url !== "string") return null;
@@ -133,7 +134,10 @@ export function resolveVideoEmbed(url: unknown): VideoEmbed | null {
     VIDEO_FILE_HOSTS.has(parsed.hostname) &&
     VIDEO_FILE_EXTENSIONS.some((ext) => path.endsWith(ext))
   )
-    return { kind: "file", src: parsed.href };
+    return {
+      kind: "file",
+      src: `https://${parsed.hostname}${parsed.pathname}${parsed.search}`,
+    };
 
   return null;
 }
