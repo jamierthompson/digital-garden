@@ -85,6 +85,42 @@ describe("EntryBody", () => {
     expect(p.closest("p")).not.toBeNull();
   });
 
+  // A body prose block can carry the default Sanity `link` annotation. The serializer routes it
+  // through `ui/TextLink` (accent variant) so body links wear the editorial ink, never the UA
+  // default — and an external target gets safe rel + a new tab.
+  describe("the default link mark", () => {
+    const linkBlock = (href: string) =>
+      [
+        {
+          _type: "block",
+          _key: "b1",
+          style: "normal",
+          markDefs: [{ _type: "link", _key: "m1", href }],
+          children: [
+            { _type: "span", _key: "s1", text: "see this", marks: ["m1"] },
+          ],
+        },
+      ] as unknown as Body;
+
+    it("renders an external link as an accent TextLink anchor with safe rel + new tab", () => {
+      render(<EntryBody value={linkBlock("https://example.com/x")} />);
+      const link = screen.getByRole("link", { name: "see this" });
+      expect(link).toHaveAttribute("href", "https://example.com/x");
+      expect(link).toHaveAttribute("data-variant", "accent");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+      expect(link).toHaveAttribute("target", "_blank");
+    });
+
+    it("keeps a relative link in-tab (no target/rel), still an accent TextLink", () => {
+      render(<EntryBody value={linkBlock("/some-entry")} />);
+      const link = screen.getByRole("link", { name: "see this" });
+      expect(link).toHaveAttribute("href", "/some-entry");
+      expect(link).toHaveAttribute("data-variant", "accent");
+      expect(link).not.toHaveAttribute("target");
+      expect(link).not.toHaveAttribute("rel");
+    });
+  });
+
   // The shared palette carries two typed non-slot blocks — `video` and `quote`. The
   // serializer routes each to its own renderer (real components, not mocked here) rather
   // than dropping it or misrouting it into a slot.

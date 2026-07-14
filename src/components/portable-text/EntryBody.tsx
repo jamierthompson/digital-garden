@@ -1,6 +1,7 @@
 import { PortableText, type PortableTextComponents } from "next-sanity";
 
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
+import TextLink from "@/components/ui/TextLink";
 
 // TypeGen output lives at the repo root (the `@/*` alias maps to `src/`, so it can't cover
 // it) — this relative hop up to the root types file is intentional, not a deep `src` chain.
@@ -14,6 +15,12 @@ import EntryQuote from "./EntryQuote";
 // Lifted off the typed detail query so serializer and query can't drift. `NonNullable`
 // drops the `body: … | null` arm — the caller only renders this when a body exists.
 type Body = NonNullable<NonNullable<ENTRY_DETAIL_QUERY_RESULT>["body"]>;
+
+/** The default Sanity link annotation — a bare `href`. Typed at the serializer boundary
+ *  because Portable Text mark values arrive untyped. */
+interface LinkAnnotation {
+  href?: string;
+}
 
 interface EntryBodyProps {
   value: Body;
@@ -39,6 +46,27 @@ interface EntryBodyProps {
  */
 export default function EntryBody({ value, scope }: EntryBodyProps) {
   const components: PortableTextComponents = {
+    marks: {
+      // The default link annotation renders through the shared inline-link primitive so body
+      // links wear the editorial accent treatment, not the UA default ink. External targets
+      // (absolute http(s)) get the safe-rel + new-tab treatment; relative ones stay in-tab.
+      link: ({ value, children }) => {
+        const raw = (value as LinkAnnotation | undefined)?.href;
+        const href = typeof raw === "string" ? raw : "";
+        const external = /^https?:\/\//i.test(href);
+        return (
+          <TextLink
+            variant="accent"
+            href={href}
+            {...(external
+              ? { rel: "noopener noreferrer", target: "_blank" }
+              : {})}
+          >
+            {children}
+          </TextLink>
+        );
+      },
+    },
     types: {
       slot: ({ value: block }) => (
         <SlotBlock
