@@ -20,6 +20,7 @@ import { escapeXml } from "./escapeXml";
  */
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const FEED_URL = `${SITE_URL}/rss.xml`;
 
 /** Cached read of the published entry feed — public client (no token, published perspective) so drafts never leak into the feed. */
 async function getFeedEntries() {
@@ -30,10 +31,12 @@ async function getFeedEntries() {
 
 /**
  * RSS 2.0 dates are RFC-822 (the RFC-1123 four-digit-year form readers expect); `toUTCString()`
- * emits exactly that. Returns `null` for a missing or unparseable value so a dateless item omits
- * `<pubDate>` rather than emitting a bare or `"Invalid Date"` element. (`published` is
- * `coalesce(iterated, _createdAt)`, so in practice it is always a valid `_createdAt` — the guard
- * covers the nullable type and any hostile out-of-band write.)
+ * emits exactly that. Returns `null` for a null or syntactically unparseable value so such an item
+ * omits `<pubDate>` rather than emitting a bare or `"Invalid Date"` element. (`published` is
+ * `coalesce(iterated, _createdAt)`, so in practice it is always a valid `_createdAt`; the guard just
+ * covers the nullable type and a malformed string. It does NOT catch a calendar-overflow date like
+ * `2026-02-31` — the ECMAScript grammar rolls that to a real day — but the Studio date picker cannot
+ * author one, so guarding it would be dead machinery.)
  */
 function toRfc822(value: string | null): string | null {
   if (!value) return null;
@@ -65,11 +68,14 @@ export async function GET() {
     })
     .join("\n");
 
+  // `atom:link rel="self"` declares the feed's own canonical URL — the RSS Best Practices Profile
+  // §5.1.1 recommendation the W3C Feed Validator enforces; it needs the Atom namespace on `<rss>`.
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Jamie Thompson — Digital Garden</title>
     <link>${escapeXml(SITE_URL)}</link>
+    <atom:link href="${escapeXml(FEED_URL)}" rel="self" type="application/rss+xml" />
     <description>Notes, essays, projects, and now-updates from the digital garden.</description>
 ${items}
   </channel>

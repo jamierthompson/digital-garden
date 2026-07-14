@@ -58,6 +58,18 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
     expect(xml).toMatch(/<description>[^<]*now-updates[^<]*<\/description>/);
   });
 
+  it("declares its own canonical URL via a namespaced atom:link rel=self", async () => {
+    // RSS Best Practices Profile §5.1.1 (the W3C Feed Validator recommendation): the feed names
+    // its own URL, which requires the Atom namespace on <rss>.
+    const xml = await feedXml([row({ _id: "1" })]);
+    expect(xml).toContain('xmlns:atom="http://www.w3.org/2005/Atom"');
+    // Host-agnostic (the site URL is env-driven), but pins the full element: an absolute
+    // self URL ending in /rss.xml, with the rel and type the profile requires.
+    expect(xml).toMatch(
+      /<atom:link href="https?:\/\/[^"]+\/rss\.xml" rel="self" type="application\/rss\+xml" \/>/,
+    );
+  });
+
   it("skips a slugless entry (no canonical URL) instead of emitting a broken <link>", async () => {
     const xml = await feedXml([
       row({ _id: "1", title: "Linked", slug: "linked" }),
@@ -105,25 +117,6 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
     expect(xml).toMatch(/<guid isPermaLink="true">[^<]*\/my-entry<\/guid>/);
   });
 
-  it("stamps each item with an RFC-822 <pubDate> from the entry's published date", async () => {
-    const xml = await feedXml([
-      row({ _id: "1", published: "2026-03-01T00:00:00Z" }),
-    ]);
-    // RSS 2.0 pubDate is RFC-822; `toUTCString()` is the canonical form readers parse.
-    expect(xml).toContain(
-      `<pubDate>${new Date("2026-03-01T00:00:00Z").toUTCString()}</pubDate>`,
-    );
-  });
-
-  it("stamps a date-only `iterated` value (no clock component) as a valid pubDate", async () => {
-    // A Sanity `date` field is date-only ("2026-07-14"); it must still yield a valid RFC-822 date.
-    const xml = await feedXml([row({ _id: "1", published: "2026-07-14" })]);
-    expect(xml).toContain(
-      `<pubDate>${new Date("2026-07-14").toUTCString()}</pubDate>`,
-    );
-    expect(xml).not.toContain("Invalid Date");
-  });
-
   it("omits <pubDate> entirely for a null or unparseable date (no empty or Invalid Date element)", async () => {
     const xml = await feedXml([
       row({ _id: "1", slug: "no-date", published: null }),
@@ -136,12 +129,12 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
   });
 
   /**
-   * QA (#128). The pubDate assertions above compute their expectation with the same
-   * `new Date(x).toUTCString()` expression the route uses, so they can't catch a
-   * date-parsing regression — these pin the LITERAL output. RSS 2.0 requires RFC-822
-   * dates (four-digit year preferred; example form "Sat, 07 Sep 2002 00:00:01 GMT" —
-   * https://www.rssboard.org/rss-specification), and the literal weekday proves the
-   * date-only string parsed as UTC midnight, not a locale-shifted calendar day.
+   * QA (#128). These pin the LITERAL RFC-822 output rather than recomputing the expectation
+   * with the route's own `new Date(x).toUTCString()` expression (which couldn't catch a
+   * date-parsing regression). RSS 2.0 requires RFC-822 dates (four-digit year preferred;
+   * example form "Sat, 07 Sep 2002 00:00:01 GMT" — https://www.rssboard.org/rss-specification),
+   * and the literal weekday proves the date-only string parsed as UTC midnight, not a
+   * locale-shifted calendar day.
    */
   describe("pubDate RFC-822 conformance and XML document integrity (QA #128)", () => {
     it("emits the exact RFC-822 form for a date-only `published` — UTC midnight, correct weekday, 4-digit year, GMT", async () => {
