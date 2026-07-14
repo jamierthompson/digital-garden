@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  rampSetToDeclarations,
-  tokenSetToCss,
-  tokenSetToDeclarations,
-} from "./css";
+import { rampSetToDeclarations, tokenSetToDeclarations } from "./css";
 import { buildTokenSet } from "./palette";
 import { formatOklch } from "./convert";
 
@@ -94,39 +90,23 @@ describe("rampSetToDeclarations", () => {
       `--accent-500: light-dark(${formatOklch(light[i].color)}, ${formatOklch(dark[i].color)});`,
     );
   });
-});
 
-describe("tokenSetToCss", () => {
-  it("wraps the rule in @layer semantic for the scoped <style>", () => {
-    const css = tokenSetToCss(
-      buildTokenSet("#3b82f6"),
-      '[data-entry="garden"]',
-    );
-    expect(css).toContain("@layer semantic {");
-    expect(css).toContain('[data-entry="garden"] {');
-    expect(css).toContain("--foreground:");
-    // The complete scoped rule carries the ramp primitives too (#98).
-    expect(css).toContain("--accent-500:");
-  });
-
-  it("serializes values per ColorFormat on request, defaulting to native oklch (#99)", () => {
-    const set = buildTokenSet("#3b82f6");
-    const selector = '[data-entry="garden"]';
-    expect(tokenSetToCss(set, selector)).toContain("light-dark(oklch(");
-    const hex = tokenSetToCss(set, selector, { format: "hex" });
-    expect(hex).toMatch(/--accent: light-dark\(#[0-9a-f]{6}, #[0-9a-f]{6}\);/);
-    expect(hex).not.toContain("oklch(");
-  });
-
-  it("forwards colorScheme through to tokenSetToDeclarations (#159 — the :root export path)", () => {
-    // A scoped slot rule defaults to NO color-scheme (inherits from the root).
-    expect(
-      tokenSetToCss(buildTokenSet("#3b82f6"), '[data-entry="garden"]'),
-    ).not.toContain("color-scheme");
-    // The self-contained :root export opts in — the flag must reach the inner serializer.
-    expect(
-      tokenSetToCss(buildTokenSet("#3b82f6"), ":root", { colorScheme: true }),
-    ).toContain("color-scheme: light dark;");
+  // QA (adversarial, #256 round): removing tokenSetToCss also removed the only test that
+  // drove the ramp tier through a non-default ColorFormat — the api.test.ts freeze guard
+  // runs the default format only, so a broken opts path here would pass the whole suite.
+  describe("QA — CssOptions forwarding", () => {
+    it("serializes ramp values per ColorFormat on request, defaulting to native oklch (#99)", () => {
+      expect(ramps).toContain("light-dark(oklch(");
+      const hex = rampSetToDeclarations(set, { format: "hex" });
+      expect(hex).toMatch(
+        /--accent-500: light-dark\(#[0-9a-f]{6}, #[0-9a-f]{6}\);/,
+      );
+      expect(hex).not.toContain("oklch(");
+      const rgb = rampSetToDeclarations(set, { format: "rgb" });
+      expect(rgb).toMatch(
+        /--neutral-500: light-dark\(rgb\(\d+ \d+ \d+\), rgb\(\d+ \d+ \d+\)\);/,
+      );
+    });
   });
 });
 
@@ -146,8 +126,8 @@ describe("QA — adversarial: scrim + determinism through the CSS serializers (#
   });
 
   it("two independent builds serialize byte-identically", () => {
-    expect(tokenSetToCss(buildTokenSet("#3b82f6"), ":root")).toBe(
-      tokenSetToCss(set, ":root"),
-    );
+    const again = buildTokenSet("#3b82f6");
+    expect(tokenSetToDeclarations(again)).toBe(tokenSetToDeclarations(set));
+    expect(rampSetToDeclarations(again)).toBe(rampSetToDeclarations(set));
   });
 });

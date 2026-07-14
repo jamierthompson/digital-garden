@@ -13,7 +13,7 @@ export type HeadingVariant =
   | "title"
   | "heading"
   | "subheading"
-  | "lead"
+  | "lede"
   | "body"
   | "label"
   | "meta";

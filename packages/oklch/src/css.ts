@@ -1,19 +1,19 @@
 /**
- * Serialize a TokenSet to baked CSS — literal `oklch()` values inside `light-dark()`,
- * wrapped in `@layer semantic`.
+ * Serialize a TokenSet to baked CSS declaration lines — literal `oklch()` values inside
+ * `light-dark()`. These are raw declarations only, with no selector or `@layer` wrapper:
+ * theme delivery is deliberately kept OUTSIDE the cascade (#254), so the caller places them.
  *
  * Two tiers:
  *   • the GENERIC SEMANTIC token contract (`--surface`, `--accent`, `--foreground`, … `--success`)
  *     — the same role names the foundation layer defines as the global editorial default; a
- *     slot's `@layer semantic` block re-binds them with the theme's solved values.
+ *     slot re-binds them with the theme's solved values.
  *   • the per-role `50…950` ramp PRIMITIVES the semantic tokens bind from (`--accent-500`,
  *     `--neutral-200`, … `--info-950`) — the tier exposed 1:1 to a Tailwind numeric scale.
  *
  * `tokenSetToDeclarations` emits just the semantic tier; `rampSetToDeclarations` just the
- * ramp tier; `tokenSetToCss` emits both, wrapped in the scoped rule. Adding the
- * `--ring-color` alias and the `--font-body` mapping is the entry scope's job, not
- * the engine's. `EntryScope` (owned elsewhere) composes the declarations it wants into its
- * scoped `<style>`; this serializer is the convenience that produces them.
+ * ramp tier. Adding the `--ring-color` alias and the `--font-body` mapping is the entry
+ * scope's job, not the engine's. `EntryScope` (owned elsewhere) composes the declarations it
+ * wants into its scoped `<style>`; these serializers are the convenience that produces them.
  */
 
 import { formatColor } from "./convert";
@@ -100,8 +100,7 @@ export function tokenSetToDeclarations(
  * Just the primitive `--<role>-<step>` ramp declarations (`--accent-500`, `--neutral-200`,
  * … `--info-950`) — the `50…950` tier the semantic tokens bind from, exposed 1:1 to a
  * Tailwind numeric scale (#98). Opt-in and separate from the semantic tier so a caller
- * decides whether to ship the full ramp into its scope; `tokenSetToCss` includes them by
- * default. Each line is `\n`-joined.
+ * decides whether to ship the full ramp into its scope. Each line is `\n`-joined.
  */
 export function rampSetToDeclarations(
   set: TokenSet,
@@ -118,26 +117,4 @@ export function rampSetToDeclarations(
     }
   }
   return lines.join("\n");
-}
-
-/**
- * A complete, ready-to-inline scoped rule wrapped in `@layer semantic` — the semantic role
- * tokens AND the per-role `50…950` ramp primitives (#98). `selector` is typically
- * `[data-entry="<slug>"]`. Indentation is cosmetic. A caller wanting only the semantic
- * tier composes `tokenSetToDeclarations` itself (as `EntryScope` does).
- */
-export function tokenSetToCss(
-  set: TokenSet,
-  selector: string,
-  opts: CssOptions = {},
-): string {
-  const body = [
-    tokenSetToDeclarations(set, opts),
-    rampSetToDeclarations(set, opts),
-  ]
-    .join("\n")
-    .split("\n")
-    .map((line) => `    ${line}`)
-    .join("\n");
-  return `@layer semantic {\n  ${selector} {\n${body}\n  }\n}`;
 }
