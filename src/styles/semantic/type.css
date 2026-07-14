@@ -32,11 +32,11 @@
     --type-subheading-tracking: var(--tracking-tight);
     --type-subheading-leading: var(--leading-snug);
 
-    --type-lead-family: var(--font-body);
-    --type-lead-size: var(--type-size-4);
-    --type-lead-weight: var(--font-weight-normal);
-    --type-lead-tracking: var(--tracking-normal);
-    --type-lead-leading: var(--leading-relaxed);
+    --type-lede-family: var(--font-body);
+    --type-lede-size: var(--type-size-4);
+    --type-lede-weight: var(--font-weight-normal);
+    --type-lede-tracking: var(--tracking-normal);
+    --type-lede-leading: var(--leading-relaxed);
 
     --type-body-family: var(--font-body);
     --type-body-size: var(--type-size-3);

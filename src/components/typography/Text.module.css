@@ -11,12 +11,12 @@
     line-height: var(--type-body-leading);
   }
 
-  .text[data-variant="lead"] {
-    font-family: var(--type-lead-family);
-    font-size: var(--type-lead-size);
-    font-weight: var(--type-lead-weight);
-    letter-spacing: var(--type-lead-tracking);
-    line-height: var(--type-lead-leading);
+  .text[data-variant="lede"] {
+    font-family: var(--type-lede-family);
+    font-size: var(--type-lede-size);
+    font-weight: var(--type-lede-weight);
+    letter-spacing: var(--type-lede-tracking);
+    line-height: var(--type-lede-leading);
   }
 
   .text[data-variant="label"] {

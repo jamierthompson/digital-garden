@@ -103,7 +103,7 @@ describe("semantic role layer binds to the ramp", () => {
     "title",
     "heading",
     "subheading",
-    "lead",
+    "lede",
     "body",
     "label",
     "meta",

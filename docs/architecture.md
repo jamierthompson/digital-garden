@@ -442,12 +442,12 @@ engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WC
   app owns it. `semantic/type.css` binds each role's size to a step —
   `--type-heading-size: var(--type-size-6)` — alongside its family/weight/tracking/leading, so a
   retune moves a role to a different step with no call-site change, and roles can be added or
-  dropped without touching the engine. The roles: **display · title · heading · subheading · lead ·
+  dropped without touching the engine. The roles: **display · title · heading · subheading · lede ·
   body · label · meta · caption · quote · wordmark · nav**.
 - **Editorial content reads roles via `<Heading>` / `<Text>`.** `Heading` renders the `<hN>` for
   its `level` (the a11y outline) and applies a role by `variant` — or by the level when `variant`
   is omitted (1→`title`, 2→`heading`, 3–6→`subheading`; the oversized `display` is opt-in for a
-  hero). `Text` renders `<p>` (or any element via `asChild`) in `body`/`lead`/`label`/`meta`.
+  hero). `Text` renders `<p>` (or any element via `asChild`) in `body`/`lede`/`label`/`meta`.
   Both also wear their ink via `color` — a semantic color role (`foreground` ·
   `muted-foreground` · `accent-text`), applied through the shared `textColor` rules; omitted, the
   primitive inherits the ambient ink. Discrete roles apply via `data-*` attributes (the variant
