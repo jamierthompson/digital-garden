@@ -39,6 +39,7 @@ const accentOf = (seed: unknown): string =>
 function renderDocument(seed: unknown): string {
   return renderToStaticMarkup(
     <html lang="en">
+      {/* eslint-disable-next-line @next/next/no-head-element -- asserting raw SSR head/body byte order requires the literal element, not next/head */}
       <head>
         <title>t</title>
       </head>
