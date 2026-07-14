@@ -87,7 +87,8 @@ describe("EntryBody", () => {
 
   // A body prose block can carry the default Sanity `link` annotation. The serializer routes it
   // through `ui/TextLink` (accent variant) so body links wear the editorial ink, never the UA
-  // default — and an external target gets safe rel + a new tab.
+  // default. The contract is deliberately minimal: the authored href verbatim, same tab, no
+  // synthesized target/rel.
   describe("the default link mark", () => {
     const linkBlock = (href: string) =>
       [
@@ -102,13 +103,13 @@ describe("EntryBody", () => {
         },
       ] as unknown as Body;
 
-    it("renders an external link as an accent TextLink anchor with safe rel + new tab", () => {
+    it("renders an absolute link as an accent TextLink anchor, same tab, no synthesized rel/target", () => {
       render(<EntryBody value={linkBlock("https://example.com/x")} />);
       const link = screen.getByRole("link", { name: "see this" });
       expect(link).toHaveAttribute("href", "https://example.com/x");
       expect(link).toHaveAttribute("data-variant", "accent");
-      expect(link).toHaveAttribute("rel", "noopener noreferrer");
-      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).not.toHaveAttribute("rel");
+      expect(link).not.toHaveAttribute("target");
     });
 
     it("keeps a relative link in-tab (no target/rel), still an accent TextLink", () => {
@@ -146,10 +147,11 @@ describe("EntryBody", () => {
       expect(link?.getAttribute("href")).not.toContain("alert");
     });
 
-    it("treats a protocol-relative //host href as external (safe rel), not as an in-tab relative link", () => {
+    it("renders a protocol-relative //host href verbatim under the minimal contract (no classification to spoof)", () => {
       render(<EntryBody value={linkBlock("//evil.example/x")} />);
       const link = screen.getByRole("link", { name: "see this" });
-      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+      expect(link).toHaveAttribute("href", "//evil.example/x");
+      expect(link).not.toHaveAttribute("target");
     });
 
     it("does not render a self-navigating href='' link when the annotation has no href", () => {

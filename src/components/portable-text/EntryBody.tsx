@@ -48,24 +48,17 @@ export default function EntryBody({ value, scope }: EntryBodyProps) {
   const components: PortableTextComponents = {
     marks: {
       // The default link annotation renders through the shared inline-link primitive so body
-      // links wear the editorial accent treatment, not the UA default ink. External targets
-      // (absolute http(s) or scheme-relative //) get the safe-rel + new-tab treatment;
-      // relative ones stay in-tab. An annotation with no usable href renders its children
-      // unlinked — never an href="" anchor that self-navigates and traps keyboard/AT focus.
+      // links wear the editorial accent treatment, not the UA default ink. Deliberately
+      // minimal: same-tab navigation with the authored href verbatim — no target/rel
+      // synthesis, no internal/external classification (link-behavior policy is a pending
+      // design decision). An annotation with no usable href renders its children unlinked —
+      // never an href="" anchor that self-navigates and traps keyboard/AT focus.
       link: ({ value, children }) => {
         const raw = (value as LinkAnnotation | undefined)?.href;
         if (typeof raw !== "string" || raw.trim() === "")
           return <>{children}</>;
-        const href = raw;
-        const external = /^(?:https?:)?\/\//i.test(href);
         return (
-          <TextLink
-            variant="accent"
-            href={href}
-            {...(external
-              ? { rel: "noopener noreferrer", target: "_blank" }
-              : {})}
-          >
+          <TextLink variant="accent" href={raw}>
             {children}
           </TextLink>
         );
