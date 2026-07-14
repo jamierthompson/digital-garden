@@ -359,6 +359,210 @@ describe("check-css-layers.mjs — file discovery & scope", () => {
   });
 });
 
+// #257: within the single `base` layer the winner is decided by SHEET IMPORT ORDER, not tier,
+// so two base sheets that set the same (selector, property) are one reorder from silently
+// flipping. These pin that cross-sheet collisions fail while the legitimate patterns (different
+// properties on a shared `:root`, same-file duplicates, the components layer) stay green.
+describe("check-css-layers.mjs — base-layer cross-sheet property disjointness (#257)", () => {
+  it("FAILS when two base sheets set the same property on the same selector", () => {
+    const { status, stderr } = run({
+      "styles/foundation/a.css": "@layer base { :root { --x: 1; } }\n",
+      "styles/semantic/b.css": "@layer base { :root { --x: 2; } }\n",
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/property collision across sheets/);
+    // Names both offending sheets and the colliding (selector, property).
+    expect(stderr).toMatch(/":root" \{ --x \}/);
+    expect(stderr).toMatch(/styles\/foundation\/a\.css/);
+    expect(stderr).toMatch(/styles\/semantic\/b\.css/);
+  });
+
+  it("PASSES two base sheets that set DIFFERENT properties on a shared :root (the real token pattern)", () => {
+    // foundation/* and semantic/* both write `:root`, but each owns distinct custom properties —
+    // the intended architecture, which must not trip the guard.
+    const { status, stdout } = run({
+      "styles/foundation/a.css": "@layer base { :root { --space-1: 1px; } }\n",
+      "styles/semantic/b.css": "@layer base { :root { --surface: red; } }\n",
+    });
+    expect(status).toBe(0);
+    expect(stdout).toMatch(/property-disjoint/);
+  });
+
+  it("PASSES a same-FILE duplicate (author-visible source order, not silent cross-sheet drift)", () => {
+    const { status } = run({
+      "styles/foundation/a.css":
+        "@layer base { :root { --x: 1; } :root { --x: 2; } }\n",
+    });
+    expect(status).toBe(0);
+  });
+
+  it("PASSES the same property on DIFFERENT selectors across base sheets", () => {
+    const { status } = run({
+      "styles/foundation/a.css": "@layer base { .a { color: red; } }\n",
+      "styles/semantic/b.css": "@layer base { .b { color: blue; } }\n",
+    });
+    expect(status).toBe(0);
+  });
+
+  it("does NOT flag a collision in the components layer — only base sheets are guarded", () => {
+    // CSS Modules hash their class names, so cross-module same-selector collisions are
+    // structurally impossible and intended to be independent; the guard is base-only.
+    const { status } = run({
+      "components/A.module.css":
+        "@layer components { .root { color: red; } }\n",
+      "components/B.module.css":
+        "@layer components { .root { color: blue; } }\n",
+    });
+    expect(status).toBe(0);
+  });
+
+  it("normalizes selector lists — `:root, .x` collides with `:root` on a shared property", () => {
+    const { status, stderr } = run({
+      "styles/foundation/a.css": "@layer base { :root, .x { --x: 1; } }\n",
+      "styles/semantic/b.css": "@layer base { :root { --x: 2; } }\n",
+    });
+    expect(status).toBe(1);
+    expect(stderr).toMatch(/":root" \{ --x \}/);
+  });
+
+  it("folds case for a STANDARD property (`COLOR` collides with `color`)", () => {
+    const { status } = run({
+      "styles/foundation/a.css": "@layer base { .a { COLOR: red; } }\n",
+      "styles/semantic/b.css": "@layer base { .a { color: blue; } }\n",
+    });
+    expect(status).toBe(1);
+  });
+
+  it("keeps case for a CUSTOM property (`--Foo` does NOT collide with `--foo`)", () => {
+    // Custom property names are case-sensitive per CSS Variables — `--Foo` and `--foo` are
+    // distinct properties, so this is not a collision.
+    const { status } = run({
+      "styles/foundation/a.css": "@layer base { :root { --Foo: 1; } }\n",
+      "styles/semantic/b.css": "@layer base { :root { --foo: 2; } }\n",
+    });
+    expect(status).toBe(0);
+  });
+
+  // QA (adversarial, #257 round): pin the report contract byte-for-byte and the guard's edge
+  // semantics — at-rule transparency, list splitting inside quoted values, pair expansion —
+  // plus the two accepted comparison gaps, so any future change to them is deliberate.
+  describe("QA — report contract & normalization edges", () => {
+    it("reports the exact `(selector, property, sheetA:line, sheetB:line)` collision line", () => {
+      // Multi-line fixtures so the declaration lines differ from 1 — a report that printed
+      // the RULE's line (or a hardcoded 1) instead of each declaration's would slip past
+      // the looser path-only assertions above.
+      const { status, stderr } = run({
+        "styles/foundation/a.css": [
+          "@layer base {",
+          "  :root {",
+          "    --y: 0;",
+          "    --x: 1;",
+          "  }",
+          "}",
+          "",
+        ].join("\n"),
+        "styles/semantic/b.css": [
+          "@layer base {",
+          "  :root {",
+          "    --x: 2;",
+          "  }",
+          "}",
+          "",
+        ].join("\n"),
+      });
+      expect(status).toBe(1);
+      expect(stderr).toContain(
+        '":root" { --x }  src/styles/foundation/a.css:4  src/styles/semantic/b.css:3',
+      );
+      expect(stderr).toMatch(/1 violation\(s\)/);
+    });
+
+    it("catches a collision arriving via a selector-LIST member on a standard property", () => {
+      // The real reset.css declares `font-family` on a bare `body`; a future sheet writing
+      // `html, body { font-family: … }` collides only through the split list member.
+      const { status, stderr } = run({
+        "reset.css": "@layer base { body { font-family: serif; } }\n",
+        "styles/semantic/typography.css": [
+          "@layer base {",
+          "  html,",
+          "  body {",
+          "    font-family: sans-serif;",
+          "  }",
+          "}",
+          "",
+        ].join("\n"),
+      });
+      expect(status).toBe(1);
+      expect(stderr).toMatch(/"body" \{ font-family \}/);
+      // `html` sets font-family in only one sheet — it must NOT be reported.
+      expect(stderr).not.toMatch(/"html" \{ font-family \}/);
+    });
+
+    it("flags a cross-sheet duplicate even under mutually exclusive @media contexts (conservative by design)", () => {
+      // The key is (selector, property) only — @media/@supports context is not tracked. When
+      // both queries CAN match, source order still decides, so flagging is correct; for
+      // mutually exclusive queries this is a knowing false positive, accepted as cheaper than
+      // at-rule-context tracking. A future need for cross-sheet responsive overrides must
+      // change this deliberately.
+      const { status, stderr } = run({
+        "styles/foundation/a.css":
+          "@layer base { @media (max-width: 599px) { :root { --x: 1; } } }\n",
+        "styles/semantic/b.css":
+          "@layer base { @media (min-width: 600px) { :root { --x: 2; } } }\n",
+      });
+      expect(status).toBe(1);
+      expect(stderr).toMatch(/":root" \{ --x \}/);
+    });
+
+    it("does NOT split a selector list at a comma inside a quoted attribute value", () => {
+      // `[data-x="a,b"]` is ONE selector; the depth-tracking split must not halve it. The
+      // collision report carries the selector intact.
+      const { status, stderr } = run({
+        "styles/foundation/a.css":
+          '@layer base { [data-x="a,b"] { color: red; } }\n',
+        "styles/semantic/b.css":
+          '@layer base { [data-x="a,b"] { color: blue; } }\n',
+      });
+      expect(status).toBe(1);
+      expect(stderr).toContain('"[data-x="a,b"]" { color }');
+    });
+
+    it("reports every colliding PAIR when three sheets share a (selector, property)", () => {
+      const { status, stderr } = run({
+        "styles/foundation/a.css": "@layer base { :root { --x: 1; } }\n",
+        "styles/foundation/b.css": "@layer base { :root { --x: 2; } }\n",
+        "styles/semantic/c.css": "@layer base { :root { --x: 3; } }\n",
+      });
+      expect(status).toBe(1);
+      // 3 sheets → C(3,2) = 3 pairs, so each offending sheet is named against each other.
+      expect(stderr).toMatch(/3 violation\(s\)/);
+    });
+
+    it("accepts combinator-whitespace variants (`.a > .b` vs `.a>.b`) — a known gap Prettier closes", () => {
+      // These are the SAME selector (identical specificity and matches), so a cross-sheet
+      // duplicate IS order-dependent — but whitespace normalization only collapses runs, it
+      // does not strip spaces around combinators. Accepted because `pnpm format:check` gates
+      // every sheet and Prettier canonicalizes combinators to `.a > .b`, so both files can
+      // only ever reach the guard in the same form.
+      const { status } = run({
+        "styles/foundation/a.css": "@layer base { .a > .b { color: red; } }\n",
+        "styles/semantic/b.css": "@layer base { .a>.b { color: blue; } }\n",
+      });
+      expect(status).toBe(0);
+    });
+
+    it("compares selector text verbatim — element-selector case (`BODY` vs `body`) is not folded", () => {
+      // Element selectors match case-insensitively against HTML, so this is a theoretical
+      // false negative; pinned so a future case-folding change is deliberate, not accidental.
+      const { status } = run({
+        "styles/foundation/a.css": "@layer base { BODY { color: red; } }\n",
+        "styles/semantic/b.css": "@layer base { body { color: blue; } }\n",
+      });
+      expect(status).toBe(0);
+    });
+  });
+});
+
 describe("check-css-layers.mjs — malformed input", () => {
   it("exits non-zero on unparsable CSS rather than silently passing", () => {
     // postcss.parse() is not wrapped in try/catch, so a syntax error throws a raw

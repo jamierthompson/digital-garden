@@ -344,7 +344,7 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   e.g., `neutral`'s `800` step) — the ramp math stays behind them. The page's `<html>` write carries
   the full token set (incl. the `--ring` alias and status); the entry's slot adds only
   its per-role font overrides (`--font-heading` / `--font-body` / `--font-mono`), inline on `[data-entry]`. The raw `--<role>-<step>` primitives are
-  emitted alongside for a consumer that wants them (`tokenSetToCss` / `rampSetToDeclarations`). Dark re-generates each ramp (reduced chroma) and re-solves every
+  emitted alongside for a consumer that wants them (`rampSetToDeclarations`). Dark re-generates each ramp (reduced chroma) and re-solves every
   binding against dark's own surfaces — not a mirror-label flip. The **accent** ramp is additionally
   **anchored to the seed**: one step (keyed off the seed's native direction, reported as
   `anchorLabel`) is bent to the seed's exact lightness — endpoint-preserving, still monotonic — so

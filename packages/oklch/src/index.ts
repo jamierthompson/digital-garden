@@ -26,7 +26,6 @@ export {
 export { CONTRAST_TARGETS, type ContrastTargetName } from "./targets";
 
 export {
-  tokenSetToCss,
   tokenSetToDeclarations,
   rampSetToDeclarations,
   type CssOptions,

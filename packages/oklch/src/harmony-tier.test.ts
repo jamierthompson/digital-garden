@@ -13,7 +13,7 @@ import {
   tokenSetToTailwindTheme,
   tokenSetToDesignTokens,
 } from "./export";
-import { tokenSetToCss } from "./css";
+import { tokenSetToDeclarations, rampSetToDeclarations } from "./css";
 import { formatOklch, parseColor } from "./convert";
 import { buildTokenSet, resolveTheme } from "./palette";
 import { CONTRAST_TARGETS } from "./targets";
@@ -710,7 +710,8 @@ describe("QA — fresh-eyes adversarial: export seams (#152 × scrim-alpha #160)
     // The reverse direction (harmony emits no semantic names) is pinned above; this pins
     // that opting OUT costs nothing: the guarded tokenSetTo* surfaces never mention the tier.
     const set = buildTokenSet("#3b82f6");
-    expect(tokenSetToCss(set, ":root")).not.toContain("harmony");
+    expect(tokenSetToDeclarations(set)).not.toContain("harmony");
+    expect(rampSetToDeclarations(set)).not.toContain("harmony");
     expect(tokenSetToTailwindTheme(set)).not.toContain("harmony");
     expect(JSON.stringify(tokenSetToDesignTokens(set))).not.toContain(
       "harmony",
