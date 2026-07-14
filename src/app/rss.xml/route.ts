@@ -28,6 +28,19 @@ async function getFeedEntries() {
   return client.fetch(ENTRY_FEED_QUERY);
 }
 
+/**
+ * RSS 2.0 dates are RFC-822 (the RFC-1123 four-digit-year form readers expect); `toUTCString()`
+ * emits exactly that. Returns `null` for a missing or unparseable value so a dateless item omits
+ * `<pubDate>` rather than emitting a bare or `"Invalid Date"` element. (`published` is
+ * `coalesce(iterated, _createdAt)`, so in practice it is always a valid `_createdAt` — the guard
+ * covers the nullable type and any hostile out-of-band write.)
+ */
+function toRfc822(value: string | null): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toUTCString();
+}
+
 export async function GET() {
   const entries = await getFeedEntries();
 
@@ -40,10 +53,13 @@ export async function GET() {
       const url = `${SITE_URL}/${entry.slug}`;
       const title = escapeXml(entry.title ?? "Untitled");
       const description = entry.blurb ? escapeXml(entry.blurb) : "";
+      // `toRfc822` output is a fixed-format ASCII date (no XML metacharacters), so it needs no
+      // escaping; a dateless item drops the element entirely rather than emitting an empty one.
+      const pubDate = toRfc822(entry.published);
       return `    <item>
       <title>${title}</title>
       <link>${escapeXml(url)}</link>
-      <guid isPermaLink="true">${escapeXml(url)}</guid>
+      <guid isPermaLink="true">${escapeXml(url)}</guid>${pubDate ? `\n      <pubDate>${pubDate}</pubDate>` : ""}
       <description>${description}</description>
     </item>`;
     })

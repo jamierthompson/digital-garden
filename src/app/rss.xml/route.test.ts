@@ -17,10 +17,17 @@ interface FeedRow {
   title: string | null;
   slug: string | null;
   blurb: string | null;
+  published: string | null;
 }
 
 function row(over: Partial<FeedRow> & { _id: string }): FeedRow {
-  return { title: "An entry", slug: "an-entry", blurb: "A blurb.", ...over };
+  return {
+    title: "An entry",
+    slug: "an-entry",
+    blurb: "A blurb.",
+    published: "2026-03-01T00:00:00Z",
+    ...over,
+  };
 }
 
 async function feedXml(rows: FeedRow[]): Promise<string> {
@@ -96,5 +103,35 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
     const xml = await feedXml([row({ _id: "1", slug: "my-entry" })]);
     expect(xml).toMatch(/<link>[^<]*\/my-entry<\/link>/);
     expect(xml).toMatch(/<guid isPermaLink="true">[^<]*\/my-entry<\/guid>/);
+  });
+
+  it("stamps each item with an RFC-822 <pubDate> from the entry's published date", async () => {
+    const xml = await feedXml([
+      row({ _id: "1", published: "2026-03-01T00:00:00Z" }),
+    ]);
+    // RSS 2.0 pubDate is RFC-822; `toUTCString()` is the canonical form readers parse.
+    expect(xml).toContain(
+      `<pubDate>${new Date("2026-03-01T00:00:00Z").toUTCString()}</pubDate>`,
+    );
+  });
+
+  it("stamps a date-only `iterated` value (no clock component) as a valid pubDate", async () => {
+    // A Sanity `date` field is date-only ("2026-07-14"); it must still yield a valid RFC-822 date.
+    const xml = await feedXml([row({ _id: "1", published: "2026-07-14" })]);
+    expect(xml).toContain(
+      `<pubDate>${new Date("2026-07-14").toUTCString()}</pubDate>`,
+    );
+    expect(xml).not.toContain("Invalid Date");
+  });
+
+  it("omits <pubDate> entirely for a null or unparseable date (no empty or Invalid Date element)", async () => {
+    const xml = await feedXml([
+      row({ _id: "1", slug: "no-date", published: null }),
+      row({ _id: "2", slug: "bad-date", published: "not-a-date" }),
+    ]);
+    expect(xml).not.toContain("<pubDate>");
+    expect(xml).not.toContain("Invalid Date");
+    // Both items still render — a missing date drops only the one element, not the item.
+    expect(xml.match(/<item>/g)).toHaveLength(2);
   });
 });
