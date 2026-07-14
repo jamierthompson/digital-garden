@@ -390,8 +390,8 @@ export interface TokenSet {
   tokens: Record<ThemeTokenName, SchemePair>;
   /**
    * The per-role `50…950` ramps, each zipped into a `{ light, dark }` pair for
-   * `light-dark()` output (`tokenSetToCss` emits them as `--<role>-<step>` alongside the
-   * semantic tokens). The primitive tier the semantic tokens are bound from (#98).
+   * `light-dark()` output (`rampSetToDeclarations` emits them as `--<role>-<step>`). The
+   * primitive tier the semantic tokens are bound from (#98).
    */
   ramps: Record<RampRole, RampPair>;
   meta: {

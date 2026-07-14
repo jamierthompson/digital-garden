@@ -69,7 +69,11 @@ bit-identical to a fresh compute — so the purity/determinism contract is uncha
 ## Public API (`index.ts`)
 
 ```ts
-import { resolveTheme, buildTokenSet, tokenSetToCss } from "@garden/oklch";
+import {
+  resolveTheme,
+  buildTokenSet,
+  tokenSetToDeclarations,
+} from "@garden/oklch";
 
 // One scheme → { ramps, tokens, seed, isFallback } (cardSwatches; the Color Engine, #70):
 const { ramps, tokens, seed, isFallback } = resolveTheme("#3b82f6", "light");
@@ -77,7 +81,7 @@ ramps.accent[7]; // → { label: "700", color: {…}, oog: false }
 
 // Both schemes zipped for EntryScope's light-dark() <style>:
 const set = buildTokenSet("#3b82f6"); // { gamut: "p3" } to opt into wide gamut
-const css = tokenSetToCss(set, '[data-entry="garden"]'); // @layer semantic, tokens + ramps
+const decls = tokenSetToDeclarations(set); // raw --name: light-dark(…) lines the caller places
 ```
 
 Tokens (generic semantic contract, emitted as bare `--<name>`) — the **37-token** model
@@ -100,7 +104,7 @@ accent ramp so `accent` is symmetric with the four statuses. The canonical lists
 Ramps (the primitive tier, emitted as `--<role>-<step>`): one per role — `accent`, `neutral`,
 `success`, `error`, `warning`, `info` — each 11 `50…950` steps (`RampStep` = `{ label, color,
 oog }`). `tokenSetToDeclarations` emits the semantic tier only; `rampSetToDeclarations` the
-ramp tier only; `tokenSetToCss` both.
+ramp tier only.
 
 Binding provenance (the receipt): each result reports **which ramp step every semantic token
 bound to**, so a consumer (the Color Engine token table, #70) can print a truthful "`--foreground` →
@@ -157,8 +161,8 @@ tokenSetToTailwindTheme(set); // Tailwind v4 `@theme { --color-accent-500: …; 
 tokenSetToDesignTokens(set, { format: "hex" }); // W3C-DTCG JSON, per-scheme groups
 ```
 
-The in-repo CSS serializers (`tokenSetToCss` & co.) take the same option; `EntryScope`
-uses the default.
+The in-repo CSS serializers (`tokenSetToDeclarations` / `rampSetToDeclarations`) take the
+same option; `EntryScope` uses the default.
 
 **Low-level surface** is also exported: `contrastWCAG`, `contrastAPCA`/`apcaLc`,
 `checkContrast` (the shared "does it clear?" report — measured WCAG + APCA + `passes`,
@@ -178,7 +182,7 @@ stops), `minPass` (discrete step binding), and the color conversions/parsers.
   re-declaring `light dark` shadows a forced root override (the site-wide light/dark toggle)
   and the slot silently follows the OS. The foundation layer establishes it once at `:root`.
   A caller that establishes the scheme at its OWN root — e.g. the pasteable `:root` CSS export
-  (#107) — opts in with `tokenSetToCss(set, ":root", { colorScheme: true })`.
+  (#107) — opts in with `tokenSetToDeclarations(set, { colorScheme: true })`.
 - `resolveTheme(...).isFallback` / `buildTokenSet(...).meta.isFallback` is `true` when the
   input failed to parse — surface it if you want a visible signal; the palette is always safe.
 

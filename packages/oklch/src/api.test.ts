@@ -118,7 +118,6 @@ const RUNTIME_EXPORTS = [
   "resolveTheme",
   "solveForeground",
   "srgbToOklch",
-  "tokenSetToCss",
   "tokenSetToDeclarations",
   "tokenSetToDesignTokens",
   "tokenSetToTailwindTheme",
@@ -205,7 +204,8 @@ describe("the guarded public surface (#99)", () => {
   });
 
   it("emits exactly the guarded custom-property names (the CSS surface)", () => {
-    const css = api.tokenSetToCss(api.buildTokenSet("#3b82f6"), "[data-x]");
+    const set = api.buildTokenSet("#3b82f6");
+    const css = `${api.tokenSetToDeclarations(set)}\n${api.rampSetToDeclarations(set)}`;
     const emitted = [...css.matchAll(/(--[\w-]+):/g)].map((m) => m[1]).sort();
     const expected = [
       ...SEMANTIC_NAMES.map((name) => `--${name}`),
@@ -225,9 +225,6 @@ describe("the guarded public surface (#99)", () => {
       [unknown, api.EngineOptions?]
     >();
     expectTypeOf(api.buildTokenSet).returns.toEqualTypeOf<TokenSet>();
-    expectTypeOf(api.tokenSetToCss).parameters.toEqualTypeOf<
-      [TokenSet, string, api.CssOptions?]
-    >();
     expectTypeOf(api.tokenSetToTailwindTheme).returns.toEqualTypeOf<string>();
     expectTypeOf(
       api.tokenSetToDesignTokens,
