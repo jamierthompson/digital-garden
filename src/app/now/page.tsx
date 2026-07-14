@@ -63,14 +63,14 @@ export default async function NowPage() {
           <Stack asChild gap={space(2)}>
             <header>
               <Heading level={1}>Now</Heading>
-              <Text variant="lead" color="muted-foreground">
+              <Text variant="lede" color="muted-foreground">
                 What I&apos;m focused on at the moment. Newest first.
               </Text>
             </header>
           </Stack>
 
           {updates.length === 0 ? (
-            <Text variant="lead" color="muted-foreground">
+            <Text variant="lede" color="muted-foreground">
               No now-updates yet — check back soon.
             </Text>
           ) : (

@@ -10,7 +10,7 @@ const VARIANTS: readonly HeadingVariant[] = [
   "title",
   "heading",
   "subheading",
-  "lead",
+  "lede",
   "body",
   "label",
   "meta",

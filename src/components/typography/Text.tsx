@@ -10,7 +10,7 @@ import colorStyles from "./textColor.module.css";
  */
 export type TextVariant =
   | "body"
-  | "lead"
+  | "lede"
   | "label"
   | "meta"
   | "caption"
@@ -18,7 +18,7 @@ export type TextVariant =
 
 interface TextProps extends React.ComponentPropsWithRef<"p"> {
   /**
-   * The semantic type role to apply — `body` (running copy, the default), `lead` (an intro /
+   * The semantic type role to apply — `body` (running copy, the default), `lede` (an intro /
    * blurb, a notch larger than body), `label` (kickers / eyebrows / section labels), `meta`
    * (metadata, timestamps, mono readouts), `caption` (small muted secondary prose — figure /
    * video captions, a quote's attribution), or `quote` (a pull-quote's body). Each applies that

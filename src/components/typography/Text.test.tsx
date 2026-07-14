@@ -17,7 +17,7 @@ describe("Text", () => {
   it("selects the role via data-variant", () => {
     for (const variant of [
       "body",
-      "lead",
+      "lede",
       "label",
       "meta",
       "caption",
@@ -50,13 +50,13 @@ describe("Text", () => {
 
   it("stamps data-color for the ink role, independently of the variant", () => {
     render(
-      <Text variant="lead" color="muted-foreground" data-testid="t">
+      <Text variant="lede" color="muted-foreground" data-testid="t">
         Inked
       </Text>,
     );
     const el = screen.getByTestId("t");
     expect(el).toHaveAttribute("data-color", "muted-foreground");
-    expect(el).toHaveAttribute("data-variant", "lead");
+    expect(el).toHaveAttribute("data-variant", "lede");
   });
 
   it("sets NO data-color when color is omitted (inherits the ambient ink)", () => {
@@ -256,7 +256,7 @@ describe("TextVariant ↔ Text.module.css bundle bijection", () => {
   // typecheck here — the runtime half below then holds the CSS to the same list.
   const VARIANTS = [
     "body",
-    "lead",
+    "lede",
     "label",
     "meta",
     "caption",

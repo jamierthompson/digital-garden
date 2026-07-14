@@ -31,7 +31,7 @@ export default async function SystemPage() {
       <Page width="measure">
         <Stack gap={space(4)}>
           <Heading level={1}>System</Heading>
-          <Text variant="lead" color="muted-foreground">
+          <Text variant="lede" color="muted-foreground">
             The design system behind the garden — the token tiers, the OKLCH
             color engine, the type system, and the stack, documented in the
             open. This page is being written.
