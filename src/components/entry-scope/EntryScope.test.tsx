@@ -302,9 +302,13 @@ describe("EntryScope (three-face font slot)", () => {
 
   it.each([
     // face, role seed key, roster key, role-default generic (the OLD, wrong tail), authored category
+    // — the FULL role × foreign-category matrix (each role has two foreign categories).
     ["heading", "headingFont", "fraunces", "sans-serif", "serif"],
+    ["heading", "headingFont", "jetbrains-mono", "sans-serif", "monospace"],
     ["body", "bodyFont", "inter", "serif", "sans-serif"],
+    ["body", "bodyFont", "jetbrains-mono", "serif", "monospace"],
     ["mono", "monoFont", "inter", "monospace", "sans-serif"],
+    ["mono", "monoFont", "fraunces", "monospace", "serif"],
   ] as const satisfies ReadonlyArray<
     readonly [FaceKey, string, keyof typeof FONT_FACES, string, string]
   >)(
@@ -331,14 +335,29 @@ describe("EntryScope (three-face font slot)", () => {
     },
   );
 
-  it("leaves a SAME-category face unchanged (newsreader is a serif in the body role)", () => {
-    render(
-      <EntryScope seed={{ slug: "x", bodyFont: "newsreader" }}>
-        <p>same</p>
-      </EntryScope>,
-    );
-    expect(
-      propOf(screen.getByText("same").closest("[data-entry]"), "--font-body"),
-    ).toBe(`var(${FONT_FACES.newsreader.cssVariable}), serif`);
-  });
+  it.each([
+    // face, role seed key, roster key whose category EQUALS the role default, shared generic —
+    // for these combos the authored category and the old role default coincide, so the emitted
+    // string must be byte-identical to the pre-#255 output (the fix changes nothing here).
+    ["heading", "headingFont", "space-grotesk", "sans-serif"],
+    ["body", "bodyFont", "newsreader", "serif"],
+    ["mono", "monoFont", "jetbrains-mono", "monospace"],
+  ] as const satisfies ReadonlyArray<
+    readonly [FaceKey, string, keyof typeof FONT_FACES, string]
+  >)(
+    "leaves a SAME-category %s face unchanged vs the role default",
+    (face, seedKey, fontKey, generic) => {
+      render(
+        <EntryScope seed={{ slug: "x", [seedKey]: fontKey }}>
+          <p>same</p>
+        </EntryScope>,
+      );
+      expect(
+        propOf(
+          screen.getByText("same").closest("[data-entry]"),
+          FACE_SPEC[face].leaf,
+        ),
+      ).toBe(`var(${FONT_FACES[fontKey].cssVariable}), ${generic}`);
+    },
+  );
 });
