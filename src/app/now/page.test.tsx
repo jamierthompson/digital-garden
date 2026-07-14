@@ -92,6 +92,18 @@ describe("Now page (Sanity-driven stream)", () => {
       "https://nownownow.com/about",
     );
   });
+
+  describe("adversarial QA", () => {
+    it("keeps rel=noopener noreferrer AND gains the accent treatment on the external footnote link", async () => {
+      render(await NowPage());
+      const link = screen.getByRole("link", { name: /now page/i });
+      // The migration swapped <a className> for <TextLink>; rel must pass through the
+      // primitive untouched and the accent ink bundle must actually be selected.
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+      expect(link).toHaveAttribute("data-variant", "accent");
+      expect(link.tagName).toBe("A");
+    });
+  });
 });
 
 describe("NowPage — edges & boundaries", () => {

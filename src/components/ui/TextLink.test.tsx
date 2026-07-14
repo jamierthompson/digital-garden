@@ -1,8 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import Link from "next/link";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import TextLink from "./TextLink";
+import TextLink, { type TextLinkVariant } from "./TextLink";
 import styles from "./TextLink.module.css";
 
 describe("TextLink", () => {
@@ -63,14 +63,85 @@ describe("TextLink", () => {
     expect(link).toHaveAttribute("data-variant", "quiet");
   });
 
+  describe("adversarial QA", () => {
+    it("forwards a ref to the rendered anchor", () => {
+      const ref = { current: null as HTMLAnchorElement | null };
+      render(
+        <TextLink variant="accent" href="/x" ref={ref}>
+          go
+        </TextLink>,
+      );
+      expect(ref.current).toBe(screen.getByRole("link", { name: "go" }));
+    });
+
+    it("forwards a ref through asChild to the underlying anchor (composed refs)", () => {
+      const ref = { current: null as HTMLAnchorElement | null };
+      render(
+        <TextLink variant="quiet" asChild ref={ref}>
+          <Link href="/entry">Entry title</Link>
+        </TextLink>,
+      );
+      expect(ref.current).toBe(
+        screen.getByRole("link", { name: "Entry title" }),
+      );
+    });
+
+    it("keeps all three class sources under asChild: base link class, own className, child's className", () => {
+      render(
+        <TextLink variant="muted" asChild className="from-textlink">
+          <Link href="/x" className="from-child">
+            go
+          </Link>
+        </TextLink>,
+      );
+      const link = screen.getByRole("link", { name: "go" });
+      expect(link).toHaveClass(styles.link);
+      expect(link).toHaveClass("from-textlink");
+      expect(link).toHaveClass("from-child");
+    });
+
+    it("composes click handlers under asChild — both TextLink's and the child's fire", () => {
+      const onTextLinkClick = vi.fn();
+      const onChildClick = vi.fn();
+      render(
+        <TextLink variant="quiet" asChild onClick={onTextLinkClick}>
+          <Link
+            href="/x"
+            onClick={(event) => {
+              event.preventDefault();
+              onChildClick(event);
+            }}
+          >
+            go
+          </Link>
+        </TextLink>,
+      );
+      fireEvent.click(screen.getByRole("link", { name: "go" }));
+      expect(onChildClick).toHaveBeenCalledTimes(1);
+      expect(onTextLinkClick).toHaveBeenCalledTimes(1);
+    });
+
+    it("fails safe on a runtime-unknown variant: still a working link, unmatched ink bundle only", () => {
+      // The type system forbids this; simulate untyped data reaching the prop at runtime.
+      const bogus = "wat" as unknown as TextLinkVariant;
+      render(
+        <TextLink variant={bogus} href="/x">
+          go
+        </TextLink>,
+      );
+      const link = screen.getByRole("link", { name: "go" });
+      expect(link).toHaveAttribute("href", "/x");
+      expect(link).toHaveClass(styles.link);
+      expect(link).toHaveAttribute("data-variant", "wat");
+    });
+  });
+
   it("lets the typed variant win over a stray data-variant passthrough", () => {
     render(
-      <TextLink
-        variant="accent"
-        href="/x"
-        // @ts-expect-error — a literal data-variant must not override the typed prop.
-        data-variant="quiet"
-      >
+      // A literal `data-variant` is type-legal (data-* props are accepted), so the
+      // component's `{...rest}`-before-`data-variant` spread order is what keeps the
+      // typed prop authoritative — this guards that reachable consumer mistake.
+      <TextLink variant="accent" href="/x" data-variant="quiet">
         go
       </TextLink>,
     );
