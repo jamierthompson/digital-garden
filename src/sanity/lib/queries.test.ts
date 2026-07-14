@@ -27,11 +27,15 @@ describe("ENTRY_FEED_QUERY", () => {
     );
   });
 
-  it("projects exactly the item fields — id / title / slug / blurb", () => {
+  it("projects exactly the item fields — id / title / slug / blurb / published", () => {
     for (const field of ["_id", "title", "blurb"]) {
       expect(ENTRY_FEED_QUERY).toContain(field);
     }
     expect(ENTRY_FEED_QUERY).toContain('"slug": slug.current');
+    // The item's <pubDate> source: the same ordering expression, so pubDate agrees with feed order.
+    expect(ENTRY_FEED_QUERY).toContain(
+      '"published": coalesce(iterated, _createdAt)',
+    );
   });
 
   it("never over-fetches the body or the dropped theming / facet fields", () => {
@@ -140,18 +144,40 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
     ]);
   });
 
-  it("projects EXACTLY { _id, title, slug, blurb } per row — the closed over-fetch guard", async () => {
+  it("projects EXACTLY { _id, title, slug, blurb, published } per row — the closed over-fetch guard", async () => {
     const rows = await runFeed();
     for (const row of rows) {
       expect(Object.keys(row).sort()).toEqual([
         "_id",
         "blurb",
+        "published",
         "slug",
         "title",
       ]);
     }
     // The alias resolves to the flat slug string the route builds URLs from.
     expect(rows.find((r) => r._id === "fresh-now")?.slug).toBe("a-now-update");
+  });
+
+  it("sources `published` from the authored `iterated`, falling back to `_createdAt`", async () => {
+    const rows = await runFeed();
+    // iterated-note has an authored `iterated`, so `published` is that date, not its `_createdAt`.
+    expect(rows.find((r) => r._id === "iterated-note")?.published).toBe(
+      "2026-03-01",
+    );
+    // fresh-now has no `iterated`, so `published` falls back to `_createdAt`.
+    expect(rows.find((r) => r._id === "fresh-now")?.published).toBe(
+      "2026-02-01T00:00:00Z",
+    );
+  });
+
+  it("feed order IS published order — each row's projected `published` descends (QA #128)", async () => {
+    // The <pubDate> source and the order() key are the same coalesce expression; if they
+    // ever diverge, items would sort by one date and display another. Prove the executed
+    // rows are already sorted by their own projected value.
+    const rows = await runFeed();
+    const published = rows.map((r) => r.published as string);
+    expect(published).toEqual([...published].sort().reverse());
   });
 });
 

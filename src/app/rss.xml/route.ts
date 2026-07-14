@@ -20,12 +20,28 @@ import { escapeXml } from "./escapeXml";
  */
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const FEED_URL = `${SITE_URL}/rss.xml`;
 
 /** Cached read of the published entry feed — public client (no token, published perspective) so drafts never leak into the feed. */
 async function getFeedEntries() {
   "use cache";
   cacheLife("hours");
   return client.fetch(ENTRY_FEED_QUERY);
+}
+
+/**
+ * RSS 2.0 dates are RFC-822 (the RFC-1123 four-digit-year form readers expect); `toUTCString()`
+ * emits exactly that. Returns `null` for a null or syntactically unparseable value so such an item
+ * omits `<pubDate>` rather than emitting a bare or `"Invalid Date"` element. (`published` is
+ * `coalesce(iterated, _createdAt)`, so in practice it is always a valid `_createdAt`; the guard just
+ * covers the nullable type and a malformed string. It does NOT catch a calendar-overflow date like
+ * `2026-02-31` — the ECMAScript grammar rolls that to a real day — but the Studio date picker cannot
+ * author one, so guarding it would be dead machinery.)
+ */
+function toRfc822(value: string | null): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toUTCString();
 }
 
 export async function GET() {
@@ -40,20 +56,27 @@ export async function GET() {
       const url = `${SITE_URL}/${entry.slug}`;
       const title = escapeXml(entry.title ?? "Untitled");
       const description = entry.blurb ? escapeXml(entry.blurb) : "";
+      // `toRfc822` output is a fixed-format ASCII date (no XML metacharacters), so it needs no
+      // escaping; a dateless item drops the element entirely rather than emitting an empty one.
+      const pubDate = toRfc822(entry.published);
       return `    <item>
       <title>${title}</title>
       <link>${escapeXml(url)}</link>
-      <guid isPermaLink="true">${escapeXml(url)}</guid>
+      <guid isPermaLink="true">${escapeXml(url)}</guid>${pubDate ? `\n      <pubDate>${pubDate}</pubDate>` : ""}
       <description>${description}</description>
     </item>`;
     })
     .join("\n");
 
+  // `atom:link rel="self"` declares the feed's own canonical URL — the RSS Best Practices Profile's
+  // self-link recommendation (rssboard.org/rss-profile) that the W3C Feed Validator enforces; it
+  // needs the Atom namespace on `<rss>`.
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Jamie Thompson — Digital Garden</title>
     <link>${escapeXml(SITE_URL)}</link>
+    <atom:link href="${escapeXml(FEED_URL)}" rel="self" type="application/rss+xml" />
     <description>Notes, essays, projects, and now-updates from the digital garden.</description>
 ${items}
   </channel>

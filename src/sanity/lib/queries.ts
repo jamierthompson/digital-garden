@@ -5,17 +5,19 @@ import { defineQuery } from "next-sanity";
  *
  * The digital garden syndicates everything published — notes, essays, projects, AND `now`
  * updates — newest first by the authored `iterated` date (falling back to `_createdAt`). Pulls
- * only what the feed renders — `blurb` plus id / title / slug for the `<item>` link — and
- * deliberately NOT the `body`, keeping the read small. Its only reader is `rss.xml/route.ts`.
- * The over-fetch guard is asserted in queries.test.ts. Typed by Sanity TypeGen as
- * `ENTRY_FEED_QUERYResult`. `defineQuery` must wrap the literal — no runtime interpolation.
+ * only what an `<item>` renders — `blurb` plus id / title / slug for the link, and `published`
+ * (the same `coalesce(iterated, _createdAt)` the ordering uses, so each item's `<pubDate>` agrees
+ * with feed order) — and deliberately NOT the `body`, keeping the read small. Its only reader is
+ * `rss.xml/route.ts`. The over-fetch guard is asserted in queries.test.ts. Typed by Sanity TypeGen
+ * as `ENTRY_FEED_QUERYResult`. `defineQuery` must wrap the literal — no runtime interpolation.
  */
 export const ENTRY_FEED_QUERY = defineQuery(`
   *[_type == "entry" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {
     _id,
     title,
     "slug": slug.current,
-    blurb
+    blurb,
+    "published": coalesce(iterated, _createdAt)
   }
 `);
 

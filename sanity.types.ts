@@ -279,12 +279,13 @@ export type AllSanitySchemaTypes =
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: ENTRY_FEED_QUERY
-// Query: *[_type == "entry" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {    _id,    title,    "slug": slug.current,    blurb  }
+// Query: *[_type == "entry" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {    _id,    title,    "slug": slug.current,    blurb,    "published": coalesce(iterated, _createdAt)  }
 export type ENTRY_FEED_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
   slug: string | null;
   blurb: string | null;
+  published: string;
 }>;
 
 // Source: ../src/sanity/lib/queries.ts
@@ -390,7 +391,7 @@ export type SITE_SETTINGS_QUERY_RESULT = {
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_type == "entry" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    blurb\n  }\n': ENTRY_FEED_QUERY_RESULT;
+    '\n  *[_type == "entry" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    blurb,\n    "published": coalesce(iterated, _createdAt)\n  }\n': ENTRY_FEED_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current)]{ "slug": slug.current }\n': ENTRY_SLUGS_QUERY_RESULT;
     '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    blurb,\n    theme { color, colorDark, headingFont, bodyFont, monoFont },\n    componentKey,\n    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),\n    body,\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }\n  }\n': ENTRY_DETAIL_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    blurb,\n    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])\n  }\n': INDEX_QUERY_RESULT;
