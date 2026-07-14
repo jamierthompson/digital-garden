@@ -11,22 +11,22 @@ interface EntryScopeProps {
   children: ReactNode;
 }
 
-// Each themeable face → the leaf `--font-*` token it re-binds and the CSS generic that TAILS
-// that leaf. Which type roles wear which face is NOT known here — that mapping lives solely in
-// `semantic/type.css`, whose role bundles are declared at both `:root` and the slot scope and
-// re-substitute against these leaves.
+// Each themeable face → the leaf `--font-*` token it re-binds. Which type roles wear which face is
+// NOT known here — that mapping lives solely in `semantic/type.css`, whose role bundles are declared
+// at both `:root` and the slot scope and re-substitute against these leaves.
 //
-// The generic keyword is the ONLY fallback appended to the leaf: never the site palette face
-// (that would hardcode the palette this slot must stay decoupled from) and never a self-referential
+// The terminal fallback tailed onto each leaf is the RESOLVED face's own `category` (from the
+// roster), NOT a role-default keyword — so a serif face authored into the heading role falls back to
+// `serif`, not the heading role's `sans-serif`. It is never the site palette face (that would
+// hardcode the palette this slot must stay decoupled from) and never a self-referential
 // `var(--font-<face>)` (a CSS cycle → the whole declaration is dropped).
 const FACE_BINDINGS = [
-  { face: "heading", leaf: "--font-heading", generic: "sans-serif" },
-  { face: "body", leaf: "--font-body", generic: "serif" },
-  { face: "mono", leaf: "--font-mono", generic: "monospace" },
+  { face: "heading", leaf: "--font-heading" },
+  { face: "body", leaf: "--font-body" },
+  { face: "mono", leaf: "--font-mono" },
 ] as const satisfies ReadonlyArray<{
   face: keyof ScopeFaces;
   leaf: string;
-  generic: string;
 }>;
 
 /**
@@ -65,10 +65,10 @@ export default function EntryScope({ seed, children }: EntryScopeProps) {
 
   const style: Record<string, string> = {};
   const classNames: string[] = [];
-  for (const { face, leaf, generic } of FACE_BINDINGS) {
+  for (const { face, leaf } of FACE_BINDINGS) {
     const resolved = scope.faces[face];
     if (!resolved) continue;
-    style[leaf] = `var(${resolved.cssVariable}), ${generic}`;
+    style[leaf] = `var(${resolved.cssVariable}), ${resolved.category}`;
     classNames.push(resolved.variable);
   }
 

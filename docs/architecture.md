@@ -344,7 +344,7 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   e.g., `neutral`'s `800` step) — the ramp math stays behind them. The page's `<html>` write carries
   the full token set (incl. the `--ring` alias and status); the entry's slot adds only
   its per-role font overrides (`--font-heading` / `--font-body` / `--font-mono`), inline on `[data-entry]`. The raw `--<role>-<step>` primitives are
-  emitted alongside for a consumer that wants them (`tokenSetToCss` / `rampSetToDeclarations`). Dark re-generates each ramp (reduced chroma) and re-solves every
+  emitted alongside for a consumer that wants them (`rampSetToDeclarations`). Dark re-generates each ramp (reduced chroma) and re-solves every
   binding against dark's own surfaces — not a mirror-label flip. The **accent** ramp is additionally
   **anchored to the seed**: one step (keyed off the seed's native direction, reported as
   `anchorLabel`) is bent to the seed's exact lightness — endpoint-preserving, still monotonic — so
@@ -442,12 +442,12 @@ engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WC
   app owns it. `semantic/type.css` binds each role's size to a step —
   `--type-heading-size: var(--type-size-6)` — alongside its family/weight/tracking/leading, so a
   retune moves a role to a different step with no call-site change, and roles can be added or
-  dropped without touching the engine. The roles: **display · title · heading · subheading · lead ·
+  dropped without touching the engine. The roles: **display · title · heading · subheading · lede ·
   body · label · meta · caption · quote · wordmark · nav**.
 - **Editorial content reads roles via `<Heading>` / `<Text>`.** `Heading` renders the `<hN>` for
   its `level` (the a11y outline) and applies a role by `variant` — or by the level when `variant`
   is omitted (1→`title`, 2→`heading`, 3–6→`subheading`; the oversized `display` is opt-in for a
-  hero). `Text` renders `<p>` (or any element via `asChild`) in `body`/`lead`/`label`/`meta`.
+  hero). `Text` renders `<p>` (or any element via `asChild`) in `body`/`lede`/`label`/`meta`.
   Both also wear their ink via `color` — a semantic color role (`foreground` ·
   `muted-foreground` · `accent-text`), applied through the shared `textColor` rules; omitted, the
   primitive inherits the ambient ink. Discrete roles apply via `data-*` attributes (the variant

@@ -5,7 +5,7 @@ import ColorEngine from "./ColorEngine";
 
 // The rebuild-placeholder specimen renders the type roles through the Heading/Text primitives so
 // a themed entry visibly demonstrates all three of its faces. The roles map to faces via
-// semantic/type.css: display/subheading/label → --font-heading, lead/body → --font-body, meta →
+// semantic/type.css: display/subheading/label → --font-heading, lede/body → --font-body, meta →
 // --font-mono. These assert every role is present (queried by role/accessible text), so the
 // three-face showcase can't silently regress to a bare paragraph.
 describe("ColorEngine (rebuild-placeholder type specimen)", () => {
@@ -24,17 +24,17 @@ describe("ColorEngine (rebuild-placeholder type specimen)", () => {
     expect(subheading).toHaveAttribute("data-variant", "subheading");
   });
 
-  it("covers all three faces: heading (label), body (lead + body), mono (meta)", () => {
+  it("covers all three faces: heading (label), body (lede + body), mono (meta)", () => {
     render(<ColorEngine />);
     // Heading face — the label kicker.
     expect(screen.getByText("Type specimen")).toHaveAttribute(
       "data-variant",
       "label",
     );
-    // Body face — the lead intro and the running paragraph.
+    // Body face — the lede intro and the running paragraph.
     expect(screen.getByText(/wears the entry.s theme/i)).toHaveAttribute(
       "data-variant",
-      "lead",
+      "lede",
     );
     expect(screen.getByText(/running copy like this/i)).toHaveAttribute(
       "data-variant",
