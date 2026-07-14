@@ -62,7 +62,7 @@ export default async function IndexPage() {
             <header>
               <Heading level={1}>Index</Heading>
               <Text
-                variant="lead"
+                variant="lede"
                 color="muted-foreground"
                 className={styles.intro}
               >
@@ -71,7 +71,7 @@ export default async function IndexPage() {
             </header>
           </Stack>
           {!hasVisibleEntries ? (
-            <Text variant="lead" color="muted-foreground">
+            <Text variant="lede" color="muted-foreground">
               Nothing published yet.
             </Text>
           ) : (

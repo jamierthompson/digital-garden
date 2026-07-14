@@ -164,7 +164,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
           </Heading>
           {entry.blurb ? (
             <Text
-              variant="lead"
+              variant="lede"
               color="muted-foreground"
               className={styles.blurb}
             >

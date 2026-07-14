@@ -25,8 +25,8 @@ export default function ColorEngine(): React.ReactElement {
       <Heading level={3} variant="subheading">
         Meanwhile, a specimen of this entry&rsquo;s type.
       </Heading>
-      {/* Body face — lead + running copy read --font-body. */}
-      <Text variant="lead">
+      {/* Body face — lede + running copy read --font-body. */}
+      <Text variant="lede">
         This slot wears the entry&rsquo;s theme: its heading, body, and mono
         faces on the shared type scale.
       </Text>
