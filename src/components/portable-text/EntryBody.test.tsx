@@ -121,6 +121,53 @@ describe("EntryBody", () => {
     });
   });
 
+  describe("adversarial QA round 2 — hostile / edge link-mark hrefs", () => {
+    const linkBlock = (href: unknown) =>
+      [
+        {
+          _type: "block",
+          _key: "b1",
+          style: "normal",
+          markDefs: [{ _type: "link", _key: "m1", href }],
+          children: [
+            { _type: "span", _key: "s1", text: "see this", marks: ["m1"] },
+          ],
+        },
+      ] as unknown as Body;
+
+    it("a hostile javascript: href never survives to the DOM (React 19 sanitizeURL is the active defense — the serializer itself does not filter schemes)", () => {
+      // Raw Content Lake writes bypass Studio validation, so a javascript: href can exist in
+      // the dataset. React 19 rewrites it to an inert throwing stub in BOTH the production
+      // client and server builds (react-dom sanitizeURL) — the payload must never survive.
+      render(
+        <EntryBody value={linkBlock("javascript:alert(document.domain)")} />,
+      );
+      const link = screen.getByText("see this").closest("a");
+      expect(link?.getAttribute("href")).not.toContain("alert");
+    });
+
+    it("treats a protocol-relative //host href as external (safe rel), not as an in-tab relative link", () => {
+      render(<EntryBody value={linkBlock("//evil.example/x")} />);
+      const link = screen.getByRole("link", { name: "see this" });
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    });
+
+    it("does not render a self-navigating href='' link when the annotation has no href", () => {
+      render(<EntryBody value={linkBlock(undefined)} />);
+      const anchor = screen.getByText("see this").closest("a");
+      // Either no anchor at all, or an anchor without href (not a link role) is acceptable;
+      // href="" is a link back to the current page — a trap for keyboard/AT users.
+      expect(anchor?.getAttribute("href")).not.toBe("");
+    });
+
+    it("keeps a mailto: href in-tab with no target (not misdecorated as external)", () => {
+      render(<EntryBody value={linkBlock("mailto:hi@example.com")} />);
+      const link = screen.getByRole("link", { name: "see this" });
+      expect(link).toHaveAttribute("href", "mailto:hi@example.com");
+      expect(link).not.toHaveAttribute("target");
+    });
+  });
+
   // The shared palette carries two typed non-slot blocks — `video` and `quote`. The
   // serializer routes each to its own renderer (real components, not mocked here) rather
   // than dropping it or misrouting it into a slot.
