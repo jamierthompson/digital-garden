@@ -296,4 +296,173 @@ describe("EntryVideo", () => {
       expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
     });
   });
+
+  // Fresh-eyes pentester pass over the untrusted-url → iframe/video pipeline. Each case pins the
+  // observed-correct behavior so a future refactor that weakens a check (hostname → host, exact →
+  // endsWith, id-rebuild → id-passthrough, provider → file fall-through) fails loudly here.
+  describe("adversarial QA", () => {
+    const YT_11 = "dQw4w9WgXcQ";
+
+    describe("host-confusion never reaches the iframe trust boundary", () => {
+      // `user@host` — the authority is the part AFTER the `@`. Provider-before-`@` is the classic
+      // spoof (real host is evil.com) and must be rejected.
+      it("rejects userinfo that hides the real host after the @", () => {
+        expect(
+          resolveVideoEmbed(
+            `https://www.youtube.com@evil.com/watch?v=${YT_11}`,
+          ),
+        ).toBeNull();
+        expect(
+          resolveVideoEmbed(`https://player.vimeo.com@evil.com/video/123`),
+        ).toBeNull();
+      });
+
+      // Provider AS the authority with junk userinfo before it is genuinely YouTube — allowed, but
+      // the rebuilt src must carry ONLY the validated id (no leaked userinfo).
+      it("accepts a real provider host carrying decoy userinfo, rebuilding a clean src", () => {
+        expect(
+          resolveVideoEmbed(
+            `https://evil.com@www.youtube.com/watch?v=${YT_11}`,
+          ),
+        ).toEqual({
+          kind: "iframe",
+          src: `https://www.youtube.com/embed/${YT_11}`,
+        });
+      });
+
+      // The check must read `hostname` (no port), not `host` (includes `:port`). A port on the
+      // provider host must still classify AND the rebuilt src must never carry the port.
+      it("ignores a port on the provider host and never emits it into the src", () => {
+        const embed = resolveVideoEmbed(
+          `https://www.youtube.com:8443/watch?v=${YT_11}`,
+        );
+        expect(embed).toEqual({
+          kind: "iframe",
+          src: `https://www.youtube.com/embed/${YT_11}`,
+        });
+        expect(embed?.src).not.toContain("8443");
+      });
+
+      // A backslash is an authority separator to the WHATWG parser: `host\@evil.com` parses to
+      // host www.youtube.com with `/@evil.com/...` as PATH, so the id extraction fails → reject.
+      it("rejects a backslash-smuggled host separator", () => {
+        expect(
+          resolveVideoEmbed(
+            `https://www.youtube.com\\@evil.com/watch?v=${YT_11}`,
+          ),
+        ).toBeNull();
+      });
+
+      // Trailing-dot (fully-qualified) and punycode lookalike hosts are not the canonical host.
+      it("rejects a trailing-dot FQDN and a unicode-lookalike host", () => {
+        expect(
+          resolveVideoEmbed(`https://youtube.com./watch?v=${YT_11}`),
+        ).toBeNull();
+        // Cyrillic 'е' in "youtubе" → punycode xn--youtub-8of.com, not youtube.com.
+        expect(
+          resolveVideoEmbed(`https://youtubе.com/watch?v=${YT_11}`),
+        ).toBeNull();
+      });
+    });
+
+    describe("id extraction only ever emits a shape-validated id", () => {
+      it("rejects a 12-char (over-length) YouTube id", () => {
+        expect(
+          resolveVideoEmbed(`https://www.youtube.com/watch?v=${YT_11}X`),
+        ).toBeNull();
+      });
+
+      // Multiple `v=` params: URLSearchParams.get returns the FIRST; it is validated, and the
+      // rebuilt src carries only it — the decoy second value never appears.
+      it("takes the first v= param and drops any decoy second value", () => {
+        const embed = resolveVideoEmbed(
+          `https://www.youtube.com/watch?v=${YT_11}&v=AAAAAAAAAAA`,
+        );
+        expect(embed).toEqual({
+          kind: "iframe",
+          src: `https://www.youtube.com/embed/${YT_11}`,
+        });
+        expect(embed?.src).not.toContain("AAAAAAAAAAA");
+      });
+
+      // `..` path traversal is normalized by the parser before we read segments; the leftover
+      // segment must still be validated (here "evil" is 4 chars → reject).
+      it("rejects a youtu.be url after path-traversal normalization", () => {
+        expect(resolveVideoEmbed("https://youtu.be/../../evil")).toBeNull();
+      });
+    });
+
+    describe("no provider→file fall-through", () => {
+      // A provider host that fails id extraction must NOT fall through to the file-extension path
+      // even if the path ends in a media extension — the provider branch returns null outright.
+      it("rejects a .mp4 path on a provider host (no fall-through to native video)", () => {
+        expect(resolveVideoEmbed("https://www.youtube.com/v.mp4")).toBeNull();
+        expect(
+          resolveVideoEmbed("https://player.vimeo.com/clip.webm"),
+        ).toBeNull();
+      });
+
+      // The extension is matched on the PATH only, not the query — a media extension smuggled into
+      // the query string must not turn an ordinary page into a native <video>.
+      it("does not treat a media extension in the query string as a file", () => {
+        expect(
+          resolveVideoEmbed("https://example.com/page?file=x.mp4"),
+        ).toBeNull();
+      });
+    });
+
+    describe("total / never-throws on hostile raw strings", () => {
+      // A NUL byte makes `new URL` throw; the resolver must swallow it and fall back, never bubble.
+      it("returns null (never throws) on a control-char url that fails to parse", () => {
+        expect(() =>
+          resolveVideoEmbed("https://www.youtube.com /watch?v=x"),
+        ).not.toThrow();
+        expect(
+          resolveVideoEmbed("https://www.youtube.com /watch?v=x"),
+        ).toBeNull();
+      });
+
+      it("strips surrounding whitespace like the URL parser and still classifies", () => {
+        expect(
+          resolveVideoEmbed("   https://cdn.sanity.io/files/p/d/v.mp4   "),
+        ).toEqual({
+          kind: "file",
+          src: "https://cdn.sanity.io/files/p/d/v.mp4",
+        });
+      });
+
+      // Portable Text drift: an array/boolean where the string should be must be inert.
+      it("rejects array/boolean-shaped url drift", () => {
+        expect(resolveVideoEmbed(["https://example.com/v.mp4"])).toBeNull();
+        expect(resolveVideoEmbed(true)).toBeNull();
+      });
+    });
+
+    describe("render boundary — a rejected url leaves nothing loadable in the DOM", () => {
+      // The userinfo-spoof host resolves to evil.com → placeholder; the raw string (and evil.com)
+      // must appear in NO attribute anywhere in the rendered output.
+      it("keeps a userinfo-spoofed provider url out of every attribute", () => {
+        const hostile = `https://www.youtube.com@evil.com/watch?v=${YT_11}`;
+        const { container } = render(<EntryVideo value={{ url: hostile }} />);
+        expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
+        expect(
+          container.querySelector("iframe, video, a, [href], [src]"),
+        ).toBeNull();
+        expect(container.innerHTML).not.toContain("evil.com");
+      });
+
+      // A port-carrying provider url renders a real iframe, but the port must not survive into src.
+      it("renders a port-carrying provider url with a port-free rebuilt src", () => {
+        const { container } = render(
+          <EntryVideo
+            value={{ url: `https://www.youtube.com:8443/watch?v=${YT_11}` }}
+          />,
+        );
+        const iframe = container.querySelector("iframe");
+        expect(iframe?.getAttribute("src")).toBe(
+          `https://www.youtube.com/embed/${YT_11}`,
+        );
+      });
+    });
+  });
 });
