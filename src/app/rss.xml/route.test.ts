@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // `cacheLife` only runs inside a real `use cache` scope (Next build); mock it so the
 // route module loads and runs under Vitest.
@@ -37,6 +37,13 @@ async function feedXml(rows: FeedRow[]): Promise<string> {
     "application/rss+xml; charset=utf-8",
   );
   return response.text();
+}
+
+function parseXml(xml: string): Document {
+  const doc = new DOMParser().parseFromString(xml, "text/xml");
+  // jsdom surfaces XML parse failures as an injected <parsererror> element.
+  expect(doc.getElementsByTagName("parsererror")).toHaveLength(0);
+  return doc;
 }
 
 beforeEach(() => {
@@ -149,13 +156,6 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
       expect(xml).toContain("<pubDate>Mon, 02 Mar 2026 04:30:00 GMT</pubDate>");
     });
 
-    function parseXml(xml: string): Document {
-      const doc = new DOMParser().parseFromString(xml, "text/xml");
-      // jsdom surfaces XML parse failures as an injected <parsererror> element.
-      expect(doc.getElementsByTagName("parsererror")).toHaveLength(0);
-      return doc;
-    }
-
     it("stays a well-formed XML document under hostile authored text — one bad entry must never break the whole feed", async () => {
       const title = `Tom & Jerry <b>"bold"</b> ]]> 🌱 “smart” ‘quotes’`;
       const blurb = `a < b && c ]]> — café`;
@@ -195,6 +195,168 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
       expect(doc.documentElement.tagName).toBe("rss");
       expect(doc.documentElement.getAttribute("version")).toBe("2.0");
       expect(doc.querySelectorAll("item")).toHaveLength(0);
+    });
+  });
+
+  /**
+   * Feed hardening (QA #288 / #289): the two failure modes an adversarial content write can
+   * trigger — an XML-illegal control character that would reject the whole feed, and a
+   * trailing-slash site URL that would double every derived slash.
+   */
+  describe("feed hardening (QA #288 / #289)", () => {
+    // The #289 test stubs the env and re-imports the route; clean up in afterEach so a
+    // mid-test assertion failure can't leak the stubbed env into later tests.
+    afterEach(() => {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    });
+
+    it("survives XML-illegal control characters in a blurb — the feed still parses (#288)", async () => {
+      // Reachable only via a raw Content Lake write, never Studio typing: even escaped, a
+      // C0 control / DEL / lone surrogate / U+FFFE would make the whole document reject.
+      const blurb = "clean\x00\x01\x08\x0B\x0C\x1F\x7F\uFFFE\uFFFFtext";
+      const doc = parseXml(
+        await feedXml([row({ _id: "1", slug: "ctrl", blurb })]),
+      );
+      expect(doc.querySelector("item > description")?.textContent).toBe(
+        "cleantext",
+      );
+    });
+
+    it("keeps a legal astral character while dropping a lone surrogate in a title (#288)", async () => {
+      const doc = parseXml(
+        await feedXml([
+          row({ _id: "1", slug: "astral", title: "seed \u{1F331}\uD800 end" }),
+        ]),
+      );
+      expect(doc.querySelector("item > title")?.textContent).toBe(
+        "seed \u{1F331} end",
+      );
+    });
+
+    it("normalizes a trailing-slash NEXT_PUBLIC_SITE_URL so no derived URL doubles the slash (#289)", async () => {
+      // SITE_URL is read once at module load, so re-import the route under a stubbed env.
+      vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://example.com/");
+      vi.resetModules();
+      const { GET } = await import("./route");
+      fetchMock.mockResolvedValueOnce([row({ _id: "1", slug: "post" })]);
+      const xml = await (await GET()).text();
+      const doc = parseXml(xml);
+
+      expect(doc.querySelector("channel > link")?.textContent).toBe(
+        "https://example.com",
+      );
+      const self = doc.getElementsByTagNameNS(
+        "http://www.w3.org/2005/Atom",
+        "link",
+      )[0];
+      expect(self.getAttribute("href")).toBe("https://example.com/rss.xml");
+      expect(doc.querySelector("item > link")?.textContent).toBe(
+        "https://example.com/post",
+      );
+      expect(doc.querySelector("item > guid")?.textContent).toBe(
+        "https://example.com/post",
+      );
+      // The one invariant the whole fix exists to protect: no `//` after the authority.
+      expect(xml).not.toMatch(/example\.com\/\//);
+    });
+  });
+
+  /**
+   * Adversarial QA: the boundary cases the hardening suite above doesn't pin — guid
+   * stability on the already-deployed feed, degenerate env values, and authored text
+   * that strips to nothing.
+   */
+  describe("adversarial QA", () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    });
+
+    /** Re-import the route under a stubbed env (SITE_URL is read once at module load). */
+    async function feedXmlWithEnv(
+      siteUrl: string,
+      rows: FeedRow[],
+    ): Promise<string> {
+      vi.stubEnv("NEXT_PUBLIC_SITE_URL", siteUrl);
+      vi.resetModules();
+      const { GET } = await import("./route");
+      fetchMock.mockResolvedValueOnce(rows);
+      return (await GET()).text();
+    }
+
+    it("normalization never CHANGES a guid the deployed feed already served (#289)", async () => {
+      // A changed guid re-delivers every item to every subscriber. Prod's env has no
+      // trailing slash, so stripping must be a no-op there — and the trailing-slash
+      // form must converge on the byte-identical guid, not mint a new one.
+      const guidOf = (xml: string) =>
+        parseXml(xml).querySelector("item > guid")?.textContent;
+      const bare = await feedXmlWithEnv("https://example.com", [
+        row({ _id: "1", slug: "post" }),
+      ]);
+      const slashed = await feedXmlWithEnv("https://example.com/", [
+        row({ _id: "1", slug: "post" }),
+      ]);
+      expect(guidOf(bare)).toBe("https://example.com/post");
+      expect(guidOf(slashed)).toBe("https://example.com/post");
+    });
+
+    it("strips a run of trailing slashes, not just one (#289)", async () => {
+      const xml = await feedXmlWithEnv("https://example.com///", [
+        row({ _id: "1", slug: "post" }),
+      ]);
+      const doc = parseXml(xml);
+      expect(doc.querySelector("item > link")?.textContent).toBe(
+        "https://example.com/post",
+      );
+      expect(xml).not.toMatch(/example\.com\/\//);
+    });
+
+    it("an empty-string env still falls back to localhost, never an empty base (#289)", async () => {
+      // `||` (not `??`) is what makes "" fall through — an empty base would emit
+      // rootless links like `/post` and a self href of `/rss.xml`.
+      const doc = parseXml(
+        await feedXmlWithEnv("", [row({ _id: "1", slug: "post" })]),
+      );
+      expect(doc.querySelector("channel > link")?.textContent).toBe(
+        "http://localhost:3000",
+      );
+      expect(doc.querySelector("item > link")?.textContent).toBe(
+        "http://localhost:3000/post",
+      );
+    });
+
+    it("trims surrounding whitespace before normalizing, so a stray space can't leak into URLs (#289)", async () => {
+      // A dashboard copy-paste like `https://example.com/ ` would otherwise put a raw
+      // space in every URL and defeat the trailing-slash strip.
+      const doc = parseXml(
+        await feedXmlWithEnv("https://example.com/ ", [
+          row({ _id: "1", slug: "post" }),
+        ]),
+      );
+      expect(doc.querySelector("item > link")?.textContent).toBe(
+        "https://example.com/post",
+      );
+      expect(doc.querySelector("channel > link")?.textContent).toBe(
+        "https://example.com",
+      );
+    });
+
+    it("a title that is ENTIRELY illegal characters renders an empty title, not a broken document (#288)", async () => {
+      const doc = parseXml(
+        await feedXml([
+          row({ _id: "1", slug: "hollow", title: "\x00\x01\uD800\uFFFE" }),
+        ]),
+      );
+      expect(doc.querySelector("item > title")?.textContent).toBe("");
+      expect(doc.querySelectorAll("item")).toHaveLength(1);
+    });
+
+    it("a lone surrogate at the very end of a blurb is dropped and the feed still parses (#288)", async () => {
+      const doc = parseXml(
+        await feedXml([row({ _id: "1", slug: "tail", blurb: "tail\uD83C" })]),
+      );
+      expect(doc.querySelector("item > description")?.textContent).toBe("tail");
     });
   });
 });
