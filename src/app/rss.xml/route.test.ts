@@ -170,6 +170,26 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
       );
     });
 
+    it("the atom:link self declaration RESOLVES in the Atom namespace and sits inside <channel>", async () => {
+      // The regex test above pins the serialized text; this proves the namespace semantics a
+      // reader actually consumes — an undeclared prefix would be a parse error, and a typo'd
+      // namespace URI would still match the regex while breaking every namespace-aware reader.
+      const doc = parseXml(await feedXml([row({ _id: "1" })]));
+      const self = doc.getElementsByTagNameNS(
+        "http://www.w3.org/2005/Atom",
+        "link",
+      )[0];
+      expect(self).toBeDefined();
+      expect(self.getAttribute("rel")).toBe("self");
+      expect(self.getAttribute("type")).toBe("application/rss+xml");
+      expect(self.parentElement?.tagName).toBe("channel");
+      // The self href is the channel's own site URL plus the feed path — never a garbage
+      // `undefined/rss.xml` (an unset/empty env falls back to a real absolute URL).
+      const siteUrl = doc.querySelector("channel > link")?.textContent;
+      expect(self.getAttribute("href")).toBe(`${siteUrl}/rss.xml`);
+      expect(self.getAttribute("href")).toMatch(/^https?:\/\//);
+    });
+
     it("an empty channel is still a well-formed RSS document", async () => {
       const doc = parseXml(await feedXml([]));
       expect(doc.documentElement.tagName).toBe("rss");
