@@ -97,4 +97,23 @@ describe("EntrySummary", () => {
     expect(item.querySelector("[data-stage]")).toBeNull();
     expect(item.textContent).toBe("Empty");
   });
+
+  describe("adversarial QA", () => {
+    it("merges the quiet treatment onto the title's single anchor — no nested/second anchor", () => {
+      renderInList(<EntrySummary title="Merged" slug="merged" />);
+      // A Slot that failed to merge would leave <a><a>…</a></a> (invalid HTML the browser
+      // re-parents) or a styleless link; exactly one anchor must carry the treatment.
+      const links = screen.getAllByRole("link");
+      expect(links).toHaveLength(1);
+      expect(links[0]).toHaveAttribute("data-variant", "quiet");
+      expect(links[0]).toHaveAttribute("href", "/merged");
+    });
+
+    it("keeps the treated anchor inside the h3 (heading link stays a heading link)", () => {
+      renderInList(<EntrySummary title="Nested" slug="nested" />);
+      const heading = screen.getByRole("heading", { level: 3 });
+      const link = screen.getByRole("link", { name: "Nested" });
+      expect(heading).toContainElement(link);
+    });
+  });
 });

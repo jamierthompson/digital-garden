@@ -85,6 +85,91 @@ describe("EntryBody", () => {
     expect(p.closest("p")).not.toBeNull();
   });
 
+  // A body prose block can carry the default Sanity `link` annotation. The serializer routes it
+  // through `ui/TextLink` (accent variant) so body links wear the editorial ink, never the UA
+  // default. The contract is deliberately minimal: the authored href verbatim, same tab, no
+  // synthesized target/rel.
+  describe("the default link mark", () => {
+    const linkBlock = (href: string) =>
+      [
+        {
+          _type: "block",
+          _key: "b1",
+          style: "normal",
+          markDefs: [{ _type: "link", _key: "m1", href }],
+          children: [
+            { _type: "span", _key: "s1", text: "see this", marks: ["m1"] },
+          ],
+        },
+      ] as unknown as Body;
+
+    it("renders an absolute link as an accent TextLink anchor, same tab, no synthesized rel/target", () => {
+      render(<EntryBody value={linkBlock("https://example.com/x")} />);
+      const link = screen.getByRole("link", { name: "see this" });
+      expect(link).toHaveAttribute("href", "https://example.com/x");
+      expect(link).toHaveAttribute("data-variant", "accent");
+      expect(link).not.toHaveAttribute("rel");
+      expect(link).not.toHaveAttribute("target");
+    });
+
+    it("keeps a relative link in-tab (no target/rel), still an accent TextLink", () => {
+      render(<EntryBody value={linkBlock("/some-entry")} />);
+      const link = screen.getByRole("link", { name: "see this" });
+      expect(link).toHaveAttribute("href", "/some-entry");
+      expect(link).toHaveAttribute("data-variant", "accent");
+      expect(link).not.toHaveAttribute("target");
+      expect(link).not.toHaveAttribute("rel");
+    });
+  });
+
+  describe("adversarial QA round 2 — hostile / edge link-mark hrefs", () => {
+    const linkBlock = (href: unknown) =>
+      [
+        {
+          _type: "block",
+          _key: "b1",
+          style: "normal",
+          markDefs: [{ _type: "link", _key: "m1", href }],
+          children: [
+            { _type: "span", _key: "s1", text: "see this", marks: ["m1"] },
+          ],
+        },
+      ] as unknown as Body;
+
+    it("a hostile javascript: href never survives to the DOM (React 19 sanitizeURL is the active defense — the serializer itself does not filter schemes)", () => {
+      // Raw Content Lake writes bypass Studio validation, so a javascript: href can exist in
+      // the dataset. React 19 rewrites it to an inert throwing stub in BOTH the production
+      // client and server builds (react-dom sanitizeURL) — the payload must never survive.
+      render(
+        <EntryBody value={linkBlock("javascript:alert(document.domain)")} />,
+      );
+      const link = screen.getByText("see this").closest("a");
+      expect(link?.getAttribute("href")).not.toContain("alert");
+    });
+
+    it("renders a protocol-relative //host href verbatim under the minimal contract (no classification to spoof)", () => {
+      render(<EntryBody value={linkBlock("//evil.example/x")} />);
+      const link = screen.getByRole("link", { name: "see this" });
+      expect(link).toHaveAttribute("href", "//evil.example/x");
+      expect(link).not.toHaveAttribute("target");
+    });
+
+    it("does not render a self-navigating href='' link when the annotation has no href", () => {
+      render(<EntryBody value={linkBlock(undefined)} />);
+      const anchor = screen.getByText("see this").closest("a");
+      // Either no anchor at all, or an anchor without href (not a link role) is acceptable;
+      // href="" is a link back to the current page — a trap for keyboard/AT users.
+      expect(anchor?.getAttribute("href")).not.toBe("");
+    });
+
+    it("keeps a mailto: href in-tab with no target (not misdecorated as external)", () => {
+      render(<EntryBody value={linkBlock("mailto:hi@example.com")} />);
+      const link = screen.getByRole("link", { name: "see this" });
+      expect(link).toHaveAttribute("href", "mailto:hi@example.com");
+      expect(link).not.toHaveAttribute("target");
+    });
+  });
+
   // The shared palette carries two typed non-slot blocks — `video` and `quote`. The
   // serializer routes each to its own renderer (real components, not mocked here) rather
   // than dropping it or misrouting it into a slot.

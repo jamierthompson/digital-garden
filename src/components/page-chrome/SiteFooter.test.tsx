@@ -6,7 +6,9 @@ import { describe, expect, it } from "vitest";
 
 import containerStyles from "@/components/layout/Container.module.css";
 import colorStyles from "@/components/typography/textColor.module.css";
+import textLinkStyles from "@/components/ui/TextLink.module.css";
 
+import footerStyles from "./SiteFooter.module.css";
 import SiteFooter from "./SiteFooter";
 
 describe("SiteFooter", () => {
@@ -81,5 +83,25 @@ describe("SiteFooter", () => {
     const row = screen.getByText(/© \d{4} Jamie Thompson/).parentElement;
     expect(row).toHaveClass(colorStyles.ink);
     expect(row).toHaveAttribute("data-color", "muted-foreground");
+  });
+
+  describe("adversarial QA", () => {
+    it("lands the muted treatment on the rendered anchor through the Slot → HoverPrefetchLink → next/link chain", () => {
+      render(<SiteFooter />);
+      // TextLink merges onto a component (not a DOM element); if any layer of the chain drops
+      // the merged props, the anchor silently renders in UA link blue with no hover state.
+      const link = screen.getByRole("link", { name: /browse everything/i });
+      expect(link).toHaveAttribute("data-variant", "muted");
+      expect(link).toHaveClass(textLinkStyles.link);
+    });
+
+    it("keeps the tap-target layout class alongside the treatment (both classes on the one anchor)", () => {
+      render(<SiteFooter />);
+      const link = screen.getByRole("link", { name: /browse everything/i });
+      // TextLink owns ink, the module owns the ≥24px floor — losing either half regresses
+      // WCAG 2.5.8 or the ink; both must coexist on the same element.
+      expect(link).toHaveClass(footerStyles.link);
+      expect(link).toHaveClass(textLinkStyles.link);
+    });
   });
 });

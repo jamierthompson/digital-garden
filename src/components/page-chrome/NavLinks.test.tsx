@@ -4,6 +4,8 @@ import { resolve } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import textLinkStyles from "@/components/ui/TextLink.module.css";
+
 // NavLinks reads `usePathname`. Under Vitest there is no App Router context, so mock the
 // hook with a mutable holder we can rewrite per test to exercise the active-state matcher.
 const { pathnameMock } = vi.hoisted(() => ({ pathnameMock: vi.fn() }));
@@ -26,6 +28,14 @@ describe("NavLinks — the journal masthead current-page indicator", () => {
     render(<NavLinks />);
     const labels = screen.getAllByRole("link").map((a) => a.textContent);
     expect(labels).toEqual(["featured", "index", "system", "about", "now"]);
+  });
+
+  it("wears the muted TextLink treatment on every nav anchor", () => {
+    pathnameMock.mockReturnValue("/");
+    render(<NavLinks />);
+    for (const link of screen.getAllByRole("link")) {
+      expect(link).toHaveAttribute("data-variant", "muted");
+    }
   });
 
   it("labels the Index 'index' but points it at /browse (route-name collision guard)", () => {
@@ -88,6 +98,19 @@ describe("NavLinks — the journal masthead current-page indicator", () => {
     pathnameMock.mockReturnValue(null);
     expect(() => render(<NavLinks />)).not.toThrow();
     expect(activeLinkName()).toBeNull();
+  });
+
+  describe("adversarial QA round 2", () => {
+    it("every nav anchor wears TextLink's module class, not just data-variant (the ink selector requires both)", () => {
+      // The muted ink rules select `.link[data-variant="muted"]…` — if the Slot chain kept the
+      // data attribute but dropped the merged className, data-variant alone would pass while
+      // the painted ink silently fell back to inherited foreground.
+      pathnameMock.mockReturnValue("/browse");
+      render(<NavLinks />);
+      for (const link of screen.getAllByRole("link")) {
+        expect(link).toHaveClass(textLinkStyles.link);
+      }
+    });
   });
 });
 

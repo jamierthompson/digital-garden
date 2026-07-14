@@ -1,5 +1,6 @@
 /* Wordmark. @layer components — declares its layer (an unlayered module outranks every layered
-   rule); var-consuming only. UI chrome wearing the `wordmark` type role bundle directly. */
+   rule); var-consuming only. UI chrome wearing the `wordmark` type role bundle directly and its
+   own ink — unique chrome, not a TextLink variant; no hover state. */
 @layer components {
   .wordmark {
     font-family: var(--type-wordmark-family);

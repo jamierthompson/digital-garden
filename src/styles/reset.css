@@ -63,6 +63,13 @@
     font: inherit;
   }
 
+  /* Anchors inherit ambient ink like every other text — link ink is owned by `ui/TextLink`'s
+     variants, not the UA default. Color only: the UA underline stays, so any anchor not wearing
+     a TextLink variant still reads as a link (WCAG 2.2 SC 1.4.1, colour is not the sole cue). */
+  a {
+    color: inherit;
+  }
+
   :focus-visible {
     outline: var(--ring-width) var(--ring-style) var(--ring, currentColor);
     outline-offset: var(--ring-offset);

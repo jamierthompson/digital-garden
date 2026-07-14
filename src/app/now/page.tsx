@@ -7,6 +7,7 @@ import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
+import TextLink from "@/components/ui/TextLink";
 import { space } from "@/lib/tokens";
 import { NOW_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
@@ -98,13 +99,13 @@ export default async function NowPage() {
 
           <Text color="muted-foreground">
             This is a{" "}
-            <a
-              className={styles.link}
+            <TextLink
+              variant="accent"
               href="https://nownownow.com/about"
               rel="noopener noreferrer"
             >
               now page
-            </a>
+            </TextLink>
             , and you could make one too.
           </Text>
         </Stack>

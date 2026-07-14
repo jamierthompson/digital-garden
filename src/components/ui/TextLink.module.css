@@ -1,0 +1,36 @@
+/* TextLink — inline text-link treatments. @layer components — declares its layer (an unlayered
+   module outranks every layered rule); var-consuming only (global editorial semantic ink roles,
+   no per-entry theme). The focus ring is the global `:focus-visible` (reset.css, @layer base);
+   this module owns only ink, underline, and hover state. */
+@layer components {
+  .link {
+    text-decoration: none;
+    text-underline-offset: 0.15em;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  /* quiet — a heading/title link: inherits ambient ink at rest (the `a` base reset), reveals a
+     text-grade accent + underline on hover. Hover ink is `--accent-text`, not UI-grade `--accent`,
+     so the variant clears the 4.5:1 body-text floor even when worn at body size. */
+  .link[data-variant="quiet"]:hover {
+    color: var(--accent-text);
+    text-decoration: underline;
+  }
+
+  /* accent — an inline prose link: accent ink, always underlined. */
+  .link[data-variant="accent"] {
+    color: var(--accent-text);
+    text-decoration: underline;
+  }
+
+  /* muted — quiet chrome wayfinding: muted ink, foreground on hover, no underline. The current
+     page (`aria-current="page"`) wears the same foreground ink as hover — the nav's active item. */
+  .link[data-variant="muted"] {
+    color: var(--muted-foreground);
+  }
+
+  .link[data-variant="muted"]:hover,
+  .link[data-variant="muted"][aria-current="page"] {
+    color: var(--foreground);
+  }
+}
