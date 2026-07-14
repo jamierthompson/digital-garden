@@ -170,6 +170,15 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
       "2026-02-01T00:00:00Z",
     );
   });
+
+  it("feed order IS published order — each row's projected `published` descends (QA #128)", async () => {
+    // The <pubDate> source and the order() key are the same coalesce expression; if they
+    // ever diverge, items would sort by one date and display another. Prove the executed
+    // rows are already sorted by their own projected value.
+    const rows = await runFeed();
+    const published = rows.map((r) => r.published as string);
+    expect(published).toEqual([...published].sort().reverse());
+  });
 });
 
 /**
