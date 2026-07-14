@@ -59,8 +59,8 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
   });
 
   it("declares its own canonical URL via a namespaced atom:link rel=self", async () => {
-    // RSS Best Practices Profile §5.1.1 (the W3C Feed Validator recommendation): the feed names
-    // its own URL, which requires the Atom namespace on <rss>.
+    // RSS Best Practices Profile self-link guidance (rssboard.org/rss-profile), the W3C Feed
+    // Validator recommendation: the feed names its own URL, which requires the Atom namespace on <rss>.
     const xml = await feedXml([row({ _id: "1" })]);
     expect(xml).toContain('xmlns:atom="http://www.w3.org/2005/Atom"');
     // Host-agnostic (the site URL is env-driven), but pins the full element: an absolute

@@ -68,8 +68,9 @@ export async function GET() {
     })
     .join("\n");
 
-  // `atom:link rel="self"` declares the feed's own canonical URL — the RSS Best Practices Profile
-  // §5.1.1 recommendation the W3C Feed Validator enforces; it needs the Atom namespace on `<rss>`.
+  // `atom:link rel="self"` declares the feed's own canonical URL — the RSS Best Practices Profile's
+  // self-link recommendation (rssboard.org/rss-profile) that the W3C Feed Validator enforces; it
+  // needs the Atom namespace on `<rss>`.
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
