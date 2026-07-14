@@ -56,11 +56,12 @@ export default function Text({
       className={[styles.text, color && colorStyles.ink, className]
         .filter(Boolean)
         .join(" ")}
+      {...rest}
       // `data-variant` selects the role bundle in the module (the base class is `body`);
-      // `data-color` (when set) selects the ink.
+      // `data-color` (when set) selects the ink. Spread `rest` first so the typed props always win
+      // over a stray literal `data-*` passthrough.
       data-variant={variant}
       data-color={color}
-      {...rest}
     />
   );
 }

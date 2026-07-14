@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { createRef } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
@@ -244,5 +247,28 @@ describe("Cluster", () => {
     const { container } = render(<Cluster asChild />);
     expect(container.innerHTML).toBe("");
     spy.mockRestore();
+  });
+});
+
+/**
+ * The primitive's whole reason to exist is a row that WRAPS — every consumer's intrinsic
+ * (no-`@media`) reflow rides these two declarations. jsdom performs no layout, so pin them
+ * at the source: deleting `flex-wrap: wrap` would break every wrapping row with all
+ * component tests still green.
+ */
+describe("Cluster.module.css — the wrapping row it promises", () => {
+  const css = readFileSync(
+    resolve(process.cwd(), "src/components/layout/Cluster.module.css"),
+    "utf8",
+  );
+  const rule = css.match(/\.cluster\s*\{([\s\S]*?)\}/)?.[1] ?? "";
+
+  it("finds the .cluster rule", () => {
+    expect(rule, "expected a .cluster {…} rule in the module").not.toBe("");
+  });
+
+  it("lays out with flex and wraps", () => {
+    expect(rule).toMatch(/display:\s*flex/);
+    expect(rule).toMatch(/flex-wrap:\s*wrap/);
   });
 });

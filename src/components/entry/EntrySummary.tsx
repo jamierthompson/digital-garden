@@ -47,25 +47,23 @@ export default function EntrySummary({
             </time>
           </Text>
         ) : null}
-        <Cluster asChild>
-          <div className={styles.head}>
-            <Heading level={3}>
-              {slug ? (
-                <Link href={`/${slug}`} className={styles.titleLink}>
-                  {title}
-                </Link>
-              ) : (
-                <span className={styles.titleLink}>{title}</span>
-              )}
-            </Heading>
-            {stage ? (
-              <Text variant="meta" color="muted-foreground" asChild>
-                <span className={styles.stage} data-stage={stage}>
-                  {stage}
-                </span>
-              </Text>
-            ) : null}
-          </div>
+        <Cluster className={styles.head}>
+          <Heading level={3}>
+            {slug ? (
+              <Link href={`/${slug}`} className={styles.titleLink}>
+                {title}
+              </Link>
+            ) : (
+              <span className={styles.titleLink}>{title}</span>
+            )}
+          </Heading>
+          {stage ? (
+            <Text variant="meta" color="muted-foreground" asChild>
+              <span className={styles.stage} data-stage={stage}>
+                {stage}
+              </span>
+            </Text>
+          ) : null}
         </Cluster>
         {blurb ? (
           <Text color="muted-foreground" className={styles.blurb}>

@@ -71,12 +71,13 @@ export default function Heading({
       className={[styles.heading, color && colorStyles.ink, className]
         .filter(Boolean)
         .join(" ")}
+      {...rest}
       // `data-level` drives the per-level default; `data-variant` (when set) overrides it with the
       // role's canonical bundle; `data-color` (when set) selects the ink. All read by the modules.
+      // Spread `rest` first so the typed props always win over a stray literal `data-*` passthrough.
       data-level={level}
       data-variant={variant}
       data-color={color}
-      {...rest}
     />
   );
 }

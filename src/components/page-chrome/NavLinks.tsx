@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 
 import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
 
-import styles from "./SiteNav.module.css";
+import styles from "./NavLinks.module.css";
 
 /** A primary-nav destination. `label` is the visible journal-style lowercase item. */
 interface NavItem {

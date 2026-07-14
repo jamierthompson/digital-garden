@@ -1,6 +1,6 @@
 /* Global site footer — the journal colophon. @layer components (var-consuming shell chrome; reads
-   the global editorial semantic tokens, never theme-scoped). Its inner row aligns to the same
-   content column as the nav and page frames (--width-page). */
+   the global editorial semantic tokens, never theme-scoped). `Container` caps the inner row to
+   the page column; ink comes from the Text primitive's `color` prop. */
 @layer components {
   .footer {
     border-top: var(--border-width) solid var(--border);
@@ -14,10 +14,7 @@
     align-items: baseline;
     justify-content: space-between;
     gap: var(--space-4);
-    max-width: var(--width-page);
-    margin: 0 auto;
-    padding: var(--space-5) var(--space-gutter);
-    color: var(--muted-foreground);
+    padding-block: var(--space-5);
   }
 
   .link {
