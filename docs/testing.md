@@ -185,7 +185,9 @@ The engine packages — `packages/oklch/**` (`@garden/oklch`) and `packages/type
 (`@garden/type`) — keep the **local test conventions documented in their own READMEs**
 ([oklch](../packages/oklch/src/README.md), [type](../packages/type/src/README.md)): the dual-env
 `node`+`jsdom` split (see [Dual-env](#dual-env-the-engine-packages)) and a drift-guard
-(`api.test.ts`) in each, plus oklch's visual-contrast harness (`harness/harness.test.ts`). Those
+(`api.test.ts`) in each — oklch's is completeness-checked: it parses the barrel's export
+statements, so a public export added without extending the guard's pinned lists fails the
+suite — plus oklch's visual-contrast harness (`harness/harness.test.ts`). Those
 are each engine's contract, not this convention's to override; read the relevant README before
 touching engine tests. And `tests/setup.ts` stays put — it is **harness config** (jest-dom
 matchers), not a test subject, so the one-file-per-module rule doesn't apply to it.
