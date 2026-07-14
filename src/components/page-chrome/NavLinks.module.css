@@ -1,6 +1,7 @@
 /* Primary nav links. @layer components — declares its layer (an unlayered module outranks
    every layered rule); var-consuming only. UI chrome wearing the `nav` type role bundle
-   directly. */
+   directly; link ink (muted → foreground, current-page-aware) is `ui/TextLink`'s `muted`
+   variant — this module owns only the nav's type role, tap-target floor, and active indicator. */
 @layer components {
   .links {
     display: flex;
@@ -24,21 +25,14 @@
     font-weight: var(--type-nav-weight);
     letter-spacing: var(--type-nav-tracking);
     line-height: var(--type-nav-leading);
-    color: var(--muted-foreground);
-    text-decoration: none;
     /* Transparent underline reserved so activating a link doesn't shift the row. */
     border-bottom: var(--border-width-thick) solid transparent;
-    transition: color var(--duration-fast) var(--ease-standard);
-  }
-
-  .link:hover {
-    color: var(--foreground);
   }
 
   /* Current page — the 2px ink underline from the journal direction (reserved above, so no
-     layout shift), plus full-ink text. Paired with `aria-current="page"` on the link. */
+     layout shift). Paired with `aria-current="page"` on the link, which also drives the
+     full-ink text via the TextLink `muted` variant. */
   .active {
-    color: var(--foreground);
     border-bottom-color: var(--foreground);
   }
 }

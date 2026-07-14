@@ -28,6 +28,14 @@ describe("NavLinks — the journal masthead current-page indicator", () => {
     expect(labels).toEqual(["featured", "index", "system", "about", "now"]);
   });
 
+  it("wears the muted TextLink treatment on every nav anchor", () => {
+    pathnameMock.mockReturnValue("/");
+    render(<NavLinks />);
+    for (const link of screen.getAllByRole("link")) {
+      expect(link).toHaveAttribute("data-variant", "muted");
+    }
+  });
+
   it("labels the Index 'index' but points it at /browse (route-name collision guard)", () => {
     pathnameMock.mockReturnValue("/");
     render(<NavLinks />);

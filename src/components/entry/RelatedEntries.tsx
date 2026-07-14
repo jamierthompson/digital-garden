@@ -76,7 +76,7 @@ export default function RelatedEntries({
         {entries.map((entry) => (
           <li key={entry._id} className={styles.item}>
             {entry.slug ? (
-              <Link href={`/${entry.slug}`} className={styles.link}>
+              <Link href={`/${entry.slug}`}>
                 {entry.title ?? "Untitled entry"}
               </Link>
             ) : (

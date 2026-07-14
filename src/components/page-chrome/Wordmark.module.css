@@ -1,5 +1,7 @@
 /* Wordmark. @layer components — declares its layer (an unlayered module outranks every layered
-   rule); var-consuming only. UI chrome wearing the `wordmark` type role bundle directly. */
+   rule); var-consuming only. UI chrome wearing the `wordmark` type role bundle directly; the
+   accent link ink is `ui/TextLink`'s `brand` variant — this module owns only the type role and
+   the decorative cursor. */
 @layer components {
   .wordmark {
     font-family: var(--type-wordmark-family);
@@ -7,8 +9,6 @@
     font-weight: var(--type-wordmark-weight);
     letter-spacing: var(--type-wordmark-tracking);
     line-height: var(--type-wordmark-leading);
-    color: var(--accent-text);
-    text-decoration: none;
   }
 
   /* aria-hidden decorative — no text-contrast floor applies. */

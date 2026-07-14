@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 
 import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
+import TextLink from "@/components/ui/TextLink";
 
 import styles from "./NavLinks.module.css";
 
@@ -50,13 +51,16 @@ export default function NavLinks(): React.ReactElement {
         const active = isActive(pathname ?? "", href);
         return (
           <li key={href}>
-            <HoverPrefetchLink
-              href={href}
-              className={`${styles.link} ${active ? styles.active : ""}`}
+            <TextLink
+              variant="muted"
+              asChild
+              className={active ? styles.active : undefined}
               aria-current={active ? "page" : undefined}
             >
-              {label}
-            </HoverPrefetchLink>
+              <HoverPrefetchLink href={href} className={styles.link}>
+                {label}
+              </HoverPrefetchLink>
+            </TextLink>
           </li>
         );
       })}
