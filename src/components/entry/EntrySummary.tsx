@@ -4,6 +4,7 @@ import Cluster from "@/components/layout/Cluster";
 import Stack from "@/components/layout/Stack";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
+import TextLink from "@/components/ui/TextLink";
 import { space } from "@/lib/tokens";
 
 import styles from "./EntrySummary.module.css";
@@ -50,11 +51,11 @@ export default function EntrySummary({
         <Cluster className={styles.head}>
           <Heading level={3}>
             {slug ? (
-              <Link href={`/${slug}`} className={styles.titleLink}>
-                {title}
-              </Link>
+              <TextLink variant="quiet" asChild>
+                <Link href={`/${slug}`}>{title}</Link>
+              </TextLink>
             ) : (
-              <span className={styles.titleLink}>{title}</span>
+              title
             )}
           </Heading>
           {stage ? (

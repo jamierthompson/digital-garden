@@ -1,17 +1,11 @@
 /* Now page. @layer components — declares its layer (an unlayered module outranks every layered
    rule); var-consuming only (global editorial semantic tokens, no per-entry theme). Layout comes
-   from the primitives, static ink from their `color` prop, and the stream items from
-   `EntrySummary` — these rules own only what's left. */
+   from the primitives, static ink from their `color` prop, the stream items from `EntrySummary`,
+   and the inline link's ink from `ui/TextLink` — these rules own only what's left. */
 @layer components {
   /* List reset. */
   .list {
     list-style: none;
     padding: 0;
-  }
-
-  .link {
-    color: var(--accent-text);
-    text-decoration: underline;
-    text-underline-offset: 0.15em;
   }
 }

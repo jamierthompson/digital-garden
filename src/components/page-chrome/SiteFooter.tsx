@@ -1,5 +1,6 @@
 import Container from "@/components/layout/Container";
 import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
+import TextLink from "@/components/ui/TextLink";
 import Text from "@/components/typography/Text";
 
 import styles from "./SiteFooter.module.css";
@@ -23,9 +24,11 @@ export default function SiteFooter() {
         <Text variant="meta" color="muted-foreground" asChild>
           <div className={styles.inner}>
             <span>© {COPYRIGHT_YEAR} Jamie Thompson</span>
-            <HoverPrefetchLink href="/browse" className={styles.link}>
-              browse everything →
-            </HoverPrefetchLink>
+            <TextLink variant="muted" asChild className={styles.link}>
+              <HoverPrefetchLink href="/browse">
+                browse everything →
+              </HoverPrefetchLink>
+            </TextLink>
           </div>
         </Text>
       </Container>
