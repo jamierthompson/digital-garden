@@ -1,6 +1,8 @@
 import { Slot } from "radix-ui";
 
 import styles from "./Heading.module.css";
+import type { TextColor } from "./textColor";
+import colorStyles from "./textColor.module.css";
 
 /** The six document heading levels — the rendered `<h1>`–`<h6>`. */
 export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
@@ -34,6 +36,11 @@ interface HeadingProps extends React.ComponentPropsWithRef<"h1"> {
    */
   readonly variant?: HeadingVariant;
   /**
+   * The semantic ink role — names the `--<role>` color token the heading wears (via the shared
+   * `textColor` rules). Omit to inherit the ambient ink, exactly as before the prop existed.
+   */
+  readonly color?: TextColor;
+  /**
    * Render the single child element instead of the `<hN>` wrapper (Radix `Slot`), merging class +
    * `data-*` onto it. Note the child REPLACES the heading element — use it only when the child
    * itself is the heading you want; it does NOT add an `<hN>` to the document outline.
@@ -53,6 +60,7 @@ interface HeadingProps extends React.ComponentPropsWithRef<"h1"> {
 export default function Heading({
   level,
   variant,
+  color,
   asChild = false,
   className,
   ...rest
@@ -60,11 +68,14 @@ export default function Heading({
   const Component = asChild ? Slot.Root : (`h${level}` as const);
   return (
     <Component
-      className={[styles.heading, className].filter(Boolean).join(" ")}
+      className={[styles.heading, color && colorStyles.ink, className]
+        .filter(Boolean)
+        .join(" ")}
       // `data-level` drives the per-level default; `data-variant` (when set) overrides it with the
-      // role's canonical bundle. Both are read by the module.
+      // role's canonical bundle; `data-color` (when set) selects the ink. All read by the modules.
       data-level={level}
       data-variant={variant}
+      data-color={color}
       {...rest}
     />
   );

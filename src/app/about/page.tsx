@@ -38,27 +38,27 @@ export default async function AboutPage() {
       <Page width="measure">
         <Stack gap={space(6)}>
           <Heading level={1}>About</Heading>
-          <div className={styles.prose}>
-            <Text variant="lead">
+          <Stack gap={space(4)}>
+            <Text variant="lead" color="muted-foreground">
               This is a personal portfolio and digital garden — part showcase,
               part notebook. Each project is a self-contained island with its
               own theme color and typeface, composed on one shared foundation.
             </Text>
-            <Text variant="lead">
+            <Text variant="lead" color="muted-foreground">
               The colors you see are not hand-picked per element. A single theme
               seed runs through an OKLCH engine that derives an accessible
               palette for both light and dark schemes, then bakes it into the
               page so the theme is present before the first paint — no flash, no
               client-side theming pass.
             </Text>
-            <Text variant="lead">
+            <Text variant="lead" color="muted-foreground">
               The garden grows by accretion: projects, working notes, and the
               links between them. Wander through{" "}
               <span className={styles.emphasis}>Work</span>,{" "}
               <span className={styles.emphasis}>Notes</span>, and{" "}
               <span className={styles.emphasis}>Now</span>.
             </Text>
-          </div>
+          </Stack>
         </Stack>
       </Page>
     </>

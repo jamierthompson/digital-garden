@@ -16,4 +16,14 @@ describe("WorkLoading — skip-link target", () => {
     render(<WorkLoading />);
     expect(screen.getByRole("main")).toHaveAttribute("id", "main-content");
   });
+
+  it("carries tabIndex=-1 so the skip-link can move focus (delegated to Page, pinned here)", () => {
+    render(<WorkLoading />);
+    expect(screen.getByRole("main")).toHaveAttribute("tabindex", "-1");
+  });
+
+  it("marks the streaming region aria-busy", () => {
+    render(<WorkLoading />);
+    expect(screen.getByRole("main")).toHaveAttribute("aria-busy", "true");
+  });
 });

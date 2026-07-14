@@ -75,6 +75,59 @@ describe("Heading", () => {
     expect(el).toHaveAttribute("data-variant", "display");
   });
 
+  it("stamps data-color for the ink role, alongside level + variant", () => {
+    render(
+      <Heading level={1} color="accent-text">
+        Inked
+      </Heading>,
+    );
+    const el = screen.getByRole("heading", { level: 1 });
+    expect(el).toHaveAttribute("data-color", "accent-text");
+    expect(el).toHaveAttribute("data-level", "1");
+  });
+
+  it("sets NO data-color when color is omitted (inherits the ambient ink)", () => {
+    render(<Heading level={2}>Plain</Heading>);
+    expect(screen.getByRole("heading", { level: 2 })).not.toHaveAttribute(
+      "data-color",
+    );
+  });
+
+  it("carries the ink onto the replaced child under asChild (data-color + ink class)", () => {
+    // The ink is class + data attribute; both must survive the Slot merge or an asChild
+    // consumer's color prop silently paints nothing.
+    render(
+      <Heading level={2} color="accent-text">
+        Reference
+      </Heading>,
+    );
+    const inkClasses = [...screen.getByRole("heading", { level: 2 }).classList];
+    render(
+      <Heading level={2} asChild color="accent-text">
+        <a href="#x">Slotted</a>
+      </Heading>,
+    );
+    const slotted = screen.getByRole("link", { name: "Slotted" });
+    expect(slotted).toHaveAttribute("data-color", "accent-text");
+    for (const cls of inkClasses) {
+      expect(slotted).toHaveClass(cls);
+    }
+  });
+
+  it("rejects an out-of-vocabulary color at the type level; runtime stays fail-safe", () => {
+    render(
+      // @ts-expect-error — "red" is not a TextColor; the ink vocabulary is closed.
+      <Heading level={2} color="red">
+        Unpainted
+      </Heading>,
+    );
+    // If it does slip through (a cast, untyped JS), no ink rule matches — no crash, no style.
+    expect(screen.getByRole("heading", { level: 2 })).toHaveAttribute(
+      "data-color",
+      "red",
+    );
+  });
+
   it("merges a caller className alongside its own", () => {
     render(
       <Heading level={2} className="caller">

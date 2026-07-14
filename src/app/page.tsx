@@ -38,7 +38,7 @@ export default async function Home() {
       <PageTheme seed={themeSeed} />
       <Page width="page">
         <Stack gap={space(9)}>
-          <section className={styles.hero}>
+          <section>
             {/* The landing statement is the one place the oversized `display` role is used; a
             content page's h1 defaults to the quieter `title` role. */}
             <Heading level={1} variant="display" className={styles.title}>
@@ -47,25 +47,24 @@ export default async function Home() {
           </section>
 
           {featured.length > 0 ? (
-            <section
-              className={styles.featured}
-              aria-labelledby="featured-heading"
-            >
-              {/* The visual design (mockup 4a) omits a "Featured" label — the plates follow the
+            <Stack asChild gap={space(4)}>
+              <section aria-labelledby="featured-heading">
+                {/* The visual design (mockup 4a) omits a "Featured" label — the plates follow the
               hero directly. The heading is kept but visually hidden (Radix VisuallyHidden via
               `asChild`, so it stays a real <h2>) — the section keeps its accessible name and
               the document outline stays intact. */}
-              <VisuallyHidden.Root asChild>
-                <h2 id="featured-heading">Featured</h2>
-              </VisuallyHidden.Root>
-              <Grid asChild min="20rem">
-                <ul className={styles.grid}>
-                  {featured.map((entry) => (
-                    <EntryCard key={entry._id} entry={entry} />
-                  ))}
-                </ul>
-              </Grid>
-            </section>
+                <VisuallyHidden.Root asChild>
+                  <h2 id="featured-heading">Featured</h2>
+                </VisuallyHidden.Root>
+                <Grid asChild min="20rem">
+                  <ul className={styles.grid}>
+                    {featured.map((entry) => (
+                      <EntryCard key={entry._id} entry={entry} />
+                    ))}
+                  </ul>
+                </Grid>
+              </section>
+            </Stack>
           ) : null}
         </Stack>
       </Page>

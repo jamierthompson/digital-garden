@@ -2,28 +2,16 @@
    every layered rule); var-consuming only; reads the generic semantic tokens (editorial by
    default; each themed slot re-binds them inside its own scoped container). The `Page` primitive
    owns the wide frame (width/centering/gutter) and the `<main>` landmark — `.module` is merged
-   onto it and carries only the entry's editorial defaults + the breakout grid rules below. Breakout
+   onto it only to anchor the breakout grid rules below. Breakout
    layout: the frame runs wide, the prose keeps its reading measure via the article grid's named
    [prose] column, and a slot spans [full] (SlotBlock sets `grid-column: full`). */
 @layer components {
-  .module {
-    font-family: var(--font-body);
-    color: var(--foreground);
-  }
-
   .header {
     margin-bottom: var(--space-6);
   }
 
-  .title {
-    /* Type comes from the `Heading` primitive (title role); only color stays here. */
-    color: var(--accent-text);
-  }
-
   .blurb {
-    margin-top: var(--space-3);
     max-width: 52ch;
-    color: var(--muted-foreground);
   }
 
   .article {

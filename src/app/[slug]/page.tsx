@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import EntryBody from "@/components/portable-text/EntryBody";
 import Page from "@/components/layout/Page";
+import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
 import EntryScope from "@/components/entry-scope/EntryScope";
 import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
@@ -11,6 +12,7 @@ import RelatedEntries from "@/components/entry/RelatedEntries";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import { resolveComponentKey } from "@/lib/resolvers/components";
+import { space } from "@/lib/tokens";
 import { isNotFound } from "@/lib/resolvers/resolution";
 import type { EntryModule } from "@/entries/types";
 import { client } from "@/sanity/lib/client";
@@ -155,16 +157,22 @@ export default async function EntryPage({ params }: EntryPageProps) {
 
   const article = (
     <article className={styles.article}>
-      <header className={styles.header}>
-        <Heading level={1} className={styles.title}>
-          {entry.title}
-        </Heading>
-        {entry.blurb ? (
-          <Text variant="lead" className={styles.blurb}>
-            {entry.blurb}
-          </Text>
-        ) : null}
-      </header>
+      <Stack asChild gap={space(3)}>
+        <header className={styles.header}>
+          <Heading level={1} color="accent-text">
+            {entry.title}
+          </Heading>
+          {entry.blurb ? (
+            <Text
+              variant="lead"
+              color="muted-foreground"
+              className={styles.blurb}
+            >
+              {entry.blurb}
+            </Text>
+          ) : null}
+        </header>
+      </Stack>
       {entry.body ? <EntryBody value={entry.body} scope={scope} /> : null}
     </article>
   );

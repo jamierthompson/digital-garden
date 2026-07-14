@@ -448,11 +448,15 @@ engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WC
   its `level` (the a11y outline) and applies a role by `variant` — or by the level when `variant`
   is omitted (1→`title`, 2→`heading`, 3–6→`subheading`; the oversized `display` is opt-in for a
   hero). `Text` renders `<p>` (or any element via `asChild`) in `body`/`lead`/`label`/`meta`.
-  Discrete roles apply via a `data-variant` attribute (the variant mechanism), not the
-  value-conduit the spacing primitives use for continuous lengths. The primitives read **only**
-  the semantic role tokens, never a raw `--type-size-*` step. So a **page's** CSS Modules — its
-  editorial content expressed through the primitives — own only layout + color + decoration
-  (margins, borders, `text-transform`, `color`), no type value. **UI-chrome** components (buttons,
+  Both also wear their ink via `color` — a semantic color role (`foreground` ·
+  `muted-foreground` · `accent-text`), applied through the shared `textColor` rules; omitted, the
+  primitive inherits the ambient ink. Discrete roles apply via `data-*` attributes (the variant
+  mechanism), not the value-conduit the spacing primitives use for continuous lengths. The
+  primitives read **only** the semantic role tokens, never a raw `--type-size-*` step. So a
+  **page's** CSS Modules — its editorial content expressed through the primitives — own only
+  layout + decoration (margins, borders, `text-transform`), no type value and no static ink;
+  `color` stays in a page module only for state (`:hover`, `aria-current`) and for elements the
+  primitives don't render. **UI-chrome** components (buttons,
   nav, tabs, chips) still read foundation type tokens (`--type-size-*`, `--font-weight-*`, …)
   directly — a pragmatic boundary, the same "does chrome reach the foundation layer" question the
   spacing accessor raises (#224), not yet resolved either way. What holds everywhere: **no bespoke

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { MAIN_CONTENT_ID } from "@/lib/landmarks";
+import Page from "@/components/layout/Page";
 
 import styles from "./states.module.css";
 
@@ -11,7 +11,7 @@ import styles from "./states.module.css";
 // by the defensive engine + `unstable_catchError` backstop, NOT by this file.)
 export default function EntryNotFound() {
   return (
-    <main id={MAIN_CONTENT_ID} tabIndex={-1} className={styles.state}>
+    <Page width="measure" className={styles.state}>
       <h1 className={styles.heading}>Not found</h1>
       <p className={styles.body}>
         That page doesn’t exist, or its content is no longer available.
@@ -19,6 +19,6 @@ export default function EntryNotFound() {
       <Link href="/" className={styles.link}>
         Back to home
       </Link>
-    </main>
+    </Page>
   );
 }

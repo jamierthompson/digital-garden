@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import EntrySummary from "@/components/entry/EntrySummary";
 import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
@@ -60,15 +60,17 @@ export default async function NowPage() {
       <PageTheme seed={themeSeed} />
       <Page width="content">
         <Stack gap={space(6)}>
-          <header className={styles.header}>
-            <Heading level={1}>Now</Heading>
-            <Text variant="lead" className={styles.intro}>
-              What I&apos;m focused on at the moment. Newest first.
-            </Text>
-          </header>
+          <Stack asChild gap={space(2)}>
+            <header>
+              <Heading level={1}>Now</Heading>
+              <Text variant="lead" color="muted-foreground">
+                What I&apos;m focused on at the moment. Newest first.
+              </Text>
+            </header>
+          </Stack>
 
           {updates.length === 0 ? (
-            <Text variant="lead" className={styles.empty}>
+            <Text variant="lead" color="muted-foreground">
               No now-updates yet — check back soon.
             </Text>
           ) : (
@@ -77,42 +79,24 @@ export default async function NowPage() {
                 {updates.map((update) => {
                   const date = formatDate(update.iterated);
                   return (
-                    <li key={update._id} className={styles.item}>
-                      {date ? (
-                        <Text variant="meta" asChild>
-                          <time
-                            className={styles.date}
-                            dateTime={update.iterated ?? undefined}
-                          >
-                            {date}
-                          </time>
-                        </Text>
-                      ) : null}
-                      <Heading level={3}>
-                        {update.slug ? (
-                          <Link
-                            href={`/${update.slug}`}
-                            className={styles.itemTitle}
-                          >
-                            {update.title ?? "Untitled update"}
-                          </Link>
-                        ) : (
-                          <span className={styles.itemTitle}>
-                            {update.title ?? "Untitled update"}
-                          </span>
-                        )}
-                      </Heading>
-                      {update.blurb ? (
-                        <Text className={styles.blurb}>{update.blurb}</Text>
-                      ) : null}
-                    </li>
+                    <EntrySummary
+                      key={update._id}
+                      title={update.title ?? "Untitled update"}
+                      slug={update.slug}
+                      blurb={update.blurb}
+                      date={
+                        date && update.iterated
+                          ? { dateTime: update.iterated, label: date }
+                          : null
+                      }
+                    />
                   );
                 })}
               </ul>
             </Stack>
           )}
 
-          <Text className={styles.footnote}>
+          <Text color="muted-foreground">
             This is a{" "}
             <a
               className={styles.link}

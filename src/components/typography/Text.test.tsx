@@ -48,6 +48,55 @@ describe("Text", () => {
     expect(screen.getByRole("status")).toBe(el);
   });
 
+  it("stamps data-color for the ink role, independently of the variant", () => {
+    render(
+      <Text variant="lead" color="muted-foreground" data-testid="t">
+        Inked
+      </Text>,
+    );
+    const el = screen.getByTestId("t");
+    expect(el).toHaveAttribute("data-color", "muted-foreground");
+    expect(el).toHaveAttribute("data-variant", "lead");
+  });
+
+  it("sets NO data-color when color is omitted (inherits the ambient ink)", () => {
+    render(<Text data-testid="t">Plain</Text>);
+    expect(screen.getByTestId("t")).not.toHaveAttribute("data-color");
+  });
+
+  it("carries the ink onto the replaced child under asChild (data-color + ink class)", () => {
+    // EntrySummary's date kicker is exactly this shape: <Text variant="meta" color asChild><time>.
+    render(
+      <Text color="muted-foreground" data-testid="ref">
+        Reference
+      </Text>,
+    );
+    const inkClasses = [...screen.getByTestId("ref").classList];
+    render(
+      <Text variant="meta" color="muted-foreground" asChild>
+        <time dateTime="2026-07-13" data-testid="slotted">
+          Jul 13
+        </time>
+      </Text>,
+    );
+    const slotted = screen.getByTestId("slotted");
+    expect(slotted).toHaveAttribute("data-color", "muted-foreground");
+    for (const cls of inkClasses) {
+      expect(slotted).toHaveClass(cls);
+    }
+  });
+
+  it("rejects an out-of-vocabulary color at the type level; runtime stays fail-safe", () => {
+    render(
+      // @ts-expect-error — "danger" is not a TextColor; the ink vocabulary is closed.
+      <Text color="danger" data-testid="t">
+        Unpainted
+      </Text>,
+    );
+    // If it does slip through (a cast, untyped JS), no ink rule matches — no crash, no style.
+    expect(screen.getByTestId("t")).toHaveAttribute("data-color", "danger");
+  });
+
   it("merges a caller className alongside its own", () => {
     render(
       <Text className="caller" data-testid="t">

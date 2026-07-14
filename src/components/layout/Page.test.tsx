@@ -21,6 +21,17 @@ describe("Page", () => {
     expect(screen.getByTestId("page")).toHaveAttribute("id", "main-content");
   });
 
+  it("carries tabIndex=-1 so the skip-link can move programmatic focus to it", () => {
+    // The state boundaries (error/loading/not-found) delegate the whole skip-target contract to
+    // Page — id AND focusability. A <main> is not focusable by default; without tabIndex=-1 the
+    // skip-link scrolls but never moves focus (WCAG 2.4.1).
+    render(<Page data-testid="page" />);
+    const el = screen.getByTestId("page");
+    expect(el).toHaveAttribute("tabindex", "-1");
+    el.focus();
+    expect(el).toHaveFocus();
+  });
+
   it("passes the width role through the --page-width conduit", () => {
     render(<Page width="page" data-testid="page" />);
     expect(
