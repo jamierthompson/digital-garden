@@ -90,6 +90,24 @@ describe("rampSetToDeclarations", () => {
       `--accent-500: light-dark(${formatOklch(light[i].color)}, ${formatOklch(dark[i].color)});`,
     );
   });
+
+  // QA (adversarial, #256 round): removing tokenSetToCss also removed the only test that
+  // drove the ramp tier through a non-default ColorFormat — the api.test.ts freeze guard
+  // runs the default format only, so a broken opts path here would pass the whole suite.
+  describe("QA — CssOptions forwarding", () => {
+    it("serializes ramp values per ColorFormat on request, defaulting to native oklch (#99)", () => {
+      expect(ramps).toContain("light-dark(oklch(");
+      const hex = rampSetToDeclarations(set, { format: "hex" });
+      expect(hex).toMatch(
+        /--accent-500: light-dark\(#[0-9a-f]{6}, #[0-9a-f]{6}\);/,
+      );
+      expect(hex).not.toContain("oklch(");
+      const rgb = rampSetToDeclarations(set, { format: "rgb" });
+      expect(rgb).toMatch(
+        /--neutral-500: light-dark\(rgb\(\d+ \d+ \d+\), rgb\(\d+ \d+ \d+\)\);/,
+      );
+    });
+  });
 });
 
 describe("QA — adversarial: scrim + determinism through the CSS serializers (#160)", () => {
