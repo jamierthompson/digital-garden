@@ -41,6 +41,32 @@ describe("font roster", () => {
     expect(FONT_FACES.newsreader.cssVariable).toBe("--font-newsreader");
     expect(FONT_FACES.fraunces.cssVariable).toBe("--font-fraunces");
   });
+
+  // The `category` is what `EntryScope` tails after the face var as the terminal fallback (#255),
+  // so it must be the face's OWN CSS generic family, verified against next's bundled
+  // capsize-font-metrics.json (`category` field per family), not guessed from the name. A wrong
+  // category ships a mismatched generic on every themed slot with no other signal.
+  const EXPECTED_CATEGORY = {
+    inter: "sans-serif",
+    newsreader: "serif",
+    fraunces: "serif",
+    "space-grotesk": "sans-serif",
+    "jetbrains-mono": "monospace",
+  } as const;
+
+  it.each(FONT_KEYS)(
+    "%s carries its own verified CSS generic category",
+    (key) => {
+      expect(FONT_FACES[key].category).toBe(EXPECTED_CATEGORY[key]);
+    },
+  );
+
+  it("gives every face a valid CSS generic keyword (a future face can't ship without one)", () => {
+    const GENERICS = new Set(["serif", "sans-serif", "monospace"]);
+    for (const key of FONT_KEYS) {
+      expect(GENERICS.has(FONT_FACES[key].category)).toBe(true);
+    }
+  });
 });
 
 /**
@@ -82,10 +108,12 @@ describe("roster.ts loader declarations (source-pinned)", () => {
       .map((m) => [m[1], m[2]]),
   );
 
-  // `FONT_FACES` entries: key → { variable: <binding>.variable, cssVariable: <CONST> }.
+  // `FONT_FACES` entries: key → { variable: <binding>.variable, cssVariable: <CONST>,
+  // category: "<generic>" }. The `category` clause is required, so a face added without one
+  // fails the parse-yield guard below rather than passing vacuously (#255).
   const faceEntries = [
     ...source.matchAll(
-      /["']?([a-z0-9-]+)["']?:\s*\{\s*variable:\s*([a-zA-Z0-9]+)\.variable,\s*cssVariable:\s*([A-Z0-9_]+_VAR)\s*,?\s*\}/g,
+      /["']?([a-z0-9-]+)["']?:\s*\{\s*variable:\s*([a-zA-Z0-9]+)\.variable,\s*cssVariable:\s*([A-Z0-9_]+_VAR),\s*category:\s*"[^"]+"\s*,?\s*\}/g,
     ),
   ].map(([, key, binding, varConst]) => ({ key, binding, varConst }));
 
