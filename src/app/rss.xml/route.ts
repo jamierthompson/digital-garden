@@ -19,7 +19,14 @@ import { escapeXml } from "./escapeXml";
  * feeds for long.
  */
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+// Normalized once here so every derived URL (`FEED_URL`, each item's link/guid)
+// can concatenate a path cleanly: surrounding whitespace is trimmed and trailing
+// slashes stripped, so a valid-but-untidy env value like `https://example.com/ `
+// is not turned into a broken feed. `?.trim()` before `||` lets a whitespace-only
+// value fall through to the localhost fallback rather than yielding an empty base.
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3000"
+).replace(/\/+$/, "");
 const FEED_URL = `${SITE_URL}/rss.xml`;
 
 /** Cached read of the published entry feed — public client (no token, published perspective) so drafts never leak into the feed. */
