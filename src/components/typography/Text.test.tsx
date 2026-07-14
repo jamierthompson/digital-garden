@@ -288,3 +288,40 @@ describe("TextVariant ↔ Text.module.css bundle bijection", () => {
     }
   });
 });
+
+// The silent-fallback class: a `var(--type-<role>-<facet>)` the module reads whose token was
+// never defined (a half-finished rename, a typo like `--type-lede-siz`, a dropped facet) does NOT
+// error at build — the property falls back to its initial value and the text renders in a wrong
+// size/family with the whole gate green. The bijection above pins only the `family` facet; this
+// holds ALL five facets of every referenced role to a real definition in semantic/type.css.
+describe("every var(--type-*) Text.module.css reads resolves to a semantic/type.css definition", () => {
+  const definedTypeTokens = new Set(
+    [
+      ...readFileSync(
+        resolve(process.cwd(), "src/styles/semantic/type.css"),
+        "utf8",
+      ).matchAll(/(--type-[a-z0-9-]+)\s*:/g),
+    ].map(([, token]) => token),
+  );
+  const referencedTypeTokens = [
+    ...new Set(
+      [
+        ...readFileSync(
+          resolve(process.cwd(), "src/components/typography/Text.module.css"),
+          "utf8",
+        ).matchAll(/var\((--type-[a-z0-9-]+)\)/g),
+      ].map(([, token]) => token),
+    ),
+  ];
+
+  it("references a non-trivial set of tokens (false-green guard)", () => {
+    expect(referencedTypeTokens.length).toBeGreaterThan(20);
+  });
+
+  it.each(referencedTypeTokens)(
+    "%s is defined in semantic/type.css",
+    (token) => {
+      expect(definedTypeTokens.has(token)).toBe(true);
+    },
+  );
+});
