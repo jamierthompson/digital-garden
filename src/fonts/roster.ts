@@ -26,12 +26,22 @@ import {
 
 import type { FontKey } from "@/lib/keys";
 
+/**
+ * The CSS generic family a face belongs to — its own classification, NOT the role it happens to
+ * fill. `EntryScope` tails this after the face var so the terminal fallback matches the authored
+ * face (a serif heading falls back to `serif`, not the heading role's site-default `sans-serif`).
+ * All three values are valid CSS generic keywords, so the emitted `var(<face>), <category>` is well-formed.
+ */
+export type FontCategory = "serif" | "sans-serif" | "monospace";
+
 /** What a resolved roster face exposes to a consumer (e.g. `EntryScope`). */
 export interface FontFace {
   /** The `next/font`-generated className that declares the CSS variable; mount it on the `[data-entry]` scope wrapper. */
   readonly variable: string;
   /** The CSS custom-property name this face is bound to; the scope maps a role token (e.g. `--font-heading: var(<this>)`) to it. */
   readonly cssVariable: string;
+  /** The face's own CSS generic family; the scope tails it after the face var as the terminal fallback. */
+  readonly category: FontCategory;
 }
 
 // The `*_VAR` const is the single source for the FontFace map's `cssVariable` below — but
@@ -89,15 +99,29 @@ const jetbrainsMono = JetBrains_Mono({
  * unknown string coming from Sanity.
  */
 export const FONT_FACES = {
-  inter: { variable: inter.variable, cssVariable: INTER_VAR },
-  newsreader: { variable: newsreader.variable, cssVariable: NEWSREADER_VAR },
-  fraunces: { variable: fraunces.variable, cssVariable: FRAUNCES_VAR },
+  inter: {
+    variable: inter.variable,
+    cssVariable: INTER_VAR,
+    category: "sans-serif",
+  },
+  newsreader: {
+    variable: newsreader.variable,
+    cssVariable: NEWSREADER_VAR,
+    category: "serif",
+  },
+  fraunces: {
+    variable: fraunces.variable,
+    cssVariable: FRAUNCES_VAR,
+    category: "serif",
+  },
   "space-grotesk": {
     variable: spaceGrotesk.variable,
     cssVariable: SPACE_GROTESK_VAR,
+    category: "sans-serif",
   },
   "jetbrains-mono": {
     variable: jetbrainsMono.variable,
     cssVariable: JETBRAINS_MONO_VAR,
+    category: "monospace",
   },
 } satisfies Record<FontKey, FontFace>;

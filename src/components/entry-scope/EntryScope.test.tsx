@@ -29,9 +29,9 @@ const ALL_THREE = {
 // sheet's business (`semantic/type.css`), not this component's — see the sheet-side receipts in
 // `src/styles/semantic/type.test.ts`.
 const FACE_SPEC = {
-  heading: { leaf: "--font-heading", generic: "sans-serif" },
-  body: { leaf: "--font-body", generic: "serif" },
-  mono: { leaf: "--font-mono", generic: "monospace" },
+  heading: { leaf: "--font-heading" },
+  body: { leaf: "--font-body" },
+  mono: { leaf: "--font-mono" },
 } as const;
 
 // Read an inline custom property straight off the element's style, so the assertion doesn't
@@ -41,15 +41,18 @@ const propOf = (el: Element | null, property: string): string =>
 
 type FaceKey = keyof typeof FACE_SPEC;
 
-// A resolved face stamped its leaf: var(<face>) tailed by the role-correct generic.
+// A resolved face stamped its leaf: var(<face>) tailed by the AUTHORED face's own category (#255) —
+// NOT the leaf's role-default generic. The category the component reads is the roster's; roster.test
+// independently pins each category to its verified value, so deriving the expectation here proves the
+// tail FOLLOWS the resolved face's category without duplicating that per-face fact.
 const expectFaceStamped = (
   wrapper: Element | null,
   face: FaceKey,
   fontKey: keyof typeof FONT_FACES,
 ): void => {
-  const { leaf, generic } = FACE_SPEC[face];
+  const { leaf } = FACE_SPEC[face];
   expect(propOf(wrapper, leaf)).toBe(
-    `var(${FONT_FACES[fontKey].cssVariable}), ${generic}`,
+    `var(${FONT_FACES[fontKey].cssVariable}), ${FONT_FACES[fontKey].category}`,
   );
 };
 
@@ -285,11 +288,76 @@ describe("EntryScope (three-face font slot)", () => {
     const b = screen.getByText("b").closest("[data-entry]");
     expect(a).toHaveAttribute("data-entry", "alpha");
     expect(b).toHaveAttribute("data-entry", "beta");
+    // inter is a sans-serif and fraunces a serif, so each body leaf tails its OWN face's category —
+    // NOT the body role's site-default `serif`.
     expect(propOf(a, "--font-body")).toBe(
-      `var(${FONT_FACES.inter.cssVariable}), serif`,
+      `var(${FONT_FACES.inter.cssVariable}), sans-serif`,
     );
     expect(propOf(b, "--font-body")).toBe(
       `var(${FONT_FACES.fraunces.cssVariable}), serif`,
     );
   });
+
+  // ── #255: the terminal generic follows the AUTHORED face's category, not the role default ──
+
+  it.each([
+    // face, role seed key, roster key, role-default generic (the OLD, wrong tail), authored category
+    // — the FULL role × foreign-category matrix (each role has two foreign categories).
+    ["heading", "headingFont", "fraunces", "sans-serif", "serif"],
+    ["heading", "headingFont", "jetbrains-mono", "sans-serif", "monospace"],
+    ["body", "bodyFont", "inter", "serif", "sans-serif"],
+    ["body", "bodyFont", "jetbrains-mono", "serif", "monospace"],
+    ["mono", "monoFont", "inter", "monospace", "sans-serif"],
+    ["mono", "monoFont", "fraunces", "monospace", "serif"],
+  ] as const satisfies ReadonlyArray<
+    readonly [FaceKey, string, keyof typeof FONT_FACES, string, string]
+  >)(
+    "a cross-category %s face tails its OWN generic, never the role default",
+    (face, seedKey, fontKey, roleDefault, authoredCategory) => {
+      render(
+        <EntryScope seed={{ slug: "x", [seedKey]: fontKey }}>
+          <p>cross</p>
+        </EntryScope>,
+      );
+      const leaf = FACE_SPEC[face].leaf;
+      const value = propOf(
+        screen.getByText("cross").closest("[data-entry]"),
+        leaf,
+      );
+      expect(value).toBe(
+        `var(${FONT_FACES[fontKey].cssVariable}), ${authoredCategory}`,
+      );
+      // Not the pre-#255 role-keyed tail. (Full-string, not substring: `sans-serif` contains
+      // `serif`, so a bare `toContain` would misfire on the body/heading rows.)
+      expect(value).not.toBe(
+        `var(${FONT_FACES[fontKey].cssVariable}), ${roleDefault}`,
+      );
+    },
+  );
+
+  it.each([
+    // face, role seed key, roster key whose category EQUALS the role default, shared generic —
+    // for these combos the authored category and the old role default coincide, so the emitted
+    // string must be byte-identical to the pre-#255 output (the fix changes nothing here).
+    ["heading", "headingFont", "space-grotesk", "sans-serif"],
+    ["body", "bodyFont", "newsreader", "serif"],
+    ["mono", "monoFont", "jetbrains-mono", "monospace"],
+  ] as const satisfies ReadonlyArray<
+    readonly [FaceKey, string, keyof typeof FONT_FACES, string]
+  >)(
+    "leaves a SAME-category %s face unchanged vs the role default",
+    (face, seedKey, fontKey, generic) => {
+      render(
+        <EntryScope seed={{ slug: "x", [seedKey]: fontKey }}>
+          <p>same</p>
+        </EntryScope>,
+      );
+      expect(
+        propOf(
+          screen.getByText("same").closest("[data-entry]"),
+          FACE_SPEC[face].leaf,
+        ),
+      ).toBe(`var(${FONT_FACES[fontKey].cssVariable}), ${generic}`);
+    },
+  );
 });
