@@ -15,12 +15,15 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import * as api from "./index";
-// Import every type from the BARREL (not "./types") — resolving these is the drift guard
-// for the type-only public surface: the signature checks below only reach the ~6 types
-// transitively named in the checked function signatures, so a STANDALONE exported type
-// (e.g. `RampPair`, `SchemeTokens`) could be dropped from `index.ts` and this suite would
-// stay green. VERIFIED gap: deleting `export type { RampPair }` left the signature checks
-// passing (10/10); importing each barrel type here makes such a drop fail `pnpm typecheck`.
+// The barrel's source text, inlined at transform time (see `raw-import.d.ts`) — works
+// identically under the node and jsdom projects, where a test-time fs read would not
+// (jsdom's `import.meta.url` is http-schemed).
+import barrelSource from "./index.ts?raw";
+// Import every type from the BARREL (not "./types") — resolving these is the REMOVAL/RENAME
+// half of the type-surface guard: dropping or renaming a listed barrel type export fails
+// `pnpm typecheck`. The ADDITION half cannot be compile-time — a namespace import's type has
+// no keys for type-only exports, so no `keyof` can enumerate them — which is why the
+// completeness suite below parses the barrel's export statements instead (#157).
 import type {
   // color primitives
   OkLCH,
@@ -29,6 +32,12 @@ import type {
   Scheme,
   Gamut,
   ColorFormat,
+  // engine-rules vocabulary
+  LightnessDistribution,
+  ChromaPolicy,
+  HuePolicy,
+  RampRules,
+  EngineRules,
   // token/ramp vocabulary
   ThemeTokenName,
   RampLabel,
@@ -58,6 +67,7 @@ import type {
   DesignTokenScheme,
   DesignTokensExport,
   // contrast surface
+  ContrastCheck,
   ContrastTarget,
   SolveOptions,
   // ramp surface
@@ -65,6 +75,10 @@ import type {
   RampSpec,
   // binding surface
   TokenBinding,
+  // harmony palette
+  HarmonyKind,
+  HarmonyPalette,
+  HarmonyOptions,
   // harmony tier (#152) — decorative annex
   HarmonyHue,
   HarmonyStepProvenance,
@@ -242,8 +256,9 @@ describe("the guarded public surface (#99)", () => {
 /**
  * A compile-time roll-call of every public type. If any import above disappears from the
  * barrel, this file fails to type-check → `pnpm typecheck` fails. The runtime body is a
- * no-op; the guard is the import list resolving. If a type is intentionally added to the
- * public surface, add it to the barrel import above in the same commit.
+ * no-op; the guard is the import list resolving. Adding a public type is ENFORCED, not
+ * discipline (#157): the completeness suite below parses the barrel, so a new type export
+ * that isn't threaded through the import list, this map, and `PUBLIC_TYPE_EXPORTS` fails.
  */
 type PublicTypeSurface = {
   OkLCH: OkLCH;
@@ -252,6 +267,11 @@ type PublicTypeSurface = {
   Scheme: Scheme;
   Gamut: Gamut;
   ColorFormat: ColorFormat;
+  LightnessDistribution: LightnessDistribution;
+  ChromaPolicy: ChromaPolicy;
+  HuePolicy: HuePolicy;
+  RampRules: RampRules;
+  EngineRules: EngineRules;
   ThemeTokenName: ThemeTokenName;
   RampLabel: RampLabel;
   RampRole: RampRole;
@@ -276,11 +296,15 @@ type PublicTypeSurface = {
   DesignToken: DesignToken;
   DesignTokenScheme: DesignTokenScheme;
   DesignTokensExport: DesignTokensExport;
+  ContrastCheck: ContrastCheck;
   ContrastTarget: ContrastTarget;
   SolveOptions: SolveOptions;
   RampOptions: RampOptions;
   RampSpec: RampSpec;
   TokenBinding: TokenBinding;
+  HarmonyKind: HarmonyKind;
+  HarmonyPalette: HarmonyPalette;
+  HarmonyOptions: HarmonyOptions;
   HarmonyHue: HarmonyHue;
   HarmonyStepProvenance: HarmonyStepProvenance;
   HarmonyPick: HarmonyPick;
@@ -293,11 +317,117 @@ type PublicTypeSurface = {
   HarmonyDesignTokensExport: HarmonyDesignTokensExport;
 };
 
-describe("guarded public TYPE surface (#99) — completeness guard", () => {
-  it("every documented public type is exported from the barrel", () => {
-    // If this file compiled, every listed type export resolved. Assert the map is inhabited
-    // so the test is not empty; the real guard is compile-time.
-    expectTypeOf<PublicTypeSurface>().toBeObject();
+/** Every type-only export of `@garden/oklch`, alphabetized for readability — the comparison
+ *  sorts both sides, so a correct addition can't fail on placement. `satisfies` pins each
+ *  entry to a `PublicTypeSurface` key; the completeness suite below pins the list to the
+ *  barrel itself. */
+const PUBLIC_TYPE_EXPORTS = [
+  "BindingPair",
+  "BindingProvenance",
+  "BindingStep",
+  "ChromaPolicy",
+  "ColorFormat",
+  "ContrastCheck",
+  "ContrastTarget",
+  "ContrastTargetName",
+  "CssOptions",
+  "DesignToken",
+  "DesignTokenScheme",
+  "DesignTokensExport",
+  "EngineOptions",
+  "EngineRules",
+  "ExportOptions",
+  "FillForegroundProvenance",
+  "FillProvenance",
+  "Gamut",
+  "HarmonyDesignTokenGroup",
+  "HarmonyDesignTokensExport",
+  "HarmonyHue",
+  "HarmonyHueResult",
+  "HarmonyHueTier",
+  "HarmonyKind",
+  "HarmonyOptions",
+  "HarmonyPalette",
+  "HarmonyPick",
+  "HarmonyPickPair",
+  "HarmonySchemeResult",
+  "HarmonyStepProvenance",
+  "HarmonyTier",
+  "HuePolicy",
+  "LightnessDistribution",
+  "LiteralProvenance",
+  "OkLCH",
+  "OkLab",
+  "RGB",
+  "Ramp",
+  "RampLabel",
+  "RampOptions",
+  "RampPair",
+  "RampRole",
+  "RampRules",
+  "RampSpec",
+  "RampStep",
+  "Scheme",
+  "SchemePair",
+  "SchemeResult",
+  "SchemeTokens",
+  "SolveOptions",
+  "StepProvenance",
+  "ThemeTokenName",
+  "TokenBinding",
+  "TokenSet",
+] as const satisfies readonly (keyof PublicTypeSurface)[];
+
+/**
+ * The barrel's exported names, read from its re-export statements (comments stripped).
+ * Only `export [type] { … } from "…"` is parsed; any other `export` form throws, so a new
+ * export shape cannot slip past unread.
+ */
+function parseBarrelExports(): { runtime: string[]; types: string[] } {
+  const source = barrelSource
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/.*$/gm, "");
+  const reExport = /export(\s+type)?\s*\{([^}]*)\}\s*from\s*"[^"]*";?/g;
+  const runtime: string[] = [];
+  const types: string[] = [];
+  for (const match of source.matchAll(reExport)) {
+    const statementIsTypeOnly = match[1] !== undefined;
+    for (const specifier of (match[2] ?? "").split(",")) {
+      const trimmed = specifier.trim();
+      if (trimmed === "") continue;
+      const isType = statementIsTypeOnly || /^type\s/.test(trimmed);
+      const name = trimmed.replace(/^type\s+/, "").replace(/^\S+\s+as\s+/, "");
+      (isType ? types : runtime).push(name);
+    }
+  }
+  if (/\bexport\b/.test(source.replace(reExport, ""))) {
+    throw new Error(
+      "index.ts contains an export this guard cannot read — only `export [type] { … } from` " +
+        "re-exports are parseable; extend the parser in the same commit as the new export form",
+    );
+  }
+  return { runtime, types };
+}
+
+describe("guarded public TYPE surface (#99/#157) — completeness", () => {
+  const barrel = parseBarrelExports();
+
+  it("the barrel's type exports are exactly the guarded names — a new type fails here until listed", () => {
+    expect([...barrel.types].sort()).toEqual([...PUBLIC_TYPE_EXPORTS].sort());
+  });
+
+  it("cross-check: the parser's runtime names match the runtime guard's list", () => {
+    // Anchors the parser to ground truth — the same names are independently asserted against
+    // `Object.keys(api)` above, so a parser that misreads the barrel cannot stay green.
+    expect([...barrel.runtime].sort()).toEqual([...RUNTIME_EXPORTS]);
+  });
+
+  it("the surface map and the pinned list name the same types", () => {
+    // `satisfies` on PUBLIC_TYPE_EXPORTS forbids a name the map lacks; this forbids a map
+    // key the list lacks — so the import roll-call, the map, and the list move together.
+    expectTypeOf<
+      Exclude<keyof PublicTypeSurface, (typeof PUBLIC_TYPE_EXPORTS)[number]>
+    >().toEqualTypeOf<never>();
   });
 });
 
