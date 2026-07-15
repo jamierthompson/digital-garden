@@ -1,0 +1,62 @@
+name: Deploy Sanity Studio
+
+# Deploys the hosted Studio, which also pushes the content-model schema to the
+# Content Lake ("✔ Deployed 1/1 schemas") — so editors get the current Studio
+# and apps like Dashboard/Agent Actions see the current model.
+#
+# The standalone `sanity schemas deploy` is unusable in CI: a native-thread
+# teardown race in @sanity/cli aborts the process (SIGABRT, no output)
+# regardless of whether the deploy succeeded —
+# https://github.com/sanity-io/cli/issues/1511. Until that ships fixed, the
+# full Studio deploy is the schema-refresh path. (See docs/security-and-ops.md.)
+
+on:
+  # Manual trigger — covers the first deploy and any ad-hoc redeploy.
+  workflow_dispatch:
+  # Auto-redeploy when anything the hosted Studio is built from changes on
+  # main: its own source, the color engine it bundles from raw workspace
+  # source (@garden/oklch), and this workflow itself.
+  push:
+    branches: [main]
+    paths:
+      - studio/**
+      - packages/oklch/**
+      - .github/workflows/deploy-studio.yml
+
+# The deploy mutates shared hosted state; serialize runs so two deploys can't
+# race. Don't cancel an in-flight deploy — let it finish.
+concurrency:
+  group: deploy-studio
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # This job only talks to Sanity (via SANITY_AUTH_TOKEN); it never uses
+    # GITHUB_TOKEN. Drop all of its default permissions (least privilege).
+    permissions: {}
+    # Cap a hung/wedged deploy so it can't run to the runner's 6h default.
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Non-interactive: the Studio hostname + appId are pinned in
+      # studio/sanity.cli.ts, and the production preview URL comes from the
+      # committed studio/.env.production.
+      #
+      # Auth: in CI there's no `sanity login`, so the CLI reads a deploy token
+      # from the SANITY_AUTH_TOKEN env var. We source it from the repo secret
+      # SANITY_DEPLOY_TOKEN (Deploy/Editor scope). NEVER hardcode a token.
+      - name: Deploy Studio (includes schema)
+        env:
+          SANITY_AUTH_TOKEN: ${{ secrets.SANITY_DEPLOY_TOKEN }}
+        run: pnpm --filter studio run deploy
