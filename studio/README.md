@@ -17,7 +17,8 @@ Run from the repo root via the workspace filter:
 
 ```bash
 pnpm --filter studio dev       # local Studio at http://localhost:3333
-pnpm --filter studio deploy    # deploy the hosted Studio (also pushes the schema)
+pnpm --filter studio run deploy  # deploy the hosted Studio (also pushes the schema);
+                                 # the `run` is required — bare `deploy` is a pnpm built-in
 pnpm --filter studio typegen   # regenerate types — writes ./sanity.types.ts at the REPO ROOT
 ```
 
