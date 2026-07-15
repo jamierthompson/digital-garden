@@ -27,7 +27,6 @@ interface IndexRow {
   slug: string | null;
   kind: string | null;
   stage: string | null;
-  iterated: string | null;
   summary: string | null;
   linkCount: number;
 }
@@ -40,7 +39,6 @@ function row(over: Partial<IndexRow> & { _id: string }): IndexRow {
     // nothing, a misleading default for the generic-behaviour tests.
     kind: "essay",
     stage: "sketch",
-    iterated: null,
     summary: null,
     linkCount: 0,
     ...over,
