@@ -40,17 +40,19 @@ server-emitted `<style>`. Verify against the docs above and the real code, not t
    `@layer` name outside `{base, components}`); flag any new module that declares no layer and isn't
    purely var-consuming.
 
-4. **Every page is themed from an authored seed; the editorial _type_ is global.** Each page mounts one
-   `<PageTheme seed>` that stamps the engine's tokens on `:root`/`<html>`; the persistent chrome
-   (`SiteNav`/`SiteFooter`) **inherits** the visible page's theme. What is global is the editorial
-   **type** (Space Grotesk + Source Serif 4) plus the neutral fallback for un-themed surfaces
-   (404 / error / loading). An entry's theme **font** scopes **only** to its bounded slot
-   (`[data-entry]` / the `Slot`). Flag a theme font bleeding onto page chrome, or a route that
-   renders content without a `<PageTheme>` seed where one belongs.
+4. **The Theme asymmetry is intentional — color paints the whole page, fonts theme only the slot.**
+   Each page mounts one `<PageTheme seed>`: the OKLCH engine derives the palette from the authored
+   seed and stamps it on `:root`/`<html>`, painting the **entire page** — the persistent chrome
+   (`SiteNav`/`SiteFooter`) wears the seed color too. The editorial **type** is global and identical
+   from page to page — Space Grotesk headings + Source Serif 4 body + Geist Mono — plus the neutral
+   fallback for un-themed surfaces (404 / error / loading). An entry's theme **fonts** scope **only**
+   to its bounded slot (`[data-entry]` / the `Slot`), never the chrome. Flag a theme font bleeding
+   onto page chrome, a surface opting out of the page color, or a route that renders content without
+   a `<PageTheme>` seed where one belongs.
 
-5. **Downward theming has one owner.** The entry's slot scope is the single owner of the theme + font
-   within the slot; the experience and embedded components beneath it read the **same scoped tokens**
-   passed down. A shared primitive must not assume tokens that only exist inside a slot. Flag a
+5. **Downward theming has one owner.** The entry's slot scope is the single owner of the slot's
+   **font** re-binding (color inside the slot is the same page-wide engine palette); the experience
+   and embedded components beneath it read the **same scoped tokens** passed down. A shared primitive must not assume tokens that only exist inside a slot. Flag a
    component reaching up to or hard-coding a value the slot scope should provide.
 
 6. **Flash-free.** Page color is a server-rendered `:root` `<style>` (`ThemeStyle`, React-19-hoisted
