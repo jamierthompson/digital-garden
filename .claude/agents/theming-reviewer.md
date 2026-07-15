@@ -1,6 +1,6 @@
 ---
 name: theming-reviewer
-description: Reviews token, `@layer`, EntryScope, and slot-scoping work — the three-tier token model (foundation → semantic → theme), the generic semantic contract (no project-prefixed names), `@layer` discipline, per-page `<html>` theme delivery vs slot-scoped theme font, and flash-free theming. Use proactively after editing CSS Modules, global CSS, token definitions, `PageTheme`/`EntryScope`, or anything that themes a page or slot.
+description: Reviews token, `@layer`, EntryScope, and slot-scoping work — the two-tier token model (foundation → semantic) plus the per-page theme override, the generic semantic contract (no slug-prefixed names), `@layer` discipline, per-page `<html>` theme delivery vs slot-scoped theme font, and flash-free theming. Use proactively after editing CSS Modules, global CSS, token definitions, `PageTheme`/`EntryScope`, or anything that themes a page or slot.
 tools: Read, Grep, Glob
 ---
 
@@ -19,17 +19,18 @@ server-emitted `<style>`. Verify against the docs above and the real code, not t
 
 ## What to check
 
-1. **Three token tiers, in order.** Tokens are **foundation** (primitives) → **semantic** (the role
-   tokens components actually read) → **theme** (the engine's per-page override of the semantic color
-   tokens). There is **no separate "feel/geometry" tier** — radius, border-width, and control sizes are
+1. **Two token tiers + a theme override, in order.** Tokens are **foundation** (primitives) →
+   **semantic** (the role tokens components actually read), plus a **theme** — the engine's per-page
+   re-binding of the semantic color values, not a third tier of token names (there are no
+   `--theme-*` names). There is **no separate "feel/geometry" tier** — radius, border-width, and control sizes are
    foundation values. Flag a component reading a foundation
    primitive directly where it should read a semantic role token, or a new tier invented outside this
    model.
 
-2. **Generic semantic contract — no project-prefixed names.** The public contract is the generic
+2. **Generic semantic contract — no slug-prefixed names.** The public contract is the generic
    semantic layer (`THEME_TOKEN_NAMES`); isolation comes from the `[data-entry]` scope, **not** from
-   naming. No project-slug-prefixed token names. Flag any `--<slug>-…` token or a slot that leaks a
-   project-specific name into the shared contract.
+   naming. No slug-prefixed token names. Flag any `--<slug>-…` token or a slot that leaks an
+   entry-specific name into the shared contract.
 
 3. **Every CSS Module declares its `@layer`.** The cascade has **two** layers, named for their jobs —
    `base` (loses) and `components` (wins) — distinct from the token _tiers_ in check 1: layers are a
@@ -40,17 +41,19 @@ server-emitted `<style>`. Verify against the docs above and the real code, not t
    `@layer` name outside `{base, components}`); flag any new module that declares no layer and isn't
    purely var-consuming.
 
-4. **Every page is themed from an authored seed; the editorial _type_ is global.** Each page mounts one
-   `<PageTheme seed>` that stamps the engine's tokens on `:root`/`<html>`; the persistent chrome
-   (`SiteNav`/`SiteFooter`) **inherits** the visible page's theme. What is global is the editorial
-   **type** (Space Grotesk + Source Serif 4) plus the neutral fallback for un-themed surfaces
-   (404 / error / loading). An entry's theme **font** scopes **only** to its bounded slot
-   (`[data-entry]` / the `Slot`). Flag a theme font bleeding onto page chrome, or a route that
-   renders content without a `<PageTheme>` seed where one belongs.
+4. **The Theme asymmetry is intentional — color paints the whole page, fonts theme only the slot.**
+   Each page mounts one `<PageTheme seed>`: the OKLCH engine derives the palette from the authored
+   seed and stamps it on `:root`/`<html>`, painting the **entire page** — the persistent chrome
+   (`SiteNav`/`SiteFooter`) wears the seed color too. The editorial **type** is global and identical
+   from page to page — Space Grotesk headings + Source Serif 4 body + Geist Mono — plus the neutral
+   fallback for un-themed surfaces (404 / error / loading). An entry's theme **fonts** scope **only**
+   to its bounded slot (`[data-entry]` / the `Slot`), never the chrome. Flag a theme font bleeding
+   onto page chrome, a surface opting out of the page color, or a route that renders content without
+   a `<PageTheme>` seed where one belongs.
 
-5. **Downward theming has one owner.** The project's slot scope is the single owner of the theme + font
-   within the slot; the experience and embedded components beneath it read the **same scoped tokens**
-   passed down. A shared primitive must not assume tokens that only exist inside a slot. Flag a
+5. **Downward theming has one owner.** The entry's slot scope is the single owner of the slot's
+   **font** re-binding (color inside the slot is the same page-wide engine palette); the experience
+   and embedded components beneath it read the **same scoped tokens** passed down. A shared primitive must not assume tokens that only exist inside a slot. Flag a
    component reaching up to or hard-coding a value the slot scope should provide.
 
 6. **Flash-free.** Page color is a server-rendered `:root` `<style>` (`ThemeStyle`, React-19-hoisted

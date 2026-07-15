@@ -3,7 +3,7 @@ import {defineArrayMember, defineType} from 'sanity'
 /**
  * Reusable rich-text (Portable Text) body.
  *
- * The shared `entry.body` surface — ONE palette for every kind (note · essay · project ·
+ * The shared `entry.body` surface — ONE palette for every kind (note · essay · demo ·
  * now), so the in-body authoring experience is identical throughout. `kind` places an entry;
  * it does not restrict the palette. The palette: prose (`block`) · `figure` · `video` · the
  * generic themeable `slot` · `quote`.

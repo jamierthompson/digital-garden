@@ -6,7 +6,7 @@ import {forbiddenForNow, requiredForThemedKind} from './entryValidators'
 /**
  * An `entry` — the single content type for the whole garden.
  *
- * Notes, essays, and projects are the same shape (a themed page with one or more
+ * Notes, essays, and demos are the same shape (a themed page with one or more
  * interactive slots plus prose), so they are ONE document type discriminated by a
  * `kind` field — not three types, and not a merge that erased the distinction. `kind`
  * drives the Index's type filter and the on-card label; the kinds differ by scope and
@@ -19,7 +19,7 @@ import {forbiddenForNow, requiredForThemedKind} from './entryValidators'
  * the slot's type wears — heading, body, and mono, each independent; `colorDark` is an optional
  * hand-tuned dark override. Under the site-wide engine-theming model (#166) every page derives its
  * theme from an authored seed, so `theme.color` is required for every THEMED kind — note, essay,
- * AND project (any stage: the project card plate consumes it even for a sketch, and a note/essay
+ * AND demo (any stage: the demo card plate consumes it even for a sketch, and a note/essay
  * page themes from it too). The three font faces are each OPTIONAL for every kind — an absent face
  * inherits the site type palette, so a slot with no font override wears the constant site faces.
  * `componentKey` is SEPARATE from the theme (it MOUNTS a module; it is not part of the theme the
@@ -35,7 +35,7 @@ import {forbiddenForNow, requiredForThemedKind} from './entryValidators'
 const KINDS = [
   {title: 'Note', value: 'note'},
   {title: 'Essay', value: 'essay'},
-  {title: 'Project', value: 'project'},
+  {title: 'Demo', value: 'demo'},
   {title: 'Now', value: 'now'},
 ] as const
 
@@ -55,7 +55,7 @@ export const entry = defineType({
       type: 'string',
       description: '“Now” is a dated update for your now page.',
       options: {list: [...KINDS], layout: 'radio'},
-      initialValue: 'project',
+      initialValue: 'demo',
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -117,15 +117,19 @@ export const entry = defineType({
       validation: (rule) => rule.integer(),
     }),
     defineField({
-      name: 'blurb',
+      name: 'summary',
       type: 'text',
       rows: 3,
-      validation: (rule) =>
+      description:
+        'Authored standalone summary — written for the cards, lists, and feed, not a paste of the opening paragraph.',
+      // Two tiers need two Rules: chaining `.warning()` then `.error()` re-levels the SAME
+      // rule (last call wins), which made the 280 soft cap block publish at error level.
+      validation: (rule) => [
+        rule.max(280).warning('Keep the summary card-sized.'),
         rule
-          .max(280)
-          .warning('Keep the blurb card-sized.')
           .max(300)
-          .error('Blurb exceeds the 300-character hard cap — the card layout cannot absorb the overflow.'),
+          .error('Summary exceeds the 300-character hard cap — the card layout cannot absorb the overflow.'),
+      ],
     }),
 
     // The entry's theme: one first-class object, reference-by-key, consumed by code, stega-
@@ -147,7 +151,7 @@ export const entry = defineType({
           title: 'Theme color',
           type: 'string',
           description:
-            'Hex or oklch() accent that dresses this entry’s page chrome and every interactive slot. Required for every note, essay, and project.',
+            'Hex or oklch() accent that dresses this entry’s page chrome and every interactive slot. Required for every note, essay, and demo.',
           validation: (rule) =>
             rule.custom(requiredForThemedKind).custom(forbiddenForNow).custom(isThemeColorString),
         }),

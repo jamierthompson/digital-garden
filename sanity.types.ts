@@ -113,13 +113,13 @@ export type Entry = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  kind?: "note" | "essay" | "project" | "now";
+  kind?: "note" | "essay" | "demo" | "now";
   title?: string;
   slug?: Slug;
   stage?: "sketch" | "prototype" | "shipped";
   iterated?: string;
   featuredRank?: number;
-  blurb?: string;
+  summary?: string;
   theme?: {
     color?: string;
     colorDark?: string;
@@ -279,12 +279,12 @@ export type AllSanitySchemaTypes =
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: ENTRY_FEED_QUERY
-// Query: *[_type == "entry" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {    _id,    title,    "slug": slug.current,    blurb,    "published": coalesce(iterated, _createdAt)  }
+// Query: *[_type == "entry" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {    _id,    title,    "slug": slug.current,    summary,    "published": coalesce(iterated, _createdAt)  }
 export type ENTRY_FEED_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
   slug: string | null;
-  blurb: string | null;
+  summary: string | null;
   published: string;
 }>;
 
@@ -297,16 +297,16 @@ export type ENTRY_SLUGS_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: ENTRY_DETAIL_QUERY
-// Query: *[_type == "entry" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    featuredRank,    blurb,    theme { color, colorDark, headingFont, bodyFont, monoFont },    componentKey,    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),    body,    related[]->{ _id, title, "slug": slug.current, kind },    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }  }
+// Query: *[_type == "entry" && slug.current == $slug][0] {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    featuredRank,    summary,    theme { color, colorDark, headingFont, bodyFont, monoFont },    componentKey,    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),    body,    related[]->{ _id, title, "slug": slug.current, kind },    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }  }
 export type ENTRY_DETAIL_QUERY_RESULT = {
   _id: string;
   title: string | null;
   slug: string | null;
-  kind: "essay" | "note" | "now" | "project" | null;
+  kind: "demo" | "essay" | "note" | "now" | null;
   stage: "prototype" | "shipped" | "sketch" | null;
   iterated: string | null;
   featuredRank: number | null;
-  blurb: string | null;
+  summary: string | null;
   theme: {
     color: string | null;
     colorDark: string | null;
@@ -321,40 +321,40 @@ export type ENTRY_DETAIL_QUERY_RESULT = {
     _id: string;
     title: string | null;
     slug: string | null;
-    kind: "essay" | "note" | "now" | "project" | null;
+    kind: "demo" | "essay" | "note" | "now" | null;
   }> | null;
   backlinks: Array<{
     _id: string;
     title: string | null;
     slug: string | null;
-    kind: "essay" | "note" | "now" | "project" | null;
+    kind: "demo" | "essay" | "note" | "now" | null;
   }>;
 } | null;
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: INDEX_QUERY
-// Query: *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    blurb,    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])  }
+// Query: *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    summary,    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])  }
 export type INDEX_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
   slug: string | null;
-  kind: "essay" | "note" | "now" | "project" | null;
+  kind: "demo" | "essay" | "note" | "now" | null;
   stage: "prototype" | "shipped" | "sketch" | null;
   iterated: string | null;
-  blurb: string | null;
+  summary: string | null;
   linkCount: number | null;
 }>;
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: FEATURED_QUERY
-// Query: *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {    _id,    title,    "slug": slug.current,    kind,    stage,    blurb,    theme { color }  }
+// Query: *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {    _id,    title,    "slug": slug.current,    kind,    stage,    summary,    theme { color }  }
 export type FEATURED_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
   slug: string | null;
-  kind: "essay" | "note" | "now" | "project" | null;
+  kind: "demo" | "essay" | "note" | "now" | null;
   stage: "prototype" | "shipped" | "sketch" | null;
-  blurb: string | null;
+  summary: string | null;
   theme: {
     color: string | null;
   } | null;
@@ -362,13 +362,13 @@ export type FEATURED_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: NOW_QUERY
-// Query: *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {    _id,    title,    "slug": slug.current,    iterated,    blurb  }
+// Query: *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {    _id,    title,    "slug": slug.current,    iterated,    summary  }
 export type NOW_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
   slug: string | null;
   iterated: string | null;
-  blurb: string | null;
+  summary: string | null;
 }>;
 
 // Source: ../src/sanity/lib/queries.ts
@@ -391,12 +391,12 @@ export type SITE_SETTINGS_QUERY_RESULT = {
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_type == "entry" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    blurb,\n    "published": coalesce(iterated, _createdAt)\n  }\n': ENTRY_FEED_QUERY_RESULT;
+    '\n  *[_type == "entry" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    summary,\n    "published": coalesce(iterated, _createdAt)\n  }\n': ENTRY_FEED_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current)]{ "slug": slug.current }\n': ENTRY_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    blurb,\n    theme { color, colorDark, headingFont, bodyFont, monoFont },\n    componentKey,\n    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),\n    body,\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }\n  }\n': ENTRY_DETAIL_QUERY_RESULT;
-    '\n  *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    blurb,\n    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])\n  }\n': INDEX_QUERY_RESULT;
-    '\n  *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    blurb,\n    theme { color }\n  }\n': FEATURED_QUERY_RESULT;
-    '\n  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    iterated,\n    blurb\n  }\n': NOW_QUERY_RESULT;
+    '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    summary,\n    theme { color, colorDark, headingFont, bodyFont, monoFont },\n    componentKey,\n    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),\n    body,\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }\n  }\n': ENTRY_DETAIL_QUERY_RESULT;
+    '\n  *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    summary,\n    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])\n  }\n': INDEX_QUERY_RESULT;
+    '\n  *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    summary,\n    theme { color }\n  }\n': FEATURED_QUERY_RESULT;
+    '\n  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    iterated,\n    summary\n  }\n': NOW_QUERY_RESULT;
     '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description,\n    pageThemes { home, browse, about, now, system }\n  }\n': SITE_SETTINGS_QUERY_RESULT;
   }
 }

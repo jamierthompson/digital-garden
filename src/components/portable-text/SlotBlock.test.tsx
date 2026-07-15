@@ -1,6 +1,6 @@
 // QA #131 — SlotBlock is the seam where an authored `slot` meets code. The
 // contract under test: (1) a missing/unknown key degrades to the visible MissingSlot —
-// never a throw; (2) with a project `scope` the slot mounts inside its OWN
+// never a throw; (2) with an entry `scope` the slot mounts inside its OWN
 // `[data-entry]` container; (3) without a scope it mounts bare; (4) the caption stays
 // OUTSIDE the theme scope (editorial register). SlotBlock is an async Server Component,
 // so each case awaits the element before rendering (the jsdom-compatible RSC pattern).

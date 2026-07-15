@@ -1,18 +1,19 @@
 # Digital Garden
 
 A personal portfolio and digital garden — a place to grow notes, ideas, and work
-over time. The whole site shares one editorial look — Source Serif 4 and a
-black/white/gray neutral ramp — across all page chrome. Each project's theme
-color (a perceptual OKLCH palette) and font theme only its own bounded
-interactive slot, on that shared foundation. Content and theme seeds live in
-Sanity; the site renders on Next.js.
+over time. Every page is themed from an authored seed: a perceptual OKLCH
+engine derives the page's palette from its seed color and paints the whole
+page, chrome included, while the editorial type — Space Grotesk headings,
+Source Serif 4 body, Geist Mono — stays constant from page to page. An entry's
+theme fonts theme only its own bounded interactive slot. Content and theme
+seeds live in Sanity; the site renders on Next.js.
 
 > **Status:** the shared foundation — the OKLCH theming engine (`@garden/oklch`) and the
 > `@garden/type` type-scale engine — plus the Sanity content model and the real garden entries
 > are **live on Vercel**, with the editorial garden shell, an RSS feed, and Sanity draft mode +
 > live preview wired to publish→production revalidation. The interactive **Color Engine** demo
 > (`src/entries/color-engine/`) is a registered stub pending a rebuild on the new foundation as a
-> multi-page project (#149); the `@garden/oklch` engine it showcases is untouched. Remaining
+> multi-page demo (#149); the `@garden/oklch` engine it showcases is untouched. Remaining
 > work is tracked in [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
 The engineering docs live in [`docs/`](./docs/) (start at
@@ -83,11 +84,12 @@ chain on every PR.
 
 ## Styling approach
 
-CSS custom properties + CSS Modules, organized with `@layer`. Tokens are three tiers —
-**foundation** primitives → **semantic** role tokens (the public contract components read) → a
-per-slot **theme** override the `@garden/oklch` engine bakes flash-free. One editorial look themes
-all page chrome; a project's theme color + font theme only its own bounded slot, with no
-project-prefixed token names (the `[data-entry]` scope provides the isolation).
+CSS custom properties + CSS Modules, organized with `@layer`. Tokens are two tiers —
+**foundation** primitives → **semantic** role tokens (the public contract components read) —
+plus a per-page **theme**: the `@garden/oklch` engine re-binds the semantic values from the
+page's authored seed, baked flash-free into the initial HTML. The seed color paints the entire
+page (nav and footer included); an entry's theme fonts theme only its own bounded slot, with no
+slug-prefixed token names (the `[data-entry]` scope provides the isolation).
 
 The full model — the layer order, the "@layer trap", scope-based isolation, and the token
 contract — is in [`docs/architecture.md`](./docs/architecture.md) (_Token & theming architecture_).

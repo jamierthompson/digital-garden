@@ -62,7 +62,7 @@ export async function GET() {
     .map((entry) => {
       const url = `${SITE_URL}/${entry.slug}`;
       const title = escapeXml(entry.title ?? "Untitled");
-      const description = entry.blurb ? escapeXml(entry.blurb) : "";
+      const description = entry.summary ? escapeXml(entry.summary) : "";
       // `toRfc822` output is a fixed-format ASCII date (no XML metacharacters), so it needs no
       // escaping; a dateless item drops the element entirely rather than emitting an empty one.
       const pubDate = toRfc822(entry.published);
@@ -84,7 +84,7 @@ export async function GET() {
     <title>Jamie Thompson — Digital Garden</title>
     <link>${escapeXml(SITE_URL)}</link>
     <atom:link href="${escapeXml(FEED_URL)}" rel="self" type="application/rss+xml" />
-    <description>Notes, essays, projects, and now-updates from the digital garden.</description>
+    <description>Notes, essays, demos, and now-updates from the digital garden.</description>
 ${items}
   </channel>
 </rss>`;

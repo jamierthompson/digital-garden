@@ -6,15 +6,15 @@
  * the same role names every component already reads. Spread straight onto a card's `style={…}`
  * they re-bind those tokens for that card's subtree (scope-isolation via the inline cascade),
  * so a dozen differently-themed cards coexist on one grid with no `<style>` tag, no class,
- * and no project-prefixed token names (#57). A caller of the OKLCH engine, not part of it,
+ * and no slug-prefixed token names (#57). A caller of the OKLCH engine, not part of it,
  * so it lives in `src/lib/` rather than inside the `@garden/oklch` package.
  *
  * Why the FULL palette, not a lone accent: the featured-home grid is the engine's live contrast
  * stress-test. A card's SURFACE and TEXT are BOTH engine-derived, so the ratio between them
  * *is* the solver's output — exercised and visible at every theme value across the grid. A
- * card is a project's own scoped slot (not chrome), so a fully-themed card is exactly "theme
- * scoped to the slot"; the editorial-chrome inversion (#58) governs the shell and page frame,
- * not the themed slots.
+ * card is an entry's own scoped slot (not chrome), so a fully-themed card is exactly "theme
+ * scoped to the slot"; the page frame around the grid wears the page's own seed theme (#166),
+ * not the cards'.
  *
  * Total and defensive: delegates to `buildTokenSet`, which on bad/missing/hostile input
  * returns the safe fallback palette — so this NEVER throws and always returns a valid swatch
@@ -62,7 +62,7 @@ function lightDark(pair: SchemePair): string {
 }
 
 /**
- * Derive a card's inline semantic-token overrides from a project's `themeColor`.
+ * Derive a card's inline semantic-token overrides from an entry's `theme.color`.
  * Defensive and total: any bad/missing/hostile input flows through the engine's fallback
  * palette and still yields a valid swatch object; never throws.
  *

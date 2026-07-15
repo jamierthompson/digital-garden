@@ -142,7 +142,7 @@ function entry(over: EntryOverrides = {}): Record<string, unknown> {
     title: "An Entry",
     slug: "an-entry",
     kind: "note",
-    blurb: "A blurb.",
+    summary: "A summary.",
     theme: {
       color: null,
       colorDark: null,
@@ -171,7 +171,7 @@ beforeEach(() => {
 });
 
 describe("EntryPage — capability-gated detail (kind no longer gates; capability fields do)", () => {
-  it("renders a bare note prose-only: title + blurb, NO themed slot, NO scope threaded", async () => {
+  it("renders a bare note prose-only: title + summary, NO themed slot, NO scope threaded", async () => {
     fetchMock.mockResolvedValueOnce(
       entry({ kind: "note", componentKey: null, ...withBody }),
     );
@@ -181,7 +181,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("A blurb.")).toBeInTheDocument();
+    expect(screen.getByText("A summary.")).toBeInTheDocument();
     // No interactive slot, and the body was handed no scope (unthemed slots).
     expect(container.querySelector("[data-entry]")).toBeNull();
     expect(screen.queryByTestId("slot")).not.toBeInTheDocument();
@@ -196,7 +196,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
   it("threads the theme scope to the body for a themed note (its slots get their own scope)", async () => {
     // Theming is a CAPABILITY: a `theme.color` on ANY kind but `now` builds the seed and hands
     // it to the body, so each `slot` mounts in its own scoped container — exactly as a
-    // project's do. No componentKey here → no after-prose `Slot`, prose + scoped slots.
+    // demo's do. No componentKey here → no after-prose `Slot`, prose + scoped slots.
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "note",
@@ -299,7 +299,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(resolveComponentKeyMock).not.toHaveBeenCalled();
   });
 
-  it.each(["project", "note", "essay"])(
+  it.each(["demo", "note", "essay"])(
     "notFound()s a %s whose declared componentKey does not resolve (drift, for ANY resolving kind)",
     async (kind) => {
       resolveComponentKeyMock.mockReturnValue(
@@ -314,12 +314,16 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     },
   );
 
-  it("renders a project with NO componentKey prose-only (a sketch, no module yet)", async () => {
-    // A `stage: sketch` project carries a theme.color but no coded module, so its detail page
-    // renders title + blurb like a note/essay — it must NOT 404, and it mounts no after-prose
+  it("renders a demo with NO componentKey prose-only (a sketch, no module yet)", async () => {
+    // A `stage: sketch` demo carries a theme.color but no coded module, so its detail page
+    // renders title + summary like a note/essay — it must NOT 404, and it mounts no after-prose
     // slot (nothing resolves the key it doesn't have).
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "project", componentKey: null, blurb: "A sketch blurb." }),
+      entry({
+        kind: "demo",
+        componentKey: null,
+        summary: "A sketch summary.",
+      }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
@@ -327,7 +331,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("A sketch blurb.")).toBeInTheDocument();
+    expect(screen.getByText("A sketch summary.")).toBeInTheDocument();
     expect(screen.queryByTestId("slot")).not.toBeInTheDocument();
     expect(container.querySelector("[data-entry]")).toBeNull();
     // The key resolver must never even be consulted when there is no componentKey.
@@ -338,6 +342,33 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     fetchMock.mockResolvedValueOnce(null);
     await expect(EntryPage({ params: params("ghost") })).rejects.toThrow(
       "NEXT_NOT_FOUND",
+    );
+  });
+
+  it("renders a doc with an UNRECOGNIZED kind value with its resolvable slot — never a crash or 404", async () => {
+    // The page's gates key on `kind === "now"` and capability fields only, so a doc whose
+    // kind the code doesn't know (drifted data, a kind authored before its code ships) must
+    // render exactly like a demo: themed, module mounted, template intact.
+    resolveComponentKeyMock.mockReturnValue(foundSlot());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "bookmark",
+        componentKey: "color-engine",
+        slug: "color-engine",
+        theme: { color: "oklch(0.7 0.15 70)", bodyFont: "newsreader" },
+        themeSeed: "oklch(0.7 0.15 70)",
+        ...withBody,
+      }),
+    );
+    render(await EntryPage({ params: params("color-engine") }));
+    expect(
+      screen.getByRole("heading", { level: 1, name: /an entry/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("slot")).toBeInTheDocument();
+    // The scope still threads (theme.color is a capability, not a kind) — slots stay themed.
+    expect(screen.getByTestId("essay-body")).toHaveAttribute(
+      "data-has-scope",
+      "yes",
     );
   });
 
@@ -370,16 +401,16 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(screen.queryByText("leftover")).not.toBeInTheDocument();
   });
 
-  // ── ONE editorial template for every entry. A `project` with a resolved `Slot` gets
+  // ── ONE editorial template for every entry. A `demo` with a resolved `Slot` gets
   // no special "canvas" template (the canvas concept was dropped, #211): the module's slot
   // mounts after the prose, alongside the article, its heading, and RelatedEntries — the same
-  // composition every kind gets. `kind === "project"` becomes multi-page separately (#149).
+  // composition every kind gets. `kind === "demo"` becomes multi-page separately (#149).
 
-  it("renders a project with a resolvable Slot on the editorial template — article, h1, the Slot, and RelatedEntries all present", async () => {
+  it("renders a demo with a resolvable Slot on the editorial template — article, h1, the Slot, and RelatedEntries all present", async () => {
     resolveComponentKeyMock.mockReturnValue(foundSlot());
     fetchMock.mockResolvedValueOnce(
       entry({
-        kind: "project",
+        kind: "demo",
         componentKey: "color-engine",
         theme: { color: "oklch(0.7 0.15 70)", bodyFont: "newsreader" },
         slug: "color-engine",
@@ -410,7 +441,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
       child.querySelector('[data-testid="slot"]'),
     );
     expect(wrapper).toBeDefined();
-    // RelatedEntries renders for the project — the canvas template no longer suppresses it.
+    // RelatedEntries renders for the demo — the canvas template no longer suppresses it.
     expect(
       screen.getByRole("region", { name: /related/i }),
     ).toBeInTheDocument();
@@ -425,7 +456,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     resolveComponentKeyMock.mockReturnValue(foundProvider());
     fetchMock.mockResolvedValueOnce(
       entry({
-        kind: "project",
+        kind: "demo",
         componentKey: "color-engine",
         theme: { color: "oklch(0.7 0.15 70)", bodyFont: "newsreader" },
         slug: "color-engine",
@@ -669,7 +700,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     resolveComponentKeyMock.mockReturnValue(foundProvider());
     fetchMock.mockResolvedValueOnce(
       entry({
-        kind: "project",
+        kind: "demo",
         componentKey: "color-engine",
         slug: "color-engine",
         body: null,

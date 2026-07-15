@@ -23,8 +23,8 @@
     text-decoration: none;
   }
 
-  /* Register 2 — the editorial serif blurb (the multi-font mix, via the `Text` body role). */
-  .blurb {
+  /* Register 2 — the editorial serif summary (the multi-font mix, via the `Text` body role). */
+  .summary {
     color: var(--accent-foreground);
   }
 

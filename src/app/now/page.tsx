@@ -84,7 +84,7 @@ export default async function NowPage() {
                       key={update._id}
                       title={update.title ?? "Untitled update"}
                       slug={update.slug}
-                      blurb={update.blurb}
+                      summary={update.summary}
                       date={
                         date && update.iterated
                           ? { dateTime: update.iterated, label: date }

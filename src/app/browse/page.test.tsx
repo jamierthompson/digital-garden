@@ -28,7 +28,7 @@ interface IndexRow {
   kind: string | null;
   stage: string | null;
   iterated: string | null;
-  blurb: string | null;
+  summary: string | null;
   linkCount: number;
 }
 
@@ -41,7 +41,7 @@ function row(over: Partial<IndexRow> & { _id: string }): IndexRow {
     kind: "essay",
     stage: "sketch",
     iterated: null,
-    blurb: null,
+    summary: null,
     linkCount: 0,
     ...over,
   };
@@ -77,7 +77,7 @@ describe("IndexPage (/browse) — the folded Index", () => {
 
   it("groups entries under their kind headings in display order, omitting empty kinds", async () => {
     // Fetch order is deliberately NOT the display order — display order is fixed by
-    // KIND_SECTIONS (project → essay → now), never the query's kind-asc.
+    // KIND_SECTIONS (demo → essay → now), never the query's kind-asc.
     fetchMock.mockResolvedValueOnce([
       row({
         _id: "n1",
@@ -86,25 +86,25 @@ describe("IndexPage (/browse) — the folded Index", () => {
         slug: "now-1",
         stage: null,
       }),
-      row({ _id: "p1", kind: "project", title: "A project", slug: "proj-1" }),
+      row({ _id: "p1", kind: "demo", title: "A demo", slug: "proj-1" }),
       row({ _id: "e1", kind: "essay", title: "An essay", slug: "essay-1" }),
     ]);
     render(await IndexPage());
     const headings = screen
       .getAllByRole("heading", { level: 2 })
       .map((h) => h.textContent);
-    expect(headings).toEqual(["Projects", "Essays", "Now"]);
+    expect(headings).toEqual(["Demos", "Essays", "Now"]);
   });
 
   it("excludes notes from the Index — no Notes heading, note rows are not rendered", async () => {
     fetchMock.mockResolvedValueOnce([
-      row({ _id: "p1", kind: "project", title: "A project", slug: "proj-1" }),
+      row({ _id: "p1", kind: "demo", title: "A demo", slug: "proj-1" }),
       row({ _id: "no1", kind: "note", title: "A hidden note", slug: "note-1" }),
     ]);
     render(await IndexPage());
-    // The project still lists…
+    // The demo still lists…
     expect(
-      screen.getByRole("heading", { level: 2, name: "Projects" }),
+      screen.getByRole("heading", { level: 2, name: "Demos" }),
     ).toBeInTheDocument();
     // …but notes get no section and no row, even when present in the data.
     expect(screen.queryByRole("heading", { name: "Notes" })).toBeNull();
@@ -115,14 +115,14 @@ describe("IndexPage (/browse) — the folded Index", () => {
     fetchMock.mockResolvedValueOnce([
       row({
         _id: "p1",
-        kind: "project",
-        title: "Only a project",
+        kind: "demo",
+        title: "Only a demo",
         slug: "proj-1",
       }),
     ]);
     render(await IndexPage());
     expect(
-      screen.getByRole("heading", { level: 2, name: "Projects" }),
+      screen.getByRole("heading", { level: 2, name: "Demos" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Essays" })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Now" })).toBeNull();
@@ -157,7 +157,7 @@ describe("IndexPage (/browse) — the folded Index", () => {
     fetchMock.mockResolvedValueOnce([
       row({
         _id: "a",
-        kind: "project",
+        kind: "demo",
         title: "Shipped thing",
         slug: "a",
         stage: "shipped",
@@ -201,25 +201,76 @@ describe("IndexPage (/browse) — the folded Index", () => {
 
   it("gives every group section an accessible name wired to its heading id", async () => {
     fetchMock.mockResolvedValueOnce([
-      row({ _id: "p", kind: "project", title: "P", slug: "p" }),
+      row({ _id: "p", kind: "demo", title: "P", slug: "p" }),
     ]);
     render(await IndexPage());
-    // The <section aria-labelledby="section-project"> is named by its <h2 id="section-project">.
-    const section = screen.getByRole("region", { name: "Projects" });
+    // The <section aria-labelledby="section-demo"> is named by its <h2 id="section-demo">.
+    const section = screen.getByRole("region", { name: "Demos" });
     expect(section).toBeInTheDocument();
     expect(
-      within(section).getByRole("heading", { level: 2, name: "Projects" }),
+      within(section).getByRole("heading", { level: 2, name: "Demos" }),
     ).toBeInTheDocument();
   });
 
   it("renders exactly one h1 (the page title) above the group headings", async () => {
     fetchMock.mockResolvedValueOnce([
-      row({ _id: "p", kind: "project", title: "P", slug: "p" }),
+      row({ _id: "p", kind: "demo", title: "P", slug: "p" }),
     ]);
     render(await IndexPage());
     const h1s = screen.getAllByRole("heading", { level: 1 });
     expect(h1s).toHaveLength(1);
     expect(h1s[0]).toHaveTextContent("Index");
+  });
+});
+
+/**
+ * QA (#312): KIND_SECTIONS is an allowlist. A row whose kind the code doesn't recognize
+ * (drifted data, a kind authored before its code ships) matches no section — these pin that
+ * the drop is deliberate and total, never a crash or a stray unlabeled row.
+ */
+describe("IndexPage (/browse) — rows with an unrecognized kind", () => {
+  it("silently drops an unrecognized-kind row — no section, no stray row", async () => {
+    fetchMock.mockResolvedValueOnce([
+      row({ _id: "d1", kind: "demo", title: "A listed demo", slug: "d-1" }),
+      row({
+        _id: "b1",
+        kind: "bookmark",
+        title: "An unclassified row",
+        slug: "b-1",
+      }),
+    ]);
+    render(await IndexPage());
+    // The known kind lists under its section…
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Demos" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("A listed demo")).toBeInTheDocument();
+    // …the unrecognized row gets no section and no row — dropped, not crashed on.
+    expect(screen.queryByRole("heading", { name: "Bookmarks" })).toBeNull();
+    expect(screen.queryByText("An unclassified row")).toBeNull();
+  });
+
+  it("shows the empty state — the WHOLE index goes dark — when no row carries a known kind", async () => {
+    // An allowlist can drop everything: if no row's kind is recognized, the reader sees
+    // "Nothing published yet." on a garden that IS published. Pinned so the total-drop
+    // shape is a known, tested state rather than an accident.
+    fetchMock.mockResolvedValueOnce([
+      row({
+        _id: "b1",
+        kind: "bookmark",
+        title: "Unclassified one",
+        slug: "b-1",
+      }),
+      row({
+        _id: "b2",
+        kind: "bookmark",
+        title: "Unclassified two",
+        slug: "b-2",
+      }),
+    ]);
+    render(await IndexPage());
+    expect(screen.getByText(/nothing published yet/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 2 })).toBeNull();
   });
 });
 
@@ -234,7 +285,7 @@ describe("IndexPage (/browse) — theme mount wiring", () => {
     // would still compile. Pin that IndexPage asks for `browse`, and that the (synchronous)
     // PageTheme actually mounts its parse-time init script in the rendered shell.
     fetchMock.mockResolvedValueOnce([
-      row({ _id: "p", kind: "project", title: "P", slug: "p" }),
+      row({ _id: "p", kind: "demo", title: "P", slug: "p" }),
     ]);
     const html = renderToStaticMarkup(await IndexPage());
     expect(seedSpy).toHaveBeenCalledWith("browse");

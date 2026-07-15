@@ -10,15 +10,15 @@ import {
 /**
  * The entry-feed (RSS) query syndicates every published entry — any `kind`, `now` included —
  * and its contract is "refuse to over-fetch": it must pull only the `<item>` fields the feed
- * renders (id / title / slug / blurb) and NOTHING else. Asserting the query string keeps the
+ * renders (id / title / slug / summary) and NOTHING else. Asserting the query string keeps the
  * data-layer guard honest without rendering an async RSC (untestable in jsdom — testing.md).
  */
 describe("ENTRY_FEED_QUERY", () => {
-  it("filters to every published entry, not just projects", () => {
+  it("filters to every published entry, not just demos", () => {
     expect(ENTRY_FEED_QUERY).toContain('_type == "entry"');
     expect(ENTRY_FEED_QUERY).toContain("defined(slug.current)");
-    // A garden feed syndicates every kind — it must NOT narrow to project-kind entries.
-    expect(ENTRY_FEED_QUERY).not.toContain('kind == "project"');
+    // A garden feed syndicates every kind — it must NOT narrow to demo-kind entries.
+    expect(ENTRY_FEED_QUERY).not.toContain('kind == "demo"');
   });
 
   it("orders newest first by the authored iterated date, falling back to _createdAt", () => {
@@ -27,8 +27,8 @@ describe("ENTRY_FEED_QUERY", () => {
     );
   });
 
-  it("projects exactly the item fields — id / title / slug / blurb / published", () => {
-    for (const field of ["_id", "title", "blurb"]) {
+  it("projects exactly the item fields — id / title / slug / summary / published", () => {
+    for (const field of ["_id", "title", "summary"]) {
       expect(ENTRY_FEED_QUERY).toContain(field);
     }
     expect(ENTRY_FEED_QUERY).toContain('"slug": slug.current');
@@ -78,12 +78,12 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
   const FEED_DATASET = [
     {
       _type: "entry",
-      _id: "old-project",
+      _id: "old-demo",
       _createdAt: "2026-01-01T00:00:00Z",
-      kind: "project",
-      title: "Old project",
-      slug: { current: "old-project" },
-      blurb: "Projects still syndicate.",
+      kind: "demo",
+      title: "Old demo",
+      slug: { current: "old-demo" },
+      summary: "Demos still syndicate.",
       stage: "shipped",
       featuredRank: 1,
       theme: { color: "#4f46e5", bodyFont: "inter" },
@@ -96,7 +96,7 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
       kind: "now",
       title: "A now update",
       slug: { current: "a-now-update" },
-      blurb: "Now syndicates too.",
+      summary: "Now syndicates too.",
     },
     {
       _type: "entry",
@@ -106,7 +106,7 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
       kind: "note",
       title: "Iterated note",
       slug: { current: "iterated-note" },
-      blurb: null,
+      summary: null,
     },
     {
       _type: "entry",
@@ -114,7 +114,7 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
       _createdAt: "2026-04-01T00:00:00Z",
       kind: "essay",
       title: "No slug yet",
-      blurb: "Must not syndicate.",
+      summary: "Must not syndicate.",
     },
     { _type: "siteSettings", _id: "settings", title: "Not an entry" },
   ];
@@ -128,7 +128,7 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
   it("returns every published kind — now included — and drops the slugless doc", async () => {
     const rows = await runFeed();
     expect(rows.map((r) => r._id)).toEqual(
-      expect.arrayContaining(["old-project", "fresh-now", "iterated-note"]),
+      expect.arrayContaining(["old-demo", "fresh-now", "iterated-note"]),
     );
     expect(rows).toHaveLength(3);
   });
@@ -136,22 +136,22 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
   it("orders newest-first by iterated, falling back to _createdAt", async () => {
     const rows = await runFeed();
     // iterated-note's authored 2026-03-01 outranks fresh-now's created 2026-02-01,
-    // which outranks old-project's created 2026-01-01.
+    // which outranks old-demo's created 2026-01-01.
     expect(rows.map((r) => r._id)).toEqual([
       "iterated-note",
       "fresh-now",
-      "old-project",
+      "old-demo",
     ]);
   });
 
-  it("projects EXACTLY { _id, title, slug, blurb, published } per row — the closed over-fetch guard", async () => {
+  it("projects EXACTLY { _id, title, slug, summary, published } per row — the closed over-fetch guard", async () => {
     const rows = await runFeed();
     for (const row of rows) {
       expect(Object.keys(row).sort()).toEqual([
         "_id",
-        "blurb",
         "published",
         "slug",
+        "summary",
         "title",
       ]);
     }
@@ -182,6 +182,39 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
 });
 
 /**
+ * QA (#312): the feed against a doc that has drifted from the schema — no `summary`, a stray
+ * unknown field. The query must degrade cleanly: still syndicate, project `summary: null`
+ * (never surface another field's value under the new name), and the closed projection must
+ * not leak the stray key.
+ */
+describe("ENTRY_FEED_QUERY — drifted doc shape (no summary, stray field)", () => {
+  const DRIFTED_DATASET = [
+    {
+      _type: "entry",
+      _id: "drifted",
+      _createdAt: "2026-01-01T00:00:00Z",
+      kind: "demo",
+      title: "Drifted entry",
+      slug: { current: "drifted" },
+      draftNotes: "Stray field, not in the schema.",
+    },
+  ];
+
+  it("still syndicates a summary-less doc with `summary: null` — and never leaks the stray field", async () => {
+    const rows = (await (
+      await evaluate(parse(ENTRY_FEED_QUERY), { dataset: DRIFTED_DATASET })
+    ).get()) as Array<Record<string, unknown>>;
+    expect(rows).toHaveLength(1);
+    const row = rows[0];
+    // The item renders with an empty description (route null-guards), not a crash…
+    expect(row.summary).toBeNull();
+    // …and the stray field neither leaks under its own key nor masquerades as the summary.
+    expect(Object.keys(row)).not.toContain("draftNotes");
+    expect(Object.values(row)).not.toContain("Stray field, not in the schema.");
+  });
+});
+
+/**
  * The detail query (`/[slug]`) is the inverse of the index: it DOES pull the body
  * and the entry's `theme` object, resolves backlinks both directions (`related[]->` outgoing +
  * incoming `references()`), fetches by `$slug` parameter (never interpolation), and `[0]`s
@@ -200,7 +233,7 @@ describe("ENTRY_DETAIL_QUERY", () => {
       "componentKey",
       "kind",
       "stage",
-      "blurb",
+      "summary",
       "title",
       "related",
       "backlinks",
@@ -315,8 +348,16 @@ describe("ENTRY_DETAIL_QUERY themeSeed — executed GROQ semantics (#173 QA)", (
 
   it("a themed entry themes from its OWN theme.color, never the /now seed", async () => {
     expect(
-      await resolveThemeSeed({ kind: "project", theme: { color: "#4f46e5" } }),
+      await resolveThemeSeed({ kind: "demo", theme: { color: "#4f46e5" } }),
     ).toBe("#4f46e5");
+  });
+
+  it("a doc with an UNRECOGNIZED kind still themes from its own theme.color", async () => {
+    // The select() is gated only on `kind == "now"`, so any other value — known or drifted —
+    // falls through to `theme.color` and the detail page keeps its theme.
+    expect(
+      await resolveThemeSeed({ kind: "bookmark", theme: { color: "#123456" } }),
+    ).toBe("#123456");
   });
 
   it("falls through to null when no siteSettings singleton is published (defensive)", async () => {
@@ -372,7 +413,7 @@ describe("ENTRY_DETAIL_QUERY theme projection — executed GROQ semantics (#226 
     const entry = {
       _type: "entry",
       _id: "e-under-test",
-      kind: "project",
+      kind: "demo",
       stage: "shipped",
       title: "Under test",
       slug: { current: "under-test" },

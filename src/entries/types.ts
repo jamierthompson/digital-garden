@@ -3,13 +3,13 @@
 // A `componentKey` resolves (via `src/lib/resolvers/components.ts`, a LITERAL dynamic
 // import per key) to an entry module; this is the contract that module's default
 // export satisfies, so a thin `/[slug]` route can mount it without knowing the
-// concrete project. A module composes with the editorial page in one (or both) of two
+// concrete module. A module composes with the editorial page in one (or both) of two
 // ways — `Slot` (one interactive slot mounted after the prose) and/or `Provider`
 // (a client frame around the article so `slot` blocks interleaved through the prose
 // can share state) — and must export at least one; the union below makes an
 // empty module a compile error.
 //
-// Lives in shared `src/entries/` (not inside any one project) because it is the
+// Lives in shared `src/entries/` (not inside any one module) because it is the
 // cross-module contract the resolver and route key off — named where it will live now,
 // instantiated on a genuine second use (deferral discipline).
 
@@ -22,7 +22,7 @@ export interface SlotProps {
    * value stable and unique per rendered instance, for ids that must not collide. Cache
    * Components can keep several `/[slug]` routes mounted at once (React's `<Activity>`,
    * `docs/architecture.md`), including two different slugs pointed at the SAME shared
-   * `Slot` (a module reused by several projects) — a hardcoded id, or even `useId()`
+   * `Slot` (a module reused by several entries) — a hardcoded id, or even `useId()`
    * (empirically: it also collides across Activity-preserved routes), breaks there. `slug`
    * doesn't.
    */

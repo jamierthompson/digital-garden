@@ -109,7 +109,7 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 
 The architecture already buys most of this — don't undo it:
 
-- **Keep the featured / Index queries essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `blurb` /
+- **Keep the featured / Index queries essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `summary` /
   `theme.color` (the card's plate seed), never the essay. Small index payload protects **LCP**. Don't
   add the essay to the card query "for convenience."
 - **Keep the slot's `EntryScope` in the prerendered shell** (PPR via Cache Components — see the repo & hosting section of [`./architecture.md`](./architecture.md)):
@@ -146,7 +146,7 @@ before touching the roster.
 - **Per-entry faces are applied, not preloaded:** each resolved face's `.variable` on the
   `[data-entry]` scope, where it re-binds its role token (`--font-heading` / `--font-body` /
   `--font-mono`); they tolerate `font-display: swap` below the fold.
-- **If an above-the-fold project face genuinely must preload,** emit
+- **If an above-the-fold entry face genuinely must preload,** emit
   `<link rel="preload" as="font" crossorigin>` **manually** — `crossorigin` is required
   for fonts even same-origin.
 - Prefer **variable fonts** (one file, many weights).

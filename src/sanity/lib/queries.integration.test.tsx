@@ -37,7 +37,7 @@ const DATASET = [
   {
     _id: "hub-id",
     _type: "entry",
-    kind: "project",
+    kind: "demo",
     title: "Hub",
     slug: { _type: "slug", current: "hub" },
     related: [
@@ -150,7 +150,7 @@ describe("ENTRY_DETAIL_QUERY backlink graph (executed via groq-js)", () => {
 
   it("resolves a `now` entry's OWN incoming backlinks (the graph is symmetric across kinds)", async () => {
     // Fetch the now-update's detail: hub references it, so hub is its backlink — proving the
-    // detail query resolves backlinks for a `now`-kind doc, not just a project.
+    // detail query resolves backlinks for a `now`-kind doc, not just a demo.
     const now = await fetchDetail("now-update");
     expect(now.kind).toBe("now");
     const backlinkIds = (now.backlinks ?? []).map(

@@ -21,7 +21,7 @@ import { stegaFilter, studioUrl } from "./stega";
  * `use cache` and pass `perspective`/`stega` in, which is why we set `strict: true`.
  *
  * THE TAG CONTRACT (the Revalidate slice depends on this): every content read MUST carry
- * the coarse cache tags `sanity` and `sanity:<_type>` (e.g. `sanity:project`). Our
+ * the coarse cache tags `sanity` and `sanity:<_type>` (e.g. `sanity:entry`). Our
  * wrapper derives these from the query as `tags`; `defineLive` appends them to its
  * `cacheTag(...)` (alongside its own per-document syncTags). The publish webhook calls
  * `revalidateTag("sanity")` / `revalidateTag("sanity:<type>")` to flush published changes

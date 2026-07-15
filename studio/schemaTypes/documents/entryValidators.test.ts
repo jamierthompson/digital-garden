@@ -10,9 +10,9 @@ const ctx = (document: unknown): Ctx => ({document}) as unknown as Ctx
 
 // The three themed kinds that MUST carry a theme.color under #166 (every page derives its theme
 // from an authored seed). `now` is the sole exempt kind (chrome + prose — it inherits /now).
-const THEMED_KINDS = ['note', 'essay', 'project'] as const
+const THEMED_KINDS = ['note', 'essay', 'demo'] as const
 
-describe('requiredForThemedKind — theme.color: required for note/essay/project (#166)', () => {
+describe('requiredForThemedKind — theme.color: required for note/essay/demo (#166)', () => {
   it('is required for every themed kind with no value (any stage)', () => {
     for (const kind of THEMED_KINDS) {
       expect(requiredForThemedKind(undefined, ctx({kind, stage: 'sketch'}))).toMatch(/Required/)
@@ -21,7 +21,7 @@ describe('requiredForThemedKind — theme.color: required for note/essay/project
   })
 
   it('passes for a themed kind that has a value, sketch included', () => {
-    expect(requiredForThemedKind('#4f46e5', ctx({kind: 'project', stage: 'sketch'}))).toBe(true)
+    expect(requiredForThemedKind('#4f46e5', ctx({kind: 'demo', stage: 'sketch'}))).toBe(true)
     expect(requiredForThemedKind('oklch(0.6 0.1 200)', ctx({kind: 'essay'}))).toBe(true)
     expect(requiredForThemedKind('#abc', ctx({kind: 'note'}))).toBe(true)
   })
@@ -45,7 +45,7 @@ describe('requiredForThemedKind — theme.color: required for note/essay/project
     // Clearing a field in Studio can yield null (not just undefined); the required floor
     // must still fire, otherwise an editor can "empty" an essay's theme.color and ship it.
     expect(requiredForThemedKind(null, ctx({kind: 'essay'}))).toMatch(/Required/)
-    expect(requiredForThemedKind(null, ctx({kind: 'project', stage: 'sketch'}))).toMatch(/Required/)
+    expect(requiredForThemedKind(null, ctx({kind: 'demo', stage: 'sketch'}))).toMatch(/Required/)
   })
 
   it('is NOT required for an unknown/future kind — the floor is an explicit allowlist, not "≠ now"', () => {
@@ -53,6 +53,15 @@ describe('requiredForThemedKind — theme.color: required for note/essay/project
     // ("required unless now") would silently force a theme.color on every future kind the
     // instant it is added — this asserts we chose the conservative allowlist instead.
     expect(requiredForThemedKind(undefined, ctx({kind: 'bookmark'}))).toBe(true)
+  })
+
+  it('treats the RETIRED legacy kind `project` like any unknown kind — no color floor during the migration window (#312)', () => {
+    // Until the dataset migration runs, live docs still carry `kind: "project"`. The rename
+    // moved the allowlist to `demo`, so a legacy doc opened in Studio gets NO required floor
+    // (fail-open, same as an unknown kind) and no forbidden rule — pinned so the window's
+    // validation semantics are deliberate, not accidental.
+    expect(requiredForThemedKind(undefined, ctx({kind: 'project'}))).toBe(true)
+    expect(forbiddenForNow('#4f46e5', ctx({kind: 'project'}))).toBe(true)
   })
 
   it('is NOT required for a draft whose kind is not yet chosen (document present, no kind)', () => {
@@ -85,7 +94,7 @@ describe('forbiddenForNow — a now entry cannot set its own color (#173)', () =
   })
 
   it('never touches a non-now kind — a themed (or unknown) entry sets its own color freely', () => {
-    for (const kind of ['note', 'essay', 'project', 'bookmark']) {
+    for (const kind of ['note', 'essay', 'demo', 'bookmark']) {
       expect(forbiddenForNow('#4f46e5', ctx({kind}))).toBe(true)
     }
   })

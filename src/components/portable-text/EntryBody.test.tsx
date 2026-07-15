@@ -71,7 +71,7 @@ describe("EntryBody", () => {
     expect(captured[1]?.caption).toBeUndefined();
   });
 
-  it("leaves slots unscoped for a non-project entry (no scope prop)", () => {
+  it("leaves slots unscoped when the page threads no scope prop", () => {
     captured.length = 0;
     render(<EntryBody value={BODY} />);
     for (const props of captured) {

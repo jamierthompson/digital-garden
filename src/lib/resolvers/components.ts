@@ -15,10 +15,10 @@ export type EntryLoader = () => Promise<unknown>;
 // compile error the moment a key is added to `COMPONENT_KEYS`. Each value is
 // a LITERAL dynamic import per key — never a templated `import(`…/${slug}`)`,
 // which defeats the bundler's static analysis and per-entry code-splitting.
-// This file is the resolver registry — the ONE sanctioned shared→project importer.
+// This file is the resolver registry — the ONE sanctioned shared→entry importer.
 // The `boundaries/dependencies` rule recognizes it as its own `registry`
-// element (see eslint.config.mjs), so these literal project imports are allowed while
-// the shared→project ban still holds everywhere else — no per-line disable needed.
+// element (see eslint.config.mjs), so these literal entry imports are allowed while
+// the shared→entry ban still holds everywhere else — no per-line disable needed.
 //
 // Each entry is a LITERAL `import()` per key (never templated) so the bundler can
 // code-split each entry module onto its own chunk.
@@ -34,7 +34,7 @@ const ENTRY_LOADERS = {
 const loaders: Readonly<Record<string, EntryLoader>> = ENTRY_LOADERS;
 
 /**
- * Resolve a `componentKey` to its project loader. Returns `NotFound` for an
+ * Resolve a `componentKey` to its entry loader. Returns `NotFound` for an
  * unknown key (the caller renders `not-found.tsx`).
  */
 export function resolveComponentKey(key: string): Resolution<EntryLoader> {

@@ -41,8 +41,8 @@ export default async function AboutPage() {
           <Stack gap={space(4)}>
             <Text variant="lede" color="muted-foreground">
               This is a personal portfolio and digital garden — part showcase,
-              part notebook. Each project is a self-contained island with its
-              own theme color and typeface, composed on one shared foundation.
+              part notebook. Each entry is a self-contained island with its own
+              theme color and typeface, composed on one shared foundation.
             </Text>
             <Text variant="lede" color="muted-foreground">
               The colors you see are not hand-picked per element. A single theme
@@ -52,8 +52,8 @@ export default async function AboutPage() {
               client-side theming pass.
             </Text>
             <Text variant="lede" color="muted-foreground">
-              The garden grows by accretion: projects, working notes, and the
-              links between them. Wander through{" "}
+              The garden grows by accretion: demos, working notes, and the links
+              between them. Wander through{" "}
               <span className={styles.emphasis}>Work</span>,{" "}
               <span className={styles.emphasis}>Notes</span>, and{" "}
               <span className={styles.emphasis}>Now</span>.

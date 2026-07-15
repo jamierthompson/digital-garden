@@ -17,7 +17,7 @@ import styles from "./page.module.css";
 export const metadata: Metadata = {
   title: "Home",
   description:
-    "Jamie Thompson — design engineer. A personal portfolio and digital garden, each project an independently themed island on one shared foundation.",
+    "Jamie Thompson — design engineer. A personal portfolio and digital garden, each entry an independently themed island on one shared foundation.",
 };
 
 /**

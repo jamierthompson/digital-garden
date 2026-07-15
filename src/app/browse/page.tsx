@@ -16,7 +16,7 @@ import styles from "./page.module.css";
 export const metadata: Metadata = {
   title: "Index",
   description:
-    "Every entry in the garden — projects, essays, and now-updates, browsable in one place.",
+    "Every entry in the garden — demos, essays, and now-updates, browsable in one place.",
 };
 
 // The kinds in display order, with their section labels. A named constant so the order and
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 // backlinks, just not listed here. The INDEX_QUERY still returns them (they're simply not
 // rendered), so this stays a pure presentation filter, not a data-model change.
 const KIND_SECTIONS = [
-  { kind: "project", label: "Projects" },
+  { kind: "demo", label: "Demos" },
   { kind: "essay", label: "Essays" },
   { kind: "now", label: "Now" },
 ] as const;
@@ -35,7 +35,7 @@ const KIND_SECTIONS = [
 /**
  * The `/browse` route (labelled "index" in the nav) — the browsable list of every entry, the wanderer's reading path
  * (the featured home `/` is the hurried evaluator's). Shell-owned editorial chrome: it reads
- * the global semantic tokens, with NO per-entry theme (a project's theme lives on its own
+ * the global semantic tokens, with NO per-entry theme (a demo's theme lives on its own
  * detail slot, not here). Groups entries by `kind` (notes excluded — see `KIND_SECTIONS`),
  * shows the `stage` maturity badge and a backlink hint, and links each to its flat `/[slug]`.
  */
@@ -66,7 +66,7 @@ export default async function IndexPage() {
                 color="muted-foreground"
                 className={styles.intro}
               >
-                Everything in the garden — projects, essays, and now-updates.
+                Everything in the garden — demos, essays, and now-updates.
               </Text>
             </header>
           </Stack>
@@ -97,7 +97,7 @@ export default async function IndexPage() {
                             key={entry._id}
                             title={entry.title ?? "Untitled entry"}
                             slug={entry.slug}
-                            blurb={entry.blurb}
+                            summary={entry.summary}
                             stage={entry.stage}
                             linkCount={entry.linkCount}
                           />

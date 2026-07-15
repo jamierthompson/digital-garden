@@ -47,9 +47,9 @@ describe("EntrySummary", () => {
     expect(badge).toHaveAttribute("data-stage", "budding");
   });
 
-  it("renders the blurb and the backlink hint when present", () => {
+  it("renders the summary and the backlink hint when present", () => {
     renderInList(
-      <EntrySummary title="Entry" blurb="A short summary." linkCount={3} />,
+      <EntrySummary title="Entry" summary="A short summary." linkCount={3} />,
     );
     expect(screen.getByText("A short summary.")).toBeInTheDocument();
     expect(screen.getByText("3 linked")).toBeInTheDocument();
@@ -60,14 +60,14 @@ describe("EntrySummary", () => {
       <EntrySummary
         title="Bare"
         slug={null}
-        blurb={null}
+        summary={null}
         stage={null}
         date={null}
         linkCount={0}
       />,
     );
     const item = screen.getByRole("listitem");
-    // Just the heading — no time, no badge, no blurb, no "0 linked".
+    // Just the heading — no time, no badge, no summary, no "0 linked".
     expect(item.querySelector("time")).toBeNull();
     expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
     expect(item.textContent).toBe("Bare");
@@ -91,8 +91,8 @@ describe("EntrySummary", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("hides the stage badge and blurb for empty strings, not just null", () => {
-    renderInList(<EntrySummary title="Empty" stage="" blurb="" />);
+  it("hides the stage badge and summary for empty strings, not just null", () => {
+    renderInList(<EntrySummary title="Empty" stage="" summary="" />);
     const item = screen.getByRole("listitem");
     expect(item.querySelector("[data-stage]")).toBeNull();
     expect(item.textContent).toBe("Empty");

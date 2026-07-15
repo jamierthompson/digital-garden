@@ -33,7 +33,7 @@ describe("cardSwatches — valid themeColor", () => {
     expect(Object.keys(style).sort()).toEqual([...KEYS].sort());
   });
 
-  it("uses only generic semantic names — no project-prefixed token leaks (#57)", () => {
+  it("uses only generic semantic names — no slug-prefixed token leaks (#57)", () => {
     // Every key is a bare semantic role name; none is namespaced (`--c-*`, `--theme-*`, `--<proj>-*`).
     for (const key of Object.keys(style)) {
       expect(key).toMatch(
@@ -265,7 +265,7 @@ describe("cardSwatches — total & defensive on bad themeColor", () => {
  *
  * `EntryCard` renders a solid accent PLATE: `background: var(--accent)` with
  * `color: var(--accent-foreground)` (see EntryCard.module.css). Every visible glyph on a card — title,
- * blurb, and the mono meta readout — is `--accent-foreground` painted ON the `--accent` fill. The
+ * summary, and the mono meta readout — is `--accent-foreground` painted ON the `--accent` fill. The
  * sibling stress-test above (the engine-solves-an-accessible-card-palette suite) proves
  * text/border/accent clear their floors AGAINST THE SURFACE; this suite locks the pair the
  * plate paints instead.

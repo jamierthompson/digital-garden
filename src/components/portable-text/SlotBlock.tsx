@@ -17,7 +17,7 @@ interface SlotBlockProps {
   caption?: string;
   /**
    * The host entry's font-scope seed. Present whenever a non-`now` entry themes OR mounts a
-   * module (`theme.color || componentKey`, not just a project): each slot then mounts inside its
+   * module (`theme.color || componentKey`, not just a demo): each slot then mounts inside its
    * OWN `EntryScope` container, so it wears the entry's theme fonts while the prose around it
    * keeps the editorial faces. Color is inherited from the page's `<html>` theme, so this seed
    * carries only the slug + the entry's per-role font keys (heading/body/mono). A module-only
