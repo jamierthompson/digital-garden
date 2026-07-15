@@ -676,10 +676,10 @@ describe("INDEX_QUERY — filter and linkCount edges (#314 QA)", () => {
   });
 
   it("still counts backlinks when the entry has NO `related` array — a missing field must not null-poison the sum", async () => {
-    // GROQ counts an ABSENT field as `null`, and `null + 1` is `null` — so without the
-    // query's `coalesce(related, [])` a backlinked entry that authored no outgoing link
-    // reports a null count and silently loses its hint, while its detail page still lists
-    // the backlink. The Studio writes no empty array, so this is the common shape.
+    // GROQ evaluates a traversal of an ABSENT field to `null`, and `null + [...]` is
+    // `null` — so without the query's `coalesce(..., [])` a backlinked entry that authored
+    // no outgoing link reports a null count and silently loses its hint, while its detail
+    // page still lists the backlink. The Studio writes no empty array, so this is the common shape.
     const rows = await run([
       {
         _type: "entry",
@@ -699,6 +699,186 @@ describe("INDEX_QUERY — filter and linkCount edges (#314 QA)", () => {
     ]);
     const note = rows.find((r) => r._id === "a-note");
     expect(note?.linkCount).toBe(1);
+  });
+});
+
+/**
+ * QA (#318): `linkCount` is DISTINCT neighbors, not a sum of the two directions. A sum
+ * counts a both-directions edge twice; the union also has to drop a self-reference and a
+ * dangling reference (a deleted target dereferences to `null`), or the hint promises
+ * neighbors the reader can't find. Executed, same reason as the suites above.
+ */
+describe("INDEX_QUERY linkCount — distinct neighbors (#318)", () => {
+  const ref = (id: string, key: string) => ({
+    _type: "reference",
+    _ref: id,
+    _key: key,
+  });
+
+  function entry(
+    id: string,
+    related?: Array<Record<string, unknown>>,
+  ): Record<string, unknown> {
+    return {
+      _type: "entry",
+      _id: id,
+      _createdAt: "2026-01-01T00:00:00Z",
+      kind: "note",
+      slug: { current: id },
+      ...(related ? { related } : {}),
+    };
+  }
+
+  async function linkCounts(
+    dataset: Array<Record<string, unknown>>,
+  ): Promise<Record<string, unknown>> {
+    const rows: Array<{ _id: string; linkCount: unknown }> = await (
+      await evaluate(parse(INDEX_QUERY), { dataset })
+    ).get();
+    return Object.fromEntries(rows.map((r) => [r._id, r.linkCount]));
+  }
+
+  it("counts a mutually linked pair ONCE on each side — union, not sum", async () => {
+    const counts = await linkCounts([
+      entry("a", [ref("b", "k1")]),
+      entry("b", [ref("a", "k1")]),
+    ]);
+    expect(counts).toEqual({ a: 1, b: 1 });
+  });
+
+  it("drops a self-reference — only the real neighbor counts", async () => {
+    const counts = await linkCounts([
+      entry("a", [ref("a", "k1"), ref("b", "k2")]),
+      entry("b"),
+    ]);
+    expect(counts.a).toBe(1);
+  });
+
+  it("drops a DANGLING reference — a deleted target is not a neighbor", async () => {
+    const counts = await linkCounts([entry("a", [ref("ghost", "k1")])]);
+    expect(counts.a).toBe(0);
+  });
+
+  it("collapses duplicate outgoing references to the same target", async () => {
+    const counts = await linkCounts([
+      entry("a", [ref("b", "k1"), ref("b", "k2")]),
+      entry("b"),
+    ]);
+    expect(counts.a).toBe(1);
+  });
+
+  it("counts every distinct-neighbor rule at once — self, duplicate, dangling, mutual, backlink-only, and a now backlink", async () => {
+    // The single-rule cases above can each pass while a combined shape still miscounts
+    // (the union, the self filter, and the dangling filter all operate on ONE array) — so
+    // one gnarly row exercises them together: neighbors are b (mutual), c (outgoing),
+    // d (backlink-only), now1 (now is excluded from ROWS, not from the graph) = 4.
+    const now = {
+      _type: "entry",
+      _id: "now1",
+      _createdAt: "2026-01-01T00:00:00Z",
+      kind: "now",
+      slug: { current: "now1" },
+      related: [ref("a", "k")],
+    };
+    const counts = await linkCounts([
+      entry("a", [
+        ref("a", "self"),
+        ref("b", "k1"),
+        ref("b", "k1-dup"),
+        ref("ghost", "k2"),
+        ref("c", "k3"),
+      ]),
+      entry("b", [ref("a", "back")]),
+      entry("c"),
+      entry("d", [ref("a", "k")]),
+      now,
+    ]);
+    expect(counts.a).toBe(4);
+  });
+});
+
+/**
+ * QA (#318, adversarial): the count must NEVER go null again — `null` reads as "no hint"
+ * downstream (`(linkCount ?? 0) > 0`), so a drifted doc shape that re-null-poisons the
+ * union silently erases a real neighbor hint. Every raw-API-reachable shape of `related`
+ * (the schema types it as an array of entry references, but nothing stops a raw write)
+ * must degrade to counting only what actually resolves — and the incoming arm must keep
+ * counting regardless. Executed, because each case rests on a GROQ null/traversal rule.
+ */
+describe("INDEX_QUERY linkCount — drifted `related` shapes never re-null the hint (#318 QA)", () => {
+  const ref = (id: string, key: string) => ({
+    _type: "reference",
+    _ref: id,
+    _key: key,
+  });
+
+  const doc = (
+    id: string,
+    extra: Record<string, unknown> = {},
+  ): Record<string, unknown> => ({
+    _type: "entry",
+    _id: id,
+    _createdAt: "2026-01-01T00:00:00Z",
+    kind: "note",
+    slug: { current: id },
+    ...extra,
+  });
+
+  async function countOf(
+    dataset: Array<Record<string, unknown>>,
+    id: string,
+  ): Promise<unknown> {
+    const rows: Array<{ _id: string; linkCount: unknown }> = await (
+      await evaluate(parse(INDEX_QUERY), { dataset })
+    ).get();
+    return rows.find((r) => r._id === id)?.linkCount;
+  }
+
+  it("an explicit `related: null` still counts the backlink — 1, not null", async () => {
+    const dataset = [
+      doc("a", { related: null }),
+      doc("b", { related: [ref("a", "k")] }),
+    ];
+    expect(await countOf(dataset, "a")).toBe(1);
+  });
+
+  it("a non-array `related` (raw-write drift) still counts the backlink — 1, not null", async () => {
+    const dataset = [
+      doc("a", { related: "not-an-array" }),
+      doc("b", { related: [ref("a", "k")] }),
+    ];
+    expect(await countOf(dataset, "a")).toBe(1);
+  });
+
+  it("malformed array elements — a null, a ref-less reference, a bare string — count 0, never null", async () => {
+    // None of these dereference to a doc, so none is a neighbor; the traversal must
+    // swallow them (the `defined(@)` filter), not poison the whole count.
+    expect(await countOf([doc("a", { related: [null] })], "a")).toBe(0);
+    expect(
+      await countOf(
+        [doc("a", { related: [{ _type: "reference", _key: "k" }] })],
+        "a",
+      ),
+    ).toBe(0);
+    expect(await countOf([doc("a", { related: ["b"] }), doc("b")], "a")).toBe(
+      0,
+    );
+  });
+
+  it("counts a backlink authored in a NON-`related` reference field — references() is whole-doc, matching the detail page's backlinks", async () => {
+    // The detail page's `backlinks` uses the same whole-doc `references()`, so a stray
+    // reference field on another entry appears in the Related list — the hint must agree.
+    const dataset = [doc("a"), doc("b", { inspiration: ref("a", "k") })];
+    expect(await countOf(dataset, "a")).toBe(1);
+    expect(await countOf(dataset, "b")).toBe(0);
+  });
+
+  it("never counts a reference from a NON-entry document — the incoming arm is entry-gated like the detail page's", async () => {
+    const dataset = [
+      doc("a"),
+      { _type: "siteSettings", _id: "settings", related: [ref("a", "k")] },
+    ];
+    expect(await countOf(dataset, "a")).toBe(0);
   });
 });
 

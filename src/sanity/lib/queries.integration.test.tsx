@@ -137,7 +137,7 @@ describe("ENTRY_DETAIL_QUERY backlink graph (executed via groq-js)", () => {
       .getAllByRole("link")
       .map((a) => a.getAttribute("href"))
       .sort();
-    // The three real neighbours — hub-self excluded, ghost filtered, island absent,
+    // The three real neighbors — hub-self excluded, ghost filtered, island absent,
     // spoke-mutual and now-update de-duped across the related + backlink arms. All flat.
     expect(hrefs).toEqual(["/now-update", "/spoke-incoming", "/spoke-mutual"]);
     expect(

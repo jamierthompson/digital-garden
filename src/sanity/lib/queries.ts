@@ -91,18 +91,22 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
  * drifted data (a kind authored before its code ships), which is a different job.
  *
  * Pulls every other published entry with the facets the Index reads — `kind` + `stage` (the group
- * headings + maturity badge) and a `linkCount` (outgoing `related` + incoming `references()`,
- * the backlink hint) — plus `title` / `slug` / `summary` for the row. Deliberately NOT the
+ * headings + maturity badge) and a `linkCount` (distinct neighbors across outgoing `related`
+ * and incoming `references()`, the backlink hint) — plus `title` / `slug` / `summary` for the row. Deliberately NOT the
  * `body` or the `theme` object: the Index wears the global editorial look (no per-row theme), so
  * it needs neither the rich text nor the entry's theme. Ordered by `kind`, then freshest
  * first (`iterated`, falling back to `_createdAt`) — ordering by a field is independent of
  * projecting it, and the Index renders no date, so `iterated` is sorted on but not pulled.
  * Typed as `INDEX_QUERYResult`.
  *
- * The `coalesce(related, [])` inside `linkCount` is load-bearing: GROQ counts an ABSENT field as
- * `null`, not `0`, and `null + n` is `null`. Without it, an entry that authored no `related` array
+ * `linkCount` counts DISTINCT neighbors, never a sum of the two directions: they overlap (an
+ * edge authored both ways is one neighbor), so the ids are unioned with `array::unique`, a
+ * self-reference is dropped (`@ != ^._id`), and a dangling reference — which dereferences to
+ * `null` — is filtered out (`defined(@)`) rather than counted as a neighbor the reader can't
+ * reach. The `coalesce(..., [])` is load-bearing: GROQ evaluates a traversal of an ABSENT field
+ * to `null`, and `null + [...]` is `null`. Without it, an entry that authored no `related` array
  * — the Studio writes no empty array, so this is the common shape — reports a null count and
- * silently loses its hint even while its detail page lists the backlink.
+ * silently loses its hint.
  */
 export const INDEX_QUERY = defineQuery(`
   *[_type == "entry" && defined(slug.current) && kind != "now"] | order(kind asc, coalesce(iterated, _createdAt) desc) {
@@ -112,7 +116,9 @@ export const INDEX_QUERY = defineQuery(`
     kind,
     stage,
     summary,
-    "linkCount": count(coalesce(related, [])) + count(*[_type == "entry" && references(^._id)])
+    "linkCount": count(array::unique(
+      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id
+    )[defined(@) && @ != ^._id])
   }
 `);
 
