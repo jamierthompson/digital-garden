@@ -22,7 +22,8 @@ for schema and GROQ specifics.
 1. **One `entry` document type; a `kind` field discriminates.** Notes, essays, demos, and now-updates
    are the same shape (a themed page with interactive slot(s) + prose), so they are the single `entry`
    type discriminated by a **`kind`** field (`note` · `essay` · `demo` · `now`) — NOT separate document
-   types, and NOT a discriminator-less merge (the required `kind` is what lets the Index filter by type).
+   types, and NOT a discriminator-less merge (the required `kind` is what lets the Index group by type
+   and routes each entry to its surface — `/browse` lists note/essay/demo, `/now` streams the rest).
    Flag: a second top-level document type added speculatively; a note/essay/demo/now split into
    separate document types; or a collapse to one type without a `kind` discriminator.
 

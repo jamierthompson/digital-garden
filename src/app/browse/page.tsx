@@ -32,9 +32,9 @@ const KIND_SECTIONS = [
 ] as const;
 
 /**
- * The `/browse` route (labelled "index" in the nav) — the browsable list of the garden's durable
- * entries (notes, essays, demos; the dated `now` stream is `/now`'s surface), the wanderer's reading
- * path (the featured home `/` is the hurried evaluator's). Shell-owned editorial chrome: it reads
+ * The `/browse` route (labelled "index" in the nav) — the browsable list of the garden's notes,
+ * essays, and demos (the dated `now` stream is `/now`'s surface), the wanderer's reading path
+ * (the featured home `/` is the hurried evaluator's). Shell-owned editorial chrome: it reads
  * the global semantic tokens, with NO per-entry theme (a demo's theme lives on its own
  * detail slot, not here). Groups entries by `kind` (see `KIND_SECTIONS`), shows the `stage`
  * maturity badge and a backlink hint, and links each to its flat `/[slug]`.

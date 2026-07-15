@@ -518,7 +518,7 @@ describe("SITE_SETTINGS_QUERY", () => {
 
 /**
  * The Index query feeds ONE surface (`/browse`), so its filter is that surface's contract:
- * the garden's durable kinds — note, essay, demo — and never a dated `now` update, which
+ * note, essay, and demo entries — never a dated `now` update, which
  * `/now` owns via NOW_QUERY (#314). Executed with groq-js rather than string-matched, so the
  * exclusion is proven on real data instead of on the presence of a substring.
  */
