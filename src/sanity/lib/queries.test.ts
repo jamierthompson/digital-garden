@@ -1328,14 +1328,11 @@ describe("themeSeed — hostile datasets degrade, never poison (#253 QA)", () =>
 /**
  * QA (#253): the required→optional flip on `entry.theme.color` created a NEW reachable state —
  * a themed entry with no seed of its own — and #253's contract is that such an entry "wears the
- * site default". `ENTRY_DETAIL_QUERY` honours that. `FEATURED_QUERY` projects a bare
- * `theme { color }` with no default rung, and `EntryCard` feeds that straight to `cardSwatches`,
- * which is TOTAL over bad input: null collapses to the engine FALLBACK palette.
- *
- * So the same entry wears the authored default on its detail page and the engine safety net on
- * its home-page card. Today both are pink, so the divergence is invisible; the moment the site
- * default is authored to anything else — the entire point of #253 — every seedless featured card
- * silently de-syncs from its own page.
+ * site default" EVERYWHERE it paints. The featured card is the second surface that paints an
+ * entry's seed: `FEATURED_QUERY` must resolve the SAME `themeSeed` chain the detail query does,
+ * or a seedless entry wears the authored default on its page and the engine safety net on its
+ * card — invisible while the two values coincide, a silent de-sync the moment the site default
+ * is retuned. These pins hold the two surfaces equal by execution, not by review.
  */
 describe("FEATURED_QUERY — the featured card's seed vs the entry page's seed (#253 QA)", () => {
   const dataset = [
@@ -1354,7 +1351,7 @@ describe("FEATURED_QUERY — the featured card's seed vs the entry page's seed (
 
   it("a seedless featured entry's CARD resolves the same seed its detail page does", async () => {
     const featured = (await runQuery(FEATURED_QUERY, dataset)) as Array<{
-      theme: { color: string | null } | null;
+      themeSeed: unknown;
     }>;
     const detail = (await runQuery(ENTRY_DETAIL_QUERY, dataset, {
       slug: "qa-entry",
@@ -1362,29 +1359,30 @@ describe("FEATURED_QUERY — the featured card's seed vs the entry page's seed (
       themeSeed: unknown;
     };
     // The card and the page are the same entry; they must not wear different themes.
-    expect(featured[0].theme?.color ?? null).toBe(detail.themeSeed);
+    expect(featured[0].themeSeed).toBe(detail.themeSeed);
   });
 
   it("a seedless featured card does not fall back to the ENGINE palette", async () => {
     // cardSwatches is total: `null` → buildTokenSet(null) → meta.isFallback. That is the
     // safety net firing on a state the authored default is supposed to cover.
     const featured = (await runQuery(FEATURED_QUERY, dataset)) as Array<{
-      theme: { color: string | null } | null;
+      themeSeed: unknown;
     }>;
-    expect(buildTokenSet(featured[0].theme?.color).meta.isFallback).toBe(false);
+    expect(buildTokenSet(featured[0].themeSeed).meta.isFallback).toBe(false);
   });
 
   it("a featured NOW entry's card does not fall back to the ENGINE palette either", async () => {
     // A `now` may be featured (FEATURED_QUERY takes any kind) and can NEVER author a color
-    // (forbiddenForNow) — so its card has always hit the engine fallback. #253 retuned that
-    // fallback's value, changing this card's paint with no authored intent behind it.
+    // (forbiddenForNow) — so its card used to ALWAYS hit the engine fallback. The kind-gated
+    // rung resolves it onto the /now seed, matching its own detail page.
     const nowDataset = [
       qaEntry({ kind: "now", featuredRank: 1 }),
       qaSettings({ pageThemes: { now: "#7c3aed" } }),
     ];
     const featured = (await runQuery(FEATURED_QUERY, nowDataset)) as Array<{
-      theme: { color: string | null } | null;
+      themeSeed: unknown;
     }>;
-    expect(buildTokenSet(featured[0].theme?.color).meta.isFallback).toBe(false);
+    expect(buildTokenSet(featured[0].themeSeed).meta.isFallback).toBe(false);
+    expect(featured[0].themeSeed).toBe("#7c3aed");
   });
 });

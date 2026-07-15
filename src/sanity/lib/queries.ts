@@ -137,11 +137,17 @@ export const INDEX_QUERY = defineQuery(`
  * Featured query (`/`, curated front door) — entries with a `featuredRank`, any `kind`.
  *
  * The hurried evaluator's reading path: the curated subset an editor promoted (`featuredRank`
- * is set), ordered by rank (lower = earlier). Pulls the card fields — `summary` + the theme's
- * `color` — because the featured cards ARE themed: each re-binds its own engine-solved palette
- * inline via `cardSwatches`. Only `theme.color` is read (the card never wears the slot font).
+ * is set), ordered by rank (lower = earlier). Pulls the card fields — `summary` + `themeSeed` —
+ * because the featured cards ARE themed: each re-binds its own engine-solved palette
+ * inline via `cardSwatches` (the card never wears the slot font).
  * Deliberately NOT the `body`, keeping the front-door payload small for LCP. Typed as
  * `FEATURED_QUERYResult`.
+ *
+ * `themeSeed` is the SAME two-rung expression `ENTRY_DETAIL_QUERY` resolves (kind-gated inner
+ * rung over the site default, #253) — copied, so a card and the detail page it links to agree
+ * on the seed by construction, never by review. A seedless entry's card wears the authored
+ * site default like its page does (the engine fallback stays a safety net), and the card's
+ * mono readout prints this resolved seed — the value the plate is actually painted with.
  */
 export const FEATURED_QUERY = defineQuery(`
   *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {
@@ -151,7 +157,10 @@ export const FEATURED_QUERY = defineQuery(`
     kind,
     stage,
     summary,
-    theme { color }
+    "themeSeed": coalesce(
+      select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),
+      *[_type == "siteSettings"][0].theme.color
+    )
   }
 `);
 

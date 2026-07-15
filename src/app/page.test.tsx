@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Home is an async Server Component reading FEATURED_QUERY. Mock the single read path so a
 // per-test fixture can be swapped; `vi.hoisted` lets the fixture + mock fn exist before the
-// hoisted `vi.mock` factory runs. cardSwatches runs for REAL on each fixture's theme.color —
-// it's pure/defensive, so the null/garbage-theme cases exercise the true fallback path.
+// hoisted `vi.mock` factory runs. cardSwatches runs for REAL on each fixture's themeSeed —
+// it's pure/defensive, so the null/garbage-seed cases exercise the true fallback path.
 const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
   FEATURED_FIXTURE: [
     {
@@ -15,7 +15,7 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
       kind: "demo",
       stage: "sketch",
       summary: "A seed in, a solved palette out.",
-      theme: { color: "oklch(0.7 0.28 330)" },
+      themeSeed: "oklch(0.7 0.28 330)",
     },
     {
       _id: "2",
@@ -24,7 +24,7 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
       kind: "demo",
       stage: "sketch",
       summary: "Looking inside a model.",
-      theme: { color: "oklch(0.7 0.15 70)" },
+      themeSeed: "oklch(0.7 0.15 70)",
     },
   ],
   fetchMock: vi.fn(),
@@ -58,7 +58,7 @@ interface FeaturedRow {
   kind: string | null;
   stage: string | null;
   summary: string | null;
-  theme: { color: unknown } | null;
+  themeSeed: unknown;
 }
 
 function row(over: Partial<FeaturedRow> & { _id: string }): FeaturedRow {
@@ -68,7 +68,7 @@ function row(over: Partial<FeaturedRow> & { _id: string }): FeaturedRow {
     kind: "demo",
     stage: "prototype",
     summary: null,
-    theme: { color: "oklch(0.7 0.15 70)" },
+    themeSeed: "oklch(0.7 0.15 70)",
     ...over,
   };
 }
@@ -137,8 +137,8 @@ describe("Home (/) — edges & boundaries", () => {
     expect(screen.queryByRole("heading", { name: /featured/i })).toBeNull();
   });
 
-  it("brands a featured entry with a NULL theme.color without throwing (fallback swatches)", async () => {
-    // featuredRank can promote ANY kind — a featured now-entry has no theme color. The card
+  it("brands a featured entry with a NULL themeSeed without throwing (fallback swatches)", async () => {
+    // A null resolved seed means NOTHING in the chain is authored. The card
     // must still render (fallback palette), never crash the whole front door.
     mockReads({
       featured: [
@@ -147,7 +147,7 @@ describe("Home (/) — edges & boundaries", () => {
           kind: "note",
           title: "Featured note",
           slug: "featured-note",
-          theme: { color: null },
+          themeSeed: null,
         }),
       ],
     });
@@ -160,14 +160,14 @@ describe("Home (/) — edges & boundaries", () => {
     expect(card!.getAttribute("style") ?? "").toContain("--surface");
   });
 
-  it("survives a hostile/garbage theme.color on a featured card", async () => {
+  it("survives a hostile/garbage themeSeed on a featured card", async () => {
     mockReads({
       featured: [
         row({
           _id: "a",
           title: "Garbage theme",
           slug: "g",
-          theme: { color: "not-a-color" },
+          themeSeed: "not-a-color",
         }),
       ],
     });
