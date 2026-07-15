@@ -36,13 +36,16 @@ for schema and GROQ specifics.
 3. **Day-1 backlinks via real references.** An `entry` carries a `related` **self-referencing** array
    (`entry` → `entry`); incoming backlinks resolve via GROQ `references()` (the edge is authored once and
    shows both ends, cross-kind). Backlinks must be real `reference` fields — never strings or slugs.
-   `theme.color` is **required for every themed kind** (note · essay · demo, any stage); the three
-   font faces (`theme.headingFont` / `bodyFont` / `monoFont`) **and** `componentKey` are
+   `theme.color` is **optional for every kind** (#253 — an entry that authors none wears the site
+   default `siteSettings.theme`, the ONE required seed on the site); the three
+   font faces (`theme.headingFont` / `bodyFont` / `monoFont`) **and** `componentKey` are likewise
    **unconditionally optional**, theming/mounting purely on **presence** for every kind but `now`
-   (#226 deleted the `requiredForNonSketchProject` validator — a prose-only shipped demo is valid).
+   (#226 deleted the `requiredForNonSketchProject` validator — a prose-only shipped demo is valid —
+   and #253 deleted `requiredForThemedKind`).
    A `now` carries no theme of its own (it inherits the `/now` page seed). Flag a backlink stored as a
-   string/slug, a one-directional link that can't resolve the incoming side, `theme.color` made
-   optional for a themed kind, or a face / `componentKey` made required for any kind (breaks prose-only
+   string/slug, a one-directional link that can't resolve the incoming side, the site default
+   `siteSettings.theme.color` made optional, a per-entry `theme.color` required floor re-added, or a
+   face / `componentKey` made required for any kind (breaks prose-only
    and note/essay/now authoring).
 
 4. **Stega off the whole `theme` object.** `theme` (`color` / `colorDark` + the three font faces) feeds

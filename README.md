@@ -1,8 +1,9 @@
 # Digital Garden
 
 A personal portfolio and digital garden — a place to grow notes, ideas, and work
-over time. Every page is themed from an authored seed: a perceptual OKLCH
-engine derives the page's palette from its seed color and paints the whole
+over time. Every page is themed from an authored seed — its own, or the site
+default: a perceptual OKLCH
+engine derives the page's palette from the resolved seed color and paints the whole
 page, chrome included, while the editorial type — Space Grotesk headings,
 Source Serif 4 body, Geist Mono — stays constant from page to page. An entry's
 theme fonts theme only its own bounded interactive slot. Content and theme
@@ -87,7 +88,8 @@ chain on every PR.
 CSS custom properties + CSS Modules, organized with `@layer`. Tokens are two tiers —
 **foundation** primitives → **semantic** role tokens (the public contract components read) —
 plus a per-page **theme**: the `@garden/oklch` engine re-binds the semantic values from the
-page's authored seed, baked flash-free into the initial HTML. The seed color paints the entire
+page's authored seed (its own, or the site default when none is authored), baked flash-free
+into the initial HTML. The seed color paints the entire
 page (nav and footer included); an entry's theme fonts theme only its own bounded slot, with no
 slug-prefixed token names (the `[data-entry]` scope provides the isolation).
 
