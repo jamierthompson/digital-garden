@@ -183,4 +183,40 @@ describe("NOW_QUERY linkCount ↔ RelatedEntries parity (#321)", () => {
     expect(hint).toBe(0);
     expect(listed).toBe(0);
   });
+
+  it("holds parity on MALFORMED related elements — null, bare string, ref-less reference — beside a real neighbor", async () => {
+    // QA (#321): the oracle's ragged graph covers bad EDGES; these are bad ELEMENTS. Both
+    // layers see the same nulls from `related[]->` — the query must drop them via `defined(@)`
+    // and the component via its `!entry` guard, or the hint counts a row nobody can see.
+    const dataset = [
+      doc("n1", {
+        kind: "now",
+        related: [
+          null,
+          "bare-string",
+          { _type: "reference", _key: "refless" },
+          ref("b", "ok"),
+        ],
+      }),
+      doc("b"),
+    ];
+    const hint = await nowLinkCount(dataset, "n1");
+    const listed = await renderedRelatedCount(dataset, "n1");
+    expect(listed).toBe(1);
+    expect(hint).toBe(listed);
+  });
+
+  it("holds parity when a now-update's neighbor has NO slug — the hint counts what renders as plain text", async () => {
+    // QA (#321): a slugless neighbor is invisible to /now's own listing (`defined(slug.current)`)
+    // but the detail page still RENDERS it, unlinked. The hint promises the Related list, not the
+    // reachable subset — so it must count it.
+    const dataset = [
+      doc("n1", { kind: "now" }),
+      { ...doc("b"), slug: undefined, related: [ref("n1", "k")] },
+    ];
+    const hint = await nowLinkCount(dataset, "n1");
+    const listed = await renderedRelatedCount(dataset, "n1");
+    expect(listed).toBe(1);
+    expect(hint).toBe(listed);
+  });
 });
