@@ -9,8 +9,8 @@ import {forbiddenForNow, requiredForThemedKind} from './entryValidators'
  * Notes, essays, and demos are the same shape (a themed page with one or more
  * interactive slots plus prose), so they are ONE document type discriminated by a
  * `kind` field — not three types, and not a merge that erased the distinction. `kind`
- * drives the Index's type filter and the on-card label; the kinds differ by scope and
- * emphasis, not fields. See docs/architecture.md → Content model.
+ * groups the Index into its labelled sections and routes an entry to its surface; the kinds
+ * differ by scope and emphasis, not fields. See docs/architecture.md → Content model.
  *
  * An entry carries ONE first-class `theme` object — `{ color, colorDark, headingFont, bodyFont,
  * monoFont }` — a named, reference-by-key thing consumed by code, NOT prose (see the stega

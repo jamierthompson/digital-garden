@@ -81,28 +81,38 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
 `);
 
 /**
- * Index query (`/browse`, every kind) — the browsable list that folds the old `/work` and
- * `/notes` indexes into one editorial surface. (The Index route excludes `note`-kind entries
- * from its rendered sections; this query still returns them — the exclusion is a presentation
- * filter in the page, not a query change.)
+ * Index query (`/browse`) — the browsable list that folds the old `/work` and `/notes` indexes
+ * into one editorial surface.
  *
- * Pulls every published entry with the facets the Index reads — `kind` + `stage` (the group
+ * Excludes `now` at the QUERY, not in the page: the dated stream is `/now`'s surface, served by
+ * `NOW_QUERY`, and this query's only reader is `/browse`. Filtering here keeps the query's
+ * contract identical to the surface it feeds and stops the Index fetching rows it would only
+ * throw away. The page's own kind allowlist still stands behind it — that guards against
+ * drifted data (a kind authored before its code ships), which is a different job.
+ *
+ * Pulls every other published entry with the facets the Index reads — `kind` + `stage` (the group
  * headings + maturity badge) and a `linkCount` (outgoing `related` + incoming `references()`,
  * the backlink hint) — plus `title` / `slug` / `summary` for the row. Deliberately NOT the
  * `body` or the `theme` object: the Index wears the global editorial look (no per-row theme), so
  * it needs neither the rich text nor the entry's theme. Ordered by `kind`, then freshest
- * first (`iterated`, falling back to `_createdAt`). Typed as `INDEX_QUERYResult`.
+ * first (`iterated`, falling back to `_createdAt`) — ordering by a field is independent of
+ * projecting it, and the Index renders no date, so `iterated` is sorted on but not pulled.
+ * Typed as `INDEX_QUERYResult`.
+ *
+ * The `coalesce(related, [])` inside `linkCount` is load-bearing: GROQ counts an ABSENT field as
+ * `null`, not `0`, and `null + n` is `null`. Without it, an entry that authored no `related` array
+ * — the Studio writes no empty array, so this is the common shape — reports a null count and
+ * silently loses its hint even while its detail page lists the backlink.
  */
 export const INDEX_QUERY = defineQuery(`
-  *[_type == "entry" && defined(slug.current)] | order(kind asc, coalesce(iterated, _createdAt) desc) {
+  *[_type == "entry" && defined(slug.current) && kind != "now"] | order(kind asc, coalesce(iterated, _createdAt) desc) {
     _id,
     title,
     "slug": slug.current,
     kind,
     stage,
-    iterated,
     summary,
-    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])
+    "linkCount": count(coalesce(related, [])) + count(*[_type == "entry" && references(^._id)])
   }
 `);
 
@@ -134,8 +144,8 @@ export const FEATURED_QUERY = defineQuery(`
  * A reverse-chronological stream of `now` updates (à la nownownow.com), newest first by the
  * authored `iterated` date (falling back to `_createdAt`). Pulls `title` / `slug` / `summary`
  * for the stream entry and `iterated` for the date stamp — NOT the `body` (each update links
- * to its own flat `/[slug]` for the full text). Now-updates also fold into the Index's "Now"
- * section via `INDEX_QUERY`. Typed as `NOW_QUERYResult`.
+ * to its own flat `/[slug]` for the full text). `/now` is the only surface that lists these:
+ * `INDEX_QUERY` filters `now` out. Typed as `NOW_QUERYResult`.
  */
 export const NOW_QUERY = defineQuery(`
   *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {

@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import {
   ENTRY_DETAIL_QUERY,
   ENTRY_FEED_QUERY,
+  INDEX_QUERY,
+  NOW_QUERY,
   SITE_SETTINGS_QUERY,
 } from "./queries";
 
@@ -511,5 +513,258 @@ describe("SITE_SETTINGS_QUERY", () => {
         new RegExp(`pageThemes\\s*\\{[^}]*\\b${page}\\b`),
       );
     }
+  });
+});
+
+/**
+ * The Index query feeds ONE surface (`/browse`), so its filter is that surface's contract:
+ * note, essay, and demo entries — never a dated `now` update, which
+ * `/now` owns via NOW_QUERY (#314). Executed with groq-js rather than string-matched, so the
+ * exclusion is proven on real data instead of on the presence of a substring.
+ */
+describe("INDEX_QUERY — the kinds the Index lists (#314)", () => {
+  const INDEX_DATASET = [
+    {
+      _type: "entry",
+      _id: "a-note",
+      _createdAt: "2026-01-01T00:00:00Z",
+      kind: "note",
+      title: "A note",
+      slug: { current: "a-note" },
+      stage: "sketch",
+    },
+    {
+      _type: "entry",
+      _id: "an-essay",
+      _createdAt: "2026-01-02T00:00:00Z",
+      kind: "essay",
+      title: "An essay",
+      slug: { current: "an-essay" },
+      stage: "shipped",
+    },
+    {
+      _type: "entry",
+      _id: "a-demo",
+      _createdAt: "2026-01-03T00:00:00Z",
+      kind: "demo",
+      title: "A demo",
+      slug: { current: "a-demo" },
+      stage: "prototype",
+    },
+    {
+      _type: "entry",
+      _id: "a-now",
+      _createdAt: "2026-01-04T00:00:00Z",
+      kind: "now",
+      title: "A now update",
+      slug: { current: "a-now" },
+    },
+    {
+      _type: "entry",
+      _id: "slugless-note",
+      _createdAt: "2026-01-05T00:00:00Z",
+      kind: "note",
+      title: "No slug yet",
+    },
+  ];
+
+  async function runIndex(): Promise<Array<Record<string, unknown>>> {
+    return (
+      await evaluate(parse(INDEX_QUERY), { dataset: INDEX_DATASET })
+    ).get();
+  }
+
+  it("returns notes, essays, and demos — and drops the now-update", async () => {
+    const rows = await runIndex();
+    expect(rows.map((r) => r._id).sort()).toEqual([
+      "a-demo",
+      "a-note",
+      "an-essay",
+    ]);
+  });
+
+  it("never returns a now-update, so /browse cannot list one even by accident", async () => {
+    const rows = await runIndex();
+    expect(rows.some((r) => r.kind === "now")).toBe(false);
+  });
+
+  it("still drops a slugless (unpublished) row alongside the kind filter", async () => {
+    // The `now` exclusion is ANDed onto the existing slug guard — adding one must not
+    // shadow the other.
+    const rows = await runIndex();
+    expect(rows.map((r) => r._id)).not.toContain("slugless-note");
+  });
+});
+
+/**
+ * QA (#314): the edges the exclusion filter itself creates — proven executed, because each
+ * rests on a GROQ null/ordering rule that a string assertion cannot see.
+ */
+describe("INDEX_QUERY — filter and linkCount edges (#314 QA)", () => {
+  async function run(
+    dataset: Array<Record<string, unknown>>,
+  ): Promise<Array<Record<string, unknown>>> {
+    return (await evaluate(parse(INDEX_QUERY), { dataset })).get();
+  }
+
+  it('returns a KINDLESS doc — GROQ `null != "now"` is true — leaving the page allowlist to drop it', async () => {
+    // A doc with no `kind` (drifted data, a raw API write) passes `kind != "now"`, so it
+    // reaches `/browse` with `kind: null`. The page's KIND_SECTIONS allowlist is the layer
+    // that owns dropping it — a rewrite to a positive filter (`kind in [...]`) would silently
+    // move that responsibility into the query, so the split is pinned here.
+    const rows = await run([
+      {
+        _type: "entry",
+        _id: "kindless",
+        _createdAt: "2026-01-01T00:00:00Z",
+        title: "Kindless",
+        slug: { current: "kindless" },
+      },
+    ]);
+    expect(rows.map((r) => r._id)).toEqual(["kindless"]);
+    expect(rows[0].kind).toBeNull();
+  });
+
+  it("orders freshest first WITHIN a kind — authored `iterated` beats `_createdAt`", async () => {
+    const rows = await run([
+      {
+        _type: "entry",
+        _id: "older-but-iterated",
+        _createdAt: "2026-01-01T00:00:00Z",
+        iterated: "2026-06-01",
+        kind: "essay",
+        slug: { current: "a" },
+      },
+      {
+        _type: "entry",
+        _id: "newer-created",
+        _createdAt: "2026-03-01T00:00:00Z",
+        kind: "essay",
+        slug: { current: "b" },
+      },
+    ]);
+    expect(rows.map((r) => r._id)).toEqual([
+      "older-but-iterated",
+      "newer-created",
+    ]);
+  });
+
+  it("counts a backlink FROM a now entry — `now` is excluded from the rows, not from the graph", async () => {
+    // The reader can still click through: the note's detail page lists the now entry among
+    // its backlinks, and the now entry renders at its flat /[slug]. Excluding `now` from the
+    // Index rows must not shrink the hint below what is actually reachable.
+    const rows = await run([
+      {
+        _type: "entry",
+        _id: "a-note",
+        _createdAt: "2026-01-01T00:00:00Z",
+        kind: "note",
+        slug: { current: "a-note" },
+        related: [],
+      },
+      {
+        _type: "entry",
+        _id: "a-now",
+        _createdAt: "2026-01-02T00:00:00Z",
+        kind: "now",
+        slug: { current: "a-now" },
+        related: [{ _type: "reference", _ref: "a-note", _key: "k1" }],
+      },
+    ]);
+    expect(rows.map((r) => r._id)).toEqual(["a-note"]);
+    expect(rows[0].linkCount).toBe(1);
+  });
+
+  it("still counts backlinks when the entry has NO `related` array — a missing field must not null-poison the sum", async () => {
+    // GROQ counts an ABSENT field as `null`, and `null + 1` is `null` — so without the
+    // query's `coalesce(related, [])` a backlinked entry that authored no outgoing link
+    // reports a null count and silently loses its hint, while its detail page still lists
+    // the backlink. The Studio writes no empty array, so this is the common shape.
+    const rows = await run([
+      {
+        _type: "entry",
+        _id: "a-note",
+        _createdAt: "2026-01-01T00:00:00Z",
+        kind: "note",
+        slug: { current: "a-note" },
+      },
+      {
+        _type: "entry",
+        _id: "an-essay",
+        _createdAt: "2026-01-02T00:00:00Z",
+        kind: "essay",
+        slug: { current: "an-essay" },
+        related: [{ _type: "reference", _ref: "a-note", _key: "k1" }],
+      },
+    ]);
+    const note = rows.find((r) => r._id === "a-note");
+    expect(note?.linkCount).toBe(1);
+  });
+});
+
+/**
+ * QA (#314): NOW_QUERY is the other half of the acceptance contract — `/now` displays
+ * `kind == "now"` and nothing else — and had no coverage at all. Executed, same reason
+ * as the Index suite.
+ */
+describe("NOW_QUERY — the /now stream lists only now-updates (#314 QA)", () => {
+  const NOW_DATASET = [
+    {
+      _type: "entry",
+      _id: "older-now-iterated",
+      _createdAt: "2026-01-01T00:00:00Z",
+      iterated: "2026-06-01",
+      kind: "now",
+      title: "Older but iterated",
+      slug: { current: "n1" },
+    },
+    {
+      _type: "entry",
+      _id: "newer-now",
+      _createdAt: "2026-03-01T00:00:00Z",
+      kind: "now",
+      title: "Newer created",
+      slug: { current: "n2" },
+    },
+    {
+      _type: "entry",
+      _id: "slugless-now",
+      _createdAt: "2026-05-01T00:00:00Z",
+      kind: "now",
+      title: "No slug yet",
+    },
+    {
+      _type: "entry",
+      _id: "a-note",
+      _createdAt: "2026-04-01T00:00:00Z",
+      kind: "note",
+      title: "A note",
+      slug: { current: "a-note" },
+      stage: "sketch",
+    },
+    {
+      _type: "entry",
+      _id: "kindless",
+      _createdAt: "2026-04-01T00:00:00Z",
+      title: "Kindless",
+      slug: { current: "kindless" },
+    },
+  ];
+
+  async function runNow(): Promise<Array<Record<string, unknown>>> {
+    return (await evaluate(parse(NOW_QUERY), { dataset: NOW_DATASET })).get();
+  }
+
+  it("returns ONLY published now-updates — other kinds and kindless docs never leak in", async () => {
+    const rows = await runNow();
+    expect(rows.map((r) => r._id).sort()).toEqual([
+      "newer-now",
+      "older-now-iterated",
+    ]);
+  });
+
+  it("streams newest first by authored `iterated`, falling back to `_createdAt`", async () => {
+    const rows = await runNow();
+    expect(rows.map((r) => r._id)).toEqual(["older-now-iterated", "newer-now"]);
   });
 });

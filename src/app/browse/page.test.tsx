@@ -27,7 +27,6 @@ interface IndexRow {
   slug: string | null;
   kind: string | null;
   stage: string | null;
-  iterated: string | null;
   summary: string | null;
   linkCount: number;
 }
@@ -36,11 +35,10 @@ function row(over: Partial<IndexRow> & { _id: string }): IndexRow {
   return {
     title: "A row",
     slug: "a-row",
-    // Default to an INDEXED kind (essay). Notes are excluded from the Index surface, so a
-    // note-kind row would render nothing — a misleading default for the generic-behaviour tests.
+    // Default to an INDEXED kind (essay) — a row whose kind matches no section renders
+    // nothing, a misleading default for the generic-behaviour tests.
     kind: "essay",
     stage: "sketch",
-    iterated: null,
     summary: null,
     linkCount: 0,
     ...over,
@@ -56,36 +54,11 @@ describe("IndexPage (/browse) — the folded Index", () => {
     expect(screen.queryByRole("heading", { level: 2 })).not.toBeInTheDocument();
   });
 
-  it("does not leave a bare header when every entry is an excluded kind (only notes)", async () => {
-    // BOUNDARY / DEFECT PROBE: the empty-state guard checks `entries.length === 0`, but the
-    // note-exclusion is a *presentation* filter applied AFTER that check. So a dataset of only
-    // notes is non-empty (guard skipped) yet renders ZERO sections — the user sees the "Index"
-    // header and intro followed by nothing: no rows, no "nothing here" fallback. The rendered
-    // set being empty is the invariant that should drive the empty state, not the fetched set.
-    fetchMock.mockResolvedValueOnce([
-      row({ _id: "no1", kind: "note", title: "A note", slug: "note-1" }),
-      row({ _id: "no2", kind: "note", title: "Another note", slug: "note-2" }),
-    ]);
-    render(await IndexPage());
-    // No kind section renders…
-    expect(screen.queryByRole("heading", { level: 2 })).toBeNull();
-    // …so the user must not be stranded on a contentless page: an empty-state message
-    // (or some rendered content) has to appear. This currently FAILS — the page renders a
-    // bare header with neither sections nor the fallback.
-    expect(screen.getByText(/nothing published yet/i)).toBeInTheDocument();
-  });
-
   it("groups entries under their kind headings in display order, omitting empty kinds", async () => {
     // Fetch order is deliberately NOT the display order — display order is fixed by
-    // KIND_SECTIONS (demo → essay → now), never the query's kind-asc.
+    // KIND_SECTIONS (demo → essay → note), never the query's kind-asc.
     fetchMock.mockResolvedValueOnce([
-      row({
-        _id: "n1",
-        kind: "now",
-        title: "A now update",
-        slug: "now-1",
-        stage: null,
-      }),
+      row({ _id: "no1", kind: "note", title: "A note", slug: "note-1" }),
       row({ _id: "p1", kind: "demo", title: "A demo", slug: "proj-1" }),
       row({ _id: "e1", kind: "essay", title: "An essay", slug: "essay-1" }),
     ]);
@@ -93,22 +66,42 @@ describe("IndexPage (/browse) — the folded Index", () => {
     const headings = screen
       .getAllByRole("heading", { level: 2 })
       .map((h) => h.textContent);
-    expect(headings).toEqual(["Demos", "Essays", "Now"]);
+    expect(headings).toEqual(["Demos", "Essays", "Notes"]);
   });
 
-  it("excludes notes from the Index — no Notes heading, note rows are not rendered", async () => {
+  it("lists a note under its own Notes section (#314)", async () => {
+    fetchMock.mockResolvedValueOnce([
+      row({ _id: "no1", kind: "note", title: "A listed note", slug: "note-1" }),
+    ]);
+    render(await IndexPage());
+    const section = screen.getByRole("region", { name: "Notes" });
+    expect(
+      within(section).getByRole("link", { name: /a listed note/i }),
+    ).toHaveAttribute("href", "/note-1");
+  });
+
+  it("never lists a now-update — the dated stream is /now's surface (#314)", async () => {
+    // INDEX_QUERY filters `kind == "now"` out, so the page should never see one. This pins the
+    // page's own allowlist as the second line of defense: a `now` row that reaches it anyway
+    // (a drifted fetch, a raw API path) gets no section and no row.
     fetchMock.mockResolvedValueOnce([
       row({ _id: "p1", kind: "demo", title: "A demo", slug: "proj-1" }),
-      row({ _id: "no1", kind: "note", title: "A hidden note", slug: "note-1" }),
+      row({
+        _id: "n1",
+        kind: "now",
+        title: "A now update",
+        slug: "now-1",
+        stage: null,
+      }),
     ]);
     render(await IndexPage());
     // The demo still lists…
     expect(
       screen.getByRole("heading", { level: 2, name: "Demos" }),
     ).toBeInTheDocument();
-    // …but notes get no section and no row, even when present in the data.
-    expect(screen.queryByRole("heading", { name: "Notes" })).toBeNull();
-    expect(screen.queryByText(/a hidden note/i)).toBeNull();
+    // …but the now-update gets no section and no row.
+    expect(screen.queryByRole("heading", { name: "Now" })).toBeNull();
+    expect(screen.queryByText(/a now update/i)).toBeNull();
   });
 
   it("omits a kind section entirely when it has no entries", async () => {
@@ -125,7 +118,7 @@ describe("IndexPage (/browse) — the folded Index", () => {
       screen.getByRole("heading", { level: 2, name: "Demos" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Essays" })).toBeNull();
-    expect(screen.queryByRole("heading", { name: "Now" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Notes" })).toBeNull();
   });
 
   it("links each row with a slug and renders a slugless row as plain text", async () => {
@@ -164,15 +157,15 @@ describe("IndexPage (/browse) — the folded Index", () => {
       }),
       row({
         _id: "b",
-        kind: "now",
-        title: "Now thing",
+        kind: "note",
+        title: "Stageless thing",
         slug: "b",
         stage: null,
       }),
     ]);
     render(await IndexPage());
     expect(screen.getByText("shipped")).toBeInTheDocument();
-    // The now row (null stage) shows no badge text.
+    // The stageless row shows no badge text at all — not an empty or default one.
     expect(screen.queryByText("sketch")).toBeNull();
   });
 
@@ -248,6 +241,27 @@ describe("IndexPage (/browse) — rows with an unrecognized kind", () => {
     // …the unrecognized row gets no section and no row — dropped, not crashed on.
     expect(screen.queryByRole("heading", { name: "Bookmarks" })).toBeNull();
     expect(screen.queryByText("An unclassified row")).toBeNull();
+  });
+
+  it('drops a NULL-kind row — the query\'s `kind != "now"` filter passes a kindless doc through', async () => {
+    // Not hypothetical: GROQ `null != "now"` is true (pinned executed in queries.test.ts),
+    // so a kindless doc reaches this page as `kind: null`. The allowlist must drop it
+    // without crashing or stranding a stray row.
+    fetchMock.mockResolvedValueOnce([
+      row({ _id: "d1", kind: "demo", title: "A listed demo", slug: "d-1" }),
+      row({
+        _id: "k1",
+        kind: null,
+        title: "A kindless row",
+        slug: "k-1",
+        stage: null,
+      }),
+    ]);
+    render(await IndexPage());
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Demos" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("A kindless row")).toBeNull();
   });
 
   it("shows the empty state — the WHOLE index goes dark — when no row carries a known kind", async () => {
