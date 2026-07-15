@@ -149,9 +149,19 @@ export const FEATURED_QUERY = defineQuery(`
  *
  * A reverse-chronological stream of `now` updates (à la nownownow.com), newest first by the
  * authored `iterated` date (falling back to `_createdAt`). Pulls `title` / `slug` / `summary`
- * for the stream entry and `iterated` for the date stamp — NOT the `body` (each update links
- * to its own flat `/[slug]` for the full text). `/now` is the only surface that lists these:
- * `INDEX_QUERY` filters `now` out. Typed as `NOW_QUERYResult`.
+ * for the stream entry, `iterated` for the date stamp, and `linkCount` (the backlink hint) —
+ * NOT the `body` (each update links to its own flat `/[slug]` for the full text). `/now` is
+ * the only surface that lists these: `INDEX_QUERY` filters `now` out. Typed as
+ * `NOW_QUERYResult`.
+ *
+ * `linkCount` counts DISTINCT neighbors, never a sum of the two directions: they overlap (an
+ * edge authored both ways is one neighbor), so the ids are unioned with `array::unique`, a
+ * self-reference is dropped (`@ != ^._id`), and a dangling reference — which dereferences to
+ * `null` — is filtered out (`defined(@)`) rather than counted as a neighbor the reader can't
+ * reach. The `coalesce(..., [])` is load-bearing: GROQ evaluates a traversal of an ABSENT field
+ * to `null`, and `null + [...]` is `null`. Without it, an entry that authored no `related` array
+ * — the Studio writes no empty array, so this is the common shape — reports a null count and
+ * silently loses its hint.
  */
 export const NOW_QUERY = defineQuery(`
   *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {
@@ -159,7 +169,10 @@ export const NOW_QUERY = defineQuery(`
     title,
     "slug": slug.current,
     iterated,
-    summary
+    summary,
+    "linkCount": count(array::unique(
+      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id
+    )[defined(@) && @ != ^._id])
   }
 `);
 

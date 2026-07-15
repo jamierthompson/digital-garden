@@ -85,6 +85,7 @@ export default async function NowPage() {
                       title={update.title ?? "Untitled update"}
                       slug={update.slug}
                       summary={update.summary}
+                      linkCount={update.linkCount}
                       date={
                         date && update.iterated
                           ? { dateTime: update.iterated, label: date }

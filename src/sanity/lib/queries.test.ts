@@ -948,3 +948,176 @@ describe("NOW_QUERY — the /now stream lists only now-updates (#314 QA)", () =>
     expect(rows.map((r) => r._id)).toEqual(["older-now-iterated", "newer-now"]);
   });
 });
+
+/**
+ * #321: `/now` rows carry the SAME hardened distinct-neighbor `linkCount` the Index
+ * projects — a union of both directions (`array::unique`), minus a self-reference
+ * (`@ != ^._id`) and a dangling reference (`defined(@)`), with the load-bearing
+ * `coalesce(related[]->_id, [])` guard: GROQ evaluates a traversal of an ABSENT field to
+ * `null`, and `null + [...]` is `null` (the #317 null-poison), so without it a now-update
+ * that authored no `related` array reports a null count and silently loses its hint.
+ * Executed with groq-js, because every case rests on a GROQ null/traversal rule.
+ */
+describe("NOW_QUERY linkCount — distinct neighbors, never null-poisoned (#321)", () => {
+  const ref = (id: string, key: string) => ({
+    _type: "reference",
+    _ref: id,
+    _key: key,
+  });
+
+  const doc = (
+    id: string,
+    kind: string,
+    extra: Record<string, unknown> = {},
+  ): Record<string, unknown> => ({
+    _type: "entry",
+    _id: id,
+    _createdAt: "2026-01-01T00:00:00Z",
+    kind,
+    slug: { current: id },
+    ...extra,
+  });
+
+  async function countOf(
+    dataset: Array<Record<string, unknown>>,
+    id: string,
+  ): Promise<unknown> {
+    const rows: Array<{ _id: string; linkCount: unknown }> = await (
+      await evaluate(parse(NOW_QUERY), { dataset })
+    ).get();
+    return rows.find((r) => r._id === id)?.linkCount;
+  }
+
+  it("an ABSENT `related` still counts an incoming backlink — 1, not null", async () => {
+    // The common Studio shape: no `related` array was ever authored. This is the
+    // null-poison pin — drop the coalesce and this count goes null, not 0 or 1.
+    const dataset = [
+      doc("n1", "now"),
+      doc("a", "note", { related: [ref("n1", "k")] }),
+    ];
+    expect(await countOf(dataset, "n1")).toBe(1);
+  });
+
+  it("counts a mutual edge ONCE — union, not sum", async () => {
+    const dataset = [
+      doc("n1", "now", { related: [ref("a", "k")] }),
+      doc("a", "note", { related: [ref("n1", "k")] }),
+    ];
+    expect(await countOf(dataset, "n1")).toBe(1);
+  });
+
+  it("applies every distinct-neighbor rule at once — self, duplicate, dangling, mutual, backlink-only", async () => {
+    // Neighbors of n1: a (mutual), b (outgoing), c (backlink-only) = 3. The self-ref,
+    // the duplicate, and the dangling ghost must all wash out of the ONE unioned array.
+    const dataset = [
+      doc("n1", "now", {
+        related: [
+          ref("n1", "self"),
+          ref("a", "k1"),
+          ref("a", "k1-dup"),
+          ref("ghost", "k2"),
+          ref("b", "k3"),
+        ],
+      }),
+      doc("a", "note", { related: [ref("n1", "back")] }),
+      doc("b", "note"),
+      doc("c", "note", { related: [ref("n1", "k")] }),
+    ];
+    expect(await countOf(dataset, "n1")).toBe(3);
+  });
+
+  it("a now-update with NO edges at all reports 0, not null — the lone-update baseline", async () => {
+    // QA (#321): the suite's null-poison pin always had an incoming backlink to save it, so
+    // `count()` was never asked about the empty union. This is the shape of the FIRST now-update
+    // ever published (no related authored, nobody links it): `coalesce(null, []) + []`. A number
+    // is what the TypeGen'd `linkCount: number` promises, and what EntrySummary's
+    // `(linkCount ?? 0) > 0` gate assumes it can compare.
+    expect(await countOf([doc("n1", "now")], "n1")).toBe(0);
+  });
+
+  it("malformed `related` ELEMENTS — null, a bare string, a ref-less reference — count 0, never null", async () => {
+    // QA (#321): the drifted-shapes test covers a bad `related` CONTAINER (null / non-array);
+    // a bad element inside a well-formed array is the other half. Each dereferences to null,
+    // so `defined(@)` must drop it — matching the detail page, where `related[]->` yields the
+    // same nulls and RelatedEntries skips them.
+    expect(await countOf([doc("n1", "now", { related: [null] })], "n1")).toBe(
+      0,
+    );
+    expect(
+      await countOf([doc("n1", "now", { related: ["bare-string"] })], "n1"),
+    ).toBe(0);
+    expect(
+      await countOf(
+        [doc("n1", "now", { related: [{ _type: "reference", _key: "k" }] })],
+        "n1",
+      ),
+    ).toBe(0);
+  });
+
+  it("counts a backlink authored in a NON-`related` reference field — references() is whole-doc, like the detail page's backlinks", async () => {
+    // QA (#321): pinned on INDEX_QUERY but not on this second copy of the expression. A stray
+    // reference field on another entry DOES surface in the detail page's Related list, so the
+    // hint has to agree or the two surfaces disagree.
+    const dataset = [
+      doc("n1", "now"),
+      doc("a", "note", { inspiration: ref("n1", "k") }),
+    ];
+    expect(await countOf(dataset, "n1")).toBe(1);
+  });
+
+  it("never counts a reference from a NON-entry document — the incoming arm stays entry-gated", async () => {
+    // QA (#321): the `_type == "entry"` guard on the backlink arm, pinned on the NOW copy.
+    // The detail page's backlinks are entry-gated too; drop it here and the hint over-promises.
+    const dataset = [
+      doc("n1", "now"),
+      { _type: "siteSettings", _id: "settings", related: [ref("n1", "k")] },
+    ];
+    expect(await countOf(dataset, "n1")).toBe(0);
+  });
+
+  it("projects the hint WITHOUT over-fetching — the row's key set gains linkCount and nothing else", async () => {
+    // QA (#321): `/now` deliberately omits `body` (each update links to its own page). Pin the
+    // exact projected shape so a future edit to this projection can't quietly pull the whole
+    // document — the row is a stream summary, not a detail payload.
+    const rows: Array<Record<string, unknown>> = await (
+      await evaluate(parse(NOW_QUERY), {
+        dataset: [
+          doc("n1", "now", {
+            body: [{ _type: "block", _key: "b" }],
+            theme: { color: "oklch(0.7 0.1 200)" },
+            componentKey: "some-module",
+          }),
+        ],
+      })
+    ).get();
+    expect(Object.keys(rows[0]).sort()).toEqual([
+      "_id",
+      "iterated",
+      "linkCount",
+      "slug",
+      "summary",
+      "title",
+    ]);
+  });
+
+  it("drifted `related` shapes — explicit null, non-array — never re-null the hint", async () => {
+    expect(
+      await countOf(
+        [
+          doc("n1", "now", { related: null }),
+          doc("a", "note", { related: [ref("n1", "k")] }),
+        ],
+        "n1",
+      ),
+    ).toBe(1);
+    expect(
+      await countOf(
+        [
+          doc("n1", "now", { related: "not-an-array" }),
+          doc("a", "note", { related: [ref("n1", "k")] }),
+        ],
+        "n1",
+      ),
+    ).toBe(1);
+  });
+});

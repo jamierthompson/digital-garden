@@ -3,7 +3,54 @@ import { evaluate, parse } from "groq-js";
 import { describe, expect, it } from "vitest";
 
 import RelatedEntries from "@/components/entry/RelatedEntries";
-import { ENTRY_DETAIL_QUERY, INDEX_QUERY } from "@/sanity/lib/queries";
+import {
+  ENTRY_DETAIL_QUERY,
+  INDEX_QUERY,
+  NOW_QUERY,
+} from "@/sanity/lib/queries";
+
+const ref = (id: string, key: string) => ({
+  _type: "reference",
+  _ref: id,
+  _key: key,
+});
+
+const doc = (
+  id: string,
+  extra: Record<string, unknown> = {},
+): Record<string, unknown> => ({
+  _type: "entry",
+  _id: id,
+  _createdAt: "2026-01-01T00:00:00Z",
+  kind: "note",
+  title: `Entry ${id}`,
+  slug: { current: id },
+  ...extra,
+});
+
+async function renderedRelatedCount(
+  dataset: Array<Record<string, unknown>>,
+  slug: string,
+): Promise<number> {
+  const detail = (await (
+    await evaluate(parse(ENTRY_DETAIL_QUERY), {
+      dataset,
+      params: { slug },
+    })
+  ).get()) as {
+    _id: string;
+    related: Parameters<typeof RelatedEntries>[0]["related"];
+    backlinks: Parameters<typeof RelatedEntries>[0]["backlinks"];
+  };
+  const { container } = render(
+    <RelatedEntries
+      currentId={detail._id}
+      related={detail.related}
+      backlinks={detail.backlinks}
+    />,
+  );
+  return within(container).queryAllByRole("listitem").length;
+}
 
 /**
  * QA (#318, cross-layer oracle): the Index's `linkCount` PROMISES the entry page's Related
@@ -14,25 +61,6 @@ import { ENTRY_DETAIL_QUERY, INDEX_QUERY } from "@/sanity/lib/queries";
  * and the component's Set-based de-dupe fails here even if each layer's own suite stays green.
  */
 describe("INDEX_QUERY linkCount ↔ RelatedEntries parity (#318 QA)", () => {
-  const ref = (id: string, key: string) => ({
-    _type: "reference",
-    _ref: id,
-    _key: key,
-  });
-
-  const doc = (
-    id: string,
-    extra: Record<string, unknown> = {},
-  ): Record<string, unknown> => ({
-    _type: "entry",
-    _id: id,
-    _createdAt: "2026-01-01T00:00:00Z",
-    kind: "note",
-    title: `Entry ${id}`,
-    slug: { current: id },
-    ...extra,
-  });
-
   async function indexLinkCount(
     dataset: Array<Record<string, unknown>>,
     id: string,
@@ -41,30 +69,6 @@ describe("INDEX_QUERY linkCount ↔ RelatedEntries parity (#318 QA)", () => {
       await evaluate(parse(INDEX_QUERY), { dataset })
     ).get();
     return rows.find((r) => r._id === id)?.linkCount;
-  }
-
-  async function renderedRelatedCount(
-    dataset: Array<Record<string, unknown>>,
-    slug: string,
-  ): Promise<number> {
-    const detail = (await (
-      await evaluate(parse(ENTRY_DETAIL_QUERY), {
-        dataset,
-        params: { slug },
-      })
-    ).get()) as {
-      _id: string;
-      related: Parameters<typeof RelatedEntries>[0]["related"];
-      backlinks: Parameters<typeof RelatedEntries>[0]["backlinks"];
-    };
-    const { container } = render(
-      <RelatedEntries
-        currentId={detail._id}
-        related={detail.related}
-        backlinks={detail.backlinks}
-      />,
-    );
-    return within(container).queryAllByRole("listitem").length;
   }
 
   it("a ragged graph — self, duplicate, dangling, mutual, backlink-only, now backlink — yields the SAME count on both surfaces", async () => {
@@ -128,5 +132,91 @@ describe("INDEX_QUERY linkCount ↔ RelatedEntries parity (#318 QA)", () => {
     const listed = await renderedRelatedCount(dataset, "a");
     expect(hint).toBe(0);
     expect(listed).toBe(0);
+  });
+});
+
+/**
+ * #321 extends the same promise to `/now`: a now row's "N linked" hint must equal the
+ * Related list on the now-update's own detail page. Same oracle shape — both real queries
+ * executed against ONE dataset, the real `RelatedEntries` rendered with the detail result —
+ * so the two copies of the distinct-neighbor expression can't drift apart from the
+ * component silently.
+ */
+describe("NOW_QUERY linkCount ↔ RelatedEntries parity (#321)", () => {
+  async function nowLinkCount(
+    dataset: Array<Record<string, unknown>>,
+    id: string,
+  ): Promise<unknown> {
+    const rows: Array<{ _id: string; linkCount: unknown }> = await (
+      await evaluate(parse(NOW_QUERY), { dataset })
+    ).get();
+    return rows.find((r) => r._id === id)?.linkCount;
+  }
+
+  it("a ragged graph around a now-update — self, duplicate, dangling, mutual, backlink-only, now-to-now backlink — yields the SAME count on both surfaces", async () => {
+    const dataset = [
+      doc("n1", {
+        kind: "now",
+        related: [
+          ref("n1", "self"),
+          ref("b", "k1"),
+          ref("b", "k1-dup"),
+          ref("ghost", "k2"),
+        ],
+      }),
+      doc("b", { related: [ref("n1", "back")] }),
+      doc("c", { related: [ref("n1", "k")] }),
+      doc("n2", { kind: "now", related: [ref("n1", "k")] }),
+    ];
+    const hint = await nowLinkCount(dataset, "n1");
+    const listed = await renderedRelatedCount(dataset, "n1");
+    expect(listed).toBe(3);
+    expect(hint).toBe(listed);
+  });
+
+  it("zero on both surfaces: a now-update whose only edges are a dangling ref and a self-ref shows NO hint and NO Related section", async () => {
+    const dataset = [
+      doc("n1", { kind: "now", related: [ref("ghost", "k"), ref("n1", "s")] }),
+    ];
+    const hint = await nowLinkCount(dataset, "n1");
+    const listed = await renderedRelatedCount(dataset, "n1");
+    expect(hint).toBe(0);
+    expect(listed).toBe(0);
+  });
+
+  it("holds parity on MALFORMED related elements — null, bare string, ref-less reference — beside a real neighbor", async () => {
+    // QA (#321): the oracle's ragged graph covers bad EDGES; these are bad ELEMENTS. Both
+    // layers see the same nulls from `related[]->` — the query must drop them via `defined(@)`
+    // and the component via its `!entry` guard, or the hint counts a row nobody can see.
+    const dataset = [
+      doc("n1", {
+        kind: "now",
+        related: [
+          null,
+          "bare-string",
+          { _type: "reference", _key: "refless" },
+          ref("b", "ok"),
+        ],
+      }),
+      doc("b"),
+    ];
+    const hint = await nowLinkCount(dataset, "n1");
+    const listed = await renderedRelatedCount(dataset, "n1");
+    expect(listed).toBe(1);
+    expect(hint).toBe(listed);
+  });
+
+  it("holds parity when a now-update's neighbor has NO slug — the hint counts what renders as plain text", async () => {
+    // QA (#321): a slugless neighbor is invisible to /now's own listing (`defined(slug.current)`)
+    // but the detail page still RENDERS it, unlinked. The hint promises the Related list, not the
+    // reachable subset — so it must count it.
+    const dataset = [
+      doc("n1", { kind: "now" }),
+      { ...doc("b"), slug: undefined, related: [ref("n1", "k")] },
+    ];
+    const hint = await nowLinkCount(dataset, "n1");
+    const listed = await renderedRelatedCount(dataset, "n1");
+    expect(listed).toBe(1);
+    expect(hint).toBe(listed);
   });
 });

@@ -39,6 +39,8 @@ vi.mock("@/components/theme/sitePageSeed", () => ({
   sitePageThemeSeed: seedSpy,
 }));
 
+import type { NOW_QUERY_RESULT } from "../../../sanity.types";
+
 import NowPage from "./page";
 
 // Each test starts from a clean mock (no leftover queued resolutions between suites).
@@ -46,13 +48,10 @@ beforeEach(() => {
   fetchMock.mockReset();
 });
 
-interface NowRow {
-  _id: string;
-  title: string | null;
-  slug: string | null;
-  iterated: string | null;
-  summary: string | null;
-}
+// Derived from the TypeGen'd result rather than hand-mirrored: a field added to (or dropped
+// from) NOW_QUERY breaks this fixture at typecheck instead of silently leaving the new field
+// untested — the hole that let `linkCount` ship with no page-level coverage.
+type NowRow = NOW_QUERY_RESULT[number];
 
 function row(over: Partial<NowRow> & { _id: string }): NowRow {
   return {
@@ -60,6 +59,7 @@ function row(over: Partial<NowRow> & { _id: string }): NowRow {
     slug: "an-update",
     iterated: "2026-07-01",
     summary: null,
+    linkCount: 0,
     ...over,
   };
 }
@@ -175,6 +175,60 @@ describe("NowPage — edges & boundaries", () => {
     const h1s = screen.getAllByRole("heading", { level: 1 });
     expect(h1s).toHaveLength(1);
     expect(h1s[0]).toHaveTextContent("Now");
+  });
+});
+
+/**
+ * QA (#321): the slice's ONLY production change is `linkCount={update.linkCount}` on the row —
+ * and nothing pinned it. Deleting that prop left all 176 tests green: the added suites cover
+ * NOW_QUERY's projection and the parity oracle, but neither renders the page, so the query
+ * could project the hint forever while `/now` never showed it. These tests fail if the prop is
+ * dropped, which is the whole acceptance criterion of the issue.
+ */
+describe("NowPage — the linkCount hint reaches the row (#321 QA)", () => {
+  it("renders the backlink hint on a now row whose update has neighbors", async () => {
+    fetchMock.mockResolvedValueOnce([
+      row({ _id: "a", title: "Linked update", slug: "linked", linkCount: 3 }),
+    ]);
+    render(await NowPage());
+    expect(screen.getByText("3 linked")).toBeInTheDocument();
+  });
+
+  it("threads each row's OWN count — the hint is per-update, not shared", async () => {
+    // A single mis-threaded prop (e.g. hoisted out of the map) would show one count on both.
+    fetchMock.mockResolvedValueOnce([
+      row({ _id: "a", title: "Three", slug: "three", linkCount: 3 }),
+      row({ _id: "b", title: "One", slug: "one", linkCount: 1 }),
+    ]);
+    render(await NowPage());
+    expect(screen.getByText("3 linked")).toBeInTheDocument();
+    expect(screen.getByText("1 linked")).toBeInTheDocument();
+  });
+
+  it("shows NO hint for an unlinked update — zero renders nothing, never '0 linked'", async () => {
+    fetchMock.mockResolvedValueOnce([
+      row({ _id: "a", title: "Lonely", slug: "lonely", linkCount: 0 }),
+    ]);
+    render(await NowPage());
+    expect(screen.getByRole("link", { name: /lonely/i })).toBeInTheDocument();
+    expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
+  });
+
+  it("survives a stale result shape with no linkCount at all — no hint, no crash", async () => {
+    // A cached/older payload predating the projection: `update.linkCount` is undefined. The
+    // TypeGen'd type says `number`, so only runtime tolerance protects the page here.
+    fetchMock.mockResolvedValueOnce([
+      {
+        _id: "a",
+        title: "Stale",
+        slug: "stale",
+        iterated: "2026-07-01",
+        summary: null,
+      },
+    ]);
+    render(await NowPage());
+    expect(screen.getByRole("link", { name: /stale/i })).toBeInTheDocument();
+    expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
   });
 });
 
