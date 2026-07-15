@@ -53,6 +53,7 @@ import { parseColor } from "./convert";
 import { checkContrast } from "./contrast";
 import { CONTRAST_TARGETS } from "./targets";
 import { deepFreeze } from "./freeze";
+import { FALLBACK_SEED } from "./seed";
 import {
   THEME_TOKEN_NAMES,
   RAMP_ROLES,
@@ -81,12 +82,6 @@ export interface EngineOptions {
    */
   rules?: EngineRules;
 }
-
-/**
- * Fallback theme seed for unparseable input — a calm slate-blue, in sRGB gamut,
- * chosen so every solved token comfortably clears its target. Deterministic.
- */
-const FALLBACK_SEED: OkLCH = { L: 0.55, C: 0.11, H: 264 };
 
 // Status signal colors. The hues are FIXED canonical anchors — NOT derived from the theme
 // — because a status color's job is to signal meaning at a glance, and that depends on
