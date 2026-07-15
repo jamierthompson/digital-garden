@@ -224,42 +224,49 @@ describe("IndexPage (/browse) — the folded Index", () => {
 });
 
 /**
- * QA (#312): the deploy→migration window. The kind value renamed `project` → `demo` in code,
- * but live documents keep `kind: "project"` until the dataset migration runs post-merge.
- * KIND_SECTIONS is an allowlist, so a legacy row matches no section — these pin exactly what
- * the window looks like, so the behavior is deliberate and visible, not a silent surprise.
+ * QA (#312): KIND_SECTIONS is an allowlist. A row whose kind the code doesn't recognize
+ * (drifted data, a kind authored before its code ships) matches no section — these pin that
+ * the drop is deliberate and total, never a crash or a stray unlabeled row.
  */
-describe("IndexPage (/browse) — the migration window (legacy kind: 'project', #312)", () => {
-  it("silently drops a legacy kind:'project' row — no Projects section, no stray row", async () => {
+describe("IndexPage (/browse) — rows with an unrecognized kind", () => {
+  it("silently drops an unrecognized-kind row — no section, no stray row", async () => {
     fetchMock.mockResolvedValueOnce([
-      row({ _id: "d1", kind: "demo", title: "A migrated demo", slug: "d-1" }),
+      row({ _id: "d1", kind: "demo", title: "A listed demo", slug: "d-1" }),
       row({
-        _id: "p1",
-        kind: "project",
-        title: "A legacy project",
-        slug: "p-1",
+        _id: "b1",
+        kind: "bookmark",
+        title: "An unclassified row",
+        slug: "b-1",
       }),
     ]);
     render(await IndexPage());
-    // The migrated demo lists under Demos…
+    // The known kind lists under its section…
     expect(
       screen.getByRole("heading", { level: 2, name: "Demos" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("A migrated demo")).toBeInTheDocument();
-    // …the legacy row gets no section and no row — dropped, not crashed on.
-    expect(screen.queryByRole("heading", { name: "Projects" })).toBeNull();
-    expect(screen.queryByText("A legacy project")).toBeNull();
+    expect(screen.getByText("A listed demo")).toBeInTheDocument();
+    // …the unrecognized row gets no section and no row — dropped, not crashed on.
+    expect(screen.queryByRole("heading", { name: "Bookmarks" })).toBeNull();
+    expect(screen.queryByText("An unclassified row")).toBeNull();
   });
 
-  it("shows the empty state — the WHOLE index goes dark — when every row is still legacy 'project'", async () => {
-    // This is the live production state between the deploy and the migration: every
-    // interactive entry still carries kind:"project", so nothing matches a section and the
-    // reader sees "Nothing published yet." on a garden that IS published. Acceptable only
-    // because the migration is scheduled immediately post-merge — pinned here so the window
-    // is a known, tested state rather than an accident.
+  it("shows the empty state — the WHOLE index goes dark — when no row carries a known kind", async () => {
+    // An allowlist can drop everything: if no row's kind is recognized, the reader sees
+    // "Nothing published yet." on a garden that IS published. Pinned so the total-drop
+    // shape is a known, tested state rather than an accident.
     fetchMock.mockResolvedValueOnce([
-      row({ _id: "p1", kind: "project", title: "Legacy one", slug: "p-1" }),
-      row({ _id: "p2", kind: "project", title: "Legacy two", slug: "p-2" }),
+      row({
+        _id: "b1",
+        kind: "bookmark",
+        title: "Unclassified one",
+        slug: "b-1",
+      }),
+      row({
+        _id: "b2",
+        kind: "bookmark",
+        title: "Unclassified two",
+        slug: "b-2",
+      }),
     ]);
     render(await IndexPage());
     expect(screen.getByText(/nothing published yet/i)).toBeInTheDocument();

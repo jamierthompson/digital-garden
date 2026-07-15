@@ -182,35 +182,35 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
 });
 
 /**
- * QA (#312): the deploy→migration window, executed. Until the dataset migration runs, live
- * docs still carry the OLD shape — `blurb` (not `summary`) and `kind: "project"`. The renamed
- * queries must degrade cleanly against them: still syndicate, project `summary: null` (never
- * silently surface the legacy `blurb` value under the new name), and never leak the old field.
+ * QA (#312): the feed against a doc that has drifted from the schema — no `summary`, a stray
+ * unknown field. The query must degrade cleanly: still syndicate, project `summary: null`
+ * (never surface another field's value under the new name), and the closed projection must
+ * not leak the stray key.
  */
-describe("ENTRY_FEED_QUERY — migration window (legacy blurb docs, #312)", () => {
-  const LEGACY_DATASET = [
+describe("ENTRY_FEED_QUERY — drifted doc shape (no summary, stray field)", () => {
+  const DRIFTED_DATASET = [
     {
       _type: "entry",
-      _id: "legacy",
+      _id: "drifted",
       _createdAt: "2026-01-01T00:00:00Z",
-      kind: "project",
-      title: "Legacy entry",
-      slug: { current: "legacy" },
-      blurb: "Old field, not yet migrated.",
+      kind: "demo",
+      title: "Drifted entry",
+      slug: { current: "drifted" },
+      draftNotes: "Stray field, not in the schema.",
     },
   ];
 
-  it("still syndicates a legacy doc, with `summary: null` — never the blurb value, never the blurb key", async () => {
+  it("still syndicates a summary-less doc with `summary: null` — and never leaks the stray field", async () => {
     const rows = (await (
-      await evaluate(parse(ENTRY_FEED_QUERY), { dataset: LEGACY_DATASET })
+      await evaluate(parse(ENTRY_FEED_QUERY), { dataset: DRIFTED_DATASET })
     ).get()) as Array<Record<string, unknown>>;
     expect(rows).toHaveLength(1);
     const row = rows[0];
     // The item renders with an empty description (route null-guards), not a crash…
     expect(row.summary).toBeNull();
-    // …and the legacy field neither leaks under its old key nor masquerades as the new one.
-    expect(Object.keys(row)).not.toContain("blurb");
-    expect(Object.values(row)).not.toContain("Old field, not yet migrated.");
+    // …and the stray field neither leaks under its own key nor masquerades as the summary.
+    expect(Object.keys(row)).not.toContain("draftNotes");
+    expect(Object.values(row)).not.toContain("Stray field, not in the schema.");
   });
 });
 
@@ -352,11 +352,11 @@ describe("ENTRY_DETAIL_QUERY themeSeed — executed GROQ semantics (#173 QA)", (
     ).toBe("#4f46e5");
   });
 
-  it("a LEGACY kind:'project' doc still themes from its own theme.color during the migration window (#312)", async () => {
-    // The select() is gated only on `kind == "now"`, so the retired value falls through to
-    // `theme.color` like any non-now kind — a pre-migration doc's detail page keeps its theme.
+  it("a doc with an UNRECOGNIZED kind still themes from its own theme.color", async () => {
+    // The select() is gated only on `kind == "now"`, so any other value — known or drifted —
+    // falls through to `theme.color` and the detail page keeps its theme.
     expect(
-      await resolveThemeSeed({ kind: "project", theme: { color: "#123456" } }),
+      await resolveThemeSeed({ kind: "bookmark", theme: { color: "#123456" } }),
     ).toBe("#123456");
   });
 
