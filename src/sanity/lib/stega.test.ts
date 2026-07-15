@@ -76,6 +76,14 @@ describe("stega exclusions", () => {
     },
   );
 
+  it("flags the siteSettings default theme seeds via the SAME theme ancestor (#253)", () => {
+    // `siteSettings.theme { color, colorDark }` shares the entry theme object's segment name,
+    // so the existing `theme` ancestor rule covers it with no new denylist entry — pinned so a
+    // rename of either object surfaces the coupling.
+    expect(isStegaExcludedField(["theme", "color"])).toBe(true);
+    expect(isStegaExcludedField(["theme", "colorDark"])).toBe(true);
+  });
+
   it("does not flag a same-named prose field OUTSIDE pageThemes", () => {
     // `now` as a bare leaf (e.g. a hypothetical prose field) must NOT be excluded —
     // only seeds nested under the pageThemes ancestor are code-consumed.

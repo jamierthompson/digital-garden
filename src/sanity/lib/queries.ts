@@ -51,15 +51,23 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  *
  * `themeSeed` is the ONE seed the page themes from, resolved in the query so it lands
  * synchronously in the already-awaited result — no async boundary, so the static shell paints
- * flash-free (#166). It is KIND-gated, not presence-gated: a `now` entry ALWAYS wears the authored
- * `/now` page seed, so a now update wears the same theme as the `/now` index, and every themed kind
- * (note/essay/demo) wears its own required `theme.color`. The `forbiddenForNow` validator already
- * stops a `now` from carrying a `theme.color`; the kind-gate is the defense-in-depth behind it —
- * even a validator-bypassing value (a legacy doc, a raw API write) is IGNORED here rather than
- * sourced. A `select()` — not a `coalesce(theme.color, …)` — because coalesce is presence-gated and
- * would (a) source a now entry's own `theme.color` and (b) leave a `theme.color: ""` now entry
- * unthemed (coalesce only falls through on null, and `""` is reachable via the API). The route reads
- * `themeSeed` and never branches on `kind`.
+ * flash-free (#166). Two rungs:
+ *
+ * The entry's own rung is KIND-gated, not presence-gated: a `now` entry ALWAYS wears the authored
+ * `/now` page seed (never a color of its own), and a themed kind (note/essay/demo) wears its own
+ * `theme.color`. The `forbiddenForNow` validator already stops a `now` from carrying a
+ * `theme.color`; the kind-gate is the defense-in-depth behind it — even a validator-bypassing
+ * value (a legacy doc, a raw API write) is IGNORED here rather than sourced. A `select()` — not a
+ * `coalesce(theme.color, …)` — because coalesce is presence-gated and would (a) source a now
+ * entry's own `theme.color` and (b) leave a `theme.color: ""` now entry unthemed (coalesce only
+ * falls through on null, and `""` is reachable via the API).
+ *
+ * The outer `coalesce(…, siteSettings.theme.color)` is the site default rung (#253): an entry
+ * that authors no seed — and a `now` when no `/now` override is authored — wears the authored
+ * site default. The coalesce IS presence-gated, deliberately: a reachable-via-API `""` at the
+ * inner rung resolves to `""`, which `PageTheme` collapses to the engine fallback rather than
+ * silently re-routing to a different authored seed. The route reads `themeSeed` and never
+ * branches on `kind`.
  */
 export const ENTRY_DETAIL_QUERY = defineQuery(`
   *[_type == "entry" && slug.current == $slug][0] {
@@ -73,7 +81,10 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
     summary,
     theme { color, colorDark, headingFont, bodyFont, monoFont },
     componentKey,
-    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),
+    "themeSeed": coalesce(
+      select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),
+      *[_type == "siteSettings"][0].theme.color
+    ),
     body,
     related[]->{ _id, title, "slug": slug.current, kind },
     "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }
@@ -183,17 +194,19 @@ export const NOW_QUERY = defineQuery(`
  * in a separate slice). `[0]` guards that intent at the query layer: it returns the single
  * settings document (or `null` if none is published) so the shell can fall back defensively
  * rather than assume an array. Pulls the shell identity — `title` / `description` for
- * `generateMetadata` (layout.tsx) — AND the per-page theme seeds: under the site-wide
- * engine-theming model (#166) the site-owned pages (`/`, `/browse`, `/about`, `/now`,
- * `/system`) have no backing `entry`, so they seed from `pageThemes` here. Each site page
- * consumes its seed (via `sitePageThemeSeed`) to theme the page. Typed as
- * `SITE_SETTINGS_QUERYResult`.
+ * `generateMetadata` (layout.tsx) — AND the theming seeds: the site default `theme`
+ * (`color` + optional `colorDark` dark override, #253) that every resolution chain falls back
+ * to, and the per-page overrides: under the site-wide engine-theming model (#166) the
+ * site-owned pages (`/`, `/browse`, `/about`, `/now`, `/system`) have no backing `entry`, so
+ * they seed from `pageThemes` here, defaulting to `theme.color`. Each site page consumes its
+ * seed (via `sitePageThemeSeed`) to theme the page. Typed as `SITE_SETTINGS_QUERYResult`.
  */
 export const SITE_SETTINGS_QUERY = defineQuery(`
   *[_type == "siteSettings"][0] {
     _id,
     title,
     description,
+    theme { color, colorDark },
     pageThemes { home, browse, about, now, system }
   }
 `);

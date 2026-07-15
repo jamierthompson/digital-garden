@@ -250,19 +250,23 @@ describe("ENTRY_DETAIL_QUERY", () => {
     expect(ENTRY_DETAIL_QUERY).toContain("references(^._id)");
   });
 
-  it("kind-gates themeSeed: a now entry always wears /now, others their own theme.color (#166)", () => {
+  it("kind-gates themeSeed's inner rung, then defaults: /now for a now entry, own theme.color for the rest, siteSettings.theme.color beneath both (#166/#253)", () => {
     // The page themes from ONE synchronously-available field, resolved in-query (static shell,
-    // flash-free). It is KIND-gated, not presence-gated: `now` ALWAYS resolves to the authored
-    // /now page seed (a now can't set its own color — forbiddenForNow — and the query ignores any
-    // that slips through), and every themed kind uses its own required theme.color. The
-    // `.not.toContain` pins that we never regress to the presence-gated `coalesce(theme.color, …)` —
-    // which sourced a now entry's own theme.color and left a `theme.color: ""` now entry unthemed
-    // (executed semantics below).
+    // flash-free). The inner rung is KIND-gated, not presence-gated: `now` ALWAYS resolves to the
+    // authored /now page seed (a now can't set its own color — forbiddenForNow — and the query
+    // ignores any that slips through), and every themed kind uses its own theme.color. The outer
+    // coalesce is the authored site default beneath both. The `.not.toContain` pins that the
+    // INNER rung never regresses to a presence-gated `coalesce(theme.color, …)` — which sourced a
+    // now entry's own theme.color and left a `theme.color: ""` now entry unthemed (executed
+    // semantics below).
     expect(ENTRY_DETAIL_QUERY).toContain(
-      '"themeSeed": select(kind == "now" =>',
+      '"themeSeed": coalesce(\n      select(kind == "now" =>',
     );
     expect(ENTRY_DETAIL_QUERY).toContain(
       '*[_type == "siteSettings"][0].pageThemes.now',
+    );
+    expect(ENTRY_DETAIL_QUERY).toContain(
+      '*[_type == "siteSettings"][0].theme.color',
     );
     expect(ENTRY_DETAIL_QUERY).not.toContain("coalesce(theme.color");
   });
@@ -292,19 +296,31 @@ describe("ENTRY_DETAIL_QUERY", () => {
 /**
  * QA (#173): the `.toContain` tests above pin the query STRING; these EXECUTE the real
  * ENTRY_DETAIL_QUERY against a synthetic dataset with groq-js (a declared dependency) to pin its
- * actual `themeSeed` SEMANTICS. themeSeed is KIND-gated — `select(kind == "now" =>
- * …pageThemes.now, theme.color)` — so a `now` entry ALWAYS resolves to the /now seed regardless of
- * its own `theme.color`, and every themed kind resolves to its own. These cases lock that in and
- * are regression guards against the earlier presence-gated `coalesce(theme.color, …)`: coalesce
- * returns the first NON-NULL operand, and "" is non-null, so it (a) leaked a now entry's own
- * `theme.color` and (b) left a `theme.color: ""` now entry unthemed. The two former fail-first cases
- * below (self-override, empty-string) exposed exactly that; the `select()` closes both.
+ * actual `themeSeed` SEMANTICS. Two rungs (#253):
+ *
+ * The inner rung is KIND-gated — `select(kind == "now" => …pageThemes.now, theme.color)` — so a
+ * `now` entry ALWAYS resolves to the /now seed regardless of its own `theme.color`, and every
+ * themed kind resolves to its own. These cases lock that in and are regression guards against a
+ * presence-gated `coalesce(theme.color, …)` at this rung: coalesce returns the first NON-NULL
+ * operand, and "" is non-null, so it (a) leaked a now entry's own `theme.color` and (b) left a
+ * `theme.color: ""` now entry unthemed. The two former fail-first cases below (self-override,
+ * empty-string) exposed exactly that; the `select()` closes both.
+ *
+ * The outer rung is the site default (`coalesce(…, siteSettings.theme.color)`): an entry that
+ * authors no seed — and a `now` when no `/now` override is authored — wears the authored site
+ * default rather than falling to the engine fallback. That coalesce IS presence-gated, so a
+ * reachable-via-API `""` at the inner rung stays `""` (PageTheme collapses it to the engine
+ * fallback) instead of silently re-routing to a different authored seed — pinned below.
  */
 const NOW_SEED = "#105060";
+const DEFAULT_SEED = "#d04090";
 
 async function resolveThemeSeed(
   entryOverrides: Record<string, unknown>,
-  opts: { withSettings?: boolean } = {},
+  opts: {
+    withSettings?: boolean;
+    settings?: Record<string, unknown>;
+  } = {},
 ): Promise<unknown> {
   const entry = {
     _type: "entry",
@@ -318,6 +334,7 @@ async function resolveThemeSeed(
     dataset.push({
       _type: "siteSettings",
       _id: "settings",
+      theme: { color: DEFAULT_SEED },
       pageThemes: {
         home: "#h",
         browse: "#b",
@@ -325,6 +342,7 @@ async function resolveThemeSeed(
         now: NOW_SEED,
         system: "#s",
       },
+      ...(opts.settings ?? {}),
     });
   }
   const result = await (
@@ -348,7 +366,7 @@ describe("ENTRY_DETAIL_QUERY themeSeed — executed GROQ semantics (#173 QA)", (
     ).toBe(NOW_SEED);
   });
 
-  it("a themed entry themes from its OWN theme.color, never the /now seed", async () => {
+  it("a themed entry themes from its OWN theme.color, never the /now seed or the default", async () => {
     expect(
       await resolveThemeSeed({ kind: "demo", theme: { color: "#4f46e5" } }),
     ).toBe("#4f46e5");
@@ -368,17 +386,52 @@ describe("ENTRY_DETAIL_QUERY themeSeed — executed GROQ semantics (#173 QA)", (
     ).toBeNull();
   });
 
-  it("resolves null for a themed kind with NO theme object at all (PageTheme falls back, never /now)", async () => {
-    // QA (#249): the nested read `theme.color` on a theme-less doc must resolve to null —
-    // NOT error, and NOT leak the /now seed (the select's now-branch is kind-gated).
-    expect(await resolveThemeSeed({ kind: "note" })).toBeNull();
+  // --- The site default rung (#253) ---
+  it("a themed kind with NO theme object wears the site default (never /now, never null)", async () => {
+    // Pre-#253 this resolved null and PageTheme fell back to the engine; the authored
+    // default now covers it. The select's now-branch stays kind-gated — no /now leak.
+    expect(await resolveThemeSeed({ kind: "note" })).toBe(DEFAULT_SEED);
+  });
+
+  it("a themed kind with a null theme.color wears the site default", async () => {
+    expect(
+      await resolveThemeSeed({ kind: "essay", theme: { color: null } }),
+    ).toBe(DEFAULT_SEED);
+  });
+
+  it("a now entry wears the site default when NO /now override is authored", async () => {
+    // pageThemes.now is itself an override now — absent, the /now chain lands on the default.
+    expect(
+      await resolveThemeSeed({ kind: "now" }, { settings: { pageThemes: {} } }),
+    ).toBe(DEFAULT_SEED);
+    expect(
+      await resolveThemeSeed(
+        { kind: "now" },
+        { settings: { pageThemes: null } },
+      ),
+    ).toBe(DEFAULT_SEED);
+  });
+
+  it("an unauthored default (settings without theme) degrades to null like before", async () => {
+    expect(
+      await resolveThemeSeed({ kind: "note" }, { settings: { theme: null } }),
+    ).toBeNull();
+  });
+
+  it("a themed kind's EMPTY-STRING theme.color stays '' — it collapses to the engine fallback, never re-routes to the default", async () => {
+    // Deliberate: the outer coalesce is presence-gated, and "" is non-null. A `""` authored
+    // via the API is bad data; PageTheme collapses it to the engine fallback palette. Falling
+    // through to the site default here would make bad data silently wear an authored seed.
+    expect(await resolveThemeSeed({ kind: "note", theme: { color: "" } })).toBe(
+      "",
+    );
   });
 
   // --- The contract that BREAKS (fail-first: proves the real defect) ---
   it("a now entry with an EMPTY-STRING theme.color still inherits the /now seed (empty-string coalesce hole)", async () => {
-    // Regression guard for the empty-string hole. A presence-gated `coalesce` only falls through
-    // on null; "" is non-null, so it would leave themeSeed "" — a SILENTLY unthemed page. "" is
-    // reachable: theme.color is NOT required for `now` (requiredForThemedKind exempts it) and
+    // Regression guard for the empty-string hole. A presence-gated `coalesce` at the INNER rung
+    // only falls through on null; "" is non-null, so it would leave themeSeed "" — a SILENTLY
+    // unthemed page. "" is reachable: theme.color carries no required floor and
     // isThemeColorString("") returns true, so both author-time guards pass it (the API-write path
     // colorValidation.ts calls out as real). The kind-gated `select()` ignores a now entry's
     // theme.color entirely, so "" can never defeat the /now inheritance.
@@ -492,7 +545,8 @@ describe("ENTRY_DETAIL_QUERY theme projection — executed GROQ semantics (#226 
 /**
  * The settings query guards the singleton intent at the data layer: `[0]` returns one
  * document (or null), so the shell never assumes an array. Under #166 it also carries the
- * per-page theme seeds for the site-owned pages (which have no backing entry).
+ * per-page theme seeds for the site-owned pages (which have no backing entry), and under
+ * #253 the site default theme those seeds override.
  */
 describe("SITE_SETTINGS_QUERY", () => {
   it("guards the singleton with a [0] index", () => {
@@ -504,6 +558,12 @@ describe("SITE_SETTINGS_QUERY", () => {
     for (const field of ["title", "description"]) {
       expect(SITE_SETTINGS_QUERY).toContain(field);
     }
+  });
+
+  it("projects the site default theme — color + colorDark (#253)", () => {
+    expect(SITE_SETTINGS_QUERY).toMatch(
+      /theme\s*\{[^}]*\bcolor\b[^}]*\bcolorDark\b/,
+    );
   });
 
   it("projects the five per-page theme seeds (#166)", () => {
