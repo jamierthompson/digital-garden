@@ -47,8 +47,8 @@ function formatDate(iso: string | null): string | null {
 /**
  * The `/now` page (after nownownow.com) — now Sanity-driven: a reverse-chronological stream of
  * `kind == "now"` entries, newest first. Shell-owned editorial chrome (global semantic tokens,
- * no theme scope). Each update links to its own flat `/[slug]` for the full text, and the same
- * updates fold into the Index's "Now" section.
+ * no theme scope). Each update links to its own flat `/[slug]` for the full text. This is the
+ * only surface that lists now-updates.
  */
 export default async function NowPage() {
   // Seed on the awaited path → synchronous `<PageTheme>`; its `:root` `<style>` hoists into

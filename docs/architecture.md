@@ -710,11 +710,11 @@ composition. A headless `core/` is **not** templated into every module — let i
 emerge only when a slot's logic warrants extraction (same deferral discipline as the
 slot tiers; see the interactive slot section). Code lives under `src/entries/<slug>/`;
 **routes are flat** — `/` is the
-**featured** front door, a browsable **Index** (nav-labelled "Index") lists every entry at
-**`/browse`**, and a root-level `/[slug]` (a dynamic segment that cedes precedence to the static
-segments `/browse`, `/about`, `/now`) mounts any entry. Every entry — note, essay, or
-demo — lives at a **flat top-level slug** (`/some-note`, not `/notes/some-note`), so its URL stays
-stable even if its `kind` changes. There is no `/work` prefix. The browse route is `/browse`, **not
+**featured** front door, a browsable **Index** (nav-labelled "Index") lists the durable entries at
+**`/browse`**, `/now` streams the dated `now` updates, and a root-level `/[slug]` (a dynamic segment
+that cedes precedence to the static segments `/browse`, `/about`, `/now`) mounts any entry. Every
+entry — whatever its `kind`, `now` included — lives at a **flat top-level slug** (`/some-note`, not
+`/notes/some-note`), so its URL stays stable even if its `kind` changes. There is no `/work` prefix. The browse route is `/browse`, **not
 `/index`**: Next.js reserves `index` for the root segment's prerender output (`app/index.html`), so a
 route literally named `index` silently serves the home page.
 
@@ -871,7 +871,8 @@ Practical notes:
   being a `_type` split. The kinds differ by **scope and emphasis, not fields** — a _note_ is a small,
   often single-component piece (and doubles as a shareable social post); an _essay_ is writing-led with
   interactions slotted in; a _demo_ is an interactive piece with more slots; a _now_ is a dated
-  "now" update that drives the reverse-chronological `/now` stream and also mixes into the Index.
+  "now" update that drives the reverse-chronological `/now` stream — its own surface, kept out of
+  the Index.
   **Downstream, theming and interactivity key on capability (presence), not kind:** every kind but
   `now` scopes on a present `theme.color` and mounts on a present `componentKey`. (`theme.color`
   additionally carries a required _floor_ for note/essay/demo — see below — but the mount/scope
@@ -987,8 +988,9 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   components) and pulls a demo bundle only if it explicitly mounts one.
 - **Two reading paths over one content graph.** The **featured home** (`/`) is a curated front door —
   the entries with a `featuredRank`, of _any_ `kind`, ordered by rank — for a hurried evaluator. The
-  **Index** (at `/browse`) is the full browsable list of every entry, filtered by `kind` and `stage`
-  and wired with backlinks, for the wanderer. The portfolio is a _view_ of the graph (a saved
+  **Index** (at `/browse`) is the browsable list of the garden's durable entries — notes, essays, and
+  demos, filtered by `kind` and `stage` and wired with backlinks, for the wanderer. Dated `now`
+  updates are the one kind it omits: they have their own reverse-chronological surface at `/now`. The portfolio is a _view_ of the graph (a saved
   `featuredRank != null` filter), not a separate section. The **shell frame** of both — plus `/about`
   and `/now` — wears the page's authored `<html>` theme (see the token & theming architecture). Their
   _content_ differs by intent: the Index is a uniform editorial list, and the **featured home's cards
