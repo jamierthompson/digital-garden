@@ -948,3 +948,102 @@ describe("NOW_QUERY — the /now stream lists only now-updates (#314 QA)", () =>
     expect(rows.map((r) => r._id)).toEqual(["older-now-iterated", "newer-now"]);
   });
 });
+
+/**
+ * #321: `/now` rows carry the SAME hardened distinct-neighbor `linkCount` the Index
+ * projects — a union of both directions (`array::unique`), minus a self-reference
+ * (`@ != ^._id`) and a dangling reference (`defined(@)`), with the load-bearing
+ * `coalesce(related[]->_id, [])` guard: GROQ evaluates a traversal of an ABSENT field to
+ * `null`, and `null + [...]` is `null` (the #317 null-poison), so without it a now-update
+ * that authored no `related` array reports a null count and silently loses its hint.
+ * Executed with groq-js, because every case rests on a GROQ null/traversal rule.
+ */
+describe("NOW_QUERY linkCount — distinct neighbors, never null-poisoned (#321)", () => {
+  const ref = (id: string, key: string) => ({
+    _type: "reference",
+    _ref: id,
+    _key: key,
+  });
+
+  const doc = (
+    id: string,
+    kind: string,
+    extra: Record<string, unknown> = {},
+  ): Record<string, unknown> => ({
+    _type: "entry",
+    _id: id,
+    _createdAt: "2026-01-01T00:00:00Z",
+    kind,
+    slug: { current: id },
+    ...extra,
+  });
+
+  async function countOf(
+    dataset: Array<Record<string, unknown>>,
+    id: string,
+  ): Promise<unknown> {
+    const rows: Array<{ _id: string; linkCount: unknown }> = await (
+      await evaluate(parse(NOW_QUERY), { dataset })
+    ).get();
+    return rows.find((r) => r._id === id)?.linkCount;
+  }
+
+  it("an ABSENT `related` still counts an incoming backlink — 1, not null", async () => {
+    // The common Studio shape: no `related` array was ever authored. This is the
+    // null-poison pin — drop the coalesce and this count goes null, not 0 or 1.
+    const dataset = [
+      doc("n1", "now"),
+      doc("a", "note", { related: [ref("n1", "k")] }),
+    ];
+    expect(await countOf(dataset, "n1")).toBe(1);
+  });
+
+  it("counts a mutual edge ONCE — union, not sum", async () => {
+    const dataset = [
+      doc("n1", "now", { related: [ref("a", "k")] }),
+      doc("a", "note", { related: [ref("n1", "k")] }),
+    ];
+    expect(await countOf(dataset, "n1")).toBe(1);
+  });
+
+  it("applies every distinct-neighbor rule at once — self, duplicate, dangling, mutual, backlink-only", async () => {
+    // Neighbors of n1: a (mutual), b (outgoing), c (backlink-only) = 3. The self-ref,
+    // the duplicate, and the dangling ghost must all wash out of the ONE unioned array.
+    const dataset = [
+      doc("n1", "now", {
+        related: [
+          ref("n1", "self"),
+          ref("a", "k1"),
+          ref("a", "k1-dup"),
+          ref("ghost", "k2"),
+          ref("b", "k3"),
+        ],
+      }),
+      doc("a", "note", { related: [ref("n1", "back")] }),
+      doc("b", "note"),
+      doc("c", "note", { related: [ref("n1", "k")] }),
+    ];
+    expect(await countOf(dataset, "n1")).toBe(3);
+  });
+
+  it("drifted `related` shapes — explicit null, non-array — never re-null the hint", async () => {
+    expect(
+      await countOf(
+        [
+          doc("n1", "now", { related: null }),
+          doc("a", "note", { related: [ref("n1", "k")] }),
+        ],
+        "n1",
+      ),
+    ).toBe(1);
+    expect(
+      await countOf(
+        [
+          doc("n1", "now", { related: "not-an-array" }),
+          doc("a", "note", { related: [ref("n1", "k")] }),
+        ],
+        "n1",
+      ),
+    ).toBe(1);
+  });
+});

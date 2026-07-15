@@ -361,13 +361,14 @@ export type FEATURED_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: NOW_QUERY
-// Query: *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {    _id,    title,    "slug": slug.current,    iterated,    summary  }
+// Query: *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {    _id,    title,    "slug": slug.current,    iterated,    summary,    "linkCount": count(array::unique(      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id    )[defined(@) && @ != ^._id])  }
 export type NOW_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
   slug: string | null;
   iterated: string | null;
   summary: string | null;
+  linkCount: number;
 }>;
 
 // Source: ../src/sanity/lib/queries.ts
@@ -395,7 +396,7 @@ declare module "@sanity/client" {
     '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    summary,\n    theme { color, colorDark, headingFont, bodyFont, monoFont },\n    componentKey,\n    "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),\n    body,\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }\n  }\n': ENTRY_DETAIL_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current) && kind != "now"] | order(kind asc, coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    summary,\n    "linkCount": count(array::unique(\n      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id\n    )[defined(@) && @ != ^._id])\n  }\n': INDEX_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    summary,\n    theme { color }\n  }\n': FEATURED_QUERY_RESULT;
-    '\n  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    iterated,\n    summary\n  }\n': NOW_QUERY_RESULT;
+    '\n  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    iterated,\n    summary,\n    "linkCount": count(array::unique(\n      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id\n    )[defined(@) && @ != ^._id])\n  }\n': NOW_QUERY_RESULT;
     '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description,\n    pageThemes { home, browse, about, now, system }\n  }\n': SITE_SETTINGS_QUERY_RESULT;
   }
 }
