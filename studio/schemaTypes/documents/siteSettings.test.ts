@@ -4,18 +4,20 @@ import {siteSettings} from './siteSettings'
 
 /**
  * Pins the `siteSettings` contract at the SCHEMA layer under the site-wide engine-theming
- * model (#166 / #173).
+ * model (#166 / #173 / #253).
  *
- * Two concerns live here now:
+ * Three concerns live here now:
  *   • Shell identity — `title` (required) + `description`, read by `generateMetadata`.
- *   • `pageThemes` — one authored, engine-validated theme seed per site-owned page
- *     (`home`/`browse`/`about`/`now`/`system`). This REPLACES the old #142 stance that the
- *     shell carried no theming fields: under #166 every page derives its theme from a seed,
- *     and the site-owned pages (which have no backing `entry`) seed from here.
+ *   • The site default theme — `theme { color, colorDark }`, the ONE required seed the whole
+ *     site falls back to. `color` is required and engine-validated; `colorDark` is an optional
+ *     engine-validated dark override.
+ *   • `pageThemes` — an OPTIONAL, engine-validated theme seed override per site-owned page
+ *     (`home`/`browse`/`about`/`now`/`system`); an empty override inherits the site default.
  *
- * The guard: `pageThemes` must exist as a required object whose five page seeds are each
- * required and validated by the engine (`isThemeColorString`), not a color-picker. A regressed
- * projection (`queries.test.ts`) or a dropped seed would otherwise render a page unseeded.
+ * The guard: the default `theme.color` must stay required (drop it and an override-less page
+ * renders unseeded — the engine fallback is a safety net, not the authored default), the page
+ * seeds must stay engine-validated strings (`isThemeColorString`, not a color-picker), and the
+ * five-page override set must stay closed.
  */
 type Rule = {required: (...a: unknown[]) => Rule; custom: (...a: unknown[]) => Rule}
 type FieldDef = {
@@ -46,7 +48,7 @@ function calledRules(field: FieldDef | undefined): string[] {
   return called
 }
 
-describe('siteSettings schema — identity + per-page theme seeds (#166)', () => {
+describe('siteSettings schema — identity + site default theme + per-page overrides (#166/#253)', () => {
   it('is the siteSettings singleton document', () => {
     expect(siteSettings.name).toBe('siteSettings')
     expect(siteSettings.type).toBe('document')
@@ -63,11 +65,36 @@ describe('siteSettings schema — identity + per-page theme seeds (#166)', () =>
     expect(calledRules(title)).toContain('required')
   })
 
-  it('carries a required pageThemes object (the shell is engine-seeded, not monochromatic)', () => {
+  it('carries a required site default theme object — the one seed everything falls back to', () => {
+    const theme = fields.find((f) => f.name === 'theme')
+    expect(theme, 'expected a theme field').toBeDefined()
+    expect(theme?.type).toBe('object')
+    expect(calledRules(theme)).toContain('required')
+  })
+
+  it('the default theme is the entry theme-seed shape — color + colorDark, nothing else', () => {
+    const theme = fields.find((f) => f.name === 'theme')
+    const names = (theme?.fields ?? []).map((f) => f.name)
+    expect([...names].sort()).toEqual(['color', 'colorDark'])
+  })
+
+  it('requires and engine-validates the default color; colorDark stays an optional engine-validated override', () => {
+    const theme = fields.find((f) => f.name === 'theme')
+    const color = theme?.fields?.find((f) => f.name === 'color')
+    const colorDark = theme?.fields?.find((f) => f.name === 'colorDark')
+    expect(color?.type).toBe('string')
+    expect(calledRules(color)).toContain('required')
+    expect(calledRules(color)).toContain('custom')
+    expect(colorDark?.type).toBe('string')
+    expect(calledRules(colorDark)).not.toContain('required')
+    expect(calledRules(colorDark)).toContain('custom')
+  })
+
+  it('carries the pageThemes override object — no longer required (#253)', () => {
     const pageThemes = fields.find((f) => f.name === 'pageThemes')
     expect(pageThemes, 'expected a pageThemes field').toBeDefined()
     expect(pageThemes?.type).toBe('object')
-    expect(calledRules(pageThemes)).toContain('required')
+    expect(calledRules(pageThemes)).not.toContain('required')
   })
 
   it('exposes exactly the five site-owned page seeds', () => {
@@ -76,12 +103,15 @@ describe('siteSettings schema — identity + per-page theme seeds (#166)', () =>
     expect([...seedNames].sort()).toEqual(['about', 'browse', 'home', 'now', 'system'])
   })
 
-  it('requires and engine-validates every page seed — none may publish empty or unparseable', () => {
+  it('every page seed is an OPTIONAL engine-validated string — empty inherits the default, unparseable never publishes', () => {
     const pageThemes = fields.find((f) => f.name === 'pageThemes')
+    expect(pageThemes?.fields?.length).toBeGreaterThan(0)
     for (const seed of pageThemes?.fields ?? []) {
       expect(seed.type, `${seed.name} should be a plain string, not a color-picker`).toBe('string')
       const called = calledRules(seed)
-      expect(called, `${seed.name} must be required`).toContain('required')
+      expect(called, `${seed.name} must not be required — it is an override`).not.toContain(
+        'required',
+      )
       // `.custom(isThemeColorString)` is the engine-backed parse guard.
       expect(called, `${seed.name} must run the engine validator`).toContain('custom')
     }

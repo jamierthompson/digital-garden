@@ -91,6 +91,10 @@ export type SiteSettings = {
   _rev: string;
   title?: string;
   description?: string;
+  theme?: {
+    color?: string;
+    colorDark?: string;
+  };
   pageThemes?: {
     home?: string;
     browse?: string;
