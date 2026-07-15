@@ -956,7 +956,7 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   into two registered keys. Litmus: _editor writes/curates it → typed block; developer decides it →
   registry; neither → it's not an input._
 - **The card queries refuse to over-fetch.** The featured-home query pulls the card fields —
-  `title`/`slug`/`blurb`/`stage`/`kind` plus the `theme.color` each card themes its plate from — but
+  `title`/`slug`/`summary`/`stage`/`kind` plus the `theme.color` each card themes its plate from — but
   **not** the body. That enforces "a few colors per card" at the data layer (cards feed
   `cardSwatches`) and keeps the front-door payload small for CWV.
 - **`EntryScope` is the font-slot keystone.** One server component takes a scope's `slug` + up to

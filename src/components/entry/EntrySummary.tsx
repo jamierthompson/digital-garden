@@ -14,7 +14,7 @@ interface EntrySummaryProps {
   readonly title: string;
   /** Links the title to the flat `/[slug]`; absent → the title renders as plain text. */
   readonly slug?: string | null;
-  readonly blurb?: string | null;
+  readonly summary?: string | null;
   /** The maturity badge, rendered beside the title (also stamped as `data-stage`). */
   readonly stage?: string | null;
   /** A dated stream's kicker — the machine value for `<time>` plus its display label. */
@@ -25,7 +25,7 @@ interface EntrySummaryProps {
 
 /**
  * One entry in an editorial list — a `<li>` for the summary streams (the Index's sections,
- * the `/now` stream): date kicker, linked title with the optional `stage` badge, blurb, and
+ * the `/now` stream): date kicker, linked title with the optional `stage` badge, summary, and
  * the backlink hint, each rendered only when its field is present. Editorial ink only (the
  * themed card treatment is `EntryCard`'s); composed from the primitives, so the structure is
  * fixed here and a design pass is token/value tweaks.
@@ -33,7 +33,7 @@ interface EntrySummaryProps {
 export default function EntrySummary({
   title,
   slug,
-  blurb,
+  summary,
   stage,
   date,
   linkCount,
@@ -66,9 +66,9 @@ export default function EntrySummary({
             </Text>
           ) : null}
         </Cluster>
-        {blurb ? (
-          <Text color="muted-foreground" className={styles.blurb}>
-            {blurb}
+        {summary ? (
+          <Text color="muted-foreground" className={styles.summary}>
+            {summary}
           </Text>
         ) : null}
         {(linkCount ?? 0) > 0 ? (

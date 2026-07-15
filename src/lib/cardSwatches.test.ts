@@ -265,7 +265,7 @@ describe("cardSwatches — total & defensive on bad themeColor", () => {
  *
  * `EntryCard` renders a solid accent PLATE: `background: var(--accent)` with
  * `color: var(--accent-foreground)` (see EntryCard.module.css). Every visible glyph on a card — title,
- * blurb, and the mono meta readout — is `--accent-foreground` painted ON the `--accent` fill. The
+ * summary, and the mono meta readout — is `--accent-foreground` painted ON the `--accent` fill. The
  * sibling stress-test above (the engine-solves-an-accessible-card-palette suite) proves
  * text/border/accent clear their floors AGAINST THE SURFACE; this suite locks the pair the
  * plate paints instead.

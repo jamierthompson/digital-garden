@@ -28,7 +28,7 @@ interface IndexRow {
   kind: string | null;
   stage: string | null;
   iterated: string | null;
-  blurb: string | null;
+  summary: string | null;
   linkCount: number;
 }
 
@@ -41,7 +41,7 @@ function row(over: Partial<IndexRow> & { _id: string }): IndexRow {
     kind: "essay",
     stage: "sketch",
     iterated: null,
-    blurb: null,
+    summary: null,
     linkCount: 0,
     ...over,
   };

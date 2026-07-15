@@ -14,7 +14,7 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
       slug: "color-engine",
       kind: "project",
       stage: "sketch",
-      blurb: "A seed in, a solved palette out.",
+      summary: "A seed in, a solved palette out.",
       theme: { color: "oklch(0.7 0.28 330)" },
     },
     {
@@ -23,7 +23,7 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
       slug: "feature-lens",
       kind: "project",
       stage: "sketch",
-      blurb: "Looking inside a model.",
+      summary: "Looking inside a model.",
       theme: { color: "oklch(0.7 0.15 70)" },
     },
   ],
@@ -57,7 +57,7 @@ interface FeaturedRow {
   slug: string | null;
   kind: string | null;
   stage: string | null;
-  blurb: string | null;
+  summary: string | null;
   theme: { color: unknown } | null;
 }
 
@@ -67,7 +67,7 @@ function row(over: Partial<FeaturedRow> & { _id: string }): FeaturedRow {
     slug: "a-card",
     kind: "project",
     stage: "prototype",
-    blurb: null,
+    summary: null,
     theme: { color: "oklch(0.7 0.15 70)" },
     ...over,
   };

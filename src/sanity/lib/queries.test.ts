@@ -10,7 +10,7 @@ import {
 /**
  * The entry-feed (RSS) query syndicates every published entry — any `kind`, `now` included —
  * and its contract is "refuse to over-fetch": it must pull only the `<item>` fields the feed
- * renders (id / title / slug / blurb) and NOTHING else. Asserting the query string keeps the
+ * renders (id / title / slug / summary) and NOTHING else. Asserting the query string keeps the
  * data-layer guard honest without rendering an async RSC (untestable in jsdom — testing.md).
  */
 describe("ENTRY_FEED_QUERY", () => {
@@ -27,8 +27,8 @@ describe("ENTRY_FEED_QUERY", () => {
     );
   });
 
-  it("projects exactly the item fields — id / title / slug / blurb / published", () => {
-    for (const field of ["_id", "title", "blurb"]) {
+  it("projects exactly the item fields — id / title / slug / summary / published", () => {
+    for (const field of ["_id", "title", "summary"]) {
       expect(ENTRY_FEED_QUERY).toContain(field);
     }
     expect(ENTRY_FEED_QUERY).toContain('"slug": slug.current');
@@ -83,7 +83,7 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
       kind: "project",
       title: "Old project",
       slug: { current: "old-project" },
-      blurb: "Projects still syndicate.",
+      summary: "Projects still syndicate.",
       stage: "shipped",
       featuredRank: 1,
       theme: { color: "#4f46e5", bodyFont: "inter" },
@@ -96,7 +96,7 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
       kind: "now",
       title: "A now update",
       slug: { current: "a-now-update" },
-      blurb: "Now syndicates too.",
+      summary: "Now syndicates too.",
     },
     {
       _type: "entry",
@@ -106,7 +106,7 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
       kind: "note",
       title: "Iterated note",
       slug: { current: "iterated-note" },
-      blurb: null,
+      summary: null,
     },
     {
       _type: "entry",
@@ -114,7 +114,7 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
       _createdAt: "2026-04-01T00:00:00Z",
       kind: "essay",
       title: "No slug yet",
-      blurb: "Must not syndicate.",
+      summary: "Must not syndicate.",
     },
     { _type: "siteSettings", _id: "settings", title: "Not an entry" },
   ];
@@ -144,14 +144,14 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
     ]);
   });
 
-  it("projects EXACTLY { _id, title, slug, blurb, published } per row — the closed over-fetch guard", async () => {
+  it("projects EXACTLY { _id, title, slug, summary, published } per row — the closed over-fetch guard", async () => {
     const rows = await runFeed();
     for (const row of rows) {
       expect(Object.keys(row).sort()).toEqual([
         "_id",
-        "blurb",
         "published",
         "slug",
+        "summary",
         "title",
       ]);
     }
@@ -200,7 +200,7 @@ describe("ENTRY_DETAIL_QUERY", () => {
       "componentKey",
       "kind",
       "stage",
-      "blurb",
+      "summary",
       "title",
       "related",
       "backlinks",

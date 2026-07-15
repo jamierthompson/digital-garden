@@ -7,7 +7,7 @@ function entry(over: Partial<EntryCardEntry> = {}): EntryCardEntry {
   return {
     title: "A card",
     slug: "a-card",
-    blurb: "A short blurb.",
+    summary: "A short summary.",
     stage: "prototype",
     theme: { color: "oklch(0.7 0.15 70)" },
     ...over,
@@ -24,11 +24,11 @@ function renderCard(data: EntryCardEntry) {
 }
 
 describe("EntryCard", () => {
-  it("links the title to the entry's flat /[slug] and shows the blurb", () => {
+  it("links the title to the entry's flat /[slug] and shows the summary", () => {
     renderCard(entry());
     const link = screen.getByRole("link", { name: /a card/i });
     expect(link).toHaveAttribute("href", "/a-card");
-    expect(screen.getByText("A short blurb.")).toBeInTheDocument();
+    expect(screen.getByText("A short summary.")).toBeInTheDocument();
   });
 
   it("renders a slugless entry as a non-link heading, never a dead link", () => {
@@ -46,9 +46,9 @@ describe("EntryCard", () => {
     ).toBeInTheDocument();
   });
 
-  it("omits the blurb paragraph when there is none", () => {
-    renderCard(entry({ blurb: null }));
-    expect(screen.queryByText("A short blurb.")).toBeNull();
+  it("omits the summary paragraph when there is none", () => {
+    renderCard(entry({ summary: null }));
+    expect(screen.queryByText("A short summary.")).toBeNull();
   });
 
   it("renders the mono meta readout: maturity stage · OKLCH seed", () => {
@@ -104,7 +104,7 @@ describe("EntryCard", () => {
 describe("EntryCard — title/slug boundaries", () => {
   // `title ?? "Untitled entry"` is nullish — a blank Studio field serialises to "" (a valid
   // string) and would slip through to a nameless <h3> (axe empty-heading) with the link's
-  // accessible name silently degrading to the blurb. These pin the blank cases.
+  // accessible name silently degrading to the summary. These pin the blank cases.
   it("falls back to a neutral label for an empty-string title (not an empty heading)", () => {
     renderCard(entry({ title: "" }));
     expect(screen.getByRole("heading", { level: 3 })).toHaveAccessibleName(

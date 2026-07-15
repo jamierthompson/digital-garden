@@ -12,14 +12,14 @@ const { NOW_FIXTURE, fetchMock } = vi.hoisted(() => ({
       title: "Flattening the routes",
       slug: "now-jul-2026",
       iterated: "2026-07-01",
-      blurb: "IA rework.",
+      summary: "IA rework.",
     },
     {
       _id: "2",
       title: "Proving the engine",
       slug: "now-jun-2026",
       iterated: "2026-06-15",
-      blurb: "Seeding themes.",
+      summary: "Seeding themes.",
     },
   ],
   fetchMock: vi.fn(),
@@ -51,7 +51,7 @@ interface NowRow {
   title: string | null;
   slug: string | null;
   iterated: string | null;
-  blurb: string | null;
+  summary: string | null;
 }
 
 function row(over: Partial<NowRow> & { _id: string }): NowRow {
@@ -59,7 +59,7 @@ function row(over: Partial<NowRow> & { _id: string }): NowRow {
     title: "An update",
     slug: "an-update",
     iterated: "2026-07-01",
-    blurb: null,
+    summary: null,
     ...over,
   };
 }

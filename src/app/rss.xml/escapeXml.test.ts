@@ -4,7 +4,7 @@ import { escapeXml } from "./escapeXml";
 
 /**
  * XML escaping is the RSS feed's correctness boundary: an unescaped `&` or `<` in
- * an authored title/blurb produces a malformed feed that readers reject. The async
+ * an authored title/summary produces a malformed feed that readers reject. The async
  * RSC handler itself isn't unit-testable in jsdom (it reads the live client), so we
  * pin the pure escaper instead.
  */

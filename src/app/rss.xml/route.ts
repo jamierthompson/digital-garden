@@ -62,7 +62,7 @@ export async function GET() {
     .map((entry) => {
       const url = `${SITE_URL}/${entry.slug}`;
       const title = escapeXml(entry.title ?? "Untitled");
-      const description = entry.blurb ? escapeXml(entry.blurb) : "";
+      const description = entry.summary ? escapeXml(entry.summary) : "";
       // `toRfc822` output is a fixed-format ASCII date (no XML metacharacters), so it needs no
       // escaping; a dateless item drops the element entirely rather than emitting an empty one.
       const pubDate = toRfc822(entry.published);

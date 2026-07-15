@@ -117,15 +117,17 @@ export const entry = defineType({
       validation: (rule) => rule.integer(),
     }),
     defineField({
-      name: 'blurb',
+      name: 'summary',
       type: 'text',
       rows: 3,
+      description:
+        'Authored standalone summary — written for the cards, lists, and feed, not a paste of the opening paragraph.',
       validation: (rule) =>
         rule
           .max(280)
-          .warning('Keep the blurb card-sized.')
+          .warning('Keep the summary card-sized.')
           .max(300)
-          .error('Blurb exceeds the 300-character hard cap — the card layout cannot absorb the overflow.'),
+          .error('Summary exceeds the 300-character hard cap — the card layout cannot absorb the overflow.'),
     }),
 
     // The entry's theme: one first-class object, reference-by-key, consumed by code, stega-

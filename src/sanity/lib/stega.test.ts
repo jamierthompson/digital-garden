@@ -54,9 +54,9 @@ describe("stega exclusions", () => {
     expect(isStegaExcludedField(["fontKey"])).toBe(false);
   });
 
-  it("does not flag prose fields like title/blurb/essay", () => {
+  it("does not flag prose fields like title/summary/essay", () => {
     expect(isStegaExcludedField(["title"])).toBe(false);
-    expect(isStegaExcludedField(["blurb"])).toBe(false);
+    expect(isStegaExcludedField(["summary"])).toBe(false);
     expect(isStegaExcludedField(["essay", 0, "children", 0, "text"])).toBe(
       false,
     );

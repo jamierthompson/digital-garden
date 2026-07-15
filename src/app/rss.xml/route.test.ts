@@ -16,7 +16,7 @@ interface FeedRow {
   _id: string;
   title: string | null;
   slug: string | null;
-  blurb: string | null;
+  summary: string | null;
   published: string | null;
 }
 
@@ -24,7 +24,7 @@ function row(over: Partial<FeedRow> & { _id: string }): FeedRow {
   return {
     title: "An entry",
     slug: "an-entry",
-    blurb: "A blurb.",
+    summary: "A summary.",
     published: "2026-03-01T00:00:00Z",
     ...over,
   };
@@ -52,7 +52,7 @@ beforeEach(() => {
 
 /**
  * The feed rescoped from projects-only to EVERY published entry (#249) — these pin the
- * route's rendering contract over the trimmed { _id, title, slug, blurb } rows: channel
+ * route's rendering contract over the trimmed { _id, title, slug, summary } rows: channel
  * identity, the slugless skip, XML escaping, and the null-field fallbacks. (The query's
  * own scope/projection is pinned in queries.test.ts; this is the route half.)
  */
@@ -90,12 +90,12 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
     expect(xml.match(/<item>/g)).toHaveLength(1);
   });
 
-  it("escapes XML metacharacters in the title and blurb (hostile content stays inert)", async () => {
+  it("escapes XML metacharacters in the title and summary (hostile content stays inert)", async () => {
     const xml = await feedXml([
       row({
         _id: "1",
         title: `Tom & Jerry <script>alert("x")</script>`,
-        blurb: `a < b & "c" > 'd'`,
+        summary: `a < b & "c" > 'd'`,
         slug: "hostile",
       }),
     ]);
@@ -104,9 +104,9 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
     expect(xml).toContain("a &lt; b &amp;");
   });
 
-  it("falls back to Untitled for a null title and an empty description for a null blurb", async () => {
+  it("falls back to Untitled for a null title and an empty description for a null summary", async () => {
     const xml = await feedXml([
-      row({ _id: "1", title: null, blurb: null, slug: "bare" }),
+      row({ _id: "1", title: null, summary: null, slug: "bare" }),
     ]);
     expect(xml).toContain("<title>Untitled</title>");
     expect(xml).toContain("<description></description>");
@@ -158,13 +158,15 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
 
     it("stays a well-formed XML document under hostile authored text — one bad entry must never break the whole feed", async () => {
       const title = `Tom & Jerry <b>"bold"</b> ]]> 🌱 “smart” ‘quotes’`;
-      const blurb = `a < b && c ]]> — café`;
+      const summary = `a < b && c ]]> — café`;
       const doc = parseXml(
-        await feedXml([row({ _id: "1", slug: "hostile", title, blurb })]),
+        await feedXml([row({ _id: "1", slug: "hostile", title, summary })]),
       );
       // The escaping round-trips: a parser hands subscribers back the authored text verbatim.
       expect(doc.querySelector("item > title")?.textContent).toBe(title);
-      expect(doc.querySelector("item > description")?.textContent).toBe(blurb);
+      expect(doc.querySelector("item > description")?.textContent).toBe(
+        summary,
+      );
       expect(doc.querySelector("item > pubDate")?.textContent).toBe(
         "Sun, 01 Mar 2026 00:00:00 GMT",
       );
@@ -211,12 +213,12 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
       vi.resetModules();
     });
 
-    it("survives XML-illegal control characters in a blurb — the feed still parses (#288)", async () => {
+    it("survives XML-illegal control characters in a summary — the feed still parses (#288)", async () => {
       // Reachable only via a raw Content Lake write, never Studio typing: even escaped, a
       // C0 control / DEL / lone surrogate / U+FFFE would make the whole document reject.
-      const blurb = "clean\x00\x01\x08\x0B\x0C\x1F\x7F\uFFFE\uFFFFtext";
+      const summary = "clean\x00\x01\x08\x0B\x0C\x1F\x7F\uFFFE\uFFFFtext";
       const doc = parseXml(
-        await feedXml([row({ _id: "1", slug: "ctrl", blurb })]),
+        await feedXml([row({ _id: "1", slug: "ctrl", summary })]),
       );
       expect(doc.querySelector("item > description")?.textContent).toBe(
         "cleantext",
@@ -352,9 +354,9 @@ describe("GET /rss.xml — feed rendering (QA #249)", () => {
       expect(doc.querySelectorAll("item")).toHaveLength(1);
     });
 
-    it("a lone surrogate at the very end of a blurb is dropped and the feed still parses (#288)", async () => {
+    it("a lone surrogate at the very end of a summary is dropped and the feed still parses (#288)", async () => {
       const doc = parseXml(
-        await feedXml([row({ _id: "1", slug: "tail", blurb: "tail\uD83C" })]),
+        await feedXml([row({ _id: "1", slug: "tail", summary: "tail\uD83C" })]),
       );
       expect(doc.querySelector("item > description")?.textContent).toBe("tail");
     });

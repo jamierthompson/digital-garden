@@ -109,7 +109,7 @@ the CSS" rule all live there. **This doc owns the _targets_; testing owns the _h
 
 The architecture already buys most of this — don't undo it:
 
-- **Keep the featured / Index queries essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `blurb` /
+- **Keep the featured / Index queries essay-free** (see the Content model section of [`./architecture.md`](./architecture.md)): it pulls `summary` /
   `theme.color` (the card's plate seed), never the essay. Small index payload protects **LCP**. Don't
   add the essay to the card query "for convenience."
 - **Keep the slot's `EntryScope` in the prerendered shell** (PPR via Cache Components — see the repo & hosting section of [`./architecture.md`](./architecture.md)):

@@ -83,7 +83,7 @@ export async function generateMetadata({
     return { title: "Not found" };
   }
   const title = entry.title ?? "Untitled entry";
-  const description = entry.blurb ?? undefined;
+  const description = entry.summary ?? undefined;
   return {
     title,
     description,
@@ -162,13 +162,13 @@ export default async function EntryPage({ params }: EntryPageProps) {
           <Heading level={1} color="accent-text">
             {entry.title}
           </Heading>
-          {entry.blurb ? (
+          {entry.summary ? (
             <Text
               variant="lede"
               color="muted-foreground"
-              className={styles.blurb}
+              className={styles.summary}
             >
-              {entry.blurb}
+              {entry.summary}
             </Text>
           ) : null}
         </header>

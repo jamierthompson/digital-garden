@@ -33,7 +33,7 @@ const THEMED_ENTRY = {
   _id: "themed-entry-fixture",
   title: "A Themed Slot",
   slug: "themed-slot",
-  blurb: "A representative themed entry.",
+  summary: "A representative themed entry.",
   theme: {
     color: "oklch(0.7 0.15 70)",
     colorDark: null,

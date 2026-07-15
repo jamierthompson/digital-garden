@@ -5,7 +5,7 @@ import { defineQuery } from "next-sanity";
  *
  * The digital garden syndicates everything published — notes, essays, projects, AND `now`
  * updates — newest first by the authored `iterated` date (falling back to `_createdAt`). Pulls
- * only what an `<item>` renders — `blurb` plus id / title / slug for the link, and `published`
+ * only what an `<item>` renders — `summary` plus id / title / slug for the link, and `published`
  * (the same `coalesce(iterated, _createdAt)` the ordering uses, so each item's `<pubDate>` agrees
  * with feed order) — and deliberately NOT the `body`, keeping the read small. Its only reader is
  * `rss.xml/route.ts`. The over-fetch guard is asserted in queries.test.ts. Typed by Sanity TypeGen
@@ -16,7 +16,7 @@ export const ENTRY_FEED_QUERY = defineQuery(`
     _id,
     title,
     "slug": slug.current,
-    blurb,
+    summary,
     "published": coalesce(iterated, _createdAt)
   }
 `);
@@ -39,7 +39,7 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  * (the detail route renders it through the Portable Text serializer) plus the entry's `theme`
  * object (`color`, `colorDark`, `headingFont`, `bodyFont`, `monoFont`) and the top-level `componentKey` that drive
  * `EntryScope` and module resolution, the facets (`kind`, `stage`, `iterated`, `featuredRank`), and the
- * surrounding `title` / `blurb`. Backlinks resolve both directions: `related[]->`
+ * surrounding `title` / `summary`. Backlinks resolve both directions: `related[]->`
  * is the outgoing edge; `backlinks` is the INCOMING edge (every entry that references this
  * one) via GROQ `references()`, so an edge authored once shows on both ends. `[0]` collapses
  * the filtered set to a single document (or `null` when the slug is unpublished/unknown) so
@@ -70,7 +70,7 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
     stage,
     iterated,
     featuredRank,
-    blurb,
+    summary,
     theme { color, colorDark, headingFont, bodyFont, monoFont },
     componentKey,
     "themeSeed": select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),
@@ -88,7 +88,7 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
  *
  * Pulls every published entry with the facets the Index reads — `kind` + `stage` (the group
  * headings + maturity badge) and a `linkCount` (outgoing `related` + incoming `references()`,
- * the backlink hint) — plus `title` / `slug` / `blurb` for the row. Deliberately NOT the
+ * the backlink hint) — plus `title` / `slug` / `summary` for the row. Deliberately NOT the
  * `body` or the `theme` object: the Index wears the global editorial look (no per-row theme), so
  * it needs neither the rich text nor the entry's theme. Ordered by `kind`, then freshest
  * first (`iterated`, falling back to `_createdAt`). Typed as `INDEX_QUERYResult`.
@@ -101,7 +101,7 @@ export const INDEX_QUERY = defineQuery(`
     kind,
     stage,
     iterated,
-    blurb,
+    summary,
     "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])
   }
 `);
@@ -110,7 +110,7 @@ export const INDEX_QUERY = defineQuery(`
  * Featured query (`/`, curated front door) — entries with a `featuredRank`, any `kind`.
  *
  * The hurried evaluator's reading path: the curated subset an editor promoted (`featuredRank`
- * is set), ordered by rank (lower = earlier). Pulls the card fields — `blurb` + the theme's
+ * is set), ordered by rank (lower = earlier). Pulls the card fields — `summary` + the theme's
  * `color` — because the featured cards ARE themed: each re-binds its own engine-solved palette
  * inline via `cardSwatches`. Only `theme.color` is read (the card never wears the slot font).
  * Deliberately NOT the `body`, keeping the front-door payload small for LCP. Typed as
@@ -123,7 +123,7 @@ export const FEATURED_QUERY = defineQuery(`
     "slug": slug.current,
     kind,
     stage,
-    blurb,
+    summary,
     theme { color }
   }
 `);
@@ -132,7 +132,7 @@ export const FEATURED_QUERY = defineQuery(`
  * Now query (`/now`) — the dated "now" stream (`kind == "now"`).
  *
  * A reverse-chronological stream of `now` updates (à la nownownow.com), newest first by the
- * authored `iterated` date (falling back to `_createdAt`). Pulls `title` / `slug` / `blurb`
+ * authored `iterated` date (falling back to `_createdAt`). Pulls `title` / `slug` / `summary`
  * for the stream entry and `iterated` for the date stamp — NOT the `body` (each update links
  * to its own flat `/[slug]` for the full text). Now-updates also fold into the Index's "Now"
  * section via `INDEX_QUERY`. Typed as `NOW_QUERYResult`.
@@ -143,7 +143,7 @@ export const NOW_QUERY = defineQuery(`
     title,
     "slug": slug.current,
     iterated,
-    blurb
+    summary
   }
 `);
 

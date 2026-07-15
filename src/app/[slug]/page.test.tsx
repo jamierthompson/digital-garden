@@ -142,7 +142,7 @@ function entry(over: EntryOverrides = {}): Record<string, unknown> {
     title: "An Entry",
     slug: "an-entry",
     kind: "note",
-    blurb: "A blurb.",
+    summary: "A summary.",
     theme: {
       color: null,
       colorDark: null,
@@ -171,7 +171,7 @@ beforeEach(() => {
 });
 
 describe("EntryPage — capability-gated detail (kind no longer gates; capability fields do)", () => {
-  it("renders a bare note prose-only: title + blurb, NO themed slot, NO scope threaded", async () => {
+  it("renders a bare note prose-only: title + summary, NO themed slot, NO scope threaded", async () => {
     fetchMock.mockResolvedValueOnce(
       entry({ kind: "note", componentKey: null, ...withBody }),
     );
@@ -181,7 +181,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("A blurb.")).toBeInTheDocument();
+    expect(screen.getByText("A summary.")).toBeInTheDocument();
     // No interactive slot, and the body was handed no scope (unthemed slots).
     expect(container.querySelector("[data-entry]")).toBeNull();
     expect(screen.queryByTestId("slot")).not.toBeInTheDocument();
@@ -316,10 +316,14 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
 
   it("renders a project with NO componentKey prose-only (a sketch, no module yet)", async () => {
     // A `stage: sketch` project carries a theme.color but no coded module, so its detail page
-    // renders title + blurb like a note/essay — it must NOT 404, and it mounts no after-prose
+    // renders title + summary like a note/essay — it must NOT 404, and it mounts no after-prose
     // slot (nothing resolves the key it doesn't have).
     fetchMock.mockResolvedValueOnce(
-      entry({ kind: "project", componentKey: null, blurb: "A sketch blurb." }),
+      entry({
+        kind: "project",
+        componentKey: null,
+        summary: "A sketch summary.",
+      }),
     );
     const { container } = render(
       await EntryPage({ params: params("an-entry") }),
@@ -327,7 +331,7 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     expect(
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("A sketch blurb.")).toBeInTheDocument();
+    expect(screen.getByText("A sketch summary.")).toBeInTheDocument();
     expect(screen.queryByTestId("slot")).not.toBeInTheDocument();
     expect(container.querySelector("[data-entry]")).toBeNull();
     // The key resolver must never even be consulted when there is no componentKey.

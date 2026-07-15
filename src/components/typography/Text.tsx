@@ -19,7 +19,7 @@ export type TextVariant =
 interface TextProps extends React.ComponentPropsWithRef<"p"> {
   /**
    * The semantic type role to apply — `body` (running copy, the default), `lede` (an intro /
-   * blurb, a notch larger than body), `label` (kickers / eyebrows / section labels), `meta`
+   * summary, a notch larger than body), `label` (kickers / eyebrows / section labels), `meta`
    * (metadata, timestamps, mono readouts), `caption` (small muted secondary prose — figure /
    * video captions, a quote's attribution), or `quote` (a pull-quote's body). Each applies that
    * role's token bundle (`--type-{role}-*` in `semantic/type.css`).

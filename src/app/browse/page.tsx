@@ -97,7 +97,7 @@ export default async function IndexPage() {
                             key={entry._id}
                             title={entry.title ?? "Untitled entry"}
                             slug={entry.slug}
-                            blurb={entry.blurb}
+                            summary={entry.summary}
                             stage={entry.stage}
                             linkCount={entry.linkCount}
                           />

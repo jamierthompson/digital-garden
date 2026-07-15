@@ -18,7 +18,7 @@ const XML_UNSAFE_CHARS =
 
 /**
  * Escape the five XML predefined entities so authored text (project titles,
- * blurbs) can't break the feed document or inject markup. Applied to every
+ * summaries) can't break the feed document or inject markup. Applied to every
  * interpolated string in the RSS route. Kept in its own module — not in
  * `route.ts` — so it can be unit-tested without exporting a non-handler from a
  * Route Handler file (Next only allows HTTP-method/config exports there).
