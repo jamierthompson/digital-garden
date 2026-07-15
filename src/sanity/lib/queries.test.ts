@@ -675,6 +675,31 @@ describe("INDEX_QUERY — filter and linkCount edges (#314 QA)", () => {
     expect(rows[0].linkCount).toBe(1);
   });
 
+  it("still counts backlinks when the entry has NO `related` array — a missing field must not null-poison the sum", async () => {
+    // GROQ counts an ABSENT field as `null`, and `null + 1` is `null` — so without the
+    // query's `coalesce(related, [])` a backlinked entry that authored no outgoing link
+    // reports a null count and silently loses its hint, while its detail page still lists
+    // the backlink. The Studio writes no empty array, so this is the common shape.
+    const rows = await run([
+      {
+        _type: "entry",
+        _id: "a-note",
+        _createdAt: "2026-01-01T00:00:00Z",
+        kind: "note",
+        slug: { current: "a-note" },
+      },
+      {
+        _type: "entry",
+        _id: "an-essay",
+        _createdAt: "2026-01-02T00:00:00Z",
+        kind: "essay",
+        slug: { current: "an-essay" },
+        related: [{ _type: "reference", _ref: "a-note", _key: "k1" }],
+      },
+    ]);
+    const note = rows.find((r) => r._id === "a-note");
+    expect(note?.linkCount).toBe(1);
+  });
 });
 
 /**

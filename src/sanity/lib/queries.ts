@@ -96,6 +96,11 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
  * `body` or the `theme` object: the Index wears the global editorial look (no per-row theme), so
  * it needs neither the rich text nor the entry's theme. Ordered by `kind`, then freshest
  * first (`iterated`, falling back to `_createdAt`). Typed as `INDEX_QUERYResult`.
+ *
+ * The `coalesce(related, [])` inside `linkCount` is load-bearing: GROQ counts an ABSENT field as
+ * `null`, not `0`, and `null + n` is `null`. Without it, an entry that authored no `related` array
+ * — the Studio writes no empty array, so this is the common shape — reports a null count and
+ * silently loses its hint even while its detail page lists the backlink.
  */
 export const INDEX_QUERY = defineQuery(`
   *[_type == "entry" && defined(slug.current) && kind != "now"] | order(kind asc, coalesce(iterated, _createdAt) desc) {
@@ -106,7 +111,7 @@ export const INDEX_QUERY = defineQuery(`
     stage,
     iterated,
     summary,
-    "linkCount": count(related) + count(*[_type == "entry" && references(^._id)])
+    "linkCount": count(coalesce(related, [])) + count(*[_type == "entry" && references(^._id)])
   }
 `);
 
