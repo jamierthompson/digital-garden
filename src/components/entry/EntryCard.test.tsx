@@ -51,6 +51,13 @@ describe("EntryCard", () => {
     expect(screen.queryByText("A short summary.")).toBeNull();
   });
 
+  it("omits the summary paragraph for an empty string, not just null — no empty <p> in the card", () => {
+    // A blank Studio field serialises to "" (a valid string); the truthiness guard must
+    // treat it as missing rather than render an empty paragraph between title and meta.
+    const { container } = renderCard(entry({ summary: "" }));
+    expect(container.querySelectorAll("p")).toHaveLength(1); // the meta readout only
+  });
+
   it("renders the mono meta readout: maturity stage · OKLCH seed", () => {
     renderCard(
       entry({ stage: "shipped", theme: { color: "oklch(0.6 0.2 260)" } }),

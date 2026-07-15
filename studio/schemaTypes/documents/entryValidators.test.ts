@@ -55,6 +55,15 @@ describe('requiredForThemedKind — theme.color: required for note/essay/demo (#
     expect(requiredForThemedKind(undefined, ctx({kind: 'bookmark'}))).toBe(true)
   })
 
+  it('treats the RETIRED legacy kind `project` like any unknown kind — no color floor during the migration window (#312)', () => {
+    // Until the dataset migration runs, live docs still carry `kind: "project"`. The rename
+    // moved the allowlist to `demo`, so a legacy doc opened in Studio gets NO required floor
+    // (fail-open, same as an unknown kind) and no forbidden rule — pinned so the window's
+    // validation semantics are deliberate, not accidental.
+    expect(requiredForThemedKind(undefined, ctx({kind: 'project'}))).toBe(true)
+    expect(forbiddenForNow('#4f46e5', ctx({kind: 'project'}))).toBe(true)
+  })
+
   it('is NOT required for a draft whose kind is not yet chosen (document present, no kind)', () => {
     // A brand-new draft exists before the editor picks a kind; it must not throw a required
     // error on theme.color the instant it is created.

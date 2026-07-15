@@ -182,6 +182,39 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
 });
 
 /**
+ * QA (#312): the deploy→migration window, executed. Until the dataset migration runs, live
+ * docs still carry the OLD shape — `blurb` (not `summary`) and `kind: "project"`. The renamed
+ * queries must degrade cleanly against them: still syndicate, project `summary: null` (never
+ * silently surface the legacy `blurb` value under the new name), and never leak the old field.
+ */
+describe("ENTRY_FEED_QUERY — migration window (legacy blurb docs, #312)", () => {
+  const LEGACY_DATASET = [
+    {
+      _type: "entry",
+      _id: "legacy",
+      _createdAt: "2026-01-01T00:00:00Z",
+      kind: "project",
+      title: "Legacy entry",
+      slug: { current: "legacy" },
+      blurb: "Old field, not yet migrated.",
+    },
+  ];
+
+  it("still syndicates a legacy doc, with `summary: null` — never the blurb value, never the blurb key", async () => {
+    const rows = (await (
+      await evaluate(parse(ENTRY_FEED_QUERY), { dataset: LEGACY_DATASET })
+    ).get()) as Array<Record<string, unknown>>;
+    expect(rows).toHaveLength(1);
+    const row = rows[0];
+    // The item renders with an empty description (route null-guards), not a crash…
+    expect(row.summary).toBeNull();
+    // …and the legacy field neither leaks under its old key nor masquerades as the new one.
+    expect(Object.keys(row)).not.toContain("blurb");
+    expect(Object.values(row)).not.toContain("Old field, not yet migrated.");
+  });
+});
+
+/**
  * The detail query (`/[slug]`) is the inverse of the index: it DOES pull the body
  * and the entry's `theme` object, resolves backlinks both directions (`related[]->` outgoing +
  * incoming `references()`), fetches by `$slug` parameter (never interpolation), and `[0]`s
@@ -317,6 +350,14 @@ describe("ENTRY_DETAIL_QUERY themeSeed — executed GROQ semantics (#173 QA)", (
     expect(
       await resolveThemeSeed({ kind: "demo", theme: { color: "#4f46e5" } }),
     ).toBe("#4f46e5");
+  });
+
+  it("a LEGACY kind:'project' doc still themes from its own theme.color during the migration window (#312)", async () => {
+    // The select() is gated only on `kind == "now"`, so the retired value falls through to
+    // `theme.color` like any non-now kind — a pre-migration doc's detail page keeps its theme.
+    expect(
+      await resolveThemeSeed({ kind: "project", theme: { color: "#123456" } }),
+    ).toBe("#123456");
   });
 
   it("falls through to null when no siteSettings singleton is published (defensive)", async () => {

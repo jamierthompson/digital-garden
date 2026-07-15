@@ -1,3 +1,4 @@
+import {ConcreteRuleClass} from 'sanity'
 import {describe, expect, it} from 'vitest'
 
 import {isThemeColorString} from '../shared/colorValidation'
@@ -191,5 +192,87 @@ describe('entry schema — the three faces + componentKey are truly unvalidated 
     // Guard the blast radius: removing the font/componentKey floor must NOT strip the color
     // required floor. `calledRules` here should still record the three custom color validators.
     expect(calledRules(themeField('color'))).toEqual(['custom', 'custom', 'custom'])
+  })
+})
+
+/**
+ * QA (#312): the kind value rename (`project` → `demo`) and the `blurb` → `summary` field
+ * rename. Pins that the schema's option list, its `initialValue`, and the field roster all
+ * moved together — a partial rename (e.g. `initialValue: 'demo'` while the list still offers
+ * `project`, or vice versa) would initialize every new entry to an ILLEGAL kind value that
+ * the radio input cannot even display.
+ */
+type KindField = FieldDef & {
+  options?: {list?: ReadonlyArray<{title?: string; value?: string}>}
+  initialValue?: unknown
+}
+
+describe('entry schema — kind list + initialValue move together (#312 rename)', () => {
+  const kind = field('kind') as KindField | undefined
+  const values = kind?.options?.list?.map((o) => o.value)
+
+  it('offers exactly note / essay / demo / now — the retired `project` value is gone', () => {
+    expect(values).toEqual(['note', 'essay', 'demo', 'now'])
+  })
+
+  it('initialValue is `demo` AND a member of the declared option list — never an orphaned value', () => {
+    expect(kind?.initialValue).toBe('demo')
+    expect(values).toContain(kind?.initialValue)
+  })
+
+  it('carries a summary field and no legacy blurb field', () => {
+    const summary = field('summary')
+    expect(summary, 'expected a summary field').toBeDefined()
+    expect(summary?.type).toBe('text')
+    expect(fields.map((f) => f.name)).not.toContain('blurb')
+  })
+})
+
+/**
+ * QA (#312): the summary caps EXECUTED against the real installed Sanity Rule runtime —
+ * the stated contract is a 280-char WARNING (card-sized nudge, still publishable) and a
+ * 300-char ERROR (hard cap, blocks publish). A spy-Rule test cannot see levels; only
+ * running the field's actual `validation` chain through `ConcreteRuleClass.validate`
+ * proves which tier fires at which length.
+ */
+describe('entry schema — summary caps: 280 warns, 300 errors (#312)', () => {
+  interface Marker {
+    level: string
+    message: string
+  }
+  interface ExecutableRule {
+    validate(value: unknown, context: unknown): Promise<Marker[]>
+  }
+
+  async function summaryMarkers(value: string): Promise<Marker[]> {
+    const validation = field('summary')?.validation as
+      | ((rule: unknown) => unknown)
+      | undefined
+    const returned = validation?.(new ConcreteRuleClass().type('String'))
+    // Sanity accepts Rule | Rule[] from `validation` — a two-tier warn+error contract is
+    // expressed as an ARRAY of rules (one per level), so normalize both shapes.
+    const rules = (Array.isArray(returned) ? returned : [returned]) as ExecutableRule[]
+    const i18n = {t: (key: string) => key}
+    const markers: Marker[] = []
+    for (const rule of rules) markers.push(...(await rule.validate(value, {i18n})))
+    return markers
+  }
+
+  it('a summary AT the 280 cap publishes clean — no marker of any level', async () => {
+    expect(await summaryMarkers('x'.repeat(280))).toEqual([])
+  })
+
+  it('a 281–300-char summary WARNS (card-sized nudge) and must NOT block publish', async () => {
+    const markers = await summaryMarkers('x'.repeat(290))
+    // The stated soft tier: a warning fires past 280…
+    expect(markers.some((m) => m.level === 'warning')).toBe(true)
+    // …and no error-level marker may fire below the 300 hard cap — an error here blocks
+    // publish 20 characters early, with the hard-cap message on a summary that is legal.
+    expect(markers.some((m) => m.level === 'error')).toBe(false)
+  })
+
+  it('a 301+-char summary ERRORS on the 300 hard cap', async () => {
+    const markers = await summaryMarkers('x'.repeat(310))
+    expect(markers.some((m) => m.level === 'error' && /300/.test(m.message))).toBe(true)
   })
 })

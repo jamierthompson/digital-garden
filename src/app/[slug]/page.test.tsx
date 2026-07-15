@@ -345,6 +345,33 @@ describe("EntryPage — capability-gated detail (kind no longer gates; capabilit
     );
   });
 
+  it("renders a LEGACY kind:'project' doc (pre-migration window, #312) with its resolvable slot — never a crash or 404", async () => {
+    // Between the deploy and the dataset migration, live docs still carry the retired
+    // kind value. The page's gates key on `kind === "now"` and capability fields only, so a
+    // legacy doc must render exactly like a demo: themed, module mounted, template intact.
+    resolveComponentKeyMock.mockReturnValue(foundSlot());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "project",
+        componentKey: "color-engine",
+        slug: "color-engine",
+        theme: { color: "oklch(0.7 0.15 70)", bodyFont: "newsreader" },
+        themeSeed: "oklch(0.7 0.15 70)",
+        ...withBody,
+      }),
+    );
+    render(await EntryPage({ params: params("color-engine") }));
+    expect(
+      screen.getByRole("heading", { level: 1, name: /an entry/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("slot")).toBeInTheDocument();
+    // The scope still threads (theme.color is a capability, not a kind) — slots stay themed.
+    expect(screen.getByTestId("essay-body")).toHaveAttribute(
+      "data-has-scope",
+      "yes",
+    );
+  });
+
   // #175: the entry page delivers its OWN authored theme onto `<html>` — a synchronous
   // `<PageTheme>` mounted first in BOTH templates, baking the kind-gated `themeSeed`'s
   // engine-solved `--accent` into the parse-time init script (the same seed the chrome inherits).

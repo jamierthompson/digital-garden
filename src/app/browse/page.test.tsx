@@ -223,6 +223,50 @@ describe("IndexPage (/browse) — the folded Index", () => {
   });
 });
 
+/**
+ * QA (#312): the deploy→migration window. The kind value renamed `project` → `demo` in code,
+ * but live documents keep `kind: "project"` until the dataset migration runs post-merge.
+ * KIND_SECTIONS is an allowlist, so a legacy row matches no section — these pin exactly what
+ * the window looks like, so the behavior is deliberate and visible, not a silent surprise.
+ */
+describe("IndexPage (/browse) — the migration window (legacy kind: 'project', #312)", () => {
+  it("silently drops a legacy kind:'project' row — no Projects section, no stray row", async () => {
+    fetchMock.mockResolvedValueOnce([
+      row({ _id: "d1", kind: "demo", title: "A migrated demo", slug: "d-1" }),
+      row({
+        _id: "p1",
+        kind: "project",
+        title: "A legacy project",
+        slug: "p-1",
+      }),
+    ]);
+    render(await IndexPage());
+    // The migrated demo lists under Demos…
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Demos" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("A migrated demo")).toBeInTheDocument();
+    // …the legacy row gets no section and no row — dropped, not crashed on.
+    expect(screen.queryByRole("heading", { name: "Projects" })).toBeNull();
+    expect(screen.queryByText("A legacy project")).toBeNull();
+  });
+
+  it("shows the empty state — the WHOLE index goes dark — when every row is still legacy 'project'", async () => {
+    // This is the live production state between the deploy and the migration: every
+    // interactive entry still carries kind:"project", so nothing matches a section and the
+    // reader sees "Nothing published yet." on a garden that IS published. Acceptable only
+    // because the migration is scheduled immediately post-merge — pinned here so the window
+    // is a known, tested state rather than an accident.
+    fetchMock.mockResolvedValueOnce([
+      row({ _id: "p1", kind: "project", title: "Legacy one", slug: "p-1" }),
+      row({ _id: "p2", kind: "project", title: "Legacy two", slug: "p-2" }),
+    ]);
+    render(await IndexPage());
+    expect(screen.getByText(/nothing published yet/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 2 })).toBeNull();
+  });
+});
+
 describe("IndexPage (/browse) — theme mount wiring", () => {
   beforeEach(() => {
     seedSpy.mockClear();
