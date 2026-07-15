@@ -12,7 +12,7 @@
  * Why the FULL palette, not a lone accent: the featured-home grid is the engine's live contrast
  * stress-test. A card's SURFACE and TEXT are BOTH engine-derived, so the ratio between them
  * *is* the solver's output — exercised and visible at every theme value across the grid. A
- * card is a project's own scoped slot (not chrome), so a fully-themed card is exactly "theme
+ * card is an entry's own scoped slot (not chrome), so a fully-themed card is exactly "theme
  * scoped to the slot"; the editorial-chrome inversion (#58) governs the shell and page frame,
  * not the themed slots.
  *
@@ -62,7 +62,7 @@ function lightDark(pair: SchemePair): string {
 }
 
 /**
- * Derive a card's inline semantic-token overrides from a project's `themeColor`.
+ * Derive a card's inline semantic-token overrides from an entry's `theme.color`.
  * Defensive and total: any bad/missing/hostile input flows through the engine's fallback
  * palette and still yields a valid swatch object; never throws.
  *

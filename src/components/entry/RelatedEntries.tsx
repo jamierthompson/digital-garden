@@ -41,7 +41,7 @@ export default function RelatedEntries({
   backlinks,
 }: RelatedEntriesProps) {
   // Cache Components keeps up to 3 route instances mounted at once (React's `<Activity>`,
-  // hidden ones `display:none`) — visiting several `/[slug]` projects in one session can leave
+  // hidden ones `display:none`) — visiting several `/[slug]` entries in one session can leave
   // multiple RelatedEntries trees live simultaneously, so a hardcoded id collides across them.
   // `useId()` looked like the fix but ISN'T: empirically, two Activity-preserved `/[slug]`
   // instances generated the identical id (Next's per-route Activity boundary resets React's

@@ -127,7 +127,7 @@ async function Card({ theme }: { theme: string }) {
 
 1. **Foundation** (primitives: spacing, radius, border-width, control sizes, motion, z-index, type-scale — raw value scales; there is **no** separate "feel/geometry" tier) → global `:root` in `src/styles/foundation/*` (one file per family), with the base reset in `src/styles/reset.css`.
 2. **Semantic** (generic role tokens components actually read) → the layer components consume; a role that needs a geometry primitive binds it here, exactly as the spacing roles alias `--space-*`.
-3. **Theme** → a project **slot**'s full scoped override of the semantic layer — engine-scoped to the `[data-entry]` wrapper, emitted by the OKLCH engine; page chrome stays on the global editorial foundation.
+3. **Theme** → an entry **slot**'s full scoped override of the semantic layer — engine-scoped to the `[data-entry]` wrapper, emitted by the OKLCH engine; page chrome stays on the global editorial foundation.
 
 Components read **generic semantic tokens** — `--surface`, `--foreground`, `--accent`, … `--font-body`, `--space-*`. There are **no `--<proj>-*` per-entry prefixed token names**: the `[data-entry]` scope provides the isolation, so a slot overrides the same generic names the rest of the app reads.
 
@@ -227,7 +227,7 @@ Skim this before writing framework code; **verify each against the bundled doc**
 - [ ] `'use cache'` can't read request APIs — pass them as **args** (args = cache key); no functions/class instances/`URL` in args.
 - [ ] `middleware.ts` → **`proxy.ts`**, Node runtime only.
 - [ ] `<Activity>` keeps recent routes mounted (hidden), so state + DOM **persist** across nav; effects are **not** auto-cleaned.
-- [ ] Project lazy-load = **literal** `() => import("@/entries/<slug>")`, never templated.
+- [ ] Entry lazy-load = **literal** `() => import("@/entries/<slug>")`, never templated.
 - [ ] CSS Modules need an explicit **`@layer`** — the unlayered module outranks everything.
 - [ ] Engine is **isomorphic**: no `next`/`react`/`react-dom`, no DOM/Node globals, no `server-only`/`client-only`.
 - [ ] Only `NEXT_PUBLIC_*` env vars reach the client; Context is Server-Component-unavailable.

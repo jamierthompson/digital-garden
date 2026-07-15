@@ -84,7 +84,7 @@ export async function GET() {
     <title>Jamie Thompson — Digital Garden</title>
     <link>${escapeXml(SITE_URL)}</link>
     <atom:link href="${escapeXml(FEED_URL)}" rel="self" type="application/rss+xml" />
-    <description>Notes, essays, projects, and now-updates from the digital garden.</description>
+    <description>Notes, essays, demos, and now-updates from the digital garden.</description>
 ${items}
   </channel>
 </rss>`;

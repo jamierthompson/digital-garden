@@ -122,7 +122,7 @@ What must be true for a **production deploy to actually work** — the env- and 
 **Required content (in the `production` dataset):**
 
 - [ ] A **`siteSettings` singleton** (`_id: "siteSettings"`) — it supplies the site title/description (`generateMetadata`) **and** the per-page theme seeds (`pageThemes`, one authored color per site-owned page — `/`, `/browse`, `/about`, `/now`, `/system`); a missing one degrades to safe defaults, never an error. (Site pages derive their `<html>` theme from these seeds — see the token & theming architecture.)
-- [ ] At least one **published project-kind `entry`** per flat `/[slug]` route.
+- [ ] At least one **published demo-kind `entry`** per flat `/[slug]` route.
 
 ### Every deploy
 

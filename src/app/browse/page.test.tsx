@@ -77,7 +77,7 @@ describe("IndexPage (/browse) — the folded Index", () => {
 
   it("groups entries under their kind headings in display order, omitting empty kinds", async () => {
     // Fetch order is deliberately NOT the display order — display order is fixed by
-    // KIND_SECTIONS (project → essay → now), never the query's kind-asc.
+    // KIND_SECTIONS (demo → essay → now), never the query's kind-asc.
     fetchMock.mockResolvedValueOnce([
       row({
         _id: "n1",
@@ -86,25 +86,25 @@ describe("IndexPage (/browse) — the folded Index", () => {
         slug: "now-1",
         stage: null,
       }),
-      row({ _id: "p1", kind: "project", title: "A project", slug: "proj-1" }),
+      row({ _id: "p1", kind: "demo", title: "A demo", slug: "proj-1" }),
       row({ _id: "e1", kind: "essay", title: "An essay", slug: "essay-1" }),
     ]);
     render(await IndexPage());
     const headings = screen
       .getAllByRole("heading", { level: 2 })
       .map((h) => h.textContent);
-    expect(headings).toEqual(["Projects", "Essays", "Now"]);
+    expect(headings).toEqual(["Demos", "Essays", "Now"]);
   });
 
   it("excludes notes from the Index — no Notes heading, note rows are not rendered", async () => {
     fetchMock.mockResolvedValueOnce([
-      row({ _id: "p1", kind: "project", title: "A project", slug: "proj-1" }),
+      row({ _id: "p1", kind: "demo", title: "A demo", slug: "proj-1" }),
       row({ _id: "no1", kind: "note", title: "A hidden note", slug: "note-1" }),
     ]);
     render(await IndexPage());
-    // The project still lists…
+    // The demo still lists…
     expect(
-      screen.getByRole("heading", { level: 2, name: "Projects" }),
+      screen.getByRole("heading", { level: 2, name: "Demos" }),
     ).toBeInTheDocument();
     // …but notes get no section and no row, even when present in the data.
     expect(screen.queryByRole("heading", { name: "Notes" })).toBeNull();
@@ -115,14 +115,14 @@ describe("IndexPage (/browse) — the folded Index", () => {
     fetchMock.mockResolvedValueOnce([
       row({
         _id: "p1",
-        kind: "project",
-        title: "Only a project",
+        kind: "demo",
+        title: "Only a demo",
         slug: "proj-1",
       }),
     ]);
     render(await IndexPage());
     expect(
-      screen.getByRole("heading", { level: 2, name: "Projects" }),
+      screen.getByRole("heading", { level: 2, name: "Demos" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Essays" })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Now" })).toBeNull();
@@ -157,7 +157,7 @@ describe("IndexPage (/browse) — the folded Index", () => {
     fetchMock.mockResolvedValueOnce([
       row({
         _id: "a",
-        kind: "project",
+        kind: "demo",
         title: "Shipped thing",
         slug: "a",
         stage: "shipped",
@@ -201,20 +201,20 @@ describe("IndexPage (/browse) — the folded Index", () => {
 
   it("gives every group section an accessible name wired to its heading id", async () => {
     fetchMock.mockResolvedValueOnce([
-      row({ _id: "p", kind: "project", title: "P", slug: "p" }),
+      row({ _id: "p", kind: "demo", title: "P", slug: "p" }),
     ]);
     render(await IndexPage());
-    // The <section aria-labelledby="section-project"> is named by its <h2 id="section-project">.
-    const section = screen.getByRole("region", { name: "Projects" });
+    // The <section aria-labelledby="section-demo"> is named by its <h2 id="section-demo">.
+    const section = screen.getByRole("region", { name: "Demos" });
     expect(section).toBeInTheDocument();
     expect(
-      within(section).getByRole("heading", { level: 2, name: "Projects" }),
+      within(section).getByRole("heading", { level: 2, name: "Demos" }),
     ).toBeInTheDocument();
   });
 
   it("renders exactly one h1 (the page title) above the group headings", async () => {
     fetchMock.mockResolvedValueOnce([
-      row({ _id: "p", kind: "project", title: "P", slug: "p" }),
+      row({ _id: "p", kind: "demo", title: "P", slug: "p" }),
     ]);
     render(await IndexPage());
     const h1s = screen.getAllByRole("heading", { level: 1 });
@@ -234,7 +234,7 @@ describe("IndexPage (/browse) — theme mount wiring", () => {
     // would still compile. Pin that IndexPage asks for `browse`, and that the (synchronous)
     // PageTheme actually mounts its parse-time init script in the rendered shell.
     fetchMock.mockResolvedValueOnce([
-      row({ _id: "p", kind: "project", title: "P", slug: "p" }),
+      row({ _id: "p", kind: "demo", title: "P", slug: "p" }),
     ]);
     const html = renderToStaticMarkup(await IndexPage());
     expect(seedSpy).toHaveBeenCalledWith("browse");

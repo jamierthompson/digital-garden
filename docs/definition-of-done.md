@@ -91,10 +91,10 @@ into a cached scope.
 ## 4. "Don't reach up" — universal principle, shared-primitive litmus
 
 **The principle is universal — it is _not_ tied to shared primitives.** Every unit, even one
-used only across a single project's own pages, is **self-sufficient**: it reads its themeable
+used only across a single entry's own pages, is **self-sufficient**: it reads its themeable
 values from **generic semantic tokens** (`--surface`, `--accent`, … `--font-body`, `--space-*`) and its **props**, and
 never reaches _up_ for a host's look or a parent's internal state. A card shown on both a hero
-and an essay page consumes the project tokens, not "whatever the hero mounted above me."
+and an essay page consumes the entry tokens, not "whatever the hero mounted above me."
 Reading the global **foundation** tier (spacing, motion) is fine — that's plumbing,
 not a look.
 

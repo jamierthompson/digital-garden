@@ -146,7 +146,7 @@ before touching the roster.
 - **Per-entry faces are applied, not preloaded:** each resolved face's `.variable` on the
   `[data-entry]` scope, where it re-binds its role token (`--font-heading` / `--font-body` /
   `--font-mono`); they tolerate `font-display: swap` below the fold.
-- **If an above-the-fold project face genuinely must preload,** emit
+- **If an above-the-fold entry face genuinely must preload,** emit
   `<link rel="preload" as="font" crossorigin>` **manually** — `crossorigin` is required
   for fonts even same-origin.
 - Prefer **variable fonts** (one file, many weights).

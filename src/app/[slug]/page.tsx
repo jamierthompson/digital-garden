@@ -38,7 +38,7 @@ import styles from "./page.module.css";
 // capability fields it carries, not its `kind` (any kind of entry can be interactive or themed).
 //   • Module — a `componentKey` that DECLARES a coded module: present → resolve it; a
 //     renamed/deleted module (drift) → `notFound()`, for ANY kind. NO `componentKey` →
-//     prose-only, never a 404 (a `stage: sketch` project keeps its key null until it ships,
+//     prose-only, never a 404 (a `stage: sketch` demo keeps its key null until it ships,
 //     and a note/essay simply never has one). A module composes one (or both) of two ways —
 //     `Slot` (one slot mounted after the prose) and/or `Provider` (a client frame around
 //     the article so interleaved `slot` blocks share state).
@@ -115,7 +115,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
 
   // Module gate — capability, not kind. A DECLARED `componentKey` must resolve for any kind
   // except `now`: a renamed/deleted module (drift) → `notFound()`, never a crash. NO
-  // `componentKey` → `resolution` is null → prose-only, not a 404 (a sketch project keeps its
+  // `componentKey` → `resolution` is null → prose-only, not a 404 (a sketch demo keeps its
   // key null until it ships; a note/essay simply never has one). The resolver is never even
   // consulted without a key, nor for a `now`.
   const resolution =

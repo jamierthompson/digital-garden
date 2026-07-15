@@ -17,7 +17,7 @@ const XML_UNSAFE_CHARS =
   /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
 
 /**
- * Escape the five XML predefined entities so authored text (project titles,
+ * Escape the five XML predefined entities so authored text (entry titles,
  * summaries) can't break the feed document or inject markup. Applied to every
  * interpolated string in the RSS route. Kept in its own module — not in
  * `route.ts` — so it can be unit-tested without exporting a non-handler from a

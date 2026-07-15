@@ -1,6 +1,6 @@
 ---
 name: sanity-content-reviewer
-description: Reviews Sanity schema, stega, TypeGen, and content-model work — the single `entry` type with a `kind` discriminator (note · essay · project · now), `stage`/`iterated`, and Day-1 backlinks, stega excluded on the whole `theme` object by ancestor, the single `defineLive` read path, and regenerated-and-committed `sanity.types.ts`. Use proactively after editing anything under `studio/`, GROQ queries, `keys.ts`, or content-fetching code.
+description: Reviews Sanity schema, stega, TypeGen, and content-model work — the single `entry` type with a `kind` discriminator (note · essay · demo · now), `stage`/`iterated`, and Day-1 backlinks, stega excluded on the whole `theme` object by ancestor, the single `defineLive` read path, and regenerated-and-committed `sanity.types.ts`. Use proactively after editing anything under `studio/`, GROQ queries, `keys.ts`, or content-fetching code.
 tools: Read, Grep, Glob
 ---
 
@@ -19,11 +19,11 @@ for schema and GROQ specifics.
 
 ## What to check
 
-1. **One `entry` document type; a `kind` field discriminates.** Notes, essays, projects, and now-updates
+1. **One `entry` document type; a `kind` field discriminates.** Notes, essays, demos, and now-updates
    are the same shape (a themed page with interactive slot(s) + prose), so they are the single `entry`
-   type discriminated by a **`kind`** field (`note` · `essay` · `project` · `now`) — NOT separate document
+   type discriminated by a **`kind`** field (`note` · `essay` · `demo` · `now`) — NOT separate document
    types, and NOT a discriminator-less merge (the required `kind` is what lets the Index filter by type).
-   Flag: a second top-level document type added speculatively; a note/essay/project/now split into
+   Flag: a second top-level document type added speculatively; a note/essay/demo/now split into
    separate document types; or a collapse to one type without a `kind` discriminator.
 
 2. **`stage` + `iterated`.** An `entry` carries a **`stage`** (sketch → prototype → shipped — stable
@@ -35,10 +35,10 @@ for schema and GROQ specifics.
 3. **Day-1 backlinks via real references.** An `entry` carries a `related` **self-referencing** array
    (`entry` → `entry`); incoming backlinks resolve via GROQ `references()` (the edge is authored once and
    shows both ends, cross-kind). Backlinks must be real `reference` fields — never strings or slugs.
-   `theme.color` is **required for every themed kind** (note · essay · project, any stage); the three
+   `theme.color` is **required for every themed kind** (note · essay · demo, any stage); the three
    font faces (`theme.headingFont` / `bodyFont` / `monoFont`) **and** `componentKey` are
    **unconditionally optional**, theming/mounting purely on **presence** for every kind but `now`
-   (#226 deleted the `requiredForNonSketchProject` validator — a prose-only shipped project is valid).
+   (#226 deleted the `requiredForNonSketchProject` validator — a prose-only shipped demo is valid).
    A `now` carries no theme of its own (it inherits the `/now` page seed). Flag a backlink stored as a
    string/slug, a one-directional link that can't resolve the incoming side, `theme.color` made
    optional for a themed kind, or a face / `componentKey` made required for any kind (breaks prose-only

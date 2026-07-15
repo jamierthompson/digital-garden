@@ -3,7 +3,7 @@ import { defineQuery } from "next-sanity";
 /**
  * Entry feed query (RSS) — every published entry, any `kind`.
  *
- * The digital garden syndicates everything published — notes, essays, projects, AND `now`
+ * The digital garden syndicates everything published — notes, essays, demos, AND `now`
  * updates — newest first by the authored `iterated` date (falling back to `_createdAt`). Pulls
  * only what an `<item>` renders — `summary` plus id / title / slug for the link, and `published`
  * (the same `coalesce(iterated, _createdAt)` the ordering uses, so each item's `<pubDate>` agrees
@@ -53,7 +53,7 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  * synchronously in the already-awaited result — no async boundary, so the static shell paints
  * flash-free (#166). It is KIND-gated, not presence-gated: a `now` entry ALWAYS wears the authored
  * `/now` page seed, so a now update wears the same theme as the `/now` index, and every themed kind
- * (note/essay/project) wears its own required `theme.color`. The `forbiddenForNow` validator already
+ * (note/essay/demo) wears its own required `theme.color`. The `forbiddenForNow` validator already
  * stops a `now` from carrying a `theme.color`; the kind-gate is the defense-in-depth behind it —
  * even a validator-bypassing value (a legacy doc, a raw API write) is IGNORED here rather than
  * sourced. A `select()` — not a `coalesce(theme.color, …)` — because coalesce is presence-gated and

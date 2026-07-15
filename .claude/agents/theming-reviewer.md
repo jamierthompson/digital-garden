@@ -48,7 +48,7 @@ server-emitted `<style>`. Verify against the docs above and the real code, not t
    (`[data-entry]` / the `Slot`). Flag a theme font bleeding onto page chrome, or a route that
    renders content without a `<PageTheme>` seed where one belongs.
 
-5. **Downward theming has one owner.** The project's slot scope is the single owner of the theme + font
+5. **Downward theming has one owner.** The entry's slot scope is the single owner of the theme + font
    within the slot; the experience and embedded components beneath it read the **same scoped tokens**
    passed down. A shared primitive must not assume tokens that only exist inside a slot. Flag a
    component reaching up to or hard-coding a value the slot scope should provide.

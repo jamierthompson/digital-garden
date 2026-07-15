@@ -11,7 +11,7 @@ import type {ValidationContext} from 'sanity'
  * Two shapes of rule: a REQUIRED floor (`requiredForThemedKind`) and a PROHIBITION
  * (`forbiddenForNow`), both governing only the entry's COLOR. Everything else is capability-gated:
  * the route themes / mounts on the PRESENCE of a field, so the three font faces and `componentKey`
- * are plain optional fields the app honors when set (a `note`/`essay`/`project` that sets
+ * are plain optional fields the app honors when set (a `note`/`essay`/`demo` that sets
  * `componentKey` mounts its module) and ignores when absent — no validation. The one hard exception
  * is a `now` entry's COLOR: it inherits the single `/now` seed and may not set
  * `theme.color`/`theme.colorDark` at all (`forbiddenForNow` rejects it). See docs/architecture.md
@@ -24,11 +24,11 @@ import type {ValidationContext} from 'sanity'
  * the `/now` page seed instead). A NEW themed kind opts into the required `theme.color` floor by
  * joining this list; an as-yet-uninvented kind is not silently forced to carry one.
  */
-const THEMED_KINDS = ['note', 'essay', 'project'] as const
+const THEMED_KINDS = ['note', 'essay', 'demo'] as const
 
 /**
- * `theme.color` is required for every THEMED kind — note, essay, and project (any stage: the
- * project card plate consumes it even for a sketch, and a note/essay page now themes from it
+ * `theme.color` is required for every THEMED kind — note, essay, and demo (any stage: the
+ * demo card plate consumes it even for a sketch, and a note/essay page now themes from it
  * too). Exempt for `now` (chrome + prose — it inherits the `/now` seed) and for a half-created
  * draft whose `kind` isn't picked yet (don't error before the editor chooses). This is only the
  * author-time required floor; the complementary `forbiddenForNow` bans a color on a `now`.
@@ -37,7 +37,7 @@ export function requiredForThemedKind(value: unknown, context: ValidationContext
   const kind = (context.document as {kind?: unknown} | undefined)?.kind
   const isThemed = (THEMED_KINDS as readonly unknown[]).includes(kind)
   return isThemed && !value
-    ? 'Required — every note, essay, and project needs a theme color.'
+    ? 'Required — every note, essay, and demo needs a theme color.'
     : true
 }
 

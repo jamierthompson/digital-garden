@@ -14,11 +14,11 @@ import {
  * data-layer guard honest without rendering an async RSC (untestable in jsdom — testing.md).
  */
 describe("ENTRY_FEED_QUERY", () => {
-  it("filters to every published entry, not just projects", () => {
+  it("filters to every published entry, not just demos", () => {
     expect(ENTRY_FEED_QUERY).toContain('_type == "entry"');
     expect(ENTRY_FEED_QUERY).toContain("defined(slug.current)");
-    // A garden feed syndicates every kind — it must NOT narrow to project-kind entries.
-    expect(ENTRY_FEED_QUERY).not.toContain('kind == "project"');
+    // A garden feed syndicates every kind — it must NOT narrow to demo-kind entries.
+    expect(ENTRY_FEED_QUERY).not.toContain('kind == "demo"');
   });
 
   it("orders newest first by the authored iterated date, falling back to _createdAt", () => {
@@ -78,12 +78,12 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
   const FEED_DATASET = [
     {
       _type: "entry",
-      _id: "old-project",
+      _id: "old-demo",
       _createdAt: "2026-01-01T00:00:00Z",
-      kind: "project",
-      title: "Old project",
-      slug: { current: "old-project" },
-      summary: "Projects still syndicate.",
+      kind: "demo",
+      title: "Old demo",
+      slug: { current: "old-demo" },
+      summary: "Demos still syndicate.",
       stage: "shipped",
       featuredRank: 1,
       theme: { color: "#4f46e5", bodyFont: "inter" },
@@ -128,7 +128,7 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
   it("returns every published kind — now included — and drops the slugless doc", async () => {
     const rows = await runFeed();
     expect(rows.map((r) => r._id)).toEqual(
-      expect.arrayContaining(["old-project", "fresh-now", "iterated-note"]),
+      expect.arrayContaining(["old-demo", "fresh-now", "iterated-note"]),
     );
     expect(rows).toHaveLength(3);
   });
@@ -136,11 +136,11 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
   it("orders newest-first by iterated, falling back to _createdAt", async () => {
     const rows = await runFeed();
     // iterated-note's authored 2026-03-01 outranks fresh-now's created 2026-02-01,
-    // which outranks old-project's created 2026-01-01.
+    // which outranks old-demo's created 2026-01-01.
     expect(rows.map((r) => r._id)).toEqual([
       "iterated-note",
       "fresh-now",
-      "old-project",
+      "old-demo",
     ]);
   });
 
@@ -315,7 +315,7 @@ describe("ENTRY_DETAIL_QUERY themeSeed — executed GROQ semantics (#173 QA)", (
 
   it("a themed entry themes from its OWN theme.color, never the /now seed", async () => {
     expect(
-      await resolveThemeSeed({ kind: "project", theme: { color: "#4f46e5" } }),
+      await resolveThemeSeed({ kind: "demo", theme: { color: "#4f46e5" } }),
     ).toBe("#4f46e5");
   });
 
@@ -372,7 +372,7 @@ describe("ENTRY_DETAIL_QUERY theme projection — executed GROQ semantics (#226 
     const entry = {
       _type: "entry",
       _id: "e-under-test",
-      kind: "project",
+      kind: "demo",
       stage: "shipped",
       title: "Under test",
       slug: { current: "under-test" },

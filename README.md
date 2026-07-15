@@ -2,7 +2,7 @@
 
 A personal portfolio and digital garden — a place to grow notes, ideas, and work
 over time. The whole site shares one editorial look — Source Serif 4 and a
-black/white/gray neutral ramp — across all page chrome. Each project's theme
+black/white/gray neutral ramp — across all page chrome. Each entry's theme
 color (a perceptual OKLCH palette) and font theme only its own bounded
 interactive slot, on that shared foundation. Content and theme seeds live in
 Sanity; the site renders on Next.js.
@@ -12,7 +12,7 @@ Sanity; the site renders on Next.js.
 > are **live on Vercel**, with the editorial garden shell, an RSS feed, and Sanity draft mode +
 > live preview wired to publish→production revalidation. The interactive **Color Engine** demo
 > (`src/entries/color-engine/`) is a registered stub pending a rebuild on the new foundation as a
-> multi-page project (#149); the `@garden/oklch` engine it showcases is untouched. Remaining
+> multi-page demo (#149); the `@garden/oklch` engine it showcases is untouched. Remaining
 > work is tracked in [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
 The engineering docs live in [`docs/`](./docs/) (start at
@@ -86,7 +86,7 @@ chain on every PR.
 CSS custom properties + CSS Modules, organized with `@layer`. Tokens are three tiers —
 **foundation** primitives → **semantic** role tokens (the public contract components read) → a
 per-slot **theme** override the `@garden/oklch` engine bakes flash-free. One editorial look themes
-all page chrome; a project's theme color + font theme only its own bounded slot, with no
+all page chrome; an entry's theme color + font theme only its own bounded slot, with no
 project-prefixed token names (the `[data-entry]` scope provides the isolation).
 
 The full model — the layer order, the "@layer trap", scope-based isolation, and the token

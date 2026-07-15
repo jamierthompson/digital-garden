@@ -52,7 +52,7 @@ describe('entry schema — required floors (#217)', () => {
   })
 
   it('requires body unconditionally — exactly one required rule, no kind gate', () => {
-    // Every kind (note/essay/project/now) carries a body, so body uses the built-in
+    // Every kind (note/essay/demo/now) carries a body, so body uses the built-in
     // `rule.required()` with no `.custom()` kind gate. A regression that made body conditional
     // would add a `custom` call or drop `required`.
     expect(calledRules(field('body'))).toEqual(['required'])
@@ -109,7 +109,7 @@ describe('entry schema — the theme object (#249)', () => {
 
   it('hides the whole theme object for a now update (and only for now)', () => {
     expect(theme?.hidden?.({document: {kind: 'now'}})).toBe(true)
-    expect(theme?.hidden?.({document: {kind: 'project'}})).toBe(false)
+    expect(theme?.hidden?.({document: {kind: 'demo'}})).toBe(false)
     expect(theme?.hidden?.({document: {}})).toBe(false)
   })
 
@@ -162,7 +162,7 @@ describe('entry schema — the theme object (#249)', () => {
  * FLOOR on a font face or `componentKey` via `rule.required()` (or re-attached the deleted
  * `requiredForNonSketchProject` as `.custom()` — that one the sibling catches, this one also
  * catches). These fields being TRULY optional — zero validation of ANY kind — is the whole #226
- * contract (a face absent inherits the site palette) and the #250 fix (a non-sketch project
+ * contract (a face absent inherits the site palette) and the #250 fix (a non-sketch demo
  * publishes with no `componentKey`). `calledRules` records BOTH `required` and `custom`, so an
  * empty result is the tightest proof the field imposes no floor at all.
  */
@@ -180,9 +180,9 @@ describe('entry schema — the three faces + componentKey are truly unvalidated 
     },
   )
 
-  it('componentKey invokes NEITHER required nor custom — a non-sketch project publishes without it (#250 fix)', () => {
-    // The deleted `requiredForNonSketchProject` used to force `componentKey` on a project past
-    // sketch; its live symptom was a prose-only shipped project that could not publish. With the
+  it('componentKey invokes NEITHER required nor custom — a non-sketch demo publishes without it (#250 fix)', () => {
+    // The deleted `requiredForNonSketchProject` used to force `componentKey` on a demo past
+    // sketch; its live symptom was a prose-only shipped demo that could not publish. With the
     // floor gone, `componentKey` must carry no validation at all — mount-on-presence only.
     expect(calledRules(field('componentKey'))).toEqual([])
   })

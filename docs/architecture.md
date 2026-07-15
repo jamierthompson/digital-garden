@@ -1,6 +1,6 @@
 # Architecture — system model
 
-The system model for the portfolio + digital garden. Each project is a **self-contained
+The system model for the portfolio + digital garden. Each entry is a **self-contained
 module** — its `/[slug]` page (the editorial article plus its interactive slot), the
 slot components its essay mounts, and its tokens — composed within the site.
 Hosted on Vercel; essay + theme seeds in Sanity.
@@ -18,7 +18,7 @@ against. Where any doc and the framework disagree, **the bundled Next docs win**
 These are the through-lines; everything else follows from them.
 
 - **Modules, not a monolith.** The thing to avoid is a single fused bundle with no internal
-  seams. Each project is a self-contained module — its tokens, UI, pages, and interactive
+  seams. Each entry is a self-contained module — its tokens, UI, pages, and interactive
   slot — that the site's routes load. Genuinely shared parts (token recipes, the OKLCH
   engine, the odd reused primitive) live in plain shared modules. No fused bundle; no premature
   abstraction either.
@@ -54,7 +54,7 @@ These are the through-lines; everything else follows from them.
   pattern from leaf primitives across the system — but as **composition-time** theming (a host sets
   the tokens a child reads), not runtime re-derivation of an engine's computed ramp.
 
-- **Right-sized, not maximal.** This is one app with a handful of projects, not a set of
+- **Right-sized, not maximal.** This is one app with a handful of entries, not a set of
   shippable packages. Slot-scoped theming, downward theming, and the don't-reach-up discipline stay
   only where they earn their keep. The foundation and the semantic defaults are shared globally (the
   neutral fallback for un-themed surfaces); a page's authored **color** theme rides on `<html>`, and
@@ -70,16 +70,16 @@ These are the through-lines; everything else follows from them.
 
 Two homes:
 
-- **The Next app** — all code: each project's pages, its interactive slot (a working
-  demo), and the slot components its essay mounts. Each project is a self-contained module under
+- **The Next app** — all code: each entry's pages, its interactive slot (a working
+  demo), and the slot components its essay mounts. Each entry is a self-contained module under
   `src/entries/<slug>/`; shared parts live in plain shared modules.
 - **Sanity** — content & theme seeds: one `entry` document type covering every content kind — a
-  `kind` discriminator (note · essay · project · now), a Portable Text body (rich text with inline slots),
+  `kind` discriminator (note · essay · demo · now), a Portable Text body (rich text with inline slots),
   a `stage` (sketch → prototype → shipped), an authored `iterated` date, self-referencing `related`
   backlinks, an optional `featuredRank`, the per-entry `theme` object (`color` / `colorDark` /
   `headingFont` / `bodyFont` / `monoFont`), and the top-level `componentKey` — all reference-by-key seeds.
 
-Within a project the division is code vs content, but the line isn't a wall. The interactive
+Within an entry the division is code vs content, but the line isn't a wall. The interactive
 slot and the components are code; the essay is content. The essay is _rich_, though — it
 can mount media and live components as inline slots (including the demo itself, in place of screenshots) by key —
 per-entry or shared, the same reference-by-key move as `componentKey` (see entry modules and
@@ -176,9 +176,9 @@ global :root  (foundation primitives + the semantic NEUTRAL FALLBACK)
 
 Key points:
 
-- **The public token contract is the SEMANTIC layer.** Shared, cross-project units read the
+- **The public token contract is the SEMANTIC layer.** Shared, cross-entry units read the
   generic role tokens (`--surface`, `--foreground`, `--accent`, `--font-body`, `--space-*`) — never a
-  project-prefixed name, because a shared slot cannot know which project hosts it. Isolation comes
+  project-prefixed name, because a shared slot cannot know which entry hosts it. Isolation comes
   from **scope, not prefix**: color from the page's `<html>` write (inherited), fonts from the
   `[data-entry]` slot's inline role-token overrides (`--font-heading` / `--font-body` / `--font-mono`).
 
@@ -267,10 +267,10 @@ layer.
 ### The OKLCH engine
 
 The engine is the load-bearing, genuinely hard piece of the system — not a lightness ramp but a
-small color _system_. It is **both a feature and a project — same logic, two-plus consumers.**
+small color _system_. It is **both a feature and a demo — same logic, two-plus consumers.**
 
 - A **pure function**: takes a theme color **and a scheme**, emits a color-token set. Knows
-  nothing about projects. Lives in its own workspace package (`packages/oklch`, imported as
+  nothing about entries. Lives in its own workspace package (`packages/oklch`, imported as
   `@garden/oklch`) — no React, no DOM, no Node built-ins — as the single source of truth
   for the algorithm. Its isomorphism is **enforced**, not hoped: a lint import-boundary on the
   package forbids `next/*`, `react`, `react-dom`, and DOM/Node globals, and a dual-environment
@@ -278,7 +278,7 @@ small color _system_. It is **both a feature and a project — same logic, two-p
   those pin it to one side and break the requirement.)
 
 - **Scheme-aware.** The signature is `(themeColor, scheme) → tokenSet`. One `themeColor`
-  per project generates **both** light and dark ramps — dark is reduced chroma + shifted surface L
+  per entry generates **both** light and dark ramps — dark is reduced chroma + shifted surface L
   with on-color contrast re-solved, not "invert L." The scoped `<style>` emits both via CSS
   `light-dark()` so a single block carries both schemes and switching is pure CSS, respecting
   `prefers-color-scheme`. A seed too light to serve as the light-mode primary is auto-assigned as
@@ -397,7 +397,7 @@ measured contrast, the anchor readout).
 Its interactive demo has been **removed pending a rebuild** on the deliberate design-system
 foundation (the old surfaces carried pre-foundation type literals). The `color-engine` key stays
 registered to a placeholder so the published entry still resolves; the tool is rebuilt later as a
-**multi-page project** (#149). There is no bespoke page template for it: a project that exports a
+**multi-page demo** (#149). There is no bespoke page template for it: a demo that exports a
 `Slot` mounts it in the **one editorial template** every entry uses, after the prose —
 the canvas template and the `layout: "wide"` module option were dropped with the demo.
 
@@ -413,12 +413,12 @@ Two deliberate consequences:
 
 - **It themes itself, on purpose.** The Color Engine's slot (`color-engine`) is themed like any
   other, so its own theme tokens are generated by the engine it showcases. No circular dependency
-  in code (the project depends on the engine; the engine depends on nothing).
+  in code (the demo depends on the engine; the engine depends on nothing).
 - **Keep it isomorphic** (enforced — see above).
 
 The anti-pattern to avoid: putting the engine _inside_ an entry module and having the theming
 layer reach up into a portfolio piece for infrastructure — that inverts the dependency direction.
-Shared logic lives in a shared module; the project is a presentation of it.
+Shared logic lives in a shared module; the demo is a presentation of it.
 
 ### The type engine
 
@@ -491,8 +491,8 @@ recompute — the engine baked them. The `var(--public, var(--_internal-default)
 composition-time downward theming of primitives, not live ramp re-derivation.
 
 Self-sufficiency still applies _within_ the slot: a shared primitive must not assume tokens from
-any _specific_ project's scope. It ships its own defaults and reads generic semantic names
-(`--surface`, `--accent`, `--font-body`), so it works composed into any project (or none).
+any _specific_ entry's scope. It ships its own defaults and reads generic semantic names
+(`--surface`, `--accent`, `--font-body`), so it works composed into any entry (or none).
 
 ---
 
@@ -684,7 +684,7 @@ src/entries/<slug>/
   ├─ <Module>.tsx       the interactive slot component (the working demo); the route mounts it
   ├─ core/              headless core — ONLY when the slot's logic earns extraction
   ├─ slots/             the module's inline slot components, resolved by slotKey
-  ├─ tokens.css         the project's slot-scoped semantic override (generic names, theme values)
+  ├─ tokens.css         the entry's slot-scoped semantic override (generic names, theme values)
   └─ index.ts           registry entry
 src/fonts/roster.ts        curated next/font declarations, one per face, exported by key
 src/lib/resolvers/slots.ts       slotKey → slot-component loader — cross-entry widgets
@@ -713,25 +713,25 @@ slot tiers; see the interactive slot section). Code lives under `src/entries/<sl
 **featured** front door, a browsable **Index** (nav-labelled "Index") lists every entry at
 **`/browse`**, and a root-level `/[slug]` (a dynamic segment that cedes precedence to the static
 segments `/browse`, `/about`, `/now`) mounts any entry. Every entry — note, essay, or
-project — lives at a **flat top-level slug** (`/some-note`, not `/notes/some-note`), so its URL stays
+demo — lives at a **flat top-level slug** (`/some-note`, not `/notes/some-note`), so its URL stays
 stable even if its `kind` changes. There is no `/work` prefix. The browse route is `/browse`, **not
 `/index`**: Next.js reserves `index` for the root segment's prerender output (`app/index.html`), so a
 route literally named `index` silently serves the home page.
 
-**Start single-tier** — one shared `src/lib/resolvers/slots.ts` until a second project actually reuses a
+**Start single-tier** — one shared `src/lib/resolvers/slots.ts` until a second entry actually reuses a
 widget; introduce the entry-local tier only then. Once you do, slots follow the **same
-per-entry-plus-shared shape as tokens and fonts**. For a given project the resolver composes the
+per-entry-plus-shared shape as tokens and fonts**. For a given entry the resolver composes the
 two (`{ ...shared, ...entryLocal }`) so an entry-local key **overrides** a shared one of the same
 name — the downward-override spirit of `var(--public-override, var(--_internal-default))`. A
 _shared_ slot themes off the **generic semantic tokens** (`--surface`, `--accent`, `--font-body`),
-never anything project-specific. Promote a widget into the shared registry only once it's genuinely
+never anything entry-specific. Promote a widget into the shared registry only once it's genuinely
 reused; both tiers lazy-import.
 
-Project-specific composites belong to their entry module — but **UI primitives are built out
+Entry-specific composites belong to their entry module — but **UI primitives are built out
 proactively into `src/components/ui/`, even while single-use**. A primitive (an interactive
 control, a panel frame, a meta label) is a design-system unit by nature: it reads the generic
-semantic tokens, ships its own defaults, and works composed into any project or none, so it goes
-to `ui/` the moment it's recognized as a primitive, not on its second consumer. A project may
+semantic tokens, ships its own defaults, and works composed into any entry or none, so it goes
+to `ui/` the moment it's recognized as a primitive, not on its second consumer. An entry may
 also _consume_ shared logic without owning it — an engine-showcase module (the Color Engine)
 showcases the shared engine's output rather than holding the engine (see the OKLCH engine).
 
@@ -767,7 +767,7 @@ src/entries/<slug>/   its page (editorial article + interactive slot) + inline s
 
 ### The interactive slot: logic in a headless core (when it earns one)
 
-Each project's interactive slot is a demo that actually works. As a general engineering
+Each demo's interactive slot actually works. As a general engineering
 practice — not for any packaging or reuse goal — its logic _can_ live in a **headless core** (hooks
 / pure functions — state machines, reducers, derivations), with presentation as separate primitives
 the slot composes. That split is internal hygiene only, and it is **not mandatory**: a
@@ -776,7 +776,7 @@ logic warrants it.
 
 There's no demo-vs-slot boundary to maintain. The slot owns its own state and renders
 directly. The same interactive slot — or smaller bespoke live components — can be **mounted
-inline in an essay** by key, in place of screenshots (see the content model), under the same project
+inline in an essay** by key, in place of screenshots (see the content model), under the same entry
 scope, so it themes identically.
 
 ---
@@ -863,23 +863,23 @@ Practical notes:
 
 - **Content lives in Sanity; interaction lives in code.** An `entry` document holds the content and
   references a coded module via `componentKey`; the CMS never reimplements interaction.
-- **One document type — `entry`; a `kind` field discriminates.** Notes, essays, projects, and
+- **One document type — `entry`; a `kind` field discriminates.** Notes, essays, demos, and
   now-updates are the same shape — a themed page with one or more interactive slots plus prose — so they
   are **one document type**, not several separate types and not a schema-merge that erased the
-  distinction. A **`kind`** field (`note` · `essay` · `project` · `now`) carries the distinction as
+  distinction. A **`kind`** field (`note` · `essay` · `demo` · `now`) carries the distinction as
   _data_: it drives the Index's type filter and the on-card label, so the difference is legible without
   being a `_type` split. The kinds differ by **scope and emphasis, not fields** — a _note_ is a small,
   often single-component piece (and doubles as a shareable social post); an _essay_ is writing-led with
-  interactions slotted in; a _project_ is an interactive piece with more slots; a _now_ is a dated
+  interactions slotted in; a _demo_ is an interactive piece with more slots; a _now_ is a dated
   "now" update that drives the reverse-chronological `/now` stream and also mixes into the Index.
   **Downstream, theming and interactivity key on capability (presence), not kind:** every kind but
   `now` scopes on a present `theme.color` and mounts on a present `componentKey`. (`theme.color`
-  additionally carries a required _floor_ for note/essay/project — see below — but the mount/scope
+  additionally carries a required _floor_ for note/essay/demo — see below — but the mount/scope
   logic keys on presence, not kind.) A present `theme.color` gives the entry its own brand
   `[data-entry]` scope (and mounts its
-  `slot`s in their own scoped containers, exactly as a project's slots do); a present
+  `slot`s in their own scoped containers, exactly as a demo's slots do); a present
   `componentKey` resolves and mounts the coded module — a declared key that fails to resolve is a
-  `notFound()` for any kind, and no key at all renders prose-only (a sketch project renders
+  `notFound()` for any kind, and no key at all renders prose-only (a sketch demo renders
   prose-only, never a 404). **A module mount always implies a scope seed** — the route builds the
   `ScopeSeed` whenever a non-`now` entry _themes or mounts a module_ (`theme.color || a resolvable
 componentKey`), always **keyed on the entry's own slug**, with each absent `theme.headingFont` /
@@ -890,10 +890,10 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   engine's fallback color palette and, for each unset font role, the inherited site face
   (`--font-heading` / `--font-body` / `--font-mono` from `:root`) — the never-throws keystone is
   "emit no override, inherit `:root`", not a hardcoded fallback face.
-  `theme.color` is **required for every themed kind** — note, essay, and project (each page derives its
+  `theme.color` is **required for every themed kind** — note, essay, and demo (each page derives its
   theme from an authored seed). `componentKey` and the three `theme` face keys are **optional and
-  mount/theme on presence** for every kind but `now` — a `project` past the sketch stage is no longer
-  forced to name a module or a face (a prose-only project is valid), and a `note`/`essay` that sets a
+  mount/theme on presence** for every kind but `now` — a `demo` past the sketch stage is no longer
+  forced to name a module or a face (a prose-only demo is valid), and a `note`/`essay` that sets a
   `componentKey` mounts it. A `now`
   update is chrome + prose by design: it **cannot set its own `theme.color`** (the whole `theme` object
   is hidden for a `now` in the Studio and a color is rejected on write by `forbiddenForNow`) and
@@ -934,7 +934,7 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   unset face inherits the site face for that role. Reference-by-key, exactly like `componentKey` and
   `theme.color`.
 - **No per-scheme color field.** Dark mode is a render-time axis; one `theme.color` generates
-  both schemes. A project needing a hand-tuned dark brand gets an _optional_ `theme.colorDark`
+  both schemes. An entry needing a hand-tuned dark brand gets an _optional_ `theme.colorDark`
   override, defaulted from the engine — never a required parallel field. (A seed too light to be the
   light-mode primary is auto-assigned as the dark theme; see the OKLCH engine.)
 - **Keys are a contract; the Studio never imports implementations.** Each reference-by-key field —
@@ -943,7 +943,7 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   imports **nothing** from the app, so there is no dropdown and no shared key package. The allowed
   values live app-side in `keys.ts` (string constants) with a separate resolver each —
   `lib/resolvers/{components,fonts,slots}.ts` — which the Studio never imports, keeping `next/font`
-  and lazy project bundles out of the Studio bundle. A **CI drift net** closes the loop in place of a
+  and lazy entry bundles out of the Studio bundle. A **CI drift net** closes the loop in place of a
   shared import: `check-key-drift.mjs` guards code ↔ `keys.ts`, and `check-published-keys.mjs` GROQs
   every published key and asserts it resolves in `keys.ts`. See the CMS ↔ code registry for the
   typed-resolver + fallback discipline that makes the soft foreign key safe.
@@ -983,7 +983,7 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   `entry`) — **real Sanity `reference` fields**, not free-text slugs (or `references()` finds nothing
   and you reintroduce key-drift) — and the read path resolves **incoming** backlinks via GROQ
   `references()`, so an edge authored once shows on both ends. Because there is one type, the graph is
-  cross-kind for free: a project links a note links an essay. A note stays lightweight (chrome + shared
+  cross-kind for free: a demo links a note links an essay. A note stays lightweight (chrome + shared
   components) and pulls a demo bundle only if it explicitly mounts one.
 - **Two reading paths over one content graph.** The **featured home** (`/`) is a curated front door —
   the entries with a `featuredRank`, of _any_ `kind`, ordered by rank — for a hurried evaluator. The
@@ -1025,9 +1025,9 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   repo is a multi-member pnpm workspace: the Next app at the root, a **standalone Sanity Studio in
   `studio/`** (Vite-based, auto-updating, TypeGen watch mode), and the `@garden/oklch` (color) and
   `@garden/type` (type-scale) engines in `packages/oklch` and `packages/type`. The _site_ is still a single app with
-  no project sub-packages — project code lives under `src/entries/*`; shared bits live in shared
-  `src/` modules. Boundaries are **lint-import rules**: a project can't import another project;
-  shared can't import a project; plus the `packages/oklch/**` isomorphism boundary (see the OKLCH
+  no entry sub-packages — entry code lives under `src/entries/*`; shared bits live in shared
+  `src/` modules. Boundaries are **lint-import rules**: an entry can't import another entry;
+  shared can't import an entry; plus the `packages/oklch/**` isomorphism boundary (see the OKLCH
   engine) and the every-CSS-module-declares-its-`@layer` rule (see the token & theming architecture).
 - The site runs on **Vercel** with full SSR / RSC. This unlocks server-rendered flash-free per-scope
   OKLCH `<style>` blocks, Sanity draft mode / visual editing, an RSS route handler, a `/now` page,
@@ -1041,7 +1041,7 @@ Before shipping a **shared** unit (the litmus is for shared primitives, not ever
 
 - [ ] Does it render correctly reading only **generic semantic tokens** (`--surface`, `--foreground`,
       `--accent`, `--font-body`, `--space-*`) plus its own defaults — with no dependency on any
-      project-specific token name?
+      entry-specific token name?
 - [ ] Is every themeable value exposed as a **public token** with an internal default?
 - [ ] Does it avoid assuming any **themeable ambient context** (a parent's _theme_ value, a
       font mounted higher up)? Reading the global **foundation** primitives (spacing, motion) is fine —
@@ -1051,7 +1051,7 @@ Before shipping a **shared** unit (the litmus is for shared primitives, not ever
       reaching up?
 - [ ] If it has a CSS Module, does that module **declare its `@layer`** (or stay strictly
       var-consuming)?
-- [ ] If it registers a slot, is the key **namespaced with the project's prefix** so a
+- [ ] If it registers a slot, is the key **namespaced with the entry's prefix** so a
       entry-local slot can't silently shadow a shared one?
 
 The litmus is an **advisory** PR checklist for shared primitives; the parts that can be a lint rule

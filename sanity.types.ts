@@ -113,7 +113,7 @@ export type Entry = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  kind?: "note" | "essay" | "project" | "now";
+  kind?: "note" | "essay" | "demo" | "now";
   title?: string;
   slug?: Slug;
   stage?: "sketch" | "prototype" | "shipped";
@@ -302,7 +302,7 @@ export type ENTRY_DETAIL_QUERY_RESULT = {
   _id: string;
   title: string | null;
   slug: string | null;
-  kind: "essay" | "note" | "now" | "project" | null;
+  kind: "demo" | "essay" | "note" | "now" | null;
   stage: "prototype" | "shipped" | "sketch" | null;
   iterated: string | null;
   featuredRank: number | null;
@@ -321,13 +321,13 @@ export type ENTRY_DETAIL_QUERY_RESULT = {
     _id: string;
     title: string | null;
     slug: string | null;
-    kind: "essay" | "note" | "now" | "project" | null;
+    kind: "demo" | "essay" | "note" | "now" | null;
   }> | null;
   backlinks: Array<{
     _id: string;
     title: string | null;
     slug: string | null;
-    kind: "essay" | "note" | "now" | "project" | null;
+    kind: "demo" | "essay" | "note" | "now" | null;
   }>;
 } | null;
 
@@ -338,7 +338,7 @@ export type INDEX_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
   slug: string | null;
-  kind: "essay" | "note" | "now" | "project" | null;
+  kind: "demo" | "essay" | "note" | "now" | null;
   stage: "prototype" | "shipped" | "sketch" | null;
   iterated: string | null;
   summary: string | null;
@@ -352,7 +352,7 @@ export type FEATURED_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
   slug: string | null;
-  kind: "essay" | "note" | "now" | "project" | null;
+  kind: "demo" | "essay" | "note" | "now" | null;
   stage: "prototype" | "shipped" | "sketch" | null;
   summary: string | null;
   theme: {

@@ -17,11 +17,10 @@ import type { StegaConfig } from "@sanity/client/stega";
  *
  * - `componentKey` / `slotKey` are resolved against code by key; stega chars break the
  *   lookup (and reintroduce key-drift).
- * - `kind` / `stage` are discriminators compared in code (`entry.kind === "project"`
- *   gates the module mount and the browse sections; `stage` feeds a `data-stage`
+ * - `kind` / `stage` are discriminators compared in code (`kind` groups the browse
+ *   sections and `kind === "now"` gates theming; `stage` feeds a `data-stage`
  *   CSS attribute selector). Stega chars make every comparison false — in Draft Mode
- *   that silently degraded a project entry to prose-only and emptied the browse
- *   sections (found via #131's mounted-draft review).
+ *   that silently emptied the browse sections (found via #131's mounted-draft review).
  *
  * The entry's `theme` object is excluded by ANCESTOR instead (see below) — its leaf names
  * (`color` / `headingFont` / `bodyFont` / `monoFont`) are common words that must NOT be
