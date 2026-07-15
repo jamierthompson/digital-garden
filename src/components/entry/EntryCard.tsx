@@ -15,10 +15,11 @@ export interface EntryCardEntry {
   summary: string | null;
   /** Maturity badge — part of the card's mono readout. */
   stage: "prototype" | "shipped" | "sketch" | null;
-  /** The entry's theme. Its `color` themes the plate (via `cardSwatches`, total over any value)
-   *  AND is shown verbatim in the mono readout — the "show your work" detail the mockup captions
-   *  carry. The card reads only `color`; the slot font is not a card concern. */
-  theme: { color: string | null } | null;
+  /** The RESOLVED theme seed (the query's own seed → site default chain, #253). It themes the
+   *  plate (via `cardSwatches`, total over any value) AND is shown verbatim in the mono
+   *  readout — the "show your work" detail the mockup captions carry: the value the plate is
+   *  actually painted with. The slot font is not a card concern. */
+  themeSeed: string | null;
 }
 
 interface EntryCardProps {
@@ -41,7 +42,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
   // which would render an empty <h3> — a nameless heading in the outline and a link whose
   // accessible name silently degrades to the summary. Treat blank/whitespace-only as missing.
   const title = entry.title?.trim() ? entry.title : "Untitled entry";
-  const meta = [entry.stage, entry.theme?.color].filter(Boolean).join(" · ");
+  const meta = [entry.stage, entry.themeSeed].filter(Boolean).join(" · ");
 
   const body: ReactNode = (
     <>
@@ -64,7 +65,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
       // literals; spread inline they re-bind this card's subtree to its own theme palette
       // (the plate reads `--accent` + `--accent-foreground`). Cast to `CSSProperties`: React types
       // custom props via an index signature a `Record<--*, string>` doesn't match alone.
-      style={cardSwatches(entry.theme?.color) as CSSProperties}
+      style={cardSwatches(entry.themeSeed) as CSSProperties}
     >
       {entry.slug ? (
         <HoverPrefetchLink href={`/${entry.slug}`} className={styles.link}>

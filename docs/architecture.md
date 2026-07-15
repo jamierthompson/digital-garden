@@ -34,15 +34,16 @@ These are the through-lines; everything else follows from them.
   co-locating components under `app/`, but here components/logic belong in `src/`, so a module in
   `app/_components/` is still flagged.
 
-- **Composition over inheritance.** Every page wears its **own authored theme**: the entry's (or
-  site page's) theme color runs through the OKLCH engine and is stamped on `<html>`, so all chrome +
+- **Composition over inheritance.** Every page wears an **authored theme** — its own seed when one
+  is authored, else the site default (`siteSettings.theme`, #253): the resolved theme color runs
+  through the OKLCH engine and is stamped on `<html>`, so all chrome +
   prose + slots wear it. The global typography is fixed house style — Space Grotesk headings +
   Source Serif 4 body — and a **themed entry** (any kind but a `now` update) additionally carries its
   **own theme fonts** — up to three optional faces (heading / body / mono) — scoped to its
   **interactive slot(s)** (the `Slot` / `[data-entry]` wrapper, or each interleaved slot's
   container), where each resolved face re-binds its role token (`--font-heading` / `--font-body` /
   `--font-mono`) for the slot and an unset role simply inherits the site face. The `:root`
-  semantic color tokens are just the neutral **fallback** for surfaces that render un-themed. Entries
+  semantic color tokens are just the engine's baked **fallback** for surfaces that render un-themed. Entries
   are not variations of one global _look_; they are self-assembled from shared parts.
 
 - **Self-sufficient contracts; theme downward; never reach up _for a look_.** Every unit — a
@@ -57,7 +58,7 @@ These are the through-lines; everything else follows from them.
 - **Right-sized, not maximal.** This is one app with a handful of entries, not a set of
   shippable packages. Slot-scoped theming, downward theming, and the don't-reach-up discipline stay
   only where they earn their keep. The foundation and the semantic defaults are shared globally (the
-  neutral fallback for un-themed surfaces); a page's authored **color** theme rides on `<html>`, and
+  engine's baked fallback for un-themed surfaces); a page's authored **color** theme rides on `<html>`, and
   only the **theme fonts** are scoped to each themed entry's slot. A small foundation _coordination_ layer is the norm (see
   the token & theming architecture below), the slot registry starts single-tier (see entry
   modules), and the don't-reach-up litmus applies to shared primitives, not every component.
@@ -88,8 +89,9 @@ interactive slot section), but that's ordinary code organization, not a boundary
 to maintain.
 
 The shell's top-level pages — the featured home, the browsable Index, about, `/now`, and `/system` —
-are owned by the site rather than any entry, and wear their own authored theme (seeded from
-`siteSettings.pageThemes`) like every other page (see the token & theming architecture).
+are owned by the site rather than any entry, and wear an authored theme like every other page —
+seeded from their `siteSettings.pageThemes` override, or the site default (`siteSettings.theme`)
+when none is authored (see the token & theming architecture).
 
 ---
 
@@ -102,7 +104,7 @@ Tokens are organized in **two tiers** — the semantic tier consuming the founda
 | Tier                   | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ---------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Foundation**         | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, content-width measures (`--width-measure` 42rem / `--width-content` 48rem / `--width-page` 72rem), the radius scale (`--radius` 10px, with `--radius-sm`/`-md`/`-lg`/`-xl` = 6/8/10/14px and `--radius-full`), border widths (`--border-width` 1px / `--border-width-thick` 2px), control sizes (`--size-control` 24px / `--size-control-lg` 44px / `--size-icon` 16px), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
-| **Semantic**           | global `:root` (the neutral fallback)             | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the neutral ground for surfaces that render with no `<html>` theme.                                                                                                                                                             |
+| **Semantic**           | global `:root` (the baked engine fallback)        | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the fallback ground for surfaces that render with no `<html>` theme.                                                                                                                                                            |
 | **Theme** _(override)_ | `<html>` (color) + the slot `[data-entry]` (font) | re-binds the semantic tier, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **fonts** are per-slot role-token overrides (up to three — `--font-heading` / `--font-body` / `--font-mono`) on `[data-entry]` (`EntryScope`), each inherited from `:root` when unset.                                                                                                                                                                                                                                                            |
 
 The model is a **derivation taxonomy, not a partition**: the **semantic tier is the contract**
@@ -151,11 +153,11 @@ non-color vars (spacing, radius, border-width). A missing role is a gap to add t
 contract, never a mutation to reach for.
 
 ```
-global :root  (foundation primitives + the semantic NEUTRAL FALLBACK)
+global :root  (foundation primitives + the semantic ENGINE FALLBACK)
    ├─ FOUNDATION: spacing ramp · content widths · motion curves · type-scale ratios
    │              · z-index · focus-ring GEOMETRY · reset  (no color ramp)
    ├─ SEMANTIC (engine fallback token set): --surface · --foreground · --accent · --font-body · …
-   │              ← the generic contract; the neutral ground for surfaces with no <html> theme
+   │              ← the generic contract; the fallback ground for surfaces with no <html> theme
    └─ @layer base, components;   ← cascade order statement (base loses to components), loaded first
           │ every ROUTE stamps its authored color theme on <html> (PageTheme), which out-ranks :root ↓
 <html style="--surface:… --foreground:… --accent:… --success:…">   ◄── OKLCH engine ◄── the page's seed (Sanity)
@@ -184,7 +186,7 @@ Key points:
 
 - **Color themes the page; fonts theme the slot.** Every route stamps its authored color theme on
   `<html>` (`PageTheme`), so all chrome + prose + slots wear it; the `:root` semantic color tokens
-  are only the neutral **fallback** for surfaces that render un-themed (404 / error / loading). The
+  are only the engine's baked **fallback** for surfaces that render un-themed (404 / error / loading). The
   global typography is fixed house style — Space Grotesk headings + Source Serif 4 body + Geist Mono
   mono — and an entry's theme **fonts** (up to three optional faces) override their role tokens
   (`--font-heading` / `--font-body` / `--font-mono`) in the entry's own interactive slot only (inline
@@ -219,8 +221,9 @@ Key points:
 The engine themes **every page** from an authored seed, applied as a **hoisted `:root` `<style>`**
 (re-stamped imperatively on `<html>` on soft nav) rather than a per-slot `[data-entry]` scope. Each page mounts one `<PageTheme seed>` (a synchronous
 server component): the site-owned pages (`/`, `/browse`, `/about`, `/now`, `/system`) seed from
-`siteSettings.pageThemes.<key>` (resolved by `sitePageThemeSeed`), and entry pages (`/[slug]`) seed
-from the kind-gated `themeSeed`. `SiteNav` and `SiteFooter` render once in the root layout above the
+their `siteSettings.pageThemes.<key>` override, falling back to the site default
+`siteSettings.theme.color` (#253) — both rungs resolved by `sitePageThemeSeed` — and entry pages
+(`/[slug]`) seed from `themeSeed` (the kind-gated inner rung over the same site-default fallback). `SiteNav` and `SiteFooter` render once in the root layout above the
 pages and **inherit** the page theme (`:root` on hard load, re-stamped on `<html>` on soft nav), so
 the persistent chrome wears the visible page's theme with no re-render (inheritance is live).
 
@@ -255,7 +258,7 @@ The primitives live in `src/lib/theme.ts` + `src/components/theme/{ThemeStyle,Th
 `PageTheme` composes both halves from one seed resolution.
 
 `semantic/color.css`'s `:root` semantic color tokens are the engine's own fallback token set
-(`buildTokenSet(undefined)`) baked as static `light-dark()` literals — the neutral ground for the
+(`buildTokenSet(undefined)`) baked as static `light-dark()` literals — the fallback ground for the
 surfaces that render with **no** page theme (404 / error / loading + the chrome around them,
 which never mount a `<PageTheme>`); a themed route's `:root` `<style>` (and the imperative `<html>`
 re-applier) out-rank them. There is no canvas wash and no `:has()`-scoped body re-bind: the page
@@ -888,11 +891,12 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   module-only entry (a resolvable `componentKey`, no `theme.color`) still gets its **own** per-entry
   `[data-entry]` scope rather than collapsing onto a shared fallback slug — two such entries must not
   share one `data-entry` and cross-contaminate themes — and its empty theme fields resolve to the
-  engine's fallback color palette and, for each unset font role, the inherited site face
+  authored site default (`siteSettings.theme`, #253) for color and, for each unset font role, the inherited site face
   (`--font-heading` / `--font-body` / `--font-mono` from `:root`) — the never-throws keystone is
   "emit no override, inherit `:root`", not a hardcoded fallback face.
-  `theme.color` is **required for every themed kind** — note, essay, and demo (each page derives its
-  theme from an authored seed). `componentKey` and the three `theme` face keys are **optional and
+  `theme.color` is **optional for every kind** (#253) — an entry that authors none wears the
+  authored site default (`siteSettings.theme`), so each page still derives its theme from an
+  authored seed. `componentKey` and the three `theme` face keys are likewise **optional and
   mount/theme on presence** for every kind but `now` — a `demo` past the sketch stage is no longer
   forced to name a module or a face (a prose-only demo is valid), and a `note`/`essay` that sets a
   `componentKey` mounts it. A `now`
@@ -922,12 +926,17 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   Author-time Sanity `validation` runs the engine's own color pipeline (parse → gamut-map → confirm
   in-spec contrast) for editor feedback. Defense-in-depth: the engine itself never throws (see the
   OKLCH engine) and `EntryScope` falls back to a safe default. `siteSettings` holds the site
-  title/description **and the per-page theme seeds**: a `pageThemes` object carries one authored,
-  engine-validated theme seed for each site-owned page (`/`, `/browse`, `/about`, `/now`, `/system`)
+  title/description, the **site default theme** — a required, engine-validated
+  `theme { color, colorDark }`, the one seed every resolution chain falls back to (#253) — **and
+  the per-page theme seeds**: a `pageThemes` object carries an optional,
+  engine-validated override for each site-owned page (`/`, `/browse`, `/about`, `/now`, `/system`)
   — the pages with no backing `entry` — exposed by `SITE_SETTINGS_QUERY`. A `now` entry has no
-  `theme.color` of its own, so `ENTRY_DETAIL_QUERY` resolves a **kind-gated** `themeSeed`
-  (`select(kind == "now" => …pageThemes.now, theme.color)`): a `now` update always wears the `/now`
-  seed (its own `theme.color` ignored), every themed kind wears its own — resolved in-query so it lands
+  `theme.color` of its own, so `ENTRY_DETAIL_QUERY` resolves `themeSeed` with a **kind-gated**
+  inner rung over the site-default fallback
+  (`coalesce(select(kind == "now" => …pageThemes.now, theme.color), …siteSettings.theme.color)`):
+  a `now` update always wears the `/now`
+  seed (its own `theme.color` ignored), every themed kind wears its own, and an entry with no seed
+  of its own wears the site default — resolved in-query so it lands
   in the static shell, flash-free. Wiring each page to consume its seed is the site-wide
   theming-delivery slice.
 - **`theme.headingFont` / `bodyFont` / `monoFont` are per-entry** — up to three roster faces this
@@ -936,7 +945,8 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   `theme.color`.
 - **No per-scheme color field.** Dark mode is a render-time axis; one `theme.color` generates
   both schemes. An entry needing a hand-tuned dark brand gets an _optional_ `theme.colorDark`
-  override, defaulted from the engine — never a required parallel field. (A seed too light to be the
+  override, defaulted from the engine — never a required parallel field (the site default
+  `siteSettings.theme` carries the same optional `colorDark`). (A seed too light to be the
   light-mode primary is auto-assigned as the dark theme; see the OKLCH engine.)
 - **Keys are a contract; the Studio never imports implementations.** Each reference-by-key field —
   the three faces, `componentKey`, `slotKey` — is a **free-text string** in the Studio schema whose

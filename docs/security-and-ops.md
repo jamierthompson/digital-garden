@@ -121,7 +121,7 @@ What must be true for a **production deploy to actually work** — the env- and 
 
 **Required content (in the `production` dataset):**
 
-- [ ] A **`siteSettings` singleton** (`_id: "siteSettings"`) — it supplies the site title/description (`generateMetadata`) **and** the per-page theme seeds (`pageThemes`, one authored color per site-owned page — `/`, `/browse`, `/about`, `/now`, `/system`); a missing one degrades to safe defaults, never an error. (Site pages derive their `<html>` theme from these seeds — see the token & theming architecture.)
+- [ ] A **`siteSettings` singleton** (`_id: "siteSettings"`) — it supplies the site title/description (`generateMetadata`), the **site default theme** (`theme { color, colorDark }` — the one REQUIRED seed: publish-blocking in the Studio, and every page or entry without its own seed wears it, #253), and the optional per-page overrides (`pageThemes`, one color per site-owned page — `/`, `/browse`, `/about`, `/now`, `/system`); a missing document degrades to safe defaults, never an error. (Site pages derive their `<html>` theme from these seeds — see the token & theming architecture.)
 - [ ] At least one **published `entry`** (any kind) — each published entry renders at its own flat `/[slug]` route.
 
 ### Every deploy

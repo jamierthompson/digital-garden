@@ -16,6 +16,7 @@
 
 import { parseColor } from "./convert";
 import { gamutMap } from "./gamut";
+import { FALLBACK_SEED } from "./seed";
 import type { Gamut, OkLCH } from "./types";
 
 /** The harmony relationships the engine emits, and their hue offsets in degrees. */
@@ -43,9 +44,6 @@ export type HarmonyPalette = Record<HarmonyKind, OkLCH[]> & {
   /** True when the input failed to parse and the fallback seed was used. */
   isFallback: boolean;
 };
-
-/** Fallback seed for unparseable input — mirrors `palette.ts`'s calm slate-blue. */
-const FALLBACK_SEED: OkLCH = { L: 0.55, C: 0.11, H: 264 };
 
 export interface HarmonyOptions {
   /** Target display gamut. Defaults to `srgb`, like the rest of the engine. */

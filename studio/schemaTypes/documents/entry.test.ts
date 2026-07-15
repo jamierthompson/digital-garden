@@ -3,7 +3,7 @@ import {describe, expect, it} from 'vitest'
 
 import {isThemeColorString} from '../shared/colorValidation'
 import {entry} from './entry'
-import {forbiddenForNow, requiredForThemedKind} from './entryValidators'
+import {forbiddenForNow} from './entryValidators'
 
 /**
  * Asserts the `entry` schema's required fields declare `rule.required()`. `required()` is a
@@ -114,12 +114,11 @@ describe('entry schema — the theme object (#249)', () => {
     expect(theme?.hidden?.({document: {}})).toBe(false)
   })
 
-  it('attaches requiredForThemedKind + forbiddenForNow + isThemeColorString to theme.color', () => {
-    expect(customValidators(themeField('color'))).toEqual([
-      requiredForThemedKind,
-      forbiddenForNow,
-      isThemeColorString,
-    ])
+  it('attaches forbiddenForNow + isThemeColorString to theme.color — optional under #253, no required floor', () => {
+    // An entry that authors no color wears the site default theme (`siteSettings.theme`), so
+    // the old `requiredForThemedKind` floor is retired; the now-ban and the engine parse
+    // guard are the only rules left.
+    expect(customValidators(themeField('color'))).toEqual([forbiddenForNow, isThemeColorString])
   })
 
   it('attaches forbiddenForNow + isThemeColorString to theme.colorDark (optional, never required)', () => {
@@ -188,10 +187,11 @@ describe('entry schema — the three faces + componentKey are truly unvalidated 
     expect(calledRules(field('componentKey'))).toEqual([])
   })
 
-  it('theme.color KEEPS its floor — the deletion did not over-reach into the color rules', () => {
-    // Guard the blast radius: removing the font/componentKey floor must NOT strip the color
-    // required floor. `calledRules` here should still record the three custom color validators.
-    expect(calledRules(themeField('color'))).toEqual(['custom', 'custom', 'custom'])
+  it('theme.color KEEPS its two custom rules and gains no required floor — optional means optional (#253)', () => {
+    // Guard the blast radius both ways: the now-ban and the engine parse guard must survive,
+    // and no `rule.required()` may sneak back in — an entry without a color is a valid
+    // authored state that wears the site default theme.
+    expect(calledRules(themeField('color'))).toEqual(['custom', 'custom'])
   })
 })
 

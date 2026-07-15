@@ -1,7 +1,7 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
 import {isThemeColorString} from '../shared/colorValidation'
-import {forbiddenForNow, requiredForThemedKind} from './entryValidators'
+import {forbiddenForNow} from './entryValidators'
 
 /**
  * An `entry` — the single content type for the whole garden.
@@ -18,10 +18,11 @@ import {forbiddenForNow, requiredForThemedKind} from './entryValidators'
  * dresses the page chrome and every interactive slot; the three font faces name the roster faces
  * the slot's type wears — heading, body, and mono, each independent; `colorDark` is an optional
  * hand-tuned dark override. Under the site-wide engine-theming model (#166) every page derives its
- * theme from an authored seed, so `theme.color` is required for every THEMED kind — note, essay,
- * AND demo (any stage: the demo card plate consumes it even for a sketch, and a note/essay
- * page themes from it too). The three font faces are each OPTIONAL for every kind — an absent face
- * inherits the site type palette, so a slot with no font override wears the constant site faces.
+ * theme from an authored seed — but the seed need not be the entry's OWN: `theme.color` is
+ * OPTIONAL for the themed kinds (note, essay, demo), and an entry that authors none wears the
+ * site default theme (`siteSettings.theme`). The three font faces are each OPTIONAL for every
+ * kind — an absent face inherits the site type palette, so a slot with no font override wears the
+ * constant site faces.
  * `componentKey` is SEPARATE from the theme (it MOUNTS a module; it is not part of the theme the
  * module reads), so it stays a top-level field — also OPTIONAL, mounting a module purely on its
  * PRESENCE for any non-`now` kind. `now` is chrome + prose by design — its whole `theme` object is
@@ -133,10 +134,10 @@ export const entry = defineType({
     }),
 
     // The entry's theme: one first-class object, reference-by-key, consumed by code, stega-
-    // excluded by ancestor. `color` is required for every themed kind (the page/card derives its
-    // theme from it); the three font faces (headingFont/bodyFont/monoFont) are each optional — an
-    // absent face inherits the site type palette. The whole object is hidden for a `now` update,
-    // which inherits the /now page seed instead.
+    // excluded by ancestor. Every field is optional — an absent `color` wears the site default
+    // theme, and an absent font face (headingFont/bodyFont/monoFont) inherits the site type
+    // palette. The whole object is hidden for a `now` update, which inherits the /now page
+    // seed instead.
     defineField({
       name: 'theme',
       title: 'Theme',
@@ -151,9 +152,8 @@ export const entry = defineType({
           title: 'Theme color',
           type: 'string',
           description:
-            'Hex or oklch() accent that dresses this entry’s page chrome and every interactive slot. Required for every note, essay, and demo.',
-          validation: (rule) =>
-            rule.custom(requiredForThemedKind).custom(forbiddenForNow).custom(isThemeColorString),
+            'Hex or oklch() accent that dresses this entry’s page chrome and every interactive slot. Leave empty to inherit the site default theme.',
+          validation: (rule) => rule.custom(forbiddenForNow).custom(isThemeColorString),
         }),
         defineField({
           name: 'colorDark',

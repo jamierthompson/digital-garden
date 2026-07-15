@@ -43,10 +43,11 @@ server-emitted `<style>`. Verify against the docs above and the real code, not t
 
 4. **The Theme asymmetry is intentional — color paints the whole page, fonts theme only the slot.**
    Each page mounts one `<PageTheme seed>`: the OKLCH engine derives the palette from the authored
-   seed and stamps it on `:root`/`<html>`, painting the **entire page** — the persistent chrome
+   seed — the page's own override when authored, else the site default (`siteSettings.theme`,
+   #253) — and stamps it on `:root`/`<html>`, painting the **entire page** — the persistent chrome
    (`SiteNav`/`SiteFooter`) wears the seed color too. The editorial **type** is global and identical
-   from page to page — Space Grotesk headings + Source Serif 4 body + Geist Mono — plus the neutral
-   fallback for un-themed surfaces (404 / error / loading). An entry's theme **fonts** scope **only**
+   from page to page — Space Grotesk headings + Source Serif 4 body + Geist Mono — plus the engine's
+   baked fallback for un-themed surfaces (404 / error / loading). An entry's theme **fonts** scope **only**
    to its bounded slot (`[data-entry]` / the `Slot`), never the chrome. Flag a theme font bleeding
    onto page chrome, a surface opting out of the page color, or a route that renders content without
    a `<PageTheme>` seed where one belongs.

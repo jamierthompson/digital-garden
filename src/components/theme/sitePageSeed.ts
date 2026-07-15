@@ -18,11 +18,14 @@ export type SitePageKey = keyof NonNullable<
 >;
 
 /**
- * Resolve a site-owned page's authored theme seed from `siteSettings.pageThemes`.
+ * Resolve a site-owned page's authored theme seed: the page's own `pageThemes` override when
+ * one is authored, else the site default (`siteSettings.theme.color`, #253).
  *
- * Returns the raw authored theme-color string (or `null` when unauthored / no settings doc) —
- * `PageTheme` resolves it defensively, collapsing null/blank/unparseable to the safe fallback
- * palette, so a page never has to branch on a missing seed.
+ * Returns the raw authored theme-color string (or `null` when neither is authored / no settings
+ * doc) — `PageTheme` resolves it defensively, collapsing null/blank/unparseable to the safe
+ * fallback palette, so a page never has to branch on a missing seed. The `??` rungs are
+ * presence-gated deliberately: a reachable-via-API `""` override resolves to `""` and collapses
+ * to the engine fallback rather than silently re-routing to the site default.
  *
  * Reads through the `use cache` `sanityFetch`, so the value lands in the page's PRERENDERED
  * static shell (the inline theme script bakes into the initial HTML → flash-free), and the read
@@ -34,5 +37,5 @@ export async function sitePageThemeSeed(
   page: SitePageKey,
 ): Promise<string | null> {
   const settings = await sanityFetch(SITE_SETTINGS_QUERY);
-  return settings?.pageThemes?.[page] ?? null;
+  return settings?.pageThemes?.[page] ?? settings?.theme?.color ?? null;
 }
