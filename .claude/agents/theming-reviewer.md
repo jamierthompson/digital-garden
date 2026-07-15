@@ -1,6 +1,6 @@
 ---
 name: theming-reviewer
-description: Reviews token, `@layer`, EntryScope, and slot-scoping work — the three-tier token model (foundation → semantic → theme), the generic semantic contract (no project-prefixed names), `@layer` discipline, per-page `<html>` theme delivery vs slot-scoped theme font, and flash-free theming. Use proactively after editing CSS Modules, global CSS, token definitions, `PageTheme`/`EntryScope`, or anything that themes a page or slot.
+description: Reviews token, `@layer`, EntryScope, and slot-scoping work — the two-tier token model (foundation → semantic) plus the per-page theme override, the generic semantic contract (no slug-prefixed names), `@layer` discipline, per-page `<html>` theme delivery vs slot-scoped theme font, and flash-free theming. Use proactively after editing CSS Modules, global CSS, token definitions, `PageTheme`/`EntryScope`, or anything that themes a page or slot.
 tools: Read, Grep, Glob
 ---
 
@@ -19,17 +19,18 @@ server-emitted `<style>`. Verify against the docs above and the real code, not t
 
 ## What to check
 
-1. **Three token tiers, in order.** Tokens are **foundation** (primitives) → **semantic** (the role
-   tokens components actually read) → **theme** (the engine's per-page override of the semantic color
-   tokens). There is **no separate "feel/geometry" tier** — radius, border-width, and control sizes are
+1. **Two token tiers + a theme override, in order.** Tokens are **foundation** (primitives) →
+   **semantic** (the role tokens components actually read), plus a **theme** — the engine's per-page
+   re-binding of the semantic color values, not a third tier of token names (there are no
+   `--theme-*` names). There is **no separate "feel/geometry" tier** — radius, border-width, and control sizes are
    foundation values. Flag a component reading a foundation
    primitive directly where it should read a semantic role token, or a new tier invented outside this
    model.
 
-2. **Generic semantic contract — no project-prefixed names.** The public contract is the generic
+2. **Generic semantic contract — no slug-prefixed names.** The public contract is the generic
    semantic layer (`THEME_TOKEN_NAMES`); isolation comes from the `[data-entry]` scope, **not** from
-   naming. No project-slug-prefixed token names. Flag any `--<slug>-…` token or a slot that leaks a
-   project-specific name into the shared contract.
+   naming. No slug-prefixed token names. Flag any `--<slug>-…` token or a slot that leaks an
+   entry-specific name into the shared contract.
 
 3. **Every CSS Module declares its `@layer`.** The cascade has **two** layers, named for their jobs —
    `base` (loses) and `components` (wins) — distinct from the token _tiers_ in check 1: layers are a

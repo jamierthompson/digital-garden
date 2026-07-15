@@ -123,13 +123,13 @@ async function Card({ theme }: { theme: string }) {
 
 **No Tailwind. No JSON tokens. No Style Dictionary.** Styling is CSS custom properties + CSS Modules organized with `@layer`.
 
-**Tokens are three layers** (the deep treatment is architecture.md's Token & theming architecture section — the layer names below are what you need to apply the `@layer` rule):
+**Tokens are two tiers plus a theme override** (the deep treatment is architecture.md's Token & theming architecture section — the names below are what you need to apply the `@layer` rule):
 
 1. **Foundation** (primitives: spacing, radius, border-width, control sizes, motion, z-index, type-scale — raw value scales; there is **no** separate "feel/geometry" tier) → global `:root` in `src/styles/foundation/*` (one file per family), with the base reset in `src/styles/reset.css`.
 2. **Semantic** (generic role tokens components actually read) → the layer components consume; a role that needs a geometry primitive binds it here, exactly as the spacing roles alias `--space-*`.
-3. **Theme** → an entry **slot**'s full scoped override of the semantic layer — engine-scoped to the `[data-entry]` wrapper, emitted by the OKLCH engine; page chrome stays on the global editorial foundation.
+3. **Theme** → the OKLCH engine's per-page re-binding of the semantic color tokens from the page's authored seed — an **unlayered** server-rendered `:root` `<style>` that paints the whole page, chrome included. An entry's theme **fonts** re-bind only on its `[data-entry]` slot (`EntryScope`); the editorial type everywhere else is global.
 
-Components read **generic semantic tokens** — `--surface`, `--foreground`, `--accent`, … `--font-body`, `--space-*`. There are **no `--<proj>-*` per-entry prefixed token names**: the `[data-entry]` scope provides the isolation, so a slot overrides the same generic names the rest of the app reads.
+Components read **generic semantic tokens** — `--surface`, `--foreground`, `--accent`, … `--font-body`, `--space-*`. There are **no `--<slug>-*` per-entry prefixed token names**: the `[data-entry]` scope provides the isolation, so a slot overrides the same generic names the rest of the app reads.
 
 ### Color tokens are immutable — never mix or fade one
 

@@ -130,7 +130,7 @@ boundary never resolved a real conflict, and collapsing them to `base` changes n
 Every page's chrome (title, prose, nav) reads the **semantic tokens as written on `<html>`** by the
 visible page's theme. Its **interactive slot** and the components it mounts read those **same generic
 semantic tokens** (inherited from `<html>`), plus the entry's `--font-body` re-bound on the
-`[data-entry]` scope. Components never read a project-prefixed name — there are **no `--<proj>-*`
+`[data-entry]` scope. Components never read a slug-prefixed name — there are **no `--<slug>-*`
 tokens**. Under the hood the engine emits a **per-role `50…950` ramp primitive** (`accent`,
 `neutral`, and the four status ramps) and **binds each semantic token to a ramp step** — so
 `--foreground` is `neutral`'s smallest step that clears body-text contrast, `--surface` is a fixed
@@ -178,7 +178,7 @@ Key points:
 
 - **The public token contract is the SEMANTIC layer.** Shared, cross-entry units read the
   generic role tokens (`--surface`, `--foreground`, `--accent`, `--font-body`, `--space-*`) — never a
-  project-prefixed name, because a shared slot cannot know which entry hosts it. Isolation comes
+  slug-prefixed name, because a shared slot cannot know which entry hosts it. Isolation comes
   from **scope, not prefix**: color from the page's `<html>` write (inherited), fonts from the
   `[data-entry]` slot's inline role-token overrides (`--font-heading` / `--font-body` / `--font-mono`).
 

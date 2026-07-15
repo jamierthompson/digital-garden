@@ -33,7 +33,7 @@ describe("cardSwatches — valid themeColor", () => {
     expect(Object.keys(style).sort()).toEqual([...KEYS].sort());
   });
 
-  it("uses only generic semantic names — no project-prefixed token leaks (#57)", () => {
+  it("uses only generic semantic names — no slug-prefixed token leaks (#57)", () => {
     // Every key is a bare semantic role name; none is namespaced (`--c-*`, `--theme-*`, `--<proj>-*`).
     for (const key of Object.keys(style)) {
       expect(key).toMatch(
