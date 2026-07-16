@@ -1,0 +1,22 @@
+/* Captioned image. @layer components — declares its layer (an unlayered module would outrank
+   every layered rule); var-consuming only. */
+@layer components {
+  .figure {
+    margin: var(--space-6) 0;
+  }
+
+  /* Fluid within the container at the image's own aspect ratio — the width/height attributes
+     reserve the box, this rule scales it. */
+  .image {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    border-radius: var(--radius-md);
+  }
+
+  /* Type + ink come from the Text `caption` role and its `color` prop; this rule owns only layout. */
+  .caption {
+    margin-top: var(--space-2);
+    text-align: center;
+  }
+}

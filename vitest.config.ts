@@ -32,6 +32,14 @@ export default defineConfig({
           environment: "jsdom",
           globals: true,
           setupFiles: ["./tests/setup.ts"],
+          // The PUBLIC Sanity vars, as placeholders — `src/sanity/lib/env.ts` asserts them
+          // at IMPORT time and app component trees reach it transitively, so component
+          // tests would throw without them. Never the secret token.
+          env: {
+            NEXT_PUBLIC_SANITY_PROJECT_ID: "test-project",
+            NEXT_PUBLIC_SANITY_DATASET: "test-dataset",
+            NEXT_PUBLIC_SANITY_API_VERSION: "2026-06-21",
+          },
           // jsdom is intentionally broad — it runs everything, including the engine glob
           // (which also runs under node below). A node-only test added outside the engine
           // must be excluded here so it doesn't run in the wrong env.

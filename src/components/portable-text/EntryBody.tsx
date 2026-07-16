@@ -14,7 +14,8 @@ import EntryQuote from "./EntryQuote";
 
 // Lifted off the typed detail query so serializer and query can't drift. `NonNullable`
 // drops the `body: … | null` arm — the caller only renders this when a body exists.
-type Body = NonNullable<NonNullable<ENTRY_DETAIL_QUERY_RESULT>["body"]>;
+// Exported for the typed-block components that narrow their own member out of it.
+export type Body = NonNullable<NonNullable<ENTRY_DETAIL_QUERY_RESULT>["body"]>;
 
 /** The default Sanity link annotation — a bare `href`. Typed at the serializer boundary
  *  because Portable Text mark values arrive untyped. */
@@ -72,7 +73,10 @@ export default function EntryBody({ value, scope }: EntryBodyProps) {
           scope={scope}
         />
       ),
-      figure: ({ value: block }) => <EntryFigure value={block} />,
+      // The first body block is the likely LCP element when it's a figure — preload it.
+      figure: ({ value: block, index }) => (
+        <EntryFigure value={block} preload={index === 0} />
+      ),
       video: ({ value: block }) => <EntryVideo value={block} />,
       quote: ({ value: block }) => <EntryQuote value={block} />,
     },
