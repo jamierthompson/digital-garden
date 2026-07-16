@@ -24,6 +24,7 @@ import "../styles/semantic/color.css";
 // so they sit safely after the global sheets.
 import { Geist_Mono, Source_Serif_4 } from "next/font/google";
 
+import ScrollActivity from "@/components/page-chrome/ScrollActivity";
 import SiteNav from "@/components/page-chrome/SiteNav";
 import SiteFooter from "@/components/page-chrome/SiteFooter";
 import SkipLink from "@/components/page-chrome/SkipLink";
@@ -116,6 +117,9 @@ export default function RootLayout({
         <SiteNav />
         {children}
         <SiteFooter />
+        {/* Reveals the native scrollbar thumb only while the document is scrolling (client leaf,
+            renders nothing). */}
+        <ScrollActivity />
         {/* Opens the Sanity Live EventSource so pages revalidate on content changes. Renders for
             every visitor (published live updates); streams drafts only with a browser token. Its
             own async island so the draftMode() read stays out of the sync RootLayout root. */}

@@ -15,6 +15,19 @@
 
   html {
     height: 100%;
+    scrollbar-width: thin;
+    /* The scrollbar's own tokens, co-located with the only rule that reads them; bound to a
+       contrast-solved themed pair so it re-tints per page. */
+    --scrollbar-thumb: var(--accent-subtle-foreground);
+    --scrollbar-track: var(--accent-subtle);
+    /* Idle: the whole scrollbar is hidden. A scroll listener stamps `data-scrolling` while the
+       document scrolls, revealing the themed pair — native scrollbars have no is-scrolling CSS
+       state. */
+    scrollbar-color: transparent transparent;
+  }
+
+  html[data-scrolling] {
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 
   html,
