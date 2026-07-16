@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { WIDTH_CONTENT } from "@/styles/foundation/dimension";
+
 import EntryFigure from "./EntryFigure";
 
 type FigureValue = Parameters<typeof EntryFigure>[0]["value"];
@@ -118,10 +120,21 @@ describe("EntryFigure with a resolvable asset", () => {
     expect(img.style.backgroundImage).toBe("");
   });
 
-  it("pins the prose-column sizes contract", () => {
-    render(<EntryFigure value={figureValue()} />);
-    const img = screen.getByRole("img", { name: "A wide diagram" });
-    expect(img.getAttribute("sizes")).toBe("(max-width: 48rem) 100vw, 48rem");
+  // Both forms compose from the drift-guarded --width-content mirror (never a literal):
+  // lazy leads with `auto` (browser measures the real box; fallback list for browsers
+  // without auto support); the preloaded figure fetches pre-layout, so it gets the plain
+  // fallback form — `auto` is spec-invalid on an eager image.
+  it("pins the sizes contract: auto-first when lazy, plain fallback when preloaded", () => {
+    const fallback = `(max-width: ${WIDTH_CONTENT}) 100vw, ${WIDTH_CONTENT}`;
+    const { unmount } = render(<EntryFigure value={figureValue()} />);
+    expect(
+      screen.getByRole("img", { name: "A wide diagram" }).getAttribute("sizes"),
+    ).toBe(`auto, ${fallback}`);
+    unmount();
+    render(<EntryFigure value={figureValue()} preload />);
+    expect(
+      screen.getByRole("img", { name: "A wide diagram" }).getAttribute("sizes"),
+    ).toBe(fallback);
   });
 
   // preload marks the likely-LCP figure: not lazy (no loading="lazy"), everything else lazy.

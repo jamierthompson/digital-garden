@@ -4,6 +4,8 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { WIDTH_CONTENT } from "./dimension";
+
 /**
  * Pins the width & size token value contract (#202): the renamed width-scale values, the
  * WCAG 2.2 SC 2.5.8 control-size floor, and a source-tree scan proving no retired width name
@@ -43,6 +45,15 @@ describe("foundation/dimension.css — width & size token contract (#202)", () =
     expect(
       Number(dimension["--size-control"].replace("rem", "")),
     ).toBeGreaterThanOrEqual(1.5);
+  });
+});
+
+describe("the --width-content TS mirror", () => {
+  // The CSS token is the source of truth; the mirror exists only for markup the browser
+  // reads before CSS applies (an img `sizes` attribute). When a design pass retunes the
+  // token, this failing is the prompt to update the mirror — never the other way around.
+  it("matches the CSS token byte-for-byte", () => {
+    expect(WIDTH_CONTENT).toBe(dimension["--width-content"]);
   });
 });
 

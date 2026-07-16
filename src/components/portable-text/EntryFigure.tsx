@@ -1,5 +1,6 @@
 import Figure from "@/components/ui/Figure";
 import { urlFor } from "@/sanity/lib/image";
+import { WIDTH_CONTENT } from "@/styles/foundation/dimension";
 
 import type { Body } from "./EntryBody";
 import MediaPlaceholder from "./MediaPlaceholder";
@@ -12,9 +13,19 @@ const GENERIC_NAME = "Figure";
 
 /**
  * The figure spans the article's `[prose]` column: the full viewport width until the column
- * maxes out at `--width-content` (48rem), fixed there beyond.
+ * maxes out at `--width-content`, fixed there beyond. Composed from the token's
+ * drift-guarded TS mirror — a `sizes` attribute is read pre-CSS, so it can't consume the
+ * custom property itself.
  */
-const FIGURE_SIZES = "(max-width: 48rem) 100vw, 48rem";
+const FIGURE_SIZES = `(max-width: ${WIDTH_CONTENT}) 100vw, ${WIDTH_CONTENT}`;
+
+/**
+ * A lazy figure leads with `auto` (the browser sizes it from the real laid-out box —
+ * immune to future measure changes); the fallback list serves browsers without `auto`
+ * support. The spec restricts `auto` to `loading="lazy"`, so the preloaded (eager,
+ * pre-layout) figure uses the plain fallback form.
+ */
+const LAZY_FIGURE_SIZES = `auto, ${FIGURE_SIZES}`;
 
 interface NormalizedCrop {
   top: number;
@@ -135,7 +146,7 @@ export default function EntryFigure({ value, preload }: EntryFigureProps) {
       width={image.width}
       height={image.height}
       caption={value.caption}
-      sizes={FIGURE_SIZES}
+      sizes={preload ? FIGURE_SIZES : LAZY_FIGURE_SIZES}
       preload={preload}
       blurDataURL={image.blurDataURL}
     />
