@@ -302,6 +302,29 @@ describe("EntryBody", () => {
         screen.getByRole("img", { name: "Second figure" }),
       ).toHaveAttribute("loading", "lazy");
     });
+
+    // QA #322 — `preload` keys on the block's absolute index, not on "is this the first figure".
+    // When prose leads, the sole figure sits below the fold and must stay lazy — otherwise a
+    // preload <link> would compete with the true LCP element for the critical path.
+    const PROSE_FIRST_BODY = [
+      {
+        _type: "block",
+        _key: "b1",
+        style: "normal",
+        markDefs: [],
+        children: [
+          { _type: "span", _key: "s1", text: "Editorial prose.", marks: [] },
+        ],
+      },
+      { _type: "figure", _key: "f1", alt: "Below-fold figure", asset: ASSET },
+    ] as unknown as Body;
+
+    it("does not preload a figure that follows a non-figure first block", () => {
+      render(<EntryBody value={PROSE_FIRST_BODY} />);
+      expect(
+        screen.getByRole("img", { name: "Below-fold figure" }),
+      ).toHaveAttribute("loading", "lazy");
+    });
   });
 
   // Content can drift from code: a published body may carry a block whose `_type` the serializer

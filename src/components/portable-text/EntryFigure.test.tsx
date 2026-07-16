@@ -144,6 +144,78 @@ describe("EntryFigure with a resolvable asset", () => {
     render(<EntryFigure value={figureValue({ alt: "  " })} />);
     expect(screen.getByRole("img", { name: "Figure" })).toBeInTheDocument();
   });
+
+  // QA #322 — the a11y backstop must also hold on the REAL-image path: a raw write can drift
+  // `alt` to any JSON shape while the asset stays resolvable, so the rendered <img> must get the
+  // generic name (never an object stringified into the accessible name, never blank).
+  it("backstops the accessible name on the image path when alt drifts to a non-string", () => {
+    render(
+      <EntryFigure
+        value={figureValue({
+          alt: { en: "A diagram" },
+        } as unknown as Partial<FigureValue>)}
+      />,
+    );
+    const img = screen.getByRole("img", { name: "Figure" });
+    expect(img.tagName).toBe("IMG");
+  });
+
+  // QA #322 — an image that went through Sanity's crop UI without cropping carries a present but
+  // all-zero crop. It must render identically to no crop: full box, no degenerate `rect=`.
+  it("treats an all-zero crop as no crop — full box, no rect", () => {
+    const zeroCrop = figureValue({
+      crop: {
+        _type: "sanity.imageCrop",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+      },
+    });
+    render(<EntryFigure value={zeroCrop} />);
+    const img = screen.getByRole("img", { name: "A wide diagram" });
+    expect(decodedSrc(img)).not.toContain("rect=");
+    expect(img.getAttribute("width")).toBe("1200");
+    expect(img.getAttribute("height")).toBe("800");
+  });
+
+  // QA #322 — the malformed-crop guard has three distinct rejection branches; the author only
+  // pinned the out-of-range (>1) one. A negative edge is the `< 0` branch.
+  it("drops a crop with a negative edge and renders uncropped", () => {
+    const negative = figureValue({
+      crop: {
+        _type: "sanity.imageCrop",
+        top: -0.1,
+        bottom: 0,
+        left: 0,
+        right: 0,
+      },
+    });
+    render(<EntryFigure value={negative} />);
+    const img = screen.getByRole("img", { name: "A wide diagram" });
+    expect(decodedSrc(img)).not.toContain("rect=");
+    expect(img.getAttribute("width")).toBe("1200");
+    expect(img.getAttribute("height")).toBe("800");
+  });
+
+  // QA #322 — the per-axis-sum branch: two in-range edges that together erase the axis. A crop
+  // baked from this would give the CDN a zero/negative-width `rect=`.
+  it("drops a crop whose horizontal edges sum past the frame", () => {
+    const overCropped = figureValue({
+      crop: {
+        _type: "sanity.imageCrop",
+        top: 0,
+        bottom: 0,
+        left: 0.6,
+        right: 0.6,
+      },
+    });
+    render(<EntryFigure value={overCropped} />);
+    const img = screen.getByRole("img", { name: "A wide diagram" });
+    expect(decodedSrc(img)).not.toContain("rect=");
+    expect(img.getAttribute("width")).toBe("1200");
+    expect(img.getAttribute("height")).toBe("800");
+  });
 });
 
 describe("EntryFigure placeholder fallback", () => {
@@ -171,6 +243,68 @@ describe("EntryFigure placeholder fallback", () => {
       asset: { ...REAL_ASSET, _id: "not-an-image-id" },
     });
     expect(() => render(<EntryFigure value={badId} />)).not.toThrow();
+    expect(
+      screen.getByRole("img", { name: "A wide diagram" }).tagName,
+    ).not.toBe("IMG");
+  });
+
+  // QA #322 — an empty-string id is a distinct guard branch from a mis-shaped id; it must degrade
+  // rather than reach the builder with a blank source.
+  it("falls back when the asset id is an empty string", () => {
+    const emptyId = figureValue({
+      asset: { ...REAL_ASSET, _id: "" },
+    });
+    render(<EntryFigure value={emptyId} />);
+    expect(
+      screen.getByRole("img", { name: "A wide diagram" }).tagName,
+    ).not.toBe("IMG");
+  });
+
+  // QA #322 — a non-positive dimension (raw write) can't reserve a real box; degrade instead of
+  // emitting width="0"/negative onto the <img>.
+  it("falls back when a metadata dimension is zero", () => {
+    const zeroDim = figureValue({
+      asset: {
+        ...REAL_ASSET,
+        metadata: {
+          ...REAL_ASSET.metadata!,
+          dimensions: {
+            ...REAL_ASSET.metadata!.dimensions!,
+            width: 0,
+          },
+        },
+      },
+    });
+    render(<EntryFigure value={zeroDim} />);
+    expect(
+      screen.getByRole("img", { name: "A wide diagram" }).tagName,
+    ).not.toBe("IMG");
+  });
+
+  // QA #322 — the `width < 1` guard: a valid crop on a tiny source can round the post-crop box
+  // below one pixel. That box would reserve nothing, so the figure degrades to the placeholder.
+  it("falls back when the post-crop box rounds below one pixel", () => {
+    const subPixel = figureValue({
+      asset: {
+        ...REAL_ASSET,
+        metadata: {
+          ...REAL_ASSET.metadata!,
+          dimensions: {
+            ...REAL_ASSET.metadata!.dimensions!,
+            width: 1,
+            height: 1000,
+          },
+        },
+      },
+      crop: {
+        _type: "sanity.imageCrop",
+        top: 0,
+        bottom: 0,
+        left: 0.6,
+        right: 0,
+      },
+    });
+    render(<EntryFigure value={subPixel} />);
     expect(
       screen.getByRole("img", { name: "A wide diagram" }).tagName,
     ).not.toBe("IMG");
