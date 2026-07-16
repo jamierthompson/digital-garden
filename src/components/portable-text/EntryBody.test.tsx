@@ -263,6 +263,70 @@ describe("EntryBody", () => {
     });
   });
 
+  // The first body block is the likely LCP element when it's a figure. The serializer threads
+  // `preload` to that figure ONLY — pinned here at the body layer (not just in the adapter's
+  // own tests) so deleting the threading breaks a test, not just the paint.
+  describe("figure preload threading", () => {
+    const ASSET = {
+      _id: "image-abc123def456-1200x800-jpg",
+      metadata: {
+        lqip: null,
+        dimensions: {
+          _type: "sanity.imageDimensions",
+          width: 1200,
+          height: 800,
+          aspectRatio: 1.5,
+        },
+      },
+    };
+    const FIGURES_BODY = [
+      { _type: "figure", _key: "f1", alt: "First figure", asset: ASSET },
+      {
+        _type: "block",
+        _key: "b1",
+        style: "normal",
+        markDefs: [],
+        children: [
+          { _type: "span", _key: "s1", text: "Editorial prose.", marks: [] },
+        ],
+      },
+      { _type: "figure", _key: "f2", alt: "Second figure", asset: ASSET },
+    ] as unknown as Body;
+
+    it("preloads only the first-block figure; later figures lazy-load", () => {
+      render(<EntryBody value={FIGURES_BODY} />);
+      expect(
+        screen.getByRole("img", { name: "First figure" }),
+      ).not.toHaveAttribute("loading", "lazy");
+      expect(
+        screen.getByRole("img", { name: "Second figure" }),
+      ).toHaveAttribute("loading", "lazy");
+    });
+
+    // QA #322 — `preload` keys on the block's absolute index, not on "is this the first figure".
+    // When prose leads, the sole figure sits below the fold and must stay lazy — otherwise a
+    // preload <link> would compete with the true LCP element for the critical path.
+    const PROSE_FIRST_BODY = [
+      {
+        _type: "block",
+        _key: "b1",
+        style: "normal",
+        markDefs: [],
+        children: [
+          { _type: "span", _key: "s1", text: "Editorial prose.", marks: [] },
+        ],
+      },
+      { _type: "figure", _key: "f1", alt: "Below-fold figure", asset: ASSET },
+    ] as unknown as Body;
+
+    it("does not preload a figure that follows a non-figure first block", () => {
+      render(<EntryBody value={PROSE_FIRST_BODY} />);
+      expect(
+        screen.getByRole("img", { name: "Below-fold figure" }),
+      ).toHaveAttribute("loading", "lazy");
+    });
+  });
+
   // Content can drift from code: a published body may carry a block whose `_type` the serializer
   // doesn't handle — a type removed from code, or authored ahead of a code change. The serializer
   // must degrade: render the rest of the essay, never crash on the unknown type, and never

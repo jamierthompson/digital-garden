@@ -914,9 +914,11 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   kind — `kind` places an entry, it does not restrict the palette (single author, maximum authoring
   flexibility). Prose (`block`) offers Normal, H2, and H3 styles plus bullet/number lists (no body
   H1 — the body sits under the page's `<h1>` entry title, so a body H1 would break the heading
-  outline, WCAG 1.3.1). Alongside prose the palette carries four typed blocks: **`figure`** and
-  **`video`** (media — each a labelled placeholder + caption until a real image/embed pipeline is
-  needed), the themeable **`slot`** (a live component resolved by `slotKey` in code, wearing the
+  outline, WCAG 1.3.1). Alongside prose the palette carries four typed blocks: **`figure`** (an
+  editor-picked image asset with required alt + optional caption, rendered responsively off the
+  Sanity CDN honoring the authored crop) and **`video`** (a provider iframe or native file
+  resolved through a pinned host allow-list) — either media block degrades to a labelled
+  placeholder when its data can't resolve — the themeable **`slot`** (a live component resolved by `slotKey` in code, wearing the
   entry's theme), and **`quote`** (a semantic pull-quote — the one quotation mechanism; the inline
   `blockquote` prose style is removed so there is a single way to quote). A `now` update may carry a
   `slot` like any kind; with no entry theme of its own it simply renders under the page chrome.
