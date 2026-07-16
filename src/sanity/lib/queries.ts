@@ -68,6 +68,12 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  * inner rung resolves to `""`, which `PageTheme` collapses to the engine fallback rather than
  * silently re-routing to a different authored seed. The route reads `themeSeed` and never
  * branches on `kind`.
+ *
+ * `body` spreads every block through unchanged EXCEPT `figure`, which expands its image
+ * `asset->` to the fields the render pipeline needs: `metadata.dimensions` reserves the
+ * image's box before paint (no layout shift) and `metadata.lqip` feeds the blur-up
+ * placeholder. The block's own `crop`/`hotspot` ride along in the spread — they live on the
+ * block, not the asset document.
  */
 export const ENTRY_DETAIL_QUERY = defineQuery(`
   *[_type == "entry" && slug.current == $slug][0] {
@@ -85,7 +91,13 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
       select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),
       *[_type == "siteSettings"][0].theme.color
     ),
-    body,
+    body[] {
+      ...,
+      _type == "figure" => {
+        ...,
+        asset->{ _id, metadata { lqip, dimensions } }
+      }
+    },
     related[]->{ _id, title, "slug": slug.current, kind },
     "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }
   }
