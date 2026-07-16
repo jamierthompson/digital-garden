@@ -5,7 +5,17 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   images: {
     // Sanity's image CDN is the only remote image source; everything else stays blocked.
-    remotePatterns: [new URL("https://cdn.sanity.io/images/**")],
+    // Object form, NOT the `new URL("…/**")` shorthand: the shorthand bakes an empty
+    // `search` constraint ("no query string allowed"), which 400s every authored-crop
+    // image — their URLs carry a per-image `?rect=`. `search` supports only exact-match
+    // or omitted-wildcard, so it is omitted deliberately (browser QA #322).
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.sanity.io",
+        pathname: "/images/**",
+      },
+    ],
     // Required since Next 16 (unrestricted qualities are an optimizer-abuse vector);
     // 75 is the component default, so an <Image> with no `quality` prop keeps working.
     qualities: [75],
