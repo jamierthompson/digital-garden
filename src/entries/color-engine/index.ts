@@ -7,7 +7,7 @@ import type { EntryModule } from "@/entries/types";
 import ColorEngine from "./ColorEngine";
 
 const colorEngine: EntryModule = {
-  Slot: ColorEngine,
+  Canvas: ColorEngine,
 };
 
 export default colorEngine;

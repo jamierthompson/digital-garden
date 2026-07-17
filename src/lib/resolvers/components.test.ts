@@ -39,12 +39,14 @@ describe("resolveComponentKey", () => {
       expect(isNotFound(result)).toBe(false);
       if (isNotFound(result)) throw new Error(`expected a loader for ${key}`);
       const mod = (await result.value()) as {
-        default: { Slot?: unknown; Provider?: unknown };
+        default: { Provider?: unknown; Sidebar?: unknown; Canvas?: unknown };
       };
       expect(mod.default).toBeTruthy();
-      const members = [mod.default.Slot, mod.default.Provider].filter(
-        (member) => member !== undefined,
-      );
+      const members = [
+        mod.default.Provider,
+        mod.default.Sidebar,
+        mod.default.Canvas,
+      ].filter((member) => member !== undefined);
       expect(
         members.length,
         `${key} exports no composition member`,

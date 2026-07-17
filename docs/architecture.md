@@ -176,7 +176,7 @@ global :root  (foundation primitives + the semantic ENGINE FALLBACK)
    │        --type-<role>-family bundles the type primitives read are declared ONCE in
    │        semantic/type.css under `:root, :where([data-entry])`, so they re-substitute against
    │        these leaves inside the slot. An unset face stamps nothing and inherits :root. A page
-   │        mounts one (the after-prose slot)
+   │        mounts one (the demo template's sidebar + canvas surface)
    │        or MANY (slots interleaved through the prose); each is per-element, so distinct slots never
    │        collide. Color is inherited from <html>; only the resolved font roles are overridden here.
           │ themes downward, within the slot ↓
@@ -406,10 +406,9 @@ measured contrast, the anchor readout).
 
 Its interactive demo has been **removed pending a rebuild** on the deliberate design-system
 foundation (the old surfaces carried pre-foundation type literals). The `color-engine` key stays
-registered to a placeholder so the published entry still resolves; the tool is rebuilt later as a
-**multi-page demo** (#149). There is no bespoke page template for it: a demo that exports a
-`Slot` mounts it in the **one editorial template** every entry uses, after the prose —
-the canvas template and the `layout: "wide"` module option were dropped with the demo.
+registered to a placeholder `Canvas` so the published entry still resolves on the **demo
+template** (sidebar + canvas); the tool is rebuilt later, and may eventually grow into a
+**multi-page demo** (#149).
 
 When rebuilt, it is meant to be the **one place a visitor plays with a seed** — the provider holding
 the live seed/rules in React state and driving the page's `<html>` theme off the generated palette
@@ -712,21 +711,36 @@ src/lib/resolvers/components.ts  componentKey → () => import("@/entries/<slug>
 src/*/keys.ts              string-constant key contracts (Studio imports these; resolvers don't)
 ```
 
-An entry renders as a single `/[slug]` page. Its registry entry (the `EntryModule` contract,
-`src/entries/types.ts`) exports one or both of two composition members — a compile error
-enforces at least one:
+An entry renders as a single `/[slug]` page on one of **two templates, branched by `kind`**:
 
-- **`Slot`** — one interactive slot the page mounts after the prose, inside its own
-  theme scope. The default for a module whose demo is a single surface.
-- **`Provider`** — a client frame the page wraps the `<article>` in, so `slot` blocks
-  interleaved through the prose share state via context. The prose stays server-rendered
-  (children pass-through); the provider adds state, never markup that re-themes the
-  editorial register. The page threads the font seed to the serializer, and each slot
-  mounts in its own `EntryScope` container (its own per-role face overrides per island; color is
-  inherited from the page's `<html>` theme).
+- **Editorial** (`note` · `essay` · `now` — and any kind the code doesn't recognize): the prose
+  reading column, with interactive `slot` blocks interleaved through the prose (`SlotBlock` →
+  `slots/*`), each in its own theme scope. `now` is editorial with one exception: it never wears
+  its own `theme` — it keeps the shared `/now` seed (colors AND type), so its slots mount
+  slug-keyed with the Now theme's faces.
+- **Demo** (`kind === "demo"` with a resolved module): a two-region app layout (`DemoLayout`,
+  `src/components/entry/`) — **sidebar + canvas**, edge-to-edge in the content grid's `full`
+  lane, no prose article (the summary is the demo's prose). **Hybrid sidebar:** the page renders
+  the entry's info (title, summary, kind · stage, iterated, seed readout) — DRY across demos —
+  and the module contributes its controls below. A sketch demo (no `componentKey`) falls back to
+  the editorial template, prose-only.
 
-Nothing more is templated: the page is the editorial `<article>` (prose) plus the module's
-composition. A headless `core/` is **not** templated into every module — let it
+The registry entry (the `EntryModule` contract, `src/entries/types.ts`) exports up to three
+members — a compile error enforces a mountable one (`Provider` and/or `Canvas`):
+
+- **`Provider`** — a client frame the page wraps the entry's surface in (the editorial
+  `<article>`, or the demo's sidebar + canvas), so the module's pieces share state via context.
+  The surface stays server-rendered (children pass-through); the provider adds state, never
+  markup that re-themes the editorial register. On the editorial template the page threads the
+  font seed to the serializer, and each slot mounts in its own `EntryScope` container (per-role
+  face overrides per island; color inherited from the page's `<html>` theme).
+- **`Canvas`** — the module-owned main surface of a demo. A demo whose resolved module lacks
+  `Canvas` is content→code drift and 404s, same as an unresolvable `componentKey`.
+- **`Sidebar`** — the module's controls, mounted inside the page-owned sidebar shell below the
+  entry info. Meaningless without `Canvas`. On the demo template ONE `EntryScope` wraps sidebar
+  controls and canvas together.
+
+Nothing more is templated: the page is the template plus the module's composition. A headless `core/` is **not** templated into every module — let it
 emerge only when a slot's logic warrants extraction (same deferral discipline as the
 slot tiers; see the interactive slot section). Code lives under `src/entries/<slug>/`;
 **routes are flat** — `/` is the

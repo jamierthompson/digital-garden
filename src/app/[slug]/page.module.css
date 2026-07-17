@@ -7,6 +7,28 @@
    hold the prose lane natively. This file adds only the page's editorial concerns — prose
    typography and the header. */
 @layer components {
+  /* Demo frame: the sidebar+canvas template fills nav→footer — the frame grows to the viewport
+     floor (body is a flex column), its two rows are the demo (all spare height) and the related
+     tail, and the block padding drops so the demo surface truly touches the chrome. */
+  .demoPage {
+    flex: 1;
+    grid-template-rows: 1fr auto;
+    padding-block: 0;
+  }
+
+  /* The demo surface's grid child: owns the `full` lane (a deeper element's lane declaration
+     would be inert — grid-column only works on direct children) and single-cell-grids each
+     layer so the scope's [data-entry] wrapper and the demo section stretch to the row's full
+     height. */
+  .demoBleed {
+    grid-column: full;
+    display: grid;
+  }
+
+  .demoBleed > [data-entry] {
+    display: grid;
+  }
+
   .header {
     margin-bottom: var(--space-section);
   }
