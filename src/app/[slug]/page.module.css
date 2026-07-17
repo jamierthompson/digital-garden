@@ -1,10 +1,9 @@
 /* /[slug] entry page. @layer components — declares its layer (an unlayered module outranks
    every layered rule); var-consuming only; reads the generic semantic tokens (editorial by
-   default; each themed slot re-binds them inside its own scoped container). The `Page` primitive
-   owns the wide frame (width/centering/gutter) and the `<main>` landmark — `.module` is merged
-   onto it only to anchor the breakout grid rules below. Breakout
-   layout: the frame runs wide, the prose keeps its reading measure via the article grid's named
-   [prose] column, and a slot spans [full] (SlotBlock sets `grid-column: full`). */
+   default; each themed slot re-binds them inside its own scoped container). The `<article>` is a
+   `ContentGrid` (asChild), so its body blocks land in the prose lane by default and a slot spans
+   `full` to the viewport edge; this file adds only the page's editorial concerns — prose
+   typography, the header, and centering the non-article pieces to the reading measure. */
 @layer components {
   .header {
     margin-bottom: var(--space-6);
@@ -14,21 +13,12 @@
     max-width: 52ch;
   }
 
+  /* The grid itself — the prose/wide/full lanes and the default prose column — comes from
+     `ContentGrid` (merged onto the <article> via asChild). This adds only the article's own
+     editorial concerns. */
   .article {
-    display: grid;
-    grid-template-columns:
-      [full-start] minmax(0, 1fr)
-      [prose-start] min(var(--width-content), 100%)
-      [prose-end] minmax(0, 1fr)
-      [full-end];
     font-size: var(--type-body-size);
     line-height: var(--type-body-leading);
-  }
-
-  /* Zero-specificity default so a slot's own `grid-column: full` (equal layer, any
-     insertion order) always wins without a specificity arms race. */
-  :where(.article) > * {
-    grid-column: prose;
   }
 
   /* Direct children ONLY: these are the page's prose rules, and a descendant selector
@@ -44,10 +34,11 @@
     max-width: 64ch;
   }
 
-  /* The non-article page pieces (related entries, the slot) hold the reading
-     measure — only the article's breakout `[full]` slots use the wide frame. */
+  /* The non-article pieces (related entries, the after-prose slot) sit outside the content grid,
+     so cap them to the reading measure and keep a gutter on narrow viewports (the full-bleed frame
+     adds no inline padding of its own). */
   .module > :where(:not(.article)) {
-    max-width: var(--width-content);
+    max-width: min(var(--width-content), 100% - var(--space-gutter) * 2);
     margin-inline: auto;
   }
 }

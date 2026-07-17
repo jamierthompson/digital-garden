@@ -1,0 +1,24 @@
+/* ContentGrid — the content-grid layout primitive. @layer components, strictly var-consuming.
+   Three named lanes (prose · wide · full); the gutter lives in the tracks, so `full` bleeds to
+   the viewport edge while `prose`/`wide` stay inset. Owns the column lanes only. */
+@layer components {
+  .grid {
+    /* The wide lane's breakout past prose, each side — derived so the wide lane totals
+       --width-wide. */
+    --wide-breakout: calc((var(--width-wide) - var(--width-content)) / 2);
+    display: grid;
+    grid-template-columns:
+      [full-start] minmax(0, 1fr)
+      [wide-start] minmax(0, var(--wide-breakout))
+      [prose-start] min(var(--width-content), 100% - var(--space-gutter) * 2)
+      [prose-end] minmax(0, var(--wide-breakout))
+      [wide-end] minmax(0, 1fr)
+      [full-end];
+  }
+
+  /* Zero-specificity default so a child's own `grid-column: wide|full` always wins without a
+     specificity fight. */
+  :where(.grid) > * {
+    grid-column: prose;
+  }
+}

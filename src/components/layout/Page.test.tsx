@@ -57,6 +57,20 @@ describe("Page", () => {
     ).toBe(expected);
   });
 
+  it("exposes the width role as data-width so CSS can target it", () => {
+    render(<Page width="page" data-testid="page" />);
+    expect(screen.getByTestId("page")).toHaveAttribute("data-width", "page");
+  });
+
+  it("width='full' is a full-bleed frame: data-width='full' and no --page-width cap", () => {
+    // The cap + inline gutter are dropped in CSS via [data-width="full"] (jsdom loads none), so
+    // the contract testable here is: the attribute is set and no width token is written.
+    render(<Page width="full" data-testid="page" />);
+    const el = screen.getByTestId("page");
+    expect(el).toHaveAttribute("data-width", "full");
+    expect(el.style.getPropertyValue("--page-width")).toBe("");
+  });
+
   it("merges a caller className alongside its own", () => {
     render(<Page className="caller" data-testid="page" />);
     expect(screen.getByTestId("page")).toHaveClass("caller");

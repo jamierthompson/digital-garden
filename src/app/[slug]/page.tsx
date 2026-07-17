@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import EntryBody from "@/components/portable-text/EntryBody";
+import ContentGrid from "@/components/layout/ContentGrid";
 import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
@@ -157,31 +158,33 @@ export default async function EntryPage({ params }: EntryPageProps) {
       : undefined;
 
   const article = (
-    <article className={styles.article}>
-      <Stack asChild gap={space(3)}>
-        <header className={styles.header}>
-          <Heading level={1} color="accent-text">
-            {entry.title}
-          </Heading>
-          {entry.summary ? (
-            <Text
-              variant="lede"
-              color="muted-foreground"
-              className={styles.summary}
-            >
-              {entry.summary}
-            </Text>
-          ) : null}
-        </header>
-      </Stack>
-      {entry.body ? <EntryBody value={entry.body} scope={scope} /> : null}
-    </article>
+    <ContentGrid asChild>
+      <article className={styles.article}>
+        <Stack asChild gap={space(3)}>
+          <header className={styles.header}>
+            <Heading level={1} color="accent-text">
+              {entry.title}
+            </Heading>
+            {entry.summary ? (
+              <Text
+                variant="lede"
+                color="muted-foreground"
+                className={styles.summary}
+              >
+                {entry.summary}
+              </Text>
+            ) : null}
+          </header>
+        </Stack>
+        {entry.body ? <EntryBody value={entry.body} scope={scope} /> : null}
+      </article>
+    </ContentGrid>
   );
 
   return (
     <>
       {pageTheme}
-      <Page width="page" className={styles.module}>
+      <Page width="full" className={styles.module}>
         {/* The provider is a state frame, not a theme: prose inside stays server-rendered
           editorial content (children pass-through). Rendered as deep as possible per the
           bundled composition docs. */}

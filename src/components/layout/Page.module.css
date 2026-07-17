@@ -8,4 +8,11 @@
     margin-inline: auto;
     padding: var(--space-gutter);
   }
+
+  /* Full-bleed frame: no width cap and no inline gutter, so a `full`-lane child of the content
+     grid inside reaches the true viewport edge. Block padding stays for top/bottom breathing. */
+  .page[data-width="full"] {
+    max-width: none;
+    padding-inline: 0;
+  }
 }

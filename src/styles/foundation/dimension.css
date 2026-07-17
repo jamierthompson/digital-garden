@@ -2,6 +2,7 @@
   :root {
     --width-measure: 42rem;
     --width-content: 48rem;
+    --width-wide: 64rem; /* the wide breakout lane's max width — between the content measure and full-bleed */
     --width-page: 72rem;
 
     --size-control: 1.5rem; /* 24px — the WCAG 2.2 SC 2.5.8 pointer-target floor */
