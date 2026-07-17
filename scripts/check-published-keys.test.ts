@@ -193,9 +193,11 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
     /const PUBLISHED_KEYS_QUERY = `([\s\S]*?)`;/,
   )?.[1];
 
-  // Every entry carries a `body` — it is schema-required (#217), so published data always has
-  // one; an entry without it would make the slotKeys traversal emit spurious nulls that the
-  // real dataset can never produce.
+  // `body` is required only for EDITORIAL kinds — a demo carries none (its template is
+  // sidebar + canvas), so the dataset legitimately contains body-less entries. Traversing an
+  // absent `body` evaluates to null in GROQ, so the slotKeys rung filters to
+  // `defined(body)` docs first; the body-less demo below pins that no spurious null
+  // reaches the key list.
   const PROSE = [{ _type: "block", children: [] }];
   const DATASET = [
     {
@@ -230,6 +232,14 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
       theme: { color: "#123456" },
       body: PROSE,
     },
+    {
+      _id: "demo-no-body",
+      _type: "entry",
+      kind: "demo",
+      stage: "prototype",
+      componentKey: "color-engine",
+      theme: { color: "#123456" },
+    },
     { _id: "settings", _type: "siteSettings" },
   ];
 
@@ -260,7 +270,7 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
     const result = await runQuery(DATASET);
     expect(result.componentKeys).toEqual(["color-engine"]);
     expect(result.slotKeys).toEqual(["color-engine-seed"]);
-    expect(result.entryCount).toBe(3);
+    expect(result.entryCount).toBe(4);
     expect(result.siteSettingsCount).toBe(1);
     expect(result.slotBlockCount).toBe(1);
   });

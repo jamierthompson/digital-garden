@@ -62,7 +62,7 @@ const PUBLISHED_KEYS_QUERY = `{
     + *[_type == "entry" && defined(theme.monoFont)].theme.monoFont
   ),
   "componentKeys": array::unique(*[_type == "entry" && defined(componentKey)].componentKey),
-  "slotKeys": array::unique(*[_type == "entry"].body[_type == "slot" && defined(slotKey)].slotKey)
+  "slotKeys": array::unique(*[_type == "entry" && defined(body)].body[_type == "slot" && defined(slotKey)].slotKey)
 }`;
 
 /**
