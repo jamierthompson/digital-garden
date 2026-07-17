@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import containerStyles from "@/components/layout/Container.module.css";
+import gridStyles from "@/components/layout/ContentGrid.module.css";
 import colorStyles from "@/components/typography/textColor.module.css";
 import textLinkStyles from "@/components/ui/TextLink.module.css";
 
@@ -67,12 +67,23 @@ describe("SiteFooter", () => {
     expect(row?.tagName).toBe("DIV");
   });
 
-  it("caps the inner row to the page column (Container's class survives the double Slot chain)", () => {
+  it("aligns the band to the shared content grid and lanes the inner row (classes survive the Slot chain)", () => {
     render(<SiteFooter />);
-    // Container → Text → div is two nested asChild merges; if either layer drops className,
-    // the footer row silently goes full-bleed while the nav above stays capped.
+    // ContentGrid → footer and Text → div are asChild merges; if either layer drops className,
+    // the footer row silently goes full-bleed while the nav above stays aligned.
+    const footer = screen.getByRole("contentinfo");
+    expect(footer).toHaveClass(gridStyles.grid);
     const row = screen.getByText(/© \d{4} Jamie Thompson/).parentElement;
-    expect(row).toHaveClass(containerStyles.container);
+    expect(row).toHaveClass(footerStyles.inner);
+    // jsdom can't lay out the grid; pin the row's lane at the source.
+    const css = readFileSync(
+      resolve(
+        process.cwd(),
+        "src/components/page-chrome/SiteFooter.module.css",
+      ),
+      "utf8",
+    );
+    expect(css).toMatch(/\.inner\s*\{[^}]*grid-column:\s*wide/);
   });
 
   it("wears the muted ink via the Text color prop (rule + selector attribute both land)", () => {

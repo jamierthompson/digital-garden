@@ -56,8 +56,10 @@ export default async function IndexPage() {
   return (
     <>
       <PageTheme seed={themeSeed} />
-      <Page width="page">
-        <Stack gap={space(8)}>
+      <Page>
+        {/* The index listing runs wider than the reading measure — the whole page block takes
+            the wide lane. */}
+        <Stack gap={space(8)} className={styles.content}>
           <Stack asChild gap={space(2)}>
             <header>
               <Heading level={1}>Index</Heading>

@@ -3,6 +3,12 @@
    Layout comes from the primitives, static ink from their `color` prop, and the list items from
    `EntrySummary` — these rules own only what's left. */
 @layer components {
+  /* The page block sits in the content grid's wide lane — the listing wants more than the
+     reading measure. */
+  .content {
+    grid-column: wide;
+  }
+
   .intro {
     max-width: 60ch;
   }

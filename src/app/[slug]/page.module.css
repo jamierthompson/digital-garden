@@ -1,9 +1,11 @@
 /* /[slug] entry page. @layer components — declares its layer (an unlayered module outranks
    every layered rule); var-consuming only; reads the generic semantic tokens (editorial by
-   default; each themed slot re-binds them inside its own scoped container). The `<article>` is a
-   `ContentGrid` (asChild), so its body blocks land in the prose lane by default and a slot spans
-   `full` to the viewport edge; this file adds only the page's editorial concerns — prose
-   typography, the header, and centering the non-article pieces to the reading measure. */
+   default; each themed slot re-binds them inside its own scoped container). `Page` is the page's
+   content grid; the `<article>` spans its `full` lane and is itself a `ContentGrid` (asChild)
+   with identical tracks, so body blocks land in the prose lane and a slot can span `full` to the
+   viewport edge. The non-article siblings (after-prose slot, related) are grid children too and
+   hold the prose lane natively. This file adds only the page's editorial concerns — prose
+   typography and the header. */
 @layer components {
   .header {
     margin-bottom: var(--space-6);
@@ -13,10 +15,11 @@
     max-width: 52ch;
   }
 
-  /* The grid itself — the prose/wide/full lanes and the default prose column — comes from
-     `ContentGrid` (merged onto the <article> via asChild). This adds only the article's own
-     editorial concerns. */
+  /* The lanes come from `ContentGrid` (merged onto the <article> via asChild). The article
+     spans the page grid's `full` lane, so its own identical tracks align 1:1 with the page's.
+     This adds only the article's editorial concerns. */
   .article {
+    grid-column: full;
     font-size: var(--type-body-size);
     line-height: var(--type-body-leading);
   }
@@ -32,13 +35,5 @@
   .article > p {
     margin-top: var(--space-4);
     max-width: 64ch;
-  }
-
-  /* The non-article pieces (related entries, the after-prose slot) sit outside the content grid,
-     so cap them to the reading measure and keep a gutter on narrow viewports (the full-bleed frame
-     adds no inline padding of its own). */
-  .module > :where(:not(.article)) {
-    max-width: min(var(--width-content), 100% - var(--space-gutter) * 2);
-    margin-inline: auto;
   }
 }

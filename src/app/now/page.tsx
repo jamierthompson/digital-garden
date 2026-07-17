@@ -59,7 +59,7 @@ export default async function NowPage() {
   return (
     <>
       <PageTheme seed={themeSeed} />
-      <Page width="content">
+      <Page>
         <Stack gap={space(6)}>
           <Stack asChild gap={space(2)}>
             <header>

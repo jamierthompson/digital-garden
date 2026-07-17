@@ -7,12 +7,15 @@
        --width-wide. */
     --wide-breakout: calc((var(--width-wide) - var(--width-content)) / 2);
     display: grid;
+    /* The outer tracks floor at the gutter, so `wide` (like `prose`) stays inset from the
+       viewport edge at every width — while `full` spans the outer tracks and still bleeds
+       true edge-to-edge. */
     grid-template-columns:
-      [full-start] minmax(0, 1fr)
+      [full-start] minmax(var(--space-gutter), 1fr)
       [wide-start] minmax(0, var(--wide-breakout))
       [prose-start] min(var(--width-content), 100% - var(--space-gutter) * 2)
       [prose-end] minmax(0, var(--wide-breakout))
-      [wide-end] minmax(0, 1fr)
+      [wide-end] minmax(var(--space-gutter), 1fr)
       [full-end];
   }
 

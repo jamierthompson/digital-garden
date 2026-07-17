@@ -101,11 +101,11 @@ when none is authored (see the token & theming architecture).
 
 Tokens are organized in **two tiers** — the semantic tier consuming the foundation — plus a **theme** that re-binds the semantic tier per scope (not a third tier of token names; there are no `--theme-*` names):
 
-| Tier                   | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ---------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Foundation**         | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, content-width measures (`--width-measure` 42rem / `--width-content` 48rem / `--width-page` 72rem), the radius scale (`--radius` 10px, with `--radius-sm`/`-md`/`-lg`/`-xl` = 6/8/10/14px and `--radius-full`), border widths (`--border-width` 1px / `--border-width-thick` 2px), control sizes (`--size-control` 24px / `--size-control-lg` 44px / `--size-icon` 16px), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
-| **Semantic**           | global `:root` (the baked engine fallback)        | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the fallback ground for surfaces that render with no `<html>` theme.                                                                                                                                                            |
-| **Theme** _(override)_ | `<html>` (color) + the slot `[data-entry]` (font) | re-binds the semantic tier, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **fonts** are per-slot role-token overrides (up to three — `--font-heading` / `--font-body` / `--font-mono`) on `[data-entry]` (`EntryScope`), each inherited from `:root` when unset.                                                                                                                                                                                                                                                            |
+| Tier                   | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ---------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Foundation**         | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, the content-grid lane widths (`--width-content` 48rem, the prose lane and the site's one reading measure / `--width-wide` 80rem, the breakout lane), the radius scale (`--radius` 10px, with `--radius-sm`/`-md`/`-lg`/`-xl` = 6/8/10/14px and `--radius-full`), border widths (`--border-width` 1px / `--border-width-thick` 2px), control sizes (`--size-control` 24px / `--size-control-lg` 44px / `--size-icon` 16px), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
+| **Semantic**           | global `:root` (the baked engine fallback)        | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the fallback ground for surfaces that render with no `<html>` theme.                                                                                                                                                                                                              |
+| **Theme** _(override)_ | `<html>` (color) + the slot `[data-entry]` (font) | re-binds the semantic tier, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **fonts** are per-slot role-token overrides (up to three — `--font-heading` / `--font-body` / `--font-mono`) on `[data-entry]` (`EntryScope`), each inherited from `:root` when unset.                                                                                                                                                                                                                                                                                                              |
 
 The model is a **derivation taxonomy, not a partition**: the **semantic tier is the contract**
 components code against, and a theme simply re-defines those same semantic tokens with its own
@@ -578,34 +578,44 @@ import { space } from "@/lib/tokens";
 <Stack asChild><ul>…</ul></Stack>        // no wrapper; default --space-stack rhythm
 ```
 
+### `ContentGrid`
+
+The content-grid layout primitive (`src/components/layout/ContentGrid.tsx`) — the site's **one
+width system**, the industry-standard breakout grid (Josh Comeau's full-bleed layout / Ryan
+Mulligan's "Layout Breakouts"): one grid owns three named lanes, and the gutter lives in the
+grid's tracks, not on a clamping wrapper.
+
+- **`prose`** — the reading measure (`--width-content`), the default lane: children land here
+  unless they set their own `grid-column`.
+- **`wide`** — the breakout lane (`--width-wide`), for media, slots, and the chrome bands' rows.
+- **`full`** — true edge-to-edge (it spans the outer tracks, which floor at `--space-gutter` so
+  `wide`/`prose` stay inset at every viewport).
+- **`asChild?: boolean`** — merge the grid onto the child element itself (Radix `Slot`), e.g. to
+  make a semantic `<article>`, `<nav>`, or `<footer>` the grid.
+
+Page content and the chrome bands (`SiteNav`, `Masthead`, `SiteFooter`) all mount the same grid,
+so the whole viewport shares one alignment system. It owns the column lanes only — vertical
+rhythm, ink, and band styling stay with the consumer.
+
 ### `Page`
 
-The page-frame primitive (`src/components/layout/Page.tsx`): the **single `<main>` landmark and
-content frame every route mounts**. It owns one structural concern — the content-width cap,
-horizontal centering, and the page gutter — and is the **skip-link target**.
-
-- **`width?: "measure" | "content" | "page"`** — the content-width role, selecting the matching
-  `--width-<role>` foundation measure through the `--page-width` conduit. Defaults to `content`.
-  Because the width lands as a custom property the CSS reads, it can be overridden in CSS — a
-  container query, a scoped override — without touching the call site.
-- **`asChild?: boolean`** — render the single child instead of the wrapping `<main>` (Radix `Slot`),
-  merging the frame's class, `--page-width`, and `id` onto it — for a route whose frame must be a
-  different element while still owning the landmark.
-- Extends `React.ComponentPropsWithRef<"main">`, so every native attribute, a `ref`, and a caller
-  `style`/`className` compose — a route can pass its own class alongside `width` to layer
-  route-specific layout onto the frame.
+The route content frame (`src/components/layout/Page.tsx`): the **single `<main>` landmark every
+route mounts**, which **is the page's `ContentGrid`** (merged onto the `<main>` itself). It adds
+only what the grid doesn't own — the landmark, the **skip-link target**, and the frame's block
+padding. It has no width prop: a route's children take a lane (`prose` by default), never a frame
+cap.
 
 It renders `<main id="main-content">` — the anchor the shell's skip-link targets (see
 [`accessibility-and-performance.md`](./accessibility-and-performance.md)); the `id` is overridable
-via passthrough. Its CSS Module is `@layer components` and strictly var-consuming: the width cap
-reads `var(--page-width, var(--width-content))` and the frame padding is `var(--space-gutter)`.
-Vertical rhythm between the frame's children is not the frame's concern — compose it separately.
+via passthrough, and it extends `React.ComponentPropsWithRef<"main">` so native attributes, a
+`ref`, and a caller `className` compose. Its CSS Module is `@layer components` and strictly
+var-consuming: block padding only (`padding-block: var(--space-gutter)`). Vertical rhythm between
+the frame's children is not the frame's concern — compose it separately.
 
 ```tsx
 import Page from "@/components/layout/Page";
 
-<Page width="page">…</Page>                       // wide frame; renders <main id="main-content">
-<Page width="measure">…</Page>                    // narrow reading measure
+<Page>…</Page>; // renders <main id="main-content"> — the page's content grid
 ```
 
 ### `Grid`

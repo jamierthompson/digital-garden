@@ -7,9 +7,10 @@ import { describe, expect, it } from "vitest";
 import { WIDTH_CONTENT } from "./dimension";
 
 /**
- * Pins the width & size token value contract (#202): the renamed width-scale values, the
- * WCAG 2.2 SC 2.5.8 control-size floor, and a source-tree scan proving no retired width name
- * (`--width-prose` / `--width-text`) survives to resolve as a now-undefined var.
+ * Pins the width & size token value contract (#202): the lane widths, the WCAG 2.2 SC 2.5.8
+ * control-size floor, and a source-tree scan proving no retired width name (`--width-prose` /
+ * `--width-text` / `--width-measure` / `--width-page`) survives to resolve as a
+ * now-undefined var.
  */
 const root = process.cwd();
 const read = (rel: string): string => readFileSync(resolve(root, rel), "utf8");
@@ -26,15 +27,16 @@ function parseRootVars(css: string): Record<string, string> {
 const dimension = parseRootVars(read("src/styles/foundation/dimension.css"));
 
 describe("foundation/dimension.css — width & size token contract (#202)", () => {
-  it("defines the renamed width scale at its intended values", () => {
-    expect(dimension["--width-measure"]).toBe("42rem"); // was --width-prose
-    expect(dimension["--width-content"]).toBe("48rem"); // was --width-text (NAME REUSED)
-    expect(dimension["--width-page"]).toBe("72rem"); // was --width-content
+  it("defines the two lane widths at their intended values", () => {
+    expect(dimension["--width-content"]).toBe("48rem"); // the prose lane — the one reading measure
+    expect(dimension["--width-wide"]).toBe("80rem"); // the wide breakout lane
   });
 
   it("does NOT re-declare any retired width name", () => {
     expect(dimension["--width-prose"]).toBeUndefined();
     expect(dimension["--width-text"]).toBeUndefined();
+    expect(dimension["--width-measure"]).toBeUndefined();
+    expect(dimension["--width-page"]).toBeUndefined();
   });
 
   it("defines the new control-size roles at the SC 2.5.8 floor and above", () => {
@@ -74,9 +76,9 @@ describe("no retired width token name survives anywhere in the source tree (#202
     expect(files.length).toBeGreaterThan(10);
   });
 
-  it("contains no --width-prose or --width-text reference", () => {
+  it("contains no retired width token reference", () => {
     const offenders = files.filter((f) =>
-      /--width-prose|--width-text/.test(read(f)),
+      /--width-prose|--width-text|--width-measure|--width-page/.test(read(f)),
     );
     expect(
       offenders,

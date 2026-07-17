@@ -5,7 +5,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import clusterStyles from "@/components/layout/Cluster.module.css";
-import containerStyles from "@/components/layout/Container.module.css";
+import gridStyles from "@/components/layout/ContentGrid.module.css";
 
 import Masthead from "./Masthead";
 
@@ -29,13 +29,13 @@ describe("Masthead", () => {
     );
   });
 
-  it("composes the inner row from Cluster (wrap) + Container (page column)", () => {
+  it("composes the band from ContentGrid (alignment) + a Cluster inner row (wrap)", () => {
     render(<Masthead />);
-    // Both primitives' classes land on the SAME element via asChild — Cluster owns the
-    // intrinsic reflow (flex + wrap, no @media), Container the page-column cap.
+    // The band root is the shared content grid; the inner row is a Cluster (intrinsic flex +
+    // wrap reflow, no @media) sitting in a lane of it.
     const inner = screen.getByText(/est\. 2026/i).parentElement;
     expect(inner).toHaveClass(clusterStyles.cluster);
-    expect(inner).toHaveClass(containerStyles.container);
+    expect(inner?.parentElement).toHaveClass(gridStyles.grid);
   });
 
   it("keeps the byline↔dateline gap at the space-4 step through the Cluster conduit", () => {
@@ -79,5 +79,11 @@ describe("Masthead.module.css — no media queries", () => {
     expect(css).not.toMatch(/@media/);
     expect(css).not.toMatch(/@custom-media/);
     expect(css).not.toContain("--xs-down");
+  });
+
+  it("places the inner row in the wide lane of the band grid", () => {
+    // jsdom can't lay out the grid; pin the lane at the source. Without this the row falls to
+    // the default prose lane and the byline misaligns with the wordmark below it.
+    expect(css).toMatch(/\.inner\s*\{[^}]*grid-column:\s*wide/);
   });
 });

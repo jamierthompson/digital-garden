@@ -1,9 +1,7 @@
 @layer base {
   :root {
-    --width-measure: 42rem;
-    --width-content: 48rem;
-    --width-wide: 64rem; /* the wide breakout lane's max width — between the content measure and full-bleed */
-    --width-page: 72rem;
+    --width-content: 48rem; /* the prose lane — the site's one reading measure */
+    --width-wide: 80rem; /* the wide breakout lane's max width — content and chrome bands alike */
 
     --size-control: 1.5rem; /* 24px — the WCAG 2.2 SC 2.5.8 pointer-target floor */
     --size-control-lg: 2.75rem; /* 44px */

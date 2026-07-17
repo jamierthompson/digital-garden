@@ -184,7 +184,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
   return (
     <>
       {pageTheme}
-      <Page width="full" className={styles.module}>
+      <Page>
         {/* The provider is a state frame, not a theme: prose inside stays server-rendered
           editorial content (children pass-through). Rendered as deep as possible per the
           bundled composition docs. */}
@@ -192,8 +192,8 @@ export default async function EntryPage({ params }: EntryPageProps) {
         {/* The theme is scoped to the interactive slot ONLY — the engine theme wraps
           <Slot/>, not the editorial article/related around it. Rendered only when a
           module resolved (any kind but `now`); an entry without one is prose-only. The wrapper
-          `<div>` is a direct `.module` child, so it holds the reading-measure cap
-          (`.module > :not(.article)`) like every non-article child. */}
+          `<div>` is a direct child of the page grid, so it sits in the prose lane like every
+          non-article sibling. */}
         {Slot ? (
           <div>
             <EntryScopeBoundary>

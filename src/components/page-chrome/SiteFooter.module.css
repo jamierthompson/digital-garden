@@ -1,6 +1,6 @@
 /* Global site footer — the journal colophon. @layer components (var-consuming shell chrome; reads
-   the global editorial semantic tokens, never theme-scoped). `Container` caps the inner row to
-   the page column; ink comes from the Text primitive's `color` prop. */
+   the global editorial semantic tokens, never theme-scoped). The band is a `ContentGrid`; the
+   inner row takes the `wide` lane; ink comes from the Text primitive's `color` prop. */
 @layer components {
   .footer {
     border-top: var(--border-width) solid var(--border);
@@ -10,6 +10,7 @@
   }
 
   .inner {
+    grid-column: wide;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
