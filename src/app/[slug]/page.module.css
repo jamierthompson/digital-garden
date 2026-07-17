@@ -8,11 +8,11 @@
    typography and the header. */
 @layer components {
   .header {
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-section);
   }
 
   .summary {
-    max-width: 52ch;
+    max-width: var(--type-lede-measure);
   }
 
   /* The lanes come from `ContentGrid` (merged onto the <article> via asChild). The article
@@ -28,12 +28,12 @@
      would leak them into the slots' internals (a panel's own <p>/<h3> must style
      itself, not inherit the essay measure). */
   .article > :is(h2, h3) {
-    margin-top: var(--space-6);
+    margin-top: var(--space-flow);
     color: var(--accent-text);
   }
 
   .article > p {
-    margin-top: var(--space-4);
-    max-width: 64ch;
+    margin-top: var(--space-stack);
+    max-width: var(--type-body-measure);
   }
 }

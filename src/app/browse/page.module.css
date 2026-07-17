@@ -10,12 +10,14 @@
   }
 
   .intro {
-    max-width: 60ch;
+    max-width: var(--type-lede-measure);
   }
 
   .sectionHeading {
+    /* Component token — the label's gap above its rule, bound from the foundation scale. */
+    --section-heading-gap: var(--space-2);
     text-transform: uppercase;
-    padding-bottom: var(--space-2);
+    padding-bottom: var(--section-heading-gap);
     border-bottom: var(--border-width) solid var(--border);
   }
 

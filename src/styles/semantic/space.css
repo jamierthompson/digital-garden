@@ -5,5 +5,12 @@
     --space-stack: var(--space-4);
     --space-cluster: var(--space-3);
     --space-grid: var(--space-5);
+    --space-flow: var(
+      --space-6
+    ); /* vertical rhythm around editorial flow blocks */
+    --space-caption: var(
+      --space-2
+    ); /* the tight media → caption/attribution gap */
+    --space-section: var(--space-7); /* a major in-page section break */
   }
 }

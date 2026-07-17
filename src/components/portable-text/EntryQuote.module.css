@@ -1,8 +1,10 @@
 /* Pull-quote block. @layer components — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by the surrounding entry scope). */
 @layer components {
   .quote {
-    margin: var(--space-6) 0;
-    padding-inline-start: var(--space-4);
+    /* Component token — the pull-quote's own indent, bound from the foundation scale. */
+    --quote-indent: var(--space-4);
+    margin: var(--space-flow) 0;
+    padding-inline-start: var(--quote-indent);
     border-inline-start: var(--border-width-thick) solid var(--accent);
   }
 
@@ -19,7 +21,7 @@
 
   .attribution {
     display: block;
-    margin-top: var(--space-2);
+    margin-top: var(--space-caption);
     color: var(--muted-foreground);
   }
 

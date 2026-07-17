@@ -1,9 +1,9 @@
 /* Missing-slot placeholder. @layer components — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by the surrounding entry scope). */
 @layer components {
   .missing {
-    margin: var(--space-5) 0;
-    padding: var(--space-4);
-    border-radius: var(--radius-md);
+    margin: var(--space-flow) 0;
+    padding: var(--space-inset);
+    border-radius: var(--radius-surface);
     background: var(--muted);
   }
 
@@ -12,7 +12,7 @@
   }
 
   .detail {
-    margin-top: var(--space-2);
+    margin-top: var(--space-caption);
     color: var(--muted-foreground);
   }
 }

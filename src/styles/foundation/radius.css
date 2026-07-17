@@ -1,10 +1,7 @@
 @layer base {
   :root {
-    --radius: 0.625rem;
-    --radius-sm: calc(var(--radius) - 4px);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) + 4px);
-    --radius-full: 9999px;
+    /* The one corner-personality knob. Components never read this directly — the semantic
+       radius roles (src/styles/semantic/radius.css) derive from it. */
+    --radius-base: 0.25rem; /* 4px — crisp and technical, not rounded-SaaS */
   }
 }

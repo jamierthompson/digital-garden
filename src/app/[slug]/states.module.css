@@ -24,7 +24,7 @@
     margin-top: var(--space-5);
     padding: var(--space-2) var(--space-4);
     border: var(--border-width) solid currentColor;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-control);
     background: none;
     color: inherit;
     font: inherit;
