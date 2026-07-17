@@ -24,9 +24,13 @@ export const SPACE_EXEMPT_PREFIXES = [
   "src/app/loading.module.css",
 ];
 
-const RAW_SPACE = /var\(\s*--space-\d/;
-const RAW_RADIUS = /var\(\s*--radius(?:-(?:sm|md|lg|xl|full|base))?\s*[,)]/;
-const CH_LITERAL = /(?:^|[\s(,:])\d+(?:\.\d+)?ch\b/;
+// The CSS engine is case-insensitive about function names and units, tolerates comments
+// anywhere whitespace is legal, and accepts a leading minus on a length — the regexes must
+// match what the ENGINE resolves, not one canonical spelling (QA D1: `VAR(--space-4)`,
+// `var(/**/--space-4)`, `65CH`, `-2ch` all bypassed the adjacency-bound originals).
+const RAW_SPACE = /var\(\s*--space-\d/i;
+const RAW_RADIUS = /var\(\s*--radius(?:-(?:sm|md|lg|xl|full|base))?\s*[,)]/i;
+const CH_LITERAL = /(?:^|[\s(,:-])\d+(?:\.\d+)?ch\b/i;
 
 // PURE detector: violations in one CSS source. Custom-property declarations are the sanctioned
 // binding site for component tokens, so they are skipped entirely.
@@ -39,13 +43,16 @@ export function findDimensionViolations(
   root.walkDecls((decl) => {
     if (decl.prop.startsWith("--")) return;
     const line = decl.source.start.line;
-    if (!spaceExempt && RAW_SPACE.test(decl.value)) {
+    // postcss keeps comments INSIDE a declaration value — strip them to a space (the engine
+    // treats them as whitespace) so `var(/**/--space-4)` can't slip past the adjacency.
+    const value = decl.value.replace(/\/\*[\s\S]*?\*\//g, " ");
+    if (!spaceExempt && RAW_SPACE.test(value)) {
       violations.push({ line, kind: "raw-space", value: decl.value });
     }
-    if (RAW_RADIUS.test(decl.value)) {
+    if (RAW_RADIUS.test(value)) {
       violations.push({ line, kind: "raw-radius", value: decl.value });
     }
-    if (CH_LITERAL.test(decl.value)) {
+    if (CH_LITERAL.test(value)) {
       violations.push({ line, kind: "ch-literal", value: decl.value });
     }
   });

@@ -88,6 +88,23 @@ describe('entry schema — required floors (#217)', () => {
     expect(calledRules(field('kind'))).toContain('required')
     expect(calledRules(field('slug'))).toContain('required')
   })
+
+  it('still requires a body when the kind itself is absent (API-path import without kind)', () => {
+    const validate = customValidator(field('body'))
+    expect(validate?.(undefined, {document: {}})).not.toBe(true)
+    expect(validate?.(undefined, {})).not.toBe(true)
+  })
+
+  // The kind-gated custom rule must match `rule.required()`'s array semantics: Sanity's own
+  // required() treats an EMPTY ARRAY as missing. A note/essay/now whose Portable Text body
+  // was emptied (all blocks deleted, or an API write of `[]`) must not publish a blank
+  // article (QA D3).
+  it('rejects an EMPTY-ARRAY body for editorial kinds — [] is a blank article, not a body', () => {
+    const validate = customValidator(field('body'))
+    for (const kind of ['note', 'essay', 'now']) {
+      expect(validate?.([], {document: {kind}}), `${kind} with body []`).not.toBe(true)
+    }
+  })
 })
 
 /**

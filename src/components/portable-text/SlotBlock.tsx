@@ -51,13 +51,23 @@ export default async function SlotBlock({
   lane,
   scope,
 }: SlotBlockProps) {
+  // The placeholder rides the SAME lane-stamped figure as a resolved slot would — a key
+  // drift must not also change the block's lane.
   if (!slotKey) {
-    return <MissingSlot slotKey="(none)" />;
+    return (
+      <figure className={styles.slot} data-lane={resolveBlockLane(lane)}>
+        <MissingSlot slotKey="(none)" />
+      </figure>
+    );
   }
 
   const resolution = resolveSlotKey(slotKey);
   if (isNotFound(resolution)) {
-    return <MissingSlot slotKey={slotKey} />;
+    return (
+      <figure className={styles.slot} data-lane={resolveBlockLane(lane)}>
+        <MissingSlot slotKey={slotKey} />
+      </figure>
+    );
   }
 
   const mod = (await resolution.value()) as { default: ComponentType };

@@ -49,7 +49,10 @@ interface EntryModuleMembers {
    * A client component the page wraps the entry's surface in when the module exports it.
    * The surface stays server-rendered (`children` pass-through); the provider exists so
    * the module's pieces — interleaved `slot` blocks, or a demo's sidebar controls and
-   * canvas — can share state via context. The documented interleaving pattern:
+   * canvas — can share state via context. It must render NO DOM element of its own
+   * (context provider only): the demo bleed's direct-child stretch chain and the
+   * editorial grid both assume children pass through unwrapped. The documented
+   * interleaving pattern:
    * `node_modules/next/dist/docs/01-app/01-getting-started/05-server-and-client-components.md`.
    */
   readonly Provider?: ComponentType<ProviderProps>;

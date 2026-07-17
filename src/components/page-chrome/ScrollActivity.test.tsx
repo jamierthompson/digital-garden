@@ -133,12 +133,8 @@ describe("ScrollActivity", () => {
       expect(() => vi.advanceTimersByTime(1000)).not.toThrow();
     });
 
-    // DEFECT (minor) — cleanup clears the timer and the listener but NOT the `data-scrolling`
-    // attribute. Unmounting mid-scroll (attribute still stamped, idle timer pending) leaves the
-    // thumb permanently revealed, because the pending `delete` is cancelled and nothing else
-    // resets it. This assertion pins the correct behavior and FAILS today. Practical impact is
-    // low (the root-layout mount effectively never unmounts), but the cleanup should also
-    // `delete root.dataset.scrolling`. Verified: `+ true` (attribute persists after unmount).
+    // Unmounting mid-scroll (attribute stamped, idle timer pending) must not leave the thumb
+    // permanently revealed — cleanup deletes `data-scrolling` alongside the timer + listener.
     it("clears data-scrolling on unmount even when scrolling was in progress", () => {
       const { unmount } = render(<ScrollActivity />);
       fireEvent.scroll(window);

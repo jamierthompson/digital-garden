@@ -38,6 +38,37 @@ describe("ContentGrid", () => {
     render(<ContentGrid ref={ref} data-testid="g" />);
     expect(ref.current).toBe(screen.getByTestId("g"));
   });
+
+  // QA — every consumer that merges the grid onto a styled element (the [slug] article, the
+  // chrome bands) depends on the Slot KEEPING the child's own class next to the grid's.
+  it("keeps the child's own className alongside the grid class under asChild", () => {
+    render(
+      <ContentGrid asChild>
+        <article aria-label="Essay" className="mine">
+          body
+        </article>
+      </ContentGrid>,
+    );
+    const article = screen.getByRole("article", { name: "Essay" });
+    expect(article).toHaveClass("mine");
+    expect(article).toHaveClass(styles.grid);
+  });
+
+  // QA — a caller-supplied grid-level className must survive the Slot merge too, without
+  // displacing the child's own class.
+  it("merges a grid-level className onto the slotted child alongside both other classes", () => {
+    render(
+      <ContentGrid asChild className="grid-level">
+        <article aria-label="Essay" className="mine">
+          body
+        </article>
+      </ContentGrid>,
+    );
+    const article = screen.getByRole("article", { name: "Essay" });
+    expect(article).toHaveClass("mine");
+    expect(article).toHaveClass("grid-level");
+    expect(article).toHaveClass(styles.grid);
+  });
 });
 
 /**

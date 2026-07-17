@@ -487,4 +487,48 @@ describe("EntryVideo", () => {
       });
     });
   });
+
+  // QA — the authored lane must land sanitized on BOTH render paths (embed and placeholder),
+  // or the block jumps lanes depending on whether its url resolved.
+  describe("lane threading", () => {
+    const FILE_URL = "https://cdn.sanity.io/files/p/d/v.mp4";
+
+    it("defaults the embed figure to the wide lane", () => {
+      const { container } = render(<EntryVideo value={{ url: FILE_URL }} />);
+      expect(container.querySelector("figure")).toHaveAttribute(
+        "data-lane",
+        "wide",
+      );
+    });
+
+    it("honors an authored full lane on the embed path", () => {
+      const { container } = render(
+        <EntryVideo value={{ url: FILE_URL, lane: "full" }} />,
+      );
+      expect(container.querySelector("figure")).toHaveAttribute(
+        "data-lane",
+        "full",
+      );
+    });
+
+    it("collapses a drifted lane to wide on the embed path", () => {
+      const { container } = render(
+        <EntryVideo value={{ url: FILE_URL, lane: "sidebar" }} />,
+      );
+      expect(container.querySelector("figure")).toHaveAttribute(
+        "data-lane",
+        "wide",
+      );
+    });
+
+    it("keeps the authored lane on the placeholder path (rejected url)", () => {
+      const { container } = render(
+        <EntryVideo value={{ url: "not a url", lane: "prose" }} />,
+      );
+      expect(container.querySelector("figure")).toHaveAttribute(
+        "data-lane",
+        "prose",
+      );
+    });
+  });
 });

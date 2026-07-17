@@ -204,7 +204,11 @@ export const entry = defineType({
       validation: (rule) =>
         rule.custom((value, context) => {
           if (context.document?.kind === 'demo') return true
-          return value ? true : 'Required for editorial entries (note · essay · now)'
+          // Match `rule.required()`'s array semantics (QA D3): an EMPTY Portable Text array is
+          // a missing body, not a present one — `Boolean([])` is true and would let a blank
+          // editorial article publish.
+          const present = Array.isArray(value) ? value.length > 0 : Boolean(value)
+          return present ? true : 'Required for editorial entries (note · essay · now)'
         }),
     }),
     defineField({

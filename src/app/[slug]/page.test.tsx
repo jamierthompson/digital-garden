@@ -34,6 +34,10 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
+// `generateStaticParams` dynamically imports next/cache for `cacheLife`, which throws outside
+// a real "use cache" scope — mock it so the enumeration logic is testable.
+vi.mock("next/cache", () => ({ cacheLife: vi.fn() }));
+
 // Control component-key resolution so we exercise the PAGE's capability-gating branch without
 // importing a real, heavy entry module. `found`/`notFound` come from the real resolution
 // module (unmocked) so `isNotFound` in the page narrows correctly.
@@ -75,8 +79,12 @@ import {
   notFound as notFoundResolution,
 } from "@/lib/resolvers/resolution";
 import { resolveThemeDeclarations } from "@/lib/theme";
+import { client } from "@/sanity/lib/client";
 
-import EntryPage from "./page";
+import EntryPage, { generateMetadata, generateStaticParams } from "./page";
+import pageStyles from "./page.module.css";
+
+const clientFetchMock = vi.mocked(client.fetch);
 
 const accentOf = (seed: unknown): string =>
   Object.fromEntries(resolveThemeDeclarations(seed))["--accent"];
@@ -648,6 +656,122 @@ describe("EntryPage — shared gates (both templates)", () => {
       screen.queryByRole("region", { name: /tags/i }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText("stale")).not.toBeInTheDocument();
+  });
+});
+
+// QA — the demo template's remaining data edges, and the structural chain the demo CSS
+// depends on (`.demoBleed > [data-entry]` is a DIRECT-child selector).
+describe("EntryPage — demo template edges (QA)", () => {
+  const demoEntry = (over: EntryOverrides = {}) =>
+    entry({
+      kind: "demo",
+      componentKey: "color-engine",
+      slug: "color-engine",
+      stage: "prototype",
+      themeSeed: "oklch(0.7 0.15 70)",
+      ...over,
+    });
+
+  it("drops the iterated stamp (no <time>, no crash) when the authored date is malformed", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundCanvas());
+    fetchMock.mockResolvedValueOnce(demoEntry({ iterated: "2026-99-99" }));
+    const { container } = render(
+      await EntryPage({ params: params("color-engine") }),
+    );
+    expect(screen.getByTestId("canvas")).toBeInTheDocument();
+    expect(container.querySelector("time")).toBeNull();
+    expect(screen.queryByText(/iterated/)).not.toBeInTheDocument();
+  });
+
+  it("falls back to 'Untitled entry' for a demo whose title drifted to null", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundCanvas());
+    fetchMock.mockResolvedValueOnce(demoEntry({ title: null }));
+    render(await EntryPage({ params: params("color-engine") }));
+    expect(
+      screen.getByRole("heading", { level: 1, name: /untitled entry/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps [data-entry] a DIRECT child of the bleed wrapper when the module has no Provider", async () => {
+    // The stretch chain in page.module.css is `.demoBleed > [data-entry]` — a direct-child
+    // selector. With no Provider (the shipped color-engine shape) the scope container must sit
+    // immediately under the bleed wrapper, or the demo surface silently loses its full-height
+    // stretch. NOTE: a module whose Provider renders a real DOM element would break this chain
+    // — nothing enforces that a Provider is markup-free (see QA report).
+    resolveComponentKeyMock.mockReturnValue(foundCanvas());
+    fetchMock.mockResolvedValueOnce(demoEntry());
+    const { container } = render(
+      await EntryPage({ params: params("color-engine") }),
+    );
+    expect(
+      container.querySelector(`.${pageStyles.demoBleed} > [data-entry]`),
+    ).not.toBeNull();
+  });
+
+  it("mounts the demo surface inside the bleed wrapper which is a DIRECT child of the page grid", async () => {
+    // grid-column only places DIRECT children — if anything wraps .demoBleed, its `full` lane
+    // declaration goes inert and the demo quietly falls into the prose lane.
+    resolveComponentKeyMock.mockReturnValue(foundCanvas());
+    fetchMock.mockResolvedValueOnce(demoEntry());
+    const { container } = render(
+      await EntryPage({ params: params("color-engine") }),
+    );
+    expect(
+      container.querySelector(`main > .${pageStyles.demoBleed}`),
+    ).not.toBeNull();
+  });
+});
+
+describe("generateMetadata (QA)", () => {
+  it("returns the not-found title for an unknown slug instead of leaking a stale one", async () => {
+    fetchMock.mockResolvedValueOnce(null);
+    expect(await generateMetadata({ params: params("ghost") })).toEqual({
+      title: "Not found",
+    });
+  });
+
+  it("falls back to 'Untitled entry' and omits the description when both drifted to null", async () => {
+    fetchMock.mockResolvedValueOnce(entry({ title: null, summary: null }));
+    const meta = await generateMetadata({ params: params("an-entry") });
+    expect(meta.title).toBe("Untitled entry");
+    expect(meta.description).toBeUndefined();
+    expect(meta.openGraph).toMatchObject({
+      title: "Untitled entry",
+      type: "article",
+    });
+  });
+
+  it("carries the entry's title + summary into the page and OpenGraph metadata", async () => {
+    fetchMock.mockResolvedValueOnce(entry());
+    const meta = await generateMetadata({ params: params("an-entry") });
+    expect(meta.title).toBe("An Entry");
+    expect(meta.description).toBe("A summary.");
+    expect(meta.openGraph).toMatchObject({
+      title: "An Entry",
+      description: "A summary.",
+      type: "article",
+    });
+  });
+});
+
+describe("generateStaticParams (QA)", () => {
+  it("drops null/non-string slugs from the prerender set instead of emitting bad params", async () => {
+    clientFetchMock.mockResolvedValueOnce([
+      { slug: "a-real-entry" },
+      { slug: null },
+      { slug: 42 },
+      {},
+      { slug: "another" },
+    ] as never);
+    expect(await generateStaticParams()).toEqual([
+      { slug: "a-real-entry" },
+      { slug: "another" },
+    ]);
+  });
+
+  it("returns an empty set (not a crash) when no entries are published", async () => {
+    clientFetchMock.mockResolvedValueOnce([] as never);
+    expect(await generateStaticParams()).toEqual([]);
   });
 });
 
