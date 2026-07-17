@@ -28,7 +28,7 @@ const dimension = parseRootVars(read("src/styles/foundation/dimension.css"));
 
 describe("foundation/dimension.css — width & size token contract (#202)", () => {
   it("defines the two lane widths at their intended values", () => {
-    expect(dimension["--width-content"]).toBe("48rem"); // the prose lane — the one reading measure
+    expect(dimension["--width-content"]).toBe("42rem"); // the prose lane IS the one reading measure
     expect(dimension["--width-wide"]).toBe("80rem"); // the wide breakout lane
   });
 

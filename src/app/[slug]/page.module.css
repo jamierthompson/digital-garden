@@ -54,8 +54,9 @@
     color: var(--accent-text);
   }
 
+  /* No max-width here: the prose LANE is the reading measure (--width-content), so body text
+     fills its lane and stays centered with the wide/full lanes. */
   .article > p {
     margin-top: var(--space-stack);
-    max-width: var(--type-body-measure);
   }
 }

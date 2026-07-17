@@ -5,4 +5,4 @@
  * drift-guarded: `dimension.test.ts` parses the CSS token and fails the moment the two
  * disagree, so a design pass that retunes the token breaks a test, not the srcset math.
  */
-export const WIDTH_CONTENT = "48rem";
+export const WIDTH_CONTENT = "42rem";
