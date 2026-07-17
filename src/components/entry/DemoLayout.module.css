@@ -11,6 +11,11 @@
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
+    /* The divider is the flex GAP showing the container's border-colored background through
+       the regions' own opaque backgrounds — so it reads vertical side-by-side and horizontal
+       when the pair stacks, with no @media (a border on one region can't reorient on wrap). */
+    gap: var(--border-width);
+    background: var(--border);
   }
 
   .sidebar {
@@ -19,7 +24,7 @@
     flex-direction: column;
     gap: var(--space-flow);
     padding: var(--space-inset);
-    border-inline-end: var(--border-width) solid var(--border);
+    background: var(--background);
   }
 
   .controls {
@@ -35,5 +40,6 @@
     flex: 999 1 var(--demo-canvas-basis);
     min-inline-size: 0;
     padding: var(--space-inset);
+    background: var(--background);
   }
 }
