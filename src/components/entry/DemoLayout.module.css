@@ -1,0 +1,45 @@
+/* Demo template layout — sidebar + canvas. @layer components — declares its layer (an unlayered
+   module outranks every layered rule); var-consuming only (the surrounding scope themes it). The
+   intrinsic sidebar pattern: flex + wrap, no `@media` — the canvas absorbs all spare width, and
+   the pair stacks on its own when the viewport is tight. The consumer owns the lane/bleed — this
+   module lays out its own two regions only. */
+@layer components {
+  .demo {
+    /* Component tokens — the template's own geometry, bound from the foundation scale. */
+    --demo-sidebar-basis: 18rem;
+    --demo-canvas-basis: 24rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    /* The divider is the flex GAP showing the container's border-colored background through
+       the regions' own opaque backgrounds — so it reads vertical side-by-side and horizontal
+       when the pair stacks, with no @media (a border on one region can't reorient on wrap). */
+    gap: var(--border-width);
+    background: var(--border);
+  }
+
+  .sidebar {
+    flex: 1 1 var(--demo-sidebar-basis);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-flow);
+    padding: var(--space-inset);
+    background: var(--background);
+  }
+
+  .controls {
+    /* Defensive shrink — a wide control (a long select, a swatch row) must squeeze, not
+       widen the sidebar past its basis. */
+    min-inline-size: 0;
+  }
+
+  .canvas {
+    /* The 999 grow soaks up ALL spare width, so the sidebar holds its basis while the pair
+       still wraps intrinsically below the combined bases. min-inline-size: 0 lets canvas
+       content shrink instead of forcing horizontal overflow. */
+    flex: 999 1 var(--demo-canvas-basis);
+    min-inline-size: 0;
+    padding: var(--space-inset);
+    background: var(--background);
+  }
+}

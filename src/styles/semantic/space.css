@@ -5,5 +5,12 @@
     --space-stack: var(--space-4);
     --space-cluster: var(--space-3);
     --space-grid: var(--space-5);
+    --space-flow: var(
+      --space-6
+    ); /* vertical rhythm around editorial flow blocks */
+    /* The tight gap between a text companion (caption · attribution · label) and what it
+       accompanies. */
+    --space-caption: var(--space-2);
+    --space-section: var(--space-7); /* a major in-page section break */
   }
 }

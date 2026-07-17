@@ -1,0 +1,8 @@
+/* System page. @layer components — declares its layer (an unlayered module outranks every
+   layered rule); var-consuming only. */
+@layer components {
+  /* The page block sits in the content grid's wide lane. */
+  .content {
+    grid-column: wide;
+  }
+}

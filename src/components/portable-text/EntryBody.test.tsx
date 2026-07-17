@@ -12,6 +12,7 @@ import EntryBody from "./EntryBody";
 interface CapturedSlotProps {
   slotKey?: string;
   caption?: string;
+  lane?: string | null;
   scope?: ScopeSeed;
 }
 
@@ -361,6 +362,49 @@ describe("EntryBody", () => {
       render(<EntryBody value={DRIFTED_BODY} scope={SCOPE} />);
       expect(captured).toHaveLength(0);
       expect(screen.queryByTestId("slot")).toBeNull();
+    });
+  });
+
+  // QA — the authored lane must survive the serializer seam for every block type that
+  // carries it: slots (threaded as a prop for SlotBlock to sanitize), figures and videos
+  // (sanitized and stamped by their components). A dropped lane silently strands every
+  // authored full-bleed block in the wide default.
+  describe("lane threading through the serializer", () => {
+    it("threads each slot block's authored lane (verbatim — SlotBlock owns sanitizing)", () => {
+      captured.length = 0;
+      const body = [
+        { _type: "slot", _key: "e1", slotKey: "a", lane: "full" },
+        { _type: "slot", _key: "e2", slotKey: "b" },
+      ] as unknown as Body;
+      render(<EntryBody value={body} scope={SCOPE} />);
+      expect(captured.map((p) => p.lane)).toEqual(["full", undefined]);
+    });
+
+    it("stamps an authored figure lane on the rendered figure (placeholder path)", () => {
+      const body = [
+        { _type: "figure", _key: "f1", asset: null, lane: "full" },
+      ] as unknown as Body;
+      const { container } = render(<EntryBody value={body} scope={SCOPE} />);
+      expect(container.querySelector("figure")).toHaveAttribute(
+        "data-lane",
+        "full",
+      );
+    });
+
+    it("stamps an authored video lane on the rendered embed", () => {
+      const body = [
+        {
+          _type: "video",
+          _key: "v1",
+          url: "https://cdn.sanity.io/files/p/d/v.mp4",
+          lane: "prose",
+        },
+      ] as unknown as Body;
+      const { container } = render(<EntryBody value={body} scope={SCOPE} />);
+      expect(container.querySelector("figure")).toHaveAttribute(
+        "data-lane",
+        "prose",
+      );
     });
   });
 });

@@ -37,12 +37,16 @@
     --type-lede-weight: var(--font-weight-normal);
     --type-lede-tracking: var(--tracking-normal);
     --type-lede-leading: var(--leading-relaxed);
+    /* Provisional hand value — the type engine will compute measure per role from its metrics. */
+    --type-lede-measure: 52ch;
 
     --type-body-family: var(--font-body);
     --type-body-size: var(--type-size-3);
     --type-body-weight: var(--font-weight-normal);
     --type-body-tracking: var(--tracking-normal);
     --type-body-leading: var(--leading-relaxed);
+    /* Provisional hand value — the type engine will compute measure per role from its metrics. */
+    --type-body-measure: 65ch;
 
     --type-label-family: var(--font-heading);
     --type-label-size: var(--type-size-2);

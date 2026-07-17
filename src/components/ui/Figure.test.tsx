@@ -79,4 +79,32 @@ describe("Figure", () => {
       "lazy",
     );
   });
+
+  // QA — the lane contract: the figure stamps `data-lane` for the content grid's attribute
+  // mapping, defaulting to the wide media breakout.
+  it("stamps data-lane='wide' by default (the media breakout)", () => {
+    const { container } = render(
+      <Figure src={SRC} alt="A diagram" width={1200} height={800} />,
+    );
+    expect(container.querySelector("figure")).toHaveAttribute(
+      "data-lane",
+      "wide",
+    );
+  });
+
+  it("stamps the caller's lane on the figure itself", () => {
+    const { container } = render(
+      <Figure
+        src={SRC}
+        alt="A diagram"
+        width={1200}
+        height={800}
+        lane="full"
+      />,
+    );
+    expect(container.querySelector("figure")).toHaveAttribute(
+      "data-lane",
+      "full",
+    );
+  });
 });

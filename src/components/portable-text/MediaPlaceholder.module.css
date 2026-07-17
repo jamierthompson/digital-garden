@@ -1,7 +1,7 @@
 /* Deferred-media placeholder (figure/video). @layer components — declares its layer (an unlayered module would outrank every layered rule); var-consuming only (themed by the surrounding entry scope). */
 @layer components {
   .figure {
-    margin: var(--space-6) 0;
+    margin: var(--space-flow) 0;
   }
 
   /* `--placeholder-ratio` (set inline for fixed-ratio media, e.g. "16 / 9" for video) gives the
@@ -12,7 +12,7 @@
     place-items: center;
     aspect-ratio: var(--placeholder-ratio, auto);
     min-block-size: 8rem;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-surface);
     background: var(--accent-subtle);
   }
 
@@ -24,7 +24,7 @@
   }
 
   .caption {
-    margin-top: var(--space-2);
+    margin-top: var(--space-caption);
     color: var(--muted-foreground);
     text-align: center;
   }

@@ -1,9 +1,13 @@
 /* Entry "Related" list. @layer components — declares its layer (unlayered modules outrank every layered rule); var-consuming only; reads the generic semantic tokens. */
 @layer components {
   .related {
-    margin-top: var(--space-7);
+    /* Component tokens — this list's own geometry, bound from the foundation scale. */
+    --related-list-gap: var(--space-3);
+    --related-list-indent: var(--space-5);
+    --related-item-gap: var(--space-2);
+    margin-top: var(--space-section);
     border-top: var(--border-width) solid var(--border, var(--foreground));
-    padding-top: var(--space-5);
+    padding-top: var(--space-inset);
   }
 
   .heading {
@@ -11,12 +15,12 @@
   }
 
   .list {
-    margin: var(--space-3) 0 0;
-    padding-left: var(--space-5);
+    margin: var(--related-list-gap) 0 0;
+    padding-left: var(--related-list-indent);
   }
 
   .item {
-    margin-top: var(--space-2);
+    margin-top: var(--related-item-gap);
     color: var(--foreground);
   }
 }

@@ -120,4 +120,31 @@ describe("MediaPlaceholder", () => {
     const box = screen.getByRole("img", { name: "alt" });
     expect(box.style.getPropertyValue("--placeholder-ratio")).toBe("");
   });
+
+  // QA — the placeholder stands in for a media block, so it must hold the SAME lane the real
+  // block would have taken; a lane-less placeholder would visibly jump lanes when the media
+  // resolves.
+  it("stamps data-lane='wide' by default, mirroring the media it stands in for", () => {
+    const { container } = render(
+      <MediaPlaceholder labelCandidates={["alt"]} fallbackLabel="Figure" />,
+    );
+    expect(container.querySelector("figure")).toHaveAttribute(
+      "data-lane",
+      "wide",
+    );
+  });
+
+  it("stamps the caller's lane on the placeholder figure", () => {
+    const { container } = render(
+      <MediaPlaceholder
+        labelCandidates={["alt"]}
+        fallbackLabel="Figure"
+        lane="prose"
+      />,
+    );
+    expect(container.querySelector("figure")).toHaveAttribute(
+      "data-lane",
+      "prose",
+    );
+  });
 });

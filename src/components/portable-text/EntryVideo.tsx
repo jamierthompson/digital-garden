@@ -3,10 +3,12 @@ import Text from "@/components/typography/Text";
 import styles from "./EntryVideo.module.css";
 import MediaPlaceholder from "./MediaPlaceholder";
 import { isNonBlank } from "./mediaLabel";
+import { resolveBlockLane } from "@/lib/lanes";
 
 interface VideoValue {
   url?: string;
   caption?: string;
+  lane?: string | null;
 }
 
 /** The generic accessible name when a video is uncaptioned — a `role`/`title` is never blank. */
@@ -154,6 +156,7 @@ export function resolveVideoEmbed(url: unknown): VideoEmbed | null {
  * to the generic kind when uncaptioned; the caption also shows in the `<figcaption>` beneath.
  */
 export default function EntryVideo({ value }: { value: VideoValue }) {
+  const lane = resolveBlockLane(value.lane);
   const embed = resolveVideoEmbed(value.url);
   if (!embed) {
     return (
@@ -162,6 +165,7 @@ export default function EntryVideo({ value }: { value: VideoValue }) {
         fallbackLabel={GENERIC_NAME}
         caption={value.caption}
         ratio="16 / 9"
+        lane={lane}
       />
     );
   }
@@ -171,7 +175,7 @@ export default function EntryVideo({ value }: { value: VideoValue }) {
     : GENERIC_NAME;
 
   return (
-    <figure className={styles.figure}>
+    <figure className={styles.figure} data-lane={lane}>
       <div className={styles.frame}>
         {embed.kind === "iframe" ? (
           <iframe

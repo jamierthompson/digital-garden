@@ -2,7 +2,7 @@
    every layered rule); var-consuming only. */
 @layer components {
   .figure {
-    margin: var(--space-6) 0;
+    margin: var(--space-flow) 0;
   }
 
   /* Fluid within the container at the image's own aspect ratio — the width/height attributes
@@ -11,12 +11,12 @@
     display: block;
     inline-size: 100%;
     block-size: auto;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-surface);
   }
 
   /* Type + ink come from the Text `caption` role and its `color` prop; this rule owns only layout. */
   .caption {
-    margin-top: var(--space-2);
+    margin-top: var(--space-caption);
     text-align: center;
   }
 }

@@ -35,8 +35,8 @@ export default async function AboutPage() {
   return (
     <>
       <PageTheme seed={themeSeed} />
-      <Page width="measure">
-        <Stack gap={space(6)}>
+      <Page>
+        <Stack gap={space(6)} className={styles.content}>
           <Heading level={1}>About</Heading>
           <Stack gap={space(4)}>
             <Text variant="lede" color="muted-foreground">

@@ -5,6 +5,9 @@
 @layer components {
   .links {
     display: flex;
+    /* Wraps on narrow viewports — a flex item never shrinks below its min-content, so without
+       this the links dictate a minimum page width and force mobile to zoom out. */
+    flex-wrap: wrap;
     gap: var(--space-5);
     list-style: none;
   }

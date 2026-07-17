@@ -353,3 +353,53 @@ describe("EntryFigure placeholder fallback", () => {
     spy.mockRestore();
   });
 });
+
+// QA — the authored lane rides the figure block over the wire as a plain string, so it must be
+// sanitized here and land on BOTH render paths (real image and placeholder), or the block
+// jumps lanes depending on whether its asset resolved.
+describe("EntryFigure lane threading", () => {
+  it("defaults the rendered figure to the wide lane", () => {
+    const { container } = render(<EntryFigure value={figureValue()} />);
+    expect(container.querySelector("figure")).toHaveAttribute(
+      "data-lane",
+      "wide",
+    );
+  });
+
+  it("honors an authored full/prose lane on the real image path", () => {
+    for (const lane of ["full", "prose"] as const) {
+      const { container, unmount } = render(
+        <EntryFigure value={figureValue({ lane })} />,
+      );
+      expect(container.querySelector("figure"), lane).toHaveAttribute(
+        "data-lane",
+        lane,
+      );
+      unmount();
+    }
+  });
+
+  it("collapses a drifted/hostile lane value to wide", () => {
+    const { container } = render(
+      <EntryFigure
+        value={figureValue({
+          lane: 'full"]{}body{display:none}',
+        } as unknown as Partial<FigureValue>)}
+      />,
+    );
+    expect(container.querySelector("figure")).toHaveAttribute(
+      "data-lane",
+      "wide",
+    );
+  });
+
+  it("keeps the authored lane on the placeholder path (no resolvable asset)", () => {
+    const { container } = render(
+      <EntryFigure value={figureValue({ asset: null, lane: "full" })} />,
+    );
+    expect(container.querySelector("figure")).toHaveAttribute(
+      "data-lane",
+      "full",
+    );
+  });
+});

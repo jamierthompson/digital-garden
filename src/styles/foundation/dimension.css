@@ -1,8 +1,7 @@
 @layer base {
   :root {
-    --width-measure: 42rem;
-    --width-content: 48rem;
-    --width-page: 72rem;
+    --width-content: 42rem; /* the prose lane IS the site’s one reading measure (~66ch of the body serif; the type engine will inform this value) */
+    --width-wide: 80rem; /* the wide breakout lane's max width — content and chrome bands alike */
 
     --size-control: 1.5rem; /* 24px — the WCAG 2.2 SC 2.5.8 pointer-target floor */
     --size-control-lg: 2.75rem; /* 44px */

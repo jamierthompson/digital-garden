@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import containerStyles from "@/components/layout/Container.module.css";
+import gridStyles from "@/components/layout/ContentGrid.module.css";
 
 import SiteNav from "./SiteNav";
 
@@ -78,12 +78,12 @@ describe("SiteNav", () => {
     expect(screen.queryByRole("heading", { name: /est\. 2026/i })).toBeNull();
   });
 
-  it("caps the nav row to the page column (Container's class lands on the <nav> via asChild)", () => {
+  it("aligns the nav band to the shared content grid (ContentGrid's class lands on the <nav> via asChild)", () => {
     render(<SiteNav />);
     // The composer's one layout responsibility: without this class the nav row silently goes
-    // full-bleed while the masthead and footer stay capped — jsdom can't see the misalignment.
+    // full-bleed while the masthead and footer stay aligned — jsdom can't see the misalignment.
     expect(screen.getByRole("navigation", { name: /primary/i })).toHaveClass(
-      containerStyles.container,
+      gridStyles.grid,
     );
   });
 });
@@ -117,6 +117,12 @@ describe("SiteNav border-width-thick pair — no active-state layout shift", () 
     expect(rule(siteNavCss, ".header")).toMatch(
       /border-bottom:\s*var\(--border-width-thick\)\s+solid/,
     );
+  });
+
+  it("the nav row takes the wide lane of the band grid", () => {
+    // jsdom can't lay out the grid; pin the lane at the source. Without this the row falls to
+    // the default prose lane and the chrome misaligns with the page content.
+    expect(rule(siteNavCss, ".row")).toMatch(/grid-column:\s*wide/);
   });
 
   it("the .link underline placeholder reserves --border-width-thick (transparent)", () => {

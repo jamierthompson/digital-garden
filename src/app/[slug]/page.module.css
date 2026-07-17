@@ -1,53 +1,62 @@
 /* /[slug] entry page. @layer components — declares its layer (an unlayered module outranks
    every layered rule); var-consuming only; reads the generic semantic tokens (editorial by
-   default; each themed slot re-binds them inside its own scoped container). The `Page` primitive
-   owns the wide frame (width/centering/gutter) and the `<main>` landmark — `.module` is merged
-   onto it only to anchor the breakout grid rules below. Breakout
-   layout: the frame runs wide, the prose keeps its reading measure via the article grid's named
-   [prose] column, and a slot spans [full] (SlotBlock sets `grid-column: full`). */
+   default; each themed slot re-binds them inside its own scoped container). `Page` is the page's
+   content grid; the `<article>` spans its `full` lane and is itself a `ContentGrid` (asChild)
+   with identical tracks, so body blocks land in the prose lane and a slot can span `full` to the
+   viewport edge. The non-article siblings (related) are grid children too and hold the prose
+   lane natively. This file adds only the page's editorial concerns — prose typography and the
+   header. */
 @layer components {
+  /* Demo frame: the sidebar+canvas template fills nav→footer — the frame grows to the viewport
+     floor (body is a flex column), its two rows are the demo (all spare height) and the related
+     tail, and the block padding drops so the demo surface truly touches the chrome. */
+  .demoPage {
+    flex: 1;
+    grid-template-rows: 1fr auto;
+    padding-block: 0;
+  }
+
+  /* The demo surface's grid child: owns the `full` lane (a deeper element's lane declaration
+     would be inert — grid-column only works on direct children) and single-cell-grids each
+     layer so the scope's [data-entry] wrapper and the demo section stretch to the row's full
+     height. */
+  .demoBleed {
+    grid-column: full;
+    display: grid;
+  }
+
+  .demoBleed > [data-entry] {
+    display: grid;
+  }
+
   .header {
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-section);
   }
 
   .summary {
-    max-width: 52ch;
+    max-width: var(--type-lede-measure);
   }
 
+  /* The lanes come from `ContentGrid` (merged onto the <article> via asChild). The article
+     spans the page grid's `full` lane, so its own identical tracks align 1:1 with the page's.
+     This adds only the article's editorial concerns. */
   .article {
-    display: grid;
-    grid-template-columns:
-      [full-start] minmax(0, 1fr)
-      [prose-start] min(var(--width-content), 100%)
-      [prose-end] minmax(0, 1fr)
-      [full-end];
+    grid-column: full;
     font-size: var(--type-body-size);
     line-height: var(--type-body-leading);
-  }
-
-  /* Zero-specificity default so a slot's own `grid-column: full` (equal layer, any
-     insertion order) always wins without a specificity arms race. */
-  :where(.article) > * {
-    grid-column: prose;
   }
 
   /* Direct children ONLY: these are the page's prose rules, and a descendant selector
      would leak them into the slots' internals (a panel's own <p>/<h3> must style
      itself, not inherit the essay measure). */
   .article > :is(h2, h3) {
-    margin-top: var(--space-6);
+    margin-top: var(--space-flow);
     color: var(--accent-text);
   }
 
+  /* No max-width here: the prose LANE is the reading measure (--width-content), so body text
+     fills its lane and stays centered with the wide/full lanes. */
   .article > p {
-    margin-top: var(--space-4);
-    max-width: 64ch;
-  }
-
-  /* The non-article page pieces (related entries, the slot) hold the reading
-     measure — only the article's breakout `[full]` slots use the wide frame. */
-  .module > :where(:not(.article)) {
-    max-width: var(--width-content);
-    margin-inline: auto;
+    margin-top: var(--space-stack);
   }
 }

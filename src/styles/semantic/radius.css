@@ -1,0 +1,15 @@
+/* Semantic radius roles — the three corner jobs, derived from the single foundation knob.
+   Components read ONLY these. */
+@layer base {
+  /*
+   * Declared at BOTH scopes for the same substitution reason as the type roles (type.css):
+   * a var() substitutes at the element that DECLARES it, so a themed slot re-binding
+   * `--radius-base` inside its scope only reaches the roles if they are re-declared there.
+   */
+  :root,
+  :where([data-entry]) {
+    --radius-control: var(--radius-base);
+    --radius-surface: calc(var(--radius-base) * 2);
+    --radius-pill: 9999px;
+  }
+}

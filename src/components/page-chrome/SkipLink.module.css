@@ -12,7 +12,7 @@
     background: var(--surface-elevated);
     color: var(--foreground);
     border: var(--border-width) solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-control);
     text-decoration: none;
     transform: translateY(-150%);
     transition: transform var(--duration-fast) var(--ease-out);

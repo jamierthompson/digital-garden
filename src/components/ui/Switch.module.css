@@ -8,7 +8,7 @@
     flex: none;
     padding: 0;
     border: var(--border-width) solid var(--border);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-pill);
     background: var(--surface-elevated);
     cursor: pointer;
     transition:
@@ -26,7 +26,7 @@
     width: 1.125rem;
     height: 1.125rem;
     transform: translateX(0.1875rem);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-pill);
     /* --muted-foreground, not --background or --border: the unchecked state must stay perceptible
        (WCAG 1.4.11 ≥3:1) in BOTH token tiers this primitive renders under — the editorial
        foundation (nav/footer chrome, where --border is an incidental hairline with no

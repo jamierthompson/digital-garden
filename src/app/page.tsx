@@ -36,8 +36,10 @@ export default async function Home() {
   return (
     <>
       <PageTheme seed={themeSeed} />
-      <Page width="page">
-        <Stack gap={space(9)}>
+      <Page>
+        {/* The featured grid runs wider than the reading measure — the whole page block takes
+            the wide lane. */}
+        <Stack gap={space(9)} className={styles.content}>
           <section>
             {/* The landing statement is the one place the oversized `display` role is used; a
             content page's h1 defaults to the quieter `title` role. */}

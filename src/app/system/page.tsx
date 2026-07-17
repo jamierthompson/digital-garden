@@ -8,6 +8,8 @@ import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import { space } from "@/lib/tokens";
 
+import styles from "./page.module.css";
+
 export const metadata: Metadata = {
   title: "System",
   description:
@@ -28,8 +30,8 @@ export default async function SystemPage() {
   return (
     <>
       <PageTheme seed={themeSeed} />
-      <Page width="measure">
-        <Stack gap={space(4)}>
+      <Page>
+        <Stack gap={space(4)} className={styles.content}>
           <Heading level={1}>System</Heading>
           <Text variant="lede" color="muted-foreground">
             The design system behind the garden — the token tiers, the OKLCH

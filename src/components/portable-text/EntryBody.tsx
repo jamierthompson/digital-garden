@@ -26,8 +26,8 @@ interface LinkAnnotation {
 interface EntryBodyProps {
   value: Body;
   /**
-   * The host entry's font-scope seed — set whenever a non-`now` entry themes OR mounts a
-   * module (`theme.color || componentKey`), not just for a demo. Keyed on the entry's own
+   * The host entry's font-scope seed — set whenever the entry mounts a module (any kind, `now`
+   * included) or a non-`now` entry themes (`(!now && theme.color) || componentKey`). Keyed on the entry's own
    * slug, so a module-only entry still scopes its slots under its own `[data-entry]`. Threaded
    * to each `slot` so every slot mounts in its own container wearing the entry's theme
    * fonts while the prose between them keeps the editorial faces (color comes from the page's
@@ -70,6 +70,7 @@ export default function EntryBody({ value, scope }: EntryBodyProps) {
         <SlotBlock
           slotKey={block.slotKey}
           caption={block.caption}
+          lane={block.lane}
           scope={scope}
         />
       ),

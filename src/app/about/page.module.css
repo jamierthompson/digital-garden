@@ -1,5 +1,10 @@
 /* About page. @layer components — declares its layer (an unlayered module outranks every layered rule); var-consuming only (shell theme/font tokens). */
 @layer components {
+  /* The page block sits in the content grid's wide lane. */
+  .content {
+    grid-column: wide;
+  }
+
   /* Inline emphasis inside the prose — a bare <span>, not a type primitive, so it re-inks here. */
   .emphasis {
     color: var(--foreground);

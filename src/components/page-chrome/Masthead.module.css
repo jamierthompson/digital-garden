@@ -1,13 +1,14 @@
 /* Masthead byline band. @layer components — declares its layer (an unlayered module outranks
    every layered rule); var-consuming only (the shell is never theme-scoped). The full-bleed
-   hairline lives on the band; `Container` caps the inner row to the page column and `Cluster`
-   owns its row flow + wrap + gap — this module adds only alignment and block padding. */
+   hairline lives on the band (a `ContentGrid`); `Cluster` owns the row's flow + wrap + gap —
+   this module adds only the row's lane, alignment, and block padding. */
 @layer components {
   .masthead {
     border-bottom: var(--border-width) solid var(--border);
   }
 
   .inner {
+    grid-column: wide;
     align-items: baseline;
     justify-content: space-between;
     padding-block: var(--space-2);

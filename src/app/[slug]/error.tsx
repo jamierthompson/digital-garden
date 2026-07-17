@@ -27,7 +27,7 @@ export default function WorkError({
   }, [error]);
 
   return (
-    <Page width="measure" className={styles.state} role="alert">
+    <Page className={styles.state} role="alert">
       <h1 className={styles.heading}>Something went wrong</h1>
       <p className={styles.body}>This entry couldn’t be loaded right now.</p>
       <button

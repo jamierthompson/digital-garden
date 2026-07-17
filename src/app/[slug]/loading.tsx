@@ -8,7 +8,7 @@ import styles from "./states.module.css";
 // themed shell paints from the static HTML; this is only the transient hole filler.
 export default function WorkLoading() {
   return (
-    <Page width="measure" className={styles.state} aria-busy="true">
+    <Page className={styles.state} aria-busy="true">
       <p className={styles.body}>Loading entry…</p>
     </Page>
   );

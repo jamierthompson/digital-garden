@@ -11,7 +11,7 @@ import styles from "./states.module.css";
 // by the defensive engine + `unstable_catchError` backstop, NOT by this file.)
 export default function EntryNotFound() {
   return (
-    <Page width="measure" className={styles.state}>
+    <Page className={styles.state}>
       <h1 className={styles.heading}>Not found</h1>
       <p className={styles.body}>
         That page doesn’t exist, or its content is no longer available.

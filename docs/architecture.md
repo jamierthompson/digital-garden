@@ -101,18 +101,31 @@ when none is authored (see the token & theming architecture).
 
 Tokens are organized in **two tiers** — the semantic tier consuming the foundation — plus a **theme** that re-binds the semantic tier per scope (not a third tier of token names; there are no `--theme-*` names):
 
-| Tier                   | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ---------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Foundation**         | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, content-width measures (`--width-measure` 42rem / `--width-content` 48rem / `--width-page` 72rem), the radius scale (`--radius` 10px, with `--radius-sm`/`-md`/`-lg`/`-xl` = 6/8/10/14px and `--radius-full`), border widths (`--border-width` 1px / `--border-width-thick` 2px), control sizes (`--size-control` 24px / `--size-control-lg` 44px / `--size-icon` 16px), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
-| **Semantic**           | global `:root` (the baked engine fallback)        | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the fallback ground for surfaces that render with no `<html>` theme.                                                                                                                                                            |
-| **Theme** _(override)_ | `<html>` (color) + the slot `[data-entry]` (font) | re-binds the semantic tier, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **fonts** are per-slot role-token overrides (up to three — `--font-heading` / `--font-body` / `--font-mono`) on `[data-entry]` (`EntryScope`), each inherited from `:root` when unset.                                                                                                                                                                                                                                                            |
+| Tier                   | Lives at                                          | Contents                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Foundation**         | global `:root`                                    | the raw dimensional primitives + the reset: the spacing ramp, the content-grid lane widths (`--width-content` 42rem — the prose lane IS the site's one reading measure, ~66ch of the body serif / `--width-wide` 80rem, the breakout lane), the radius knob (`--radius-base` 4px — the one corner-personality dial; the semantic roles derive from it), border widths (`--border-width` 1px / `--border-width-thick` 2px), control sizes (`--size-control` 24px / `--size-control-lg` 44px / `--size-icon` 16px), motion curves/durations, the engine-derived type-size ramp (`--type-size-*`), weight/tracking/leading families, z-index scale, focus-ring **geometry**. Values, not roles — and NOT color (color is derived, never a hand-authored ramp). |
+| **Semantic**           | global `:root` (the baked engine fallback)        | the **generic role tokens components read** — `--surface`, `--foreground`, `--muted` (a faint neutral background) / `--muted-foreground`, `--accent` + `--accent-subtle` / `--accent-subtle-foreground` (a soft accent-tinted surface + its label, symmetric with the `<status>-subtle` pairs), `--font-body`, etc. At `:root` these are the engine's own **fallback** token set (`buildTokenSet(undefined)`) baked as `light-dark()` literals — the fallback ground for surfaces that render with no `<html>` theme.                                                                                                                                                                                                                                       |
+| **Theme** _(override)_ | `<html>` (color) + the slot `[data-entry]` (font) | re-binds the semantic tier, applied two ways: an entry's authored **color** is written imperatively on `<html>` (`PageTheme`) — the full contrast-solved semantic set incl. status — and inherited by chrome + slot alike; its **fonts** are per-slot role-token overrides (up to three — `--font-heading` / `--font-body` / `--font-mono`) on `[data-entry]` (`EntryScope`), each inherited from `:root` when unset.                                                                                                                                                                                                                                                                                                                                       |
 
 The model is a **derivation taxonomy, not a partition**: the **semantic tier is the contract**
 components code against, and a theme simply re-defines those same semantic tokens with its own
 values — the page's `<html>` write for color, the slot's inline style for font. There is **no
 separate "feel" or "geometry" tier** — radius, border-width, and control sizes are **foundation value
 primitives** (raw scales like the spacing ramp), and any role that needs one binds it in the semantic
-tier, exactly as the spacing roles alias `--space-*`. Color varies per **page** (every route wears
+tier, exactly as the spacing roles alias `--space-*`. The dimension roles components read: the
+space roles (`--space-inset/-gutter/-stack/-cluster/-grid/-flow/-caption/-section`), the radius
+roles (`--radius-control/-surface/-pill`, derived from the `--radius-base` knob and re-declared at
+the slot scope so a theme can re-bind them), and the per-role measure caps
+(`--type-<role>-measure`, provisional hand values until the type engine computes them). A genuinely
+component-specific value is bound as a **component token** — the third tier under the semantic
+roles, and the one sanctioned place a module reads the raw scale (`pnpm lint:dimension`). The
+convention: a component token is declared in a **labeled block on the component's root rule**,
+**named for the design job it does** (`--quote-indent`, `--demo-sidebar-basis`,
+`--scrollbar-thumb`) — a single consumer is fine (Material's `md.comp.*` tier is mostly
+single-consumer; the name is the point). It is **never minted in a route module** (a route element
+needing its own designed geometry is a component asking to be extracted), never as a same-line
+alias whose only job is passing the lint, and it is **promoted to a semantic role the moment a
+second component needs the same job** (how `--space-flow`/`--space-caption` were born). Color varies per **page** (every route wears
 its authored theme); font varies per **slot** (the interactive island wears the entry's theme face
 while the prose keeps the editorial body face).
 
@@ -169,7 +182,7 @@ global :root  (foundation primitives + the semantic ENGINE FALLBACK)
    │        --type-<role>-family bundles the type primitives read are declared ONCE in
    │        semantic/type.css under `:root, :where([data-entry])`, so they re-substitute against
    │        these leaves inside the slot. An unset face stamps nothing and inherits :root. A page
-   │        mounts one (the after-prose slot)
+   │        mounts one (the demo template's sidebar + canvas surface)
    │        or MANY (slots interleaved through the prose); each is per-element, so distinct slots never
    │        collide. Color is inherited from <html>; only the resolved font roles are overridden here.
           │ themes downward, within the slot ↓
@@ -399,10 +412,9 @@ measured contrast, the anchor readout).
 
 Its interactive demo has been **removed pending a rebuild** on the deliberate design-system
 foundation (the old surfaces carried pre-foundation type literals). The `color-engine` key stays
-registered to a placeholder so the published entry still resolves; the tool is rebuilt later as a
-**multi-page demo** (#149). There is no bespoke page template for it: a demo that exports a
-`Slot` mounts it in the **one editorial template** every entry uses, after the prose —
-the canvas template and the `layout: "wide"` module option were dropped with the demo.
+registered to a placeholder `Canvas` so the published entry still resolves on the **demo
+template** (sidebar + canvas); the tool is rebuilt later, and may eventually grow into a
+**multi-page demo** (#149).
 
 When rebuilt, it is meant to be the **one place a visitor plays with a seed** — the provider holding
 the live seed/rules in React state and driving the page's `<html>` theme off the generated palette
@@ -578,34 +590,50 @@ import { space } from "@/lib/tokens";
 <Stack asChild><ul>…</ul></Stack>        // no wrapper; default --space-stack rhythm
 ```
 
+### `ContentGrid`
+
+The content-grid layout primitive (`src/components/layout/ContentGrid.tsx`) — the site's **one
+width system**, the industry-standard breakout grid (Josh Comeau's full-bleed layout / Ryan
+Mulligan's "Layout Breakouts"): one grid owns three named lanes, and the gutter lives in the
+grid's tracks, not on a clamping wrapper.
+
+- **`prose`** — the reading measure (`--width-content`), the default lane: children land here
+  unless they set their own `grid-column`.
+- **`wide`** — the breakout lane (`--width-wide`), for media, slots, and the chrome bands' rows.
+- **`full`** — true edge-to-edge (it spans the outer tracks, which floor at `--space-gutter` so
+  `wide`/`prose` stay inset at every viewport).
+- **`asChild?: boolean`** — merge the grid onto the child element itself (Radix `Slot`), e.g. to
+  make a semantic `<article>`, `<nav>`, or `<footer>` the grid.
+
+Page content and the chrome bands (`SiteNav`, `Masthead`, `SiteFooter`) all mount the same grid,
+so the whole viewport shares one alignment system. It owns the column lanes only — vertical
+rhythm, ink, and band styling stay with the consumer.
+
+**The lane attribute contract:** a direct grid child stamps `data-lane="prose|wide|full"` to take
+a lane (zero-specificity, so an explicit `grid-column` still wins). The media/slot body blocks
+(`figure` · `video` · `slot`) author it via the shared Studio `lane` field — `wide` is their
+default, `full` the deliberate bleed, `prose` the tuck-in — and the serializer sanitizes unknown
+values back to `wide` (`src/lib/lanes.ts`).
+
 ### `Page`
 
-The page-frame primitive (`src/components/layout/Page.tsx`): the **single `<main>` landmark and
-content frame every route mounts**. It owns one structural concern — the content-width cap,
-horizontal centering, and the page gutter — and is the **skip-link target**.
-
-- **`width?: "measure" | "content" | "page"`** — the content-width role, selecting the matching
-  `--width-<role>` foundation measure through the `--page-width` conduit. Defaults to `content`.
-  Because the width lands as a custom property the CSS reads, it can be overridden in CSS — a
-  container query, a scoped override — without touching the call site.
-- **`asChild?: boolean`** — render the single child instead of the wrapping `<main>` (Radix `Slot`),
-  merging the frame's class, `--page-width`, and `id` onto it — for a route whose frame must be a
-  different element while still owning the landmark.
-- Extends `React.ComponentPropsWithRef<"main">`, so every native attribute, a `ref`, and a caller
-  `style`/`className` compose — a route can pass its own class alongside `width` to layer
-  route-specific layout onto the frame.
+The route content frame (`src/components/layout/Page.tsx`): the **single `<main>` landmark every
+route mounts**, which **is the page's `ContentGrid`** (merged onto the `<main>` itself). It adds
+only what the grid doesn't own — the landmark, the **skip-link target**, and the frame's block
+padding. It has no width prop: a route's children take a lane (`prose` by default), never a frame
+cap.
 
 It renders `<main id="main-content">` — the anchor the shell's skip-link targets (see
 [`accessibility-and-performance.md`](./accessibility-and-performance.md)); the `id` is overridable
-via passthrough. Its CSS Module is `@layer components` and strictly var-consuming: the width cap
-reads `var(--page-width, var(--width-content))` and the frame padding is `var(--space-gutter)`.
-Vertical rhythm between the frame's children is not the frame's concern — compose it separately.
+via passthrough, and it extends `React.ComponentPropsWithRef<"main">` so native attributes, a
+`ref`, and a caller `className` compose. Its CSS Module is `@layer components` and strictly
+var-consuming: block padding only (`padding-block: var(--space-gutter)`). Vertical rhythm between
+the frame's children is not the frame's concern — compose it separately.
 
 ```tsx
 import Page from "@/components/layout/Page";
 
-<Page width="page">…</Page>                       // wide frame; renders <main id="main-content">
-<Page width="measure">…</Page>                    // narrow reading measure
+<Page>…</Page>; // renders <main id="main-content"> — the page's content grid
 ```
 
 ### `Grid`
@@ -695,21 +723,36 @@ src/lib/resolvers/components.ts  componentKey → () => import("@/entries/<slug>
 src/*/keys.ts              string-constant key contracts (Studio imports these; resolvers don't)
 ```
 
-An entry renders as a single `/[slug]` page. Its registry entry (the `EntryModule` contract,
-`src/entries/types.ts`) exports one or both of two composition members — a compile error
-enforces at least one:
+An entry renders as a single `/[slug]` page on one of **two templates, branched by `kind`**:
 
-- **`Slot`** — one interactive slot the page mounts after the prose, inside its own
-  theme scope. The default for a module whose demo is a single surface.
-- **`Provider`** — a client frame the page wraps the `<article>` in, so `slot` blocks
-  interleaved through the prose share state via context. The prose stays server-rendered
-  (children pass-through); the provider adds state, never markup that re-themes the
-  editorial register. The page threads the font seed to the serializer, and each slot
-  mounts in its own `EntryScope` container (its own per-role face overrides per island; color is
-  inherited from the page's `<html>` theme).
+- **Editorial** (`note` · `essay` · `now` — and any kind the code doesn't recognize): the prose
+  reading column, with interactive `slot` blocks interleaved through the prose (`SlotBlock` →
+  `slots/*`), each in its own theme scope. `now` is editorial with one exception: it never wears
+  its own `theme` — it keeps the shared `/now` seed (colors AND type), so its slots mount
+  slug-keyed with the Now theme's faces.
+- **Demo** (`kind === "demo"` with a resolved module): a two-region app layout (`DemoLayout`,
+  `src/components/entry/`) — **sidebar + canvas**, edge-to-edge in the content grid's `full`
+  lane, no prose article (the summary is the demo's prose). **Hybrid sidebar:** the page renders
+  the entry's info (title, summary, kind · stage, iterated, seed readout) — DRY across demos —
+  and the module contributes its controls below. A sketch demo (no `componentKey`) falls back to
+  the editorial template, prose-only.
 
-Nothing more is templated: the page is the editorial `<article>` (prose) plus the module's
-composition. A headless `core/` is **not** templated into every module — let it
+The registry entry (the `EntryModule` contract, `src/entries/types.ts`) exports up to three
+members — a compile error enforces a mountable one (`Provider` and/or `Canvas`):
+
+- **`Provider`** — a client frame the page wraps the entry's surface in (the editorial
+  `<article>`, or the demo's sidebar + canvas), so the module's pieces share state via context.
+  The surface stays server-rendered (children pass-through); the provider adds state, never
+  markup that re-themes the editorial register. On the editorial template the page threads the
+  font seed to the serializer, and each slot mounts in its own `EntryScope` container (per-role
+  face overrides per island; color inherited from the page's `<html>` theme).
+- **`Canvas`** — the module-owned main surface of a demo. A demo whose resolved module lacks
+  `Canvas` is content→code drift and 404s, same as an unresolvable `componentKey`.
+- **`Sidebar`** — the module's controls, mounted inside the page-owned sidebar shell below the
+  entry info. Meaningless without `Canvas`. On the demo template ONE `EntryScope` wraps sidebar
+  controls and canvas together.
+
+Nothing more is templated: the page is the template plus the module's composition. A headless `core/` is **not** templated into every module — let it
 emerge only when a slot's logic warrants extraction (same deferral discipline as the
 slot tiers; see the interactive slot section). Code lives under `src/entries/<slug>/`;
 **routes are flat** — `/` is the
@@ -876,8 +919,9 @@ Practical notes:
   interactions slotted in; a _demo_ is an interactive piece with more slots; a _now_ is a dated
   "now" update that drives the reverse-chronological `/now` stream — its own surface, kept out of
   the Index.
-  **Downstream, theming and interactivity key on capability (presence), not kind:** every kind but
-  `now` scopes on a present `theme.color` and mounts on a present `componentKey`. (`theme.color`
+  **Downstream, theming and interactivity key on capability (presence), not kind:** every kind
+  mounts on a present `componentKey` — `now` included (#328) — and every kind but `now` scopes on
+  a present `theme.color`. (`theme.color`
   additionally carries a required _floor_ for note/essay/demo — see below — but the mount/scope
   logic keys on presence, not kind.) A present `theme.color` gives the entry its own brand
   `[data-entry]` scope (and mounts its
@@ -885,9 +929,11 @@ Practical notes:
   `componentKey` resolves and mounts the coded module — a declared key that fails to resolve is a
   `notFound()` for any kind, and no key at all renders prose-only (a sketch demo renders
   prose-only, never a 404). **A module mount always implies a scope seed** — the route builds the
-  `ScopeSeed` whenever a non-`now` entry _themes or mounts a module_ (`theme.color || a resolvable
-componentKey`), always **keyed on the entry's own slug**, with each absent `theme.headingFont` /
-  `bodyFont` / `monoFont` passed as `undefined` (never coerced to `""`). So a
+  `ScopeSeed` whenever an entry _mounts a module_ (any kind) or a _non-`now`_ entry _themes_
+  (`(!now && theme.color) || a resolvable componentKey`), always **keyed on the entry's own
+  slug**, with each absent `theme.headingFont` / `bodyFont` / `monoFont` passed as `undefined`
+  (never coerced to `""`) — and a `now`'s seed omits the doc's font fields entirely, so its
+  slots keep the Now theme's faces. So a
   module-only entry (a resolvable `componentKey`, no `theme.color`) still gets its **own** per-entry
   `[data-entry]` scope rather than collapsing onto a shared fallback slug — two such entries must not
   share one `data-entry` and cross-contaminate themes — and its empty theme fields resolve to the
@@ -896,11 +942,12 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   "emit no override, inherit `:root`", not a hardcoded fallback face.
   `theme.color` is **optional for every kind** (#253) — an entry that authors none wears the
   authored site default (`siteSettings.theme`), so each page still derives its theme from an
-  authored seed. `componentKey` and the three `theme` face keys are likewise **optional and
-  mount/theme on presence** for every kind but `now` — a `demo` past the sketch stage is no longer
-  forced to name a module or a face (a prose-only demo is valid), and a `note`/`essay` that sets a
-  `componentKey` mounts it. A `now`
-  update is chrome + prose by design: it **cannot set its own `theme.color`** (the whole `theme` object
+  authored seed. `componentKey` is likewise **optional and mounts on presence for every kind**
+  (a `demo` past the sketch stage is no longer forced to name a module — a prose-only demo is
+  valid — and a `note`/`essay`/`now` that sets a `componentKey` mounts it), and the three `theme`
+  face keys are optional and theme on presence for every kind but `now`. A `now`
+  update can hold slots and modules like any editorial entry, but it **never wears its own
+  theme**: it **cannot set its own `theme.color`** (the whole `theme` object
   is hidden for a `now` in the Studio and a color is rejected on write by `forbiddenForNow`) and
   **inherits the `/now` page seed** instead — the single `/now` seed themes the `/now` index and every
   `now` entry alike. `stage` does not

@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import EntryBody from "@/components/portable-text/EntryBody";
+import ContentGrid from "@/components/layout/ContentGrid";
 import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
+import DemoLayout from "@/components/entry/DemoLayout";
 import EntryScope from "@/components/entry-scope/EntryScope";
 import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
@@ -12,6 +14,7 @@ import RelatedEntries from "@/components/entry/RelatedEntries";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import { resolveComponentKey } from "@/lib/resolvers/components";
+import { formatDate } from "@/lib/formatDate";
 import { space } from "@/lib/tokens";
 import { isNotFound } from "@/lib/resolvers/resolution";
 import type { EntryModule } from "@/entries/types";
@@ -25,30 +28,26 @@ import styles from "./page.module.css";
 // dynamic segment cedes precedence to the static routes `/browse`, `/now`, `/about`, `/system`). Thin
 // route (`app/` is routing only — it mounts components from `src/`).
 //
-// ONE editorial template for every entry — chrome + the entry's prose — with two optional,
-// capability-gated additions layered on: an interactive module slot and a theme-scoped theme.
+// TWO templates, branched by `kind`:
+//   • EDITORIAL (note · essay · now — and any kind the code doesn't know): the prose reading
+//     column — chrome + the entry's article, with interactive `slot` blocks interleaved through
+//     the prose (`SlotBlock`), each in its own theme scope, sharing state through the module's
+//     `Provider` frame.
+//   • DEMO (`kind === "demo"` with a resolved module): the sidebar + canvas app layout
+//     (`DemoLayout`), edge-to-edge in the grid's `full` lane. Hybrid sidebar: the page renders
+//     the entry's info; the module contributes its `Sidebar` controls and owns the `Canvas`.
+//     A demo has no prose article — its summary is the prose. A sketch demo (no componentKey)
+//     falls back to the editorial template, prose-only.
 //
-//     <main> editorial chrome
-//       ├ <article> the entry's essay (PT serializer) — editorial
-//       ├ EntryScopeBoundary + EntryScope + <Slot/> — the themed slot,
-//       │   rendered for ANY entry (except `now`) that resolves a module
-//       └ <RelatedEntries> — editorial (outgoing `related` + incoming backlinks)
-//
-// CAPABILITY-gated, never kind-gated: which additions an entry gets is decided by the
-// capability fields it carries, not its `kind` (any kind of entry can be interactive or themed).
-//   • Module — a `componentKey` that DECLARES a coded module: present → resolve it; a
-//     renamed/deleted module (drift) → `notFound()`, for ANY kind. NO `componentKey` →
-//     prose-only, never a 404 (a `stage: sketch` demo keeps its key null until it ships,
-//     and a note/essay simply never has one). A module composes one (or both) of two ways —
-//     `Slot` (one slot mounted after the prose) and/or `Provider` (a client frame around
-//     the article so interleaved `slot` blocks share state).
-//   • Theming — a `theme.color`: present → build the scope seed and thread it to the body so
-//     each `slot` block (and the after-prose `Slot`) mounts in its own scoped container.
-//
-// `now` is the ONE exception, excluded by design: it stays chrome + prose — never a scope,
-// never a module — even if it happens to carry `theme`/`componentKey`, because a `now`
-// note is an editorial status update, not an interactive slot. The keystone stays defensive:
-// the scope never throws on a bad theme color/font, so an empty seed field is always safe.
+// CAPABILITY-gated within each template:
+//   • Module — a `componentKey` DECLARES a coded module: present → resolve it for ANY kind; a
+//     renamed/deleted module (drift) → `notFound()`. NO `componentKey` → prose-only, never a
+//     404. A demo whose resolved module lacks `Canvas` is the same drift.
+//   • Theming — a `theme.color`: present → build the scope seed so each slot (or the demo
+//     surface) mounts in its own scoped container. `now` is the ONE theming exception: it wears
+//     the shared `/now` seed (the query's kind-gated rung) and its slots keep the Now theme's
+//     type — the doc's own `theme` never applies, even if authored. The keystone stays
+//     defensive: the scope never throws on a bad theme color/font.
 
 interface EntryPageProps {
   params: Promise<{ slug: string }>;
@@ -104,102 +103,142 @@ export default async function EntryPage({ params }: EntryPageProps) {
   // The page's authored theme, applied flash-free (#166/#187). `themeSeed` is resolved in the
   // query — a KIND-GATED inner rung (a `now` update wears the `/now` seed; every other kind wears
   // its own `theme.color`) over the site-default fallback (#253) — so the page never branches on
-  // `kind` here. `entry` is already
-  // awaited above, so the synchronous `<PageTheme>` emits its `:root` `<style>` into the
-  // prerendered static shell — React hoists it into `<head>`, ahead of the chrome.
+  // `kind` here. `entry` is already awaited above, so the synchronous `<PageTheme>` emits its
+  // `:root` `<style>` into the prerendered static shell — React hoists it into `<head>`, ahead
+  // of the chrome.
   const pageTheme = <PageTheme seed={entry.themeSeed} />;
 
-  // `now` is excluded from BOTH capabilities by design (an editorial status update, never an
-  // interactive slot) — so it never resolves a key and never builds a scope, even if the doc
-  // happens to carry `componentKey`/`theme`.
-  const isNow = entry.kind === "now";
-
-  // Module gate — capability, not kind. A DECLARED `componentKey` must resolve for any kind
-  // except `now`: a renamed/deleted module (drift) → `notFound()`, never a crash. NO
-  // `componentKey` → `resolution` is null → prose-only, not a 404 (a sketch demo keeps its
-  // key null until it ships; a note/essay simply never has one). The resolver is never even
-  // consulted without a key, nor for a `now`.
-  const resolution =
-    !isNow && entry.componentKey
-      ? resolveComponentKey(entry.componentKey)
-      : null;
+  // Module gate — capability, not kind. A DECLARED `componentKey` must resolve for ANY kind:
+  // a renamed/deleted module (drift) → `notFound()`, never a crash. NO `componentKey` →
+  // `resolution` is null → prose-only, not a 404 (a sketch demo keeps its key null until it
+  // ships; a note/essay simply never has one). The resolver is never consulted without a key.
+  const resolution = entry.componentKey
+    ? resolveComponentKey(entry.componentKey)
+    : null;
   if (resolution && isNotFound(resolution)) {
     notFound();
   }
 
-  // Load the resolved module. Past the guard above, a non-null `resolution` is `found`, so this
-  // mounts for ANY kind (except `now`) that declared a resolvable key. The module composes one
-  // (or both) of two ways: `Slot` = one slot after the prose; `Provider` = a client frame
-  // around the article so `slot` blocks interleaved through the prose share state (see
-  // `EntryModule`).
   const entryModule =
     resolution && !isNotFound(resolution)
       ? ((await resolution.value()) as { default: EntryModule }).default
       : null;
-  const Slot = entryModule?.Slot ?? null;
   const Provider = entryModule?.Provider ?? null;
+  const Sidebar = entryModule?.Sidebar ?? null;
+  const Canvas = entryModule?.Canvas ?? null;
 
-  // The font seed for the entry's slot(s), threaded to the body so each `slot` block — and the
-  // after-prose `Slot` — mounts in its own `[data-entry]` wearing the entry's theme fonts. Built
-  // whenever this entry either themes (`theme.color`) OR mounts a module: keyed on the REAL `slug`
-  // so a scope never collapses to the shared `data-entry="fallback"`. Each of the three role fonts
-  // is passed as `undefined` when absent (never coerced to `""`): the keystone omits an absent
-  // role's override so it inherits `:root`, without throwing. The slot's COLOR comes from the
-  // page's `<html>` theme (inherited); this seed carries only the fonts.
+  // `now` never carries its OWN theme — it wears the shared `/now` seed, and its slots keep the
+  // Now theme's type, so the scope seed omits the doc's font fields for a `now` even when they
+  // are authored. Every other kind seeds its authored role fonts. Built whenever the entry
+  // either themes (`theme.color`, non-`now`) OR mounts a module: keyed on the REAL `slug` so a
+  // scope never collapses to the shared `data-entry="fallback"`. Absent role fonts pass as
+  // `undefined` (never `""`): the keystone omits them so they inherit `:root`. The scope's
+  // COLOR always comes from the page's `<html>` theme (inherited); this seed carries fonts only.
+  const isNow = entry.kind === "now";
   const scope: ScopeSeed | undefined =
-    !isNow && (entry.theme?.color || entryModule)
+    (!isNow && entry.theme?.color) || entryModule
       ? {
           slug,
-          headingFont: entry.theme?.headingFont ?? undefined,
-          bodyFont: entry.theme?.bodyFont ?? undefined,
-          monoFont: entry.theme?.monoFont ?? undefined,
+          headingFont: (!isNow && entry.theme?.headingFont) || undefined,
+          bodyFont: (!isNow && entry.theme?.bodyFont) || undefined,
+          monoFont: (!isNow && entry.theme?.monoFont) || undefined,
         }
       : undefined;
 
+  // ── DEMO template: sidebar + canvas, edge-to-edge, no prose article. ──
+  if (entry.kind === "demo" && entryModule) {
+    // A demo module without a Canvas has nothing to show — the same content→code drift as an
+    // unresolvable componentKey, contained the same way.
+    if (!Canvas) {
+      notFound();
+    }
+    const iteratedLabel = formatDate(entry.iterated);
+    const demoSurface = (
+      // Same last-resort containment as the editorial slots: a scope throw degrades to the
+      // unthemed notice instead of blanking the route through its error boundary.
+      <EntryScopeBoundary>
+        {/* ONE theme-font scope around the whole demo surface — sidebar controls and canvas
+            wear the entry's faces together. */}
+        <EntryScope seed={scope}>
+          <DemoLayout
+            title={entry.title ?? "Untitled entry"}
+            summary={entry.summary}
+            kind={entry.kind}
+            stage={entry.stage}
+            iterated={
+              iteratedLabel && entry.iterated
+                ? { dateTime: entry.iterated, label: iteratedLabel }
+                : null
+            }
+            seed={entry.themeSeed}
+            controls={Sidebar ? <Sidebar slug={slug} /> : null}
+          >
+            <Canvas slug={slug} />
+          </DemoLayout>
+        </EntryScope>
+      </EntryScopeBoundary>
+    );
+    return (
+      <>
+        {pageTheme}
+        <Page className={styles.demoPage}>
+          {/* The bleed wrapper is the page grid's DIRECT child — it owns the `full` lane
+              (an intermediate wrapper like the scope's [data-entry] div would make a lane
+              declaration deeper down inert) and stretches the scope + demo to the row's
+              height. The provider is a state frame around the whole surface — sidebar
+              controls and canvas share it. */}
+          <div className={styles.demoBleed}>
+            {Provider ? (
+              <Provider slug={slug}>{demoSurface}</Provider>
+            ) : (
+              demoSurface
+            )}
+          </div>
+          <RelatedEntries
+            currentId={entry._id}
+            related={entry.related}
+            backlinks={entry.backlinks}
+          />
+        </Page>
+      </>
+    );
+  }
+
+  // ── EDITORIAL template: the prose reading column (note · essay · now — and a sketch demo
+  //    or unknown kind, which degrade here prose-only). ──
   const article = (
-    <article className={styles.article}>
-      <Stack asChild gap={space(3)}>
-        <header className={styles.header}>
-          <Heading level={1} color="accent-text">
-            {entry.title}
-          </Heading>
-          {entry.summary ? (
-            <Text
-              variant="lede"
-              color="muted-foreground"
-              className={styles.summary}
-            >
-              {entry.summary}
-            </Text>
-          ) : null}
-        </header>
-      </Stack>
-      {entry.body ? <EntryBody value={entry.body} scope={scope} /> : null}
-    </article>
+    <ContentGrid asChild>
+      <article className={styles.article}>
+        <Stack asChild gap={space(3)}>
+          <header className={styles.header}>
+            <Heading level={1} color="accent-text">
+              {entry.title ?? "Untitled entry"}
+            </Heading>
+            {entry.summary ? (
+              <Text
+                variant="lede"
+                color="muted-foreground"
+                className={styles.summary}
+              >
+                {entry.summary}
+              </Text>
+            ) : null}
+          </header>
+        </Stack>
+        {entry.body ? <EntryBody value={entry.body} scope={scope} /> : null}
+      </article>
+    </ContentGrid>
   );
 
   return (
     <>
       {pageTheme}
-      <Page width="page" className={styles.module}>
+      <Page>
         {/* The provider is a state frame, not a theme: prose inside stays server-rendered
-          editorial content (children pass-through). Rendered as deep as possible per the
-          bundled composition docs. */}
+          editorial content (children pass-through), and the module's interactive surfaces are
+          the `slot` blocks interleaved through it — each in its own scoped container. Rendered
+          as deep as possible per the bundled composition docs. */}
         {Provider ? <Provider slug={slug}>{article}</Provider> : article}
-        {/* The theme is scoped to the interactive slot ONLY — the engine theme wraps
-          <Slot/>, not the editorial article/related around it. Rendered only when a
-          module resolved (any kind but `now`); an entry without one is prose-only. The wrapper
-          `<div>` is a direct `.module` child, so it holds the reading-measure cap
-          (`.module > :not(.article)`) like every non-article child. */}
-        {Slot ? (
-          <div>
-            <EntryScopeBoundary>
-              <EntryScope seed={scope}>
-                <Slot slug={slug} />
-              </EntryScope>
-            </EntryScopeBoundary>
-          </div>
-        ) : null}
         <RelatedEntries
           currentId={entry._id}
           related={entry.related}

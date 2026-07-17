@@ -11,7 +11,7 @@ import styles from "./loading.module.css";
 // Loading components take no props (`node_modules/.../03-file-conventions/loading.md`).
 export default function RootLoading() {
   return (
-    <Page width="measure" className={styles.state} aria-busy="true">
+    <Page className={styles.state} aria-busy="true">
       <p className={styles.body}>Loading…</p>
     </Page>
   );

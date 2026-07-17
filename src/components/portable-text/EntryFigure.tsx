@@ -4,6 +4,7 @@ import { WIDTH_CONTENT } from "@/styles/foundation/dimension";
 
 import type { Body } from "./EntryBody";
 import MediaPlaceholder from "./MediaPlaceholder";
+import { resolveBlockLane } from "@/lib/lanes";
 import { firstNonEmpty } from "./mediaLabel";
 
 type FigureBlock = Extract<Body[number], { _type: "figure" }>;
@@ -129,6 +130,7 @@ interface EntryFigureProps {
  * `<figcaption>`, not doubled into the name.
  */
 export default function EntryFigure({ value, preload }: EntryFigureProps) {
+  const lane = resolveBlockLane(value?.lane);
   const image = resolveFigureImage(value);
   if (!image) {
     return (
@@ -136,6 +138,7 @@ export default function EntryFigure({ value, preload }: EntryFigureProps) {
         labelCandidates={[value?.alt]}
         fallbackLabel={GENERIC_NAME}
         caption={value?.caption}
+        lane={lane}
       />
     );
   }
@@ -149,6 +152,7 @@ export default function EntryFigure({ value, preload }: EntryFigureProps) {
       sizes={preload ? FIGURE_SIZES : LAZY_FIGURE_SIZES}
       preload={preload}
       blurDataURL={image.blurDataURL}
+      lane={lane}
     />
   );
 }

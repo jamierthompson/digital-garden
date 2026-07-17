@@ -3,7 +3,7 @@
    scope). */
 @layer components {
   .figure {
-    margin: var(--space-6) 0;
+    margin: var(--space-flow) 0;
   }
 
   /* Fixed 16:9 box so the embed reserves its space before load — no layout shift. The embed fills
@@ -13,7 +13,7 @@
     position: relative;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-surface);
     background: var(--accent-subtle);
   }
 
@@ -29,7 +29,7 @@
 
   /* Type + ink come from the Text `caption` role and its `color` prop; this rule owns only layout. */
   .caption {
-    margin-top: var(--space-2);
+    margin-top: var(--space-caption);
     text-align: center;
   }
 }

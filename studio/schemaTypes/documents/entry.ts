@@ -6,9 +6,9 @@ import {forbiddenForNow} from './entryValidators'
 /**
  * An `entry` — the single content type for the whole garden.
  *
- * Notes, essays, and demos are the same shape (a themed page with one or more
+ * Notes, essays, demos, and nows are the same shape (a themed page with one or more
  * interactive slots plus prose), so they are ONE document type discriminated by a
- * `kind` field — not three types, and not a merge that erased the distinction. `kind`
+ * `kind` field — not four types, and not a merge that erased the distinction. `kind`
  * groups the Index into its labelled sections and routes an entry to its surface; the kinds
  * differ by scope and emphasis, not fields. See docs/architecture.md → Content model.
  *
@@ -19,16 +19,16 @@ import {forbiddenForNow} from './entryValidators'
  * the slot's type wears — heading, body, and mono, each independent; `colorDark` is an optional
  * hand-tuned dark override. Under the site-wide engine-theming model (#166) every page derives its
  * theme from an authored seed — but the seed need not be the entry's OWN: `theme.color` is
- * OPTIONAL for the themed kinds (note, essay, demo), and an entry that authors none wears the
+ * OPTIONAL for the themed kinds (note, essay, demo, now), and an entry that authors none wears the
  * site default theme (`siteSettings.theme`). The three font faces are each OPTIONAL for every
  * kind — an absent face inherits the site type palette, so a slot with no font override wears the
  * constant site faces.
  * `componentKey` is SEPARATE from the theme (it MOUNTS a module; it is not part of the theme the
  * module reads), so it stays a top-level field — also OPTIONAL, mounting a module purely on its
- * PRESENCE for any non-`now` kind. `now` is chrome + prose by design — its whole `theme` object is
- * hidden and it CANNOT set a color (the single `/now` page seed themes all `now` content: the
- * `/now` index and every `now` entry, resolved in ENTRY_DETAIL_QUERY); `forbiddenForNow` rejects a
- * color on a `now`.
+ * PRESENCE for any kind, `now` included. A `now` can hold slots and modules like any editorial
+ * entry but never wears its OWN theme — its whole `theme` object is hidden and it CANNOT set a
+ * color (the single `/now` page seed themes all `now` content: the `/now` index and every `now`
+ * entry, resolved in ENTRY_DETAIL_QUERY); `forbiddenForNow` rejects a color on a `now`.
  *
  * NOTE: the three font faces and `componentKey` are plain string fields here on purpose — the
  * standalone Studio bundle must not import app code (keys.ts / next/font / lazy slot bundles).
@@ -191,14 +191,25 @@ export const entry = defineType({
       title: 'Component key',
       type: 'string',
       description:
-        'Optional. Name of the coded component this entry mounts — ask a developer for the valid keys. Setting it mounts that component (for any kind except “now”); leave empty for a prose-only entry.',
+        'Optional. Name of the coded component this entry mounts — ask a developer for the valid keys. Setting it mounts that component (a demo’s sidebar controls + canvas, or an editorial entry’s slots); leave empty for a prose-only entry.',
     }),
 
     defineField({
       name: 'body',
       title: 'Body',
       type: 'portableText',
-      validation: (rule) => rule.required(),
+      // A demo has no prose article (its template is sidebar + canvas; the summary is its
+      // prose) — the field hides for demos and `required` binds only to editorial kinds.
+      hidden: ({document}) => document?.kind === 'demo',
+      validation: (rule) =>
+        rule.custom((value, context) => {
+          if (context.document?.kind === 'demo') return true
+          // Match `rule.required()`'s array semantics: an EMPTY Portable Text array is
+          // a missing body, not a present one — `Boolean([])` is true and would let a blank
+          // editorial article publish.
+          const present = Array.isArray(value) ? value.length > 0 : Boolean(value)
+          return present ? true : 'Required for editorial entries (note · essay · now)'
+        }),
     }),
     defineField({
       name: 'related',

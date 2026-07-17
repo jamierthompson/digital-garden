@@ -1,24 +1,31 @@
 /* Site navigation — the "engineering journal" masthead composer. @layer components — declares
    its layer (unlayered modules outrank every layered rule); var-consuming only (the shell is
    never theme-scoped). The band pieces own their own modules (Masthead, Wordmark, NavLinks);
-   `Container` caps the nav row to the page column — this module owns only the header's ink
-   rule and the nav row's flex + block padding. */
+   the nav band is a `ContentGrid`, its row in the `wide` lane — this module owns only the
+   header's ink rule, the band's block padding, and the row's flex. */
 @layer components {
   .header {
     border-bottom: var(--border-width-thick) solid var(--accent);
   }
 
   .nav {
+    padding-block: var(--space-4);
+  }
+
+  .row {
+    grid-column: wide;
     display: flex;
+    /* Wraps on narrow viewports (see NavLinks) — never dictate a minimum page width. */
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-5);
-    padding-block: var(--space-4);
   }
 
   /* Right cluster — the primary links and the scheme toggle share the nav's right side. */
   .navEnd {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-5);
   }

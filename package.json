@@ -10,6 +10,7 @@
     "lint": "eslint",
     "lint:css": "node scripts/check-css-layers.mjs",
     "lint:color": "node scripts/check-color-immutability.mjs",
+    "lint:dimension": "node scripts/check-dimension-roles.mjs",
     "lint:routes": "node scripts/check-app-routes.mjs",
     "lint:keys": "node scripts/check-key-drift.mjs",
     "lint:keys:published": "node scripts/check-published-keys.mjs",

@@ -8,13 +8,16 @@ import {forbiddenForNow} from './entryValidators'
 /**
  * Asserts the `entry` schema's required fields declare `rule.required()`. `required()` is a
  * built-in chainable with no standalone function to import, so each test drives a field's inline
- * `validation` with a spy Rule (`calledRules`) that records which rule methods fire. A future edit
- * that drops a required rule, or makes `body` conditional with a `.custom()` gate, fails here.
+ * `validation` with a spy Rule (`calledRules`) that records which rule methods fire — and, for
+ * `body`'s kind-gated rule, captures the `.custom()` callback so its behavior is asserted
+ * directly (required for editorial kinds, exempt for `demo`, #328).
  */
+type CustomValidator = (value: unknown, context: {document?: {kind?: string}}) => unknown
 type Rule = {required: (...a: unknown[]) => Rule; custom: (...a: unknown[]) => Rule}
 type FieldDef = {
   name?: string
   type?: string
+  hidden?: (context: {document?: {kind?: string}}) => boolean
   validation?: (rule: Rule) => unknown
 }
 
@@ -39,30 +42,68 @@ function calledRules(f: FieldDef | undefined): string[] {
   return called
 }
 
+// Capture the `.custom()` callback a field's validation registers, so its behavior can be
+// asserted directly (no Studio runtime).
+function customValidator(f: FieldDef | undefined): CustomValidator | undefined {
+  let captured: CustomValidator | undefined
+  const rule: Rule = {
+    required: () => rule,
+    custom: (fn: unknown) => {
+      captured = fn as CustomValidator
+      return rule
+    },
+  }
+  f?.validation?.(rule)
+  return captured
+}
+
 describe('entry schema — required floors (#217)', () => {
   it('is the entry document', () => {
     expect(entry.name).toBe('entry')
     expect(entry.type).toBe('document')
   })
 
-  it('requires body — a body-less entry cannot publish (#217)', () => {
+  it('requires body for EDITORIAL kinds — a body-less note/essay/now cannot publish (#328)', () => {
     const body = field('body')
     expect(body, 'expected a body field').toBeDefined()
     expect(body?.type).toBe('portableText')
-    expect(calledRules(body)).toContain('required')
+    const validate = customValidator(body)
+    expect(validate, 'expected the kind-gated custom rule').toBeDefined()
+    for (const kind of ['note', 'essay', 'now']) {
+      expect(validate?.(undefined, {document: {kind}}), `${kind} without a body`).not.toBe(true)
+      expect(validate?.([{_type: 'block'}], {document: {kind}}), `${kind} with a body`).toBe(true)
+    }
   })
 
-  it('requires body unconditionally — exactly one required rule, no kind gate', () => {
-    // Every kind (note/essay/demo/now) carries a body, so body uses the built-in
-    // `rule.required()` with no `.custom()` kind gate. A regression that made body conditional
-    // would add a `custom` call or drop `required`.
-    expect(calledRules(field('body'))).toEqual(['required'])
+  it('exempts DEMO from the body floor and hides the field — the demo template has no prose article (#328)', () => {
+    const body = field('body')
+    const validate = customValidator(body)
+    expect(validate?.(undefined, {document: {kind: 'demo'}})).toBe(true)
+    expect(body?.hidden?.({document: {kind: 'demo'}})).toBe(true)
+    expect(body?.hidden?.({document: {kind: 'note'}})).toBe(false)
   })
 
   it('keeps the other unconditional required floors (title/kind/slug)', () => {
     expect(calledRules(field('title'))).toContain('required')
     expect(calledRules(field('kind'))).toContain('required')
     expect(calledRules(field('slug'))).toContain('required')
+  })
+
+  it('still requires a body when the kind itself is absent (API-path import without kind)', () => {
+    const validate = customValidator(field('body'))
+    expect(validate?.(undefined, {document: {}})).not.toBe(true)
+    expect(validate?.(undefined, {})).not.toBe(true)
+  })
+
+  // The kind-gated custom rule must match `rule.required()`'s array semantics: Sanity's own
+  // required() treats an EMPTY ARRAY as missing. A note/essay/now whose Portable Text body
+  // was emptied (all blocks deleted, or an API write of `[]`) must not publish a blank
+  // article.
+  it('rejects an EMPTY-ARRAY body for editorial kinds — [] is a blank article, not a body', () => {
+    const validate = customValidator(field('body'))
+    for (const kind of ['note', 'essay', 'now']) {
+      expect(validate?.([], {document: {kind}}), `${kind} with body []`).not.toBe(true)
+    }
   })
 })
 
@@ -143,7 +184,7 @@ describe('entry schema — the theme object (#249)', () => {
     const componentKey = field('componentKey')
     expect(componentKey, 'expected a top-level componentKey').toBeDefined()
     expect(componentKey?.type).toBe('string')
-    // componentKey mounts a module purely on PRESENCE for any non-`now` kind — no validation.
+    // componentKey mounts a module purely on PRESENCE for any kind, `now` included — no validation.
     expect(customValidators(componentKey)).toEqual([])
   })
 

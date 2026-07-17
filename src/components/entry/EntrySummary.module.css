@@ -16,10 +16,10 @@
     text-transform: capitalize;
     padding: 0.1em 0.6em;
     border: var(--border-width) solid var(--border);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-pill);
   }
 
   .summary {
-    max-width: 68ch;
+    max-width: var(--type-body-measure);
   }
 }
