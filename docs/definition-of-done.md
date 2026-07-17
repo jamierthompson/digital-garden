@@ -157,7 +157,7 @@ use `@/*`**. Full rules live in [git-and-pr-workflow.md](./git-and-pr-workflow.m
 ## 7. Final gate (copy-paste)
 
 ```text
-[ ] pnpm lint · lint:css · lint:color · lint:routes · lint:keys · lint:docs · format:check · typecheck · test · build  — all green
+[ ] pnpm lint · lint:css · lint:color · lint:dimension · lint:routes · lint:keys · lint:docs · format:check · typecheck · test · build  — all green
 [ ] sanity.types.ts regenerated & committed (after ANY Studio schema change)
 [ ] Cache Components: dynamic reads in <Suspense> or 'use cache'
 [ ] "Don't reach up": every unit self-sufficient; full litmus for shared prims → "Don't reach up" litmus in architecture.md

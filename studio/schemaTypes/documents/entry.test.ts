@@ -167,7 +167,7 @@ describe('entry schema — the theme object (#249)', () => {
     const componentKey = field('componentKey')
     expect(componentKey, 'expected a top-level componentKey').toBeDefined()
     expect(componentKey?.type).toBe('string')
-    // componentKey mounts a module purely on PRESENCE for any non-`now` kind — no validation.
+    // componentKey mounts a module purely on PRESENCE for any kind, `now` included — no validation.
     expect(customValidators(componentKey)).toEqual([])
   })
 

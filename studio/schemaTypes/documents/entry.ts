@@ -25,10 +25,10 @@ import {forbiddenForNow} from './entryValidators'
  * constant site faces.
  * `componentKey` is SEPARATE from the theme (it MOUNTS a module; it is not part of the theme the
  * module reads), so it stays a top-level field — also OPTIONAL, mounting a module purely on its
- * PRESENCE for any kind. `now` is chrome + prose by design — its whole `theme` object is
- * hidden and it CANNOT set a color (the single `/now` page seed themes all `now` content: the
- * `/now` index and every `now` entry, resolved in ENTRY_DETAIL_QUERY); `forbiddenForNow` rejects a
- * color on a `now`.
+ * PRESENCE for any kind, `now` included. A `now` can hold slots and modules like any editorial
+ * entry but never wears its OWN theme — its whole `theme` object is hidden and it CANNOT set a
+ * color (the single `/now` page seed themes all `now` content: the `/now` index and every `now`
+ * entry, resolved in ENTRY_DETAIL_QUERY); `forbiddenForNow` rejects a color on a `now`.
  *
  * NOTE: the three font faces and `componentKey` are plain string fields here on purpose — the
  * standalone Studio bundle must not import app code (keys.ts / next/font / lazy slot bundles).

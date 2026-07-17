@@ -3,9 +3,9 @@
    default; each themed slot re-binds them inside its own scoped container). `Page` is the page's
    content grid; the `<article>` spans its `full` lane and is itself a `ContentGrid` (asChild)
    with identical tracks, so body blocks land in the prose lane and a slot can span `full` to the
-   viewport edge. The non-article siblings (after-prose slot, related) are grid children too and
-   hold the prose lane natively. This file adds only the page's editorial concerns — prose
-   typography and the header. */
+   viewport edge. The non-article siblings (related) are grid children too and hold the prose
+   lane natively. This file adds only the page's editorial concerns — prose typography and the
+   header. */
 @layer components {
   /* Demo frame: the sidebar+canvas template fills nav→footer — the frame grows to the viewport
      floor (body is a flex column), its two rows are the demo (all spare height) and the related

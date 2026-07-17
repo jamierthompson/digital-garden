@@ -913,8 +913,9 @@ Practical notes:
   interactions slotted in; a _demo_ is an interactive piece with more slots; a _now_ is a dated
   "now" update that drives the reverse-chronological `/now` stream — its own surface, kept out of
   the Index.
-  **Downstream, theming and interactivity key on capability (presence), not kind:** every kind but
-  `now` scopes on a present `theme.color` and mounts on a present `componentKey`. (`theme.color`
+  **Downstream, theming and interactivity key on capability (presence), not kind:** every kind
+  mounts on a present `componentKey` — `now` included (#328) — and every kind but `now` scopes on
+  a present `theme.color`. (`theme.color`
   additionally carries a required _floor_ for note/essay/demo — see below — but the mount/scope
   logic keys on presence, not kind.) A present `theme.color` gives the entry its own brand
   `[data-entry]` scope (and mounts its
@@ -922,9 +923,11 @@ Practical notes:
   `componentKey` resolves and mounts the coded module — a declared key that fails to resolve is a
   `notFound()` for any kind, and no key at all renders prose-only (a sketch demo renders
   prose-only, never a 404). **A module mount always implies a scope seed** — the route builds the
-  `ScopeSeed` whenever a non-`now` entry _themes or mounts a module_ (`theme.color || a resolvable
-componentKey`), always **keyed on the entry's own slug**, with each absent `theme.headingFont` /
-  `bodyFont` / `monoFont` passed as `undefined` (never coerced to `""`). So a
+  `ScopeSeed` whenever an entry _mounts a module_ (any kind) or a _non-`now`_ entry _themes_
+  (`(!now && theme.color) || a resolvable componentKey`), always **keyed on the entry's own
+  slug**, with each absent `theme.headingFont` / `bodyFont` / `monoFont` passed as `undefined`
+  (never coerced to `""`) — and a `now`'s seed omits the doc's font fields entirely, so its
+  slots keep the Now theme's faces. So a
   module-only entry (a resolvable `componentKey`, no `theme.color`) still gets its **own** per-entry
   `[data-entry]` scope rather than collapsing onto a shared fallback slug — two such entries must not
   share one `data-entry` and cross-contaminate themes — and its empty theme fields resolve to the
@@ -933,11 +936,12 @@ componentKey`), always **keyed on the entry's own slug**, with each absent `them
   "emit no override, inherit `:root`", not a hardcoded fallback face.
   `theme.color` is **optional for every kind** (#253) — an entry that authors none wears the
   authored site default (`siteSettings.theme`), so each page still derives its theme from an
-  authored seed. `componentKey` and the three `theme` face keys are likewise **optional and
-  mount/theme on presence** for every kind but `now` — a `demo` past the sketch stage is no longer
-  forced to name a module or a face (a prose-only demo is valid), and a `note`/`essay` that sets a
-  `componentKey` mounts it. A `now`
-  update is chrome + prose by design: it **cannot set its own `theme.color`** (the whole `theme` object
+  authored seed. `componentKey` is likewise **optional and mounts on presence for every kind**
+  (a `demo` past the sketch stage is no longer forced to name a module — a prose-only demo is
+  valid — and a `note`/`essay`/`now` that sets a `componentKey` mounts it), and the three `theme`
+  face keys are optional and theme on presence for every kind but `now`. A `now`
+  update can hold slots and modules like any editorial entry, but it **never wears its own
+  theme**: it **cannot set its own `theme.color`** (the whole `theme` object
   is hidden for a `now` in the Studio and a color is rejected on write by `forbiddenForNow`) and
   **inherits the `/now` page seed** instead — the single `/now` seed themes the `/now` index and every
   `now` entry alike. `stage` does not

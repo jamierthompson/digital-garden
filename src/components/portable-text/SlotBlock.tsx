@@ -19,14 +19,15 @@ interface SlotBlockProps {
   /** The authored content-grid lane (sanitized here; unknown values collapse to `wide`). */
   lane?: string | null;
   /**
-   * The host entry's font-scope seed. Present whenever a non-`now` entry themes OR mounts a
-   * module (`theme.color || componentKey`, not just a demo): each slot then mounts inside its
-   * OWN `EntryScope` container, so it wears the entry's theme fonts while the prose around it
-   * keeps the editorial faces. Color is inherited from the page's `<html>` theme, so this seed
-   * carries only the slug + the entry's per-role font keys (heading/body/mono). A module-only
-   * entry (no font keys) still gets a seed keyed on its own slug, so its slots inherit the site
-   * palette. Absent (a `now`, or an entry that neither themes nor mounts a module) → the slot
-   * mounts bare.
+   * The host entry's font-scope seed. Present whenever the entry mounts a module (any kind,
+   * `now` included) or a non-`now` entry themes (`(!now && theme.color) || componentKey`): each
+   * slot then mounts inside its OWN `EntryScope` container, so it wears the entry's theme fonts
+   * while the prose around it keeps the editorial faces. Color is inherited from the page's
+   * `<html>` theme, so this seed carries only the slug + the entry's per-role font keys
+   * (heading/body/mono). A module-only entry (no font keys) — including any `now`, whose seed
+   * omits the doc's fonts by design — still gets a seed keyed on its own slug, so its slots
+   * inherit the site faces. Absent (an entry that neither themes nor mounts a module) → the
+   * slot mounts bare.
    */
   scope?: ScopeSeed;
 }

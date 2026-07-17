@@ -34,11 +34,11 @@ export type FontKey = (typeof FONT_KEYS)[number];
  * module lands; the `satisfies Record<ComponentKey, …>` on `ENTRY_LOADERS` then forces
  * a matching loader entry (compile error if missing).
  *
- * `componentKey` is capability-gated, not kind-gated: any kind but `now` can declare one.
- * An entry with no `componentKey` renders prose-only (a sketch demo carrying a
+ * `componentKey` is capability-gated, not kind-gated: any kind — `now` included — can declare
+ * one. An entry with no `componentKey` renders prose-only (a sketch demo carrying a
  * `theme.color` but no key yet, or an unkeyed note/essay); an entry that declares its key
  * here has the resolver map it to a literal dynamic import. `componentKey` is OPTIONAL for
- * every kind but `now`, mounting purely on presence (#226 removed the required-past-sketch
+ * every kind, mounting purely on presence (#226 removed the required-past-sketch
  * validator); a declared key that fails to resolve is a `notFound()` for any kind. The first
  * real module is the Color Engine (#70).
  */
