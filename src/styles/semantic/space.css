@@ -8,9 +8,9 @@
     --space-flow: var(
       --space-6
     ); /* vertical rhythm around editorial flow blocks */
-    --space-caption: var(
-      --space-2
-    ); /* the tight media → caption/attribution gap */
+    /* The tight gap between a text companion (caption · attribution · label) and what it
+       accompanies. */
+    --space-caption: var(--space-2);
     --space-section: var(--space-7); /* a major in-page section break */
   }
 }

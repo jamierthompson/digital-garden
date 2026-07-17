@@ -117,9 +117,15 @@ space roles (`--space-inset/-gutter/-stack/-cluster/-grid/-flow/-caption/-sectio
 roles (`--radius-control/-surface/-pill`, derived from the `--radius-base` knob and re-declared at
 the slot scope so a theme can re-bind them), and the per-role measure caps
 (`--type-<role>-measure`, provisional hand values until the type engine computes them). A genuinely
-component-specific value is bound as a **co-located component token**
-(`--quote-indent: var(--space-4)`) — the custom-property declaration is the one sanctioned place a
-module reads the raw scale (`pnpm lint:dimension`). Color varies per **page** (every route wears
+component-specific value is bound as a **component token** — the third tier under the semantic
+roles, and the one sanctioned place a module reads the raw scale (`pnpm lint:dimension`). The
+convention: a component token is declared in a **labeled block on the component's root rule**,
+**named for the design job it does** (`--quote-indent`, `--demo-sidebar-basis`,
+`--scrollbar-thumb`) — a single consumer is fine (Material's `md.comp.*` tier is mostly
+single-consumer; the name is the point). It is **never minted in a route module** (a route element
+needing its own designed geometry is a component asking to be extracted), never as a same-line
+alias whose only job is passing the lint, and it is **promoted to a semantic role the moment a
+second component needs the same job** (how `--space-flow`/`--space-caption` were born). Color varies per **page** (every route wears
 its authored theme); font varies per **slot** (the interactive island wears the entry's theme face
 while the prose keeps the editorial body face).
 

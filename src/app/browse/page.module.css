@@ -14,10 +14,8 @@
   }
 
   .sectionHeading {
-    /* Component token — the label's gap above its rule, bound from the foundation scale. */
-    --section-heading-gap: var(--space-2);
     text-transform: uppercase;
-    padding-bottom: var(--section-heading-gap);
+    padding-bottom: var(--space-caption);
     border-bottom: var(--border-width) solid var(--border);
   }
 

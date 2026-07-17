@@ -5,9 +5,16 @@
 //   2. radius primitive      — `var(--radius-base)` or a retired scale name (`--radius-md`, …)
 //   3. hardcoded measure     — a literal `<N>ch` cap
 // The roles live in `src/styles/semantic/` (`--space-flow`, `--radius-surface`, …) and the type
-// bundles (`--type-body-measure`); a genuinely component-specific value is bound as a co-located
-// component token (`--quote-indent: var(--space-4)`) — a CUSTOM PROPERTY declaration may read the
-// foundation scale, a normal declaration may not.
+// bundles (`--type-body-measure`). A genuinely component-specific value is bound as a
+// COMPONENT TOKEN — a CUSTOM PROPERTY declaration may read the foundation scale, a normal
+// declaration may not. The component-token convention (docs/architecture.md → token tiers):
+//   - declared in a labeled block on the COMPONENT's root rule, named for the design job it
+//     does (`--quote-indent`, `--demo-sidebar-basis`) — a single consumer is fine;
+//   - never minted in a route module (`src/app/**`) — a route element needing its own designed
+//     geometry is a component asking to be extracted;
+//   - promoted to a semantic role the moment a second component needs the same job.
+// An alias that only exists to get a raw read past this guard is the anti-pattern — if the
+// value has no nameable job, the design question is unanswered, not the lint.
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -95,7 +102,10 @@ function main() {
     for (const v of violations) console.error(`  ${v}`);
     console.error(
       `\n${violations.length} violation(s). Component modules read semantic dimension roles ` +
-        `(src/styles/semantic/) or their own co-located component tokens — never the raw scale.`,
+        `(src/styles/semantic/) or their own component tokens — never the raw scale. A component ` +
+        `token is a labeled block on the component's ROOT rule, named for its design job ` +
+        `(--quote-indent, --demo-sidebar-basis); never mint one in a route module, and never as ` +
+        `a same-line alias just to pass this check. Convention: docs/architecture.md → token tiers.`,
     );
     process.exit(1);
   }
