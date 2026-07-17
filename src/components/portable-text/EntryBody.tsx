@@ -70,6 +70,7 @@ export default function EntryBody({ value, scope }: EntryBodyProps) {
         <SlotBlock
           slotKey={block.slotKey}
           caption={block.caption}
+          lane={block.lane}
           scope={scope}
         />
       ),

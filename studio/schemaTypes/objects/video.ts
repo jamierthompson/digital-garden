@@ -1,5 +1,7 @@
 import {defineField, defineType} from 'sanity'
 
+import {laneField} from '../shared/lane'
+
 /**
  * Video block — a referenced video, authored as a URL plus an optional caption.
  *
@@ -26,6 +28,7 @@ export const video = defineType({
       type: 'string',
       description: 'Optional visible caption.',
     }),
+    laneField(),
   ],
   preview: {
     select: {title: 'caption', subtitle: 'url'},

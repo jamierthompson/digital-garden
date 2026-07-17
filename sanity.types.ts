@@ -25,6 +25,7 @@ export type Video = {
   _type: "video";
   url?: string;
   caption?: string;
+  lane?: "wide" | "full" | "prose";
 };
 
 export type SanityImageAssetReference = {
@@ -42,12 +43,14 @@ export type Figure = {
   crop?: SanityImageCrop;
   alt?: string;
   caption?: string;
+  lane?: "wide" | "full" | "prose";
 };
 
 export type Slot = {
   _type: "slot";
   slotKey?: string;
   caption?: string;
+  lane?: "wide" | "full" | "prose";
 };
 
 export type PortableText = Array<
@@ -354,6 +357,7 @@ export type ENTRY_DETAIL_QUERY_RESULT = {
         crop?: SanityImageCrop;
         alt?: string;
         caption?: string;
+        lane?: "full" | "prose" | "wide";
       }
     | {
         _key: string;
@@ -366,12 +370,14 @@ export type ENTRY_DETAIL_QUERY_RESULT = {
         _type: "slot";
         slotKey?: string;
         caption?: string;
+        lane?: "full" | "prose" | "wide";
       }
     | {
         _key: string;
         _type: "video";
         url?: string;
         caption?: string;
+        lane?: "full" | "prose" | "wide";
       }
   > | null;
   related: Array<{

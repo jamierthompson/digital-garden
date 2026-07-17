@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { ImageProps } from "next/image";
 
 import Text from "@/components/typography/Text";
+import type { BlockLane } from "@/lib/lanes";
 
 import styles from "./Figure.module.css";
 
@@ -26,6 +27,11 @@ interface FigureProps {
   preload?: boolean;
   /** A tiny data-URL preview (e.g. Sanity's LQIP) — when present, the image blurs up from it. */
   blurDataURL?: string;
+  /**
+   * The content-grid lane the figure occupies (stamped as `data-lane`; the CSS maps it to
+   * `grid-column`). Inert outside a content grid. Defaults to `wide` — the media breakout.
+   */
+  lane?: BlockLane;
 }
 
 /**
@@ -46,10 +52,11 @@ export default function Figure({
   sizes,
   preload,
   blurDataURL,
+  lane = "wide",
 }: FigureProps) {
   const hasCaption = typeof caption === "string" && caption.trim() !== "";
   return (
-    <figure className={styles.figure}>
+    <figure className={styles.figure} data-lane={lane}>
       <Image
         className={styles.image}
         src={src}

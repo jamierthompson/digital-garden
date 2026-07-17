@@ -603,6 +603,12 @@ Page content and the chrome bands (`SiteNav`, `Masthead`, `SiteFooter`) all moun
 so the whole viewport shares one alignment system. It owns the column lanes only — vertical
 rhythm, ink, and band styling stay with the consumer.
 
+**The lane attribute contract:** a direct grid child stamps `data-lane="prose|wide|full"` to take
+a lane (zero-specificity, so an explicit `grid-column` still wins). The media/slot body blocks
+(`figure` · `video` · `slot`) author it via the shared Studio `lane` field — `wide` is their
+default, `full` the deliberate bleed, `prose` the tuck-in — and the serializer sanitizes unknown
+values back to `wide` (`src/lib/lanes.ts`).
+
 ### `Page`
 
 The route content frame (`src/components/layout/Page.tsx`): the **single `<main>` landmark every

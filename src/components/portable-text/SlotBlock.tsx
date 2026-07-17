@@ -4,6 +4,7 @@ import EntryScope from "@/components/entry-scope/EntryScope";
 import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 import Text from "@/components/typography/Text";
+import { resolveBlockLane } from "@/lib/lanes";
 import { resolveSlotKey } from "@/lib/resolvers/slots";
 import { isNotFound } from "@/lib/resolvers/resolution";
 
@@ -15,6 +16,8 @@ interface SlotBlockProps {
   slotKey?: string;
   /** The editor-authored caption shown beneath the slot (optional). */
   caption?: string;
+  /** The authored content-grid lane (sanitized here; unknown values collapse to `wide`). */
+  lane?: string | null;
   /**
    * The host entry's font-scope seed. Present whenever a non-`now` entry themes OR mounts a
    * module (`theme.color || componentKey`, not just a demo): each slot then mounts inside its
@@ -44,6 +47,7 @@ interface SlotBlockProps {
 export default async function SlotBlock({
   slotKey,
   caption,
+  lane,
   scope,
 }: SlotBlockProps) {
   if (!slotKey) {
@@ -59,7 +63,7 @@ export default async function SlotBlock({
   const Slot = mod.default;
 
   return (
-    <figure className={styles.slot}>
+    <figure className={styles.slot} data-lane={resolveBlockLane(lane)}>
       {scope ? (
         // Same last-resort containment as the page-level slot: an unforeseen scope throw
         // degrades this ONE figure to the unthemed notice instead of blanking the article

@@ -1,5 +1,7 @@
 import {defineField, defineType} from 'sanity'
 
+import {laneField} from '../shared/lane'
+
 /**
  * Inline figure — a typed editorial block.
  *
@@ -26,5 +28,6 @@ export const figure = defineType({
       type: 'string',
       description: 'Optional visible caption.',
     }),
+    laneField(),
   ],
 })

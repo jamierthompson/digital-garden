@@ -1,5 +1,7 @@
 import {defineField, defineType} from 'sanity'
 
+import {laneField} from '../shared/lane'
+
 /**
  * Generic themeable-slot block — the DEFAULT in-essay interactive slot.
  *
@@ -32,6 +34,7 @@ export const slot = defineType({
       type: 'string',
       description: 'Optional caption shown beneath the slot.',
     }),
+    laneField(),
   ],
   preview: {
     select: {title: 'slotKey', subtitle: 'caption'},

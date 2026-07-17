@@ -2,6 +2,8 @@ import type { CSSProperties } from "react";
 
 import Text from "@/components/typography/Text";
 
+import type { BlockLane } from "@/lib/lanes";
+
 import styles from "./MediaPlaceholder.module.css";
 import { firstNonEmpty, isNonBlank } from "./mediaLabel";
 
@@ -18,6 +20,8 @@ interface MediaPlaceholderProps {
   caption?: string;
   /** Optional CSS aspect-ratio (e.g. `"16 / 9"`); omitted → a min-height box for variable-ratio media. */
   ratio?: string;
+  /** The content-grid lane the placeholder occupies — mirrors the media block it stands in for. */
+  lane?: BlockLane;
 }
 
 /**
@@ -39,6 +43,7 @@ export default function MediaPlaceholder({
   fallbackLabel,
   caption,
   ratio,
+  lane = "wide",
 }: MediaPlaceholderProps) {
   // Accessible name: first non-blank descriptor, then the kind, backstopped by a constant — a
   // `role="img"` can NEVER end up with a blank accessible name (WCAG 2.2 SC 1.1.1).
@@ -52,7 +57,7 @@ export default function MediaPlaceholder({
     ? ({ "--placeholder-ratio": ratio } as CSSProperties)
     : undefined;
   return (
-    <figure className={styles.figure}>
+    <figure className={styles.figure} data-lane={lane}>
       <div
         className={styles.box}
         role="img"

@@ -68,6 +68,24 @@ describe("SlotBlock", () => {
     expect(scoped?.textContent).toMatch(/being rebuilt/i);
   });
 
+  it("stamps the wide lane by default and honors an authored full/prose lane", async () => {
+    for (const [authored, expected] of [
+      [undefined, "wide"],
+      ["full", "full"],
+      ["prose", "prose"],
+      ["sidebar;}hostile", "wide"],
+    ] as const) {
+      const { container, unmount } = render(
+        await SlotBlock({ slotKey: "color-engine-seed", lane: authored }),
+      );
+      expect(
+        container.querySelector("figure"),
+        `lane ${String(authored)}`,
+      ).toHaveAttribute("data-lane", expected);
+      unmount();
+    }
+  });
+
   it("mounts a resolved slot bare (no scope container) when no scope is given", async () => {
     const { container } = render(
       await SlotBlock({ slotKey: "color-engine-seed" }),

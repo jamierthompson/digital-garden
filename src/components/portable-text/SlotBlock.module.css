@@ -2,10 +2,8 @@
 @layer components {
   .slot {
     margin: var(--space-flow) 0;
-    /* Breakout: inside the entry article's named-column grid, a slot spans the full wide
-       frame while the prose around it keeps the reading measure (see page.module.css).
-       Outside that grid the declaration is inert. */
-    grid-column: full;
+    /* The slot's lane comes from its `data-lane` stamp (wide default, authored opt-in),
+       mapped by the content grid's lane attribute contract — no grid-column here. */
     min-width: 0;
   }
 

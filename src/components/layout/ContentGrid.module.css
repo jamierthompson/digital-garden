@@ -24,4 +24,19 @@
   :where(.grid) > * {
     grid-column: prose;
   }
+
+  /* The lane attribute contract: a direct child stamps `data-lane` to take a lane (body
+     blocks author it; the serializer sanitizes unknown values to `wide`). Zero-specificity,
+     so an explicit `grid-column` still wins. */
+  :where(.grid) > :where([data-lane="prose"]) {
+    grid-column: prose;
+  }
+
+  :where(.grid) > :where([data-lane="wide"]) {
+    grid-column: wide;
+  }
+
+  :where(.grid) > :where([data-lane="full"]) {
+    grid-column: full;
+  }
 }

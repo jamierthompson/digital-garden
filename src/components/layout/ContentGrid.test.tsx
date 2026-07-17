@@ -71,6 +71,16 @@ describe("ContentGrid.module.css — the lanes, and nothing else", () => {
     expect(css).toMatch(/var\(--width-wide\)/);
   });
 
+  it("maps the data-lane attribute contract to all three lanes at zero specificity", () => {
+    for (const lane of ["prose", "wide", "full"]) {
+      expect(css).toMatch(
+        new RegExp(
+          String.raw`:where\(\.grid\) > :where\(\[data-lane="${lane}"\]\)\s*\{\s*grid-column:\s*${lane}`,
+        ),
+      );
+    }
+  });
+
   it("declares no ink, band, or block-padding styling (lanes only)", () => {
     expect(css).not.toMatch(/color:/);
     expect(css).not.toMatch(/background/);
