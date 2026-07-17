@@ -89,7 +89,7 @@ describe("adversarial QA — spellings the CSS engine accepts must not slip the 
 
   // CSS function-name matching is ASCII case-insensitive (CSS Syntax, ident matching), so
   // `VAR(--space-4)` reads the raw step in every browser — the guard matches what the engine
-  // resolves, not one canonical spelling (QA D1).
+  // resolves, not one canonical spelling.
   it("flags a case-varied function name — VAR()/Var() read the primitive in every browser", () => {
     expect(kinds(".a { padding: VAR(--space-4); }")).toEqual(["raw-space"]);
     expect(kinds(".a { border-radius: Var(--radius-base); }")).toEqual([
@@ -97,14 +97,14 @@ describe("adversarial QA — spellings the CSS engine accepts must not slip the 
     ]);
   });
 
-  // CSS units are case-insensitive too: `65CH` is the same length as `65ch` (QA D1).
+  // CSS units are case-insensitive too: `65CH` is the same length as `65ch`.
   it("flags a case-varied ch unit — 65CH is the same hardcoded measure", () => {
     expect(kinds(".a { max-width: 65CH; }")).toEqual(["ch-literal"]);
   });
 
   // Comments are valid anywhere whitespace is (CSS Syntax, tokenization), so
   // `var(/**/--space-4)` resolves normally — the detector strips comments before matching
-  // (QA D1).
+  //.
   it("flags a comment wedged inside var() — var(/**/--space-4) still reads the raw step", () => {
     expect(kinds(".a { padding: var(/**/--space-4); }")).toEqual(["raw-space"]);
     expect(kinds(".a { border-radius: var(/**/--radius-md); }")).toEqual([
@@ -113,7 +113,7 @@ describe("adversarial QA — spellings the CSS engine accepts must not slip the 
   });
 
   // A negative ch literal (e.g. a hanging-indent `text-indent: -2ch`) is preceded
-  // by `-`, which the CH_LITERAL prefix class must admit (QA D1).
+  // by `-`, which the CH_LITERAL prefix class must admit.
   it("flags a negative ch literal — -2ch is still a hardcoded measure", () => {
     expect(kinds(".a { text-indent: -2ch; }")).toEqual(["ch-literal"]);
   });

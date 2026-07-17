@@ -33,7 +33,7 @@ describe("formatDate", () => {
 
     // A syntactically-plausible NON-DATE like Feb 29 of a non-leap year (or Apr 31) rolls
     // over inside `new Date()` — the round-trip check drops it to null instead of rendering
-    // a silently wrong date (QA D2).
+    // a silently wrong date.
     it("drops a calendar-impossible date instead of rolling it into the next month", () => {
       expect(formatDate("2023-02-29")).toBeNull();
       expect(formatDate("2026-04-31")).toBeNull();

@@ -11,7 +11,7 @@ export function formatDate(iso: string | null): string | null {
   // rather than render garbage in the <time> stamp.
   if (Number.isNaN(date.getTime())) return null;
   // A calendar-impossible day in range ("2023-02-29") parses but ROLLS into the next month —
-  // the round-trip catches it (QA D2): a real date serializes back to itself.
+  // the round-trip catches it: a real date serializes back to itself.
   if (date.toISOString().slice(0, 10) !== iso) return null;
   return date.toLocaleDateString("en-US", {
     year: "numeric",

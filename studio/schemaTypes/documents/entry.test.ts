@@ -98,7 +98,7 @@ describe('entry schema — required floors (#217)', () => {
   // The kind-gated custom rule must match `rule.required()`'s array semantics: Sanity's own
   // required() treats an EMPTY ARRAY as missing. A note/essay/now whose Portable Text body
   // was emptied (all blocks deleted, or an API write of `[]`) must not publish a blank
-  // article (QA D3).
+  // article.
   it('rejects an EMPTY-ARRAY body for editorial kinds — [] is a blank article, not a body', () => {
     const validate = customValidator(field('body'))
     for (const kind of ['note', 'essay', 'now']) {

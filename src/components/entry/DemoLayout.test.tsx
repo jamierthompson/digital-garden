@@ -81,7 +81,7 @@ describe("DemoLayout.module.css — the template's layout contract", () => {
     expect(css).toMatch(/flex-wrap:\s*wrap/);
   });
 
-  it("draws the region divider as the gap, never a directional border (browser QA D1)", () => {
+  it("draws the region divider as the gap, never a directional border", () => {
     // A border-inline-end on the sidebar becomes a stray edge line (and no divider) when the
     // pair stacks — the gap + container background reads correctly in BOTH orientations.
     expect(css).toMatch(/gap:\s*var\(--border-width\)/);

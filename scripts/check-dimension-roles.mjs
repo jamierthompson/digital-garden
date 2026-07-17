@@ -26,7 +26,7 @@ export const SPACE_EXEMPT_PREFIXES = [
 
 // The CSS engine is case-insensitive about function names and units, tolerates comments
 // anywhere whitespace is legal, and accepts a leading minus on a length — the regexes must
-// match what the ENGINE resolves, not one canonical spelling (QA D1: `VAR(--space-4)`,
+// match what the ENGINE resolves, not one canonical spelling (`VAR(--space-4)`,
 // `var(/**/--space-4)`, `65CH`, `-2ch` all bypassed the adjacency-bound originals).
 const RAW_SPACE = /var\(\s*--space-\d/i;
 const RAW_RADIUS = /var\(\s*--radius(?:-(?:sm|md|lg|xl|full|base))?\s*[,)]/i;
