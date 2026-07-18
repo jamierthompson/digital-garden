@@ -3,6 +3,10 @@
    inner row takes the `wide` lane; ink comes from the Text primitive's `color` prop. */
 @layer components {
   .footer {
+    /* Component tokens — the colophon band's designed dimensions. */
+    --footer-gap: var(--space-4);
+    --footer-pad: var(--space-5);
+
     border-top: var(--border-width) solid var(--border);
     /* Push the footer to the viewport floor on short pages (body is a flex column); collapses
        to 0 when content is tall, so it simply follows the content. */
@@ -14,8 +18,8 @@
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: var(--space-4);
-    padding-block: var(--space-5);
+    gap: var(--footer-gap);
+    padding-block: var(--footer-pad);
   }
 
   .link {

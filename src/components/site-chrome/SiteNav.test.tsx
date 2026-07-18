@@ -52,7 +52,7 @@ describe("SiteNav", () => {
   it("renders the site tagline as a masthead band (not a heading — pages own their h1)", () => {
     render(<SiteNav />);
     expect(
-      screen.getByText(/the design-engineering garden of jamie thompson/i),
+      screen.getByText(/a design-engineering garden/i),
     ).toBeInTheDocument();
     // It must NOT be a heading: the shell is on every page, so an h-element here would
     // collide with each page's own h1.
@@ -65,9 +65,7 @@ describe("SiteNav", () => {
 
   it("keeps the byline a paragraph after the meta-role migration", () => {
     render(<SiteNav />);
-    const byline = screen.getByText(
-      /the design-engineering garden of jamie thompson/i,
-    );
+    const byline = screen.getByText(/a design-engineering garden/i);
     expect(byline.tagName).toBe("P");
   });
 
@@ -99,7 +97,7 @@ describe("SiteNav", () => {
 describe("SiteNav border-width-thick pair — no active-state layout shift", () => {
   const read = (name: string): string =>
     readFileSync(
-      resolve(process.cwd(), `src/components/page-chrome/${name}`),
+      resolve(process.cwd(), `src/components/site-chrome/${name}`),
       "utf8",
     );
   const siteNavCss = read("SiteNav.module.css");

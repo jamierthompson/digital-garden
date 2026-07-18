@@ -12,9 +12,7 @@ import Masthead from "./Masthead";
 describe("Masthead", () => {
   it("renders the byline as a paragraph, never a heading (pages own their h1)", () => {
     render(<Masthead />);
-    const byline = screen.getByText(
-      /the design-engineering garden of jamie thompson/i,
-    );
+    const byline = screen.getByText(/a design-engineering garden/i);
     expect(byline.tagName).toBe("P");
     expect(
       screen.queryByRole("heading", { name: /design-engineering garden/i }),
@@ -38,13 +36,20 @@ describe("Masthead", () => {
     expect(inner?.parentElement).toHaveClass(gridStyles.grid);
   });
 
-  it("keeps the byline↔dateline gap at the space-4 step through the Cluster conduit", () => {
-    render(<Masthead />);
-    // Dropping the gap prop wouldn't fail any class assertion — the row would silently fall
-    // back to the tighter --space-cluster default. Pin the conduit value.
-    const inner = screen.getByText(/est\. 2026/i).parentElement;
-    expect(inner?.style.getPropertyValue("--cluster-gap")).toBe(
-      "var(--space-4)",
+  it("keeps the byline↔dateline gap on the masthead's component token, not the Cluster default", () => {
+    // The gap lives in the module (Cluster's `--cluster-gap` channel, bound to the
+    // `--masthead-gap` component token) — jsdom computes no custom properties, so pin the
+    // declarations at the source. Dropping either one would silently fall the row back to
+    // the tighter --space-cluster default.
+    const css = readFileSync(
+      resolve(process.cwd(), "src/components/site-chrome/Masthead.module.css"),
+      "utf8",
+    );
+    expect(css).toMatch(
+      /\.masthead\s*\{[^}]*--masthead-gap:\s*var\(--space-4\)/,
+    );
+    expect(css).toMatch(
+      /\.inner\s*\{[^}]*--cluster-gap:\s*var\(--masthead-gap\)/,
     );
   });
 
@@ -52,9 +57,7 @@ describe("Masthead", () => {
     render(<Masthead />);
     // The ink moved from module rules (.byline/.dateline) to the Text color prop — dropping
     // the prop would silently promote the chrome copy to full-ink foreground.
-    const byline = screen.getByText(
-      /the design-engineering garden of jamie thompson/i,
-    );
+    const byline = screen.getByText(/a design-engineering garden/i);
     expect(byline).toHaveAttribute("data-color", "muted-foreground");
     expect(screen.getByText(/est\. 2026/i)).toHaveAttribute(
       "data-color",
@@ -71,7 +74,7 @@ describe("Masthead", () => {
  */
 describe("Masthead.module.css — no media queries", () => {
   const css = readFileSync(
-    resolve(process.cwd(), "src/components/page-chrome/Masthead.module.css"),
+    resolve(process.cwd(), "src/components/site-chrome/Masthead.module.css"),
     "utf8",
   );
 

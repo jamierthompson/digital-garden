@@ -58,8 +58,6 @@ function SunIcon({ active }: { active: boolean }): React.ReactElement {
     <svg
       className={`${styles.icon} ${active ? styles.active : ""}`}
       viewBox="0 0 24 24"
-      width="16"
-      height="16"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -78,8 +76,6 @@ function MoonIcon({ active }: { active: boolean }): React.ReactElement {
     <svg
       className={`${styles.icon} ${active ? styles.active : ""}`}
       viewBox="0 0 24 24"
-      width="16"
-      height="16"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"

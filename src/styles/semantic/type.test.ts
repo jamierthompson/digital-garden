@@ -109,8 +109,6 @@ describe("semantic role layer binds to the ramp", () => {
     "meta",
     "caption",
     "quote",
-    "wordmark",
-    "nav",
   ] as const;
 
   it.each(ROLES)("--type-%s-size binds to a --type-size-* step", (role) => {

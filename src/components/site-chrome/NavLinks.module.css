@@ -1,14 +1,25 @@
 /* Primary nav links. @layer components — declares its layer (an unlayered module outranks
-   every layered rule); var-consuming only. UI chrome wearing the `nav` type role bundle
-   directly; link ink (muted → foreground, current-page-aware) is `ui/TextLink`'s `muted`
-   variant — this module owns only the nav's type role, tap-target floor, and active indicator. */
+   every layered rule); var-consuming only. Link ink (muted → foreground, current-page-aware)
+   is `ui/TextLink`'s `muted` variant — this module owns the nav links' type, tap-target
+   floor, and active indicator. */
 @layer components {
   .links {
+    /* Component tokens — the nav links' designed dimensions and type. Chrome-only type, so
+       not a `--type-<role>-*` bundle: the role sheet is the vocabulary the type engine
+       derives, and the nav is not an editorial role. */
+    --nav-item-gap: var(--space-5);
+    --nav-link-pad: var(--space-2);
+    --nav-link-family: var(--font-heading);
+    --nav-link-size: var(--type-size-3);
+    --nav-link-weight: var(--font-weight-medium);
+    --nav-link-tracking: var(--tracking-normal);
+    --nav-link-leading: var(--leading-normal);
+
     display: flex;
     /* Wraps on narrow viewports — a flex item never shrinks below its min-content, so without
        this the links dictate a minimum page width and force mobile to zoom out. */
     flex-wrap: wrap;
-    gap: var(--space-5);
+    gap: var(--nav-item-gap);
     list-style: none;
   }
 
@@ -22,12 +33,12 @@
     justify-content: center;
     min-height: var(--size-control);
     min-width: var(--size-control);
-    padding-block: var(--space-2);
-    font-family: var(--type-nav-family);
-    font-size: var(--type-nav-size);
-    font-weight: var(--type-nav-weight);
-    letter-spacing: var(--type-nav-tracking);
-    line-height: var(--type-nav-leading);
+    padding-block: var(--nav-link-pad);
+    font-family: var(--nav-link-family);
+    font-size: var(--nav-link-size);
+    font-weight: var(--nav-link-weight);
+    letter-spacing: var(--nav-link-tracking);
+    line-height: var(--nav-link-leading);
     /* Transparent underline reserved so activating a link doesn't shift the row. */
     border-bottom: var(--border-width-thick) solid transparent;
   }

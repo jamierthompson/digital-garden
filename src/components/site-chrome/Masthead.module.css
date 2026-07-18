@@ -1,17 +1,24 @@
 /* Masthead byline band. @layer components — declares its layer (an unlayered module outranks
    every layered rule); var-consuming only (the shell is never theme-scoped). The full-bleed
-   hairline lives on the band (a `ContentGrid`); `Cluster` owns the row's flow + wrap + gap —
-   this module adds only the row's lane, alignment, and block padding. */
+   hairline lives on the band (a `ContentGrid`); `Cluster` owns the row's flow + wrap — this
+   module owns the row's lane, alignment, block padding, and gap (via Cluster's
+   `--cluster-gap` channel). */
 @layer components {
   .masthead {
+    /* Component tokens — the masthead band's designed dimensions. */
+    --masthead-gap: var(--space-4);
+    --masthead-pad: var(--space-2);
+
     border-bottom: var(--border-width) solid var(--border);
   }
 
   .inner {
+    --cluster-gap: var(--masthead-gap);
+
     grid-column: wide;
     align-items: baseline;
     justify-content: space-between;
-    padding-block: var(--space-2);
+    padding-block: var(--masthead-pad);
   }
 
   .dateline {

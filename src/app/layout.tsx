@@ -25,10 +25,10 @@ import "../styles/semantic/color.css";
 // so they sit safely after the global sheets.
 import { Geist_Mono, Source_Serif_4 } from "next/font/google";
 
-import ScrollActivity from "@/components/page-chrome/ScrollActivity";
-import SiteNav from "@/components/page-chrome/SiteNav";
-import SiteFooter from "@/components/page-chrome/SiteFooter";
-import SkipLink from "@/components/page-chrome/SkipLink";
+import ScrollActivity from "@/components/site-chrome/ScrollActivity";
+import SiteNav from "@/components/site-chrome/SiteNav";
+import SiteFooter from "@/components/site-chrome/SiteFooter";
+import SkipLink from "@/components/site-chrome/SkipLink";
 import { FONT_FACES } from "@/fonts/roster";
 import { SCHEME_INIT_SCRIPT } from "@/lib/scheme";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
@@ -40,7 +40,7 @@ import VisualEditingControls from "@/sanity/VisualEditingControls";
 // `--font-body` default (semantic/typography.css) maps to `var(--font-source-serif-4)`, so mounting its
 // `.variable` on <html> brings that variable into scope for all chrome. Its size-adjusted
 // fallback keeps CLS at zero. A themed slot overrides `--font-body` with its own roster face.
-// The shell's display face (Space Grotesk → `--font-heading`, the `folio_` logo + nav) is ALSO
+// The shell's display face (Space Grotesk → `--font-heading`, the wordmark + nav) is ALSO
 // in the per-entry roster, so the shell reuses that roster `.variable` (mounted below) rather
 // than declaring a duplicate loader; the mono face (Geist Mono → `--font-mono`) is shell-only,
 // loaded here directly.
