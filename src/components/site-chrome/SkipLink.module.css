@@ -4,16 +4,16 @@
 @layer components {
   .skipLink {
     /* Component tokens — the skip chip's designed dimensions. */
-    --skip-chip-offset: var(--space-2);
-    --skip-chip-pad-block: var(--space-2);
-    --skip-chip-pad-inline: var(--space-4);
+    --skip-link-offset: var(--space-2);
+    --skip-link-pad-block: var(--space-2);
+    --skip-link-pad-inline: var(--space-4);
 
     position: absolute;
     top: 0;
     left: 0;
     z-index: var(--z-toast);
-    margin: var(--skip-chip-offset);
-    padding: var(--skip-chip-pad-block) var(--skip-chip-pad-inline);
+    margin: var(--skip-link-offset);
+    padding: var(--skip-link-pad-block) var(--skip-link-pad-inline);
     background: var(--surface-elevated);
     color: var(--foreground);
     border: var(--border-width) solid var(--border);

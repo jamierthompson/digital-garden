@@ -4,8 +4,8 @@
 @layer components {
   .footer {
     /* Component tokens — the colophon band's designed dimensions. */
-    --footer-gap: var(--space-4);
-    --footer-pad: var(--space-5);
+    --site-footer-gap: var(--space-4);
+    --site-footer-pad: var(--space-5);
 
     border-top: var(--border-width) solid var(--border);
     /* Push the footer to the viewport floor on short pages (body is a flex column); collapses
@@ -18,8 +18,8 @@
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: var(--footer-gap);
-    padding-block: var(--footer-pad);
+    gap: var(--site-footer-gap);
+    padding-block: var(--site-footer-pad);
   }
 
   .link {

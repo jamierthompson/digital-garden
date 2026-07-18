@@ -7,7 +7,7 @@
     /* Component tokens — the nav links' designed dimensions and type. Chrome-only type, so
        not a `--type-<role>-*` bundle: the role sheet is the vocabulary the type engine
        derives, and the nav is not an editorial role. */
-    --nav-item-gap: var(--space-5);
+    --nav-link-gap: var(--space-5);
     --nav-link-pad: var(--space-2);
     --nav-link-family: var(--font-heading);
     --nav-link-size: var(--type-size-3);
@@ -19,7 +19,7 @@
     /* Wraps on narrow viewports — a flex item never shrinks below its min-content, so without
        this the links dictate a minimum page width and force mobile to zoom out. */
     flex-wrap: wrap;
-    gap: var(--nav-item-gap);
+    gap: var(--nav-link-gap);
     list-style: none;
   }
 
