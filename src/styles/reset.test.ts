@@ -23,6 +23,12 @@ describe("reset.css cascade layer", () => {
   });
 });
 
+describe("reset.css scrollbar gutter", () => {
+  it("reserves the gutter on every route so centered lanes never shift across navigation", () => {
+    expect(CODE).toMatch(/scrollbar-gutter:\s*stable/);
+  });
+});
+
 describe("reset.css base heading element rule", () => {
   const headingRule = CODE.match(
     /h1,\s*h2,\s*h3,\s*h4,\s*h5,\s*h6\s*\{([^}]*)\}/,
