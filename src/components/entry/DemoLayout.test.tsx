@@ -11,8 +11,9 @@ const baseProps = {
   summary: "Feed the engine a seed.",
   kind: "demo",
   stage: "prototype",
-  iterated: { dateTime: "2026-07-16", label: "July 16, 2026" },
+  iterated: "2026-07-16",
   seed: "oklch(0.66 0.2 350)",
+  linkCount: 2,
 };
 
 describe("DemoLayout", () => {
@@ -22,13 +23,15 @@ describe("DemoLayout", () => {
       screen.getByRole("heading", { level: 1, name: /oklch engine/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("Feed the engine a seed.")).toBeInTheDocument();
-    expect(screen.getByText("demo · prototype")).toBeInTheDocument();
+    expect(screen.getByText("demo")).toBeInTheDocument();
+    expect(screen.getByText("prototype")).toBeInTheDocument();
     expect(screen.getByText("oklch(0.66 0.2 350)")).toBeInTheDocument();
+    expect(screen.getByText("2 linked")).toBeInTheDocument();
   });
 
   it("stamps the iterated fact as a real <time> with the machine value", () => {
     render(<DemoLayout {...baseProps}>canvas</DemoLayout>);
-    const time = screen.getByText(/iterated July 16, 2026/);
+    const time = screen.getByText("iterated July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
   });

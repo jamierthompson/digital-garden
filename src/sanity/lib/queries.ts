@@ -113,14 +113,13 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
  * throw away. The page's own kind allowlist still stands behind it — that guards against
  * drifted data (a kind authored before its code ships), which is a different job.
  *
- * Pulls every other published entry with the facets the Index reads — `kind` + `stage` (the group
- * headings + maturity badge) and a `linkCount` (distinct neighbors across outgoing `related`
- * and incoming `references()`, the backlink hint) — plus `title` / `slug` / `summary` for the row. Deliberately NOT the
- * `body` or the `theme` object: the Index wears the global editorial look (no per-row theme), so
- * it needs neither the rich text nor the entry's theme. Ordered by `kind`, then freshest
- * first (`iterated`, falling back to `_createdAt`) — ordering by a field is independent of
- * projecting it, and the Index renders no date, so `iterated` is sorted on but not pulled.
- * Typed as `INDEX_QUERYResult`.
+ * Pulls every other published entry with the facets the Index reads — `kind` (the group
+ * headings), the row's meta readout (`stage` + `iterated`), and a `linkCount` (distinct
+ * neighbors across outgoing `related` and incoming `references()`, the backlink hint) — plus
+ * `title` / `slug` / `summary` for the row. Deliberately NOT the `body` or the `theme` object:
+ * the Index wears the global editorial look (no per-row theme), so it needs neither the rich
+ * text nor the entry's theme. Ordered by `kind`, then freshest first (`iterated`, falling back
+ * to `_createdAt`). Typed as `INDEX_QUERYResult`.
  *
  * `linkCount` counts DISTINCT neighbors, never a sum of the two directions: they overlap (an
  * edge authored both ways is one neighbor), so the ids are unioned with `array::unique`, a
@@ -138,6 +137,7 @@ export const INDEX_QUERY = defineQuery(`
     "slug": slug.current,
     kind,
     stage,
+    iterated,
     summary,
     "linkCount": count(array::unique(
       coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id
@@ -149,7 +149,8 @@ export const INDEX_QUERY = defineQuery(`
  * Featured query (`/`, curated front door) — entries with a `featuredRank`, any `kind`.
  *
  * The hurried evaluator's reading path: the curated subset an editor promoted (`featuredRank`
- * is set), ordered by rank (lower = earlier). Pulls the card fields — `summary` + `themeSeed` —
+ * is set), ordered by rank (lower = earlier). Pulls the card fields — `summary`, the mono
+ * readout's facts (`kind` / `stage` / `iterated` / `linkCount`), and `themeSeed` —
  * because the featured cards ARE themed: each re-binds its own engine-solved palette
  * inline via `cardSwatches` (the card never wears the slot font).
  * Deliberately NOT the `body`, keeping the front-door payload small for LCP. Typed as
@@ -160,6 +161,15 @@ export const INDEX_QUERY = defineQuery(`
  * on the seed by construction, never by review. A seedless entry's card wears the authored
  * site default like its page does (the engine fallback stays a safety net), and the card's
  * mono readout prints this resolved seed — the value the plate is actually painted with.
+ *
+ * `linkCount` counts DISTINCT neighbors, never a sum of the two directions: they overlap (an
+ * edge authored both ways is one neighbor), so the ids are unioned with `array::unique`, a
+ * self-reference is dropped (`@ != ^._id`), and a dangling reference — which dereferences to
+ * `null` — is filtered out (`defined(@)`) rather than counted as a neighbor the reader can't
+ * reach. The `coalesce(..., [])` is load-bearing: GROQ evaluates a traversal of an ABSENT field
+ * to `null`, and `null + [...]` is `null`. Without it, an entry that authored no `related` array
+ * — the Studio writes no empty array, so this is the common shape — reports a null count and
+ * silently loses its hint.
  */
 export const FEATURED_QUERY = defineQuery(`
   *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {
@@ -168,11 +178,15 @@ export const FEATURED_QUERY = defineQuery(`
     "slug": slug.current,
     kind,
     stage,
+    iterated,
     summary,
     "themeSeed": coalesce(
       select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),
       *[_type == "siteSettings"][0].theme.color
-    )
+    ),
+    "linkCount": count(array::unique(
+      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id
+    )[defined(@) && @ != ^._id])
   }
 `);
 

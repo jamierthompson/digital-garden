@@ -714,6 +714,28 @@ describe("INDEX_QUERY — filter and linkCount edges (#314 QA)", () => {
     ]);
   });
 
+  it("projects the authored `iterated` for the row's meta readout — null when unauthored (#329)", async () => {
+    const rows = await run([
+      {
+        _type: "entry",
+        _id: "dated",
+        _createdAt: "2026-01-01T00:00:00Z",
+        iterated: "2026-06-01",
+        kind: "note",
+        slug: { current: "dated" },
+      },
+      {
+        _type: "entry",
+        _id: "undated",
+        _createdAt: "2026-01-02T00:00:00Z",
+        kind: "note",
+        slug: { current: "undated" },
+      },
+    ]);
+    expect(rows.find((r) => r._id === "dated")?.iterated).toBe("2026-06-01");
+    expect(rows.find((r) => r._id === "undated")?.iterated).toBeNull();
+  });
+
   it("counts a backlink FROM a now entry — `now` is excluded from the rows, not from the graph", async () => {
     // The reader can still click through: the note's detail page lists the now entry among
     // its backlinks, and the now entry renders at its flat /[slug]. Excluding `now` from the
@@ -1497,6 +1519,102 @@ describe("themeSeed — the copied expression must not drift between the two que
       return match[0];
     };
     expect(extract(FEATURED_QUERY)).toBe(extract(ENTRY_DETAIL_QUERY));
+  });
+});
+
+/**
+ * #329: the featured card renders the full shared meta readout, so FEATURED_QUERY now projects
+ * the card's facts — `iterated` and the same hardened distinct-neighbor `linkCount` the Index
+ * and /now rows carry. Executed, because the linkCount cases rest on GROQ null/traversal rules.
+ */
+describe("FEATURED_QUERY — card meta facts (#329)", () => {
+  const ref = (id: string, key: string) => ({
+    _type: "reference",
+    _ref: id,
+    _key: key,
+  });
+
+  const doc = (
+    id: string,
+    extra: Record<string, unknown> = {},
+  ): Record<string, unknown> => ({
+    _type: "entry",
+    _id: id,
+    _createdAt: "2026-01-01T00:00:00Z",
+    kind: "note",
+    slug: { current: id },
+    ...extra,
+  });
+
+  async function runFeatured(
+    dataset: Array<Record<string, unknown>>,
+  ): Promise<Array<Record<string, unknown>>> {
+    return (await evaluate(parse(FEATURED_QUERY), { dataset })).get();
+  }
+
+  it("projects the authored `iterated` — null when unauthored", async () => {
+    const rows = await runFeatured([
+      doc("dated", { featuredRank: 1, iterated: "2026-06-01" }),
+      doc("undated", { featuredRank: 2 }),
+    ]);
+    expect(rows.find((r) => r._id === "dated")?.iterated).toBe("2026-06-01");
+    expect(rows.find((r) => r._id === "undated")?.iterated).toBeNull();
+  });
+
+  it("counts distinct neighbors on the card — an ABSENT `related` still counts a backlink, never null", async () => {
+    // The null-poison guard, pinned on this THIRD copy of the expression: a featured entry
+    // that authored no outgoing links but is linked TO must show its hint on the card.
+    const rows = await runFeatured([
+      doc("featured", { featuredRank: 1 }),
+      doc("linker", { related: [ref("featured", "k")] }),
+    ]);
+    expect(rows.find((r) => r._id === "featured")?.linkCount).toBe(1);
+  });
+
+  it("applies every distinct-neighbor rule at once — self, duplicate, dangling, mutual, backlink-only", async () => {
+    const rows = await runFeatured([
+      doc("featured", {
+        featuredRank: 1,
+        related: [
+          ref("featured", "self"),
+          ref("a", "k1"),
+          ref("a", "k1-dup"),
+          ref("ghost", "k2"),
+          ref("b", "k3"),
+        ],
+      }),
+      doc("a", { related: [ref("featured", "back")] }),
+      doc("b"),
+      doc("c", { related: [ref("featured", "k")] }),
+    ]);
+    expect(rows.find((r) => r._id === "featured")?.linkCount).toBe(3);
+  });
+
+  it("an edgeless featured entry reports 0, not null", async () => {
+    const rows = await runFeatured([doc("lone", { featuredRank: 1 })]);
+    expect(rows[0].linkCount).toBe(0);
+  });
+});
+
+/**
+ * #329: the distinct-neighbor `linkCount` expression is now HAND-COPIED into THREE queries
+ * (INDEX, NOW, FEATURED) — same deliberate trade as `themeSeed` (GROQ has no shared-fragment
+ * primitive), same standing risk: editing one copy and not the others silently de-syncs the
+ * hint across surfaces. The text pin below is the drift tripwire; the executed suites above
+ * pin each copy's semantics, and queries.linkCountParity.test.tsx holds each copy equal to the
+ * rendered Related list.
+ */
+describe("linkCount — the copied expression must not drift between the three queries (#329)", () => {
+  it("all three queries carry a byte-identical linkCount expression", () => {
+    const extract = (query: string): string => {
+      const match = query.match(
+        /"linkCount": count\(array::unique\([\s\S]*?\)\[defined\(@\) && @ != \^\._id\]\)/,
+      );
+      if (!match) throw new Error("no linkCount expression found");
+      return match[0];
+    };
+    expect(extract(FEATURED_QUERY)).toBe(extract(INDEX_QUERY));
+    expect(extract(NOW_QUERY)).toBe(extract(INDEX_QUERY));
   });
 });
 

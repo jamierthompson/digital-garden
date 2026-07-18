@@ -8,7 +8,10 @@ function entry(over: Partial<EntryCardEntry> = {}): EntryCardEntry {
     title: "A card",
     slug: "a-card",
     summary: "A short summary.",
+    kind: "demo",
     stage: "prototype",
+    iterated: null,
+    linkCount: null,
     themeSeed: "oklch(0.7 0.15 70)",
     ...over,
   };
@@ -58,25 +61,40 @@ describe("EntryCard", () => {
     expect(container.querySelectorAll("p")).toHaveLength(1); // the meta readout only
   });
 
-  it("renders the mono meta readout: maturity stage · the resolved OKLCH seed", () => {
-    renderCard(entry({ stage: "shipped", themeSeed: "oklch(0.6 0.2 260)" }));
-    expect(
-      screen.getByText("shipped · oklch(0.6 0.2 260)"),
-    ).toBeInTheDocument();
+  it("renders the full mono meta readout: kind · stage · iterated · seed · linked", () => {
+    renderCard(
+      entry({
+        kind: "demo",
+        stage: "shipped",
+        iterated: "2026-07-16",
+        themeSeed: "oklch(0.6 0.2 260)",
+        linkCount: 2,
+      }),
+    );
+    expect(screen.getByText("demo")).toBeInTheDocument();
+    expect(screen.getByText("shipped")).toBeInTheDocument();
+    const time = screen.getByText("iterated July 16, 2026");
+    expect(time.tagName).toBe("TIME");
+    expect(time).toHaveAttribute("datetime", "2026-07-16");
+    expect(screen.getByText("oklch(0.6 0.2 260)")).toBeInTheDocument();
+    expect(screen.getByText("2 linked")).toBeInTheDocument();
   });
 
   it("shows only what it has when part of the meta is missing", () => {
-    renderCard(entry({ stage: "sketch", themeSeed: null }));
+    renderCard(entry({ kind: null, stage: "sketch", themeSeed: null }));
     expect(screen.getByText("sketch")).toBeInTheDocument();
   });
 
-  it("omits the meta row entirely when there is no stage or seed", () => {
-    const { container } = renderCard(entry({ stage: null, themeSeed: null }));
+  it("omits the meta row entirely when no fact is present", () => {
+    const { container } = renderCard(
+      entry({ kind: null, stage: null, themeSeed: null }),
+    );
     // Title still renders; nothing left to read out.
     expect(
       screen.getByRole("heading", { level: 3, name: /a card/i }),
     ).toBeInTheDocument();
     expect(container.textContent).not.toContain("·");
+    expect(container.querySelector('[data-variant="meta"]')).toBeNull();
   });
 
   it("bakes its theme palette inline, incl. the plate's contrast pair (--accent + --accent-foreground)", () => {
@@ -158,7 +176,7 @@ describe("EntryCard — malformed seed shapes (QA #249)", () => {
     // React escapes by construction — assert the value surfaced as TEXT, not markup.
     expect(document.querySelector("img[src='x']")).toBeNull();
     expect(
-      screen.getByText(/shipped · "><img src=x onerror=alert\(1\)>/),
+      screen.getByText('"><img src=x onerror=alert(1)>'),
     ).toBeInTheDocument();
   });
 });

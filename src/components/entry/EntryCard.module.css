@@ -28,8 +28,8 @@
     color: var(--accent-foreground);
   }
 
-  /* Register 3 — the mono readout (via the `Text` meta role), pinned to the plate floor:
-     maturity stage · OKLCH seed. NOT dimmed: the engine solves `--accent-foreground` to only just clear
+  /* Register 3 — the shared `EntryMeta` mono readout, pinned to the plate floor.
+     NOT dimmed: the engine solves `--accent-foreground` to only just clear
      WCAG AA on the accent fill (~zero headroom), so any `opacity < 1` drops this normal-size
      text below 4.5:1 (guarded by cardSwatches.meta-opacity.test.ts). De-emphasis comes from the
      mono face + smaller size, both owned by the primitive. */

@@ -8,7 +8,6 @@ import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import TextLink from "@/components/ui/TextLink";
-import { formatDate } from "@/lib/formatDate";
 import { space } from "@/lib/tokens";
 import { NOW_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
@@ -60,23 +59,16 @@ export default async function NowPage() {
           ) : (
             <Stack asChild gap={space(6)}>
               <ul className={styles.list}>
-                {updates.map((update) => {
-                  const date = formatDate(update.iterated);
-                  return (
-                    <EntrySummary
-                      key={update._id}
-                      title={update.title ?? "Untitled update"}
-                      slug={update.slug}
-                      summary={update.summary}
-                      linkCount={update.linkCount}
-                      date={
-                        date && update.iterated
-                          ? { dateTime: update.iterated, label: date }
-                          : null
-                      }
-                    />
-                  );
-                })}
+                {updates.map((update) => (
+                  <EntrySummary
+                    key={update._id}
+                    title={update.title ?? "Untitled update"}
+                    slug={update.slug}
+                    summary={update.summary}
+                    iterated={update.iterated}
+                    linkCount={update.linkCount}
+                  />
+                ))}
               </ul>
             </Stack>
           )}

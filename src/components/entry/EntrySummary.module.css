@@ -1,24 +1,9 @@
 /* EntrySummary — one entry in an editorial list. @layer components — declares its layer (an
    unlayered module outranks every layered rule); var-consuming only (global editorial semantic
    tokens, no per-entry theme). Layout comes from the primitives and static ink from their
-   `color` prop — these rules own only decoration and measure caps (the linked title's ink is
-   `ui/TextLink`'s). */
+   `color` prop — these rules own only the measure cap (the linked title's ink is
+   `ui/TextLink`'s, the meta line is `EntryMeta`'s). */
 @layer components {
-  .date {
-    text-transform: uppercase;
-  }
-
-  .head {
-    align-items: baseline;
-  }
-
-  .stage {
-    text-transform: capitalize;
-    padding: 0.1em 0.6em;
-    border: var(--border-width) solid var(--border);
-    border-radius: var(--radius-pill);
-  }
-
   .summary {
     max-width: var(--type-body-measure);
   }

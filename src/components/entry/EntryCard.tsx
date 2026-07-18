@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 
+import EntryMeta from "@/components/entry/EntryMeta";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
@@ -13,8 +14,12 @@ export interface EntryCardEntry {
   title: string | null;
   slug: string | null;
   summary: string | null;
-  /** Maturity badge — part of the card's mono readout. */
+  kind: string | null;
   stage: "prototype" | "shipped" | "sketch" | null;
+  /** The authored last-iterated date (ISO `YYYY-MM-DD`), for the mono readout. */
+  iterated: string | null;
+  /** Backlink hint — rendered only when positive. */
+  linkCount: number | null;
   /** The RESOLVED theme seed (the query's own seed → site default chain, #253). It themes the
    *  plate (via `cardSwatches`, total over any value) AND is shown verbatim in the mono
    *  readout — the "show your work" detail the mockup captions carry: the value the plate is
@@ -33,8 +38,8 @@ interface EntryCardProps {
  * pair — so a grid of differently-themed plates needs no per-card scope or `<style>`, and each
  * stays legible by construction. The surrounding shell stays editorial ink.
  *
- * Three type registers, journal-style: display title, serif summary, mono meta (the maturity
- * stage · the OKLCH seed). Defensive: a slugless entry degrades to a non-link plate (never a
+ * Three type registers, journal-style: display title, serif summary, and the shared
+ * `EntryMeta` mono readout. Defensive: a slugless entry degrades to a non-link plate (never a
  * dead link); a missing title falls back to a neutral label; missing meta simply omits the row.
  */
 export default function EntryCard({ entry }: EntryCardProps) {
@@ -42,7 +47,6 @@ export default function EntryCard({ entry }: EntryCardProps) {
   // which would render an empty <h3> — a nameless heading in the outline and a link whose
   // accessible name silently degrades to the summary. Treat blank/whitespace-only as missing.
   const title = entry.title?.trim() ? entry.title : "Untitled entry";
-  const meta = [entry.stage, entry.themeSeed].filter(Boolean).join(" · ");
 
   const body: ReactNode = (
     <>
@@ -50,11 +54,15 @@ export default function EntryCard({ entry }: EntryCardProps) {
       {entry.summary ? (
         <Text className={styles.summary}>{entry.summary}</Text>
       ) : null}
-      {meta ? (
-        <Text variant="meta" className={styles.meta}>
-          {meta}
-        </Text>
-      ) : null}
+      {/* No `color` — the readout wears the plate's own contrast pair via `.meta`. */}
+      <EntryMeta
+        kind={entry.kind}
+        stage={entry.stage}
+        iterated={entry.iterated}
+        seed={entry.themeSeed}
+        linkCount={entry.linkCount}
+        className={styles.meta}
+      />
     </>
   );
 

@@ -36,8 +36,9 @@ const KIND_SECTIONS = [
  * essays, and demos (the dated `now` stream is `/now`'s surface), the wanderer's reading path
  * (the featured home `/` is the hurried evaluator's). Shell-owned editorial chrome: it reads
  * the global semantic tokens, with NO per-entry theme (a demo's theme lives on its own
- * detail slot, not here). Groups entries by `kind` (see `KIND_SECTIONS`), shows the `stage`
- * maturity badge and a backlink hint, and links each to its flat `/[slug]`.
+ * detail slot, not here). Groups entries by `kind` (see `KIND_SECTIONS`), gives each row the
+ * shared `EntryMeta` readout (`stage · iterated · N linked` — no `kind`: the section heading
+ * already says it), and links each to its flat `/[slug]`.
  */
 export default async function IndexPage() {
   // Seed on the awaited path → synchronous `<PageTheme>`; its `:root` `<style>` hoists into
@@ -101,6 +102,7 @@ export default async function IndexPage() {
                             slug={entry.slug}
                             summary={entry.summary}
                             stage={entry.stage}
+                            iterated={entry.iterated}
                             linkCount={entry.linkCount}
                           />
                         ))}

@@ -416,7 +416,8 @@ describe("EntryPage — the demo template (sidebar + canvas)", () => {
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("A summary.")).toBeInTheDocument();
-    expect(screen.getByText(/demo · prototype/)).toBeInTheDocument();
+    expect(screen.getByText("demo")).toBeInTheDocument();
+    expect(screen.getByText("prototype")).toBeInTheDocument();
     expect(screen.getByText(/iterated July 16, 2026/)).toBeInTheDocument();
     expect(screen.getByText("oklch(0.7 0.15 70)")).toBeInTheDocument();
     // The module's two surfaces, both slug-keyed.

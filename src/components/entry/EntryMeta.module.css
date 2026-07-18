@@ -1,0 +1,13 @@
+/* Entry meta readout — the shared mono meta line. @layer components — declares its layer (an
+   unlayered module outranks every layered rule); var-consuming only (ink comes from the `Text`
+   primitive's color prop or the ambient surface). Facts and separators are flex items so the
+   line wraps between facts, never inside one. */
+@layer components {
+  .meta {
+    /* Component tokens — the readout's own geometry, bound from the foundation scale. */
+    --entry-meta-gap: var(--space-2);
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--entry-meta-gap);
+  }
+}

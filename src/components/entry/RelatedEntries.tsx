@@ -1,6 +1,8 @@
 import Link from "next/link";
 
+import EntryMeta from "@/components/entry/EntryMeta";
 import Heading from "@/components/typography/Heading";
+import { distinctNeighbors } from "@/lib/distinctNeighbors";
 
 import styles from "./RelatedEntries.module.css";
 
@@ -25,15 +27,13 @@ interface RelatedEntriesProps {
  * `backlinks`, so an edge authored once shows on both ends. Renders **nothing** when there
  * are no connections, so the page shows no empty "Related" heading.
  *
- * Defensive by design, covering the ways the graph can be ragged:
- * - a **dangling** reference (a `related` target since deleted) dereferences to `null` at
- *   runtime even though TypeGen types the elements non-null — so we filter nulls;
- * - a **self-reference** is dropped by `_id`;
- * - a **duplicate** (an entry that both references this one and is referenced back) is
- *   de-duped by `_id`.
+ * The ragged graph shapes — a dangling reference (dereferenced to `null`), a self-reference,
+ * a both-directions duplicate — wash out in `distinctNeighbors`, the same dedupe the detail
+ * header's link count reads, so the two surfaces agree by construction.
  *
- * Titles link to the entry's flat detail route (`/<slug>`). An entry with no resolvable slug
- * renders as plain text, never a dead link.
+ * Titles link to the entry's flat detail route (`/<slug>`), each with its `kind` beside it
+ * (the shared `EntryMeta` readout). An entry with no resolvable slug renders as plain text,
+ * never a dead link.
  */
 export default function RelatedEntries({
   currentId,
@@ -50,13 +50,7 @@ export default function RelatedEntries({
   // construction and doesn't depend on tree position, so it's used directly instead.
   const headingId = `related-heading-${currentId}`;
 
-  const seen = new Set<string>([currentId]);
-  const entries: RelatedEntry[] = [];
-  for (const entry of [...(related ?? []), ...(backlinks ?? [])]) {
-    if (!entry || seen.has(entry._id)) continue;
-    seen.add(entry._id);
-    entries.push(entry);
-  }
+  const entries = distinctNeighbors(currentId, related, backlinks);
 
   if (entries.length === 0) {
     return null;
@@ -75,13 +69,18 @@ export default function RelatedEntries({
       <ul className={styles.list}>
         {entries.map((entry) => (
           <li key={entry._id} className={styles.item}>
-            {entry.slug ? (
-              <Link href={`/${entry.slug}`}>
-                {entry.title ?? "Untitled entry"}
-              </Link>
-            ) : (
-              (entry.title ?? "Untitled entry")
-            )}
+            {/* The row is an inner wrapper so the `li` keeps its list marker (flex on the
+                `li` itself would drop it). */}
+            <div className={styles.row}>
+              {entry.slug ? (
+                <Link href={`/${entry.slug}`}>
+                  {entry.title ?? "Untitled entry"}
+                </Link>
+              ) : (
+                (entry.title ?? "Untitled entry")
+              )}
+              <EntryMeta kind={entry.kind} color="muted-foreground" />
+            </div>
           </li>
         ))}
       </ul>
