@@ -1,10 +1,15 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
 
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import gridStyles from "@/components/layout/ContentGrid.module.css";
+
+import {
+  declaredCustomProperties,
+  referencedCustomProperties,
+} from "../../../tests/cssModule";
 
 import SiteNav from "./SiteNav";
 
@@ -143,5 +148,78 @@ describe("SiteNav border-width-thick pair — no active-state layout shift", () 
     expect(rule(mastheadCss, ".masthead")).toMatch(
       /border-bottom:\s*var\(--border-width\)\s+solid/,
     );
+  });
+});
+
+/**
+ * Component tokens are only real if they RESOLVE. A `var(--typo-d-name)` read is invalid at
+ * computed-value time — the property silently falls to its initial value with no build error,
+ * no lint failure, and no jsdom symptom, because jsdom computes no custom properties at all.
+ * The chrome's tokens are declared on one rule (`.header`, `.links`, `.masthead`) and consumed
+ * on descendants, so a rename that misses a consumer, or a token declared on a NON-ancestor,
+ * is invisible to every other test in this directory. These two scans are that net.
+ */
+describe("site-chrome component tokens resolve", () => {
+  const CHROME_DIR = resolve(process.cwd(), "src/components/site-chrome");
+
+  const cssFiles = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) return cssFiles(full);
+      return entry.name.endsWith(".css") ? [full] : [];
+    });
+
+  const chromeModules = cssFiles(CHROME_DIR);
+
+  // Everything the chrome may legitimately read from outside itself: the global token sheets
+  // and the layout primitives it composes (Cluster's `--cluster-gap` channel, the grid lanes).
+  const externalDeclared = new Set<string>(
+    [
+      ...cssFiles(resolve(process.cwd(), "src/styles")),
+      ...cssFiles(resolve(process.cwd(), "src/components/layout")),
+    ].flatMap((file) => [
+      ...declaredCustomProperties(readFileSync(file, "utf8")),
+    ]),
+  );
+
+  it("declares every chrome module non-empty (the scan is actually looking at something)", () => {
+    // Guards the scans below against silently passing on an empty file list after a rename.
+    expect(chromeModules.length).toBeGreaterThanOrEqual(6);
+  });
+
+  it.each(chromeModules.map((f) => [relative(CHROME_DIR, f), f]))(
+    "%s reads no undeclared custom property",
+    (_name, file) => {
+      const css = readFileSync(file, "utf8");
+      const declaredHere = declaredCustomProperties(css);
+      const dangling = [...referencedCustomProperties(css)].filter(
+        (token) => !declaredHere.has(token) && !externalDeclared.has(token),
+      );
+      expect(dangling).toEqual([]);
+    },
+  );
+
+  it("leaves no orphaned component token behind (every one declared is read somewhere)", () => {
+    // A token kept after its consumer was renamed is dead weight that reads as intent —
+    // the next author wires to it and gets nothing.
+    const allCss = [
+      ...cssFiles(resolve(process.cwd(), "src/components")),
+      ...cssFiles(resolve(process.cwd(), "src/app")),
+    ]
+      .map((file) => readFileSync(file, "utf8"))
+      .join("\n");
+    const readAnywhere = referencedCustomProperties(allCss);
+
+    const orphans: string[] = [];
+    for (const file of chromeModules) {
+      for (const token of declaredCustomProperties(
+        readFileSync(file, "utf8"),
+      )) {
+        if (!readAnywhere.has(token)) {
+          orphans.push(`${relative(CHROME_DIR, file)}: ${token}`);
+        }
+      }
+    }
+    expect(orphans).toEqual([]);
   });
 });

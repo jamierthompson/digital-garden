@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
@@ -14,6 +14,16 @@ import { buildTypeScale, typeScaleToDeclarations } from "@garden/type";
  */
 const read = (rel: string): string =>
   readFileSync(resolve(process.cwd(), rel), "utf8");
+
+function findCssModules(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...findCssModules(full));
+    else if (entry.name.endsWith(".module.css")) out.push(full);
+  }
+  return out;
+}
 
 const normalize = (v: string): string =>
   v.trim().replace(/\s+/g, " ").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")");
@@ -137,5 +147,39 @@ describe("the Tailwind-named --text-* size scale is gone", () => {
 
   it("--type-ratio (the old hand-tuned derivation knob) is gone", () => {
     expect(SHEET_DECLS["--type-ratio"]).toBeUndefined();
+  });
+});
+
+/**
+ * The chrome type bundles (`--type-wordmark-*`, `--type-nav-*`) were DEMOTED out of the role
+ * sheet to component tokens in their own modules, so the sheet stays exactly the editorial
+ * vocabulary the type engine derives. Dropping them from the `ROLES` list above only stops
+ * asserting they exist — it does not assert they're gone, and nothing stopped a future author
+ * from re-adding a chrome role. These are that guard.
+ */
+describe("the demoted chrome type bundles are gone from the role sheet", () => {
+  const FACETS = ["family", "size", "weight", "tracking", "leading"] as const;
+
+  it.each(FACETS)("--type-wordmark-%s is no longer declared", (facet) => {
+    expect(SHEET_DECLS[`--type-wordmark-${facet}`]).toBeUndefined();
+  });
+
+  it.each(FACETS)("--type-nav-%s is no longer declared", (facet) => {
+    expect(SHEET_DECLS[`--type-nav-${facet}`]).toBeUndefined();
+  });
+
+  it("no CSS Module is left reading a retired chrome bundle", () => {
+    // The demotion is only complete if no CONSUMER survives: a module still reading
+    // `--type-nav-size` resolves to nothing (invalid at computed-value time → the property
+    // falls to its initial value) with no error anywhere. The role sheet's own assertions
+    // above cannot see this.
+    const orphans: string[] = [];
+    for (const file of findCssModules(resolve(process.cwd(), "src"))) {
+      const css = readFileSync(file, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+      if (/var\(\s*--type-(?:wordmark|nav)-/.test(css)) {
+        orphans.push(relative(process.cwd(), file));
+      }
+    }
+    expect(orphans).toEqual([]);
   });
 });

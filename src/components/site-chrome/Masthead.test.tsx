@@ -7,6 +7,8 @@ import { describe, expect, it } from "vitest";
 import clusterStyles from "@/components/layout/Cluster.module.css";
 import gridStyles from "@/components/layout/ContentGrid.module.css";
 
+import { readModuleCss, ruleDeclarations } from "../../../tests/cssModule";
+
 import Masthead from "./Masthead";
 
 describe("Masthead", () => {
@@ -40,16 +42,15 @@ describe("Masthead", () => {
     // The gap lives in the module (Cluster's `--cluster-gap` channel, bound to the
     // `--masthead-gap` component token) — jsdom computes no custom properties, so pin the
     // declarations at the source. Dropping either one would silently fall the row back to
-    // the tighter --space-cluster default.
-    const css = readFileSync(
-      resolve(process.cwd(), "src/components/site-chrome/Masthead.module.css"),
-      "utf8",
+    // the tighter --space-cluster default. Read via postcss, not a `[^}]*` regex: that form
+    // matches a commented-out declaration, so it stays green through the very regression
+    // this test exists to catch.
+    const css = readModuleCss("src/components/site-chrome/Masthead.module.css");
+    expect(ruleDeclarations(css, ".masthead").get("--masthead-gap")).toBe(
+      "var(--space-4)",
     );
-    expect(css).toMatch(
-      /\.masthead\s*\{[^}]*--masthead-gap:\s*var\(--space-4\)/,
-    );
-    expect(css).toMatch(
-      /\.inner\s*\{[^}]*--cluster-gap:\s*var\(--masthead-gap\)/,
+    expect(ruleDeclarations(css, ".inner").get("--cluster-gap")).toBe(
+      "var(--masthead-gap)",
     );
   });
 
