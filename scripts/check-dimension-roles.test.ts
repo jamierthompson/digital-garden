@@ -122,7 +122,6 @@ describe("adversarial QA — spellings the CSS engine accepts must not slip the 
 describe("the exemption list", () => {
   it("names only the surfaces with pending design passes", () => {
     expect(SPACE_EXEMPT_PREFIXES).toEqual([
-      "src/components/page-chrome/",
       "src/app/[slug]/states.module.css",
       "src/app/loading.module.css",
     ]);

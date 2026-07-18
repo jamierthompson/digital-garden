@@ -3,12 +3,17 @@
    translated off-screen until focused, then it slides into view as a chip above all page chrome. */
 @layer components {
   .skipLink {
+    /* Component tokens — the skip chip's designed dimensions. */
+    --skip-link-offset: var(--space-2);
+    --skip-link-pad-block: var(--space-2);
+    --skip-link-pad-inline: var(--space-4);
+
     position: absolute;
     top: 0;
     left: 0;
     z-index: var(--z-toast);
-    margin: var(--space-2);
-    padding: var(--space-2) var(--space-4);
+    margin: var(--skip-link-offset);
+    padding: var(--skip-link-pad-block) var(--skip-link-pad-inline);
     background: var(--surface-elevated);
     color: var(--foreground);
     border: var(--border-width) solid var(--border);

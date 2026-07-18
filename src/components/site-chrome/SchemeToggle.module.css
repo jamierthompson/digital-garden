@@ -3,12 +3,17 @@
    icons; the active side brightens to ink so the current scheme reads at a glance. */
 @layer components {
   .toggle {
+    /* Component token — the icon↔switch cluster's designed gap. */
+    --scheme-toggle-gap: var(--space-2);
+
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--scheme-toggle-gap);
   }
 
   .icon {
+    inline-size: var(--size-icon);
+    block-size: var(--size-icon);
     color: var(--muted-foreground);
     transition: color var(--duration-fast) var(--ease-standard);
   }

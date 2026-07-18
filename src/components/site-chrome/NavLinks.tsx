@@ -14,7 +14,7 @@ interface NavItem {
 }
 
 // The global editorial IA: the featured front door, the browse Index, and the shell pages.
-// `featured` and the `folio_` logo both point home (the logo is the site wordmark, `featured` is the
+// `featured` and the wordmark both point home (`featured` is the
 // wayfinding item that carries the active state on `/`). Kept a module constant, not inlined,
 // so the set has one source of truth.
 // The Index lives at `/browse` (not `/index`: Next prerenders the root route `/` to

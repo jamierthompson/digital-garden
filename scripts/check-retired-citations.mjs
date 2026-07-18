@@ -11,7 +11,7 @@
 // Markdown files are scanned in full (the schemes only ever appeared in prose there).
 //
 // Known false positive this guards against: citing an EXTERNAL standard's own section
-// with `§` (e.g. "WCAG 2.2 §2.5.8" — see src/components/page-chrome/SiteNav.test.tsx)
+// with `§` (e.g. "WCAG 2.2 §2.5.8" — see src/components/site-chrome/SiteNav.test.tsx)
 // is a legitimate, encouraged citation (see docs/working-with-agents.md's "cite the
 // standard" rule), NOT the retired internal `§N` scheme. `EXTERNAL_STANDARD_BEFORE_RE`
 // excludes a `§N` immediately preceded by a recognized standard name + version.

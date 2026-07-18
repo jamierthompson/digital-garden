@@ -39,7 +39,7 @@ describe("SiteFooter", () => {
     const css = readFileSync(
       resolve(
         process.cwd(),
-        "src/components/page-chrome/SiteFooter.module.css",
+        "src/components/site-chrome/SiteFooter.module.css",
       ),
       "utf8",
     );
@@ -79,7 +79,7 @@ describe("SiteFooter", () => {
     const css = readFileSync(
       resolve(
         process.cwd(),
-        "src/components/page-chrome/SiteFooter.module.css",
+        "src/components/site-chrome/SiteFooter.module.css",
       ),
       "utf8",
     );

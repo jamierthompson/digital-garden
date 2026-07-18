@@ -130,7 +130,7 @@ describe("NavLinks — the journal masthead current-page indicator", () => {
  */
 describe("NavLinks .link — WCAG 2.5.8 target size floor", () => {
   const css = readFileSync(
-    resolve(process.cwd(), "src/components/page-chrome/NavLinks.module.css"),
+    resolve(process.cwd(), "src/components/site-chrome/NavLinks.module.css"),
     "utf8",
   );
 
@@ -171,7 +171,8 @@ describe("NavLinks .link — WCAG 2.5.8 target size floor", () => {
   });
 
   it("grows the pointer target with vertical padding", () => {
-    // padding-block (top+bottom) enlarges the target beyond the text line box.
-    expect(linkRule).toMatch(/padding-block:\s*var\(--space-2\)/);
+    // padding-block (top+bottom) enlarges the target beyond the text line box; the value is
+    // the module's --nav-link-pad component token.
+    expect(linkRule).toMatch(/padding-block:\s*var\(--nav-link-pad\)/);
   });
 });

@@ -23,10 +23,9 @@ import postcss from "postcss";
 
 const SRC = new URL("../src", import.meta.url).pathname;
 
-// SPACE reads exempt pending their named design passes (SiteNav/SiteFooter redesign; the state
-// screens' treatment). Radius + measure rules still apply here. Shrink this list as passes land.
+// SPACE reads exempt pending their named design passes (the state screens' treatment).
+// Radius + measure rules still apply here. Shrink this list as passes land.
 export const SPACE_EXEMPT_PREFIXES = [
-  "src/components/page-chrome/",
   "src/app/[slug]/states.module.css",
   "src/app/loading.module.css",
 ];

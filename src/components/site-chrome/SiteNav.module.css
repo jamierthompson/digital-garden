@@ -5,11 +5,15 @@
    header's ink rule, the band's block padding, and the row's flex. */
 @layer components {
   .header {
+    /* Component tokens — the nav band's designed dimensions. */
+    --site-nav-pad: var(--space-4);
+    --site-nav-gap: var(--space-5);
+
     border-bottom: var(--border-width-thick) solid var(--accent);
   }
 
   .nav {
-    padding-block: var(--space-4);
+    padding-block: var(--site-nav-pad);
   }
 
   .row {
@@ -19,7 +23,7 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-5);
+    gap: var(--site-nav-gap);
   }
 
   /* Right cluster — the primary links and the scheme toggle share the nav's right side. */
@@ -27,6 +31,6 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-5);
+    gap: var(--site-nav-gap);
   }
 }

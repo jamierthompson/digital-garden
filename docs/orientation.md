@@ -44,7 +44,7 @@ scripts/
   check-published-keys.mjs the published-keys → code drift net (pnpm lint:keys:published; CI job published-keys)
 src/
   app/                     App Router ONLY — routes, layouts, global CSS. No business logic.
-    layout.tsx             root layout (page-chrome nav skeleton; global fonts preload:false)
+    layout.tsx             root layout (site-chrome nav skeleton; global fonts preload:false)
   styles/                  design-system CSS, split by tier & family
     layers.css             the @layer base, components order (imported first)
     reset.css              base reset + element defaults (@layer base)
