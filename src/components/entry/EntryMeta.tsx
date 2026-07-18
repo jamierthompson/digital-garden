@@ -1,5 +1,3 @@
-import { Fragment } from "react";
-
 import Text from "@/components/typography/Text";
 import type { TextColor } from "@/components/typography/textColor";
 import { formatDate } from "@/lib/formatDate";
@@ -25,8 +23,9 @@ interface EntryMetaProps {
  * render: `kind · stage · iterated <date> · <seed> · N linked`, in that fixed order, each
  * fact only when present (a malformed date is dropped, a non-positive link count is
  * silence, an empty string is absence). Renders nothing at all when no fact survives.
- * Plain meta text by design — no badge/pill treatment; separators are decorative and
- * hidden from assistive tech.
+ * Plain meta text by design — no badge/pill treatment. The `·` separators are generated in
+ * CSS on each fact after the first (never rendered as their own elements), so a line wrap
+ * can't strand a dangling dot and they stay out of accessible names.
  */
 /** The runtime contract is WIDER than the props' types — this readout renders live/draft
  *  data, and a raw API write can hand any fact a shape the type forbids. A non-string
@@ -69,11 +68,10 @@ export default function EntryMeta({
   return (
     <Text variant="meta" color={color} asChild>
       <p className={[styles.meta, className].filter(Boolean).join(" ")}>
-        {facts.map((fact, index) => (
-          <Fragment key={fact.key}>
-            {index > 0 ? <span aria-hidden="true">·</span> : null}
+        {facts.map((fact) => (
+          <span key={fact.key} className={styles.fact}>
             {fact.node}
-          </Fragment>
+          </span>
         ))}
       </p>
     </Text>

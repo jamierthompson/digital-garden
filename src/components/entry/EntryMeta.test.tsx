@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
@@ -14,10 +17,10 @@ const fullProps = {
 describe("EntryMeta", () => {
   it("renders every fact in the fixed order: kind · stage · iterated · seed · linked", () => {
     const { container } = render(<EntryMeta {...fullProps} />);
-    const texts = Array.from(container.querySelectorAll("span, time"))
-      .map((el) => el.textContent)
-      .filter((text) => text !== "·");
-    expect(texts).toEqual([
+    const facts = Array.from(container.querySelectorAll("p > span")).map(
+      (el) => el.textContent,
+    );
+    expect(facts).toEqual([
       "demo",
       "prototype",
       "iterated July 16, 2026",
@@ -26,14 +29,12 @@ describe("EntryMeta", () => {
     ]);
   });
 
-  it("separates facts with decorative dots hidden from assistive tech", () => {
+  it("renders NO separator elements — the dots are CSS-generated inside each fact (QA #329 D1)", () => {
+    // A separator that is its own flex item can wrap alone, stranding a dangling "·" at a
+    // line end. The dot must live in the following fact's ::before so it travels with it.
     const { container } = render(<EntryMeta {...fullProps} />);
-    const separators = container.querySelectorAll('[aria-hidden="true"]');
-    // One separator between each adjacent pair of the five facts.
-    expect(separators).toHaveLength(4);
-    for (const separator of separators) {
-      expect(separator.textContent).toBe("·");
-    }
+    expect(container.textContent).not.toContain("·");
+    expect(container.querySelectorAll("[aria-hidden]")).toHaveLength(0);
   });
 
   it("stamps the iterated fact as a real <time> carrying the machine value", () => {
@@ -84,7 +85,6 @@ describe("EntryMeta", () => {
   it("renders a lone fact with no separators", () => {
     const { container } = render(<EntryMeta stage="shipped" />);
     expect(container.textContent).toBe("shipped");
-    expect(container.querySelectorAll('[aria-hidden="true"]')).toHaveLength(0);
   });
 
   it("passes the ink role through to the type primitive; omitting it inherits the ambient ink", () => {
@@ -104,5 +104,20 @@ describe("EntryMeta", () => {
       <EntryMeta kind="note" className="from-caller" />,
     );
     expect(container.querySelector("p")?.className).toContain("from-caller");
+  });
+});
+
+describe("EntryMeta.module.css — the separator contract (QA #329 D1)", () => {
+  const css = readFileSync(
+    resolve(process.cwd(), "src/components/entry/EntryMeta.module.css"),
+    "utf8",
+  ).replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("generates the dot on every fact after the first, marked decorative via content alt text", () => {
+    // jsdom doesn't paint ::before, so the wrap-safety half of the fix is pinned as a CSS
+    // contract: the dot must be generated inside a fact (travels with it on wrap) and carry
+    // the `/ ""` alt so it never enters an accessible name.
+    expect(css).toMatch(/\.fact \+ \.fact::before/);
+    expect(css).toMatch(/content:\s*"·"\s*\/\s*""/);
   });
 });

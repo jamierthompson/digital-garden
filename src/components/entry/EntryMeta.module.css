@@ -1,7 +1,7 @@
 /* Entry meta readout — the shared mono meta line. @layer components — declares its layer (an
    unlayered module outranks every layered rule); var-consuming only (ink comes from the `Text`
-   primitive's color prop or the ambient surface). Facts and separators are flex items so the
-   line wraps between facts, never inside one. */
+   primitive's color prop or the ambient surface). Facts are flex items so the line wraps
+   between facts, never inside a dot pair. */
 @layer components {
   .meta {
     /* Component tokens — the readout's own geometry, bound from the foundation scale. */
@@ -9,5 +9,15 @@
     display: flex;
     flex-wrap: wrap;
     column-gap: var(--entry-meta-gap);
+  }
+
+  /* The `·` is generated INSIDE each fact after the first, so it travels with its fact on
+     wrap — a line can never end (or start) with a stranded dot. The `/ ""` alt marks it
+     decorative for assistive tech; the plain declaration above it is the fallback for engines
+     without alt-text support. */
+  .fact + .fact::before {
+    content: "·";
+    content: "·" / "";
+    margin-inline-end: var(--entry-meta-gap);
   }
 }
