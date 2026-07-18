@@ -186,6 +186,46 @@ describe("FEATURED_QUERY linkCount ↔ RelatedEntries parity (#329)", () => {
     expect(hint).toBe(0);
     expect(listed).toBe(0);
   });
+
+  it("a backlink authored only as a NESTED body reference (a markDef link) counts on the card AND renders in the list", async () => {
+    // `references()` scans the whole document, not just `related` — so an entry that links
+    // to the featured one from inside its prose is a neighbor on both surfaces.
+    const dataset = [
+      doc("f", { featuredRank: 1 }),
+      doc("w", {
+        body: [
+          {
+            _type: "block",
+            _key: "b1",
+            children: [{ _type: "span", _key: "s1", text: "see f" }],
+            markDefs: [
+              { _type: "internalLink", _key: "m1", reference: ref("f", "r1") },
+            ],
+          },
+        ],
+      }),
+    ];
+    const hint = await featuredLinkCount(dataset, "f");
+    const listed = await renderedRelatedCount(dataset, "f");
+    expect(listed).toBe(1);
+    expect(hint).toBe(listed);
+  });
+
+  it("a NON-entry document referencing the featured entry counts on NEITHER surface — both arms filter _type", async () => {
+    const dataset = [
+      doc("f", { featuredRank: 1 }),
+      {
+        _type: "siteSettings",
+        _id: "settings",
+        _createdAt: "2026-01-01T00:00:00Z",
+        somewhere: ref("f", "k"),
+      },
+    ];
+    const hint = await featuredLinkCount(dataset, "f");
+    const listed = await renderedRelatedCount(dataset, "f");
+    expect(hint).toBe(0);
+    expect(listed).toBe(0);
+  });
 });
 
 /**

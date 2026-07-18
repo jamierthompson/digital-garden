@@ -27,6 +27,7 @@ interface IndexRow {
   slug: string | null;
   kind: string | null;
   stage: string | null;
+  iterated: string | null;
   summary: string | null;
   linkCount: number;
 }
@@ -39,6 +40,7 @@ function row(over: Partial<IndexRow> & { _id: string }): IndexRow {
     // nothing, a misleading default for the generic-behaviour tests.
     kind: "essay",
     stage: "sketch",
+    iterated: null,
     summary: null,
     linkCount: 0,
     ...over,
@@ -190,6 +192,24 @@ describe("IndexPage (/browse) — the folded Index", () => {
     expect(screen.getByText(/3 linked/i)).toBeInTheDocument();
     // Zero links → no "0 linked" noise.
     expect(screen.queryByText(/0 linked/i)).toBeNull();
+  });
+
+  it("stamps a dated row's iterated fact as a <time> in the meta readout — and omits it when unauthored (#329 QA)", async () => {
+    fetchMock.mockResolvedValueOnce([
+      row({
+        _id: "a",
+        kind: "note",
+        title: "Dated",
+        slug: "a",
+        iterated: "2026-06-01",
+      }),
+      row({ _id: "b", kind: "note", title: "Undated", slug: "b" }),
+    ]);
+    render(await IndexPage());
+    const time = screen.getByText("iterated June 1, 2026");
+    expect(time.tagName).toBe("TIME");
+    expect(time).toHaveAttribute("datetime", "2026-06-01");
+    expect(screen.getAllByText(/iterated/)).toHaveLength(1);
   });
 
   it("gives every group section an accessible name wired to its heading id", async () => {

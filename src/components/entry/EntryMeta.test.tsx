@@ -121,3 +121,64 @@ describe("EntryMeta.module.css — the separator contract (QA #329 D1)", () => {
     expect(css).toMatch(/content:\s*"·"\s*\/\s*""/);
   });
 });
+
+describe("EntryMeta — adversarial QA (#329)", () => {
+  it("treats whitespace-only facts as absent — no invisible fact, no stray separator dot", () => {
+    // A whitespace-only fact would still mint a `.fact` wrapper, and the CSS-generated dot
+    // on an invisible fact renders as a stray "·" — so the pin is on the fact COUNT.
+    const { container } = render(
+      <EntryMeta kind="   " stage="shipped" seed={"\t"} />,
+    );
+    const facts = container.querySelectorAll("p > span");
+    expect(facts).toHaveLength(1);
+    expect(facts[0].textContent).toBe("shipped");
+  });
+
+  it("renders nothing (and never throws) when every fact is whitespace-only", () => {
+    const { container } = render(<EntryMeta kind=" " stage="  " seed={"\n"} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("never throws on non-string facts — numbers, objects, arrays, booleans degrade to absence", () => {
+    const hostile = {
+      kind: 42 as unknown as string,
+      stage: { evil: true } as unknown as string,
+      iterated: ["2026-07-16"] as unknown as string,
+      seed: false as unknown as string,
+      linkCount: { valueOf: () => 3 } as unknown as number,
+    };
+    const { container } = render(<EntryMeta {...hostile} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("keeps a NaN linkCount silent (typeof NaN === 'number', but it is not positive)", () => {
+    const { container } = render(
+      <EntryMeta kind="note" linkCount={Number.NaN} />,
+    );
+    expect(container.textContent).toBe("note");
+  });
+
+  it("drops a calendar-impossible iterated date (round-trip guard) rather than rolling it over", () => {
+    const { container } = render(
+      <EntryMeta kind="note" iterated="2026-02-30" />,
+    );
+    expect(container.textContent).toBe("note");
+    expect(container.querySelector("time")).toBeNull();
+  });
+
+  it("drops a datetime-shaped iterated value (the contract is a date-only ISO string)", () => {
+    const { container } = render(
+      <EntryMeta kind="note" iterated="2026-07-16T12:00:00Z" />,
+    );
+    expect(container.textContent).toBe("note");
+    expect(container.querySelector("time")).toBeNull();
+  });
+
+  it("surfaces an XSS-shaped seed as inert text, never markup", () => {
+    render(<EntryMeta seed={'"><img src=x onerror=alert(1)>'} />);
+    expect(document.querySelector("img")).toBeNull();
+    expect(
+      screen.getByText('"><img src=x onerror=alert(1)>'),
+    ).toBeInTheDocument();
+  });
+});
