@@ -416,7 +416,8 @@ describe("EntryPage — the demo template (sidebar + canvas)", () => {
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("A summary.")).toBeInTheDocument();
-    expect(screen.getByText(/demo · prototype/)).toBeInTheDocument();
+    expect(screen.getByText("demo")).toBeInTheDocument();
+    expect(screen.getByText("prototype")).toBeInTheDocument();
     expect(screen.getByText(/iterated July 16, 2026/)).toBeInTheDocument();
     expect(screen.getByText("oklch(0.7 0.15 70)")).toBeInTheDocument();
     // The module's two surfaces, both slug-keyed.
@@ -656,6 +657,115 @@ describe("EntryPage — shared gates (both templates)", () => {
       screen.queryByRole("region", { name: /tags/i }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText("stale")).not.toBeInTheDocument();
+  });
+});
+
+// QA (#329) — the editorial header's meta readout was the slice's headline (the editorial
+// detail previously showed NO meta) and had no page-level coverage; nor did the page-computed
+// linkCount (distinctNeighbors over the SAME arrays RelatedEntries renders).
+describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () => {
+  const neighbor = (id: string, over: Record<string, unknown> = {}) => ({
+    _id: id,
+    title: `Neighbor ${id}`,
+    slug: id,
+    kind: "note",
+    ...over,
+  });
+
+  it("renders the FULL readout in the editorial header: kind · stage · iterated · seed · N linked", async () => {
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "essay",
+        stage: "shipped",
+        iterated: "2026-07-01",
+        themeSeed: "oklch(0.66 0.2 350)",
+        related: [neighbor("a")],
+        backlinks: [neighbor("b")],
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    const header = container.querySelector("header");
+    expect(header?.textContent).toContain("essay");
+    expect(header?.textContent).toContain("shipped");
+    expect(header?.textContent).toContain("oklch(0.66 0.2 350)");
+    expect(header?.textContent).toContain("2 linked");
+    const time = screen.getByText("iterated July 1, 2026");
+    expect(time.tagName).toBe("TIME");
+    expect(time).toHaveAttribute("datetime", "2026-07-01");
+  });
+
+  it("editorial header hint EQUALS the rendered Related list — self/dangling/duplicate wash out of both", async () => {
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "note",
+        related: [
+          neighbor("e1"), // self (entry._id is "e1") — dropped
+          null, // dangling reference — dropped
+          neighbor("a"),
+          neighbor("a"), // duplicate within the arm — dropped
+        ],
+        backlinks: [neighbor("a"), neighbor("b")], // "a" duplicates across arms — dropped
+      }),
+    );
+    render(await EntryPage({ params: params("an-entry") }));
+    expect(screen.getByText("2 linked")).toBeInTheDocument();
+    const relatedList = screen
+      .getByRole("heading", { name: /related/i })
+      .closest("aside, section, nav, div")
+      ?.querySelectorAll("li");
+    expect(relatedList).toHaveLength(2);
+  });
+
+  it("renders NO stray hint when every edge washes out (self + dangling only)", async () => {
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "note",
+        stage: "sketch",
+        related: [neighbor("e1"), null],
+        backlinks: null,
+      }),
+    );
+    render(await EntryPage({ params: params("an-entry") }));
+    expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /related/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("threads the page-computed linkCount into the DEMO sidebar readout too", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundCanvas());
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "demo",
+        componentKey: "color-engine",
+        stage: "prototype",
+        related: [neighbor("a")],
+        backlinks: [neighbor("a"), neighbor("b"), neighbor("c")],
+      }),
+    );
+    render(await EntryPage({ params: params("an-entry") }));
+    expect(screen.getByText("3 linked")).toBeInTheDocument();
+  });
+
+  it("the editorial header omits absent facts without stray separators (kindless drifted doc, no meta at all)", async () => {
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: null,
+        stage: null,
+        iterated: null,
+        themeSeed: null,
+        related: null,
+        backlinks: null,
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    const header = container.querySelector("article header");
+    expect(header?.textContent).not.toContain("·");
+    expect(header?.querySelector('[data-variant="meta"]')).toBeNull();
   });
 });
 

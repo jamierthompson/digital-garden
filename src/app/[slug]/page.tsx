@@ -7,6 +7,7 @@ import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
 import DemoLayout from "@/components/entry/DemoLayout";
+import EntryMeta from "@/components/entry/EntryMeta";
 import EntryScope from "@/components/entry-scope/EntryScope";
 import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
@@ -14,7 +15,7 @@ import RelatedEntries from "@/components/entry/RelatedEntries";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import { resolveComponentKey } from "@/lib/resolvers/components";
-import { formatDate } from "@/lib/formatDate";
+import { distinctNeighbors } from "@/lib/distinctNeighbors";
 import { space } from "@/lib/tokens";
 import { isNotFound } from "@/lib/resolvers/resolution";
 import type { EntryModule } from "@/entries/types";
@@ -134,6 +135,14 @@ export default async function EntryPage({ params }: EntryPageProps) {
   // scope never collapses to the shared `data-entry="fallback"`. Absent role fonts pass as
   // `undefined` (never `""`): the keystone omits them so they inherit `:root`. The scope's
   // COLOR always comes from the page's `<html>` theme (inherited); this seed carries fonts only.
+  // The header's backlink hint — counted from the SAME arrays `RelatedEntries` renders
+  // (one shared dedupe), so "N linked" and the Related list below agree by construction.
+  const linkCount = distinctNeighbors(
+    entry._id,
+    entry.related,
+    entry.backlinks,
+  ).length;
+
   const isNow = entry.kind === "now";
   const scope: ScopeSeed | undefined =
     (!isNow && entry.theme?.color) || entryModule
@@ -152,7 +161,6 @@ export default async function EntryPage({ params }: EntryPageProps) {
     if (!Canvas) {
       notFound();
     }
-    const iteratedLabel = formatDate(entry.iterated);
     const demoSurface = (
       // Same last-resort containment as the editorial slots: a scope throw degrades to the
       // unthemed notice instead of blanking the route through its error boundary.
@@ -165,12 +173,9 @@ export default async function EntryPage({ params }: EntryPageProps) {
             summary={entry.summary}
             kind={entry.kind}
             stage={entry.stage}
-            iterated={
-              iteratedLabel && entry.iterated
-                ? { dateTime: entry.iterated, label: iteratedLabel }
-                : null
-            }
+            iterated={entry.iterated}
             seed={entry.themeSeed}
+            linkCount={linkCount}
             controls={Sidebar ? <Sidebar slug={slug} /> : null}
           >
             <Canvas slug={slug} />
@@ -223,6 +228,14 @@ export default async function EntryPage({ params }: EntryPageProps) {
                 {entry.summary}
               </Text>
             ) : null}
+            <EntryMeta
+              kind={entry.kind}
+              stage={entry.stage}
+              iterated={entry.iterated}
+              seed={entry.themeSeed}
+              linkCount={linkCount}
+              color="muted-foreground"
+            />
           </header>
         </Stack>
         {entry.body ? <EntryBody value={entry.body} scope={scope} /> : null}

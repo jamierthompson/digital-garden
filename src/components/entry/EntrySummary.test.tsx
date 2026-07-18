@@ -29,22 +29,18 @@ describe("EntrySummary", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("renders the date kicker as a <time> carrying the machine value", () => {
-    renderInList(
-      <EntrySummary
-        title="Update"
-        date={{ dateTime: "2026-07-01", label: "July 1, 2026" }}
-      />,
-    );
-    const time = screen.getByText("July 1, 2026");
+  it("renders the iterated date inside the meta readout as a <time> with the machine value", () => {
+    renderInList(<EntrySummary title="Update" iterated="2026-07-01" />);
+    const time = screen.getByText("iterated July 1, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-01");
   });
 
-  it("renders the stage badge stamped with data-stage", () => {
-    renderInList(<EntrySummary title="Entry" stage="budding" />);
-    const badge = screen.getByText("budding");
-    expect(badge).toHaveAttribute("data-stage", "budding");
+  it("renders the stage as plain meta text — no badge treatment, no data-stage hook", () => {
+    renderInList(<EntrySummary title="Entry" stage="prototype" />);
+    const stage = screen.getByText("prototype");
+    expect(stage).not.toHaveAttribute("data-stage");
+    expect(stage.closest("p")).toHaveAttribute("data-variant", "meta");
   });
 
   it("renders the summary and the backlink hint when present", () => {
@@ -62,12 +58,12 @@ describe("EntrySummary", () => {
         slug={null}
         summary={null}
         stage={null}
-        date={null}
+        iterated={null}
         linkCount={0}
       />,
     );
     const item = screen.getByRole("listitem");
-    // Just the heading — no time, no badge, no summary, no "0 linked".
+    // Just the heading — no time, no stage, no summary, no "0 linked".
     expect(item.querySelector("time")).toBeNull();
     expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
     expect(item.textContent).toBe("Bare");
@@ -91,11 +87,27 @@ describe("EntrySummary", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("hides the stage badge and summary for empty strings, not just null", () => {
+  it("hides the stage and summary for empty strings, not just null", () => {
     renderInList(<EntrySummary title="Empty" stage="" summary="" />);
     const item = screen.getByRole("listitem");
-    expect(item.querySelector("[data-stage]")).toBeNull();
     expect(item.textContent).toBe("Empty");
+  });
+
+  it("orders the row title → summary → meta readout", () => {
+    renderInList(
+      <EntrySummary
+        title="Ordered"
+        summary="The summary."
+        stage="shipped"
+        iterated="2026-07-01"
+        linkCount={2}
+      />,
+    );
+    const item = screen.getByRole("listitem");
+    const children = Array.from(item.children);
+    expect(children[0].tagName).toBe("H3");
+    expect(children[1].textContent).toBe("The summary.");
+    expect(children[2]).toHaveAttribute("data-variant", "meta");
   });
 
   describe("adversarial QA", () => {

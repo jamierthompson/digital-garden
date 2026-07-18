@@ -221,4 +221,44 @@ describe("RelatedEntries", () => {
       "Backlink two",
     ]);
   });
+
+  it("shows each entry's kind beside its title, outside the link's accessible name", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[entry({ _id: "a", title: "On gardens", slug: "on-gardens" })]}
+        backlinks={[
+          entry({
+            _id: "b",
+            title: "On OKLCH",
+            slug: "on-oklch",
+            kind: "essay",
+          }),
+        ]}
+      />,
+    );
+    expect(screen.getByText("note")).toBeInTheDocument();
+    expect(screen.getByText("essay")).toBeInTheDocument();
+    // The kind is a meta label next to the link, not part of the link text itself.
+    expect(screen.getByRole("link", { name: "On gardens" }).textContent).toBe(
+      "On gardens",
+    );
+    expect(screen.getByText("note").closest("p")).toHaveAttribute(
+      "data-variant",
+      "meta",
+    );
+  });
+
+  it("renders no kind label for a kindless (drifted) entry — title only, no stray meta row", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[
+          entry({ _id: "a", title: "Kindless", slug: "k", kind: null }),
+        ]}
+        backlinks={null}
+      />,
+    );
+    expect(screen.getByRole("listitem").textContent).toBe("Kindless");
+  });
 });

@@ -733,7 +733,8 @@ An entry renders as a single `/[slug]` page on one of **two templates, branched 
 - **Demo** (`kind === "demo"` with a resolved module): a two-region app layout (`DemoLayout`,
   `src/components/entry/`) — **sidebar + canvas**, edge-to-edge in the content grid's `full`
   lane, no prose article (the summary is the demo's prose). **Hybrid sidebar:** the page renders
-  the entry's info (title, summary, kind · stage, iterated, seed readout) — DRY across demos —
+  the entry's info (title, summary, and the shared `EntryMeta` readout: kind · stage · iterated ·
+  seed · link count) — DRY across demos —
   and the module contributes its controls below. A sketch demo (no `componentKey`) falls back to
   the editorial template, prose-only.
 
@@ -1016,7 +1017,8 @@ Practical notes:
   into two registered keys. Litmus: _editor writes/curates it → typed block; developer decides it →
   registry; neither → it's not an input._
 - **The card queries refuse to over-fetch.** The featured-home query pulls the card fields —
-  `title`/`slug`/`summary`/`stage`/`kind` plus the `theme.color` each card themes its plate from — but
+  `title`/`slug`/`summary` and the meta facts (`kind`/`stage`/`iterated`/`linkCount`) plus the
+  `theme.color` each card themes its plate from — but
   **not** the body. That enforces "a few colors per card" at the data layer (cards feed
   `cardSwatches`) and keeps the front-door payload small for CWV.
 - **`EntryScope` is the font-slot keystone.** One server component takes a scope's `slug` + up to
@@ -1048,7 +1050,8 @@ Practical notes:
 - **Two reading paths over one content graph.** The **featured home** (`/`) is a curated front door —
   the entries with a `featuredRank`, of _any_ `kind`, ordered by rank — for a hurried evaluator. The
   **Index** (at `/browse`) is the browsable list of the notes, essays, and demos — grouped
-  into labelled `kind` sections, each row carrying its `stage` badge and backlink hint, for the
+  into labelled `kind` sections, each row carrying its meta readout (stage · iterated · backlink
+  hint), for the
   wanderer. Dated `now` updates are the one kind it omits: they have their own reverse-chronological
   surface at `/now`. The Index has no facets today — filtering it is [#88](https://github.com/jamierthompson/digital-garden/issues/88). The portfolio is a _view_ of the graph (a saved
   `featuredRank != null` filter), not a separate section. The **shell frame** of both — plus `/about`

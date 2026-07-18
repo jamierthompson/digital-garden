@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import RelatedEntries from "@/components/entry/RelatedEntries";
 import {
   ENTRY_DETAIL_QUERY,
+  FEATURED_QUERY,
   INDEX_QUERY,
   NOW_QUERY,
 } from "@/sanity/lib/queries";
@@ -130,6 +131,98 @@ describe("INDEX_QUERY linkCount ↔ RelatedEntries parity (#318 QA)", () => {
     const dataset = [doc("a", { related: [ref("ghost", "k"), ref("a", "s")] })];
     const hint = await indexLinkCount(dataset, "a");
     const listed = await renderedRelatedCount(dataset, "a");
+    expect(hint).toBe(0);
+    expect(listed).toBe(0);
+  });
+});
+
+/**
+ * #329 extends the same promise to the featured card: its "N linked" readout must equal the
+ * Related list on the entry's own detail page. Same oracle shape — both real queries executed
+ * against ONE dataset, the real `RelatedEntries` rendered with the detail result.
+ */
+describe("FEATURED_QUERY linkCount ↔ RelatedEntries parity (#329)", () => {
+  async function featuredLinkCount(
+    dataset: Array<Record<string, unknown>>,
+    id: string,
+  ): Promise<unknown> {
+    const rows: Array<{ _id: string; linkCount: unknown }> = await (
+      await evaluate(parse(FEATURED_QUERY), { dataset })
+    ).get();
+    return rows.find((r) => r._id === id)?.linkCount;
+  }
+
+  it("a ragged graph — self, duplicate, dangling, mutual, backlink-only — yields the SAME count on the card and the detail page", async () => {
+    const dataset = [
+      doc("f", {
+        featuredRank: 1,
+        related: [
+          ref("f", "self"),
+          ref("b", "k1"),
+          ref("b", "k1-dup"),
+          ref("ghost", "k2"),
+          ref("c", "k3"),
+        ],
+      }),
+      doc("b", { related: [ref("f", "back")] }),
+      doc("c"),
+      doc("d", { related: [ref("f", "k")] }),
+    ];
+    const hint = await featuredLinkCount(dataset, "f");
+    const listed = await renderedRelatedCount(dataset, "f");
+    expect(listed).toBe(3);
+    expect(hint).toBe(listed);
+  });
+
+  it("zero on both surfaces: a featured entry whose only edges are a dangling ref and a self-ref", async () => {
+    const dataset = [
+      doc("f", {
+        featuredRank: 1,
+        related: [ref("ghost", "k"), ref("f", "s")],
+      }),
+    ];
+    const hint = await featuredLinkCount(dataset, "f");
+    const listed = await renderedRelatedCount(dataset, "f");
+    expect(hint).toBe(0);
+    expect(listed).toBe(0);
+  });
+
+  it("a backlink authored only as a NESTED body reference (a markDef link) counts on the card AND renders in the list", async () => {
+    // `references()` scans the whole document, not just `related` — so an entry that links
+    // to the featured one from inside its prose is a neighbor on both surfaces.
+    const dataset = [
+      doc("f", { featuredRank: 1 }),
+      doc("w", {
+        body: [
+          {
+            _type: "block",
+            _key: "b1",
+            children: [{ _type: "span", _key: "s1", text: "see f" }],
+            markDefs: [
+              { _type: "internalLink", _key: "m1", reference: ref("f", "r1") },
+            ],
+          },
+        ],
+      }),
+    ];
+    const hint = await featuredLinkCount(dataset, "f");
+    const listed = await renderedRelatedCount(dataset, "f");
+    expect(listed).toBe(1);
+    expect(hint).toBe(listed);
+  });
+
+  it("a NON-entry document referencing the featured entry counts on NEITHER surface — both arms filter _type", async () => {
+    const dataset = [
+      doc("f", { featuredRank: 1 }),
+      {
+        _type: "siteSettings",
+        _id: "settings",
+        _createdAt: "2026-01-01T00:00:00Z",
+        somewhere: ref("f", "k"),
+      },
+    ];
+    const hint = await featuredLinkCount(dataset, "f");
+    const listed = await renderedRelatedCount(dataset, "f");
     expect(hint).toBe(0);
     expect(listed).toBe(0);
   });

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import EntryMeta from "@/components/entry/EntryMeta";
 import Stack from "@/components/layout/Stack";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
@@ -11,16 +12,14 @@ interface DemoLayoutProps {
   /** The display title — already fallback-resolved by the caller (`?? "Untitled …"`). */
   readonly title: string;
   readonly summary?: string | null;
-  /** The kind label for the mono readout (always "demo" today; the page passes what it has). */
   readonly kind?: string | null;
   readonly stage?: string | null;
-  /** The last-iterated stamp — the machine value for `<time>` plus its display label. */
-  readonly iterated?: {
-    readonly dateTime: string;
-    readonly label: string;
-  } | null;
+  /** The authored last-iterated date (ISO `YYYY-MM-DD`), for the meta readout. */
+  readonly iterated?: string | null;
   /** The resolved OKLCH seed readout (the same fact the featured cards print). */
   readonly seed?: string | null;
+  /** Backlink hint — rendered only when positive. */
+  readonly linkCount?: number | null;
   /** The module's sidebar controls, already rendered — mounted below the entry info. */
   readonly controls?: ReactNode;
   /** The module-owned canvas surface. */
@@ -42,10 +41,10 @@ export default function DemoLayout({
   stage,
   iterated,
   seed,
+  linkCount,
   controls,
   children,
 }: DemoLayoutProps): React.ReactElement {
-  const kindStage = [kind, stage].filter(Boolean).join(" · ");
   return (
     <section className={styles.demo}>
       <div className={styles.sidebar}>
@@ -59,26 +58,14 @@ export default function DemoLayout({
                 {summary}
               </Text>
             ) : null}
-            {/* The mono readout — each fact renders only when present. */}
-            <Stack gap={space(1)}>
-              {kindStage ? (
-                <Text variant="meta" color="muted-foreground">
-                  {kindStage}
-                </Text>
-              ) : null}
-              {iterated ? (
-                <Text variant="meta" color="muted-foreground" asChild>
-                  <time dateTime={iterated.dateTime}>
-                    iterated {iterated.label}
-                  </time>
-                </Text>
-              ) : null}
-              {seed ? (
-                <Text variant="meta" color="muted-foreground">
-                  {seed}
-                </Text>
-              ) : null}
-            </Stack>
+            <EntryMeta
+              kind={kind}
+              stage={stage}
+              iterated={iterated}
+              seed={seed}
+              linkCount={linkCount}
+              color="muted-foreground"
+            />
           </header>
         </Stack>
         {controls ? <div className={styles.controls}>{controls}</div> : null}

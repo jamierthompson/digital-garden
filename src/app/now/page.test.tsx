@@ -81,8 +81,8 @@ describe("Now page (Sanity-driven stream)", () => {
 
   it("stamps each update with its formatted UTC date", async () => {
     render(await NowPage());
-    expect(screen.getByText("July 1, 2026")).toBeInTheDocument();
-    expect(screen.getByText("June 15, 2026")).toBeInTheDocument();
+    expect(screen.getByText("iterated July 1, 2026")).toBeInTheDocument();
+    expect(screen.getByText("iterated June 15, 2026")).toBeInTheDocument();
   });
 
   it("keeps the nownownow.com footnote link", async () => {
@@ -163,8 +163,7 @@ describe("NowPage — edges & boundaries", () => {
     ]);
     render(await NowPage());
     // Formatted from `${iso}T00:00:00Z` with timeZone: "UTC" — Jan 1, not Dec 31.
-    expect(screen.getByText("January 1, 2026")).toBeInTheDocument();
-    const time = screen.getByText("January 1, 2026");
+    const time = screen.getByText("iterated January 1, 2026");
     expect(time.tagName.toLowerCase()).toBe("time");
     expect(time).toHaveAttribute("datetime", "2026-01-01");
   });
