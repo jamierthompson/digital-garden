@@ -148,7 +148,7 @@ describe("IndexPage (/browse) — the folded Index", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the stage badge only when a stage is set", async () => {
+  it("renders the stage in the meta readout only when a stage is set", async () => {
     fetchMock.mockResolvedValueOnce([
       row({
         _id: "a",

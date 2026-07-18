@@ -28,11 +28,14 @@ interface EntryMetaProps {
  * can't strand a dangling dot and they stay out of accessible names.
  */
 /** The runtime contract is WIDER than the props' types — this readout renders live/draft
- *  data, and a raw API write can hand any fact a shape the type forbids. A non-string
- *  (or empty) fact is treated as absent rather than rendered (an object as a React child
- *  throws) — the same never-throws posture as the theming chain. */
+ *  data, and a raw API write can hand any fact a shape the type forbids. A non-string,
+ *  empty, or whitespace-only fact is treated as absent rather than rendered (an object as
+ *  a React child throws; an invisible fact still earns a separator dot) — the same
+ *  never-throws posture as the theming chain. */
 function asText(value: string | null | undefined): string | null {
-  return typeof value === "string" && value ? value : null;
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed || null;
 }
 
 export default function EntryMeta({
@@ -59,7 +62,13 @@ export default function EntryMeta({
     });
   }
   if (seedText) facts.push({ key: "seed", node: <span>{seedText}</span> });
-  if (typeof linkCount === "number" && linkCount > 0) {
+  // Integer-gated, not just positive: GROQ's count() only emits integers, so a fractional
+  // or non-finite value is drifted data — silence, never "2.5 linked".
+  if (
+    typeof linkCount === "number" &&
+    Number.isInteger(linkCount) &&
+    linkCount > 0
+  ) {
     facts.push({ key: "links", node: <span>{linkCount} linked</span> });
   }
 
