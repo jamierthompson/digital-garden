@@ -24,8 +24,9 @@ interface EntryMetaProps {
  * fact only when present (a malformed date is dropped, a non-positive link count is
  * silence, an empty string is absence). Renders nothing at all when no fact survives.
  * Plain meta text by design — no badge/pill treatment. The `·` separators are generated in
- * CSS on each fact after the first (never rendered as their own elements), so a line wrap
- * can't strand a dangling dot and they stay out of accessible names.
+ * CSS on EVERY fact and each line's leading dot is clipped away by the track shift (see the
+ * module CSS), so a wrapped line can never begin or end with a stranded dot, and the dots
+ * never enter accessible names.
  */
 /** The runtime contract is WIDER than the props' types — this readout renders live/draft
  *  data, and a raw API write can hand any fact a shape the type forbids. A non-string,
@@ -77,11 +78,13 @@ export default function EntryMeta({
   return (
     <Text variant="meta" color={color} asChild>
       <p className={[styles.meta, className].filter(Boolean).join(" ")}>
-        {facts.map((fact) => (
-          <span key={fact.key} className={styles.fact}>
-            {fact.node}
-          </span>
-        ))}
+        <span className={styles.track}>
+          {facts.map((fact) => (
+            <span key={fact.key} className={styles.fact}>
+              {fact.node}
+            </span>
+          ))}
+        </span>
       </p>
     </Text>
   );

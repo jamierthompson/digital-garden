@@ -17,7 +17,8 @@ const fullProps = {
 describe("EntryMeta", () => {
   it("renders every fact in the fixed order: kind · stage · iterated · seed · linked", () => {
     const { container } = render(<EntryMeta {...fullProps} />);
-    const facts = Array.from(container.querySelectorAll("p > span")).map(
+    // Facts are the spans inside the track wrapper (p > track > fact).
+    const facts = Array.from(container.querySelectorAll("p > span > span")).map(
       (el) => el.textContent,
     );
     expect(facts).toEqual([
@@ -113,12 +114,28 @@ describe("EntryMeta.module.css — the separator contract (QA #329 D1)", () => {
     "utf8",
   ).replace(/\/\*[\s\S]*?\*\//g, "");
 
-  it("generates the dot on every fact after the first, marked decorative via content alt text", () => {
-    // jsdom doesn't paint ::before, so the wrap-safety half of the fix is pinned as a CSS
-    // contract: the dot must be generated inside a fact (travels with it on wrap) and carry
-    // the `/ ""` alt so it never enters an accessible name.
-    expect(css).toMatch(/\.fact \+ \.fact::before/);
+  // jsdom doesn't paint ::before or clip overflow, so the wrap-safety design is pinned as a
+  // CSS contract; the painted result is the browser QA pass's job.
+  it("generates the dot on EVERY fact (not just after the first), marked decorative via content alt text", () => {
+    // A `.fact + .fact` (or `::after`) attachment strands a dot at a wrap boundary — the
+    // clip design needs the dot on every fact so the track shift can hide each line's leader.
+    expect(css).toMatch(/\.fact::before/);
+    expect(css).not.toMatch(/\.fact \+ \.fact/);
+    expect(css).not.toMatch(/::after/);
     expect(css).toMatch(/content:\s*"·"\s*\/\s*""/);
+  });
+
+  it("clips each line's leading dot: overflow clip on the box, exact negative shift on the track", () => {
+    expect(css).toMatch(/overflow:\s*clip/);
+    // The shift must account for the dot's TRUE advance (1ch + the meta role's tracking)
+    // plus both gap margins — a bare 1ch shift leaves a tracking-wide sliver of dot visible.
+    expect(css).toMatch(
+      /--entry-meta-dot-advance:\s*calc\(1ch \+ var\(--type-meta-tracking\)\)/,
+    );
+    expect(css).toMatch(
+      /margin-inline-start:\s*calc\(\s*-1 \*\s*\(var\(--entry-meta-dot-advance\) \+ 2 \* var\(--entry-meta-gap\)\)\s*\)/,
+    );
+    expect(css).toMatch(/margin-inline:\s*var\(--entry-meta-gap\)/);
   });
 });
 
@@ -129,7 +146,7 @@ describe("EntryMeta — adversarial QA (#329)", () => {
     const { container } = render(
       <EntryMeta kind="   " stage="shipped" seed={"\t"} />,
     );
-    const facts = container.querySelectorAll("p > span");
+    const facts = container.querySelectorAll("p > span > span");
     expect(facts).toHaveLength(1);
     expect(facts[0].textContent).toBe("shipped");
   });

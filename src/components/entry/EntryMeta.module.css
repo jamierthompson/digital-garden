@@ -1,23 +1,41 @@
 /* Entry meta readout — the shared mono meta line. @layer components — declares its layer (an
-   unlayered module outranks every layered rule); var-consuming only (ink comes from the `Text`
-   primitive's color prop or the ambient surface). Facts are flex items so the line wraps
-   between facts, never inside a dot pair. */
+   unlayered module outranks every layered rule); ink comes from the `Text` primitive's color
+   prop or the ambient surface.
+
+   Wrap-safe separators (QA #329 D1): no CSS attachment point can suppress a separator exactly
+   at a wrap — glued to the fact before it a dot strands at line end, glued to the fact after
+   it a dot opens the next line. So EVERY fact carries a leading dot, and the flex track is
+   shifted left by exactly one dot advance + its two gap margins while the readout box clips
+   the overflow: each line's leading dot — first line included — falls outside the clip box
+   and vanishes, leaving dots only BETWEEN facts on the same line, at any wrap. The shift is
+   exact, not tuned: the meta role is monospace, so the dot's advance is 1ch plus the role's
+   letter-spacing (spacing is added after every glyph, trailing one included). */
 @layer components {
   .meta {
-    /* Component tokens — the readout's own geometry, bound from the foundation scale. */
-    --entry-meta-gap: var(--space-2);
-    display: flex;
-    flex-wrap: wrap;
-    column-gap: var(--entry-meta-gap);
+    /* `clip` (not `hidden`) so the readout can never become a scroll container. */
+    overflow: clip;
   }
 
-  /* The `·` is generated INSIDE each fact after the first, so it travels with its fact on
-     wrap — a line can never end (or start) with a stranded dot. The `/ ""` alt marks it
-     decorative for assistive tech; the plain declaration above it is the fallback for engines
-     without alt-text support. */
-  .fact + .fact::before {
+  .track {
+    /* Component tokens — the readout's own geometry. `--entry-meta-gap` binds the foundation
+       scale (the space either side of a dot); `--entry-meta-dot-advance` is the dot's true
+       rendered advance in the meta role's own face. */
+    --entry-meta-gap: var(--space-2);
+    --entry-meta-dot-advance: calc(1ch + var(--type-meta-tracking));
+    display: flex;
+    flex-wrap: wrap;
+    margin-inline-start: calc(
+      -1 * (var(--entry-meta-dot-advance) + 2 * var(--entry-meta-gap))
+    );
+  }
+
+  /* The dot rides INSIDE its fact (so it can never wrap alone) on every fact, the first
+     included — the track shift hides each line's leading one. The `/ ""` alt marks it
+     decorative for assistive tech; the plain declaration above it is the fallback for
+     engines without alt-text support. */
+  .fact::before {
     content: "·";
     content: "·" / "";
-    margin-inline-end: var(--entry-meta-gap);
+    margin-inline: var(--entry-meta-gap);
   }
 }
