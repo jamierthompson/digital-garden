@@ -194,7 +194,7 @@ describe("NavLinks component tokens — the type bundle", () => {
   });
 
   it("declares the rest of the bundle alongside it", () => {
-    expect(declarations.get("--nav-link-size")).toBe("var(--type-size-3)");
+    expect(declarations.get("--nav-link-size")).toBe("var(--type-size-2)");
     expect(declarations.get("--nav-link-weight")).toBe(
       "var(--font-weight-medium)",
     );
