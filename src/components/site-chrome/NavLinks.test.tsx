@@ -22,7 +22,7 @@ function activeLinkName(): string | null {
   return active ? (active.textContent ?? "") : null;
 }
 
-describe("NavLinks — the journal masthead current-page indicator", () => {
+describe("NavLinks — the current-page indicator", () => {
   it("renders every IA destination as a link with its journal-lowercase label", () => {
     pathnameMock.mockReturnValue("/");
     render(<NavLinks />);

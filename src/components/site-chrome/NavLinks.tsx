@@ -14,9 +14,8 @@ interface NavItem {
 }
 
 // The global editorial IA: the featured front door, the browse Index, and the shell pages.
-// `featured` and the wordmark both point home (`featured` is the
-// wayfinding item that carries the active state on `/`). Kept a module constant, not inlined,
-// so the set has one source of truth.
+// `featured` points home and is the wayfinding item that carries the active state on `/`.
+// Kept a module constant, not inlined, so the set has one source of truth.
 // The Index lives at `/browse` (not `/index`: Next prerenders the root route `/` to
 // `index.html`, so a route named `index` collides with home at the static-serving layer).
 // The visible label is still the journal "index".
