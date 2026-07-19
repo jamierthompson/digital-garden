@@ -1,3 +1,4 @@
+import { Rose } from "lucide-react";
 import Link from "next/link";
 
 import styles from "./Logo.module.css";
@@ -16,16 +17,12 @@ interface LogoProps {
  * height attributes.
  */
 /**
- * A stand-in mark — a plain square — so the header can be designed at full composition before
- * the real logo SVG exists. Delete this once the designed mark lands; it is passed explicitly
- * at the mount site rather than defaulted inside `Logo`, so the swap can't be forgotten.
+ * A stand-in mark — Lucide's rose — so the header can be designed at full composition before the
+ * real logo SVG exists. Delete this once the designed mark lands; it is passed explicitly at the
+ * mount site rather than defaulted inside `Logo`, so the swap can't be forgotten.
  */
 export function PlaceholderMark(): React.ReactElement {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <rect width="24" height="24" />
-    </svg>
-  );
+  return <Rose />;
 }
 
 export default function Logo({ children }: LogoProps): React.ReactElement {
