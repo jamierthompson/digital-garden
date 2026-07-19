@@ -1,6 +1,6 @@
 /* Site header band composer. @layer components — declares its layer (unlayered modules outrank
    every layered rule); var-consuming only (the shell is never theme-scoped). The band pieces own
-   their own modules (Logo, NavLinks, SchemeToggle); the band itself is a `ContentGrid` merged
+   their own modules (NavLinks, SchemeToggle); the band itself is a `ContentGrid` merged
    onto the `<header>`, its row in the `wide` lane — this module owns only the header's ink rule,
    the band's block padding, and the row's flex. */
 @layer components {

@@ -41,11 +41,7 @@ vi.mock("server-only", () => ({}));
 import { resolveThemeDeclarations } from "@/lib/theme";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 
-import {
-  declaredProperties,
-  readModuleCss,
-  ruleDeclarations,
-} from "../../tests/cssModule";
+import { readModuleCss, ruleDeclarations } from "../../tests/cssModule";
 
 import Home from "./page";
 
@@ -244,23 +240,9 @@ describe("Home (/) — edges & boundaries", () => {
     ).toBeInTheDocument();
   });
 
-  it("declares no block padding of its own — the lead-in is Page's, for every route", async () => {
-    // Home once carried a page-only `padding-block-start`; the lead-in moved to the `Page`
-    // primitive so all routes get it. Re-adding it here stacks on top of Page's and gives the
-    // front door alone a double lead-in.
-    const properties = declaredProperties(
-      readModuleCss("src/app/page.module.css"),
-    );
-    expect(properties.has("padding-block-start")).toBe(false);
-    expect(properties.has("padding-block")).toBe(false);
-    expect(properties.has("padding-top")).toBe(false);
-  });
-
   it("frames the page block with the lane alone — no block spacing in ANY form", () => {
-    // The property-name guard above is file-wide and enumerates three spellings, so it is blind
-    // to the two that actually reach `.content`: the `padding` SHORTHAND (already live in this
-    // file on `.grid`, so the name-based scan can never be tightened to catch it) and any
-    // `margin-block-*`. Either one re-creates the double lead-in the move to `Page` removed.
+    // The lead-in lives on the `Page` primitive; any block spacing re-added here — any spelling,
+    // padding or margin, longhand or shorthand — gives the front door alone a double lead-in.
     // Pin the rule the way Page.module.css pins its own: `.content` owns the lane and nothing
     // else, so every spelling of block spacing fails here.
     const declarations = ruleDeclarations(
