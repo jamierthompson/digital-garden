@@ -15,6 +15,19 @@ interface LogoProps {
  * press. The mark is sized by the module's `--logo-size` token, so an SVG needs no width or
  * height attributes.
  */
+/**
+ * A stand-in mark — a plain square — so the header can be designed at full composition before
+ * the real logo SVG exists. Delete this once the designed mark lands; it is passed explicitly
+ * at the mount site rather than defaulted inside `Logo`, so the swap can't be forgotten.
+ */
+export function PlaceholderMark(): React.ReactElement {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <rect width="24" height="24" />
+    </svg>
+  );
+}
+
 export default function Logo({ children }: LogoProps): React.ReactElement {
   return (
     // The link owns the accessible name (the site name) and the mark is hidden from AT — a

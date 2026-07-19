@@ -54,9 +54,18 @@ describe("SiteNav", () => {
     expect(current).toHaveTextContent(/featured/i);
   });
 
+  it("mounts the logo as a home link outside the primary nav", () => {
+    render(<SiteNav />);
+    const logo = screen.getByRole("link", { name: "jamie thompson" });
+    expect(logo).toHaveAttribute("href", "/");
+    const nav = screen.getByRole("navigation", { name: /primary/i });
+    expect(nav.contains(logo)).toBe(false);
+    expect(screen.getByRole("banner").contains(logo)).toBe(true);
+  });
+
   it("keeps the scheme toggle out of the primary nav", () => {
     render(<SiteNav />);
-    const toggle = screen.getByRole("switch", { name: /dark mode/i });
+    const toggle = screen.getByRole("button", { name: /switch to .* mode/i });
     const nav = screen.getByRole("navigation", { name: /primary/i });
     expect(nav.contains(toggle)).toBe(false);
     expect(screen.getByRole("banner").contains(toggle)).toBe(true);
@@ -117,10 +126,16 @@ describe("SiteNav border-width-thick pair — no active-state layout shift", () 
     expect(rule(siteNavCss, ".row")).toMatch(/grid-column:\s*wide/);
   });
 
-  it("sets the row's single cluster hard-right", () => {
-    // With no left-hand mark the row holds one cluster; at the inherited `space-between` it
-    // would land hard-LEFT. jsdom lays out nothing, so pin the alignment at the source.
-    expect(rule(siteNavCss, ".row")).toMatch(/justify-content:\s*flex-end/);
+  it("splits the row's two clusters — mark leading, controls hard-right", () => {
+    // The row holds exactly two children (the logo and the controls cluster). Were the nav and
+    // the toggle to escape that wrapper, space-between would spread three items across the band
+    // instead of two. jsdom lays out nothing, so pin both halves at the source.
+    expect(rule(siteNavCss, ".row")).toMatch(
+      /justify-content:\s*space-between/,
+    );
+    expect(rule(siteNavCss, ".controls")).toMatch(
+      /justify-content:\s*flex-end/,
+    );
   });
 
   it("the .link underline placeholder reserves --border-width-thick (transparent)", () => {

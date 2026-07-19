@@ -2,7 +2,7 @@
    every layered rule); var-consuming only (the shell is never theme-scoped). The band pieces own
    their own modules (NavLinks, SchemeToggle); the band itself is a `ContentGrid` merged
    onto the `<header>`, its row in the `wide` lane — this module owns only the header's ink rule,
-   the band's block padding, and the row's flex. */
+   the band's block padding, and the flex of the row and its right-hand cluster. */
 @layer components {
   .header {
     /* Component tokens — the header band's designed dimensions. */
@@ -18,9 +18,17 @@
     /* Wraps on narrow viewports (see NavLinks) — never dictate a minimum page width. */
     flex-wrap: wrap;
     align-items: center;
-    /* The band carries no left-hand mark, so its pieces sit hard-right as one cluster. */
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: var(--site-nav-gap);
     padding-block: var(--site-nav-pad);
+  }
+
+  .controls {
+    display: flex;
+    /* Wraps on narrow viewports (see NavLinks) — never dictate a minimum page width. */
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--site-nav-gap);
   }
 }

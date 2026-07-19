@@ -1,24 +1,45 @@
 /* Scheme toggle — @layer components, var-consuming only (global editorial semantic tokens;
-   the shell is never theme-scoped). Lays the shared `ui/Switch` between decorative sun/moon
-   icons; the active side brightens to ink so the current scheme reads at a glance. */
+   the shell is never theme-scoped). A bare button carrying one Lucide glyph: the geometry lives
+   on `.icon`, every interactive state on the button. */
 @layer components {
   .toggle {
-    /* Component token — the icon↔switch cluster's designed gap. */
-    --scheme-toggle-gap: var(--space-2);
+    /* The glyph is a graphic: `--icon` is the neutral graphic ink (the `ui` tier, 3:1 per WCAG
+       2.2 SC 1.4.11). Hover moves up the same neutral ramp to full strength. */
+    --scheme-toggle-ink: var(--icon);
+    --scheme-toggle-ink-hover: var(--foreground);
+    --scheme-toggle-radius: var(--radius-control);
+    --scheme-toggle-duration: var(--duration-fast);
+    --scheme-toggle-ease: var(--ease-standard);
 
+    /* ≥24×24 hit area (WCAG 2.2 SC 2.5.8 Target Size) floored on both axes, independent of the
+       glyph — `--size-icon` is smaller than the floor, so the button must supply the target. */
     display: inline-flex;
     align-items: center;
-    gap: var(--scheme-toggle-gap);
+    justify-content: center;
+    min-inline-size: var(--size-control);
+    min-block-size: var(--size-control);
+    padding: 0;
+    border: none;
+    border-radius: var(--scheme-toggle-radius);
+    background: none;
+    color: var(--scheme-toggle-ink);
+    cursor: pointer;
+    transition: color var(--scheme-toggle-duration) var(--scheme-toggle-ease);
   }
 
   .icon {
+    /* The glyph paints `currentColor` and takes its box from the token, so the button's ink
+       states drive it and Lucide's own width/height attributes never govern. */
     inline-size: var(--size-icon);
     block-size: var(--size-icon);
-    color: var(--muted-foreground);
-    transition: color var(--duration-fast) var(--ease-standard);
   }
 
-  .active {
-    color: var(--foreground);
+  .toggle:hover {
+    color: var(--scheme-toggle-ink-hover);
+  }
+
+  .toggle:focus-visible {
+    outline: var(--ring-width) var(--ring-style) var(--ring);
+    outline-offset: var(--ring-offset);
   }
 }
