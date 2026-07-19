@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import gridStyles from "@/components/layout/ContentGrid.module.css";
@@ -71,6 +71,47 @@ describe("SiteNav", () => {
     const nav = screen.getByRole("navigation", { name: /primary/i });
     expect(nav.contains(toggle)).toBe(false);
     expect(screen.getByRole("banner").contains(toggle)).toBe(true);
+  });
+
+  it("puts the logo BEFORE the primary nav in DOM order (identity first, then wayfinding)", () => {
+    // Containment alone can't catch a reorder: a logo moved after the nav still passes the
+    // outside-the-nav test, but tab order (and the SR reading order) would lead with the menu.
+    render(<SiteNav />);
+    const logo = screen.getByRole("link", { name: "jamie thompson" });
+    const nav = screen.getByRole("navigation", { name: /primary/i });
+    expect(
+      logo.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("the primary nav landmark owns exactly the five destinations, in IA order", () => {
+    // The landmark must WRAP the links, not merely exist beside them — an empty <nav> plus
+    // links floating outside it passes every contains-negative test above.
+    render(<SiteNav />);
+    const nav = screen.getByRole("navigation", { name: /primary/i });
+    const hrefs = within(nav)
+      .getAllByRole("link")
+      .map((a) => a.getAttribute("href"));
+    expect(hrefs).toEqual(["/", "/browse", "/system", "/about", "/now"]);
+  });
+
+  it("mounts the flower mark decorative and attribute-unsized (CSS owns its size)", () => {
+    // The mark's contract with Logo: no role in the a11y tree (the link carries the name), no
+    // width/height attributes (the module's --logo-size does the sizing), a SQUARE viewBox
+    // (a non-square one letterboxes inside the square --logo-size box), and `currentColor`
+    // fill so the state inks actually reach the petals. A decorative SVG has no accessible
+    // handle by design, so this reaches for querySelector deliberately.
+    render(<SiteNav />);
+    expect(screen.queryByRole("img")).toBeNull();
+    const logo = screen.getByRole("link", { name: "jamie thompson" });
+    const svg = logo.querySelector("svg");
+    expect(svg).not.toBeNull();
+    expect(svg).not.toHaveAttribute("width");
+    expect(svg).not.toHaveAttribute("height");
+    expect(svg).toHaveAttribute("fill", "currentColor");
+    const viewBox = (svg?.getAttribute("viewBox") ?? "").split(" ").map(Number);
+    expect(viewBox).toHaveLength(4);
+    expect(viewBox[2]).toBe(viewBox[3]);
   });
 
   it("aligns the header band to the shared content grid (ContentGrid's class lands on the <header> via asChild)", () => {

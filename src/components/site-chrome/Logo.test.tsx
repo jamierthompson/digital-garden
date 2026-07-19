@@ -43,6 +43,54 @@ describe("Logo", () => {
     );
     expect(screen.getAllByRole("link")).toHaveLength(1);
   });
+
+  describe("the any-SVG contract under hostile marks", () => {
+    it("keeps the link's name even when the mark carries its own role and label", () => {
+      // A designed mark exported from a tool often arrives with `role="img"` + a label baked
+      // in. The wrapper must silence it: otherwise the a11y tree grows a second, wrong name.
+      render(
+        <Logo>
+          <svg role="img" aria-label="rogue brand" viewBox="0 0 24 24" />
+        </Logo>,
+      );
+      expect(screen.queryByRole("img")).toBeNull();
+      expect(
+        screen.getByRole("link", { name: "jamie thompson" }),
+      ).toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: /rogue/i })).toBeNull();
+    });
+
+    it("keeps the link's name when the mark leaks text content", () => {
+      // `aria-label` on the link must beat any child text in the accessible-name computation,
+      // so a mark with stray <text>/tspans can't rename the home link.
+      render(
+        <Logo>
+          <svg viewBox="0 0 24 24">
+            <text>stray label</text>
+          </svg>
+        </Logo>,
+      );
+      expect(
+        screen.getByRole("link", { name: "jamie thompson" }),
+      ).toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: /stray/i })).toBeNull();
+    });
+
+    it("hides every child of a multi-node mark behind the one decorative wrapper", () => {
+      render(
+        <Logo>
+          <svg viewBox="0 0 24 24" data-testid="first" />
+          <svg viewBox="0 0 24 24" data-testid="second" />
+        </Logo>,
+      );
+      expect(screen.getAllByRole("link")).toHaveLength(1);
+      for (const id of ["first", "second"]) {
+        expect(
+          screen.getByTestId(id).closest("[aria-hidden='true']"),
+        ).not.toBeNull();
+      }
+    });
+  });
 });
 
 /**
@@ -59,6 +107,7 @@ describe("Logo component tokens and states", () => {
     expect(declarations.get("--logo-ink")).toBe("var(--accent-text)");
     expect(declarations.get("--logo-ink-hover")).toBe("var(--accent)");
     expect(declarations.get("--logo-radius")).toBe("var(--radius-control)");
+    expect(declarations.get("--logo-press-scale")).toBe("0.94");
     expect(declarations.get("--logo-duration")).toBe("var(--duration-fast)");
     expect(declarations.get("--logo-ease")).toBe("var(--ease-standard)");
   });
@@ -78,6 +127,14 @@ describe("Logo component tokens and states", () => {
     expect(declarations.get("border-radius")).toBe("var(--logo-radius)");
     expect(declarations.get("transition")).toContain("var(--logo-duration)");
     expect(declarations.get("transition")).toContain("var(--logo-ease)");
+  });
+
+  it("transitions BOTH state channels — the ink change and the press transform", () => {
+    // The states move exactly two properties (color on hover/press, transform on press);
+    // dropping either from the transition list makes that state snap instead of ease.
+    const transition = ruleDeclarations(css, ".logo").get("transition") ?? "";
+    expect(transition).toMatch(/(^|[\s,])color[\s,]/);
+    expect(transition).toMatch(/(^|[\s,])transform[\s,]/);
   });
 
   it("sizes the mark from --logo-size, so an SVG needs no width/height attributes", () => {
