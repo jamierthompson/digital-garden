@@ -2,6 +2,9 @@
    (lanes, gutter, centering) is entirely the content grid's; this owns only the frame's block
    breathing. Vertical rhythm between the frame's children is a separate concern, not the frame's. */
 @layer components {
+  /* Kept as the `padding-block` SHORTHAND so a route that owns its own block padding (a
+     full-bleed frame, a state screen) still replaces both edges in one declaration rather
+     than half-overriding this one. */
   .page {
     padding-block: var(--space-gutter);
   }

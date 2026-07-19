@@ -35,6 +35,14 @@
     line-height: var(--type-meta-leading);
   }
 
+  .text[data-variant="kicker"] {
+    font-family: var(--type-kicker-family);
+    font-size: var(--type-kicker-size);
+    font-weight: var(--type-kicker-weight);
+    letter-spacing: var(--type-kicker-tracking);
+    line-height: var(--type-kicker-leading);
+  }
+
   .text[data-variant="caption"] {
     font-family: var(--type-caption-family);
     font-size: var(--type-caption-size);

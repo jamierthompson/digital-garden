@@ -1,0 +1,54 @@
+/* Site logo — the header's home link. @layer components — declares its layer (an unlayered
+   module outranks every layered rule); var-consuming only (the shell is never theme-scoped).
+   The mark is a single-color SVG painting `currentColor`, so every state is an ink change on
+   the link plus the press transform. */
+@layer components {
+  .logo {
+    /* Component tokens — the logo's designed size, ink, and motion. Chrome-only, so no
+       `--type-<role>-*` bundle: the role sheet is the editorial vocabulary the type engine
+       derives, and the logo carries no type at all. */
+    --logo-size: var(--size-control-lg);
+    --logo-ink: var(--accent-text);
+    --logo-ink-hover: var(--accent);
+    --logo-radius: var(--radius-control);
+    --logo-press-scale: 0.94;
+    --logo-duration: var(--duration-fast);
+    --logo-ease: var(--ease-standard);
+
+    /* ≥24×24 hit area (WCAG 2.2 SC 2.5.8 Target Size) floored on both axes mechanically, so a
+       future mark smaller than `--logo-size` still clears the floor. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--size-control);
+    min-block-size: var(--size-control);
+    border-radius: var(--logo-radius);
+    color: var(--logo-ink);
+    transition:
+      color var(--logo-duration) var(--logo-ease),
+      transform var(--logo-duration) var(--logo-ease);
+  }
+
+  .mark {
+    display: inline-flex;
+  }
+
+  .mark svg {
+    inline-size: var(--logo-size);
+    block-size: var(--logo-size);
+  }
+
+  .logo:hover {
+    color: var(--logo-ink-hover);
+  }
+
+  .logo:focus-visible {
+    outline: var(--ring-width) var(--ring-style) var(--ring);
+    outline-offset: var(--ring-offset);
+  }
+
+  .logo:active {
+    color: var(--logo-ink-hover);
+    transform: scale(var(--logo-press-scale));
+  }
+}

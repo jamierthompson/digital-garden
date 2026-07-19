@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import textLinkStyles from "@/components/ui/TextLink.module.css";
 
+import { readModuleCss, ruleDeclarations } from "../../../tests/cssModule";
+
 // NavLinks reads `usePathname`. Under Vitest there is no App Router context, so mock the
 // hook with a mutable holder we can rewrite per test to exercise the active-state matcher.
 const { pathnameMock } = vi.hoisted(() => ({ pathnameMock: vi.fn() }));
@@ -22,7 +24,7 @@ function activeLinkName(): string | null {
   return active ? (active.textContent ?? "") : null;
 }
 
-describe("NavLinks — the journal masthead current-page indicator", () => {
+describe("NavLinks — the current-page indicator", () => {
   it("renders every IA destination as a link with its journal-lowercase label", () => {
     pathnameMock.mockReturnValue("/");
     render(<NavLinks />);
@@ -174,5 +176,41 @@ describe("NavLinks .link — WCAG 2.5.8 target size floor", () => {
     // padding-block (top+bottom) enlarges the target beyond the text line box; the value is
     // the module's --nav-link-pad component token.
     expect(linkRule).toMatch(/padding-block:\s*var\(--nav-link-pad\)/);
+  });
+});
+
+/**
+ * The nav links' type bundle. jsdom computes no custom properties, so the designed values only
+ * exist at the source — and the FAMILY binding is the one most likely to be flipped back by
+ * accident, since every other chrome face reads `--font-heading`. Pinning it is what makes the
+ * mono choice deliberate rather than incidental.
+ */
+describe("NavLinks component tokens — the type bundle", () => {
+  const css = readModuleCss("src/components/site-chrome/NavLinks.module.css");
+  const declarations = ruleDeclarations(css, ".links");
+
+  it("binds the links to the mono face", () => {
+    expect(declarations.get("--nav-link-family")).toBe("var(--font-mono)");
+  });
+
+  it("declares the rest of the bundle alongside it", () => {
+    expect(declarations.get("--nav-link-size")).toBe("var(--type-size-2)");
+    expect(declarations.get("--nav-link-weight")).toBe(
+      "var(--font-weight-medium)",
+    );
+    expect(declarations.get("--nav-link-tracking")).toBe(
+      "var(--tracking-normal)",
+    );
+    expect(declarations.get("--nav-link-leading")).toBe(
+      "var(--leading-normal)",
+    );
+  });
+
+  it("consumes the family token on the rule that renders the label", () => {
+    // Declared on `.links` (the <ul>) and read on `.link` (the anchor) — inheritance carries
+    // it, but a consumer that drifted to a non-descendant rule would resolve to nothing.
+    expect(ruleDeclarations(css, ".link").get("font-family")).toBe(
+      "var(--nav-link-family)",
+    );
   });
 });

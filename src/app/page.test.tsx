@@ -41,6 +41,8 @@ vi.mock("server-only", () => ({}));
 import { resolveThemeDeclarations } from "@/lib/theme";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 
+import { readModuleCss, ruleDeclarations } from "../../tests/cssModule";
+
 import Home from "./page";
 
 const accentOf = (seed: unknown): string =>
@@ -98,6 +100,45 @@ describe("Home (featured front door)", () => {
     ).toBeInTheDocument();
   });
 
+  // The kicker is the superhead naming the site above the headline. It must be a real sibling
+  // immediately before the h1 — plain document order would also pass with the kicker stranded in
+  // another landmark — and it must NOT enter the outline (the h1 below is the page's one h1).
+  it("keeps the kicker as the h1's immediately preceding sibling in the hero section", async () => {
+    render(await Home());
+    const kicker = screen.getByText(
+      /the design-engineering garden of jamie thompson/i,
+    );
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(kicker.tagName).toBe("P");
+    expect(kicker.nextElementSibling).toBe(h1);
+    expect(kicker.closest("section")).not.toBeNull();
+    expect(kicker.closest("section")).toBe(h1.closest("section"));
+  });
+
+  it("wears the kicker type role and the muted ink, minting no heading", async () => {
+    render(await Home());
+    const kicker = screen.getByText(
+      /the design-engineering garden of jamie thompson/i,
+    );
+    expect(kicker).toHaveAttribute("data-variant", "kicker");
+    expect(kicker).toHaveAttribute("data-color", "muted-foreground");
+    expect(
+      screen.queryByRole("heading", { name: /design-engineering garden/i }),
+    ).toBeNull();
+  });
+
+  // The headline carries no emphasis element. `em` is rendered in the heading face, which has no
+  // true italic — the browser would synthesize a slant. Pinned as unstyled running text so the
+  // treatment can't creep back in on a face that still can't honour it.
+  it("renders the headline as plain running text, with no emphasis element", async () => {
+    render(await Home());
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(h1.querySelectorAll("em, i")).toHaveLength(0);
+    expect(h1.textContent).toBe(
+      "Notes, essays, and things I’m building in the open.",
+    );
+  });
+
   it("renders each featured entry as a card linking to its flat /[slug]", async () => {
     render(await Home());
     expect(
@@ -133,6 +174,9 @@ describe("Home (/) — edges & boundaries", () => {
     // (The onward "browse everything →" link now lives in the global SiteFooter, not Home.)
     expect(
       screen.getByRole("heading", { level: 1, name: /building in the open/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/the design-engineering garden of jamie thompson/i),
     ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /featured/i })).toBeNull();
   });
@@ -194,6 +238,30 @@ describe("Home (/) — edges & boundaries", () => {
     expect(
       screen.getByRole("link", { name: /untitled entry/i }),
     ).toBeInTheDocument();
+  });
+
+  it("frames the page block with the lane alone — no block spacing in ANY form", () => {
+    // The lead-in lives on the `Page` primitive; any block spacing re-added here — any spelling,
+    // padding or margin, longhand or shorthand — gives the front door alone a double lead-in.
+    // Pin the rule the way Page.module.css pins its own: `.content` owns the lane and nothing
+    // else, so every spelling of block spacing fails here.
+    const declarations = ruleDeclarations(
+      readModuleCss("src/app/page.module.css"),
+      ".content",
+    );
+    expect([...declarations.keys()]).toEqual(["grid-column"]);
+  });
+
+  it("sets the kicker→h1 gap to space(4), the superhead's own line", async () => {
+    // The hero's gap is a designed value with no pin of its own: `Stack` writes it as the inline
+    // `--stack-gap` custom property, so a silent revert to the old, too-tight space(2) renders
+    // identically in jsdom and passes every other test in this file. Scope to the section that
+    // owns the h1 — the featured block below it is a separate space(4) Stack.
+    mockReads({ featured: [] });
+    render(await Home());
+    const hero = screen.getByRole("heading", { level: 1 }).closest("section");
+    expect(hero).not.toBeNull();
+    expect(hero?.style.getPropertyValue("--stack-gap")).toBe("var(--space-4)");
   });
 
   it("keeps a clean heading hierarchy: one h1, an h2 section, h3 card titles", async () => {

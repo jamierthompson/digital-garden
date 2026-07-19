@@ -1,19 +1,15 @@
-/* Site navigation — the "engineering journal" masthead composer. @layer components — declares
-   its layer (unlayered modules outrank every layered rule); var-consuming only (the shell is
-   never theme-scoped). The band pieces own their own modules (Masthead, Wordmark, NavLinks);
-   the nav band is a `ContentGrid`, its row in the `wide` lane — this module owns only the
-   header's ink rule, the band's block padding, and the row's flex. */
+/* Site header band composer. @layer components — declares its layer (unlayered modules outrank
+   every layered rule); var-consuming only (the shell is never theme-scoped). The band pieces own
+   their own modules (NavLinks, SchemeToggle); the band itself is a `ContentGrid` merged
+   onto the `<header>`, its row in the `wide` lane — this module owns only the header's ink rule,
+   the band's block padding, and the row's flex. */
 @layer components {
   .header {
-    /* Component tokens — the nav band's designed dimensions. */
+    /* Component tokens — the header band's designed dimensions. */
     --site-nav-pad: var(--space-4);
     --site-nav-gap: var(--space-5);
 
     border-bottom: var(--border-width-thick) solid var(--accent);
-  }
-
-  .nav {
-    padding-block: var(--site-nav-pad);
   }
 
   .row {
@@ -22,15 +18,9 @@
     /* Wraps on narrow viewports (see NavLinks) — never dictate a minimum page width. */
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    /* The band carries no left-hand mark, so its pieces sit hard-right as one cluster. */
+    justify-content: flex-end;
     gap: var(--site-nav-gap);
-  }
-
-  /* Right cluster — the primary links and the scheme toggle share the nav's right side. */
-  .navEnd {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--site-nav-gap);
+    padding-block: var(--site-nav-pad);
   }
 }

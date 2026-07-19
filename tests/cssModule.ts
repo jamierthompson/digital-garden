@@ -48,6 +48,20 @@ export function referencedCustomProperties(css: string): Set<string> {
   return names;
 }
 
+/**
+ * Every live NON-custom property NAME declared anywhere in the source (e.g. `font-style`,
+ * `font-synthesis`). For pinning that a module declares — or deliberately does NOT declare —
+ * a given property in ANY of its rules, which a single-rule `ruleDeclarations` pin cannot see
+ * (inherited properties like `font-synthesis` take effect from any ancestor rule).
+ */
+export function declaredProperties(css: string): Set<string> {
+  const names = new Set<string>();
+  postcss.parse(css).walkDecls((decl) => {
+    if (!decl.prop.startsWith("--")) names.add(decl.prop);
+  });
+  return names;
+}
+
 /** Every live custom-property NAME declared anywhere in the source. */
 export function declaredCustomProperties(css: string): Set<string> {
   const names = new Set<string>();
