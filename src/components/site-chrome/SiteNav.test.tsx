@@ -54,40 +54,30 @@ describe("SiteNav", () => {
     expect(current).toHaveTextContent(/featured/i);
   });
 
-  it("renders the site tagline as a masthead band (not a heading — pages own their h1)", () => {
+  it("mounts the logo inside the banner but OUTSIDE the primary nav", () => {
+    // The a11y fix this structure exists for: nested inside `<nav>`, the logo is announced as
+    // the first navigation item instead of banner-level site identity. Nothing visual changes
+    // when it regresses, so the DOM relationship is the assertion.
     render(<SiteNav />);
-    expect(
-      screen.getByText(/a design-engineering garden/i),
-    ).toBeInTheDocument();
-    // It must NOT be a heading: the shell is on every page, so an h-element here would
-    // collide with each page's own h1.
-    expect(
-      screen.queryByRole("heading", {
-        name: /design-engineering garden/i,
-      }),
-    ).toBeNull();
+    const logo = screen.getByRole("link", { name: "jamie thompson" });
+    const nav = screen.getByRole("navigation", { name: /primary/i });
+    expect(screen.getByRole("banner").contains(logo)).toBe(true);
+    expect(nav.contains(logo)).toBe(false);
   });
 
-  it("keeps the byline a paragraph after the meta-role migration", () => {
+  it("keeps the scheme toggle out of the primary nav too", () => {
     render(<SiteNav />);
-    const byline = screen.getByText(/a design-engineering garden/i);
-    expect(byline.tagName).toBe("P");
+    const toggle = screen.getByRole("switch", { name: /dark mode/i });
+    const nav = screen.getByRole("navigation", { name: /primary/i });
+    expect(nav.contains(toggle)).toBe(false);
+    expect(screen.getByRole("banner").contains(toggle)).toBe(true);
   });
 
-  it("keeps the decorative dateline hidden from assistive tech (aria-hidden passthrough)", () => {
+  it("aligns the header band to the shared content grid (ContentGrid's class lands on the <header> via asChild)", () => {
     render(<SiteNav />);
-    const dateline = screen.getByText(/est\. 2026/i);
-    expect(dateline).toHaveAttribute("aria-hidden", "true");
-    expect(screen.queryByRole("heading", { name: /est\. 2026/i })).toBeNull();
-  });
-
-  it("aligns the nav band to the shared content grid (ContentGrid's class lands on the <nav> via asChild)", () => {
-    render(<SiteNav />);
-    // The composer's one layout responsibility: without this class the nav row silently goes
-    // full-bleed while the masthead and footer stay aligned — jsdom can't see the misalignment.
-    expect(screen.getByRole("navigation", { name: /primary/i })).toHaveClass(
-      gridStyles.grid,
-    );
+    // The composer's one layout responsibility: without this class the header row silently
+    // goes full-bleed while the footer stays aligned — jsdom can't see the misalignment.
+    expect(screen.getByRole("banner")).toHaveClass(gridStyles.grid);
   });
 });
 
@@ -107,7 +97,6 @@ describe("SiteNav border-width-thick pair — no active-state layout shift", () 
     );
   const siteNavCss = read("SiteNav.module.css");
   const navLinksCss = read("NavLinks.module.css");
-  const mastheadCss = read("Masthead.module.css");
 
   const rule = (css: string, selector: string): string => {
     const re = new RegExp(
@@ -122,7 +111,7 @@ describe("SiteNav border-width-thick pair — no active-state layout shift", () 
     );
   });
 
-  it("the nav row takes the wide lane of the band grid", () => {
+  it("the header row takes the wide lane of the band grid", () => {
     // jsdom can't lay out the grid; pin the lane at the source. Without this the row falls to
     // the default prose lane and the chrome misaligns with the page content.
     expect(rule(siteNavCss, ".row")).toMatch(/grid-column:\s*wide/);
@@ -143,21 +132,15 @@ describe("SiteNav border-width-thick pair — no active-state layout shift", () 
     expect(active).not.toMatch(/border-bottom-width:/);
     expect(active).not.toMatch(/border-bottom:\s*[^;]*\d/);
   });
-
-  it("the masthead hairline stays the THIN (1px) width, distinct from the ink rule", () => {
-    expect(rule(mastheadCss, ".masthead")).toMatch(
-      /border-bottom:\s*var\(--border-width\)\s+solid/,
-    );
-  });
 });
 
 /**
  * Component tokens are only real if they RESOLVE. A `var(--typo-d-name)` read is invalid at
  * computed-value time — the property silently falls to its initial value with no build error,
  * no lint failure, and no jsdom symptom, because jsdom computes no custom properties at all.
- * The chrome's tokens are declared on one rule (`.header`, `.links`, `.masthead`) and consumed
- * on descendants, so a rename that misses a consumer, or a token declared on a NON-ancestor,
- * is invisible to every other test in this directory. These two scans are that net.
+ * The chrome's tokens are declared on one rule (`.header`, `.links`, `.logo`) and consumed on
+ * descendants, so a rename that misses a consumer, or a token declared on a NON-ancestor, is
+ * invisible to every other test in this directory. These two scans are that net.
  */
 describe("site-chrome component tokens resolve", () => {
   const CHROME_DIR = resolve(process.cwd(), "src/components/site-chrome");
