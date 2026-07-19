@@ -18,16 +18,9 @@
     /* Wraps on narrow viewports (see NavLinks) — never dictate a minimum page width. */
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    /* The band carries no left-hand mark, so its pieces sit hard-right as one cluster. */
+    justify-content: flex-end;
     gap: var(--site-nav-gap);
     padding-block: var(--site-nav-pad);
-  }
-
-  /* Right cluster — the primary nav and the scheme toggle share the row's right side. */
-  .navEnd {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--site-nav-gap);
   }
 }

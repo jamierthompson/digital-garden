@@ -27,7 +27,7 @@ describe("SiteNav", () => {
     ).toBeInTheDocument();
   });
 
-  it("links to home (the logo + featured), the Index, Now, About, and System", () => {
+  it("links to home (featured), the Index, Now, About, and System", () => {
     render(<SiteNav />);
     const hrefs = screen
       .getAllByRole("link")
@@ -54,34 +54,12 @@ describe("SiteNav", () => {
     expect(current).toHaveTextContent(/featured/i);
   });
 
-  it("mounts the logo inside the banner but OUTSIDE the primary nav", () => {
-    // The a11y fix this structure exists for: nested inside `<nav>`, the logo is announced as
-    // the first navigation item instead of banner-level site identity. Nothing visual changes
-    // when it regresses, so the DOM relationship is the assertion.
-    render(<SiteNav />);
-    const logo = screen.getByRole("link", { name: "jamie thompson" });
-    const nav = screen.getByRole("navigation", { name: /primary/i });
-    expect(screen.getByRole("banner").contains(logo)).toBe(true);
-    expect(nav.contains(logo)).toBe(false);
-  });
-
-  it("keeps the scheme toggle out of the primary nav too", () => {
+  it("keeps the scheme toggle out of the primary nav", () => {
     render(<SiteNav />);
     const toggle = screen.getByRole("switch", { name: /dark mode/i });
     const nav = screen.getByRole("navigation", { name: /primary/i });
     expect(nav.contains(toggle)).toBe(false);
     expect(screen.getByRole("banner").contains(toggle)).toBe(true);
-  });
-
-  it("puts the logo BEFORE the primary nav in DOM order (identity first, then wayfinding)", () => {
-    // Containment alone can't catch a reorder: a logo moved after the nav still passes the
-    // outside-the-nav test, but tab order (and the SR reading order) would lead with the menu.
-    render(<SiteNav />);
-    const logo = screen.getByRole("link", { name: "jamie thompson" });
-    const nav = screen.getByRole("navigation", { name: /primary/i });
-    expect(
-      logo.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
   });
 
   it("the primary nav landmark owns exactly the five destinations, in IA order", () => {
@@ -93,25 +71,6 @@ describe("SiteNav", () => {
       .getAllByRole("link")
       .map((a) => a.getAttribute("href"));
     expect(hrefs).toEqual(["/", "/browse", "/system", "/about", "/now"]);
-  });
-
-  it("mounts the flower mark decorative and attribute-unsized (CSS owns its size)", () => {
-    // The mark's contract with Logo: no role in the a11y tree (the link carries the name), no
-    // width/height attributes (the module's --logo-size does the sizing), a SQUARE viewBox
-    // (a non-square one letterboxes inside the square --logo-size box), and `currentColor`
-    // fill so the state inks actually reach the petals. A decorative SVG has no accessible
-    // handle by design, so this reaches for querySelector deliberately.
-    render(<SiteNav />);
-    expect(screen.queryByRole("img")).toBeNull();
-    const logo = screen.getByRole("link", { name: "jamie thompson" });
-    const svg = logo.querySelector("svg");
-    expect(svg).not.toBeNull();
-    expect(svg).not.toHaveAttribute("width");
-    expect(svg).not.toHaveAttribute("height");
-    expect(svg).toHaveAttribute("fill", "currentColor");
-    const viewBox = (svg?.getAttribute("viewBox") ?? "").split(" ").map(Number);
-    expect(viewBox).toHaveLength(4);
-    expect(viewBox[2]).toBe(viewBox[3]);
   });
 
   it("aligns the header band to the shared content grid (ContentGrid's class lands on the <header> via asChild)", () => {
@@ -156,6 +115,12 @@ describe("SiteNav border-width-thick pair — no active-state layout shift", () 
     // jsdom can't lay out the grid; pin the lane at the source. Without this the row falls to
     // the default prose lane and the chrome misaligns with the page content.
     expect(rule(siteNavCss, ".row")).toMatch(/grid-column:\s*wide/);
+  });
+
+  it("sets the row's single cluster hard-right", () => {
+    // With no left-hand mark the row holds one cluster; at the inherited `space-between` it
+    // would land hard-LEFT. jsdom lays out nothing, so pin the alignment at the source.
+    expect(rule(siteNavCss, ".row")).toMatch(/justify-content:\s*flex-end/);
   });
 
   it("the .link underline placeholder reserves --border-width-thick (transparent)", () => {
