@@ -13,7 +13,7 @@
  * (`ui`: 3:1 + Lc 45) — each landed by `minPass` against the scheme's worst-case surface and
  * carrying solve-time step provenance, exactly like the semantic `auto` tokens.
  *
- * DECORATIVE, still outside the guarded 37-token semantic surface: this is a separated
+ * DECORATIVE, still outside the guarded 38-token semantic surface: this is a separated
  * annex the studio opts into by calling the dedicated `harmonyTierTo*` serializers in
  * `export.ts`, never a growth of the semantic token list. Status hues stay fixed-hue and are NOT part of this
  * tier (`error` stays red — #66). Built by reusing `resolveTheme` so the seed, the

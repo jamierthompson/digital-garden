@@ -25,7 +25,7 @@ describe("tokenSetToDeclarations", () => {
     expect(decls).toContain("--background:");
     expect(decls).toContain("--accent:");
     expect(decls).toContain("--ring:");
-    // The 37-token contract (#160, #229): the neutral `muted` background + the `accent-subtle`
+    // The 38-token contract: the neutral `muted` background + the `accent-subtle`
     // pair, status trios/subtle surfaces, interaction states, scrim.
     expect(decls).toContain("--muted:");
     expect(decls).toContain("--accent-subtle:");

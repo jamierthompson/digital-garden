@@ -101,7 +101,7 @@ describe("deterministic snapshot (#70/#160): the full token set is bit-for-bit s
     ({ key, seed, opts }) => {
       // The engine is a pure, deterministic function of its inputs — the FULL output (values +
       // the reported provenance) is pinned to the committed golden (regenerated wholesale for
-      // the 37-token contract). A future change that accidentally perturbs any baked value or
+      // the 38-token contract). A future change that accidentally perturbs any baked value or
       // any receipt fails here. Round-tripped through JSON so the compare matches the fixture's
       // shape exactly (no `undefined` / prototype differences).
       // NOTE: regenerating this fixture must be a pure ADDITION when a role is added — a

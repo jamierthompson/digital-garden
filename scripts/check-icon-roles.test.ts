@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { findIconRoleViolations } from "./check-icon-roles.mjs";
@@ -164,5 +167,69 @@ describe("check-icon-roles", () => {
     // walked top-level rules would pass the entire codebase vacuously.
     const css = `@layer components { @media (min-width: 40rem) { .icon { color: var(--accent-text); } } }`;
     expect(lines(css)).toEqual([1]);
+  });
+
+  describe("QA — independent adversarial: detector gaps", () => {
+    it("catches the ink-on-the-CONTROL pattern — a glyph painted via currentColor inheritance", () => {
+      // The repo's own convention (SchemeToggle.module.css): the ink is declared AND painted on
+      // `.toggle`, and the glyph — a Lucide SVG taking `currentColor` — receives only geometry
+      // on `.icon`. The paint site is the button rule, whose selector names no graphic, so the
+      // guard never inspects it: swap the ink to a text role and `pnpm lint:icon` stays green
+      // while the slice's one mounted icon reads `--muted-foreground`. The header's own doc
+      // ("`color` counts: an SVG taking `currentColor` … is painted by it") only holds when the
+      // `color` declaration sits on a graphic-named rule — which this codebase's flagship icon
+      // consumer does not do.
+      const css = [
+        `.toggle { --scheme-toggle-ink: var(--muted-foreground); color: var(--scheme-toggle-ink); }`,
+        `.icon { inline-size: var(--size-icon); block-size: var(--size-icon); }`,
+      ].join("\n");
+      expect(lines(css)).toEqual([1]);
+    });
+
+    it("catches the SHIPPED SchemeToggle module with its ink swapped to the text tier", () => {
+      // Bind the gap to the real file, so a refactor of the module keeps this pin honest.
+      const real = readFileSync(
+        resolve(
+          process.cwd(),
+          "src/components/site-chrome/SchemeToggle.module.css",
+        ),
+        "utf8",
+      );
+      const sabotaged = real.replace("var(--icon)", "var(--muted-foreground)");
+      expect(sabotaged).toContain("var(--muted-foreground)");
+      expect(findIconRoleViolations(sabotaged).length).toBeGreaterThan(0);
+    });
+
+    it("does not flag a TEXT rule whose selector merely MENTIONS a graphic part", () => {
+      // The subject of `.logo + .caption` is the caption — text. The detector matches any
+      // graphic word anywhere in the selector, not the selector's SUBJECT (its rightmost
+      // compound), so a legitimate muted caption beside a logo fails `pnpm lint:icon`.
+      expect(
+        lines(`.logo + .caption { color: var(--muted-foreground); }`),
+      ).toEqual([]);
+      expect(
+        lines(`.card:has(> .icon) { color: var(--muted-foreground); }`),
+      ).toEqual([]);
+    });
+
+    it("does not flag prose class names that merely CONTAIN a graphic word", () => {
+      // `.markdown` contains "mark"; `.logout` contains "logo" — both are text surfaces. In a
+      // digital garden, a `.markdown` body rule reading `--muted-foreground` is routine and
+      // would be blocked by CI the day it lands.
+      expect(lines(`.markdown { color: var(--muted-foreground); }`)).toEqual(
+        [],
+      );
+      expect(lines(`.logout { color: var(--muted-foreground); }`)).toEqual([]);
+    });
+
+    it("follows an underscore-named component token — any valid custom property name", () => {
+      // `--icon_ink` is a valid <custom-property-name>; the resolver's `[a-z0-9-]` pattern
+      // stops at the underscore, so the indirection launders the text role past the check.
+      expect(
+        lines(
+          `.icon { --icon_ink: var(--muted-foreground); color: var(--icon_ink); }`,
+        ),
+      ).toEqual([1]);
+    });
   });
 });

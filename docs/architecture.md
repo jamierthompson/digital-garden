@@ -167,8 +167,13 @@ contract, never a mutation to reach for.
 
 **Text and graphics are solved at different targets, so they read different roles.** WCAG 2.2
 governs text at 4.5:1 (SC 1.4.3) and non-text content — icons, marks, glyphs — at 3:1
-(SC 1.4.11, the engine's `ui` tier). The neutral ink ramp runs `--foreground` (Lc 75) →
-`--muted-foreground` (60) → `--icon` (45) → `--border` (30). A graphic paints from **`--icon`**,
+(SC 1.4.11, the engine's `ui` tier). The neutral ink ramp descends `--foreground` (Lc 75) →
+`--muted-foreground` (60) → `--icon` (45) → `--border` (30). It is **monotonic in contrast, not
+four guaranteed-distinct inks**: `--icon` and `--border` bind the same neutral step in every
+light-scheme solve, because the `ui` and `border` clearing sets meet there — the same "distinct
+role, shared fallback color by design" case as `--muted`/`--surface`. Read the role for the job;
+two roles resolving to one value in one polarity is expected, and only the ordering (plus
+`--icon` never collapsing into `--muted-foreground`) is guaranteed. A graphic paints from **`--icon`**,
 or from `--foreground` when it wants full strength (same neutral role, higher emphasis — that is
 how an icon's hover reads), or from a fill it sits on (`--accent`, `--accent-hover`, a status fill
 and its `-foreground` label). It never reads `--muted-foreground` or a `*-text` role: those are

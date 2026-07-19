@@ -102,7 +102,7 @@ const STATUS_HUE: Record<"success" | "error" | "warning" | "info", number> = {
 // gamut-mapped ramp rather than a uniform ΔL step.
 const STATUS_CHROMA = 0.15;
 
-// The four status roles, in the token EMISSION order of the 37-token contract (#160, #229): each
+// The four status roles, in the token EMISSION order of the 38-token contract: each
 // contributes a fill + fill-foreground + text + subtle + subtle-foreground block.
 const STATUS_ROLES = ["error", "warning", "success", "info"] as const;
 
