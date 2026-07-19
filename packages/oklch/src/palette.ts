@@ -198,6 +198,10 @@ export const DEFAULT_BINDING_SCHEMA: Readonly<
     role: "neutral",
     target: CONTRAST_TARGETS.mutedText,
   },
+  // Neutral graphic ink: icons, marks, and any non-text glyph taking `currentColor`. Solved at
+  // the `ui` tier because SC 1.4.11 governs non-text content at 3:1 — a graphic reading a
+  // 4.5-solved text role is over-solved and, more importantly, semantically wrong.
+  icon: { kind: "auto", role: "neutral", target: CONTRAST_TARGETS.ui },
   border: { kind: "auto", role: "neutral", target: CONTRAST_TARGETS.border },
   // Accent identity — the faithful continuous accent + its accent-foreground label.
   accent: { kind: "fill", role: "accent" },

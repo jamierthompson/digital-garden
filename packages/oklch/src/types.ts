@@ -113,12 +113,16 @@ export interface EngineRules extends RampRules {
 /**
  * The generic, public token names the engine emits, in canonical emission order — the
  * drift-guarded semantic surface (#99, completed to the 34-token model in #160, extended to
- * the 37-token model in #229 — the neutral `muted` background + the `accent-subtle` pair;
- * freely changeable since the engine is internal/single-consumer). Exported so consumers (the
- * drift-guard test, Sanity author-time validation, the studio receipt) read the one list
- * rather than restating it.
+ * the 37-token model in #229 — the neutral `muted` background + the `accent-subtle` pair — and
+ * to 38 with the neutral `icon` ink; freely changeable since the engine is
+ * internal/single-consumer). Exported so consumers (the drift-guard test, Sanity author-time
+ * validation, the studio receipt) read the one list rather than restating it.
  *
- * Emission order: the core 13, then a per-status block ×4 (`error`/`warning`/`success`/`info`)
+ * `icon` fills the gap in the neutral ink ramp at the `ui` tier (Lc 45): non-text graphics are
+ * governed by WCAG 2.2 SC 1.4.11 at 3:1, so an icon may not read a 4.5-solved text role. The
+ * neutral ramp now runs foreground (Lc 75) → muted-foreground (60) → icon (45) → border (30).
+ *
+ * Emission order: the core 14, then a per-status block ×4 (`error`/`warning`/`success`/`info`)
  * of fill · fill-foreground · text · subtle · subtle-foreground, then the three interaction states
  * (`accent-hover`, `surface-hover`, `surface-selected`), then the `scrim` overlay literal. The
  * status roles carry FIXED canonical hues (not seed-derived), harmonized with the slot only
@@ -130,13 +134,14 @@ export interface EngineRules extends RampRules {
  * including the state ones.
  */
 export const THEME_TOKEN_NAMES = [
-  // Core (13)
+  // Core (14)
   "background",
   "surface",
   "surface-elevated",
   "foreground",
   "muted",
   "muted-foreground",
+  "icon",
   "border",
   "accent",
   "accent-text",

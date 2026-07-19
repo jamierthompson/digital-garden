@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildTokenSet, resolveTheme } from "./palette";
+import { buildTokenSet, DEFAULT_BINDING_SCHEMA, resolveTheme } from "./palette";
 import { minPass } from "./binding";
 import { inGamut } from "./gamut";
 import { apcaLc, contrastWCAG } from "./contrast";
@@ -1365,6 +1365,9 @@ describe("QA — adversarial: interaction-state + un-mirror invariants (#160)", 
   const FG_FLOORS: Array<[ThemeTokenName, number, number]> = [
     ["foreground", 4.5, 75],
     ["muted-foreground", 4.5, 60],
+    // Neutral graphic ink — the `ui` tier, WCAG 2.2 SC 1.4.11 non-text 3:1. This table is
+    // hand-enumerated, so a role added to the engine without a row here is silently UNTESTED.
+    ["icon", 3, 45],
     ["border", 3, 30],
     ["accent-text", 4.5, 60],
     ["ring", 3, 45],
@@ -1379,6 +1382,24 @@ describe("QA — adversarial: interaction-state + un-mirror invariants (#160)", 
     ["info", 3, 45],
     ["info-text", 4.5, 60],
   ];
+
+  it("FG_FLOORS covers EVERY surface-solved role — a new role cannot go untested", () => {
+    // The table above is hand-written, so adding an engine role without a row here leaves it
+    // with zero contrast coverage while the whole suite stays green (exactly how `icon` was
+    // introduced). Derive the expected set from the binding schema instead: `auto` (solved
+    // against the worst surface), `fill` and `fill-hover` (solved as UI on the surface) are
+    // precisely the roles this sweep owns. `auto-on` / `fill-foreground` labels solve against
+    // their OWN fill, not the five surfaces — they have their own tests — and `step` surfaces
+    // and the `literal` scrim are not solved at all.
+    const surfaceSolved = Object.entries(DEFAULT_BINDING_SCHEMA)
+      .filter(([, binding]) =>
+        ["auto", "fill", "fill-hover"].includes(binding.kind),
+      )
+      .map(([name]) => name)
+      .sort();
+    expect(FG_FLOORS.map(([name]) => name).sort()).toEqual(surfaceSolved);
+  });
+
   it(
     "every solved foreground clears its floor on ALL FIVE surfaces (schemes × gamuts)",
     () => {

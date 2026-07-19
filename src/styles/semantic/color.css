@@ -14,6 +14,7 @@
     --foreground: light-dark(oklch(0.29 0.04 350), oklch(0.9299 0.042 349.89));
     --muted: light-dark(oklch(0.9555 0.0271 346.63), oklch(0.21 0.045 350));
     --muted-foreground: light-dark(oklch(0.38 0.04 350), oklch(0.85 0.045 350));
+    --icon: light-dark(oklch(0.49 0.04 350), oklch(0.76 0.045 350));
     --border: light-dark(oklch(0.49 0.04 350), oklch(0.67 0.045 350));
     --accent: light-dark(oklch(0.48 0.2 350), oklch(0.7799 0.1537 349.98));
     --accent-text: light-dark(
