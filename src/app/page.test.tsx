@@ -98,6 +98,52 @@ describe("Home (featured front door)", () => {
     ).toBeInTheDocument();
   });
 
+  // The kicker is the superhead naming the site above the headline. It must be a real sibling
+  // immediately before the h1 — plain document order would also pass with the kicker stranded in
+  // another landmark — and it must NOT enter the outline (the h1 below is the page's one h1).
+  it("keeps the kicker as the h1's immediately preceding sibling in the hero section", async () => {
+    render(await Home());
+    const kicker = screen.getByText(
+      /the design-engineering garden of jamie thompson/i,
+    );
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(kicker.tagName).toBe("P");
+    expect(kicker.nextElementSibling).toBe(h1);
+    expect(kicker.closest("section")).not.toBeNull();
+    expect(kicker.closest("section")).toBe(h1.closest("section"));
+  });
+
+  it("wears the kicker type role and the muted ink, minting no heading", async () => {
+    render(await Home());
+    const kicker = screen.getByText(
+      /the design-engineering garden of jamie thompson/i,
+    );
+    expect(kicker).toHaveAttribute("data-variant", "kicker");
+    expect(kicker).toHaveAttribute("data-color", "muted-foreground");
+    expect(
+      screen.queryByRole("heading", { name: /design-engineering garden/i }),
+    ).toBeNull();
+  });
+
+  // `toHaveTextContent` is a substring match — it would stay green if the period (or more of the
+  // sentence) leaked inside the emphasis. Pin the exact span: one <em>, only the stressed words.
+  it("keeps the emphasis tight: exactly one <em>, wrapping only 'in the open'", async () => {
+    render(await Home());
+    const h1 = screen.getByRole("heading", { level: 1 });
+    const ems = h1.querySelectorAll("em");
+    expect(ems).toHaveLength(1);
+    expect(ems[0].textContent).toBe("in the open");
+  });
+
+  // The `{" "}` around the <em> is load-bearing: textContent concatenates across element
+  // boundaries without inserting spaces, so dropping it yields "buildingin the open".
+  it("keeps the words either side of the emphasis spaced", async () => {
+    render(await Home());
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      /Notes, essays, and things I’m building in the open\./,
+    );
+  });
+
   it("renders each featured entry as a card linking to its flat /[slug]", async () => {
     render(await Home());
     expect(
@@ -133,6 +179,9 @@ describe("Home (/) — edges & boundaries", () => {
     // (The onward "browse everything →" link now lives in the global SiteFooter, not Home.)
     expect(
       screen.getByRole("heading", { level: 1, name: /building in the open/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/the design-engineering garden of jamie thompson/i),
     ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /featured/i })).toBeNull();
   });
