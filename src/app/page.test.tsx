@@ -41,7 +41,11 @@ vi.mock("server-only", () => ({}));
 import { resolveThemeDeclarations } from "@/lib/theme";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 
-import { declaredProperties, readModuleCss } from "../../tests/cssModule";
+import {
+  declaredProperties,
+  readModuleCss,
+  ruleDeclarations,
+} from "../../tests/cssModule";
 
 import Home from "./page";
 
@@ -250,6 +254,32 @@ describe("Home (/) — edges & boundaries", () => {
     expect(properties.has("padding-block-start")).toBe(false);
     expect(properties.has("padding-block")).toBe(false);
     expect(properties.has("padding-top")).toBe(false);
+  });
+
+  it("frames the page block with the lane alone — no block spacing in ANY form", () => {
+    // The property-name guard above is file-wide and enumerates three spellings, so it is blind
+    // to the two that actually reach `.content`: the `padding` SHORTHAND (already live in this
+    // file on `.grid`, so the name-based scan can never be tightened to catch it) and any
+    // `margin-block-*`. Either one re-creates the double lead-in the move to `Page` removed.
+    // Pin the rule the way Page.module.css pins its own: `.content` owns the lane and nothing
+    // else, so every spelling of block spacing fails here.
+    const declarations = ruleDeclarations(
+      readModuleCss("src/app/page.module.css"),
+      ".content",
+    );
+    expect([...declarations.keys()]).toEqual(["grid-column"]);
+  });
+
+  it("sets the kicker→h1 gap to space(4), the superhead's own line", async () => {
+    // The hero's gap is a designed value with no pin of its own: `Stack` writes it as the inline
+    // `--stack-gap` custom property, so a silent revert to the old, too-tight space(2) renders
+    // identically in jsdom and passes every other test in this file. Scope to the section that
+    // owns the h1 — the featured block below it is a separate space(4) Stack.
+    mockReads({ featured: [] });
+    render(await Home());
+    const hero = screen.getByRole("heading", { level: 1 }).closest("section");
+    expect(hero).not.toBeNull();
+    expect(hero?.style.getPropertyValue("--stack-gap")).toBe("var(--space-4)");
   });
 
   it("keeps a clean heading hierarchy: one h1, an h2 section, h3 card titles", async () => {
