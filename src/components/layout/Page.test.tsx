@@ -2,6 +2,12 @@ import { createRef } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import {
+  declaredProperties,
+  readModuleCss,
+  ruleDeclarations,
+} from "../../../tests/cssModule";
+
 import gridStyles from "./ContentGrid.module.css";
 import Page from "./Page";
 
@@ -72,5 +78,41 @@ describe("Page", () => {
     expect(
       container.firstElementChild?.className.trim().length,
     ).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * The frame's block padding is a designed asymmetry, and it belongs to EVERY route — the lead-in
+ * under the nav band is the Page primitive's job, not any one page's. jsdom loads no stylesheets,
+ * so the value can only be pinned at the source (postcss walks live declarations only, so a
+ * commented-out rule can't keep these green).
+ */
+describe("Page.module.css — the frame's block padding", () => {
+  const css = readModuleCss("src/components/layout/Page.module.css");
+  const declarations = ruleDeclarations(css, ".page");
+
+  it("opens every page with the generous section lead-in and closes with the gutter", () => {
+    // Two-value `padding-block` = start then end. A regression to the symmetric single value
+    // is exactly what puts a page heading back under the nav band.
+    expect(declarations.get("padding-block")).toBe(
+      "var(--space-section) var(--space-gutter)",
+    );
+  });
+
+  it("expresses the padding as the shorthand, never a start-only longhand", () => {
+    // Route modules that own their own frame (`[slug]`'s demo template, the state screens)
+    // override with the `padding-block` shorthand. Splitting this into a `padding-block-start`
+    // longhand would leave those overrides half-applied — the lead-in would survive on a
+    // full-bleed page that deliberately zeroes its padding.
+    const properties = declaredProperties(css);
+    expect(properties.has("padding-block")).toBe(true);
+    expect(properties.has("padding-block-start")).toBe(false);
+    expect(properties.has("padding-top")).toBe(false);
+  });
+
+  it("owns block padding only — inline sizing stays the content grid's", () => {
+    // Page merges ContentGrid onto the same element; an inline-axis declaration here would be
+    // this module quietly taking over the site's one width system.
+    expect(declarations.size).toBe(1);
   });
 });

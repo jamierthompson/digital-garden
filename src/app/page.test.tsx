@@ -41,6 +41,8 @@ vi.mock("server-only", () => ({}));
 import { resolveThemeDeclarations } from "@/lib/theme";
 import { SITE_SETTINGS_QUERY } from "@/sanity/lib/queries";
 
+import { declaredProperties, readModuleCss } from "../../tests/cssModule";
+
 import Home from "./page";
 
 const accentOf = (seed: unknown): string =>
@@ -243,6 +245,18 @@ describe("Home (/) — edges & boundaries", () => {
     expect(
       screen.getByRole("link", { name: /untitled entry/i }),
     ).toBeInTheDocument();
+  });
+
+  it("declares no block padding of its own — the lead-in is Page's, for every route", async () => {
+    // Home once carried a page-only `padding-block-start`; the lead-in moved to the `Page`
+    // primitive so all routes get it. Re-adding it here stacks on top of Page's and gives the
+    // front door alone a double lead-in.
+    const properties = declaredProperties(
+      readModuleCss("src/app/page.module.css"),
+    );
+    expect(properties.has("padding-block-start")).toBe(false);
+    expect(properties.has("padding-block")).toBe(false);
+    expect(properties.has("padding-top")).toBe(false);
   });
 
   it("keeps a clean heading hierarchy: one h1, an h2 section, h3 card titles", async () => {

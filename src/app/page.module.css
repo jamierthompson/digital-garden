@@ -3,13 +3,9 @@
    tokens); the themed card slots live in `EntryCard` (its own module + inline swatches). */
 @layer components {
   /* The page block sits in the content grid's wide lane — the featured card grid wants more
-     than the reading measure. The lead-in separates the hero from the nav above it: the page
-     opens with air rather than butting the kicker up against the chrome. `--space-section` is
-     the most generous role in the semantic space vocabulary — a route module may not read the
-     raw `--space-*` scale, nor mint its own component token (`pnpm lint:dimension`). */
+     than the reading measure. */
   .content {
     grid-column: wide;
-    padding-block-start: var(--space-section);
   }
 
   /* Home heading — the garden's invitation headline. The `display` role bundle owns the type
