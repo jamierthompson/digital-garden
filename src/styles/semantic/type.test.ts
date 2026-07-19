@@ -117,6 +117,7 @@ describe("semantic role layer binds to the ramp", () => {
     "body",
     "label",
     "meta",
+    "kicker",
     "caption",
     "quote",
   ] as const;
@@ -135,6 +136,21 @@ describe("semantic role layer binds to the ramp", () => {
       }
     },
   );
+});
+
+// The kicker is an editorial ROLE, not a component-token bundle: a page superhead is page
+// content, and the "not a role" carve-out is scoped to chrome. Its five bindings are the owner's
+// approved design, pinned here so a retune is a deliberate edit rather than drift.
+describe("the kicker role — the superhead above a page's h1", () => {
+  it.each([
+    ["family", "var(--font-mono)"],
+    ["size", "var(--type-size-2)"],
+    ["weight", "var(--font-weight-normal)"],
+    ["tracking", "var(--tracking-wider)"],
+    ["leading", "var(--leading-normal)"],
+  ])("--type-kicker-%s is %s", (facet, value) => {
+    expect(SHEET_DECLS[`--type-kicker-${facet}`]).toBe(value);
+  });
 });
 
 describe("the Tailwind-named --text-* size scale is gone", () => {

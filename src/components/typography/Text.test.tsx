@@ -4,6 +4,12 @@ import { createRef } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import {
+  declaredCustomProperties,
+  readModuleCss,
+  referencedCustomProperties,
+} from "../../../tests/cssModule";
+
 import Text, { type TextVariant } from "./Text";
 
 describe("Text", () => {
@@ -20,6 +26,7 @@ describe("Text", () => {
       "lede",
       "label",
       "meta",
+      "kicker",
       "caption",
       "quote",
     ] as const) {
@@ -259,6 +266,7 @@ describe("TextVariant ↔ Text.module.css bundle bijection", () => {
     "lede",
     "label",
     "meta",
+    "kicker",
     "caption",
     "quote",
   ] as const satisfies readonly TextVariant[];
@@ -295,27 +303,26 @@ describe("TextVariant ↔ Text.module.css bundle bijection", () => {
 // size/family with the whole gate green. The bijection above pins only the `family` facet; this
 // holds ALL five facets of every referenced role to a real definition in semantic/type.css.
 describe("every var(--type-*) Text.module.css reads resolves to a semantic/type.css definition", () => {
+  // Parsed, not pattern-matched: the CSS engine tolerates whitespace and comments inside
+  // `var()`, so `var( --type-kicker-family)` resolves fine in the browser while slipping past a
+  // `var\(--type-…` hand regex — the read would then never be checked against a definition.
   const definedTypeTokens = new Set(
     [
-      ...readFileSync(
-        resolve(process.cwd(), "src/styles/semantic/type.css"),
-        "utf8",
-      ).matchAll(/(--type-[a-z0-9-]+)\s*:/g),
-    ].map(([, token]) => token),
+      ...declaredCustomProperties(
+        readModuleCss("src/styles/semantic/type.css"),
+      ),
+    ].filter((token) => token.startsWith("--type-")),
   );
   const referencedTypeTokens = [
-    ...new Set(
-      [
-        ...readFileSync(
-          resolve(process.cwd(), "src/components/typography/Text.module.css"),
-          "utf8",
-        ).matchAll(/var\((--type-[a-z0-9-]+)\)/g),
-      ].map(([, token]) => token),
+    ...referencedCustomProperties(
+      readModuleCss("src/components/typography/Text.module.css"),
     ),
-  ];
+  ].filter((token) => token.startsWith("--type-"));
 
   it("references a non-trivial set of tokens (false-green guard)", () => {
-    expect(referencedTypeTokens.length).toBeGreaterThan(20);
+    // Seven variants × five facets — a parse that silently returned nothing would pass the
+    // per-token assertions below vacuously.
+    expect(referencedTypeTokens.length).toBeGreaterThan(30);
   });
 
   it.each(referencedTypeTokens)(

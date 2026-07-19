@@ -60,6 +60,12 @@
     --type-meta-tracking: var(--tracking-wider);
     --type-meta-leading: var(--leading-normal);
 
+    --type-kicker-family: var(--font-mono);
+    --type-kicker-size: var(--type-size-2);
+    --type-kicker-weight: var(--font-weight-normal);
+    --type-kicker-tracking: var(--tracking-wider);
+    --type-kicker-leading: var(--leading-normal);
+
     --type-caption-family: var(--font-body);
     --type-caption-size: var(--type-size-2);
     --type-caption-weight: var(--font-weight-normal);
