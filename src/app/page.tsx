@@ -41,7 +41,7 @@ export default async function Home() {
         {/* The featured grid runs wider than the reading measure — the whole page block takes
             the wide lane. */}
         <Stack gap={space(9)} className={styles.content}>
-          <Stack asChild gap={space(2)}>
+          <Stack asChild gap={space(4)}>
             <section>
               <Text variant="kicker" color="muted-foreground">
                 The Design-Engineering Garden of Jamie Thompson
@@ -49,8 +49,7 @@ export default async function Home() {
               {/* The landing statement is the one place the oversized `display` role is used; a
             content page's h1 defaults to the quieter `title` role. */}
               <Heading level={1} variant="display" className={styles.title}>
-                Notes, essays, and things I&rsquo;m building{" "}
-                <em>in the open</em>.
+                Notes, essays, and things I&rsquo;m building in the open.
               </Heading>
             </section>
           </Stack>

@@ -127,22 +127,15 @@ describe("Home (featured front door)", () => {
     ).toBeNull();
   });
 
-  // `toHaveTextContent` is a substring match — it would stay green if the period (or more of the
-  // sentence) leaked inside the emphasis. Pin the exact span: one <em>, only the stressed words.
-  it("keeps the emphasis tight: exactly one <em>, wrapping only 'in the open'", async () => {
+  // The headline carries no emphasis element. `em` is rendered in the heading face, which has no
+  // true italic — the browser would synthesize a slant. Pinned as unstyled running text so the
+  // treatment can't creep back in on a face that still can't honour it.
+  it("renders the headline as plain running text, with no emphasis element", async () => {
     render(await Home());
     const h1 = screen.getByRole("heading", { level: 1 });
-    const ems = h1.querySelectorAll("em");
-    expect(ems).toHaveLength(1);
-    expect(ems[0].textContent).toBe("in the open");
-  });
-
-  // The `{" "}` around the <em> is load-bearing: textContent concatenates across element
-  // boundaries without inserting spaces, so dropping it yields "buildingin the open".
-  it("keeps the words either side of the emphasis spaced", async () => {
-    render(await Home());
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      /Notes, essays, and things I’m building in the open\./,
+    expect(h1.querySelectorAll("em, i")).toHaveLength(0);
+    expect(h1.textContent).toBe(
+      "Notes, essays, and things I’m building in the open.",
     );
   });
 
