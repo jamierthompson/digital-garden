@@ -82,21 +82,16 @@ describe("Page", () => {
 });
 
 /**
- * The frame's block padding is a designed asymmetry, and it belongs to EVERY route — the lead-in
- * under the nav band is the Page primitive's job, not any one page's. jsdom loads no stylesheets,
- * so the value can only be pinned at the source (postcss walks live declarations only, so a
- * commented-out rule can't keep these green).
+ * The frame's block padding belongs to the Page primitive, not any one page. jsdom loads no
+ * stylesheets, so the value can only be pinned at the source (postcss walks live declarations
+ * only, so a commented-out rule can't keep these green).
  */
 describe("Page.module.css — the frame's block padding", () => {
   const css = readModuleCss("src/components/layout/Page.module.css");
   const declarations = ruleDeclarations(css, ".page");
 
-  it("opens every page with the generous section lead-in and closes with the gutter", () => {
-    // Two-value `padding-block` = start then end. A regression to the symmetric single value
-    // is exactly what puts a page heading back under the nav band.
-    expect(declarations.get("padding-block")).toBe(
-      "var(--space-section) var(--space-gutter)",
-    );
+  it("frames every page with the gutter", () => {
+    expect(declarations.get("padding-block")).toBe("var(--space-gutter)");
   });
 
   it("expresses the padding as the shorthand, never a start-only longhand", () => {
