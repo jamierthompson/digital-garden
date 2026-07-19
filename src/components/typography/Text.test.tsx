@@ -55,6 +55,22 @@ describe("Text", () => {
     expect(screen.getByRole("status")).toBe(el);
   });
 
+  // The sharp edge of that passthrough, pinned so it stays a DOCUMENTED trade-off: `role` +
+  // `aria-level` can push a kicker into the heading outline. The docblock above owns this
+  // honestly ("stays available as a passthrough") — outline discipline is the CALLER's job,
+  // and the home hero's tests pin that its kicker passes no ARIA role. If this behavior is
+  // ever restricted, update the docblock in the same change.
+  it("lets a caller-passed role/aria-level reach the a11y tree (the documented passthrough)", () => {
+    render(
+      <Text variant="kicker" role="heading" aria-level={2} data-testid="t">
+        Sneaky superhead
+      </Text>,
+    );
+    expect(screen.getByRole("heading", { level: 2 })).toBe(
+      screen.getByTestId("t"),
+    );
+  });
+
   it("stamps data-color for the ink role, independently of the variant", () => {
     render(
       <Text variant="lede" color="muted-foreground" data-testid="t">
