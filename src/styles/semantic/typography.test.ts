@@ -10,12 +10,21 @@ const SHEET = readFileSync(
 
 describe("semantic/typography.css house faces", () => {
   it.each([
-    ["--font-body", "--font-source-serif-4"],
-    ["--font-heading", "--font-space-grotesk"],
+    ["--font-body", "--font-newsreader"],
+    ["--font-heading", "--font-newsreader"],
+    ["--font-ui", "--font-instrument-sans"],
     ["--font-mono", "--font-geist-mono"],
   ])("%s maps to %s", (token, nextFontVar) => {
     const decl = SHEET.match(new RegExp(`${token}\\s*:\\s*([^;]+);`))?.[1];
     expect(decl, `expected ${token} declared`).toBeDefined();
     expect(decl).toContain(nextFontVar);
+  });
+
+  it("the editorial voice is one family: heading and body read the same face", () => {
+    const face = (token: string) =>
+      SHEET.match(
+        new RegExp(`${token}\\s*:\\s*var\\((--font-[a-z-]+)\\)`),
+      )?.[1];
+    expect(face("--font-heading")).toBe(face("--font-body"));
   });
 });

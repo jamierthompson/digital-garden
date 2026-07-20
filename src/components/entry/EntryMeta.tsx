@@ -19,7 +19,7 @@ interface EntryMetaProps {
 }
 
 /**
- * The mono meta readout every entry surface shares — the ONE way an entry's meta facts
+ * The meta readout every entry surface shares — the ONE way an entry's meta facts
  * render: `kind · stage · iterated <date> · <seed> · N linked`, in that fixed order, each
  * fact only when present (a malformed date is dropped, a non-positive link count is
  * silence, an empty string is absence). Renders nothing at all when no fact survives.

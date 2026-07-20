@@ -8,33 +8,37 @@
    */
   :root,
   :where([data-entry]) {
+    /* The editorial roles' weights are hand-pinned variable-font values tuned to Newsreader —
+       a high-contrast face that starves at 400 in text sizes and clogs at 600 in display
+       sizes. Provisional hand values, like the measures below — the type engine derives
+       weight per role when it grows past sizes (#247). */
     --type-display-family: var(--font-heading);
     --type-display-size: var(--type-size-8);
-    --type-display-weight: var(--font-weight-semibold);
+    --type-display-weight: var(--font-weight-medium);
     --type-display-tracking: var(--tracking-tight);
     --type-display-leading: var(--leading-tight);
 
     --type-title-family: var(--font-heading);
     --type-title-size: var(--type-size-7);
-    --type-title-weight: var(--font-weight-semibold);
+    --type-title-weight: var(--font-weight-medium);
     --type-title-tracking: var(--tracking-tight);
     --type-title-leading: var(--leading-tight);
 
     --type-heading-family: var(--font-heading);
     --type-heading-size: var(--type-size-6);
-    --type-heading-weight: var(--font-weight-semibold);
+    --type-heading-weight: 550;
     --type-heading-tracking: var(--tracking-tight);
     --type-heading-leading: var(--leading-tight);
 
     --type-subheading-family: var(--font-heading);
     --type-subheading-size: var(--type-size-5);
-    --type-subheading-weight: var(--font-weight-medium);
+    --type-subheading-weight: 520;
     --type-subheading-tracking: var(--tracking-tight);
     --type-subheading-leading: var(--leading-snug);
 
     --type-lede-family: var(--font-body);
     --type-lede-size: var(--type-size-4);
-    --type-lede-weight: var(--font-weight-normal);
+    --type-lede-weight: 450;
     --type-lede-tracking: var(--tracking-normal);
     --type-lede-leading: var(--leading-relaxed);
     /* Provisional hand value — the type engine will compute measure per role from its metrics. */
@@ -42,25 +46,25 @@
 
     --type-body-family: var(--font-body);
     --type-body-size: var(--type-size-3);
-    --type-body-weight: var(--font-weight-normal);
+    --type-body-weight: 460;
     --type-body-tracking: var(--tracking-normal);
     --type-body-leading: var(--leading-relaxed);
     /* Provisional hand value — the type engine will compute measure per role from its metrics. */
     --type-body-measure: 65ch;
 
-    --type-label-family: var(--font-heading);
+    --type-label-family: var(--font-ui);
     --type-label-size: var(--type-size-2);
     --type-label-weight: var(--font-weight-semibold);
     --type-label-tracking: var(--tracking-wider);
     --type-label-leading: var(--leading-none);
 
-    --type-meta-family: var(--font-mono);
+    --type-meta-family: var(--font-ui);
     --type-meta-size: var(--type-size-2);
     --type-meta-weight: var(--font-weight-normal);
     --type-meta-tracking: var(--tracking-wider);
     --type-meta-leading: var(--leading-normal);
 
-    --type-kicker-family: var(--font-mono);
+    --type-kicker-family: var(--font-ui);
     --type-kicker-size: var(--type-size-2);
     --type-kicker-weight: var(--font-weight-normal);
     --type-kicker-tracking: var(--tracking-wider);
@@ -68,13 +72,13 @@
 
     --type-caption-family: var(--font-body);
     --type-caption-size: var(--type-size-2);
-    --type-caption-weight: var(--font-weight-normal);
+    --type-caption-weight: 460;
     --type-caption-tracking: var(--tracking-normal);
     --type-caption-leading: var(--leading-normal);
 
     --type-quote-family: var(--font-body);
     --type-quote-size: var(--type-size-4);
-    --type-quote-weight: var(--font-weight-normal);
+    --type-quote-weight: 450;
     --type-quote-tracking: var(--tracking-normal);
     --type-quote-leading: var(--leading-snug);
   }

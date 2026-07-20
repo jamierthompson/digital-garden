@@ -72,7 +72,7 @@ describe("EntryCard", () => {
     expect(container.querySelectorAll("p")).toHaveLength(1); // the meta readout only
   });
 
-  it("renders the full mono meta readout: kind · stage · iterated · linked", () => {
+  it("renders the full meta readout: kind · stage · iterated · linked", () => {
     renderCard(
       entry({
         kind: "demo",

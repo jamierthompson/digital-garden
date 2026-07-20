@@ -15,7 +15,7 @@ export interface EntryCardEntry {
   summary: string | null;
   kind: string | null;
   stage: "prototype" | "shipped" | "sketch" | null;
-  /** The authored last-iterated date (ISO `YYYY-MM-DD`), for the mono readout. */
+  /** The authored last-iterated date (ISO `YYYY-MM-DD`), for the meta readout. */
   iterated: string | null;
   /** Backlink hint — rendered only when positive. */
   linkCount: number | null;
@@ -32,7 +32,7 @@ interface EntryCardProps {
  * and stays legible by construction.
  *
  * Three type registers, journal-style: display title, serif summary, and the shared
- * `EntryMeta` mono readout. Defensive: a slugless entry degrades to a non-link card (never a
+ * `EntryMeta` meta readout. Defensive: a slugless entry degrades to a non-link card (never a
  * dead link); a missing title falls back to a neutral label; missing meta simply omits the row.
  */
 export default function EntryCard({ entry }: EntryCardProps) {

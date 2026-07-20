@@ -68,6 +68,11 @@ const newsreader = Newsreader({
   subsets: ["latin"],
   display: "swap",
   preload: false,
+  // The full optical-size axis (6–72) plus the true italic: the face is drawn per size —
+  // sturdy at text grades, high-contrast at display grades — and `font-optical-sizing: auto`
+  // (the CSS initial value) tracks the rendered size through the axis for free.
+  style: ["normal", "italic"],
+  axes: ["opsz"],
   variable: "--font-newsreader", // must equal NEWSREADER_VAR
 });
 

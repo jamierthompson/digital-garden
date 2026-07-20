@@ -189,12 +189,17 @@ describe("NavLinks component tokens — the type bundle", () => {
   const css = readModuleCss("src/components/site-chrome/NavLinks.module.css");
   const declarations = ruleDeclarations(css, ".links");
 
-  it("binds the links to the mono face", () => {
-    expect(declarations.get("--nav-link-family")).toBe("var(--font-mono)");
+  it("binds the links to the UI face — the chrome's grounding sans, never the mono", () => {
+    expect(declarations.get("--nav-link-family")).toBe("var(--font-ui)");
   });
 
   it("declares the rest of the bundle alongside it", () => {
-    expect(declarations.get("--nav-link-size")).toBe("var(--type-size-2)");
+    // The size is a designed chrome value (the geometric mean of type-size-2 and -3): the nav
+    // is isolated in chrome with no adjacent editorial type to read against, and the scale's
+    // small end steps straight from 13.3px to 16px.
+    expect(declarations.get("--nav-link-size")).toBe(
+      "clamp(0.9129rem, 0.8924rem + 0.1025vw, 0.9744rem)",
+    );
     expect(declarations.get("--nav-link-weight")).toBe(
       "var(--font-weight-medium)",
     );

@@ -21,7 +21,7 @@ interface TextProps extends React.ComponentPropsWithRef<"p"> {
   /**
    * The semantic type role to apply — `body` (running copy, the default), `lede` (an intro /
    * summary, a notch larger than body), `label` (eyebrows / section labels), `meta`
-   * (metadata, timestamps, mono readouts), `kicker` (the superhead above a page's h1, naming
+   * (metadata, timestamps, readouts), `kicker` (the superhead above a page's h1, naming
    * what the page is before the headline says it), `caption` (small muted secondary prose —
    * figure / video captions, a quote's attribution), or `quote` (a pull-quote's body). Each
    * applies that role's token bundle (`--type-{role}-*` in `semantic/type.css`).

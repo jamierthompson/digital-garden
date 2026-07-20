@@ -1,8 +1,15 @@
 @layer base {
   :root {
-    --font-body: var(--font-source-serif-4), Georgia, "Times New Roman", serif;
-    --font-heading:
-      var(--font-space-grotesk), "Helvetica Neue", Arial, sans-serif;
+    /* The site's three voices. Newsreader carries the whole editorial voice — headings and
+       body are one family separated by optical grade (its opsz axis tracks rendered size),
+       not by face. Instrument Sans is the UI voice: chrome and readout type (nav, meta,
+       labels). Mono is code semantics only — a surface reads `--font-mono` exactly when it
+       renders code or engine readouts. */
+    --font-body: var(--font-newsreader), ui-serif, Georgia, serif;
+    --font-heading: var(--font-newsreader), ui-serif, Georgia, serif;
+    --font-ui:
+      var(--font-instrument-sans), system-ui, "Helvetica Neue", Arial,
+      sans-serif;
     --font-mono:
       var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   }

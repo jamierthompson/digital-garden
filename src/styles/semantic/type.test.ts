@@ -143,7 +143,7 @@ describe("semantic role layer binds to the ramp", () => {
 // approved design, pinned here so a retune is a deliberate edit rather than drift.
 describe("the kicker role — the superhead above a page's h1", () => {
   it.each([
-    ["family", "var(--font-mono)"],
+    ["family", "var(--font-ui)"],
     ["size", "var(--type-size-2)"],
     ["weight", "var(--font-weight-normal)"],
     ["tracking", "var(--tracking-wider)"],

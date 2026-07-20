@@ -33,6 +33,8 @@
     font-weight: var(--type-meta-weight);
     letter-spacing: var(--type-meta-tracking);
     line-height: var(--type-meta-leading);
+    /* Meta facts render capitalized; the source strings stay lowercase in content. */
+    text-transform: capitalize;
   }
 
   .text[data-variant="kicker"] {
