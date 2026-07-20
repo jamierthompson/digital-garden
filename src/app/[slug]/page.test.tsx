@@ -81,6 +81,12 @@ import {
 import { resolveThemeDeclarations } from "@/lib/theme";
 import { client } from "@/sanity/lib/client";
 
+import {
+  readModuleCss,
+  referencedCustomProperties,
+  ruleDeclarations,
+} from "../../../tests/cssModule";
+
 import EntryPage, { generateMetadata, generateStaticParams } from "./page";
 import pageStyles from "./page.module.css";
 
@@ -909,5 +915,39 @@ describe("page.tsx styles.* references resolve to real classes in page.module.cs
       [...sheet.matchAll(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g)].map((m) => m[1]),
     );
     expect(referenced.filter((name) => !defined.has(name))).toEqual([]);
+  });
+});
+
+describe("the entry page's heading ink rule (CSS source)", () => {
+  // Structural headings are neutral ink; the entry h1 keeps `accent-text` as the ONE display
+  // exception. The rule was applied by DELETING `color` declarations — a deletion leaves
+  // nothing behind to assert, so re-adding accent to a body h2 would otherwise be invisible
+  // to every rendering test (jsdom loads no stylesheets). Pinned at the CSS source via the
+  // repo's postcss helpers — a commented-out declaration is NOT a live one.
+  const ARTICLE_CSS = readModuleCss("src/app/[slug]/page.module.css");
+
+  it("the body's h2/h3 rule declares no color at all", () => {
+    const decls = ruleDeclarations(ARTICLE_CSS, ".article > :is(h2, h3)");
+    // Assert the rule still EXISTS (a renamed selector would also yield an empty map) …
+    expect(decls.size).toBeGreaterThan(0);
+    // … and that ink is not among its declarations: the headings inherit the editorial ink.
+    expect(decls.has("color")).toBe(false);
+  });
+
+  it("the module references no accent ink anywhere", () => {
+    // Broader than the single rule above: catches the accent creeping back in on a sibling
+    // selector (`.article h4`, a `:first-of-type`, a media query) rather than the pinned one.
+    const vars = referencedCustomProperties(ARTICLE_CSS);
+    expect([...vars].filter((v) => v.includes("accent"))).toEqual([]);
+  });
+
+  it("keeps accent-text on the entry h1, via the prop and not CSS", () => {
+    // The exception is real and deliberate — pin it so a future "neutralize everything" sweep
+    // has to change a test, not just a line.
+    const source = readFileSync(
+      resolve(process.cwd(), "src/app/[slug]/page.tsx"),
+      "utf8",
+    );
+    expect(source).toContain('<Heading level={1} color="accent-text">');
   });
 });
