@@ -13,7 +13,7 @@ interface EntryMetaProps {
   readonly seed?: string | null;
   /** Backlink hint — rendered only when positive. */
   readonly linkCount?: number | null;
-  /** The ink role. Omit to inherit the ambient ink (a themed plate's own pair). */
+  /** The ink role. Omit to inherit the ambient ink. */
   readonly color?: TextColor;
   readonly className?: string;
 }

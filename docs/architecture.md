@@ -328,8 +328,8 @@ small color _system_. It is **both a feature and a demo — same logic, two-plus
 
 - **Bakes literal `oklch()` values server-side.** The engine emits resolved, gamut-mapped,
   contrast-solved literals — not relative-color CSS. Live per-token CSS override is explicitly
-  **not** a goal: no consumer needs the cascade to re-derive a mid-chain token (card swatches
-  re-run the pure function in JS; so does the interactive Color Engine, the `color-engine` module). Relative-color (`oklch(from …)`) is permitted only
+  **not** a goal: no consumer needs the cascade to re-derive a mid-chain token (the interactive
+  Color Engine, the `color-engine` module, re-runs the pure function in JS). Relative-color (`oklch(from …)`) is permitted only
   for decorative, non-contrast deltas. This is also what makes server-side validation possible.
 
 - **Focus-ring _color_ is an engine token**; only its geometry is part of the global foundation. The
@@ -491,9 +491,11 @@ engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WC
   is omitted (1→`title`, 2→`heading`, 3–6→`subheading`; the oversized `display` is opt-in for a
   hero). `Text` renders `<p>` (or any element via `asChild`) in
   `body`/`lede`/`label`/`meta`/`kicker`/`caption`/`quote`.
-  Both also wear their ink via `color` — a semantic color role (`foreground` ·
-  `muted-foreground` · `accent-text`), applied through the shared `textColor` rules; omitted, the
-  primitive inherits the ambient ink. Discrete roles apply via `data-*` attributes (the variant
+  Both also wear their ink via `color` — a semantic color role, exactly the text-grade tokens
+  (`foreground` · `muted-foreground` · `accent-text` · the seven `harmony-<hue>-text` roles),
+  applied through the shared `textColor` rules; omitted, the
+  primitive inherits the ambient ink. `Ink` is the inline third consumer of the same rules — a
+  `<span>` wearing an ink role inside a larger type role, owning no type of its own. Discrete roles apply via `data-*` attributes (the variant
   mechanism), not the value-conduit the spacing primitives use for continuous lengths. The
   primitives read **only** the semantic role tokens, never a raw `--type-size-*` step. So a
   **page's** CSS Modules — its editorial content expressed through the primitives — own only
