@@ -95,49 +95,34 @@ describe("Home (featured front door)", () => {
     ).toBeInTheDocument();
   });
 
-  // The kicker is the superhead naming the site above the headline. It must be a real sibling
-  // immediately before the h1 — plain document order would also pass with the kicker stranded in
-  // another landmark — and it must NOT enter the outline (the h1 below is the page's one h1).
-  it("keeps the kicker as the h1's immediately preceding sibling in the hero section", async () => {
+  // The landing statement carries the site's self-description INSIDE the h1 — there is no
+  // kicker superhead above it. A reintroduced kicker would re-split the statement and re-open
+  // the accessible-name concatenation question (#351).
+  it("folds the self-description into the single landing statement — no kicker above the h1", async () => {
     render(await Home());
-    const kicker = screen.getByText(
-      /the design-engineering garden of jamie thompson/i,
-    );
     const h1 = screen.getByRole("heading", { level: 1 });
-    expect(kicker.tagName).toBe("P");
-    expect(kicker.nextElementSibling).toBe(h1);
-    expect(kicker.closest("section")).not.toBeNull();
-    expect(kicker.closest("section")).toBe(h1.closest("section"));
-  });
-
-  it("wears the kicker type role and the muted ink, minting no heading", async () => {
-    render(await Home());
-    const kicker = screen.getByText(
-      /the design-engineering garden of jamie thompson/i,
-    );
-    expect(kicker).toHaveAttribute("data-variant", "kicker");
-    expect(kicker).toHaveAttribute("data-color", "muted-foreground");
+    expect(h1.textContent).toContain("a design-engineering garden");
     expect(
-      screen.queryByRole("heading", { name: /design-engineering garden/i }),
+      screen.queryByText(/the design-engineering garden of jamie thompson/i),
+    ).toBeNull();
+    expect(
+      h1.closest("section")!.querySelector("[data-variant='kicker']"),
     ).toBeNull();
   });
 
-  // The headline carries no emphasis ELEMENT. `em` is rendered in the heading face, which has no
-  // true italic — the browser would synthesize a slant. Emphasis is INK instead: the building
-  // phrase wears a harmony-green text role (the page's one display-moment ink spend), which
-  // changes no text content and adds no semantic emphasis.
-  it("renders the headline as running text — ink emphasis on the building phrase, no em element", async () => {
+  // Emphasis is TYPE-borne: the building phrase is a real `em` (the heading face carries a
+  // true italic — the browser never synthesizes a slant), not a color spend. An ink wrapper
+  // here would re-spend the page's display-moment color on emphasis the italic already does.
+  it("emphasizes the building phrase with a true em element, not ink", async () => {
     render(await Home());
     const h1 = screen.getByRole("heading", { level: 1 });
-    expect(h1.querySelectorAll("em, i")).toHaveLength(0);
     expect(h1.textContent).toBe(
-      "Notes, essays, and things I’m building in the open.",
+      "a design-engineering garden — notes, essays, and things I’m building in the open.",
     );
-    const emphasis = h1.querySelector(
-      '[data-color="harmony-split-complementary-a-text"]',
-    );
-    expect(emphasis).not.toBeNull();
-    expect(emphasis!.textContent).toBe("things I’m building");
+    const em = h1.querySelector("em");
+    expect(em).not.toBeNull();
+    expect(em!.textContent).toBe("things I’m building");
+    expect(h1.querySelector("[data-color]")).toBeNull();
   });
 
   it("renders each featured entry as a card linking to its flat /[slug]", async () => {
@@ -175,9 +160,6 @@ describe("Home (/) — edges & boundaries", () => {
     // (The onward "browse everything →" link now lives in the global SiteFooter, not Home.)
     expect(
       screen.getByRole("heading", { level: 1, name: /building in the open/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/the design-engineering garden of jamie thompson/i),
     ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /featured/i })).toBeNull();
   });

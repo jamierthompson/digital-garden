@@ -6,8 +6,6 @@ import Grid from "@/components/layout/Grid";
 import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import Heading from "@/components/typography/Heading";
-import Ink from "@/components/typography/Ink";
-import Text from "@/components/typography/Text";
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
 import { space } from "@/lib/tokens";
@@ -44,19 +42,12 @@ export default async function Home() {
         <Stack gap={space(9)} className={styles.content}>
           <Stack asChild gap={space(4)}>
             <section>
-              <Text variant="kicker" color="muted-foreground">
-                The Design-Engineering Garden of Jamie Thompson
-              </Text>
-              {/* The landing statement is the one place the oversized `display` role is used; a
-            content page's h1 defaults to the quieter `title` role. The emphasized phrase is the
-            page's one display-moment ink spend — a harmony green, not the accent, so it reads
-            as a second hue against the pink page rather than a wash of the same one. */}
+              {/* The landing statement — the site's one oversized display moment (the scale's
+            top size, set in the module) and its self-description in a single sentence.
+            Emphasis is type-borne: Newsreader's true italic, not a color spend. */}
               <Heading level={1} variant="display" className={styles.title}>
-                Notes, essays, and{" "}
-                <Ink color="harmony-split-complementary-a-text">
-                  things I&rsquo;m building
-                </Ink>{" "}
-                in the open.
+                a design-engineering garden &mdash; notes, essays, and{" "}
+                <em>things I&rsquo;m building</em> in the open.
               </Heading>
             </section>
           </Stack>
