@@ -42,6 +42,43 @@ describe("reset.css base heading element rule", () => {
   });
 });
 
+/**
+ * QA — the sticky header obscures focus targets that carry no `id`.
+ *
+ * The slice mitigates WCAG 2.2 SC 2.4.11 (Focus Not Obscured, Minimum) with
+ * `[id] { scroll-margin-block-start }`, which only offsets elements that HAVE an id. The
+ * failure it misses: with the header revealed (any upward scroll reveals it), Shift+Tab
+ * backwards through the page scrolls the next focusable to the TOP edge of the viewport —
+ * and if that element has no `id`, which nav links, buttons and body links generally do
+ * not, it lands underneath the band. `:focus-within` does not help: focus is in the page,
+ * not the header.
+ *
+ * The standard fix covers every scroll-into-view at once — focus-driven scrolling,
+ * `:target` jumps, `scrollIntoView()` and find-in-page — by offsetting the SCROLL PORT
+ * rather than each target: `html { scroll-padding-block-start: … }`
+ * (https://www.w3.org/TR/css-scroll-snap-1/#scroll-padding). It also subsumes the `[id]`
+ * rule, which currently applies to every id'd element on the page whether or not it is ever
+ * a scroll target.
+ *
+ * Expected to FAIL against the slice as delivered.
+ */
+describe("reset.css sticky-header scroll offset", () => {
+  it("offsets the scroll port so ANY focus target clears the sticky band", () => {
+    const htmlRule = CODE.match(/(?:^|\s)html\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(htmlRule, "expected an `html { … }` rule").not.toBe("");
+    expect(htmlRule).toMatch(/scroll-padding-block-start:\s*var\(--space-9\)/);
+  });
+
+  it("keeps the anchor-jump offset in step with the band's own hide threshold", () => {
+    // `NavVisibility` will not hide the band within HIDE_MIN_Y_PX (96px) of the top, and the
+    // offset must clear the band's tallest height — the two numbers are the same measurement
+    // read twice. --space-9 is 6rem = 96px; a change to either must move both.
+    expect(CODE).toMatch(
+      /scroll-(margin|padding)-block-start:\s*var\(--space-9\)/,
+    );
+  });
+});
+
 describe("reset.css base anchor ink rule", () => {
   // Isolate `a { … }` — not `a:hover`/`a:focus`, and not the `canvas`/`textarea` element rules.
   const anchorRule = CODE.match(/(?:^|\s)a\s*\{([^}]*)\}/)?.[1] ?? "";
