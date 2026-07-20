@@ -149,18 +149,11 @@ export const INDEX_QUERY = defineQuery(`
  * Featured query (`/`, curated front door) — entries with a `featuredRank`, any `kind`.
  *
  * The hurried evaluator's reading path: the curated subset an editor promoted (`featuredRank`
- * is set), ordered by rank (lower = earlier). Pulls the card fields — `summary`, the mono
- * readout's facts (`kind` / `stage` / `iterated` / `linkCount`), and `themeSeed` —
- * because the featured cards ARE themed: each re-binds its own engine-solved palette
- * inline via `cardSwatches` (the card never wears the slot font).
- * Deliberately NOT the `body`, keeping the front-door payload small for LCP. Typed as
- * `FEATURED_QUERYResult`.
- *
- * `themeSeed` is the SAME two-rung expression `ENTRY_DETAIL_QUERY` resolves (kind-gated inner
- * rung over the site default, #253) — copied, so a card and the detail page it links to agree
- * on the seed by construction, never by review. A seedless entry's card wears the authored
- * site default like its page does (the engine fallback stays a safety net), and the card's
- * mono readout prints this resolved seed — the value the plate is actually painted with.
+ * is set), ordered by rank (lower = earlier). Pulls the card fields — `summary` and the mono
+ * readout's facts (`kind` / `stage` / `iterated` / `linkCount`). Deliberately NOT the `body`,
+ * and NOT a per-entry theme seed — one seed paints a page, so the cards read the homepage's
+ * own theme from the ambient semantic tokens — keeping the front-door payload small for LCP.
+ * Typed as `FEATURED_QUERYResult`.
  *
  * `linkCount` counts DISTINCT neighbors, never a sum of the two directions: they overlap (an
  * edge authored both ways is one neighbor), so the ids are unioned with `array::unique`, a
@@ -180,10 +173,6 @@ export const FEATURED_QUERY = defineQuery(`
     stage,
     iterated,
     summary,
-    "themeSeed": coalesce(
-      select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),
-      *[_type == "siteSettings"][0].theme.color
-    ),
     "linkCount": count(array::unique(
       coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id
     )[defined(@) && @ != ^._id])

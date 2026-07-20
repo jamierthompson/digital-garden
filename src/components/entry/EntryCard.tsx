@@ -1,10 +1,9 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import EntryMeta from "@/components/entry/EntryMeta";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
-import { cardSwatches } from "@/lib/cardSwatches";
 
 import styles from "./EntryCard.module.css";
 
@@ -20,11 +19,6 @@ export interface EntryCardEntry {
   iterated: string | null;
   /** Backlink hint — rendered only when positive. */
   linkCount: number | null;
-  /** The RESOLVED theme seed (the query's own seed → site default chain, #253). It themes the
-   *  plate (via `cardSwatches`, total over any value) AND is shown verbatim in the mono
-   *  readout — the "show your work" detail the mockup captions carry: the value the plate is
-   *  actually painted with. The slot font is not a card concern. */
-  themeSeed: string | null;
 }
 
 interface EntryCardProps {
@@ -32,11 +26,10 @@ interface EntryCardProps {
 }
 
 /**
- * A themed entry card — a solid accent PLATE (mockup 4a), not chrome. It spreads its own
- * engine-solved palette inline via `cardSwatches`, re-binding the generic semantic tokens for
- * this card's subtree only: the plate is `--accent`, its text the contrast-solved `--accent-foreground`
- * pair — so a grid of differently-themed plates needs no per-card scope or `<style>`, and each
- * stays legible by construction. The surrounding shell stays editorial ink.
+ * An entry card — a solid accent PLATE (mockup 4a), not chrome. It paints from the page's
+ * ambient semantic tokens: the plate is `--accent`, its text the engine's contrast-solved
+ * `--accent-foreground` pair — one seed paints a page, so a grid of cards shares the page
+ * theme's palette and stays legible by construction. The surrounding shell stays editorial ink.
  *
  * Three type registers, journal-style: display title, serif summary, and the shared
  * `EntryMeta` mono readout. Defensive: a slugless entry degrades to a non-link plate (never a
@@ -59,7 +52,6 @@ export default function EntryCard({ entry }: EntryCardProps) {
         kind={entry.kind}
         stage={entry.stage}
         iterated={entry.iterated}
-        seed={entry.themeSeed}
         linkCount={entry.linkCount}
         className={styles.meta}
       />
@@ -67,14 +59,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
   );
 
   return (
-    <li
-      className={styles.card}
-      // `cardSwatches` returns generic semantic-token overrides baked as `light-dark()`
-      // literals; spread inline they re-bind this card's subtree to its own theme palette
-      // (the plate reads `--accent` + `--accent-foreground`). Cast to `CSSProperties`: React types
-      // custom props via an index signature a `Record<--*, string>` doesn't match alone.
-      style={cardSwatches(entry.themeSeed) as CSSProperties}
-    >
+    <li className={styles.card}>
       {entry.slug ? (
         <HoverPrefetchLink href={`/${entry.slug}`} className={styles.link}>
           {body}

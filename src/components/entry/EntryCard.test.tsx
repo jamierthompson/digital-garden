@@ -12,7 +12,6 @@ function entry(over: Partial<EntryCardEntry> = {}): EntryCardEntry {
     stage: "prototype",
     iterated: null,
     linkCount: null,
-    themeSeed: "oklch(0.7 0.15 70)",
     ...over,
   };
 }
@@ -61,13 +60,12 @@ describe("EntryCard", () => {
     expect(container.querySelectorAll("p")).toHaveLength(1); // the meta readout only
   });
 
-  it("renders the full mono meta readout: kind · stage · iterated · seed · linked", () => {
+  it("renders the full mono meta readout: kind · stage · iterated · linked", () => {
     renderCard(
       entry({
         kind: "demo",
         stage: "shipped",
         iterated: "2026-07-16",
-        themeSeed: "oklch(0.6 0.2 260)",
         linkCount: 2,
       }),
     );
@@ -76,19 +74,16 @@ describe("EntryCard", () => {
     const time = screen.getByText("iterated July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
-    expect(screen.getByText("oklch(0.6 0.2 260)")).toBeInTheDocument();
     expect(screen.getByText("2 linked")).toBeInTheDocument();
   });
 
   it("shows only what it has when part of the meta is missing", () => {
-    renderCard(entry({ kind: null, stage: "sketch", themeSeed: null }));
+    renderCard(entry({ kind: null, stage: "sketch" }));
     expect(screen.getByText("sketch")).toBeInTheDocument();
   });
 
   it("omits the meta row entirely when no fact is present", () => {
-    const { container } = renderCard(
-      entry({ kind: null, stage: null, themeSeed: null }),
-    );
+    const { container } = renderCard(entry({ kind: null, stage: null }));
     // Title still renders; nothing left to read out.
     expect(
       screen.getByRole("heading", { level: 3, name: /a card/i }),
@@ -97,25 +92,9 @@ describe("EntryCard", () => {
     expect(container.querySelector('[data-variant="meta"]')).toBeNull();
   });
 
-  it("bakes its theme palette inline, incl. the plate's contrast pair (--accent + --accent-foreground)", () => {
+  it("carries no inline theme — the plate reads the page's ambient tokens (one seed paints a page)", () => {
     renderCard(entry());
-    const style = screen.getByRole("listitem").getAttribute("style") ?? "";
-    expect(style).toContain("--accent");
-    expect(style).toContain("--accent-foreground");
-  });
-
-  it("survives a null / garbage themeSeed via the engine fallback (never throws)", () => {
-    expect(() => renderCard(entry({ themeSeed: null }))).not.toThrow();
-    expect(() => renderCard(entry({ themeSeed: "not-a-color" }))).not.toThrow();
-  });
-
-  it("survives an absent seed (an unauthored site default leaves the chain empty)", () => {
-    // The resolved seed is null only when NOTHING in the chain is authored — the card must
-    // fall back to the engine palette, omit the color from the meta readout, and never crash.
-    renderCard(entry({ stage: "shipped", themeSeed: null }));
-    expect(screen.getByText("shipped")).toBeInTheDocument();
-    const style = screen.getByRole("listitem").getAttribute("style") ?? "";
-    expect(style).toContain("--accent");
+    expect(screen.getByRole("listitem").getAttribute("style")).toBeNull();
   });
 });
 
@@ -143,40 +122,6 @@ describe("EntryCard — title/slug boundaries", () => {
     expect(screen.queryByRole("link")).toBeNull();
     expect(
       screen.getByRole("heading", { level: 3, name: /a card/i }),
-    ).toBeInTheDocument();
-  });
-});
-
-describe("EntryCard — malformed seed shapes (QA #249)", () => {
-  // The type contract says `string | null`, but the card renders live/draft data — a raw API
-  // write can hand it shapes the type forbids. cardSwatches' totality must absorb them all:
-  // render, bake a fallback palette, never throw.
-  it("survives a NON-STRING themeSeed (number / object) via the engine fallback", () => {
-    expect(() =>
-      renderCard(
-        entry({ themeSeed: 123 as unknown as EntryCardEntry["themeSeed"] }),
-      ),
-    ).not.toThrow();
-    expect(() =>
-      renderCard(
-        entry({
-          themeSeed: { seed: "#fff" } as unknown as EntryCardEntry["themeSeed"],
-        }),
-      ),
-    ).not.toThrow();
-  });
-
-  it("keeps a hostile themeSeed string inert in the mono readout (rendered as text, palette falls back)", () => {
-    renderCard(
-      entry({
-        stage: "shipped",
-        themeSeed: '"><img src=x onerror=alert(1)>',
-      }),
-    );
-    // React escapes by construction — assert the value surfaced as TEXT, not markup.
-    expect(document.querySelector("img[src='x']")).toBeNull();
-    expect(
-      screen.getByText('"><img src=x onerror=alert(1)>'),
     ).toBeInTheDocument();
   });
 });

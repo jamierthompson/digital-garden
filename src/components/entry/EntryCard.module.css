@@ -1,7 +1,7 @@
-/* Themed entry card. @layer components — declares its layer
-   (an unlayered module outranks every layered rule). Reads ONLY the semantic tokens
-   `cardSwatches` re-binds on this card's element: the plate is `--accent`, its text the
-   engine-solved contrast pair `--accent-foreground`, so each plate is legible by construction. */
+/* Entry card. @layer components — declares its layer
+   (an unlayered module outranks every layered rule). Var-consuming only — reads the page's
+   ambient semantic tokens: the plate is `--accent`, its text the engine-solved contrast pair
+   `--accent-foreground`, so each plate is legible by construction. */
 @layer components {
   .card {
     display: flex;
@@ -31,8 +31,8 @@
   /* Register 3 — the shared `EntryMeta` mono readout, pinned to the plate floor.
      NOT dimmed: the engine solves `--accent-foreground` to only just clear
      WCAG AA on the accent fill (~zero headroom), so any `opacity < 1` drops this normal-size
-     text below 4.5:1 (guarded by cardSwatches.meta-opacity.test.ts). De-emphasis comes from the
-     mono face + smaller size, both owned by the primitive. */
+     text below 4.5:1. De-emphasis comes from the mono face + smaller size, both owned by the
+     primitive. */
   .meta {
     margin-top: auto;
     color: var(--accent-foreground);
