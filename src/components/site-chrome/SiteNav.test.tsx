@@ -193,12 +193,15 @@ describe("SiteNav sticky auto-hide contract", () => {
     );
   });
 
-  it("reveals a hidden header the moment focus lands inside it", () => {
-    // A translated header stays in the tab order; without this rule a keyboard user can be
-    // focused on an invisible control (WCAG 2.2 SC 2.4.11 Focus Not Obscured).
-    expect(rule(/html\[data-nav-hidden\]\)\s*\.header:focus-within/)).toMatch(
-      /translate:\s*none/,
-    );
+  it("holds a hidden header open under KEYBOARD focus only — never bare :focus-within", () => {
+    // A translated header stays in the tab order, so keyboard focus inside must keep it
+    // revealed (WCAG 2.2 SC 2.4.11). But `:focus-within` alone also matches mouse-derived
+    // focus — a clicked nav link, Radix restoring focus to the menu trigger — and pins the
+    // band open, killing auto-hide on the site's most common paths (browser-QA HIGH).
+    expect(
+      rule(/html\[data-nav-hidden\]\)\s*\.header:has\(:focus-visible\)/),
+    ).toMatch(/translate:\s*none/);
+    expect(siteNavCss).not.toMatch(/\.header:focus-within/);
   });
 
   it("fades the hairline in on the slow clock but out on the header's fast one", () => {

@@ -66,12 +66,28 @@ export default function NavVisibility(): null {
       }
     };
 
+    // Focus entering the hidden header must reveal it BEFORE the browser scrolls the focused
+    // element into view: the scroll is computed against the translated (off-viewport) box, and
+    // a CSS-only reveal lands after that math — a single Shift+Tab into the band yanked the
+    // page hundreds of pixels (browser-QA MEDIUM). Only keyboard/programmatic focus can reach
+    // an off-screen control, so no pointer-focus scoping is needed here; the CSS side
+    // (`:has(:focus-visible)`) owns KEEPING the band open under keyboard focus.
+    const onFocusIn = (event: FocusEvent): void => {
+      if (!hidden) return;
+      if (!(event.target instanceof Element)) return;
+      if (!event.target.closest("body > header")) return;
+      hidden = false;
+      delete root.dataset.navHidden;
+    };
+
     // A reload can land mid-page: stamp the detached state before the first scroll event.
     onScroll();
 
     window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("focusin", onFocusIn);
     return () => {
       window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("focusin", onFocusIn);
       instances -= 1;
       // Teardown mid-scroll must not strand the header hidden or bordered — but only the last
       // instance out may wipe the document (QA finding D2).
