@@ -30,9 +30,11 @@ export default function NavVisibility(): null {
     // Mirror the stamped state locally so the scroll handler touches the DOM only on a real
     // transition: an unconditional set dirties <html> style once per event, and the next
     // event's scrollY read forces the recalc — write-then-read thrash on the hottest path
-    // the page has (QA finding D1).
-    let hidden: boolean | undefined;
-    let detached: boolean | undefined;
+    // the page has (QA finding D1). Seed the mirrors from the DOCUMENT, not empty: a second
+    // instance mounting mid-page would otherwise read its own blank mirror as a transition
+    // and delete the attribute a live instance owns (QA re-check finding).
+    let hidden = "navHidden" in root.dataset;
+    let detached = "navDetached" in root.dataset;
 
     const onScroll = (): void => {
       // iOS rubber-banding reports negative positions at the top, which would read as an upward
@@ -47,7 +49,7 @@ export default function NavVisibility(): null {
       } else {
         const delta = y - lastY;
         if (Math.abs(delta) < DIRECTION_MIN_DELTA_PX) {
-          nextHidden = hidden ?? false;
+          nextHidden = hidden;
         } else {
           nextHidden = delta > 0;
           lastY = y;
