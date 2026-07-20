@@ -22,11 +22,11 @@ describe("EntryMeta", () => {
       (el) => el.textContent,
     );
     expect(facts).toEqual([
-      "demo",
-      "prototype",
-      "iterated July 16, 2026",
+      "Demo",
+      "Prototype",
+      "Iterated July 16, 2026",
       "oklch(0.66 0.2 350)",
-      "3 linked",
+      "3 Linked",
     ]);
   });
 
@@ -40,7 +40,7 @@ describe("EntryMeta", () => {
 
   it("stamps the iterated fact as a real <time> carrying the machine value", () => {
     render(<EntryMeta iterated="2026-07-16" />);
-    const time = screen.getByText("iterated July 16, 2026");
+    const time = screen.getByText("Iterated July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
   });
@@ -68,7 +68,7 @@ describe("EntryMeta", () => {
     const { container } = render(
       <EntryMeta kind="note" iterated="not-a-date" />,
     );
-    expect(container.textContent).toBe("note");
+    expect(container.textContent).toBe("Note");
     expect(container.querySelector("time")).toBeNull();
   });
 
@@ -80,12 +80,12 @@ describe("EntryMeta", () => {
         <EntryMeta kind="note" linkCount={-2} />
       </>,
     );
-    expect(container.textContent).not.toContain("linked");
+    expect(container.textContent).not.toMatch(/linked/i);
   });
 
   it("renders a lone fact with no separators", () => {
     const { container } = render(<EntryMeta stage="shipped" />);
-    expect(container.textContent).toBe("shipped");
+    expect(container.textContent).toBe("Shipped");
   });
 
   it("passes the ink role through to the type primitive; omitting it inherits the ambient ink", () => {
@@ -154,7 +154,7 @@ describe("EntryMeta — adversarial QA (#329)", () => {
     );
     const facts = container.querySelectorAll("p > span > span");
     expect(facts).toHaveLength(1);
-    expect(facts[0].textContent).toBe("shipped");
+    expect(facts[0].textContent).toBe("Shipped");
   });
 
   it("renders nothing (and never throws) when every fact is whitespace-only", () => {
@@ -178,14 +178,14 @@ describe("EntryMeta — adversarial QA (#329)", () => {
     const { container } = render(
       <EntryMeta kind="note" linkCount={Number.NaN} />,
     );
-    expect(container.textContent).toBe("note");
+    expect(container.textContent).toBe("Note");
   });
 
   it("drops a calendar-impossible iterated date (round-trip guard) rather than rolling it over", () => {
     const { container } = render(
       <EntryMeta kind="note" iterated="2026-02-30" />,
     );
-    expect(container.textContent).toBe("note");
+    expect(container.textContent).toBe("Note");
     expect(container.querySelector("time")).toBeNull();
   });
 
@@ -193,7 +193,7 @@ describe("EntryMeta — adversarial QA (#329)", () => {
     const { container } = render(
       <EntryMeta kind="note" iterated="2026-07-16T12:00:00Z" />,
     );
-    expect(container.textContent).toBe("note");
+    expect(container.textContent).toBe("Note");
     expect(container.querySelector("time")).toBeNull();
   });
 

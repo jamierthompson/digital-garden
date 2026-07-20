@@ -20,11 +20,11 @@ interface NavItem {
 // `index.html`, so a route named `index` collides with home at the static-serving layer).
 // The visible label is still the journal "index".
 const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/", label: "featured" },
-  { href: "/browse", label: "index" },
-  { href: "/system", label: "system" },
-  { href: "/about", label: "about" },
-  { href: "/now", label: "now" },
+  { href: "/", label: "Featured" },
+  { href: "/browse", label: "Index" },
+  { href: "/system", label: "System" },
+  { href: "/about", label: "About" },
+  { href: "/now", label: "Now" },
 ];
 
 function isActive(pathname: string, href: string): boolean {

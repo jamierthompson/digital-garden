@@ -166,9 +166,9 @@ describe("IndexPage (/browse) — the folded Index", () => {
       }),
     ]);
     render(await IndexPage());
-    expect(screen.getByText("shipped")).toBeInTheDocument();
+    expect(screen.getByText("Shipped")).toBeInTheDocument();
     // The stageless row shows no badge text at all — not an empty or default one.
-    expect(screen.queryByText("sketch")).toBeNull();
+    expect(screen.queryByText("Sketch")).toBeNull();
   });
 
   it("shows the backlink hint only when linkCount > 0", async () => {
@@ -206,10 +206,10 @@ describe("IndexPage (/browse) — the folded Index", () => {
       row({ _id: "b", kind: "note", title: "Undated", slug: "b" }),
     ]);
     render(await IndexPage());
-    const time = screen.getByText("iterated June 1, 2026");
+    const time = screen.getByText("Iterated June 1, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-06-01");
-    expect(screen.getAllByText(/iterated/)).toHaveLength(1);
+    expect(screen.getAllByText(/Iterated/)).toHaveLength(1);
   });
 
   it("gives every group section an accessible name wired to its heading id", async () => {

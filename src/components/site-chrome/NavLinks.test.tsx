@@ -25,11 +25,11 @@ function activeLinkName(): string | null {
 }
 
 describe("NavLinks — the current-page indicator", () => {
-  it("renders every IA destination as a link with its journal-lowercase label", () => {
+  it("renders every IA destination as a link with its capitalized label", () => {
     pathnameMock.mockReturnValue("/");
     render(<NavLinks />);
     const labels = screen.getAllByRole("link").map((a) => a.textContent);
-    expect(labels).toEqual(["featured", "index", "system", "about", "now"]);
+    expect(labels).toEqual(["Featured", "Index", "System", "About", "Now"]);
   });
 
   it("wears the muted TextLink treatment on every nav anchor", () => {
@@ -40,28 +40,28 @@ describe("NavLinks — the current-page indicator", () => {
     }
   });
 
-  it("labels the Index 'index' but points it at /browse (route-name collision guard)", () => {
+  it("labels the Index 'Index' but points it at /browse (route-name collision guard)", () => {
     pathnameMock.mockReturnValue("/");
     render(<NavLinks />);
-    expect(screen.getByRole("link", { name: "index" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Index" })).toHaveAttribute(
       "href",
       "/browse",
     );
   });
 
-  it("on home, only `featured` (/) is current — no section false-positive", () => {
+  it("on home, only `Featured` (/) is current — no section false-positive", () => {
     pathnameMock.mockReturnValue("/");
     render(<NavLinks />);
-    expect(activeLinkName()).toBe("featured");
+    expect(activeLinkName()).toBe("Featured");
     // Exactly one current item.
     expect(screen.getAllByRole("link", { current: "page" })).toHaveLength(1);
   });
 
-  it("on /browse, `index` is current and `featured` (home) is NOT", () => {
+  it("on /browse, `Index` is current and `Featured` (home) is NOT", () => {
     pathnameMock.mockReturnValue("/browse");
     render(<NavLinks />);
-    expect(activeLinkName()).toBe("index");
-    expect(screen.getByRole("link", { name: "featured" })).not.toHaveAttribute(
+    expect(activeLinkName()).toBe("Index");
+    expect(screen.getByRole("link", { name: "Featured" })).not.toHaveAttribute(
       "aria-current",
     );
   });
@@ -69,31 +69,31 @@ describe("NavLinks — the current-page indicator", () => {
   it("lights a section for its descendant route (/system/tokens → system)", () => {
     pathnameMock.mockReturnValue("/system/tokens");
     render(<NavLinks />);
-    expect(activeLinkName()).toBe("system");
+    expect(activeLinkName()).toBe("System");
   });
 
-  it("does NOT light `index` for a sibling prefix collision (/browse-archive)", () => {
+  it("does NOT light `Index` for a sibling prefix collision (/browse-archive)", () => {
     pathnameMock.mockReturnValue("/browse-archive");
     render(<NavLinks />);
     // No prefix false-positive: /browse-archive is not /browse nor /browse/*.
-    expect(screen.getByRole("link", { name: "index" })).not.toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Index" })).not.toHaveAttribute(
       "aria-current",
     );
     expect(activeLinkName()).toBeNull();
   });
 
-  it("does NOT light `system` for a lexical-prefix sibling (/systematic)", () => {
+  it("does NOT light `System` for a lexical-prefix sibling (/systematic)", () => {
     pathnameMock.mockReturnValue("/systematic");
     render(<NavLinks />);
-    expect(screen.getByRole("link", { name: "system" })).not.toHaveAttribute(
+    expect(screen.getByRole("link", { name: "System" })).not.toHaveAttribute(
       "aria-current",
     );
   });
 
-  it("matches a section with a trailing slash (/now/ → now)", () => {
+  it("matches a section with a trailing slash (/now/ → Now)", () => {
     pathnameMock.mockReturnValue("/now/");
     render(<NavLinks />);
-    expect(activeLinkName()).toBe("now");
+    expect(activeLinkName()).toBe("Now");
   });
 
   it("does not crash and marks nothing current when usePathname returns null", () => {

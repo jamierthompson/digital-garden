@@ -39,6 +39,13 @@ function asText(value: string | null | undefined): string | null {
   return trimmed || null;
 }
 
+// Facts render capitalized IN CONTENT (owner ruling 2026-07-20: display case = copy case —
+// no text-transform, so selection, copy, and assistive tech all read what the eye reads).
+// Applied only to the human-language facts; the seed stays a verbatim data literal.
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export default function EntryMeta({
   kind,
   stage,
@@ -54,12 +61,14 @@ export default function EntryMeta({
   const iteratedLabel = formatDate(iteratedIso);
   const seedText = asText(seed);
   const facts: { key: string; node: React.ReactNode }[] = [];
-  if (kindText) facts.push({ key: "kind", node: <span>{kindText}</span> });
-  if (stageText) facts.push({ key: "stage", node: <span>{stageText}</span> });
+  if (kindText)
+    facts.push({ key: "kind", node: <span>{capitalize(kindText)}</span> });
+  if (stageText)
+    facts.push({ key: "stage", node: <span>{capitalize(stageText)}</span> });
   if (iteratedIso && iteratedLabel) {
     facts.push({
       key: "iterated",
-      node: <time dateTime={iteratedIso}>iterated {iteratedLabel}</time>,
+      node: <time dateTime={iteratedIso}>Iterated {iteratedLabel}</time>,
     });
   }
   if (seedText) facts.push({ key: "seed", node: <span>{seedText}</span> });
@@ -70,7 +79,7 @@ export default function EntryMeta({
     Number.isInteger(linkCount) &&
     linkCount > 0
   ) {
-    facts.push({ key: "links", node: <span>{linkCount} linked</span> });
+    facts.push({ key: "links", node: <span>{linkCount} Linked</span> });
   }
 
   if (facts.length === 0) return null;

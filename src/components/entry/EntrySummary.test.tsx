@@ -31,14 +31,14 @@ describe("EntrySummary", () => {
 
   it("renders the iterated date inside the meta readout as a <time> with the machine value", () => {
     renderInList(<EntrySummary title="Update" iterated="2026-07-01" />);
-    const time = screen.getByText("iterated July 1, 2026");
+    const time = screen.getByText("Iterated July 1, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-01");
   });
 
   it("renders the stage as plain meta text — no badge treatment, no data-stage hook", () => {
     renderInList(<EntrySummary title="Entry" stage="prototype" />);
-    const stage = screen.getByText("prototype");
+    const stage = screen.getByText("Prototype");
     expect(stage).not.toHaveAttribute("data-stage");
     expect(stage.closest("p")).toHaveAttribute("data-variant", "meta");
   });
@@ -48,7 +48,7 @@ describe("EntrySummary", () => {
       <EntrySummary title="Entry" summary="A short summary." linkCount={3} />,
     );
     expect(screen.getByText("A short summary.")).toBeInTheDocument();
-    expect(screen.getByText("3 linked")).toBeInTheDocument();
+    expect(screen.getByText("3 Linked")).toBeInTheDocument();
   });
 
   it("renders none of the optional pieces when their fields are absent or empty", () => {

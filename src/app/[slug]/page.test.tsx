@@ -422,9 +422,9 @@ describe("EntryPage — the demo template (sidebar + canvas)", () => {
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("A summary.")).toBeInTheDocument();
-    expect(screen.getByText("demo")).toBeInTheDocument();
-    expect(screen.getByText("prototype")).toBeInTheDocument();
-    expect(screen.getByText(/iterated July 16, 2026/)).toBeInTheDocument();
+    expect(screen.getByText("Demo")).toBeInTheDocument();
+    expect(screen.getByText("Prototype")).toBeInTheDocument();
+    expect(screen.getByText(/Iterated July 16, 2026/)).toBeInTheDocument();
     expect(screen.getByText("oklch(0.7 0.15 70)")).toBeInTheDocument();
     // The module's two surfaces, both slug-keyed.
     expect(screen.getByTestId("sidebar-controls")).toHaveAttribute(
@@ -693,11 +693,11 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
       await EntryPage({ params: params("an-entry") }),
     );
     const header = container.querySelector("header");
-    expect(header?.textContent).toContain("essay");
-    expect(header?.textContent).toContain("shipped");
+    expect(header?.textContent).toContain("Essay");
+    expect(header?.textContent).toContain("Shipped");
     expect(header?.textContent).toContain("oklch(0.66 0.2 350)");
-    expect(header?.textContent).toContain("2 linked");
-    const time = screen.getByText("iterated July 1, 2026");
+    expect(header?.textContent).toContain("2 Linked");
+    const time = screen.getByText("Iterated July 1, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-01");
   });
@@ -716,7 +716,7 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
       }),
     );
     render(await EntryPage({ params: params("an-entry") }));
-    expect(screen.getByText("2 linked")).toBeInTheDocument();
+    expect(screen.getByText("2 Linked")).toBeInTheDocument();
     const relatedList = screen
       .getByRole("heading", { name: /related/i })
       .closest("aside, section, nav, div")
@@ -752,7 +752,7 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
       }),
     );
     render(await EntryPage({ params: params("an-entry") }));
-    expect(screen.getByText("3 linked")).toBeInTheDocument();
+    expect(screen.getByText("3 Linked")).toBeInTheDocument();
   });
 
   it("the editorial header omits absent facts without stray separators (kindless drifted doc, no meta at all)", async () => {

@@ -43,8 +43,6 @@
     font-weight: var(--nav-link-weight);
     letter-spacing: var(--nav-link-tracking);
     line-height: var(--nav-link-leading);
-    /* Chrome labels render capitalized; route slugs stay lowercase in content. */
-    text-transform: capitalize;
     /* Transparent underline reserved so activating a link doesn't shift the row. */
     border-bottom: var(--border-width-thick) solid transparent;
   }

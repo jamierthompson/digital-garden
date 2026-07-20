@@ -23,15 +23,15 @@ describe("DemoLayout", () => {
       screen.getByRole("heading", { level: 1, name: /oklch engine/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("Feed the engine a seed.")).toBeInTheDocument();
-    expect(screen.getByText("demo")).toBeInTheDocument();
-    expect(screen.getByText("prototype")).toBeInTheDocument();
+    expect(screen.getByText("Demo")).toBeInTheDocument();
+    expect(screen.getByText("Prototype")).toBeInTheDocument();
     expect(screen.getByText("oklch(0.66 0.2 350)")).toBeInTheDocument();
-    expect(screen.getByText("2 linked")).toBeInTheDocument();
+    expect(screen.getByText("2 Linked")).toBeInTheDocument();
   });
 
   it("stamps the iterated fact as a real <time> with the machine value", () => {
     render(<DemoLayout {...baseProps}>canvas</DemoLayout>);
-    const time = screen.getByText("iterated July 16, 2026");
+    const time = screen.getByText("Iterated July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
   });
