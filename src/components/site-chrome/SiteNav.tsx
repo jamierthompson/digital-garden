@@ -1,6 +1,8 @@
+import Cluster from "@/components/layout/Cluster";
 import ContentGrid from "@/components/layout/ContentGrid";
 
 import Logo, { PlaceholderMark } from "./Logo";
+import MobileNav from "./MobileNav";
 import NavLinks from "./NavLinks";
 import SchemeToggle from "./SchemeToggle";
 import styles from "./SiteNav.module.css";
@@ -23,12 +25,19 @@ export default function SiteNav(): React.ReactElement {
           <Logo>
             <PlaceholderMark />
           </Logo>
-          <div className={styles.controls}>
-            <nav aria-label="Primary">
-              <NavLinks />
+          <Cluster className={styles.controls}>
+            {/* Both presentations render server-side and CSS picks between them — no breakpoint
+                read in JS, so nothing swaps at hydration and neither flashes on first paint. */}
+            <nav aria-label="Primary" className={styles.inlineNav}>
+              <Cluster asChild>
+                <NavLinks />
+              </Cluster>
             </nav>
+            <div className={styles.mobileNav}>
+              <MobileNav />
+            </div>
             <SchemeToggle />
-          </div>
+          </Cluster>
         </div>
       </header>
     </ContentGrid>

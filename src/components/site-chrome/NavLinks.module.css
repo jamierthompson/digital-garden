@@ -15,11 +15,11 @@
     --nav-link-tracking: var(--tracking-normal);
     --nav-link-leading: var(--leading-normal);
 
-    display: flex;
-    /* Wraps on narrow viewports — a flex item never shrinks below its min-content, so without
-       this the links dictate a minimum page width and force mobile to zoom out. */
-    flex-wrap: wrap;
-    gap: var(--nav-link-gap);
+    /* Flow, wrap and gap come from `Cluster` (row) or `Stack` (column) — one nav gap feeds
+       whichever primitive the orientation mounted, through its documented CSS channel. */
+    --cluster-gap: var(--nav-link-gap);
+    --stack-gap: var(--nav-link-gap);
+
     list-style: none;
   }
 
@@ -47,6 +47,34 @@
      layout shift). Paired with `aria-current="page"` on the link, which also drives the
      full-ink text via the TextLink `muted` variant. */
   .active {
+    border-bottom-color: var(--foreground);
+  }
+
+  /* The mobile panel's column. Modifiers sit AFTER the base rules they modify — both the
+     cascade and this directory's source-reading tests take the rules in file order. The links
+     get room once they aren't competing for a single row, and each stretches to the panel's
+     full width so the tap target is the row rather than the word. */
+  .stack {
+    --nav-link-gap: var(--space-4);
+
+    align-items: stretch;
+  }
+
+  /* Target and indicator come apart in the column: `display: flex` (not the row's `inline-flex`)
+     makes the LINK fill its row, so the tap target is the full panel width — but an underline on
+     that box would run the panel's whole width, so the indicator moves to the word. */
+  .stack .link {
+    display: flex;
+    justify-content: flex-start;
+    border-bottom-color: transparent;
+  }
+
+  /* Reserved transparent on every item, so activating one shifts nothing. */
+  .stack .label {
+    border-bottom: var(--border-width-thick) solid transparent;
+  }
+
+  .stack .active .label {
     border-bottom-color: var(--foreground);
   }
 }

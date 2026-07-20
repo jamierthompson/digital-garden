@@ -35,17 +35,46 @@ function isActive(pathname: string, href: string): boolean {
     : pathname === href || pathname.startsWith(`${href}/`);
 }
 
+interface NavLinksProps extends React.ComponentPropsWithRef<"ul"> {
+  /**
+   * The links' own treatment, not their layout — the CONSUMER owns layout by wrapping this in
+   * the primitive it wants. `stack` makes each link fill its row so the tap target is the row
+   * rather than the word; `row` (the default) keeps a short label centred in its 24px floor.
+   */
+  readonly orientation?: "row" | "stack";
+  /**
+   * Called when a destination is activated. The mobile panel lives in the persistent layout, so
+   * a client-side navigation does NOT unmount it — without this the panel would still be covering
+   * the page the user just navigated to.
+   */
+  readonly onNavigate?: () => void;
+}
+
 /**
  * The shell's primary nav links, split into a small Client Component so the current-page
  * indicator can read `usePathname` without dragging the server-rendered header
  * (`SiteNav`) to the client. Var-consuming only: reads the global editorial tokens
  * (`--font-heading`, `--foreground`, `--border`) — the shell is never theme-scoped.
  */
-export default function NavLinks(): React.ReactElement {
+export default function NavLinks({
+  orientation = "row",
+  onNavigate,
+  className,
+  ...rest
+}: NavLinksProps = {}): React.ReactElement {
   const pathname = usePathname();
 
   return (
-    <ul className={styles.links}>
+    <ul
+      className={[
+        styles.links,
+        orientation === "stack" ? styles.stack : null,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      {...rest}
+    >
       {NAV_ITEMS.map(({ href, label }) => {
         const active = isActive(pathname ?? "", href);
         return (
@@ -56,8 +85,12 @@ export default function NavLinks(): React.ReactElement {
               className={active ? styles.active : undefined}
               aria-current={active ? "page" : undefined}
             >
-              <HoverPrefetchLink href={href} className={styles.link}>
-                {label}
+              <HoverPrefetchLink
+                href={href}
+                className={styles.link}
+                onClick={onNavigate}
+              >
+                <span className={styles.label}>{label}</span>
               </HoverPrefetchLink>
             </TextLink>
           </li>

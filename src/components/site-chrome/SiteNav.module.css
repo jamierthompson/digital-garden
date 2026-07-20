@@ -6,13 +6,30 @@
 @layer components {
   .header {
     /* Component tokens — the header band's designed dimensions. */
-    --site-nav-pad: var(--space-4);
+    /* The top edge is fluid — 1rem at 320px up to 2rem at 1280px, the SAME viewport range the
+       fluid type scale interpolates over (`foundation/typography.css`), so the chrome breathes
+       in step with the type rather than on a second, invented range. 2rem is generous where
+       vertical space is scarcest, hence the lower floor on narrow viewports. The foot stays
+       fixed: the band's underside doesn't need to grow with the viewport. */
+    --site-nav-pad-block-start: clamp(
+      var(--space-4),
+      0.6667rem + 1.6667vw,
+      var(--space-6)
+    );
+    --site-nav-pad-block-end: var(--space-4);
     --site-nav-gap: var(--space-5);
 
     border-bottom: var(--border-width-thick) solid var(--accent);
   }
 
   .row {
+    /* The band IS the query container for its own contents. Its inline size comes from the grid
+       lane, never from its children, so there is no circularity between the query and what the
+       query shows/hides. The panel is portaled to <body>, so `container-type`'s layout
+       containment — which would otherwise make this row the containing block for a fixed
+       descendant — can't reach it. */
+    container: site-nav / inline-size;
+
     grid-column: wide;
     display: flex;
     /* Wraps on narrow viewports (see NavLinks) — never dictate a minimum page width. */
@@ -20,15 +37,43 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--site-nav-gap);
-    padding-block: var(--site-nav-pad);
+    padding-block-start: var(--site-nav-pad-block-start);
+    padding-block-end: var(--site-nav-pad-block-end);
   }
 
+  /* The inline links and the mobile trigger are mutually exclusive presentations of one nav.
+     The question is "does the BAND have room for the row", so the query is on the band — not on
+     the viewport. A viewport breakpoint would answer a different question and silently go wrong
+     the moment the wide lane's max width changes, a destination is added, or the mark grows;
+     the container tracks the constraint that actually governs.
+
+     The threshold is the row's own arithmetic, not a device size:
+       mark 44 + gap 24 + links 312 + gap 24 + toggle 24 = 428px
+     28rem (448px) clears that with headroom. Re-derive it if the row's parts change.
+
+     Container queries are Baseline 2023 — inside the support floor this project already sets by
+     shipping native `light-dark()` (see next.config.ts), so they cost no extra reach. */
+  .inlineNav {
+    display: none;
+  }
+
+  @container site-nav (min-width: 28rem) {
+    .inlineNav {
+      display: block;
+    }
+
+    .mobileNav {
+      display: none;
+    }
+  }
+
+  /* Row flow, wrap and gap come from `Cluster` — `--cluster-gap` is the primitive's documented
+     CSS override channel, so the band's own gap applies without a call-site prop. Alignment and
+     justification stay here: Cluster deliberately sets neither. */
   .controls {
-    display: flex;
-    /* Wraps on narrow viewports (see NavLinks) — never dictate a minimum page width. */
-    flex-wrap: wrap;
+    --cluster-gap: var(--site-nav-gap);
+
     align-items: center;
     justify-content: flex-end;
-    gap: var(--site-nav-gap);
   }
 }
