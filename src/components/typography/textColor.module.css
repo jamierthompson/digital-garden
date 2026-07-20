@@ -15,4 +15,32 @@
   .ink[data-color="accent-text"] {
     color: var(--accent-text);
   }
+
+  .ink[data-color="harmony-analogous-a-text"] {
+    color: var(--harmony-analogous-a-text);
+  }
+
+  .ink[data-color="harmony-analogous-b-text"] {
+    color: var(--harmony-analogous-b-text);
+  }
+
+  .ink[data-color="harmony-complementary-text"] {
+    color: var(--harmony-complementary-text);
+  }
+
+  .ink[data-color="harmony-triadic-a-text"] {
+    color: var(--harmony-triadic-a-text);
+  }
+
+  .ink[data-color="harmony-triadic-b-text"] {
+    color: var(--harmony-triadic-b-text);
+  }
+
+  .ink[data-color="harmony-split-complementary-a-text"] {
+    color: var(--harmony-split-complementary-a-text);
+  }
+
+  .ink[data-color="harmony-split-complementary-b-text"] {
+    color: var(--harmony-split-complementary-b-text);
+  }
 }

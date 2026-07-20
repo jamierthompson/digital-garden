@@ -122,16 +122,22 @@ describe("Home (featured front door)", () => {
     ).toBeNull();
   });
 
-  // The headline carries no emphasis element. `em` is rendered in the heading face, which has no
-  // true italic — the browser would synthesize a slant. Pinned as unstyled running text so the
-  // treatment can't creep back in on a face that still can't honour it.
-  it("renders the headline as plain running text, with no emphasis element", async () => {
+  // The headline carries no emphasis ELEMENT. `em` is rendered in the heading face, which has no
+  // true italic — the browser would synthesize a slant. Emphasis is INK instead: the building
+  // phrase wears a harmony-green text role (the page's one display-moment ink spend), which
+  // changes no text content and adds no semantic emphasis.
+  it("renders the headline as running text — ink emphasis on the building phrase, no em element", async () => {
     render(await Home());
     const h1 = screen.getByRole("heading", { level: 1 });
     expect(h1.querySelectorAll("em, i")).toHaveLength(0);
     expect(h1.textContent).toBe(
       "Notes, essays, and things I’m building in the open.",
     );
+    const emphasis = h1.querySelector(
+      '[data-color="harmony-split-complementary-a-text"]',
+    );
+    expect(emphasis).not.toBeNull();
+    expect(emphasis!.textContent).toBe("things I’m building");
   });
 
   it("renders each featured entry as a card linking to its flat /[slug]", async () => {

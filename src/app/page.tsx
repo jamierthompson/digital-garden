@@ -6,6 +6,7 @@ import Grid from "@/components/layout/Grid";
 import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import Heading from "@/components/typography/Heading";
+import Ink from "@/components/typography/Ink";
 import Text from "@/components/typography/Text";
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
@@ -47,9 +48,15 @@ export default async function Home() {
                 The Design-Engineering Garden of Jamie Thompson
               </Text>
               {/* The landing statement is the one place the oversized `display` role is used; a
-            content page's h1 defaults to the quieter `title` role. */}
+            content page's h1 defaults to the quieter `title` role. The emphasized phrase is the
+            page's one display-moment ink spend — a harmony green, not the accent, so it reads
+            as a second hue against the pink page rather than a wash of the same one. */}
               <Heading level={1} variant="display" className={styles.title}>
-                Notes, essays, and things I&rsquo;m building in the open.
+                Notes, essays, and{" "}
+                <Ink color="harmony-split-complementary-a-text">
+                  things I&rsquo;m building
+                </Ink>{" "}
+                in the open.
               </Heading>
             </section>
           </Stack>
