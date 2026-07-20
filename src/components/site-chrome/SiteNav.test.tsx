@@ -186,11 +186,6 @@ describe("site-chrome component tokens resolve", () => {
     ]),
   );
 
-  // Set at RUNTIME by `react-remove-scroll-bar` (via Radix's dialog scroll lock), so it exists in
-  // no stylesheet this scan can read. Every consumer must supply a fallback, since the package's
-  // own source documents that it may be undefined.
-  externalDeclared.add("--removed-body-scroll-bar-size");
-
   it("declares every chrome module non-empty (the scan is actually looking at something)", () => {
     // Guards the scans below against silently passing on an empty file list after a rename.
     expect(chromeModules.length).toBeGreaterThanOrEqual(6);

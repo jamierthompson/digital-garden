@@ -55,16 +55,13 @@
     --mobile-nav-inset: var(--space-gutter);
     /* Trailing room so the last link's focus ring isn't clipped by the scroll box. */
     --mobile-nav-foot: var(--space-5);
-    /* The scroll lock hides the scrollbar, widening the viewport; `react-remove-scroll` pads the
-       BODY to compensate, which a fixed panel never sees. Without this the bar's right-hand
-       controls land a scrollbar-width further right than the header's. Zero where scrollbars
-       overlay, so mobile is unaffected. */
-    --mobile-nav-scrollbar: var(--removed-body-scroll-bar-size, 0px);
 
-    padding-inline-start: var(--mobile-nav-inset);
-    padding-inline-end: calc(
-      var(--mobile-nav-inset) + var(--mobile-nav-scrollbar)
-    );
+    /* Symmetric, with NO compensation for the scrollbar the scroll lock removes: `reset.css`
+       reserves the gutter permanently (`scrollbar-gutter: stable`), so this panel's containing
+       block is already the narrower width whether or not a scrollbar is showing. Offsetting by
+       `--removed-body-scroll-bar-size` corrects a gap that is never reopened and drags the bar's
+       right-hand controls a scrollbar-width inward on open. */
+    padding-inline: var(--mobile-nav-inset);
     padding-block-end: var(--mobile-nav-foot);
     /* `dvh`, not `vh`: `vh` is the LARGE viewport, so with the mobile URL bar shown a `100vh`
        panel runs taller than the visible area and its foot can't be reached. */

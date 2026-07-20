@@ -203,7 +203,7 @@ describe("MobileNav source-pinned geometry", () => {
     expect(ruleDeclarations(css, ".panel").get("--mobile-nav-inset")).toBe(
       "var(--space-gutter)",
     );
-    expect(ruleDeclarations(css, ".panel").get("padding-inline-start")).toBe(
+    expect(ruleDeclarations(css, ".panel").get("padding-inline")).toBe(
       "var(--mobile-nav-inset)",
     );
     expect(ruleDeclarations(siteNavCss, ".row").get("grid-column")).toBe(
@@ -211,18 +211,27 @@ describe("MobileNav source-pinned geometry", () => {
     );
   });
 
-  it("compensates the trailing edge for the scrollbar the lock removes", () => {
-    // The scroll lock hides the scrollbar, widening the viewport. `react-remove-scroll` pads the
-    // BODY to keep in-flow content still, which a `position: fixed` panel never receives — so
-    // without this the bar's right-hand controls land a scrollbar-width right of the header's,
-    // on exactly the platforms with classic scrollbars. Fallback required: the package's own
-    // source documents the variable as possibly undefined.
+  it("does NOT compensate for the scrollbar the scroll lock removes", () => {
+    // Measured: with the compensation applied, the bar's right-hand controls jumped 11px inward
+    // on open — nine times the defect it was meant to prevent. The panel's fixed containing
+    // block is already the narrower width because the gutter is permanently reserved, so
+    // offsetting again double-corrects. Symmetric padding is the correct answer HERE, which is
+    // why this is pinned rather than left to look like an oversight.
     const panel = ruleDeclarations(css, ".panel");
-    expect(panel.get("--mobile-nav-scrollbar")).toBe(
-      "var(--removed-body-scroll-bar-size, 0px)",
+    expect(panel.get("padding-inline")).toBe("var(--mobile-nav-inset)");
+    // Comments stripped: the rule above is explained in prose that names the variable.
+    expect(css.replace(/\/\*[\s\S]*?\*\//g, " ")).not.toContain(
+      "--removed-body-scroll-bar-size",
     );
-    expect(panel.get("padding-inline-end")?.replace(/\s+/g, " ")).toBe(
-      "calc( var(--mobile-nav-inset) + var(--mobile-nav-scrollbar) )",
+  });
+
+  it("depends on the reserved scrollbar gutter, so pin that it still exists", () => {
+    // The rule above is only correct while `reset.css` reserves the gutter on every route.
+    // Dropping `scrollbar-gutter: stable` would silently reintroduce the horizontal jump here,
+    // in a file that has nothing to do with this component.
+    const reset = readModuleCss("src/styles/reset.css");
+    expect(ruleDeclarations(reset, "html").get("scrollbar-gutter")).toBe(
+      "stable",
     );
   });
 
