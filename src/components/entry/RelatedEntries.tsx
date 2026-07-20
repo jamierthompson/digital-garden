@@ -62,7 +62,7 @@ export default function RelatedEntries({
         level={2}
         variant="label"
         id={headingId}
-        className={styles.heading}
+        color="muted-foreground"
       >
         Related
       </Heading>
