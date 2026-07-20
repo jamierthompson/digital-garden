@@ -8,10 +8,11 @@ import Cluster from "@/components/layout/Cluster";
 import { isPlainActivation } from "@/lib/activation";
 import Stack from "@/components/layout/Stack";
 
-import Logo, { PlaceholderMark } from "./Logo";
+import Logo from "./Logo";
 import styles from "./MobileNav.module.css";
 import NavLinks from "./NavLinks";
 import SchemeToggle from "./SchemeToggle";
+import TulipMark from "./TulipMark";
 
 /**
  * The primary nav as a full-height panel, for bands too narrow to carry the links inline.
@@ -70,7 +71,7 @@ export default function MobileNav(): React.ReactElement {
           </VisuallyHidden.Root>
           <div className={styles.barRow}>
             <Logo>
-              <PlaceholderMark />
+              <TulipMark />
             </Logo>
             <Cluster className={styles.controls}>
               <Dialog.Close className={styles.trigger} aria-label="Close menu">

@@ -91,14 +91,13 @@ describe("SiteNav", () => {
 });
 
 /**
- * The header ink rule and the nav active-underline are BOTH the "thick" 2px border
- * (`--border-width-thick`). They must stay EQUAL and `.active` must override only the COLOR —
- * if `.active` re-declared the border width, or the placeholder and header widths diverged,
- * activating a link would shift the whole nav row by a pixel. The rules live in the pieces'
- * own modules; the invariant is CROSS-piece, so it's pinned here on the composer. (jsdom
- * performs no layout; this reads the source.)
+ * The nav active-underline must never shift the row: `.link` reserves the underline's width
+ * with a transparent border and `.active` overrides only the COLOR — if `.active` re-declared
+ * the width, activating a link would shift the whole nav row by a pixel. The rules live in the
+ * pieces' own modules; the invariant is CROSS-piece, so it's pinned here on the composer.
+ * (jsdom performs no layout; this reads the source.)
  */
-describe("SiteNav border-width-thick pair — no active-state layout shift", () => {
+describe("SiteNav source-pinned layout invariants", () => {
   const read = (name: string): string =>
     readFileSync(
       resolve(process.cwd(), `src/components/site-chrome/${name}`),
@@ -113,12 +112,6 @@ describe("SiteNav border-width-thick pair — no active-state layout shift", () 
     );
     return css.match(re)?.[1] ?? "";
   };
-
-  it("the header ink rule uses --border-width-thick", () => {
-    expect(rule(siteNavCss, ".header")).toMatch(
-      /border-bottom:\s*var\(--border-width-thick\)\s+solid/,
-    );
-  });
 
   it("the header row takes the wide lane of the band grid", () => {
     // jsdom can't lay out the grid; pin the lane at the source. Without this the row falls to
@@ -152,6 +145,93 @@ describe("SiteNav border-width-thick pair — no active-state layout shift", () 
     // placeholder width no longer governs and the row can shift on activation.
     expect(active).not.toMatch(/border-bottom-width:/);
     expect(active).not.toMatch(/border-bottom:\s*[^;]*\d/);
+  });
+});
+
+/**
+ * The auto-hiding sticky header: `NavVisibility` stamps `data-nav-hidden`/`data-nav-detached`
+ * on <html>, and SiteNav's module owns the visuals. The pairing is CROSS-file (a selector here,
+ * an attribute there) with no runtime symptom jsdom can see, so the contract is pinned at the
+ * source on the composer.
+ */
+describe("SiteNav sticky auto-hide contract", () => {
+  const siteNavCss = readFileSync(
+    resolve(process.cwd(), "src/components/site-chrome/SiteNav.module.css"),
+    "utf8",
+  );
+
+  const rule = (selector: RegExp): string =>
+    siteNavCss.match(
+      new RegExp(`${selector.source}\\s*\\{([\\s\\S]*?)\\}`),
+    )?.[1] ?? "";
+
+  it("pins the band to the viewport on the sticky tier, below the dialog tiers", () => {
+    const header = rule(/\.header/);
+    expect(header).toMatch(/position:\s*sticky/);
+    expect(header).toMatch(/inset-block-start:\s*0/);
+    // --z-sticky (200) < --z-overlay/--z-modal, so the mobile nav dialog covers the band.
+    expect(header).toMatch(/z-index:\s*var\(--z-sticky\)/);
+  });
+
+  it("gives the floating band an opaque page surface", () => {
+    expect(rule(/\.header/)).toMatch(/background-color:\s*var\(--background\)/);
+  });
+
+  it("reserves the detached hairline transparent, so detaching never shifts layout", () => {
+    expect(rule(/\.header/)).toMatch(
+      /border-block-end:\s*var\(--border-width\)\s+solid\s+transparent/,
+    );
+    // The detached state may only recolor the reserved stroke.
+    const detached = rule(/html\[data-nav-detached\]\)\s*\.header/);
+    expect(detached).toMatch(/border-block-end-color:\s*var\(--border\)/);
+    expect(detached).not.toMatch(/border-block-end:/);
+  });
+
+  it("hides by translating off-canvas AND leaving the tab order", () => {
+    // The visibility swap is load-bearing: a translated-but-focusable box stays tabbable, and
+    // the browser commits its focus scroll against the off-viewport box BEFORE dispatching
+    // focusin — a Shift+Tab into it yanked the page (browser-QA MEDIUM, event-order proven).
+    const hidden = rule(/html\[data-nav-hidden\]\)\s*\.header(?!:)/);
+    expect(hidden).toMatch(/translate:\s*0\s+-100%/);
+    expect(hidden).toMatch(/visibility:\s*hidden/);
+    // The swap waits for the slide-out; reveal states omit visibility so it returns instantly.
+    expect(hidden).toMatch(/visibility\s+0s\s+var\(--site-nav-hide-duration\)/);
+  });
+
+  it("holds a hidden header open under KEYBOARD focus only — never bare :focus-within", () => {
+    // A translated header stays in the tab order, so keyboard focus inside must keep it
+    // revealed (WCAG 2.2 SC 2.4.11). But `:focus-within` alone also matches mouse-derived
+    // focus — a clicked nav link, Radix restoring focus to the menu trigger — and pins the
+    // band open, killing auto-hide on the site's most common paths (browser-QA HIGH).
+    const held = rule(
+      /html\[data-nav-hidden\]\)\s*\.header:has\(:focus-visible\)/,
+    );
+    expect(held).toMatch(/translate:\s*none/);
+    // Holding open must also override the hidden state's visibility, or the focused control
+    // goes unfocusable mid-hold and drops focus.
+    expect(held).toMatch(/visibility:\s*visible/);
+    expect(siteNavCss).not.toMatch(/\.header:focus-within/);
+  });
+
+  it("fades the hairline in on the slow clock but out on the header's fast one", () => {
+    // A state's own `transition` governs ENTERING it, so the asymmetry is two declarations:
+    // the slow ambient fade lives on the detached rule, and the base rule keeps the fast
+    // clock so the hairline follows the header's movement on the way out.
+    expect(rule(/\.header/)).toMatch(
+      /border-color\s+var\(--site-nav-hide-duration\)/,
+    );
+    expect(rule(/html\[data-nav-detached\]\)\s*\.header/)).toMatch(
+      /border-color\s+var\(--site-nav-hairline-duration\)/,
+    );
+  });
+
+  it("drops every transition under prefers-reduced-motion — the detached rule too", () => {
+    const media =
+      siteNavCss.match(/@media \(prefers-reduced-motion:[\s\S]*/)?.[0] ?? "";
+    expect(media).toMatch(/transition:\s*none/);
+    // The detached state declares its own transition and out-specifies `.header`, so the
+    // media block must zero BOTH rules or the fade keeps running under reduced motion.
+    expect(media).toMatch(/data-nav-detached/);
   });
 });
 

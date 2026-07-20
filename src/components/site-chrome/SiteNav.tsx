@@ -1,11 +1,12 @@
 import Cluster from "@/components/layout/Cluster";
 import ContentGrid from "@/components/layout/ContentGrid";
 
-import Logo, { PlaceholderMark } from "./Logo";
+import Logo from "./Logo";
 import MobileNav from "./MobileNav";
 import NavLinks from "./NavLinks";
 import SchemeToggle from "./SchemeToggle";
 import styles from "./SiteNav.module.css";
+import TulipMark from "./TulipMark";
 
 /**
  * The shell's header band — a Server Component composing the chrome pieces into one row: the
@@ -23,7 +24,7 @@ export default function SiteNav(): React.ReactElement {
       <header className={styles.header}>
         <div className={styles.row}>
           <Logo>
-            <PlaceholderMark />
+            <TulipMark />
           </Logo>
           <Cluster className={styles.controls}>
             {/* Both presentations render server-side and CSS picks between them — no breakpoint

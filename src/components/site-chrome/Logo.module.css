@@ -7,11 +7,12 @@
     /* Component tokens — the logo's designed size, ink, and motion. Chrome-only, so no
        `--type-<role>-*` bundle: the role sheet is the editorial vocabulary the type engine
        derives, and the logo carries no type at all. */
-    --logo-size: var(--size-control-lg);
-    /* A mark is non-text content (WCAG 2.2 SC 1.4.11), so it wears the graphic ink rather than a
-       text role; hover moves up the same neutral ramp. */
-    --logo-ink: var(--icon);
-    --logo-ink-hover: var(--foreground);
+    --logo-size: 2.5rem;
+    /* The logo is the BRAND mark, not a functional icon: it wears the accent fill (a 3:1-solved
+       non-text grade, legal for graphics per lint:icon) rather than the neutral `--icon` ink the
+       chrome's icon controls share; hover moves up the accent's own ramp. */
+    --logo-ink: var(--accent);
+    --logo-ink-hover: var(--accent-hover);
     --logo-radius: var(--radius-control);
     --logo-press-scale: 0.94;
     --logo-duration: var(--duration-fast);
