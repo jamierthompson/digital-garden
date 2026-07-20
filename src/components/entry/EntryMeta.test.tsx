@@ -127,15 +127,21 @@ describe("EntryMeta.module.css — the separator contract (QA #329 D1)", () => {
 
   it("clips each line's leading dot: overflow clip on the box, exact negative shift on the track", () => {
     expect(css).toMatch(/overflow:\s*clip/);
-    // The shift must account for the dot's TRUE advance (1ch + the meta role's tracking)
-    // plus both gap margins — a bare 1ch shift leaves a tracking-wide sliver of dot visible.
+    // The shift must account for the dot's TRUE advance plus both gap margins. The dot rides
+    // in a fixed box (an atomic inline advances by its own inline-size, not the glyph's
+    // face-specific advance), so advance = box + the meta role's tracking is exact in ANY
+    // face — a bare glyph would make the shift a face-coupled measurement.
+    expect(css).toMatch(/--entry-meta-dot-box:\s*1ch/);
     expect(css).toMatch(
-      /--entry-meta-dot-advance:\s*calc\(1ch \+ var\(--type-meta-tracking\)\)/,
+      /--entry-meta-dot-advance:\s*calc\(\s*var\(--entry-meta-dot-box\) \+ var\(--type-meta-tracking\)\s*\)/,
     );
     expect(css).toMatch(
       /margin-inline-start:\s*calc\(\s*-1 \*\s*\(var\(--entry-meta-dot-advance\) \+ 2 \* var\(--entry-meta-gap\)\)\s*\)/,
     );
     expect(css).toMatch(/margin-inline:\s*var\(--entry-meta-gap\)/);
+    // The fixed box itself: inline-block + the box token as inline-size, dot centered.
+    expect(css).toMatch(/display:\s*inline-block/);
+    expect(css).toMatch(/inline-size:\s*var\(--entry-meta-dot-box\)/);
   });
 });
 

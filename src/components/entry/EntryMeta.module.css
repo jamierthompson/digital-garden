@@ -1,4 +1,4 @@
-/* Entry meta readout — the shared mono meta line. @layer components — declares its layer (an
+/* Entry meta readout — the shared meta line. @layer components — declares its layer (an
    unlayered module outranks every layered rule); ink comes from the `Text` primitive's color
    prop or the ambient surface.
 
@@ -8,8 +8,9 @@
    shifted left by exactly one dot advance + its two gap margins while the readout box clips
    the overflow: each line's leading dot — first line included — falls outside the clip box
    and vanishes, leaving dots only BETWEEN facts on the same line, at any wrap. The shift is
-   exact, not tuned: the meta role is monospace, so the dot's advance is 1ch plus the role's
-   letter-spacing (spacing is added after every glyph, trailing one included). */
+   exact, not tuned, in ANY face: the dot rides in a fixed 1ch box, so its advance is that box
+   plus the role's letter-spacing (spacing is added after every typographic unit, an atomic
+   inline box included). */
 @layer components {
   .meta {
     /* `clip` (not `hidden`) so the readout can never become a scroll container. */
@@ -18,10 +19,14 @@
 
   .track {
     /* Component tokens — the readout's own geometry. `--entry-meta-gap` binds the foundation
-       scale (the space either side of a dot); `--entry-meta-dot-advance` is the dot's true
-       rendered advance in the meta role's own face. */
+       scale (the space either side of a dot); `--entry-meta-dot-box` is the fixed box the dot
+       renders in (see `.fact::before`), which makes `--entry-meta-dot-advance` exact by
+       construction rather than a measurement of the face. */
     --entry-meta-gap: var(--space-2);
-    --entry-meta-dot-advance: calc(1ch + var(--type-meta-tracking));
+    --entry-meta-dot-box: 1ch;
+    --entry-meta-dot-advance: calc(
+      var(--entry-meta-dot-box) + var(--type-meta-tracking)
+    );
     display: flex;
     flex-wrap: wrap;
     margin-inline-start: calc(
@@ -36,6 +41,11 @@
   .fact::before {
     content: "·";
     content: "·" / "";
+    /* The fixed box that makes the track's clip-shift exact for any face: an atomic inline
+       box advances by its own inline-size, not by the dot glyph's face-specific advance. */
+    display: inline-block;
+    inline-size: var(--entry-meta-dot-box);
+    text-align: center;
     margin-inline: var(--entry-meta-gap);
   }
 }
