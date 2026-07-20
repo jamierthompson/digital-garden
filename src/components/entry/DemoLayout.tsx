@@ -50,9 +50,7 @@ export default function DemoLayout({
       <div className={styles.sidebar}>
         <Stack asChild gap={space(4)}>
           <header>
-            <Heading level={1} color="accent-text">
-              {title}
-            </Heading>
+            <Heading level={1}>{title}</Heading>
             {summary ? (
               <Text variant="lede" color="muted-foreground">
                 {summary}

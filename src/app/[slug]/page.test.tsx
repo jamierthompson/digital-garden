@@ -417,7 +417,7 @@ describe("EntryPage — the demo template (sidebar + canvas)", () => {
     const { container } = render(
       await EntryPage({ params: params("color-engine") }),
     );
-    // The page-owned sidebar info: h1 title, summary, and the mono readout facts.
+    // The page-owned sidebar info: h1 title, summary, and the meta readout facts.
     expect(
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
@@ -919,8 +919,9 @@ describe("page.tsx styles.* references resolve to real classes in page.module.cs
 });
 
 describe("the entry page's heading ink rule (CSS source)", () => {
-  // Structural headings are neutral ink; the entry h1 keeps `accent-text` as the ONE display
-  // exception. The rule was applied by DELETING `color` declarations — a deletion leaves
+  // ALL headings are neutral ink — the entry h1 included (owner ruling 2026-07-20: the
+  // display moment is type-borne — the editorial face itself — so headings spend no color).
+  // The rule was applied by DELETING `color` declarations — a deletion leaves
   // nothing behind to assert, so re-adding accent to a body h2 would otherwise be invisible
   // to every rendering test (jsdom loads no stylesheets). Pinned at the CSS source via the
   // repo's postcss helpers — a commented-out declaration is NOT a live one.
@@ -941,13 +942,21 @@ describe("the entry page's heading ink rule (CSS source)", () => {
     expect([...vars].filter((v) => v.includes("accent"))).toEqual([]);
   });
 
-  it("keeps accent-text on the entry h1, via the prop and not CSS", () => {
-    // The exception is real and deliberate — pin it so a future "neutralize everything" sweep
-    // has to change a test, not just a line.
-    const source = readFileSync(
-      resolve(process.cwd(), "src/app/[slug]/page.tsx"),
-      "utf8",
-    );
-    expect(source).toContain('<Heading level={1} color="accent-text">');
+  it("spends no color on the entry h1 — neutral ink, no color prop", () => {
+    // The former accent-text display exception is revoked; a re-added color prop on either
+    // entry h1 mount has to change this test, not just a line.
+    for (const file of [
+      "src/app/[slug]/page.tsx",
+      "src/components/entry/DemoLayout.tsx",
+    ]) {
+      const source = readFileSync(resolve(process.cwd(), file), "utf8");
+      const h1Mounts = source.match(/<Heading level=\{1\}[^>]*/g) ?? [];
+      expect(h1Mounts.length, `${file} mounts an h1`).toBeGreaterThan(0);
+      for (const mount of h1Mounts) {
+        expect(mount, `${file} h1 must carry no color prop`).not.toContain(
+          "color=",
+        );
+      }
+    }
   });
 });

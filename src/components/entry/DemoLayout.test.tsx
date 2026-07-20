@@ -17,7 +17,7 @@ const baseProps = {
 };
 
 describe("DemoLayout", () => {
-  it("renders the page-owned sidebar info: h1 title, summary, and the mono readout", () => {
+  it("renders the page-owned sidebar info: h1 title, summary, and the meta readout", () => {
     render(<DemoLayout {...baseProps}>canvas</DemoLayout>);
     expect(
       screen.getByRole("heading", { level: 1, name: /oklch engine/i }),
