@@ -99,6 +99,87 @@
       oklch(0.4905 0.1401 250.34),
       oklch(0.8459 0.0823 244.48)
     );
+    --harmony-analogous-a: light-dark(
+      oklch(0.66 0.2 320),
+      oklch(0.66 0.164 320)
+    );
+    --harmony-analogous-a-fill: light-dark(
+      oklch(0.4682 0.2 320),
+      oklch(0.79 0.164 320)
+    );
+    --harmony-analogous-a-text: light-dark(
+      oklch(0.3826 0.1838 319.81),
+      oklch(0.9044 0.0785 321.91)
+    );
+    --harmony-analogous-b: light-dark(oklch(0.66 0.2 20), oklch(0.66 0.164 20));
+    --harmony-analogous-b-fill: light-dark(
+      oklch(0.4719 0.1897 20.85),
+      oklch(0.7891 0.1221 19.98)
+    );
+    --harmony-analogous-b-text: light-dark(
+      oklch(0.3862 0.1555 21.77),
+      oklch(0.8985 0.0528 20.11)
+    );
+    --harmony-complementary: light-dark(
+      oklch(0.6679 0.1357 167.7),
+      oklch(0.6653 0.134 168.44)
+    );
+    --harmony-complementary-fill: light-dark(
+      oklch(0.4712 0.0946 168.74),
+      oklch(0.791 0.157 169.74)
+    );
+    --harmony-complementary-text: light-dark(
+      oklch(0.3848 0.0784 167.46),
+      oklch(0.791 0.157 169.74)
+    );
+    --harmony-triadic-a: light-dark(
+      oklch(0.6671 0.1388 233.54),
+      oklch(0.6646 0.1361 232.33)
+    );
+    --harmony-triadic-a-fill: light-dark(
+      oklch(0.4708 0.0959 231.85),
+      oklch(0.7876 0.1392 227.49)
+    );
+    --harmony-triadic-a-text: light-dark(
+      oklch(0.3842 0.0803 233.92),
+      oklch(0.9009 0.0732 218.24)
+    );
+    --harmony-triadic-b: light-dark(
+      oklch(0.6606 0.1441 109.89),
+      oklch(0.6609 0.1441 109.81)
+    );
+    --harmony-triadic-b-fill: light-dark(
+      oklch(0.4691 0.1022 109.7),
+      oklch(0.79 0.164 110)
+    );
+    --harmony-triadic-b-text: light-dark(
+      oklch(0.3813 0.0829 109.34),
+      oklch(0.9056 0.164 110)
+    );
+    --harmony-split-complementary-a: light-dark(
+      oklch(0.66 0.2 140),
+      oklch(0.66 0.164 140)
+    );
+    --harmony-split-complementary-a-fill: light-dark(
+      oklch(0.4699 0.1599 142.5),
+      oklch(0.79 0.164 140)
+    );
+    --harmony-split-complementary-a-text: light-dark(
+      oklch(0.3799 0.1233 140.39),
+      oklch(0.79 0.164 140)
+    );
+    --harmony-split-complementary-b: light-dark(
+      oklch(0.666 0.1132 200.78),
+      oklch(0.6651 0.1131 200.66)
+    );
+    --harmony-split-complementary-b-fill: light-dark(
+      oklch(0.4719 0.0802 200.68),
+      oklch(0.7944 0.1351 200.46)
+    );
+    --harmony-split-complementary-b-text: light-dark(
+      oklch(0.3846 0.0654 201.12),
+      oklch(0.7944 0.1351 200.46)
+    );
     --accent-hover: light-dark(
       oklch(0.4347 0.181 350.5),
       oklch(0.8248 0.1185 348.49)

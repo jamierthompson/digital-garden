@@ -73,7 +73,9 @@ export function minPass(
 
 /**
  * A semantic token's binding. `step` pins a fixed ramp step (per scheme — e.g. surfaces);
- * `auto` runs `minPass` against the scheme's worst-case surface; `auto-on` runs `minPass`
+ * `anchor` pins the ramp's SEED-ANCHORED step (#108/#334) — the step whose label the solve
+ * keys off the seed's native direction, so it cannot be a static per-scheme label; `auto`
+ * runs `minPass` against the scheme's worst-case surface; `auto-on` runs `minPass`
  * against a pinned step of the SAME role (a solved label on a status subtle, #160);
  * `literal` bakes a fixed value per scheme (scrim's alpha literal); `fill`/`fill-foreground` defer to
  * a co-solve — a continuous fill (accent + the status fills, #160) and its chromatic
@@ -82,6 +84,7 @@ export function minPass(
  */
 export type TokenBinding =
   | { kind: "step"; role: RampRole; light: RampLabel; dark: RampLabel }
+  | { kind: "anchor"; role: RampRole }
   | { kind: "auto"; role: RampRole; target: ContrastTarget }
   | {
       kind: "auto-on";
@@ -116,6 +119,9 @@ export interface BindingContext {
   /** The worst-case surface `auto` tokens are solved against (this scheme's `surface-selected`
    *  — the darkest text-bearing surface, so a pass here holds on every surface, #160). */
   worstSurface: OkLCH;
+  /** The seed-anchored ramp step's label (#108), keyed off the seed's native direction —
+   *  what an `anchor` binding resolves to on its role's ramp (#334). */
+  anchorLabel: RampLabel;
   /**
    * The co-solved fills keyed by role (#160): the accent (`role: "accent"`) plus the four
    * status fills (`error`/`warning`/`success`/`info`). A `fill`/`fill-foreground` binding reads its
@@ -172,6 +178,16 @@ export function resolveBinding(
   switch (binding.kind) {
     case "step": {
       const label = ctx.scheme === "light" ? binding.light : binding.dark;
+      return {
+        color: stepAt(ctx.ramps[binding.role], label),
+        step: { kind: "step", role: binding.role, label },
+      };
+    }
+    case "anchor": {
+      // The seed-grade identity color of the role's ramp: the step the seed is anchored to
+      // (#108) — seed L (and chroma, gamut-mapped) at the role's hue. Carries NO contrast
+      // claim; provenance reports the anchored step truthfully (#334).
+      const label = ctx.anchorLabel;
       return {
         color: stepAt(ctx.ramps[binding.role], label),
         step: { kind: "step", role: binding.role, label },

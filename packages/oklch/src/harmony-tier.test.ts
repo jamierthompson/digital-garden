@@ -289,16 +289,27 @@ describe("harmony tier — opt-in, separated export group", () => {
     expect(names).toContain("--harmony-triadic-b-500");
   });
 
-  it("does NOT emit any semantic-token or core-ramp-role name (contract untouched)", () => {
+  it("emits ONLY harmony-namespaced names — no core semantic token or core ramp role leaks in", () => {
+    // Since #334 the `harmony-*` blocks are PART of the semantic contract, so the annex and
+    // the guarded surface legitimately share those names (value agreement is pinned in the
+    // export-seams suite below). What must still never leak into the annex is everything
+    // else: core semantic tokens and the accent/neutral/status ramp namespaces.
     const emitted = [
       ...props(harmonyTierToCss(tier)),
       ...props(harmonyTierToTailwindTheme(tier)),
     ];
     for (const name of THEME_TOKEN_NAMES) {
+      if (name.startsWith("harmony-")) continue;
       expect(emitted).not.toContain(`--${name}`);
       expect(emitted).not.toContain(`--color-${name}`);
     }
-    // No `--accent-500` / `--neutral-200` / status ramp props leak into the annex.
+    // The annex never emits a bare `--harmony-<hue>` (the decorative ANCHOR is the semantic
+    // surface's own, #334) — its names always carry a step/text/fill suffix.
+    for (const hue of HARMONY_HUES) {
+      expect(emitted).not.toContain(`--harmony-${hue}`);
+      expect(emitted).not.toContain(`--color-harmony-${hue}`);
+    }
+    // No `--harmony-accent-500`-style double-namespaced props leak into the annex.
     for (const role of RAMP_ROLES) {
       expect(emitted.some((n) => n.startsWith(`--harmony-${role}-`))).toBe(
         false,
@@ -706,16 +717,32 @@ describe("QA — fresh-eyes adversarial: export seams (#152 × scrim-alpha #160)
     }
   });
 
-  it("the CORE serializers emit no harmony output — the tier is opt-in by construction", () => {
-    // The reverse direction (harmony emits no semantic names) is pinned above; this pins
-    // that opting OUT costs nothing: the guarded tokenSetTo* surfaces never mention the tier.
+  it("the core surface and the annex agree byte-for-byte on every shared harmony name (#334)", () => {
+    // Since #334 the core serializers emit the harmony blocks (the tier is bound into the
+    // guarded surface) — so the seam to pin is no longer separation but AGREEMENT: the annex
+    // and the semantic/ramp surfaces are two serializations of the SAME solve, and a
+    // byte-level mismatch on a shared name means one of them drifted.
     const set = buildTokenSet("#3b82f6");
-    expect(tokenSetToDeclarations(set)).not.toContain("harmony");
-    expect(rampSetToDeclarations(set)).not.toContain("harmony");
-    expect(tokenSetToTailwindTheme(set)).not.toContain("harmony");
-    expect(JSON.stringify(tokenSetToDesignTokens(set))).not.toContain(
-      "harmony",
-    );
+    const semantic = tokenSetToDeclarations(set);
+    const ramps = rampSetToDeclarations(set);
+    const annex = harmonyTierToCss(tier);
+    const line = (css: string, prop: string): string | undefined =>
+      css
+        .split("\n")
+        .map((l) => l.trim())
+        .find((l) => l.startsWith(`${prop}: `));
+    for (const hue of HARMONY_HUES) {
+      for (const grade of ["fill", "text"] as const) {
+        const prop = `--harmony-${hue}-${grade}`;
+        expect(line(annex, prop), prop).toBeDefined();
+        expect(line(annex, prop), prop).toBe(line(semantic, prop));
+      }
+      for (const label of ["50", "500", "950"] as const) {
+        const prop = `--harmony-${hue}-${label}`;
+        expect(line(annex, prop), prop).toBeDefined();
+        expect(line(annex, prop), prop).toBe(line(ramps, prop));
+      }
+    }
   });
 
   it("harmony exporters are byte-deterministic across independent builds", () => {

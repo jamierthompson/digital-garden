@@ -44,6 +44,48 @@ describe("check-icon-roles", () => {
     }
   });
 
+  // QA #334: the harmony blocks added SEVEN new roles solved at the `accentText` tier
+  // (4.5:1 + Lc 60 — `DEFAULT_BINDING_SCHEMA` in packages/oklch/src/palette.ts, and
+  // `CONTRAST_TARGETS.accentText` in packages/oklch/src/targets.ts:26). They are text roles by
+  // the engine's own contract, so a graphic painted from one is the same WCAG 2.2 SC 1.4.11
+  // violation the guard exists to catch — but `TEXT_TIER`
+  // (scripts/check-icon-roles.mjs:39-40) still enumerates only the pre-#334 names.
+  it("FAILS the harmony text roles — 4.5-solved text tier like every other --*-text (#334)", () => {
+    for (const hue of [
+      "analogous-a",
+      "analogous-b",
+      "complementary",
+      "triadic-a",
+      "triadic-b",
+      "split-complementary-a",
+      "split-complementary-b",
+    ]) {
+      const token = `--harmony-${hue}-text`;
+      expect(
+        lines(`.icon { color: var(${token}); }`),
+        `expected ${token} to be rejected`,
+      ).toEqual([1]);
+    }
+  });
+
+  // The other two tokens of each harmony block are NOT text: the bare anchor is decorative
+  // (no contrast claim) and `-fill` is solved at the `ui` tier (3:1 + Lc 45) — exactly the
+  // tier a graphic wants. Pinning them keeps a fix for the case above from over-reaching
+  // into a blanket `--harmony-` match.
+  it("PASSES the harmony anchor + fill — decorative and ui-tier, both legal graphic ink (#334)", () => {
+    for (const token of [
+      "--harmony-complementary",
+      "--harmony-complementary-fill",
+      "--harmony-triadic-a",
+      "--harmony-split-complementary-b-fill",
+    ]) {
+      expect(
+        lines(`.icon { color: var(${token}); }`),
+        `expected ${token} to be allowed`,
+      ).toEqual([]);
+    }
+  });
+
   it("FAILS a bare svg element selector and a descendant svg", () => {
     expect(lines(`svg { fill: var(--accent-text); }`)).toEqual([1]);
     expect(lines(`.mark svg { stroke: var(--muted-foreground); }`)).toEqual([

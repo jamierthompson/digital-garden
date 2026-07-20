@@ -178,6 +178,62 @@ describe("engine↔parser serialization contract (QA #172)", () => {
     expect(names("not-a-color")).toEqual(expected);
     expect(names(undefined)).toEqual(expected);
   });
+
+  // QA #334: the invariant above is deliberately count-agnostic, so it stayed green when the
+  // contract grew 38 → 59. Pin the delivered list to the engine's own name list, so a token
+  // that the engine emits but the parser drops (a value the line/colon split mangles — the
+  // harmony names are the longest and most hyphenated in the contract) fails HERE rather than
+  // as a missing color on the page.
+  it("delivers EVERY engine token name, harmony blocks included, for every seed", () => {
+    const engineNames = tokenSetToDeclarations(buildTokenSet(ORANGE))
+      .split("\n")
+      .map((line) => line.slice(0, line.indexOf(":")).trim())
+      .filter((name) => name.startsWith("--"));
+
+    for (const seed of [ORANGE, BLUE, "not-a-color", undefined]) {
+      const delivered = resolveThemeDeclarations(seed).map(([name]) => name);
+      expect([...delivered].sort(), String(seed)).toEqual(
+        [...engineNames].sort(),
+      );
+    }
+
+    const delivered = new Set(
+      resolveThemeDeclarations(ORANGE).map(([name]) => name),
+    );
+    for (const hue of [
+      "analogous-a",
+      "analogous-b",
+      "complementary",
+      "triadic-a",
+      "triadic-b",
+      "split-complementary-a",
+      "split-complementary-b",
+    ]) {
+      for (const suffix of ["", "-fill", "-text"]) {
+        expect(delivered.has(`--harmony-${hue}${suffix}`)).toBe(true);
+      }
+    }
+  });
+
+  // The harmony names are the first in the contract where one token name is a strict PREFIX
+  // of another (`--harmony-triadic-a` / `--harmony-triadic-a-fill`). Any consumer that
+  // matches by prefix rather than by exact name collapses them; assert the parser kept all
+  // three distinct, with distinct values.
+  it("keeps prefix-overlapping harmony names distinct (no longest-match collapse)", () => {
+    const map = Object.fromEntries(resolveThemeDeclarations(ORANGE));
+    const anchor = map["--harmony-triadic-a"];
+    const fill = map["--harmony-triadic-a-fill"];
+    const text = map["--harmony-triadic-a-text"];
+    for (const [name, value] of [
+      ["anchor", anchor],
+      ["fill", fill],
+      ["text", text],
+    ] as const) {
+      expect(value, name).toBeDefined();
+      expect(value, name).toContain("light-dark(");
+    }
+    expect(new Set([anchor, fill, text]).size).toBe(3);
+  });
 });
 
 describe("hostile / malformed seeds (QA #172)", () => {

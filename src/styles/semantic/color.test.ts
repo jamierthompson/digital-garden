@@ -48,14 +48,14 @@ describe("semantic/color.css IS the engine's complete fallback token set", () =>
 
   // QA #229: the bijection above compares sheet ⇄ engine-output-of-the-moment — if the
   // engine ever silently dropped a token, BOTH sides would shrink and the suite would stay
-  // green. Pin the engine set to the canonical 38-name contract so the sheet is transitively
-  // pinned to THEME_TOKEN_NAMES itself (`--muted`, the `--accent-subtle` pair, and the neutral
-  // `--icon` ink included).
-  it("the engine set IS the canonical 38-token contract (sheet transitively pinned to it)", () => {
+  // green. Pin the engine set to the canonical 59-name contract so the sheet is transitively
+  // pinned to THEME_TOKEN_NAMES itself (`--muted`, the `--accent-subtle` pair, the neutral
+  // `--icon` ink, and the `--harmony-*` blocks (#334) included).
+  it("the engine set IS the canonical 59-token contract (sheet transitively pinned to it)", () => {
     expect([...ENGINE_TOKENS].sort()).toEqual(
       THEME_TOKEN_NAMES.map((name) => `--${name}`).sort(),
     );
-    expect(THEME_TOKEN_NAMES).toHaveLength(38);
+    expect(THEME_TOKEN_NAMES).toHaveLength(59);
   });
 
   for (const token of ENGINE_TOKENS) {

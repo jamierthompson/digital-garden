@@ -31,13 +31,28 @@ import { pathToFileURL } from "node:url";
 
 import postcss from "postcss";
 
+import { parseColorTokenNames } from "./check-color-immutability.mjs";
+
 const SRC = new URL("../src", import.meta.url).pathname;
 
 const GRAPHIC_WORDS = new Set(["icon", "mark", "glyph", "logo"]);
 
-// The text tier — solved at 4.5 for TEXT. `--foreground` is deliberately absent (see above).
-const TEXT_TIER =
-  /var\(\s*--(muted-foreground|accent-text|(error|warning|success|info)-text)\s*[,)]/i;
+// The text tier — solved at 4.5 for TEXT. Derived from the baked semantic contract
+// (`src/styles/semantic/color.css` — the same source `check-color-immutability` reads), so a
+// new text role is guarded the moment the bake regenerates instead of waiting on a hand
+// edit here (QA-334 D1: a hardcoded list missed the seven `harmony-<hue>-text` roles). Every
+// engine `*-text` name is the 4.5-solved text tier by construction; `muted-foreground` is the
+// one text role without the suffix. `--foreground` is deliberately absent (see above).
+const COLOR_CONTRACT = join(process.cwd(), "src/styles/semantic/color.css");
+const textRoles = [
+  ...parseColorTokenNames(readFileSync(COLOR_CONTRACT, "utf8")),
+]
+  .map((name) => name.slice(2))
+  .filter((name) => name.endsWith("-text"));
+const TEXT_TIER = new RegExp(
+  `var\\(\\s*--(muted-foreground|${textRoles.join("|")})\\s*[,)]`,
+  "i",
+);
 
 // `color` is the inheritance channel an SVG's `currentColor` reads; `fill`/`stroke` paint one
 // directly.

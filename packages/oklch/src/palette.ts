@@ -51,6 +51,12 @@ import {
 import { gamutMap } from "./gamut";
 import { parseColor } from "./convert";
 import { checkContrast } from "./contrast";
+import {
+  HARMONY_HUES,
+  HARMONY_HUE_ANGLES,
+  rotate,
+  type HarmonyHue,
+} from "./harmony";
 import { CONTRAST_TARGETS } from "./targets";
 import { deepFreeze } from "./freeze";
 import { FALLBACK_SEED } from "./seed";
@@ -308,6 +314,96 @@ export const DEFAULT_BINDING_SCHEMA: Readonly<
     against: SUBTLE_STEP,
     target: CONTRAST_TARGETS.accentText,
   },
+  // Harmony blocks (#334), one per derived hue — the harmony tier (#152) bound into the
+  // guarded surface. The bare token is the DECORATIVE seed-grade identity: the hue's ramp
+  // step at the seed anchor (#108), carrying NO contrast claim (washes, gradients, non-text
+  // shapes). `-fill` (`ui`: 3:1 + Lc 45) and `-text` (`accentText`: 4.5:1 + Lc 60) run
+  // `minPass` against the worst-case surface exactly like `ring`/`accent-text`, so they hold
+  // on every standard surface. A future `-foreground` (label ON a fill) or `-subtle` pair
+  // extends these blocks on the status-block pattern.
+  "harmony-analogous-a": { kind: "anchor", role: "harmony-analogous-a" },
+  "harmony-analogous-a-fill": {
+    kind: "auto",
+    role: "harmony-analogous-a",
+    target: CONTRAST_TARGETS.ui,
+  },
+  "harmony-analogous-a-text": {
+    kind: "auto",
+    role: "harmony-analogous-a",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "harmony-analogous-b": { kind: "anchor", role: "harmony-analogous-b" },
+  "harmony-analogous-b-fill": {
+    kind: "auto",
+    role: "harmony-analogous-b",
+    target: CONTRAST_TARGETS.ui,
+  },
+  "harmony-analogous-b-text": {
+    kind: "auto",
+    role: "harmony-analogous-b",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "harmony-complementary": { kind: "anchor", role: "harmony-complementary" },
+  "harmony-complementary-fill": {
+    kind: "auto",
+    role: "harmony-complementary",
+    target: CONTRAST_TARGETS.ui,
+  },
+  "harmony-complementary-text": {
+    kind: "auto",
+    role: "harmony-complementary",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "harmony-triadic-a": { kind: "anchor", role: "harmony-triadic-a" },
+  "harmony-triadic-a-fill": {
+    kind: "auto",
+    role: "harmony-triadic-a",
+    target: CONTRAST_TARGETS.ui,
+  },
+  "harmony-triadic-a-text": {
+    kind: "auto",
+    role: "harmony-triadic-a",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "harmony-triadic-b": { kind: "anchor", role: "harmony-triadic-b" },
+  "harmony-triadic-b-fill": {
+    kind: "auto",
+    role: "harmony-triadic-b",
+    target: CONTRAST_TARGETS.ui,
+  },
+  "harmony-triadic-b-text": {
+    kind: "auto",
+    role: "harmony-triadic-b",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "harmony-split-complementary-a": {
+    kind: "anchor",
+    role: "harmony-split-complementary-a",
+  },
+  "harmony-split-complementary-a-fill": {
+    kind: "auto",
+    role: "harmony-split-complementary-a",
+    target: CONTRAST_TARGETS.ui,
+  },
+  "harmony-split-complementary-a-text": {
+    kind: "auto",
+    role: "harmony-split-complementary-a",
+    target: CONTRAST_TARGETS.accentText,
+  },
+  "harmony-split-complementary-b": {
+    kind: "anchor",
+    role: "harmony-split-complementary-b",
+  },
+  "harmony-split-complementary-b-fill": {
+    kind: "auto",
+    role: "harmony-split-complementary-b",
+    target: CONTRAST_TARGETS.ui,
+  },
+  "harmony-split-complementary-b-text": {
+    kind: "auto",
+    role: "harmony-split-complementary-b",
+    target: CONTRAST_TARGETS.accentText,
+  },
   // Interaction states (#160). `accent-hover` is a perceptibly-nudged accent fill that still
   // hosts accent-foreground. `surface-hover`/`surface-selected` pin the two neutral state surfaces —
   // interior steps just darker than `surface-elevated` (light) / lighter than `surface-elevated`
@@ -354,9 +450,39 @@ const ANCHOR_LABEL: Record<Scheme, RampLabel> = {
   dark: "300",
 };
 
-/** Build all six role ramps for one scheme from a per-scheme seed, on that scheme's OWN
- *  independent lightness scale (#160 — not a mirror of the other scheme). Only the `accent`
- *  ramp is anchored to the seed (#108); neutral/status stay on the scheme scale. The
+/** One `harmony-<hue>` ramp role name (#334) — the template keeps the mapping from a
+ *  derived hue to its ramp role a compile-time fact. */
+type HarmonyRampRole = `harmony-${HarmonyHue}`;
+
+/** The ramp role a derived harmony hue's ramp is emitted under (#334). */
+function harmonyRole(hue: HarmonyHue): HarmonyRampRole {
+  return `harmony-${hue}`;
+}
+
+/** The near-neutral ramp for one scheme — the whisper (or, per #160, bold) accent tint the
+ *  surfaces and near-neutral inks bind to. Extracted so `detectDirection` can build JUST
+ *  this ramp (the only one it reads) without paying for the full 13-role build. */
+function neutralRamp(
+  seed: OkLCH,
+  scheme: Scheme,
+  cfg: SchemeConfig,
+  gamut: Gamut,
+  rules: EngineRules = {},
+): Ramp {
+  const neutralChroma = (rules.tintedNeutrals ?? true) ? cfg.neutralChroma : 0;
+  return buildRamp({
+    hue: seed.H,
+    chroma: neutralChroma,
+    gamut,
+    scheme,
+    rules,
+  });
+}
+
+/** Build all thirteen role ramps for one scheme from a per-scheme seed, on that scheme's OWN
+ *  independent lightness scale (#160 — not a mirror of the other scheme). The `accent`
+ *  ramp — and every `harmony-<hue>` ramp (#334), which is the accent treatment at a rotated
+ *  hue — is anchored to the seed (#108); neutral/status stay on the scheme scale. The
  *  ramp-tier rules (#101) shape every role; `tintedNeutrals: false` zeroes the neutral
  *  chroma for pure achromatic greys (default `true` — the accent-tinted signature). */
 function buildRamps(
@@ -368,10 +494,25 @@ function buildRamps(
   anchor?: { label: RampLabel; L: number },
 ): Record<RampRole, Ramp> {
   const hue = seed.H;
-  const neutralChroma = (rules.tintedNeutrals ?? true) ? cfg.neutralChroma : 0;
+  // `mapTokens`-style soundness: `HARMONY_HUES` derives `HarmonyHue`, so "one ramp per
+  // derived hue, exactly once" holds by construction; the `as` only widens
+  // `Object.fromEntries`'s loose index signature back to the precise record.
+  const harmonyRamps = Object.fromEntries(
+    HARMONY_HUES.map((h) => [
+      harmonyRole(h),
+      buildRamp({
+        hue: rotate(hue, HARMONY_HUE_ANGLES[h].offset),
+        chroma: seed.C,
+        gamut,
+        scheme,
+        anchor,
+        rules,
+      }),
+    ]),
+  ) as Record<HarmonyRampRole, Ramp>;
   return {
     accent: buildRamp({ hue, chroma: seed.C, gamut, scheme, anchor, rules }),
-    neutral: buildRamp({ hue, chroma: neutralChroma, gamut, scheme, rules }),
+    neutral: neutralRamp(seed, scheme, cfg, gamut, rules),
     success: buildRamp({
       hue: STATUS_HUE.success,
       chroma: STATUS_CHROMA,
@@ -400,14 +541,15 @@ function buildRamps(
       scheme,
       rules,
     }),
+    ...harmonyRamps,
   };
 }
 
 /** The worst-case surface (`surface-selected`, #160) a scheme's neutral ramp resolves to. */
-function worstSurfaceOf(ramps: Record<RampRole, Ramp>, scheme: Scheme): OkLCH {
+function worstSurfaceOf(neutral: Ramp, scheme: Scheme): OkLCH {
   const label = WORST_SURFACE_LABEL[scheme];
-  const step = ramps.neutral.find((s) => s.label === label);
-  return (step ?? ramps.neutral[ramps.neutral.length - 1]).color;
+  const step = neutral.find((s) => s.label === label);
+  return (step ?? neutral[neutral.length - 1]).color;
 }
 
 /**
@@ -431,8 +573,10 @@ function detectDirection(
     { L: base.L, C: base.C * cfg.seedChroma, H: base.H },
     gamut,
   );
-  const ramps = buildRamps(seed, "light", cfg, gamut, rules);
-  const worstSurface = worstSurfaceOf(ramps, "light");
+  // Only the neutral ramp is read here (the worst-case surface lives on it), so build
+  // just that one — not the full 13-role set.
+  const neutral = neutralRamp(seed, "light", cfg, gamut, rules);
+  const worstSurface = worstSurfaceOf(neutral, "light");
   // The candidate light-mode primary is the accent anchored at the seed's own lightness.
   const accent = gamutMap({ L: seed.L, C: seed.C, H: seed.H }, gamut);
   return checkContrast(accent, worstSurface, CONTRAST_TARGETS.ui).passes
@@ -483,7 +627,7 @@ export function resolveTheme(
   // text-bearing surface (light) / lightest (dark), the one whose lightness is closest to the
   // foreground (#160) — so a token that clears its target there also clears it on background, surface,
   // surface-elevated, and surface-hover. This guarantees AA on EVERY surface, state surfaces included.
-  const worstSurface = worstSurfaceOf(ramps, scheme);
+  const worstSurface = worstSurfaceOf(ramps.neutral, scheme);
 
   // Native scheme → faithful to seed.L (fall back to the derived scan if no faithful
   // accent hosts a label). Off scheme → derive the accent from the seed by scanning.
@@ -567,6 +711,7 @@ export function resolveTheme(
     scheme,
     ramps,
     worstSurface,
+    anchorLabel,
     fills,
     hovers,
   });

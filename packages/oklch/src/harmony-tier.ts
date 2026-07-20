@@ -1,33 +1,35 @@
 /**
  * The batteries-included harmony TIER (#152) — the receipt-grade upgrade to the decorative
- * harmony palette (`harmony.ts`, #102).
+ * harmony palette (`harmony.ts`, #102), assembled per derived hue with its relationship
+ * metadata for the `harmonyTierTo*` export serializers (`export.ts`) and the studio.
  *
  * Where `buildHarmonyPalette` emits single decorative colors (seed L/C held, hue rotated,
  * gamut-mapped) and hands the contrast homework to the consumer, this tier gives each
- * derived harmony hue the SAME treatment the accent hue gets, composed from the existing
- * machinery: a full `50…950` ramp per scheme (`buildRamp`, #101 — built on that scheme's
- * own INDEPENDENT lightness scale (#160, not a mirror flip), same generative rules, same
- * per-scheme seed-chroma dampening, same per-step gamut map + `oog` flags, anchored to
- * the seed's own lightness exactly like the accent ramp, #108), plus two receipt-backed
- * picks per hue — a text-grade pick (`accentText`: 4.5:1 + Lc 60) and a UI-grade fill pick
- * (`ui`: 3:1 + Lc 45) — each landed by `minPass` against the scheme's worst-case surface and
- * carrying solve-time step provenance, exactly like the semantic `auto` tokens.
+ * derived harmony hue the SAME treatment the accent hue gets: a full `50…950` ramp per
+ * scheme (built on that scheme's own INDEPENDENT lightness scale, #160, same generative
+ * rules, same per-scheme seed-chroma dampening, same per-step gamut map + `oog` flags,
+ * anchored to the seed's own lightness exactly like the accent ramp, #108), plus two
+ * receipt-backed picks per hue — a text-grade pick (`accentText`: 4.5:1 + Lc 60) and a
+ * UI-grade fill pick (`ui`: 3:1 + Lc 45), each landed by `minPass` against the scheme's
+ * worst-case surface and carrying solve-time step provenance.
  *
- * DECORATIVE, still outside the guarded 38-token semantic surface: this is a separated
- * annex the studio opts into by calling the dedicated `harmonyTierTo*` serializers in
- * `export.ts`, never a growth of the semantic token list. Status hues stay fixed-hue and are NOT part of this
- * tier (`error` stays red — #66). Built by reusing `resolveTheme` so the seed, the
- * dark-scheme dampening, the anchor, and the worst-case surface each pick is solved against
- * are IDENTICAL to what the accent ramp ships — one source of truth, no re-derived drift.
+ * Since #334 the harmony colors are part of the GUARDED SEMANTIC SURFACE: `resolveTheme`
+ * builds every `harmony-<hue>` ramp and binds the `harmony-<hue>` (decorative anchor) /
+ * `-fill` / `-text` tokens. This module therefore SOLVES NOTHING — it reads the resolved
+ * ramps, tokens, and bindings straight off `resolveTheme` and reshapes them per hue with
+ * the relationship metadata. One solve, one source of truth, no re-derived drift. Status
+ * hues stay fixed-hue and are NOT part of this tier (`error` stays red — #66).
  *
  * Pure, deterministic, isomorphic, never throws — bad input yields the fallback seed's tier.
  */
 
-import { buildRamp } from "./ramp";
-import { minPass } from "./binding";
 import { resolveTheme } from "./palette";
-import { CONTRAST_TARGETS } from "./targets";
-import type { HarmonyKind } from "./harmony";
+import {
+  HARMONY_HUES,
+  HARMONY_HUE_ANGLES,
+  type HarmonyHue,
+  type HarmonyKind,
+} from "./harmony";
 import type { EngineOptions } from "./palette";
 import type {
   Gamut,
@@ -37,50 +39,19 @@ import type {
   RampPair,
   Scheme,
   SchemePair,
+  SchemeResult,
 } from "./types";
 
-/**
- * One of the 7 derived harmony hues — the design's dedupe/naming of the four relationships'
- * offsets (analogous ±30°, complementary 180°, triadic ±120°, split-complementary 150°/210°)
- * into stable, self-documenting, kebab-case keys. `-a`/`-b` disambiguate the two hues of a
- * two-sided relationship, ordered by their signed offset — the smaller (more
- * counter-clockwise) offset is `-a`: analogous −30/+30, triadic −120/+120, split 150/210.
- * These names are the public group labels the export tier emits (`--harmony-<hue>-…`).
- */
-export type HarmonyHue =
-  | "analogous-a"
-  | "analogous-b"
-  | "complementary"
-  | "triadic-a"
-  | "triadic-b"
-  | "split-complementary-a"
-  | "split-complementary-b";
-
-/** Each derived hue's parent relationship and its signed hue offset from the seed, in
- *  degrees. The single source for both the rotation math and the relationship metadata. */
-const HARMONY_HUE_ANGLES = {
-  "analogous-a": { relationship: "analogous", offset: -30 },
-  "analogous-b": { relationship: "analogous", offset: 30 },
-  complementary: { relationship: "complementary", offset: 180 },
-  "triadic-a": { relationship: "triadic", offset: -120 },
-  "triadic-b": { relationship: "triadic", offset: 120 },
-  "split-complementary-a": { relationship: "split-complementary", offset: 150 },
-  "split-complementary-b": { relationship: "split-complementary", offset: 210 },
-} as const satisfies Record<
-  HarmonyHue,
-  { relationship: HarmonyKind; offset: number }
->;
-
-/** The canonical harmony-hue order, exported for the studio's display (mirrors
- *  `HARMONY_KINDS`). Insertion order of `HARMONY_HUE_ANGLES` = relationship order. */
-export const HARMONY_HUES = Object.keys(HARMONY_HUE_ANGLES) as HarmonyHue[];
+// The hue vocabulary lives in `harmony.ts` (with the relationship angles it derives from);
+// re-exported here for the tier's consumers.
+export { HARMONY_HUES, type HarmonyHue };
 
 /**
- * Provenance for a harmony pick — the SETTLED step-provenance shape (`kind`/`role`/`label`,
- * mirroring `StepProvenance`), over a `HarmonyHue` role rather than a `RampRole`. The
- * decorative tier carries its own provenance type so the core `BindingProvenance` union that
- * the semantic receipt reads (#151/#153) stays pristine — the same separation the annex has
- * from the guarded token surface. Reported by `minPass` AT SOLVE TIME, never value-matched.
+ * Provenance for a harmony pick — the step-provenance shape (`kind`/`role`/`label`,
+ * mirroring `StepProvenance`) over a `HarmonyHue` role rather than a `RampRole`: the tier
+ * names the derived hue itself (`"analogous-a"`), while the semantic surface's binding
+ * provenance names the ramp role (`"harmony-analogous-a"`) — same solve, two vocabularies.
+ * Reported by the binding layer AT SOLVE TIME, never value-matched.
  */
 export interface HarmonyStepProvenance {
   kind: "step";
@@ -148,37 +119,32 @@ export interface HarmonyTier {
   };
 }
 
-/** Rotate a hue by `delta` degrees, normalized into [0, 360). */
-function rotate(hue: number, delta: number): number {
-  return (((hue + delta) % 360) + 360) % 360;
-}
-
 /**
- * Land one graded pick on a hue's ramp: `minPass` returns the least-extreme step that clears
- * `target` against the worst-case surface (the discrete counterpart of `solveForeground`,
- * with the extreme-step fallback so it always resolves), and we tag the winning step with the
- * hue as its provenance role — the truthful, solve-time source the receipt reads.
+ * Read one graded pick off the resolved scheme: the token's baked color plus the step its
+ * binding landed, re-voiced with the derived hue as the provenance role. The binding of a
+ * `harmony-<hue>-<grade>` token is a `minPass` step by schema; the anchor-label fallback
+ * only exists to keep this total (never-throwing) should the schema ever retype it.
  */
-function landPick(
+function pickOf(
+  base: SchemeResult,
   hue: HarmonyHue,
-  ramp: Ramp,
-  worstSurface: OkLCH,
-  target: (typeof CONTRAST_TARGETS)[keyof typeof CONTRAST_TARGETS],
+  grade: "text" | "fill",
 ): HarmonyPick {
-  const step = minPass(ramp, worstSurface, target);
+  const name = `harmony-${hue}-${grade}` as const;
+  const provenance = base.bindings[name];
+  const label =
+    provenance?.kind === "step" ? provenance.label : base.anchorLabel;
   return {
-    color: step.color,
-    provenance: { kind: "step", role: hue, label: step.label },
+    color: base.tokens[name],
+    provenance: { kind: "step", role: hue, label },
   };
 }
 
 /**
- * Resolve the harmony tier for ONE scheme. Reuses `resolveTheme` so the seed (per-scheme
- * chroma-dampened + gamut-mapped), the anchor (the accent ramp's seed-anchored step, #108),
- * and the worst-case surface each pick is solved against are IDENTICAL to the accent ramp's —
- * no re-derived surface that could silently drift from what ships. Each derived hue then gets
- * a ramp built with the same generative rules, chroma, gamut, and anchor as the accent ramp, with only
- * the hue rotated; its text/fill picks land via `minPass` against that surface. Never throws.
+ * Resolve the harmony tier for ONE scheme — a per-hue reshaping of `resolveTheme`'s output
+ * (which builds the harmony ramps and binds the harmony tokens since #334), so the seed,
+ * anchor, worst-case surface, and every color are IDENTICAL to what the semantic surface
+ * ships. Never throws.
  */
 export function resolveHarmonyTier(
   themeColor: unknown,
@@ -187,34 +153,17 @@ export function resolveHarmonyTier(
 ): HarmonySchemeResult {
   const base = resolveTheme(themeColor, scheme, opts);
   const { seed, gamut, isFallback } = base;
-  // The worst-case surface the semantic `auto` tokens solved against — `surface-selected`,
-  // the darkest (light) / lightest (dark) text-bearing surface of the 5-surface band (#160),
-  // so a pick that clears its target here clears it on EVERY surface. Read straight off the
-  // resolved token so it can never diverge from the shipped surface.
-  const worstSurface = base.tokens["surface-selected"];
-  // Anchor every harmony ramp to the seed's own lightness at the accent ramp's anchor step
-  // (#108), so the derived hue's identity color lands ON its ramp exactly as the accent ramp does.
-  const anchor = { label: base.anchorLabel, L: seed.L };
-  const rules = opts?.rules;
 
   const hues = {} as Record<HarmonyHue, HarmonyHueResult>;
   for (const hue of HARMONY_HUES) {
     const { relationship, offset } = HARMONY_HUE_ANGLES[hue];
-    const ramp = buildRamp({
-      hue: rotate(seed.H, offset),
-      chroma: seed.C,
-      gamut,
-      scheme,
-      anchor,
-      rules,
-    });
     hues[hue] = {
       hue,
       relationship,
       offset,
-      ramp,
-      text: landPick(hue, ramp, worstSurface, CONTRAST_TARGETS.accentText),
-      fill: landPick(hue, ramp, worstSurface, CONTRAST_TARGETS.ui),
+      ramp: base.ramps[`harmony-${hue}`],
+      text: pickOf(base, hue, "text"),
+      fill: pickOf(base, hue, "fill"),
     };
   }
 
