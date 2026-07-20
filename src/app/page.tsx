@@ -64,7 +64,7 @@ export default async function Home() {
           {featured.length > 0 ? (
             <Stack asChild gap={space(4)}>
               <section aria-labelledby="featured-heading">
-                {/* The visual design (mockup 4a) omits a "Featured" label — the plates follow the
+                {/* The visual design (mockup 4a) omits a "Featured" label — the cards follow the
               hero directly. The heading is kept but visually hidden (Radix VisuallyHidden via
               `asChild`, so it stays a real <h2>) — the section keeps its accessible name and
               the document outline stays intact. */}

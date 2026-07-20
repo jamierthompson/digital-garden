@@ -26,13 +26,13 @@ interface EntryCardProps {
 }
 
 /**
- * An entry card — a solid accent PLATE (mockup 4a), not chrome. It paints from the page's
- * ambient semantic tokens: the plate is `--accent`, its text the engine's contrast-solved
- * `--accent-foreground` pair — one seed paints a page, so a grid of cards shares the page
- * theme's palette and stays legible by construction. The surrounding shell stays editorial ink.
+ * An entry card — a neutral surface reading the page's ambient semantic tokens (`--surface` +
+ * `--border`), its ink the editorial roles (`--foreground` title, `--muted-foreground`
+ * summary/meta) — one seed paints a page, so a grid of cards shares the page theme's palette
+ * and stays legible by construction.
  *
  * Three type registers, journal-style: display title, serif summary, and the shared
- * `EntryMeta` mono readout. Defensive: a slugless entry degrades to a non-link plate (never a
+ * `EntryMeta` mono readout. Defensive: a slugless entry degrades to a non-link card (never a
  * dead link); a missing title falls back to a neutral label; missing meta simply omits the row.
  */
 export default function EntryCard({ entry }: EntryCardProps) {
@@ -45,14 +45,14 @@ export default function EntryCard({ entry }: EntryCardProps) {
     <>
       <Heading level={3}>{title}</Heading>
       {entry.summary ? (
-        <Text className={styles.summary}>{entry.summary}</Text>
+        <Text color="muted-foreground">{entry.summary}</Text>
       ) : null}
-      {/* No `color` — the readout wears the plate's own contrast pair via `.meta`. */}
       <EntryMeta
         kind={entry.kind}
         stage={entry.stage}
         iterated={entry.iterated}
         linkCount={entry.linkCount}
+        color="muted-foreground"
         className={styles.meta}
       />
     </>

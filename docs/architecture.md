@@ -1084,8 +1084,9 @@ Practical notes:
   `featuredRank != null` filter), not a separate section. The **shell frame** of both — plus `/about`
   and `/now` — wears the page's authored `<html>` theme (see the token & theming architecture). Their
   _content_ differs by intent: the Index is a uniform editorial list, and the **featured home's cards
-  are accent plates** painting from the page theme's ambient tokens — one seed paints a page, so
-  the cards and the frame around them wear the same palette.
+  are neutral surfaces** (`--surface` + `--border`, editorial ink) painting from the page theme's
+  ambient tokens — one seed paints a page, so the cards and the frame around them wear the same
+  palette.
 - **TypeGen + `defineQuery`**: typed GROQ; run TypeGen after any schema or query change (a committed
   script + a CI `git diff --exit-code` on the generated types keeps it from rotting); `defineQuery`
   must wrap the query literally (no runtime interpolation).
