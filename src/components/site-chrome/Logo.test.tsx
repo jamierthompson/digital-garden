@@ -103,12 +103,12 @@ describe("Logo component tokens and states", () => {
 
   it("declares its designed tokens on its own root rule", () => {
     const declarations = ruleDeclarations(css, ".logo");
-    expect(declarations.get("--logo-size")).toBe("var(--size-control-lg)");
-    // The mark is a GRAPHIC, so it wears the neutral graphic ink — the same treatment as every
-    // other icon in the chrome — never a 4.5-solved text role. `pnpm lint:icon` enforces this
-    // repo-wide; the assertion pins THIS component's designed pair.
-    expect(declarations.get("--logo-ink")).toBe("var(--icon)");
-    expect(declarations.get("--logo-ink-hover")).toBe("var(--foreground)");
+    expect(declarations.get("--logo-size")).toBe("2.5rem");
+    // The mark is a GRAPHIC, so it wears a non-text grade — here the accent fill, the brand
+    // moment the chrome's neutral icon controls don't get — never a 4.5-solved text role.
+    // `pnpm lint:icon` enforces the tier repo-wide; the assertion pins THIS component's pair.
+    expect(declarations.get("--logo-ink")).toBe("var(--accent)");
+    expect(declarations.get("--logo-ink-hover")).toBe("var(--accent-hover)");
     expect(declarations.get("--logo-radius")).toBe("var(--radius-control)");
     expect(declarations.get("--logo-press-scale")).toBe("0.94");
     expect(declarations.get("--logo-duration")).toBe("var(--duration-fast)");

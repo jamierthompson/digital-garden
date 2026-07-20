@@ -1,4 +1,3 @@
-import { Rose } from "lucide-react";
 import Link from "next/link";
 
 import styles from "./Logo.module.css";
@@ -16,14 +15,6 @@ interface LogoProps {
  * press. The mark is sized by the module's `--logo-size` token, so an SVG needs no width or
  * height attributes.
  */
-/**
- * A stand-in until the designed mark exists. Passed explicitly at the mount site rather than
- * defaulted inside `Logo`, so the swap can't be forgotten.
- */
-export function PlaceholderMark(): React.ReactElement {
-  return <Rose />;
-}
-
 export default function Logo({ children }: LogoProps): React.ReactElement {
   return (
     // The link owns the accessible name (the site name) and the mark is hidden from AT — a
