@@ -170,6 +170,65 @@ describe("resolveBinding", () => {
     expect(at300.step).toEqual({ kind: "step", role: "neutral", label: "300" });
   });
 
+  // QA #334: the `anchor` kind's docstring describes it as "the ramp's SEED-ANCHORED step",
+  // but nothing in the binding CONSTRAINS the role's ramp to have been built with an anchor.
+  // The three cases below pin what it actually does at the edges of that contract.
+  describe("QA — independent adversarial: the `anchor` binding kind's edges", () => {
+    it("resolves against an UN-anchored ramp without throwing, and stays truthful", () => {
+      // `neutral` here was built with no `anchor` at all. The binding still resolves — it
+      // simply reads the plain step at that label — and its provenance reports the label it
+      // really took, so the receipt does not claim a seed anchor that never existed.
+      const got = resolveBinding(
+        { kind: "anchor", role: "neutral" },
+        { ...baseCtx, scheme: "light" },
+      );
+      expect(got.color).toEqual(neutral.find((s) => s.label === "500")!.color);
+      expect(got.step).toEqual({ kind: "step", role: "neutral", label: "500" });
+    });
+
+    it("falls back to the ramp's last step for an out-of-range label instead of throwing", () => {
+      // `stepAt`'s totality fallback (binding.ts:138-141) — reachable only from a
+      // hand-authored context, but the engine's never-throws posture depends on it.
+      const got = resolveBinding(
+        { kind: "anchor", role: "neutral" },
+        {
+          ...baseCtx,
+          scheme: "light",
+          // Deliberately not a `RampLabel` — the shape a hand-authored schema could produce.
+          anchorLabel: "1000" as (typeof baseCtx)["anchorLabel"],
+        },
+      );
+      expect(got.color).toEqual(neutral[neutral.length - 1].color);
+      // The provenance still ECHOES the requested label rather than the step actually
+      // returned — worth knowing before a receipt is built on it.
+      expect(got.step).toEqual({
+        kind: "step",
+        role: "neutral",
+        label: "1000",
+      });
+    });
+
+    it("reads the role it names, not the accent by default", () => {
+      // A transposed role in the schema would otherwise silently paint every harmony anchor
+      // from one ramp while the contrast sweeps stayed green.
+      const onAccent = resolveBinding(
+        { kind: "anchor", role: "accent" },
+        { ...baseCtx, scheme: "light" },
+      );
+      expect(onAccent.color).toEqual(
+        accentRamp.find((s) => s.label === "500")!.color,
+      );
+      expect(onAccent.step).toEqual({
+        kind: "step",
+        role: "accent",
+        label: "500",
+      });
+      expect(onAccent.color).not.toEqual(
+        neutral.find((s) => s.label === "500")!.color,
+      );
+    });
+  });
+
   it("`auto` runs minPass against surface-elevated and reports the winning step", () => {
     const b: TokenBinding = { kind: "auto", role: "neutral", target: BODY };
     const chosen = minPass(neutral, lightSurface, BODY);
