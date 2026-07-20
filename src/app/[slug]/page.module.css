@@ -51,7 +51,6 @@
      itself, not inherit the essay measure). */
   .article > :is(h2, h3) {
     margin-top: var(--space-flow);
-    color: var(--accent-text);
   }
 
   /* No max-width here: the prose LANE is the reading measure (--width-content), so body text

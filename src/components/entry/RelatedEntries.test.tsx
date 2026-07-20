@@ -1,6 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import {
+  readModuleCss,
+  referencedCustomProperties,
+  ruleDeclarations,
+} from "../../../tests/cssModule";
+
 import RelatedEntries from "./RelatedEntries";
 
 const entry = (over: Record<string, unknown> = {}) => ({
@@ -260,5 +266,29 @@ describe("RelatedEntries", () => {
       />,
     );
     expect(screen.getByRole("listitem").textContent).toBe("Kindless");
+  });
+});
+
+describe("the label's ink travels via the color prop, not CSS", () => {
+  // The `.heading { color: … }` rule was deleted in favour of `color="muted-foreground"` on
+  // the Heading primitive. Ink stated in BOTH places is the drift this guards: the CSS module
+  // would win at equal layer and silently override the prop the component reads. Pinned at
+  // the CSS source (jsdom loads no stylesheets); commented-out declarations don't count.
+  const RELATED_CSS = readModuleCss(
+    "src/components/entry/RelatedEntries.module.css",
+  );
+
+  it("declares no ink on the label and references no accent token", () => {
+    expect(ruleDeclarations(RELATED_CSS, ".heading").size).toBe(0);
+    expect(
+      [...referencedCustomProperties(RELATED_CSS)].filter((v) =>
+        v.includes("accent"),
+      ),
+    ).toEqual([]);
+    // The module's remaining ink (`.item { color: var(--foreground) }`) is the list's own
+    // body ink and is deliberately in scope for CSS; only the LABEL moved to the prop.
+    expect(ruleDeclarations(RELATED_CSS, ".item").get("color")).toBe(
+      "var(--foreground)",
+    );
   });
 });

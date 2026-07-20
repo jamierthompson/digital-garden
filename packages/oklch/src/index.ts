@@ -6,7 +6,7 @@
  *     contrast-solved, gamut-mapped, baked-literal, never-throwing token sets.
  *     `buildTokenSet` zips both schemes for `light-dark()` output.
  *   • LOW-LEVEL: color conversions, gamut mapping, contrast (APCA Lc + WCAG ratio),
- *     the contrast solver, and lightness ramps — for card swatches / the studio (#70).
+ *     the contrast solver, and lightness ramps — for the studio (#70).
  *
  * This surface is DRIFT-GUARDED (#99) — an internal, single-consumer package, so it is freely
  * changeable; `api.test.ts` only catches silent drift, versioning stance in `README.md`. Portable

@@ -75,7 +75,7 @@ import {
   tokenSetToDeclarations,
 } from "@garden/oklch";
 
-// One scheme → { ramps, tokens, seed, isFallback } (cardSwatches; the Color Engine, #70):
+// One scheme → { ramps, tokens, seed, isFallback } (the Color Engine, #70):
 const { ramps, tokens, seed, isFallback } = resolveTheme("#3b82f6", "light");
 ramps.accent[7]; // → { label: "700", color: {…}, oog: false }
 
@@ -145,7 +145,7 @@ fine as long as it was deliberate and the guard is updated in the same PR.
 - **Additions are fine** (new export, new token) — extend the drift-guard's lists in the
   same commit, and update this README.
 - **Renames/removals are breaking** — migrate every consumer (`EntryScope`,
-  `cardSwatches`, Studio validation, the Color Engine module) in the same PR. There is no
+  `PageTheme`, Studio validation, the Color Engine module) in the same PR. There is no
   deprecation window inside a monorepo; the PR is the migration.
 - Never adjust the guard to make accidental drift pass.
 
@@ -170,7 +170,7 @@ the one predicate every solve and binding routes through, #100), `solveForegroun
 `gamutMap`/`inGamut`, `buildRamp` (the `50…950` role ramp) + `buildLightnessRamp` (raw
 stops), `minPass` (discrete step binding), and the color conversions/parsers.
 
-### Notes for EntryScope / cardSwatches consumers
+### Notes for EntryScope / PageTheme consumers
 
 - The engine emits the **generic semantic** names only (bare `--surface`, `--accent`, …) —
   there are no project-prefixed aliases (isolation comes from the `[data-entry]` scope).

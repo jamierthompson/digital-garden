@@ -1,18 +1,36 @@
-/* Themed entry card. @layer components — declares its layer
-   (an unlayered module outranks every layered rule). Reads ONLY the semantic tokens
-   `cardSwatches` re-binds on this card's element: the plate is `--accent`, its text the
-   engine-solved contrast pair `--accent-foreground`, so each plate is legible by construction. */
+/* Entry card. @layer components — declares its layer
+   (an unlayered module outranks every layered rule). Var-consuming only — a NEUTRAL surface
+   reading the page's ambient semantic tokens: `--surface` plate, `--border` hairline, and one
+   MARK — a solid bar across the card's head in the structure ink, the same on every card. Ink
+   is not declared here — the title inherits `--foreground` and the summary/meta wear their
+   roles via the type primitives' `color` prop. */
 @layer components {
   .card {
+    /* Component tokens — the mark's own geometry and fill. */
+    --card-mark: var(--border);
+    --card-mark-size: var(--space-1);
+
     display: flex;
-    background: var(--accent);
-    color: var(--accent-foreground);
+    flex-direction: column;
+    background: var(--surface);
+    border: var(--border-width) solid var(--border);
     border-radius: var(--radius-surface);
     overflow: hidden;
   }
 
-  /* The whole plate is the target (link) — or a plain wrapper for a slugless entry. `flex: 1`
-     stretches it to the card's grid-stretched height so `.meta` can pin to the plate floor. */
+  /* The head mark — non-text structure (the `ui` contrast tier), so it wears a structure
+     token, never an ink role. `flex-shrink: 0`: the link sibling's zero flex-basis gives it
+     zero shrink weight, so under overflow ALL shrink would land here and silently erase the
+     mark (QA D2). */
+  .card::before {
+    content: "";
+    flex-shrink: 0;
+    block-size: var(--card-mark-size);
+    background: var(--card-mark);
+  }
+
+  /* The whole card is the target (link) — or a plain wrapper for a slugless entry. `flex: 1`
+     stretches it to the card's grid-stretched height so `.meta` can pin to the card floor. */
   .link {
     display: flex;
     flex: 1;
@@ -23,25 +41,14 @@
     text-decoration: none;
   }
 
-  /* Register 2 — the editorial serif summary (the multi-font mix, via the `Text` body role). */
-  .summary {
-    color: var(--accent-foreground);
-  }
-
-  /* Register 3 — the shared `EntryMeta` mono readout, pinned to the plate floor.
-     NOT dimmed: the engine solves `--accent-foreground` to only just clear
-     WCAG AA on the accent fill (~zero headroom), so any `opacity < 1` drops this normal-size
-     text below 4.5:1 (guarded by cardSwatches.meta-opacity.test.ts). De-emphasis comes from the
-     mono face + smaller size, both owned by the primitive. */
+  /* The shared `EntryMeta` mono readout, pinned to the card floor. */
   .meta {
     margin-top: auto;
-    color: var(--accent-foreground);
   }
 
-  /* Keep the focus ring legible on the saturated plate: draw it in the on-accent pair, inset so
-     it sits ON the plate rather than being clipped by the card's `overflow: hidden`. */
+  /* Inset so the ring sits ON the surface rather than being clipped by `overflow: hidden`. */
   .link:focus-visible {
-    outline-color: var(--accent-foreground);
+    outline: var(--ring-width) var(--ring-style) var(--ring);
     outline-offset: -4px;
   }
 }

@@ -410,7 +410,7 @@ export type INDEX_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: FEATURED_QUERY
-// Query: *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    summary,    "themeSeed": coalesce(      select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),      *[_type == "siteSettings"][0].theme.color    ),    "linkCount": count(array::unique(      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id    )[defined(@) && @ != ^._id])  }
+// Query: *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {    _id,    title,    "slug": slug.current,    kind,    stage,    iterated,    summary,    "linkCount": count(array::unique(      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id    )[defined(@) && @ != ^._id])  }
 export type FEATURED_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
@@ -419,7 +419,6 @@ export type FEATURED_QUERY_RESULT = Array<{
   stage: "prototype" | "shipped" | "sketch" | null;
   iterated: string | null;
   summary: string | null;
-  themeSeed: string | null;
   linkCount: number;
 }>;
 
@@ -463,7 +462,7 @@ declare module "@sanity/client" {
     '\n  *[_type == "entry" && defined(slug.current)]{ "slug": slug.current }\n': ENTRY_SLUGS_QUERY_RESULT;
     '\n  *[_type == "entry" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    featuredRank,\n    summary,\n    theme { color, colorDark, headingFont, bodyFont, monoFont },\n    componentKey,\n    "themeSeed": coalesce(\n      select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),\n      *[_type == "siteSettings"][0].theme.color\n    ),\n    body[] {\n      ...,\n      _type == "figure" => {\n        ...,\n        asset->{ _id, metadata { lqip, dimensions } }\n      }\n    },\n    related[]->{ _id, title, "slug": slug.current, kind },\n    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }\n  }\n': ENTRY_DETAIL_QUERY_RESULT;
     '\n  *[_type == "entry" && defined(slug.current) && kind != "now"] | order(kind asc, coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    summary,\n    "linkCount": count(array::unique(\n      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id\n    )[defined(@) && @ != ^._id])\n  }\n': INDEX_QUERY_RESULT;
-    '\n  *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    summary,\n    "themeSeed": coalesce(\n      select(kind == "now" => *[_type == "siteSettings"][0].pageThemes.now, theme.color),\n      *[_type == "siteSettings"][0].theme.color\n    ),\n    "linkCount": count(array::unique(\n      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id\n    )[defined(@) && @ != ^._id])\n  }\n': FEATURED_QUERY_RESULT;
+    '\n  *[_type == "entry" && defined(slug.current) && defined(featuredRank)] | order(featuredRank asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    kind,\n    stage,\n    iterated,\n    summary,\n    "linkCount": count(array::unique(\n      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id\n    )[defined(@) && @ != ^._id])\n  }\n': FEATURED_QUERY_RESULT;
     '\n  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {\n    _id,\n    title,\n    "slug": slug.current,\n    iterated,\n    summary,\n    "linkCount": count(array::unique(\n      coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id\n    )[defined(@) && @ != ^._id])\n  }\n': NOW_QUERY_RESULT;
     '\n  *[_type == "siteSettings"][0] {\n    _id,\n    title,\n    description,\n    theme { color, colorDark },\n    pageThemes { home, browse, about, now, system }\n  }\n': SITE_SETTINGS_QUERY_RESULT;
   }

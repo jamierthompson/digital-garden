@@ -6,6 +6,7 @@ import Grid from "@/components/layout/Grid";
 import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import Heading from "@/components/typography/Heading";
+import Ink from "@/components/typography/Ink";
 import Text from "@/components/typography/Text";
 import PageTheme from "@/components/theme/PageTheme";
 import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
@@ -24,8 +25,8 @@ export const metadata: Metadata = {
 /**
  * The featured home — the curated front door for a hurried evaluator (the Index at `/browse`
  * is the wanderer's path). It renders the entries an editor promoted with a `featuredRank`,
- * ordered by rank, as `EntryCard`s — each a bounded themed slot that themes itself from the
- * query-resolved `themeSeed` (see `EntryCard`), while the surrounding shell stays editorial ink.
+ * ordered by rank, as `EntryCard`s — one seed paints the page, so the cards read the page
+ * theme's ambient tokens, and the surrounding shell stays editorial ink.
  */
 export default async function Home() {
   // Both reads are `use cache`, so they resolve into the prerendered static shell — the theme
@@ -47,9 +48,15 @@ export default async function Home() {
                 The Design-Engineering Garden of Jamie Thompson
               </Text>
               {/* The landing statement is the one place the oversized `display` role is used; a
-            content page's h1 defaults to the quieter `title` role. */}
+            content page's h1 defaults to the quieter `title` role. The emphasized phrase is the
+            page's one display-moment ink spend — a harmony green, not the accent, so it reads
+            as a second hue against the pink page rather than a wash of the same one. */}
               <Heading level={1} variant="display" className={styles.title}>
-                Notes, essays, and things I&rsquo;m building in the open.
+                Notes, essays, and{" "}
+                <Ink color="harmony-split-complementary-a-text">
+                  things I&rsquo;m building
+                </Ink>{" "}
+                in the open.
               </Heading>
             </section>
           </Stack>
@@ -57,7 +64,7 @@ export default async function Home() {
           {featured.length > 0 ? (
             <Stack asChild gap={space(4)}>
               <section aria-labelledby="featured-heading">
-                {/* The visual design (mockup 4a) omits a "Featured" label — the plates follow the
+                {/* The visual design (mockup 4a) omits a "Featured" label — the cards follow the
               hero directly. The heading is kept but visually hidden (Radix VisuallyHidden via
               `asChild`, so it stays a real <h2>) — the section keeps its accessible name and
               the document outline stays intact. */}

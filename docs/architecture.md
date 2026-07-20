@@ -328,8 +328,8 @@ small color _system_. It is **both a feature and a demo — same logic, two-plus
 
 - **Bakes literal `oklch()` values server-side.** The engine emits resolved, gamut-mapped,
   contrast-solved literals — not relative-color CSS. Live per-token CSS override is explicitly
-  **not** a goal: no consumer needs the cascade to re-derive a mid-chain token (card swatches
-  re-run the pure function in JS; so does the interactive Color Engine, the `color-engine` module). Relative-color (`oklch(from …)`) is permitted only
+  **not** a goal: no consumer needs the cascade to re-derive a mid-chain token (the interactive
+  Color Engine, the `color-engine` module, re-runs the pure function in JS). Relative-color (`oklch(from …)`) is permitted only
   for decorative, non-contrast deltas. This is also what makes server-side validation possible.
 
 - **Focus-ring _color_ is an engine token**; only its geometry is part of the global foundation. The
@@ -351,10 +351,9 @@ small color _system_. It is **both a feature and a demo — same logic, two-plus
   model and repo & hosting sections).
 
 - Runs **per page** — once per route, seeded by the page's authored theme color (`PageTheme`
-  stamps the result on `<html>`; see the site-wide delivery section). **Cards are a lighter call**:
-  a featured-home card needs a few colors, not the full token set, so it derives them from the same
-  engine (via `cardSwatches`) and spreads them inline as generic semantic-token overrides — its own
-  entry's `theme.color`.
+  stamps the result on `<html>`; see the site-wide delivery section). One seed paints a page:
+  everything inside the page — the featured cards included — reads the ambient semantic tokens
+  that one solve bound.
 
 - Delivered as a **hoisted `:root` `<style>`** (`PageTheme` → `ThemeStyle`, re-stamped imperatively
   on `<html>` on soft nav). On Vercel this is genuinely **flash-free for color**: the theme color is
@@ -426,10 +425,6 @@ small color _system_. It is **both a feature and a demo — same logic, two-plus
 - **Per-page delivery (`resolveThemeDeclarations`)**: `PageTheme` runs the **same engine**
   (`buildTokenSet` + `tokenSetToDeclarations`) to stamp a page's authored theme on `<html>` (see the
   site-wide delivery section).
-- **Preview swatches (`cardSwatches`)**: a featured-home card calls `cardSwatches(themeColor)` — the
-  **same engine**, returning a few stops spread inline as generic semantic-token overrides
-  (`--surface`/`--foreground`/`--border`/`--accent`), so each card wears its own entry's `theme.color` with
-  no slot scope and no `<style>` block.
 
 The **Color Engine** — an entry module whose interactive slot re-runs the pure engine in JS
 on each control change (type a seed, watch the palette regenerate) — ships as the
@@ -496,9 +491,11 @@ engine's load-bearing guarantee is **contrast**, the type engine's is **zoom (WC
   is omitted (1→`title`, 2→`heading`, 3–6→`subheading`; the oversized `display` is opt-in for a
   hero). `Text` renders `<p>` (or any element via `asChild`) in
   `body`/`lede`/`label`/`meta`/`kicker`/`caption`/`quote`.
-  Both also wear their ink via `color` — a semantic color role (`foreground` ·
-  `muted-foreground` · `accent-text`), applied through the shared `textColor` rules; omitted, the
-  primitive inherits the ambient ink. Discrete roles apply via `data-*` attributes (the variant
+  Both also wear their ink via `color` — a semantic color role, exactly the text-grade tokens
+  (`foreground` · `muted-foreground` · `accent-text` · the seven `harmony-<hue>-text` roles),
+  applied through the shared `textColor` rules; omitted, the
+  primitive inherits the ambient ink. `Ink` is the inline third consumer of the same rules — a
+  `<span>` wearing an ink role inside a larger type role, owning no type of its own. Discrete roles apply via `data-*` attributes (the variant
   mechanism), not the value-conduit the spacing primitives use for continuous lengths. The
   primitives read **only** the semantic role tokens, never a raw `--type-size-*` step. So a
   **page's** CSS Modules — its editorial content expressed through the primitives — own only
@@ -1050,10 +1047,9 @@ Practical notes:
   into two registered keys. Litmus: _editor writes/curates it → typed block; developer decides it →
   registry; neither → it's not an input._
 - **The card queries refuse to over-fetch.** The featured-home query pulls the card fields —
-  `title`/`slug`/`summary` and the meta facts (`kind`/`stage`/`iterated`/`linkCount`) plus the
-  `theme.color` each card themes its plate from — but
-  **not** the body. That enforces "a few colors per card" at the data layer (cards feed
-  `cardSwatches`) and keeps the front-door payload small for CWV.
+  `title`/`slug`/`summary` and the meta facts (`kind`/`stage`/`iterated`/`linkCount`) — but
+  **not** the body and **no per-entry theme seed** (one seed paints a page; the cards read the
+  homepage's own theme), keeping the front-door payload small for CWV.
 - **`EntryScope` is the font-slot keystone.** One server component takes a scope's `slug` + up to
   three font keys (sourced from the entry's `theme.headingFont` / `bodyFont` / `monoFont`) and emits
   the `[data-entry]` wrapper stamping, per resolved face, ONE solved value inline plus that face's
@@ -1090,9 +1086,9 @@ Practical notes:
   `featuredRank != null` filter), not a separate section. The **shell frame** of both — plus `/about`
   and `/now` — wears the page's authored `<html>` theme (see the token & theming architecture). Their
   _content_ differs by intent: the Index is a uniform editorial list, and the **featured home's cards
-  are themed plates** — each spreads its own entry's engine-solved palette inline via `cardSwatches`,
-  because a card is a bounded slot, not chrome. So a card carries its own `theme.color` while the frame
-  around it wears the page theme.
+  are neutral surfaces** (`--surface` + `--border`, editorial ink) painting from the page theme's
+  ambient tokens — one seed paints a page, so the cards and the frame around them wear the same
+  palette.
 - **TypeGen + `defineQuery`**: typed GROQ; run TypeGen after any schema or query change (a committed
   script + a CI `git diff --exit-code` on the generated types keeps it from rotting); `defineQuery`
   must wrap the query literally (no runtime interpolation).

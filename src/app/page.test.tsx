@@ -4,8 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Home is an async Server Component reading FEATURED_QUERY. Mock the single read path so a
 // per-test fixture can be swapped; `vi.hoisted` lets the fixture + mock fn exist before the
-// hoisted `vi.mock` factory runs. cardSwatches runs for REAL on each fixture's themeSeed —
-// it's pure/defensive, so the null/garbage-seed cases exercise the true fallback path.
+// hoisted `vi.mock` factory runs.
 const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
   FEATURED_FIXTURE: [
     {
@@ -15,7 +14,6 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
       kind: "demo",
       stage: "sketch",
       summary: "A seed in, a solved palette out.",
-      themeSeed: "oklch(0.7 0.28 330)",
     },
     {
       _id: "2",
@@ -24,7 +22,6 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
       kind: "demo",
       stage: "sketch",
       summary: "Looking inside a model.",
-      themeSeed: "oklch(0.7 0.15 70)",
     },
   ],
   fetchMock: vi.fn(),
@@ -60,7 +57,6 @@ interface FeaturedRow {
   kind: string | null;
   stage: string | null;
   summary: string | null;
-  themeSeed: unknown;
 }
 
 function row(over: Partial<FeaturedRow> & { _id: string }): FeaturedRow {
@@ -70,7 +66,6 @@ function row(over: Partial<FeaturedRow> & { _id: string }): FeaturedRow {
     kind: "demo",
     stage: "prototype",
     summary: null,
-    themeSeed: "oklch(0.7 0.15 70)",
     ...over,
   };
 }
@@ -127,16 +122,22 @@ describe("Home (featured front door)", () => {
     ).toBeNull();
   });
 
-  // The headline carries no emphasis element. `em` is rendered in the heading face, which has no
-  // true italic — the browser would synthesize a slant. Pinned as unstyled running text so the
-  // treatment can't creep back in on a face that still can't honour it.
-  it("renders the headline as plain running text, with no emphasis element", async () => {
+  // The headline carries no emphasis ELEMENT. `em` is rendered in the heading face, which has no
+  // true italic — the browser would synthesize a slant. Emphasis is INK instead: the building
+  // phrase wears a harmony-green text role (the page's one display-moment ink spend), which
+  // changes no text content and adds no semantic emphasis.
+  it("renders the headline as running text — ink emphasis on the building phrase, no em element", async () => {
     render(await Home());
     const h1 = screen.getByRole("heading", { level: 1 });
     expect(h1.querySelectorAll("em, i")).toHaveLength(0);
     expect(h1.textContent).toBe(
       "Notes, essays, and things I’m building in the open.",
     );
+    const emphasis = h1.querySelector(
+      '[data-color="harmony-split-complementary-a-text"]',
+    );
+    expect(emphasis).not.toBeNull();
+    expect(emphasis!.textContent).toBe("things I’m building");
   });
 
   it("renders each featured entry as a card linking to its flat /[slug]", async () => {
@@ -181,44 +182,17 @@ describe("Home (/) — edges & boundaries", () => {
     expect(screen.queryByRole("heading", { name: /featured/i })).toBeNull();
   });
 
-  it("brands a featured entry with a NULL themeSeed without throwing (fallback swatches)", async () => {
-    // A null resolved seed means NOTHING in the chain is authored. The card
-    // must still render (fallback palette), never crash the whole front door.
+  it("bakes no per-card theme — a featured card carries no inline style (one seed paints a page)", async () => {
     mockReads({
       featured: [
-        row({
-          _id: "a",
-          kind: "note",
-          title: "Featured note",
-          slug: "featured-note",
-          themeSeed: null,
-        }),
+        row({ _id: "a", title: "Featured note", slug: "featured-note" }),
       ],
     });
     render(await Home());
     const link = screen.getByRole("link", { name: /featured note/i });
-    expect(link).toHaveAttribute("href", "/featured-note");
-    // The inline swatch overrides are present and baked (not thrown away).
     const card = link.closest("li");
     expect(card).not.toBeNull();
-    expect(card!.getAttribute("style") ?? "").toContain("--surface");
-  });
-
-  it("survives a hostile/garbage themeSeed on a featured card", async () => {
-    mockReads({
-      featured: [
-        row({
-          _id: "a",
-          title: "Garbage theme",
-          slug: "g",
-          themeSeed: "not-a-color",
-        }),
-      ],
-    });
-    render(await Home());
-    expect(
-      screen.getByRole("link", { name: /garbage theme/i }),
-    ).toBeInTheDocument();
+    expect(card!.getAttribute("style")).toBeNull();
   });
 
   it("renders a slugless featured card as a non-link heading, never a dead link", async () => {
