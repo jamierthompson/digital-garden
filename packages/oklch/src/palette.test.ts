@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildTokenSet, resolveTheme } from "./palette";
+import { buildTokenSet, DEFAULT_BINDING_SCHEMA, resolveTheme } from "./palette";
 import { minPass } from "./binding";
 import { inGamut } from "./gamut";
 import { apcaLc, contrastWCAG } from "./contrast";
@@ -874,7 +874,7 @@ describe("themeColor validation contract (the Studio's isFallback oracle)", () =
   });
 });
 
-describe("baked literals clear the TRUE contrast floor (#79, 37-token contract #160, #229)", () => {
+describe("baked literals clear the TRUE contrast floor (#79, 38-token contract)", () => {
   // Each solved foreground token, the background it is solved against, and the TRUE floor
   // (no margin) it must clear. The engine solves with a small margin (`withSolveMargin`,
   // contrast.ts) so the 4-dp-rounded SHIPPED literal — not just the pre-round math — still
@@ -1365,6 +1365,9 @@ describe("QA — adversarial: interaction-state + un-mirror invariants (#160)", 
   const FG_FLOORS: Array<[ThemeTokenName, number, number]> = [
     ["foreground", 4.5, 75],
     ["muted-foreground", 4.5, 60],
+    // Neutral graphic ink — the `ui` tier, WCAG 2.2 SC 1.4.11 non-text 3:1. This table is
+    // hand-enumerated, so a role added to the engine without a row here is silently UNTESTED.
+    ["icon", 3, 45],
     ["border", 3, 30],
     ["accent-text", 4.5, 60],
     ["ring", 3, 45],
@@ -1379,6 +1382,24 @@ describe("QA — adversarial: interaction-state + un-mirror invariants (#160)", 
     ["info", 3, 45],
     ["info-text", 4.5, 60],
   ];
+
+  it("FG_FLOORS covers EVERY surface-solved role — a new role cannot go untested", () => {
+    // The table above is hand-written, so adding an engine role without a row here leaves it
+    // with zero contrast coverage while the whole suite stays green (exactly how `icon` was
+    // introduced). Derive the expected set from the binding schema instead: `auto` (solved
+    // against the worst surface), `fill` and `fill-hover` (solved as UI on the surface) are
+    // precisely the roles this sweep owns. `auto-on` / `fill-foreground` labels solve against
+    // their OWN fill, not the five surfaces — they have their own tests — and `step` surfaces
+    // and the `literal` scrim are not solved at all.
+    const surfaceSolved = Object.entries(DEFAULT_BINDING_SCHEMA)
+      .filter(([, binding]) =>
+        ["auto", "fill", "fill-hover"].includes(binding.kind),
+      )
+      .map(([name]) => name)
+      .sort();
+    expect(FG_FLOORS.map(([name]) => name).sort()).toEqual(surfaceSolved);
+  });
+
   it(
     "every solved foreground clears its floor on ALL FIVE surfaces (schemes × gamuts)",
     () => {
@@ -1679,4 +1700,87 @@ describe("QA #229 — adversarial: muted + accent-subtle pairing guarantees", ()
         }
       }
   });
+});
+
+describe("QA — independent adversarial: the `icon` rung of the neutral ink ramp", () => {
+  const sameColor = (a: OkLCH, b: OkLCH): boolean =>
+    a.L === b.L && a.C === b.C && a.H === b.H;
+
+  // The neutral ink ramp is MONOTONIC IN CONTRAST, not four guaranteed-distinct inks. Raised by
+  // QA against an earlier doc claim of four distinct rungs: `icon` and `border` resolve to the
+  // same neutral step in EVERY light-scheme solve, because `minPass` lands the `ui` {3, Lc 45}
+  // and `border` {3, Lc 30} clearing sets on the same step in that polarity. That is a
+  // deliberate alias — the same "distinct role, shared fallback color by design" precedent as
+  // `muted`/`surface` — so the guarantee worth pinning is the ORDERING, with ties permitted.
+  //
+  // `icon` vs `muted-foreground` is a different matter: those must never coincide, or the
+  // text/graphic tier split would be cosmetic. That holds strictly across the sweep.
+  it(
+    "the neutral ink ramp is monotonic in contrast, and icon never collapses into muted-foreground",
+    () => {
+      const RUNGS = [
+        "foreground",
+        "muted-foreground",
+        "icon",
+        "border",
+      ] as const;
+      for (const scheme of SCHEMES)
+        for (let H = 0; H < 360; H += 30)
+          for (const tintedNeutrals of [true, false]) {
+            const { tokens } = resolveTheme(`oklch(0.55 0.2 ${H})`, scheme, {
+              rules: { tintedNeutrals },
+            });
+            const where = `H${H} ${scheme} tinted:${tintedNeutrals}`;
+            // Ordering holds against the worst-case text-bearing surface every `auto` role is
+            // solved against, so the rungs are compared on the ground they were solved for.
+            const ground = tokens["surface-selected"];
+            for (let i = 0; i < RUNGS.length - 1; i++) {
+              expect(
+                contrastWCAG(tokens[RUNGS[i]], ground),
+                `${RUNGS[i]} must not sit below ${RUNGS[i + 1]} — ${where}`,
+              ).toBeGreaterThanOrEqual(
+                contrastWCAG(tokens[RUNGS[i + 1]], ground) - 1e-9,
+              );
+            }
+            expect(
+              sameColor(tokens.icon, tokens["muted-foreground"]),
+              `icon≡muted-foreground ${where}`,
+            ).toBe(false);
+          }
+    },
+    SWEEP_TIMEOUT,
+  );
+
+  // CONCESSION PIN (passes today): the `--foreground`-as-icon-hover ruling is sound. Both
+  // bind the SAME neutral ramp, and foreground's target ({4.5, Lc 75}) is a strictly harder
+  // constraint than icon's ({3, Lc 45}), so the hover step never loses contrast against any
+  // text-bearing surface. This pin keeps the ruling honest if the schema ever moves the two
+  // roles onto different ramps or inverts the targets.
+  it(
+    "moving icon → foreground (the hover ruling) never reduces contrast on any surface",
+    () => {
+      const SURFACES = [
+        "background",
+        "surface",
+        "surface-elevated",
+        "surface-hover",
+        "surface-selected",
+      ] as const;
+      for (const scheme of SCHEMES)
+        for (const seed of ["#3b82f6", "#eab308", "#06b6d4", "garbage"])
+          for (const s of SURFACES) {
+            const { tokens } = resolveTheme(seed, scheme);
+            const where = `${seed}/${scheme}/${s}`;
+            expect(
+              contrastWCAG(tokens.foreground, tokens[s]),
+              `${where} WCAG`,
+            ).toBeGreaterThanOrEqual(contrastWCAG(tokens.icon, tokens[s]));
+            expect(
+              Math.abs(apcaLc(tokens.foreground, tokens[s])),
+              `${where} APCA`,
+            ).toBeGreaterThanOrEqual(Math.abs(apcaLc(tokens.icon, tokens[s])));
+          }
+    },
+    SWEEP_TIMEOUT,
+  );
 });

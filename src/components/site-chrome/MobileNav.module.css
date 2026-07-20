@@ -1,0 +1,150 @@
+/* Mobile primary-nav panel. @layer components; var-consuming only (the shell is never
+   theme-scoped). The panel draws its own copy of the header's bar: under a modal dialog
+   everything outside the panel is `aria-hidden` and pointer-blocked, so a control left in the
+   header would look operable while being inert. The copy's inset, block padding and controls gap
+   therefore have to match the header's exactly, or the bar moves as the panel opens. */
+@layer components {
+  .trigger {
+    --mobile-nav-ink: var(--icon);
+    --mobile-nav-ink-hover: var(--foreground);
+    --mobile-nav-radius: var(--radius-control);
+    --mobile-nav-duration: var(--duration-fast);
+    --mobile-nav-ease: var(--ease-standard);
+
+    /* `--size-icon` is below the 24×24 pointer-target floor (WCAG 2.2 SC 2.5.8), so the control
+       supplies the target rather than the glyph. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--size-control);
+    min-block-size: var(--size-control);
+    padding: 0;
+    border: none;
+    border-radius: var(--mobile-nav-radius);
+    background: none;
+    color: var(--mobile-nav-ink);
+    cursor: pointer;
+    transition: color var(--mobile-nav-duration) var(--mobile-nav-ease);
+  }
+
+  .trigger:hover {
+    color: var(--mobile-nav-ink-hover);
+  }
+
+  .trigger:focus-visible {
+    outline: var(--ring-width) var(--ring-style) var(--ring);
+    outline-offset: var(--ring-offset);
+  }
+
+  /* Lucide ships `width`/`height` attributes; the token has to govern instead. */
+  .icon {
+    inline-size: var(--size-icon);
+    block-size: var(--size-icon);
+  }
+
+  /* Carries the scroll lock and nothing visual — the panel above it is opaque and full-bleed. */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+  }
+
+  .panel {
+    /* One gutter in, which is where the header's contents begin at every width this panel
+       shows. */
+    --mobile-nav-inset: var(--space-gutter);
+    /* Trailing room so the last link's focus ring isn't clipped by the scroll box. */
+    --mobile-nav-foot: var(--space-5);
+
+    /* Symmetric, with NO compensation for the scrollbar the scroll lock removes: `reset.css`
+       reserves the gutter permanently (`scrollbar-gutter: stable`), so this panel's containing
+       block is already the narrower width whether or not a scrollbar is showing. Offsetting by
+       `--removed-body-scroll-bar-size` corrects a gap that is never reopened and drags the bar's
+       right-hand controls a scrollbar-width inward on open. */
+    padding-inline: var(--mobile-nav-inset);
+    padding-block-end: var(--mobile-nav-foot);
+    /* `dvh`, not `vh`: `vh` is the LARGE viewport, so with the mobile URL bar shown a `100vh`
+       panel runs taller than the visible area and its foot can't be reached. */
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    block-size: 100dvh;
+    overflow-y: auto;
+    background: var(--background);
+  }
+
+  .barRow {
+    --mobile-nav-pad-block-start: clamp(
+      var(--space-4),
+      0.6667rem + 1.6667vw,
+      var(--space-6)
+    );
+    --mobile-nav-pad-block-end: var(--space-4);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-cluster);
+    padding-block-start: var(--mobile-nav-pad-block-start);
+    padding-block-end: var(--mobile-nav-pad-block-end);
+  }
+
+  .controls {
+    /* Cluster's default gap is narrower than the header's; falling through to it slides the
+       toggle sideways as the panel opens. */
+    --mobile-nav-controls-gap: var(--space-5);
+    --cluster-gap: var(--mobile-nav-controls-gap);
+
+    align-items: center;
+  }
+
+  /* Keyframes, not a transition: Radix defers unmount on `animationend` and never watches
+     `transitionend`, so a transitioned panel is torn out of the DOM before its exit is seen.
+     The panel itself only fades — translating it would carry the bar it exists to keep still. */
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes panel-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes nav-in {
+    from {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+  }
+
+  .panel[data-state="open"] {
+    animation: panel-in var(--duration-base) var(--ease-out);
+  }
+
+  .panel[data-state="closed"] {
+    animation: panel-out var(--duration-fast) var(--ease-in);
+  }
+
+  .panel[data-state="open"] .nav {
+    animation: nav-in var(--duration-base) var(--ease-out);
+  }
+
+  /* `none` is also what releases the panel: Radix reads the computed `animationName`, sees it,
+     and unmounts rather than waiting for an `animationend` that will never fire. */
+  @media (prefers-reduced-motion: reduce) {
+    .panel[data-state="open"],
+    .panel[data-state="closed"],
+    .panel[data-state="open"] .nav {
+      animation: none;
+    }
+  }
+
+  .nav {
+    --mobile-nav-list-offset: var(--space-6);
+
+    padding-block-start: var(--mobile-nav-list-offset);
+  }
+}

@@ -2,25 +2,70 @@
    every layered rule); var-consuming only (the shell is never theme-scoped). The band pieces own
    their own modules (NavLinks, SchemeToggle); the band itself is a `ContentGrid` merged
    onto the `<header>`, its row in the `wide` lane — this module owns only the header's ink rule,
-   the band's block padding, and the row's flex. */
+   the band's block padding, and the flex of the row and its right-hand cluster. */
 @layer components {
   .header {
-    /* Component tokens — the header band's designed dimensions. */
-    --site-nav-pad: var(--space-4);
+    /* Fluid across 320px→1280px, the range the fluid type scale interpolates over, so the
+       chrome breathes in step with the type rather than on a second, invented range. */
+    --site-nav-pad-block-start: clamp(
+      var(--space-4),
+      0.6667rem + 1.6667vw,
+      var(--space-6)
+    );
+    --site-nav-pad-block-end: var(--space-4);
     --site-nav-gap: var(--space-5);
 
     border-bottom: var(--border-width-thick) solid var(--accent);
   }
 
   .row {
+    /* The row's inline size comes from the grid lane, never from its children, so querying it
+       to show/hide those children is not circular. */
+    container: site-nav / inline-size;
+
     grid-column: wide;
     display: flex;
     /* Wraps on narrow viewports (see NavLinks) — never dictate a minimum page width. */
     flex-wrap: wrap;
     align-items: center;
-    /* The band carries no left-hand mark, so its pieces sit hard-right as one cluster. */
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: var(--site-nav-gap);
-    padding-block: var(--site-nav-pad);
+    padding-block-start: var(--site-nav-pad-block-start);
+    padding-block-end: var(--site-nav-pad-block-end);
+  }
+
+  /* Queried on the band, not the viewport: the question is whether the ROW has room, which a
+     viewport width doesn't answer and which drifts as soon as the lane's max width changes or a
+     destination is added. The threshold is the row's own arithmetic —
+     mark 44 + gap 24 + links 312 + gap 24 + toggle 24 = 428px — so re-derive it if the parts
+     change. */
+  .inlineNav {
+    display: none;
+  }
+
+  /* `flex`, not the default block: an inline-level button in a block wrapper picks up inline
+     half-leading, which lifts the glyph off the row's centre line by ~1px against the toggle
+     beside it. */
+  .mobileNav {
+    display: flex;
+    align-items: center;
+  }
+
+  @container site-nav (min-width: 28rem) {
+    .inlineNav {
+      display: block;
+    }
+
+    .mobileNav {
+      display: none;
+    }
+  }
+
+  /* Flow, wrap and gap come from `Cluster`; it sets no alignment, so that stays here. */
+  .controls {
+    --cluster-gap: var(--site-nav-gap);
+
+    align-items: center;
+    justify-content: flex-end;
   }
 }

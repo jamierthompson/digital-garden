@@ -35,17 +35,39 @@ function isActive(pathname: string, href: string): boolean {
     : pathname === href || pathname.startsWith(`${href}/`);
 }
 
+interface NavLinksProps extends React.ComponentPropsWithRef<"ul"> {
+  /**
+   * The links' own treatment, not their layout — a consumer owns layout by wrapping this in the
+   * primitive it wants. `stack` fills each link's row so the tap target is the row rather than
+   * the word; `row` keeps a short label centred in its 24px floor.
+   */
+  readonly orientation?: "row" | "stack";
+}
+
 /**
  * The shell's primary nav links, split into a small Client Component so the current-page
  * indicator can read `usePathname` without dragging the server-rendered header
  * (`SiteNav`) to the client. Var-consuming only: reads the global editorial tokens
  * (`--font-heading`, `--foreground`, `--border`) — the shell is never theme-scoped.
  */
-export default function NavLinks(): React.ReactElement {
+export default function NavLinks({
+  orientation = "row",
+  className,
+  ...rest
+}: NavLinksProps = {}): React.ReactElement {
   const pathname = usePathname();
 
   return (
-    <ul className={styles.links}>
+    <ul
+      className={[
+        styles.links,
+        orientation === "stack" ? styles.stack : null,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      {...rest}
+    >
       {NAV_ITEMS.map(({ href, label }) => {
         const active = isActive(pathname ?? "", href);
         return (
@@ -57,7 +79,7 @@ export default function NavLinks(): React.ReactElement {
               aria-current={active ? "page" : undefined}
             >
               <HoverPrefetchLink href={href} className={styles.link}>
-                {label}
+                <span className={styles.label}>{label}</span>
               </HoverPrefetchLink>
             </TextLink>
           </li>

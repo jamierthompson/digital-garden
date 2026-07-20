@@ -599,7 +599,7 @@ describe("QA — fresh-eyes adversarial: rules × picks (#101 interaction)", () 
   // The suite above never varies EngineRules against the pick floors. A distribution
   // reshapes the text-zone interior the picks land in; chroma/hue policies move every
   // candidate step — the picks must re-solve and still clear on the worst-case surface
-  // under EVERY policy combination (the same guarantee rules.test.ts pins for the 37
+  // under EVERY policy combination (the same guarantee rules.test.ts pins for the 38
   // semantic tokens).
   it("text + fill picks clear their floors under every rules combination (both schemes)", () => {
     const distributions = [

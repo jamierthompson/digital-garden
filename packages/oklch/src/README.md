@@ -84,7 +84,7 @@ const set = buildTokenSet("#3b82f6"); // { gamut: "p3" } to opt into wide gamut
 const decls = tokenSetToDeclarations(set); // raw --name: light-dark(…) lines the caller places
 ```
 
-Tokens (generic semantic contract, emitted as bare `--<name>`) — the **37-token** model
+Tokens (generic semantic contract, emitted as bare `--<name>`) — the **38-token** model
 (#160, extended in **#229**): the core 13 (`background`, `surface`, `surface-elevated`, `foreground`,
 `muted`, `muted-foreground`, `border`, `accent`, `accent-text`, `accent-foreground`, `accent-subtle`,
 `accent-subtle-foreground`, `ring`); a status **trio + subtle surface** block ×4

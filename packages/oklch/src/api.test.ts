@@ -138,13 +138,14 @@ const RUNTIME_EXPORTS = [
 ] as const;
 
 const SEMANTIC_NAMES = [
-  // Core (13).
+  // Core (14).
   "background",
   "surface",
   "surface-elevated",
   "foreground",
   "muted",
   "muted-foreground",
+  "icon",
   "border",
   "accent",
   "accent-text",

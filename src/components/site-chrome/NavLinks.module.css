@@ -15,11 +15,11 @@
     --nav-link-tracking: var(--tracking-normal);
     --nav-link-leading: var(--leading-normal);
 
-    display: flex;
-    /* Wraps on narrow viewports — a flex item never shrinks below its min-content, so without
-       this the links dictate a minimum page width and force mobile to zoom out. */
-    flex-wrap: wrap;
-    gap: var(--nav-link-gap);
+    /* Flow and gap come from whichever layout primitive the consumer wrapped this in; one nav
+       gap feeds either channel. */
+    --cluster-gap: var(--nav-link-gap);
+    --stack-gap: var(--nav-link-gap);
+
     list-style: none;
   }
 
@@ -47,6 +47,31 @@
      layout shift). Paired with `aria-current="page"` on the link, which also drives the
      full-ink text via the TextLink `muted` variant. */
   .active {
+    border-bottom-color: var(--foreground);
+  }
+
+  /* Modifiers sit after the base rules they modify — the source-reading tests in this directory
+     match the first rule for a selector, so an earlier `.stack .link` would shadow `.link`. */
+  .stack {
+    --nav-link-gap: var(--space-4);
+
+    align-items: stretch;
+  }
+
+  /* `flex`, not the row's `inline-flex`, so the link fills its row and the tap target is the row
+     rather than the word. The underline then has to leave the box, or it spans the panel. */
+  .stack .link {
+    display: flex;
+    justify-content: flex-start;
+    border-bottom-color: transparent;
+  }
+
+  /* Reserved on every item, so activating one shifts nothing. */
+  .stack .label {
+    border-bottom: var(--border-width-thick) solid transparent;
+  }
+
+  .stack .active .label {
     border-bottom-color: var(--foreground);
   }
 }

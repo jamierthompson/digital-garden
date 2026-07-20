@@ -25,7 +25,7 @@ describe("tokenSetToDeclarations", () => {
     expect(decls).toContain("--background:");
     expect(decls).toContain("--accent:");
     expect(decls).toContain("--ring:");
-    // The 37-token contract (#160, #229): the neutral `muted` background + the `accent-subtle`
+    // The 38-token contract: the neutral `muted` background + the `accent-subtle`
     // pair, status trios/subtle surfaces, interaction states, scrim.
     expect(decls).toContain("--muted:");
     expect(decls).toContain("--accent-subtle:");
@@ -44,8 +44,8 @@ describe("tokenSetToDeclarations", () => {
     expect(decls).not.toContain("--accent-500");
     // No project-internal alias leaks out of the engine.
     expect(decls).not.toContain("--logx-");
-    // Exactly the 37 semantic tokens — nothing else (no color-scheme by default, #159).
-    expect(decls.split("\n")).toHaveLength(37);
+    // Exactly the 38 semantic tokens — nothing else (no color-scheme by default, #159).
+    expect(decls.split("\n")).toHaveLength(38);
   });
 
   it("bakes literal oklch() values inside light-dark()", () => {

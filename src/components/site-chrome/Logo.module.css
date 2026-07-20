@@ -8,8 +8,10 @@
        `--type-<role>-*` bundle: the role sheet is the editorial vocabulary the type engine
        derives, and the logo carries no type at all. */
     --logo-size: var(--size-control-lg);
-    --logo-ink: var(--accent-text);
-    --logo-ink-hover: var(--accent);
+    /* A mark is non-text content (WCAG 2.2 SC 1.4.11), so it wears the graphic ink rather than a
+       text role; hover moves up the same neutral ramp. */
+    --logo-ink: var(--icon);
+    --logo-ink-hover: var(--foreground);
     --logo-radius: var(--radius-control);
     --logo-press-scale: 0.94;
     --logo-duration: var(--duration-fast);
