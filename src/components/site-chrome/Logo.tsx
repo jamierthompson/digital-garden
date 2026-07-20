@@ -17,9 +17,8 @@ interface LogoProps {
  * height attributes.
  */
 /**
- * A stand-in mark — Lucide's rose — so the header can be designed at full composition before the
- * real logo SVG exists. Delete this once the designed mark lands; it is passed explicitly at the
- * mount site rather than defaulted inside `Logo`, so the swap can't be forgotten.
+ * A stand-in until the designed mark exists. Passed explicitly at the mount site rather than
+ * defaulted inside `Logo`, so the swap can't be forgotten.
  */
 export function PlaceholderMark(): React.ReactElement {
   return <Rose />;

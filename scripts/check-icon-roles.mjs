@@ -12,23 +12,19 @@
 // `--icon` itself. A graphic may also wear a FILL (`--accent`, `--accent-hover`, a status fill) or
 // an on-fill label (`--accent-foreground`, `--<status>-foreground`) when it sits ON that fill.
 //
-// WHAT COUNTS AS A GRAPHIC PAINT SITE — two independent signals, because neither alone is enough:
+// WHAT COUNTS AS A GRAPHIC PAINT SITE — two signals, because neither alone is enough:
 //
-//   1. The selector's SUBJECT (its rightmost compound) is an `svg` element or carries a class
-//      whose NAME tokenizes to icon/mark/glyph/logo. Subject-scoped so `.logo + .caption` is read
-//      as the caption it targets; token-matched so `.markdown` and `.logout` stay prose.
+//   1. The selector's SUBJECT is an `svg` or carries a class whose name tokenizes to
+//      icon/mark/glyph/logo. Subject-scoped so `.logo + .caption` reads as the caption it
+//      targets; token-matched so `.markdown` and `.logout` stay prose.
 //
-//   2. The module declares a graphic rule ANYWHERE, and the declaration is `color`. `color`
-//      inherits, and an SVG painting `currentColor` takes its ink from whatever ancestor set it —
-//      which in this repo's own convention is the CONTROL, not the glyph (`SchemeToggle`: the ink
-//      is on `.toggle`, `.icon` carries only geometry). Signal 1 cannot see that: `.toggle` names
-//      no graphic. A module is one component's stylesheet, so if a graphic lives in it, any
-//      `color` in it can reach that graphic.
+//   2. The module declares a graphic rule anywhere, and the declaration is `color`. `color`
+//      inherits, so an SVG painting `currentColor` takes its ink from an ancestor — commonly the
+//      control rather than the glyph, which signal 1 cannot see. A module is one component's
+//      stylesheet, so a `color` in it can reach a graphic in it.
 //
 // Signal 2 is deliberately over-inclusive: a module mixing prose and glyphs may see a text rule
-// flagged. That is the safe direction — the failure is loud and the fix is to say explicitly
-// which ink each part takes. Under-blocking is what shipped a guard blind to its own flagship
-// consumer.
+// flagged. That is the safe direction — the fix is to state each part's ink explicitly.
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -130,8 +126,6 @@ export function findIconRoleViolations(css, { from } = {}) {
       if (decl.prop.startsWith("--")) return;
       const prop = decl.prop.toLowerCase();
       if (!PAINT_PROPS.has(prop)) return;
-      // Signal 1 covers every paint property on the graphic itself. Signal 2 covers only the
-      // inherited channel, on any rule in a module that contains a graphic.
       const isPaintSite =
         graphicRule || (moduleHasGraphic && prop === INHERITED_PAINT_PROP);
       if (!isPaintSite) return;

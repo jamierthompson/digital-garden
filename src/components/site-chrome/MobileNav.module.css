@@ -1,24 +1,18 @@
-/* Mobile primary-nav panel. @layer components — declares its layer (an unlayered module outranks
-   every layered rule); var-consuming only (the shell is never theme-scoped).
-
-   The panel carries its OWN top bar — logo, close, scheme toggle — rather than letting the
-   header's bar show through on a higher z-index. Under a modal dialog everything outside the
-   panel is `aria-hidden` and pointer-blocked, so a floated-above control would read as operable
-   while being inert. Duplicating the bar inside the panel keeps the toggle genuinely usable and
-   means nothing shifts when the panel opens: the bar takes the same gutter inset and the same
-   block padding as `SiteNav`'s row. */
+/* Mobile primary-nav panel. @layer components; var-consuming only (the shell is never
+   theme-scoped). The panel draws its own copy of the header's bar: under a modal dialog
+   everything outside the panel is `aria-hidden` and pointer-blocked, so a control left in the
+   header would look operable while being inert. The copy's inset, block padding and controls gap
+   therefore have to match the header's exactly, or the bar moves as the panel opens. */
 @layer components {
   .trigger {
-    /* Component tokens — shared by the open (menu) and close (X) controls, which are the same
-       designed control in two states. */
     --mobile-nav-ink: var(--icon);
     --mobile-nav-ink-hover: var(--foreground);
     --mobile-nav-radius: var(--radius-control);
     --mobile-nav-duration: var(--duration-fast);
     --mobile-nav-ease: var(--ease-standard);
 
-    /* ≥24×24 hit area (WCAG 2.2 SC 2.5.8) floored on both axes — `--size-icon` is smaller than
-       the floor, so the control supplies the target, not the glyph. */
+    /* `--size-icon` is below the 24×24 pointer-target floor (WCAG 2.2 SC 2.5.8), so the control
+       supplies the target rather than the glyph. */
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -42,19 +36,18 @@
     outline-offset: var(--ring-offset);
   }
 
+  /* Lucide ships `width`/`height` attributes; the token has to govern instead. */
   .icon {
-    /* The glyph paints `currentColor` and takes its box from the token, so the control's ink
-       states drive it and Lucide's own width/height attributes never govern. */
     inline-size: var(--size-icon);
     block-size: var(--size-icon);
   }
 
-  /* One gutter in on each side — where the header's contents begin at every width this panel
-     shows, so the bar doesn't move when the panel opens. */
   .panel {
+    /* One gutter in, which is where the header's contents begin at every width this panel
+       shows. */
     padding-inline: var(--space-gutter);
-    /* `100dvh`, not `100vh`: on mobile browsers the retracting URL bar makes `vh` the LARGE
-       viewport, so a `100vh` panel is taller than the visible area and its foot is unreachable. */
+    /* `dvh`, not `vh`: `vh` is the LARGE viewport, so with the mobile URL bar shown a `100vh`
+       panel runs taller than the visible area and its foot can't be reached. */
     position: fixed;
     inset: 0;
     z-index: var(--z-modal);
@@ -63,9 +56,6 @@
     background: var(--background);
   }
 
-  /* Mirrors SiteNav's row exactly — same lane, same fluid block padding — so opening the panel
-     changes the glyph and nothing else. The two clamps must stay byte-identical or the bar
-     jumps on open; pinned by a cross-module test in MobileNav.test.tsx. */
   .barRow {
     --mobile-nav-pad-block-start: clamp(
       var(--space-4),
@@ -82,24 +72,18 @@
     padding-block-end: var(--mobile-nav-pad-block-end);
   }
 
-  /* The gap has to equal the header's, or the toggle shifts sideways the instant the panel opens
-     — the glyph beside it changes, its position must not. `Cluster`'s own default is narrower,
-     so this is set explicitly through the primitive's `--cluster-gap` channel and pinned against
-     the header's value by a test. Alignment stays here; Cluster sets no cross-axis alignment. */
   .controls {
+    /* Cluster's default gap is narrower than the header's; falling through to it slides the
+       toggle sideways as the panel opens. */
     --mobile-nav-controls-gap: var(--space-5);
     --cluster-gap: var(--mobile-nav-controls-gap);
 
     align-items: center;
   }
 
-  /* Keyframes, NOT a transition. Radix defers unmount by listening for `animationend` and reading
-     `animationName` (@radix-ui/react-presence) — it never watches `transitionend`, so a
-     transitioned panel is torn out of the DOM the moment it closes and the exit is never seen.
-     The `data-state` attributes are Radix's own contract on the content element. */
-  /* The panel only fades. Translating it would carry the bar — and the whole point of the bar
-     being duplicated is that the mark and the toggle do not move when the panel opens. The
-     motion lives on the list instead, which has no counterpart in the header to stay still for. */
+  /* Keyframes, not a transition: Radix defers unmount on `animationend` and never watches
+     `transitionend`, so a transitioned panel is torn out of the DOM before its exit is seen.
+     The panel itself only fades — translating it would carry the bar it exists to keep still. */
   @keyframes panel-in {
     from {
       opacity: 0;
@@ -123,7 +107,6 @@
     animation: panel-in var(--duration-base) var(--ease-out);
   }
 
-  /* Exits run shorter than entrances — a dismissal that lingers reads as lag. */
   .panel[data-state="closed"] {
     animation: panel-out var(--duration-fast) var(--ease-in);
   }
@@ -132,9 +115,8 @@
     animation: nav-in var(--duration-base) var(--ease-out);
   }
 
-  /* Honours a reduced-motion preference without stranding the panel: Radix reads the computed
-     `animationName`, sees `none`, and unmounts immediately rather than waiting for an
-     `animationend` that will never fire. */
+  /* `none` is also what releases the panel: Radix reads the computed `animationName`, sees it,
+     and unmounts rather than waiting for an `animationend` that will never fire. */
   @media (prefers-reduced-motion: reduce) {
     .panel[data-state="open"],
     .panel[data-state="closed"],
@@ -144,8 +126,6 @@
   }
 
   .nav {
-    /* The gap between the bar and the first destination — larger than the link gap, so the bar
-       reads as chrome and the list as content rather than one undifferentiated column. */
     --mobile-nav-list-offset: var(--space-6);
 
     padding-block-start: var(--mobile-nav-list-offset);

@@ -37,15 +37,14 @@ function isActive(pathname: string, href: string): boolean {
 
 interface NavLinksProps extends React.ComponentPropsWithRef<"ul"> {
   /**
-   * The links' own treatment, not their layout — the CONSUMER owns layout by wrapping this in
-   * the primitive it wants. `stack` makes each link fill its row so the tap target is the row
-   * rather than the word; `row` (the default) keeps a short label centred in its 24px floor.
+   * The links' own treatment, not their layout — a consumer owns layout by wrapping this in the
+   * primitive it wants. `stack` fills each link's row so the tap target is the row rather than
+   * the word; `row` keeps a short label centred in its 24px floor.
    */
   readonly orientation?: "row" | "stack";
   /**
-   * Called when a destination is activated. The mobile panel lives in the persistent layout, so
-   * a client-side navigation does NOT unmount it — without this the panel would still be covering
-   * the page the user just navigated to.
+   * Called when a destination is activated. A disclosure holding these links is not unmounted by
+   * a client-side navigation, so without this it stays open over the page just navigated to.
    */
   readonly onNavigate?: () => void;
 }

@@ -1,6 +1,5 @@
-/* Scheme toggle — @layer components, var-consuming only (global editorial semantic tokens;
-   the shell is never theme-scoped). A bare button carrying one Lucide glyph: the geometry lives
-   on `.icon`, every interactive state on the button. */
+/* Scheme toggle — @layer components, var-consuming only (the shell is never theme-scoped). A
+   bare button carrying one Lucide glyph: geometry on `.icon`, every state on the button. */
 @layer components {
   .toggle {
     /* The glyph is a graphic: `--icon` is the neutral graphic ink (the `ui` tier, 3:1 per WCAG
@@ -11,8 +10,8 @@
     --scheme-toggle-duration: var(--duration-fast);
     --scheme-toggle-ease: var(--ease-standard);
 
-    /* ≥24×24 hit area (WCAG 2.2 SC 2.5.8 Target Size) floored on both axes, independent of the
-       glyph — `--size-icon` is smaller than the floor, so the button must supply the target. */
+    /* `--size-icon` is below the 24×24 pointer-target floor (WCAG 2.2 SC 2.5.8), so the button
+       supplies the target rather than the glyph. */
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -27,9 +26,8 @@
     transition: color var(--scheme-toggle-duration) var(--scheme-toggle-ease);
   }
 
+  /* Lucide ships `width`/`height` attributes; the token has to govern instead. */
   .icon {
-    /* The glyph paints `currentColor` and takes its box from the token, so the button's ink
-       states drive it and Lucide's own width/height attributes never govern. */
     inline-size: var(--size-icon);
     block-size: var(--size-icon);
   }

@@ -8,9 +8,8 @@
        `--type-<role>-*` bundle: the role sheet is the editorial vocabulary the type engine
        derives, and the logo carries no type at all. */
     --logo-size: var(--size-control-lg);
-    /* The mark is a graphic: `--icon` is the neutral graphic ink (the `ui` tier, 3:1 per WCAG
-       2.2 SC 1.4.11), never a 4.5-solved text role. Hover moves UP the same neutral ramp to
-       `--foreground`, so the state is a strength change within one role, not a role swap. */
+    /* A mark is non-text content (WCAG 2.2 SC 1.4.11), so it wears the graphic ink rather than a
+       text role; hover moves up the same neutral ramp. */
     --logo-ink: var(--icon);
     --logo-ink-hover: var(--foreground);
     --logo-radius: var(--radius-control);
