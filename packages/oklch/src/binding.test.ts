@@ -120,6 +120,7 @@ describe("resolveBinding", () => {
   const baseCtx: Omit<BindingContext, "scheme"> = {
     ramps,
     worstSurface: lightSurface,
+    anchorLabel: "500",
     // The co-solves are computed by palette.ts and passed in verbatim, keyed by role;
     // resolveBinding forwards each role's fill/label + provenance (identity — asserted below).
     fills: {
@@ -148,6 +149,25 @@ describe("resolveBinding", () => {
     const dark = resolveBinding(b, { ...baseCtx, scheme: "dark" });
     expect(dark.color).toEqual(neutral.find((s) => s.label === "950")!.color);
     expect(dark.step).toEqual({ kind: "step", role: "neutral", label: "950" });
+  });
+
+  it("`anchor` picks the context's seed-anchored label on its role's ramp, reporting it as a step (#334)", () => {
+    const b: TokenBinding = { kind: "anchor", role: "neutral" };
+    for (const scheme of ["light", "dark"] as const) {
+      // Same label in BOTH schemes — the anchor is keyed off the seed's native direction,
+      // not the scheme being resolved (unlike a `step` binding's per-scheme labels).
+      const got = resolveBinding(b, { ...baseCtx, scheme });
+      expect(got.color).toEqual(neutral.find((s) => s.label === "500")!.color);
+      expect(got.step).toEqual({ kind: "step", role: "neutral", label: "500" });
+    }
+    // A different anchor label is honored, not hardcoded.
+    const at300 = resolveBinding(b, {
+      ...baseCtx,
+      scheme: "light",
+      anchorLabel: "300",
+    });
+    expect(at300.color).toEqual(neutral.find((s) => s.label === "300")!.color);
+    expect(at300.step).toEqual({ kind: "step", role: "neutral", label: "300" });
   });
 
   it("`auto` runs minPass against surface-elevated and reports the winning step", () => {
@@ -267,6 +287,7 @@ describe("resolveBinding", () => {
     const bare: Omit<BindingContext, "scheme"> = {
       ramps,
       worstSurface: lightSurface,
+      anchorLabel: "500",
       fills: {},
       hovers: {},
     };

@@ -916,6 +916,43 @@ describe("baked literals clear the TRUE contrast floor (#79, 38-token contract)"
     "warning-subtle-foreground": { bg: "warning-subtle", wcag: 4.5, apca: 60 },
     "success-subtle-foreground": { bg: "success-subtle", wcag: 4.5, apca: 60 },
     "info-subtle-foreground": { bg: "info-subtle", wcag: 4.5, apca: 60 },
+    // Harmony blocks (#334): fill (UI tier) + text (accent-text tier), solved against the
+    // worst-case surface like their accent counterparts. The bare `harmony-<hue>` anchors are
+    // decorative (no contrast claim) — no row.
+    "harmony-analogous-a-fill": { bg: "surface-selected", wcag: 3, apca: 45 },
+    "harmony-analogous-a-text": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+    "harmony-analogous-b-fill": { bg: "surface-selected", wcag: 3, apca: 45 },
+    "harmony-analogous-b-text": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+    "harmony-complementary-fill": { bg: "surface-selected", wcag: 3, apca: 45 },
+    "harmony-complementary-text": {
+      bg: "surface-selected",
+      wcag: 4.5,
+      apca: 60,
+    },
+    "harmony-triadic-a-fill": { bg: "surface-selected", wcag: 3, apca: 45 },
+    "harmony-triadic-a-text": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+    "harmony-triadic-b-fill": { bg: "surface-selected", wcag: 3, apca: 45 },
+    "harmony-triadic-b-text": { bg: "surface-selected", wcag: 4.5, apca: 60 },
+    "harmony-split-complementary-a-fill": {
+      bg: "surface-selected",
+      wcag: 3,
+      apca: 45,
+    },
+    "harmony-split-complementary-a-text": {
+      bg: "surface-selected",
+      wcag: 4.5,
+      apca: 60,
+    },
+    "harmony-split-complementary-b-fill": {
+      bg: "surface-selected",
+      wcag: 3,
+      apca: 45,
+    },
+    "harmony-split-complementary-b-text": {
+      bg: "surface-selected",
+      wcag: 4.5,
+      apca: 60,
+    },
   };
   // Round-trip a token through the exact bake path (formatOklch → parseColor) to measure
   // what actually ships, not the precise solver output.
@@ -1034,6 +1071,41 @@ describe("seed anchor-step (#108)", () => {
       )!;
       // Same L in both schemes (only chroma dampens in dark).
       expect(anchored.color.L).toBeCloseTo(result.seed.L, 9);
+    }
+  });
+
+  // Harmony decorative anchors (#334): the bare `harmony-<hue>` token is the SEED-GRADE
+  // identity color of its derived hue — the hue's ramp step at the seed anchor, so it holds
+  // the seed's lightness with only the hue rotated (chroma gamut-permitting), and its
+  // provenance reports that anchored step truthfully.
+  it("each bare harmony token IS its ramp's seed-anchored step, with step provenance", () => {
+    for (const scheme of ["light", "dark"] as const) {
+      const result = resolveTheme("#2563eb", scheme);
+      for (const hue of [
+        "analogous-a",
+        "complementary",
+        "split-complementary-b",
+      ] as const) {
+        const name = `harmony-${hue}` as const;
+        const anchored = result.ramps[name].find(
+          (s) => s.label === result.anchorLabel,
+        )!;
+        expect(result.tokens[name], `${name}/${scheme}`).toEqual(
+          anchored.color,
+        );
+        // The anchor pins the step AT the seed's L, but the per-step gamut map may nudge a
+        // rotated hue slightly (the seed was mapped at its OWN hue; the same L/C at another
+        // hue can sit out of gamut) — so seed-lightness fidelity is near, not exact.
+        expect(
+          Math.abs(result.tokens[name].L - result.seed.L),
+          `${name}/${scheme}`,
+        ).toBeLessThan(0.05);
+        expect(result.bindings[name], `${name}/${scheme}`).toEqual({
+          kind: "step",
+          role: name,
+          label: result.anchorLabel,
+        });
+      }
     }
   });
 
@@ -1381,6 +1453,23 @@ describe("QA — adversarial: interaction-state + un-mirror invariants (#160)", 
     ["success-text", 4.5, 60],
     ["info", 3, 45],
     ["info-text", 4.5, 60],
+    // Harmony blocks (#334): fill (UI tier) + text (accent-text tier) per derived hue. The
+    // bare `harmony-<hue>` anchors are decorative (`anchor` binding, no contrast claim) and
+    // are correctly absent here.
+    ["harmony-analogous-a-fill", 3, 45],
+    ["harmony-analogous-a-text", 4.5, 60],
+    ["harmony-analogous-b-fill", 3, 45],
+    ["harmony-analogous-b-text", 4.5, 60],
+    ["harmony-complementary-fill", 3, 45],
+    ["harmony-complementary-text", 4.5, 60],
+    ["harmony-triadic-a-fill", 3, 45],
+    ["harmony-triadic-a-text", 4.5, 60],
+    ["harmony-triadic-b-fill", 3, 45],
+    ["harmony-triadic-b-text", 4.5, 60],
+    ["harmony-split-complementary-a-fill", 3, 45],
+    ["harmony-split-complementary-a-text", 4.5, 60],
+    ["harmony-split-complementary-b-fill", 3, 45],
+    ["harmony-split-complementary-b-text", 4.5, 60],
   ];
 
   it("FG_FLOORS covers EVERY surface-solved role — a new role cannot go untested", () => {

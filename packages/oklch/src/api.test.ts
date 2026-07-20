@@ -174,6 +174,28 @@ const SEMANTIC_NAMES = [
   "info-text",
   "info-subtle",
   "info-subtle-foreground",
+  // Harmony blocks (×7, #334): decorative anchor · fill · text.
+  "harmony-analogous-a",
+  "harmony-analogous-a-fill",
+  "harmony-analogous-a-text",
+  "harmony-analogous-b",
+  "harmony-analogous-b-fill",
+  "harmony-analogous-b-text",
+  "harmony-complementary",
+  "harmony-complementary-fill",
+  "harmony-complementary-text",
+  "harmony-triadic-a",
+  "harmony-triadic-a-fill",
+  "harmony-triadic-a-text",
+  "harmony-triadic-b",
+  "harmony-triadic-b-fill",
+  "harmony-triadic-b-text",
+  "harmony-split-complementary-a",
+  "harmony-split-complementary-a-fill",
+  "harmony-split-complementary-a-text",
+  "harmony-split-complementary-b",
+  "harmony-split-complementary-b-fill",
+  "harmony-split-complementary-b-text",
   // Interaction states (×3) + overlay.
   "accent-hover",
   "surface-hover",
@@ -188,6 +210,13 @@ const ROLE_NAMES = [
   "error",
   "warning",
   "info",
+  "harmony-analogous-a",
+  "harmony-analogous-b",
+  "harmony-complementary",
+  "harmony-triadic-a",
+  "harmony-triadic-b",
+  "harmony-split-complementary-a",
+  "harmony-split-complementary-b",
 ] as const;
 
 const STEP_LABELS = [
@@ -453,6 +482,7 @@ describe("the exported derivation contract (#150)", () => {
     for (const name of api.THEME_TOKEN_NAMES) {
       expect([
         "step",
+        "anchor",
         "auto",
         "auto-on",
         "literal",

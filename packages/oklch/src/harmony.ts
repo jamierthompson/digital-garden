@@ -37,6 +37,43 @@ export type HarmonyKind = keyof typeof HARMONY_ANGLES;
 /** The canonical relationship order, exported for the Studio's display (#73). */
 export const HARMONY_KINDS = Object.keys(HARMONY_ANGLES) as HarmonyKind[];
 
+/**
+ * One of the 7 derived harmony hues — the design's dedupe/naming of the four relationships'
+ * offsets (analogous ±30°, complementary 180°, triadic ±120°, split-complementary 150°/210°)
+ * into stable, self-documenting, kebab-case keys. `-a`/`-b` disambiguate the two hues of a
+ * two-sided relationship, ordered by their signed offset — the smaller (more
+ * counter-clockwise) offset is `-a`: analogous −30/+30, triadic −120/+120, split 150/210.
+ * These names are the public group labels of the harmony surface (`--harmony-<hue>` and the
+ * `harmony-<hue>` ramp roles, #334; the export tier's `--harmony-<hue>-…` groups).
+ */
+export type HarmonyHue =
+  | "analogous-a"
+  | "analogous-b"
+  | "complementary"
+  | "triadic-a"
+  | "triadic-b"
+  | "split-complementary-a"
+  | "split-complementary-b";
+
+/** Each derived hue's parent relationship and its signed hue offset from the seed, in
+ *  degrees. The single source for both the rotation math and the relationship metadata. */
+export const HARMONY_HUE_ANGLES = {
+  "analogous-a": { relationship: "analogous", offset: -30 },
+  "analogous-b": { relationship: "analogous", offset: 30 },
+  complementary: { relationship: "complementary", offset: 180 },
+  "triadic-a": { relationship: "triadic", offset: -120 },
+  "triadic-b": { relationship: "triadic", offset: 120 },
+  "split-complementary-a": { relationship: "split-complementary", offset: 150 },
+  "split-complementary-b": { relationship: "split-complementary", offset: 210 },
+} as const satisfies Record<
+  HarmonyHue,
+  { relationship: HarmonyKind; offset: number }
+>;
+
+/** The canonical harmony-hue order, exported for the studio's display (mirrors
+ *  `HARMONY_KINDS`). Insertion order of `HARMONY_HUE_ANGLES` = relationship order. */
+export const HARMONY_HUES = Object.keys(HARMONY_HUE_ANGLES) as HarmonyHue[];
+
 /** The full decorative palette: per relationship, the derived colors in offset order. */
 export type HarmonyPalette = Record<HarmonyKind, OkLCH[]> & {
   /** The parsed, gamut-mapped seed the sets rotate around. */
@@ -51,7 +88,7 @@ export interface HarmonyOptions {
 }
 
 /** Rotate a hue by `delta` degrees, normalized into [0, 360). */
-function rotate(hue: number, delta: number): number {
+export function rotate(hue: number, delta: number): number {
   return (((hue + delta) % 360) + 360) % 360;
 }
 

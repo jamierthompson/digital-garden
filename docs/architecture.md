@@ -364,7 +364,8 @@ small color _system_. It is **both a feature and a demo — same logic, two-plus
   across the routes `<Activity>` keeps mounted — the delivery section covers the full mechanism.
 
 - **Ramp-primitive tier, semantic tokens bound to it.** The engine emits a per-role
-  generative ramp — `accent`, `neutral`, and the four status ramps, each **11 `50…950` steps**
+  generative ramp — `accent`, `neutral`, the four status ramps, and the seven `harmony-<hue>`
+  ramps, each **11 `50…950` steps**
   (a pure perceptual-lightness primitive, gamut-mapped, with an out-of-gamut flag per step) — and
   the **semantic role tokens bind to ramp steps** rather than being solved in isolation: a surface
   pins a fixed neutral step (the light end in light mode, the dark end in dark — the per-scheme
@@ -387,10 +388,22 @@ small color _system_. It is **both a feature and a demo — same logic, two-plus
   tinted neutrals — with every default reproducing the un-ruled output; distributions reshape only
   the interior steps (`300…700`) while the surface-bearing shoulders stay pinned, so the engine's
   contrast guarantees hold under every policy. The Color Engine (#73) surfaces them ("Rules · set once").
-  A separate **decorative accent-harmony palette** (`buildHarmonyPalette`) emits analogous /
-  complementary / triadic / split-complementary hue sets at the seed's own L/C, gamut-mapped —
-  expressly non-semantic and non-contrast-bearing (status colors stay canonical-hue; a consumer
-  backing text with a harmony color contrast-checks it via `checkContrast`).
+  The **harmony tier** binds seven derived hues into the semantic surface (`harmony-analogous-a/-b`,
+  `harmony-complementary`, `harmony-triadic-a/-b`, `harmony-split-complementary-a/-b` — the
+  relationships' offsets from the seed hue, deduped into stable keys): each gets the accent
+  treatment — its own seed-anchored ramp at seed chroma with only the hue rotated — and a
+  three-token semantic block. The bare `--harmony-<hue>` is the **decorative** seed-grade identity
+  (the ramp's anchor step — **no contrast claim**: washes, gradients, non-text shapes);
+  `--harmony-<hue>-fill` (`ui`: 3:1 + Lc 45) and `--harmony-<hue>-text` (`accentText`: 4.5:1 +
+  Lc 60) are `minPass`-solved against the worst-case surface like their accent counterparts, so
+  they hold on every standard surface. There is deliberately **no** `harmony-<hue>-foreground`
+  (a label ON a harmony fill) and **no** `harmony-<hue>-subtle` pair yet — those extend the blocks
+  on the status-block pattern when a real job needs them. Status colors stay canonical-hue and
+  outside the tier (error stays red). A separate **decorative accent-harmony palette**
+  (`buildHarmonyPalette`) still emits the plain hue-rotation sets at the seed's own L/C for a
+  consumer that wants raw decorative colors, and `buildHarmonyTier` reshapes the resolved harmony
+  ramps + picks per hue with relationship metadata for the export serializers — both read the same
+  solve; nothing is derived twice.
 
 - **The public surface is drift-guarded, not frozen.** `@garden/oklch` is an internal,
   project-only package — this repo is its **only** consumer — so its whole surface (the semantic

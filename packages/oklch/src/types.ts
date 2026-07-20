@@ -113,18 +113,30 @@ export interface EngineRules extends RampRules {
 /**
  * The generic, public token names the engine emits, in canonical emission order — the
  * drift-guarded semantic surface (#99, completed to the 34-token model in #160, extended to
- * the 37-token model in #229 — the neutral `muted` background + the `accent-subtle` pair — and
- * to 38 with the neutral `icon` ink; freely changeable since the engine is
- * internal/single-consumer). Exported so consumers (the drift-guard test, Sanity author-time
- * validation, the studio receipt) read the one list rather than restating it.
+ * the 37-token model in #229 — the neutral `muted` background + the `accent-subtle` pair —
+ * to 38 with the neutral `icon` ink, and to 59 with the harmony blocks, #334; freely
+ * changeable since the engine is internal/single-consumer). Exported so consumers (the
+ * drift-guard test, Sanity author-time validation, the studio receipt) read the one list
+ * rather than restating it.
  *
  * `icon` fills the gap in the neutral ink ramp at the `ui` tier (Lc 45): non-text graphics are
  * governed by WCAG 2.2 SC 1.4.11 at 3:1, so an icon may not read a 4.5-solved text role. The
  * neutral ramp now runs foreground (Lc 75) → muted-foreground (60) → icon (45) → border (30).
  *
  * Emission order: the core 14, then a per-status block ×4 (`error`/`warning`/`success`/`info`)
- * of fill · fill-foreground · text · subtle · subtle-foreground, then the three interaction states
- * (`accent-hover`, `surface-hover`, `surface-selected`), then the `scrim` overlay literal. The
+ * of fill · fill-foreground · text · subtle · subtle-foreground, then a per-harmony-hue block ×7
+ * (#334) of decorative anchor · fill · text, then the three interaction states
+ * (`accent-hover`, `surface-hover`, `surface-selected`), then the `scrim` overlay literal.
+ *
+ * The harmony blocks bind the harmony tier (#152) into the guarded surface: per derived hue,
+ * the bare `harmony-<hue>` is the DECORATIVE seed-grade identity color — the hue's ramp step
+ * at the seed anchor (#108), carrying NO contrast claim (washes, gradients, large non-text
+ * shapes) — while `harmony-<hue>-fill` (`ui`: 3:1 + Lc 45) and `harmony-<hue>-text`
+ * (`accentText`: 4.5:1 + Lc 60) are solved against the worst-case surface exactly like their
+ * accent counterparts, so they hold on EVERY standard surface. There is deliberately no
+ * `harmony-<hue>-foreground` (a label ON a harmony fill) and no `harmony-<hue>-subtle` pair
+ * yet — those are future extensions that follow the status-block pattern when a real job
+ * needs them. The
  * status roles carry FIXED canonical hues (not seed-derived), harmonized with the slot only
  * through the shared contrast treatment. The two neutral interaction surfaces pin darker steps
  * of the neutral ramp (light mode: background > surface > surface-elevated > surface-hover >
@@ -170,6 +182,28 @@ export const THEME_TOKEN_NAMES = [
   "info-text",
   "info-subtle",
   "info-subtle-foreground",
+  // Harmony blocks (×7, #334): decorative anchor · fill · text.
+  "harmony-analogous-a",
+  "harmony-analogous-a-fill",
+  "harmony-analogous-a-text",
+  "harmony-analogous-b",
+  "harmony-analogous-b-fill",
+  "harmony-analogous-b-text",
+  "harmony-complementary",
+  "harmony-complementary-fill",
+  "harmony-complementary-text",
+  "harmony-triadic-a",
+  "harmony-triadic-a-fill",
+  "harmony-triadic-a-text",
+  "harmony-triadic-b",
+  "harmony-triadic-b-fill",
+  "harmony-triadic-b-text",
+  "harmony-split-complementary-a",
+  "harmony-split-complementary-a-fill",
+  "harmony-split-complementary-a-text",
+  "harmony-split-complementary-b",
+  "harmony-split-complementary-b-fill",
+  "harmony-split-complementary-b-text",
   // Interaction states (×3) + overlay.
   "accent-hover",
   "surface-hover",
@@ -206,7 +240,9 @@ export type RampLabel = (typeof RAMP_LABELS)[number];
 /**
  * The roles the engine emits a generative ramp for, in canonical emission order: the
  * `accent` ramp (full seed chroma), the near-neutral `neutral` ramp (surfaces +
- * near-neutral text/border bind to it), and one ramp per canonical status hue. Role→step
+ * near-neutral text/border bind to it), one ramp per canonical status hue, and one ramp
+ * per derived harmony hue (#334 — seed chroma at the rotated hue, seed-anchored like the
+ * accent ramp; the `harmony-<hue>` semantic blocks bind to these). Role→step
  * binding is a *separate* layer (the semantic tokens); this is the pure lightness
  * primitive behind them. Part of the drift-guarded surface (#99), exported like
  * `THEME_TOKEN_NAMES`.
@@ -218,6 +254,13 @@ export const RAMP_ROLES = [
   "error",
   "warning",
   "info",
+  "harmony-analogous-a",
+  "harmony-analogous-b",
+  "harmony-complementary",
+  "harmony-triadic-a",
+  "harmony-triadic-b",
+  "harmony-split-complementary-a",
+  "harmony-split-complementary-b",
 ] as const;
 
 /** One ramp role. */

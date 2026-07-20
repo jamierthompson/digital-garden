@@ -44,8 +44,12 @@ describe("tokenSetToDeclarations", () => {
     expect(decls).not.toContain("--accent-500");
     // No project-internal alias leaks out of the engine.
     expect(decls).not.toContain("--logx-");
-    // Exactly the 38 semantic tokens — nothing else (no color-scheme by default, #159).
-    expect(decls.split("\n")).toHaveLength(38);
+    // The harmony blocks (#334) are part of the semantic tier.
+    expect(decls).toContain("--harmony-complementary:");
+    expect(decls).toContain("--harmony-triadic-a-fill:");
+    expect(decls).toContain("--harmony-split-complementary-b-text:");
+    // Exactly the 59 semantic tokens — nothing else (no color-scheme by default, #159).
+    expect(decls.split("\n")).toHaveLength(59);
   });
 
   it("bakes literal oklch() values inside light-dark()", () => {
@@ -70,14 +74,17 @@ describe("rampSetToDeclarations", () => {
       "--error-500:",
       "--warning-500:",
       "--info-500:",
+      "--harmony-analogous-a-500:",
+      "--harmony-split-complementary-b-500:",
     ]) {
       expect(ramps).toContain(decl);
     }
     expect(ramps).toMatch(
       /--accent-500: light-dark\(oklch\([^)]+\), oklch\([^)]+\)\);/,
     );
-    // 6 roles × 11 steps — the full primitive tier, no semantic tokens mixed in.
-    expect(ramps.split("\n")).toHaveLength(6 * 11);
+    // 13 roles × 11 steps (#334 added the 7 harmony ramps) — the full primitive tier, no
+    // semantic tokens mixed in.
+    expect(ramps.split("\n")).toHaveLength(13 * 11);
     expect(ramps).not.toContain("--accent:");
   });
 
