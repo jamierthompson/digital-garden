@@ -15,6 +15,13 @@
 
   html {
     height: 100%;
+    /* The site header is sticky and floats over scrolled content, so every scroll-into-view —
+       focus-driven scrolling, `:target` jumps, `scrollIntoView()`, find-in-page — must land its
+       target clear of the band (WCAG 2.2 SC 2.4.11 Focus Not Obscured). Offsetting the scroll
+       port covers ALL of them at once, id or no id (css-scroll-snap-1 §scroll-padding:
+       https://www.w3.org/TR/css-scroll-snap-1/#scroll-padding); 6rem clears the band's tallest
+       fluid height, the same measurement as NavVisibility's hide threshold. */
+    scroll-padding-block-start: var(--space-9);
     scrollbar-width: thin;
     /* Reserve the scrollbar's gutter on EVERY route: without it, the viewport is ~11px wider
        on pages too short to scroll, so centered lanes shift horizontally across navigation.
@@ -84,13 +91,5 @@
   :focus-visible {
     outline: var(--ring-width) var(--ring-style) var(--ring, currentColor);
     outline-offset: var(--ring-offset);
-  }
-
-  /* The site header is sticky and floats over scrolled content, so an anchor jump or a
-     focus-driven scroll must land its target clear of the band (WCAG 2.2 SC 2.4.11 Focus Not
-     Obscured) — 6rem clears the band's tallest fluid height. Browsers honor scroll-margin for
-     `:target` jumps and when scrolling a focused element into view alike. */
-  [id] {
-    scroll-margin-block-start: var(--space-9);
   }
 }

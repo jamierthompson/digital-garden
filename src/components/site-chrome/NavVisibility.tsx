@@ -10,6 +10,10 @@ const HIDE_MIN_Y_PX = 96;
    jitter by a pixel or two around a settle point, which must not flap the header. */
 const DIRECTION_MIN_DELTA_PX = 4;
 
+/* Live-instance count: teardown may only wipe the document attributes when the LAST instance
+   leaves — an earlier unmount must not erase state a still-listening instance owns. */
+let instances = 0;
+
 /**
  * Drives the auto-hiding sticky header. Scroll direction is the visitor's intent signal — down
  * means "reading, get out of the way", up means "reorienting, bring the nav" — but native scroll
@@ -20,28 +24,46 @@ const DIRECTION_MIN_DELTA_PX = 4;
  */
 export default function NavVisibility(): null {
   useEffect(() => {
+    instances += 1;
     const root = document.documentElement;
     let lastY = window.scrollY;
+    // Mirror the stamped state locally so the scroll handler touches the DOM only on a real
+    // transition: an unconditional set dirties <html> style once per event, and the next
+    // event's scrollY read forces the recalc — write-then-read thrash on the hottest path
+    // the page has (QA finding D1).
+    let hidden: boolean | undefined;
+    let detached: boolean | undefined;
 
     const onScroll = (): void => {
       // iOS rubber-banding reports negative positions at the top, which would read as an upward
       // flick followed by a phantom downward one — clamp so overscroll is "at the top".
       const y = Math.max(0, window.scrollY);
 
-      if (y > 0) root.dataset.navDetached = "";
-      else delete root.dataset.navDetached;
-
+      const nextDetached = y > 0;
+      let nextHidden: boolean;
       if (y <= HIDE_MIN_Y_PX) {
-        delete root.dataset.navHidden;
+        nextHidden = false;
         lastY = y;
-        return;
+      } else {
+        const delta = y - lastY;
+        if (Math.abs(delta) < DIRECTION_MIN_DELTA_PX) {
+          nextHidden = hidden ?? false;
+        } else {
+          nextHidden = delta > 0;
+          lastY = y;
+        }
       }
 
-      const delta = y - lastY;
-      if (Math.abs(delta) < DIRECTION_MIN_DELTA_PX) return;
-      if (delta > 0) root.dataset.navHidden = "";
-      else delete root.dataset.navHidden;
-      lastY = y;
+      if (nextDetached !== detached) {
+        detached = nextDetached;
+        if (nextDetached) root.dataset.navDetached = "";
+        else delete root.dataset.navDetached;
+      }
+      if (nextHidden !== hidden) {
+        hidden = nextHidden;
+        if (nextHidden) root.dataset.navHidden = "";
+        else delete root.dataset.navHidden;
+      }
     };
 
     // A reload can land mid-page: stamp the detached state before the first scroll event.
@@ -50,9 +72,13 @@ export default function NavVisibility(): null {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
-      // Teardown mid-scroll must not strand the header hidden or bordered.
-      delete root.dataset.navHidden;
-      delete root.dataset.navDetached;
+      instances -= 1;
+      // Teardown mid-scroll must not strand the header hidden or bordered — but only the last
+      // instance out may wipe the document (QA finding D2).
+      if (instances === 0) {
+        delete root.dataset.navHidden;
+        delete root.dataset.navDetached;
+      }
     };
   }, []);
 
