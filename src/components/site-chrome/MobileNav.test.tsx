@@ -1,8 +1,15 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { readModuleCss, ruleDeclarations } from "../../../tests/cssModule";
 
+import styles from "./MobileNav.module.css";
 import MobileNav from "./MobileNav";
 
 vi.mock("next/navigation", () => ({
@@ -60,6 +67,53 @@ describe("MobileNav", () => {
     const panel = openPanel();
     fireEvent.click(within(panel).getByRole("link", { name: "about" }));
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("renders an Overlay, which is what carries the scroll lock", () => {
+    // Radix mounts `RemoveScroll` inside `DialogOverlayImpl` only — never in the content. With
+    // content alone the panel opens and the page underneath keeps scrolling, and nothing in the
+    // rendered output reveals it.
+    openPanel();
+    expect(document.querySelector(`.${styles.overlay}`)).toBeInTheDocument();
+  });
+
+  it("returns focus to the trigger on close, without scrolling to it", async () => {
+    // Radix's default focus restore scrolls an off-screen trigger into view, which throws a
+    // scrolled reader back to the top on dismissal. Focus must still come BACK — just without
+    // the scroll — so both halves are asserted. Radix runs the restore asynchronously.
+    render(<MobileNav />);
+    const trigger = screen.getByRole("button", { name: /open menu/i });
+    const focus = vi.spyOn(trigger, "focus");
+    fireEvent.click(trigger);
+    fireEvent.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: /close menu/i,
+      }),
+    );
+    await waitFor(() =>
+      expect(focus).toHaveBeenCalledWith({ preventScroll: true }),
+    );
+    expect(trigger).toHaveFocus();
+  });
+
+  it("closes when the panel's LOGO is activated — it is a link out too", () => {
+    // The panel duplicates the header's bar, so it duplicates the bar's home link. Wiring only
+    // the five destinations leaves the sixth link navigating home UNDER a still-open panel.
+    const panel = openPanel();
+    fireEvent.click(
+      within(panel).getByRole("link", { name: /jamie thompson/i }),
+    );
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("stays open on a modified click, which does not navigate this page", () => {
+    // cmd/ctrl-click opens a new tab and leaves this page where it is, so closing the panel
+    // would dismiss it for a navigation that never happened here.
+    const panel = openPanel();
+    fireEvent.click(within(panel).getByRole("link", { name: "about" }), {
+      metaKey: true,
+    });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("closes on Escape", () => {
@@ -135,21 +189,57 @@ describe("MobileNav source-pinned geometry", () => {
     // A transform on the panel carries the duplicated bar with it, so the mark and toggle slide
     // even though their whole purpose is to stay put. Motion belongs on the list.
     const css1 = css.replace(/\s+/g, " ");
-    const panelKeyframes = /@keyframes panel-(in|out) \{[^}]*\}[^}]*\}/g;
-    for (const block of css1.match(panelKeyframes) ?? []) {
-      expect(block).not.toContain("transform");
-    }
+    const blocks = css1.match(/@keyframes panel-(in|out) \{[^}]*\}[^}]*\}/g);
+    // Assert the match FOUND something first: iterating `?? []` passes vacuously the moment the
+    // keyframes are renamed, which is exactly when this check matters most.
+    expect(blocks).toHaveLength(2);
+    for (const block of blocks ?? []) expect(block).not.toContain("transform");
     expect(css1).toMatch(/@keyframes nav-in \{[^}]*transform/);
   });
 
   it("insets by the gutter, where the header's contents begin", () => {
     // Below the band's 28rem threshold the header's `wide` lane starts exactly one gutter from
     // the edge, so this is what keeps the bar from moving sideways as the panel opens.
-    expect(ruleDeclarations(css, ".panel").get("padding-inline")).toBe(
+    expect(ruleDeclarations(css, ".panel").get("--mobile-nav-inset")).toBe(
       "var(--space-gutter)",
+    );
+    expect(ruleDeclarations(css, ".panel").get("padding-inline-start")).toBe(
+      "var(--mobile-nav-inset)",
     );
     expect(ruleDeclarations(siteNavCss, ".row").get("grid-column")).toBe(
       "wide",
+    );
+  });
+
+  it("compensates the trailing edge for the scrollbar the lock removes", () => {
+    // The scroll lock hides the scrollbar, widening the viewport. `react-remove-scroll` pads the
+    // BODY to keep in-flow content still, which a `position: fixed` panel never receives — so
+    // without this the bar's right-hand controls land a scrollbar-width right of the header's,
+    // on exactly the platforms with classic scrollbars. Fallback required: the package's own
+    // source documents the variable as possibly undefined.
+    const panel = ruleDeclarations(css, ".panel");
+    expect(panel.get("--mobile-nav-scrollbar")).toBe(
+      "var(--removed-body-scroll-bar-size, 0px)",
+    );
+    expect(panel.get("padding-inline-end")?.replace(/\s+/g, " ")).toBe(
+      "calc( var(--mobile-nav-inset) + var(--mobile-nav-scrollbar) )",
+    );
+  });
+
+  it("leaves trailing room so the last link's ring isn't clipped", () => {
+    // In a short viewport the panel scrolls; with no end padding the final link's focus ring is
+    // cut by the scroll box's clip edge.
+    expect(ruleDeclarations(css, ".panel").get("padding-block-end")).toBe(
+      "var(--mobile-nav-foot)",
+    );
+  });
+
+  it("the trigger's wrapper is flex, so the glyph centres on the row", () => {
+    // A block wrapper around an inline-level button adds inline half-leading and lifts the glyph
+    // ~1px off the centre line shared with the toggle beside it. Too small for CLS to record —
+    // and the two glyphs are different elements, so no layout-shift entry is generated at all.
+    expect(ruleDeclarations(siteNavCss, ".mobileNav").get("display")).toBe(
+      "flex",
     );
   });
 
@@ -181,11 +271,23 @@ describe("MobileNav source-pinned geometry", () => {
     // `animation: none` is also what lets Radix unmount immediately — it reads the computed
     // `animationName`, sees `none`, and stops waiting for an `animationend` that never fires.
     // Without this the panel would hang on screen for reduced-motion users.
-    expect(css).toMatch(/prefers-reduced-motion:\s*reduce/);
-    const reduced = css
+    // Comments are stripped first: a prose mention of `animation: none` in a comment would
+    // otherwise satisfy this grep while the declaration itself was gone.
+    const bare = css.replace(/\/\*[\s\S]*?\*\//g, " ");
+    expect(bare).toMatch(/prefers-reduced-motion:\s*reduce/);
+    const reduced = bare
       .split("prefers-reduced-motion")[1]
       ?.replace(/\s+/g, " ");
     expect(reduced).toContain("animation: none");
+    // Every animated selector must be released, not just the panel — a nav left animating would
+    // keep Presence waiting for an `animationend` that the media query prevented.
+    for (const selector of [
+      '.panel[data-state="open"]',
+      '.panel[data-state="closed"]',
+      '.panel[data-state="open"] .nav',
+    ]) {
+      expect(reduced).toContain(selector);
+    }
   });
 
   it("the panel is opaque and sits on the modal layer", () => {

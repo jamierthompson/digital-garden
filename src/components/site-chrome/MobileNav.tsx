@@ -2,9 +2,10 @@
 
 import { Menu, X } from "lucide-react";
 import { Dialog, VisuallyHidden } from "radix-ui";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import Cluster from "@/components/layout/Cluster";
+import { isPlainActivation } from "@/lib/activation";
 import Stack from "@/components/layout/Stack";
 
 import Logo, { PlaceholderMark } from "./Logo";
@@ -26,16 +27,44 @@ import SchemeToggle from "./SchemeToggle";
  */
 export default function MobileNav(): React.ReactElement {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger className={styles.trigger} aria-label="Open menu">
+      <Dialog.Trigger
+        ref={triggerRef}
+        className={styles.trigger}
+        aria-label="Open menu"
+      >
         <Menu className={styles.icon} aria-hidden="true" />
       </Dialog.Trigger>
       <Dialog.Portal>
+        {/* Scroll lock lives on `Overlay`, not `Content` — Radix mounts `RemoveScroll` only in
+            `DialogOverlayImpl`, so without this the page scrolls behind the open panel. It sits
+            below the panel and is never seen. */}
+        <Dialog.Overlay className={styles.overlay} />
         {/* `undefined` opts out of Radix's `aria-describedby` wiring; there is no description
             node for it to point at. */}
-        <Dialog.Content className={styles.panel} aria-describedby={undefined}>
+        <Dialog.Content
+          className={styles.panel}
+          aria-describedby={undefined}
+          onClick={(event) => {
+            // Delegated, so EVERY link in the panel closes it — the destinations and the mark
+            // alike. Wiring each link individually leaves the next one added navigating away
+            // under a panel that is still covering the page. Keyboard activation of a link
+            // dispatches a click too, so this covers it. `Logo` stays a Server Component: an
+            // event handler cannot be passed to one.
+            if (!isPlainActivation(event)) return;
+            if ((event.target as HTMLElement).closest("a")) setOpen(false);
+          }}
+          onCloseAutoFocus={(event) => {
+            // Radix returns focus to the trigger, and the browser scrolls an off-screen element
+            // into view — which throws the reader back to the top of a scrolled page. Restore
+            // focus by hand so the scroll position survives dismissal.
+            event.preventDefault();
+            triggerRef.current?.focus({ preventScroll: true });
+          }}
+        >
           <VisuallyHidden.Root asChild>
             <Dialog.Title>Site navigation</Dialog.Title>
           </VisuallyHidden.Root>
@@ -52,7 +81,7 @@ export default function MobileNav(): React.ReactElement {
           </div>
           <nav aria-label="Primary" className={styles.nav}>
             <Stack asChild>
-              <NavLinks orientation="stack" onNavigate={() => setOpen(false)} />
+              <NavLinks orientation="stack" />
             </Stack>
           </nav>
         </Dialog.Content>

@@ -42,10 +42,30 @@
     block-size: var(--size-icon);
   }
 
+  /* Carries the scroll lock and nothing visual — the panel above it is opaque and full-bleed. */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+  }
+
   .panel {
     /* One gutter in, which is where the header's contents begin at every width this panel
        shows. */
-    padding-inline: var(--space-gutter);
+    --mobile-nav-inset: var(--space-gutter);
+    /* Trailing room so the last link's focus ring isn't clipped by the scroll box. */
+    --mobile-nav-foot: var(--space-5);
+    /* The scroll lock hides the scrollbar, widening the viewport; `react-remove-scroll` pads the
+       BODY to compensate, which a fixed panel never sees. Without this the bar's right-hand
+       controls land a scrollbar-width further right than the header's. Zero where scrollbars
+       overlay, so mobile is unaffected. */
+    --mobile-nav-scrollbar: var(--removed-body-scroll-bar-size, 0px);
+
+    padding-inline-start: var(--mobile-nav-inset);
+    padding-inline-end: calc(
+      var(--mobile-nav-inset) + var(--mobile-nav-scrollbar)
+    );
+    padding-block-end: var(--mobile-nav-foot);
     /* `dvh`, not `vh`: `vh` is the LARGE viewport, so with the mobile URL bar shown a `100vh`
        panel runs taller than the visible area and its foot can't be reached. */
     position: fixed;

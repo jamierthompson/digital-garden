@@ -43,6 +43,14 @@
     display: none;
   }
 
+  /* `flex`, not the default block: an inline-level button in a block wrapper picks up inline
+     half-leading, which lifts the glyph off the row's centre line by ~1px against the toggle
+     beside it. */
+  .mobileNav {
+    display: flex;
+    align-items: center;
+  }
+
   @container site-nav (min-width: 28rem) {
     .inlineNav {
       display: block;

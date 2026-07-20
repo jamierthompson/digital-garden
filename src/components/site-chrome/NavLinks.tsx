@@ -42,11 +42,6 @@ interface NavLinksProps extends React.ComponentPropsWithRef<"ul"> {
    * the word; `row` keeps a short label centred in its 24px floor.
    */
   readonly orientation?: "row" | "stack";
-  /**
-   * Called when a destination is activated. A disclosure holding these links is not unmounted by
-   * a client-side navigation, so without this it stays open over the page just navigated to.
-   */
-  readonly onNavigate?: () => void;
 }
 
 /**
@@ -57,7 +52,6 @@ interface NavLinksProps extends React.ComponentPropsWithRef<"ul"> {
  */
 export default function NavLinks({
   orientation = "row",
-  onNavigate,
   className,
   ...rest
 }: NavLinksProps = {}): React.ReactElement {
@@ -84,11 +78,7 @@ export default function NavLinks({
               className={active ? styles.active : undefined}
               aria-current={active ? "page" : undefined}
             >
-              <HoverPrefetchLink
-                href={href}
-                className={styles.link}
-                onClick={onNavigate}
-              >
+              <HoverPrefetchLink href={href} className={styles.link}>
                 <span className={styles.label}>{label}</span>
               </HoverPrefetchLink>
             </TextLink>
