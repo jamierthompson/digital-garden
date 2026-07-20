@@ -37,8 +37,9 @@ These are the through-lines; everything else follows from them.
 - **Composition over inheritance.** Every page wears an **authored theme** — its own seed when one
   is authored, else the site default (`siteSettings.theme`, #253): the resolved theme color runs
   through the OKLCH engine and is stamped on `<html>`, so all chrome +
-  prose + slots wear it. The global typography is fixed house style — Space Grotesk headings +
-  Source Serif 4 body — and a **themed entry** (any kind but a `now` update) additionally carries its
+  prose + slots wear it. The global typography is fixed house style — Newsreader headings and
+  body (one editorial family at two optical grades), Instrument Sans chrome — and a **themed
+  entry** (any kind but a `now` update) additionally carries its
   **own theme fonts** — up to three optional faces (heading / body / mono) — scoped to its
   **interactive slot(s)** (the `Slot` / `[data-entry]` wrapper, or each interleaved slot's
   container), where each resolved face re-binds its role token (`--font-heading` / `--font-body` /
@@ -216,8 +217,8 @@ Key points:
 - **Color themes the page; fonts theme the slot.** Every route stamps its authored color theme on
   `<html>` (`PageTheme`), so all chrome + prose + slots wear it; the `:root` semantic color tokens
   are only the engine's baked **fallback** for surfaces that render un-themed (404 / error / loading). The
-  global typography is fixed house style — Space Grotesk headings + Source Serif 4 body + Geist Mono
-  mono — and an entry's theme **fonts** (up to three optional faces) override their role tokens
+  global typography is fixed house style — Newsreader headings and body, Instrument Sans UI,
+  Geist Mono code — and an entry's theme **fonts** (up to three optional faces) override their role tokens
   (`--font-heading` / `--font-body` / `--font-mono`) in the entry's own interactive slot only (inline
   styles on `[data-entry]`; an unset role inherits `:root`), never the page chrome. Spacing, motion,
   and type-ratios are themeable-in-principle but invariant-in-practice.
@@ -907,15 +908,20 @@ So, the policy:
 
 Mapped onto the layers:
 
-- **The site faces** (the global identity — **Space Grotesk** headings, **Source Serif 4** body,
-  **Geist Mono** mono) → root layout, `preload: false`; any above-the-fold preload is a manual
-  `<link>`. Every page's chrome uses them, and they are the palette every un-themed slot role inherits.
+- **The site faces** (the global identity — **Newsreader** for the whole editorial voice
+  (`--font-heading` AND `--font-body`, one family whose opsz axis separates display from text
+  grades), **Instrument Sans** for the UI voice (`--font-ui`: nav, meta, labels), **Geist
+  Mono** for code semantics only) → root layout, `preload: false`; any above-the-fold preload
+  is a manual `<link>`. Every page's chrome uses them, and the editorial faces are the palette
+  every un-themed slot role inherits.
 - **Per-entry fonts** → resolved from the entry doc's `theme.headingFont` / `bodyFont` / `monoFont`
   against the code-side roster, applied at the entry's `[data-entry]` **slot** scope via each face's
   `.variable` + its role-token override — they theme the slot, not the page.
 - **Shared fonts** → the roster _is_ the single declaration point, so a face two entries use is
-  declared **once** and resolved by both. (Geist Mono is the site mono; **JetBrains Mono** is a roster
-  face an entry can pick for a slot — a roster face is _not_ mounted globally, only per-entry.)
+  declared **once** and resolved by both — Newsreader is exactly this: a roster face the shell
+  reuses. (Geist Mono is the site mono; **JetBrains Mono** is a roster
+  face an entry can pick for a slot — a roster face is _not_ mounted globally unless the shell
+  itself reads it.)
 - **Slot fonts** → nothing declares its own `next/font`; content reads the role tokens
   (`--font-heading` / `--font-body` / `--font-mono`), which the slot fills from the resolved faces (or
   inherits from `:root` when a role is unset). The type primitives (`Heading` / `Text`) carry the entry
@@ -924,7 +930,9 @@ Mapped onto the layers:
   `--font-heading`. There is **no** `[data-entry]` body baseline rule: every slot descendant is a
   primitive that self-sets `font-family` from a bundle, so plain non-primitive slot text inherits the
   site body face. Mono likewise has no reset rule — a slot's mono face reaches text only through
-  `--type-meta-family` (the type primitives) and component modules that read `var(--font-mono)`.
+  surfaces that read `var(--font-mono)` (code and engine readouts; mono is code semantics, not
+  a chrome voice). The meta / kicker / label roles read the UI voice (`--font-ui`), which an
+  entry theme does not re-bind.
 
 Practical notes:
 

@@ -9,9 +9,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # AGENTS.md — Digital Garden
 
 > A personal portfolio + digital garden: every page wears an engine-derived theme — its authored
-> OKLCH seed color paints the whole page, chrome included — while the editorial type (Space
-> Grotesk / Source Serif 4 / Geist Mono) stays global and an entry's theme fonts theme only its
-> own bounded interactive slot. Next.js 16 / React 19 on Vercel; content in Sanity.
+> OKLCH seed color paints the whole page, chrome included — while the editorial type
+> (Newsreader editorial / Instrument Sans UI / Geist Mono code) stays global and an entry's
+> theme fonts theme only its own bounded interactive slot. Next.js 16 / React 19 on Vercel; content in Sanity.
 
 This file is the agent-facing entry point per the [AGENTS.md convention](https://agents.md/)
 (an open, Linux Foundation–governed format — Markdown, no required fields, **nearest file
