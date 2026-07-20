@@ -1,7 +1,7 @@
 /**
  * The public-surface DRIFT GUARD (#99). The engine's exported names — the module's
  * runtime exports, the canonical token/role/label lists, and the custom properties the
- * serializers emit — are the surface that `EntryScope`, `cardSwatches`, Sanity author-time
+ * serializers emit — are the surface that `EntryScope`, `PageTheme`, Sanity author-time
  * validation, and the studio (#70/#107) depend on.
  *
  * `@garden/oklch` is internal and project-only (this repo is its only consumer), so that

@@ -68,7 +68,9 @@ describe("EntryCard is a neutral surface", () => {
     // `color: var(--<role>)` would be the module taking ink back from the primitives, which is
     // the drift this guards (CSS and prop both stating ink → the module wins at equal layer).
     const inks: string[] = [];
-    postcss.parse(CARD_CSS).walkDecls("color", (decl) => inks.push(decl.value));
+    postcss.parse(CARD_CSS).walkDecls("color", (decl) => {
+      inks.push(decl.value);
+    });
     expect(inks).toEqual(["inherit"]);
   });
 

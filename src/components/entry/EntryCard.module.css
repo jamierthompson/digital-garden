@@ -19,9 +19,12 @@
   }
 
   /* The head mark — non-text structure (the `ui` contrast tier), so it wears a structure
-     token, never an ink role. */
+     token, never an ink role. `flex-shrink: 0`: the link sibling's zero flex-basis gives it
+     zero shrink weight, so under overflow ALL shrink would land here and silently erase the
+     mark (QA D2). */
   .card::before {
     content: "";
+    flex-shrink: 0;
     block-size: var(--card-mark-size);
     background: var(--card-mark);
   }

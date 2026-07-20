@@ -4,7 +4,7 @@
  *
  * Two wrappers over the low-level surface (convert/gamut/contrast/ramp/binding):
  *   • `resolveTheme(themeColor, scheme, opts)` → one scheme's ramps + tokens
- *     (`cardSwatches`, and the interactive studio #70 — they want one scheme).
+ *     (the interactive studio #70 — it wants one scheme).
  *   • `buildTokenSet(themeColor, opts)` → both schemes zipped into `light-dark()` pairs
  *     (`EntryScope`, which emits a single block carrying both schemes).
  *
