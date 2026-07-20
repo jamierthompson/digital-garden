@@ -143,4 +143,30 @@ describe("NavVisibility — concurrent instances", () => {
     expect(root).toHaveAttribute("data-nav-hidden");
     expect(root).toHaveAttribute("data-nav-detached");
   });
+
+  /**
+   * QA RE-CHECK — the other half of the same concurrency story. The D2 fix made TEARDOWN
+   * instance-aware (a live-instance count), but MOUNT still is not: a mounting instance seeds
+   * its `hidden`/`detached` mirrors to `undefined` and its mount-time `onScroll()` lands in the
+   * jitter branch (`delta === 0`), so `nextHidden` resolves to `hidden ?? false` — a mirror miss
+   * that reads as a real transition and DELETES the attribute a live instance owns. The header
+   * pops visible mid-page.
+   *
+   * Note the pre-fix code did NOT have this: the jitter branch used to `return` before touching
+   * the DOM at all. The fix is what made a mirror miss writable.
+   *
+   * Fix direction: seed the mirrors from the document
+   * (`hidden = root.dataset.navHidden !== undefined`) rather than `undefined`, so a mounting
+   * instance adopts the live state instead of asserting its own empty one.
+   */
+  it("a newly-mounted instance adopts the live state instead of stomping it", () => {
+    render(<NavVisibility />);
+    scrollTo(600);
+    expect(root).toHaveAttribute("data-nav-hidden");
+
+    render(<NavVisibility />); // a second instance joins mid-page
+
+    expect(root).toHaveAttribute("data-nav-hidden");
+    expect(root).toHaveAttribute("data-nav-detached");
+  });
 });
