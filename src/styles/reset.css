@@ -85,4 +85,12 @@
     outline: var(--ring-width) var(--ring-style) var(--ring, currentColor);
     outline-offset: var(--ring-offset);
   }
+
+  /* The site header is sticky and floats over scrolled content, so an anchor jump or a
+     focus-driven scroll must land its target clear of the band (WCAG 2.2 SC 2.4.11 Focus Not
+     Obscured) — 6rem clears the band's tallest fluid height. Browsers honor scroll-margin for
+     `:target` jumps and when scrolling a focused element into view alike. */
+  [id] {
+    scroll-margin-block-start: var(--space-9);
+  }
 }

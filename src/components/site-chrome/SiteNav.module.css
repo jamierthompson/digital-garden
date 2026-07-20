@@ -1,8 +1,8 @@
 /* Site header band composer. @layer components — declares its layer (unlayered modules outrank
    every layered rule); var-consuming only (the shell is never theme-scoped). The band pieces own
    their own modules (NavLinks, SchemeToggle); the band itself is a `ContentGrid` merged
-   onto the `<header>`, its row in the `wide` lane — this module owns only the header's ink rule,
-   the band's block padding, and the flex of the row and its right-hand cluster. */
+   onto the `<header>`, its row in the `wide` lane — this module owns only the band's block
+   padding and the flex of the row and its right-hand cluster. */
 @layer components {
   .header {
     /* Fluid across 320px→1280px, the range the fluid type scale interpolates over, so the
@@ -14,8 +14,59 @@
     );
     --site-nav-pad-block-end: var(--space-4);
     --site-nav-gap: var(--space-5);
+    --site-nav-hide-duration: var(--duration-base);
+    /* Slower than the slide: the hairline is ambient state ("you are scrolled"), not a response
+       to the gesture, so it eases in behind the header's movement rather than snapping with it. */
+    --site-nav-hairline-duration: var(--duration-slow);
+    --site-nav-ease: var(--ease-standard);
 
-    border-bottom: var(--border-width-thick) solid var(--accent);
+    /* Sticky + auto-hide: the band pins to the viewport and `NavVisibility` stamps
+       `data-nav-hidden` / `data-nav-detached` on <html>; this module owns the visuals. Below
+       the dialog tiers, so the mobile nav overlay covers the band. */
+    position: sticky;
+    inset-block-start: 0;
+    z-index: var(--z-sticky);
+    /* Floating over scrolled content needs an opaque surface; at the top it matches the page,
+       so the band reads as part of it. */
+    background-color: var(--background);
+    /* The detached hairline's width is reserved transparent at rest, so detaching recolors
+       without a 1px layout shift. */
+    border-block-end: var(--border-width) solid transparent;
+    transition:
+      translate var(--site-nav-hide-duration) var(--site-nav-ease),
+      border-color var(--site-nav-hide-duration) var(--site-nav-ease);
+  }
+
+  /* Scrolled at all → the band floats over content, and the hairline tells the eye so. The
+     transition is ASYMMETRIC — a state's own `transition` governs entering it — so the slow
+     ambient fade lives here, while the base rule's fast clock governs the return to rest: the
+     hairline follows the header's movement on the way out. */
+  :global(html[data-nav-detached]) .header {
+    border-block-end-color: var(--border);
+    transition:
+      translate var(--site-nav-hide-duration) var(--site-nav-ease),
+      border-color var(--site-nav-hairline-duration) var(--site-nav-ease);
+  }
+
+  :global(html[data-nav-hidden]) .header {
+    translate: 0 -100%;
+  }
+
+  /* An off-screen header stays in the tab order (translate doesn't remove it), so focus landing
+     inside MUST bring it back — otherwise a keyboard user is focused on an invisible control
+     (WCAG 2.2 SC 2.4.11 Focus Not Obscured). */
+  :global(html[data-nav-hidden]) .header:focus-within {
+    translate: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Both rules: the detached state declares its own transition and out-specifies `.header`,
+       so zeroing only the base rule would leave the fade running under reduced motion. */
+    .header,
+    :global(html[data-nav-detached]) .header {
+      /* The hide/show still happens (it's function, not decoration) — instantly. */
+      transition: none;
+    }
   }
 
   .row {
@@ -37,7 +88,7 @@
   /* Queried on the band, not the viewport: the question is whether the ROW has room, which a
      viewport width doesn't answer and which drifts as soon as the lane's max width changes or a
      destination is added. The threshold is the row's own arithmetic —
-     mark 44 + gap 24 + links 312 + gap 24 + toggle 24 = 428px — so re-derive it if the parts
+     mark 40 + gap 24 + links 312 + gap 24 + toggle 24 = 424px — so re-derive it if the parts
      change. */
   .inlineNav {
     display: none;
