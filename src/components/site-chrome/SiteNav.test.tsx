@@ -187,10 +187,15 @@ describe("SiteNav sticky auto-hide contract", () => {
     expect(detached).not.toMatch(/border-block-end:/);
   });
 
-  it("hides by translating the band fully off-canvas", () => {
-    expect(rule(/html\[data-nav-hidden\]\)\s*\.header(?!:)/)).toMatch(
-      /translate:\s*0\s+-100%/,
-    );
+  it("hides by translating off-canvas AND leaving the tab order", () => {
+    // The visibility swap is load-bearing: a translated-but-focusable box stays tabbable, and
+    // the browser commits its focus scroll against the off-viewport box BEFORE dispatching
+    // focusin — a Shift+Tab into it yanked the page (browser-QA MEDIUM, event-order proven).
+    const hidden = rule(/html\[data-nav-hidden\]\)\s*\.header(?!:)/);
+    expect(hidden).toMatch(/translate:\s*0\s+-100%/);
+    expect(hidden).toMatch(/visibility:\s*hidden/);
+    // The swap waits for the slide-out; reveal states omit visibility so it returns instantly.
+    expect(hidden).toMatch(/visibility\s+0s\s+var\(--site-nav-hide-duration\)/);
   });
 
   it("holds a hidden header open under KEYBOARD focus only — never bare :focus-within", () => {
@@ -198,9 +203,13 @@ describe("SiteNav sticky auto-hide contract", () => {
     // revealed (WCAG 2.2 SC 2.4.11). But `:focus-within` alone also matches mouse-derived
     // focus — a clicked nav link, Radix restoring focus to the menu trigger — and pins the
     // band open, killing auto-hide on the site's most common paths (browser-QA HIGH).
-    expect(
-      rule(/html\[data-nav-hidden\]\)\s*\.header:has\(:focus-visible\)/),
-    ).toMatch(/translate:\s*none/);
+    const held = rule(
+      /html\[data-nav-hidden\]\)\s*\.header:has\(:focus-visible\)/,
+    );
+    expect(held).toMatch(/translate:\s*none/);
+    // Holding open must also override the hidden state's visibility, or the focused control
+    // goes unfocusable mid-hold and drops focus.
+    expect(held).toMatch(/visibility:\s*visible/);
     expect(siteNavCss).not.toMatch(/\.header:focus-within/);
   });
 

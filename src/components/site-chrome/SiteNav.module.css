@@ -48,20 +48,32 @@
       border-color var(--site-nav-hairline-duration) var(--site-nav-ease);
   }
 
+  /* Hidden = off-canvas AND unfocusable. The visibility swap is the load-bearing half: a
+     translated-but-focusable box stays in the tab order, and the browser commits its
+     focus scroll against that off-viewport box BEFORE dispatching focusin (browser-QA
+     event-order proof) — one Shift+Tab yanked the page 535px, and no focus handler can run
+     early enough to stop it. Unfocusable removes the cause: tabbing simply skips the hidden
+     band. The visibility transition delays the swap until the slide-out ends; on reveal the
+     new state's transitions don't list visibility, so it flips back instantly. */
   :global(html[data-nav-hidden]) .header {
     translate: 0 -100%;
+    visibility: hidden;
+    transition:
+      translate var(--site-nav-hide-duration) var(--site-nav-ease),
+      border-color var(--site-nav-hairline-duration) var(--site-nav-ease),
+      visibility 0s var(--site-nav-hide-duration);
   }
 
-  /* An off-screen header stays in the tab order (translate doesn't remove it), so KEYBOARD
-     focus inside must keep it revealed — otherwise a keyboard user is focused on an invisible
-     control (WCAG 2.2 SC 2.4.11 Focus Not Obscured). `:focus-visible`, never `:focus-within`
-     alone: mouse clicks also park focus in the header (a nav link, the scheme toggle, Radix
-     restoring focus to the menu trigger), and an unscoped reveal pins the band open and kills
-     auto-hide on the site's most common paths (browser-QA HIGH). The entry into the hidden
-     state is handled in JS (NavVisibility's focusin reveal), before the browser computes its
-     focus scroll — this rule holds the band open while keyboard focus stays inside. */
+  /* KEYBOARD focus already inside the band when it hides (arrow-key scrolling with a focused
+     nav control) must hold it open — hiding would strand focus on an invisible control (WCAG
+     2.2 SC 2.4.11 Focus Not Obscured). `:focus-visible`, never `:focus-within` alone: mouse
+     clicks also park focus in the header (a nav link, the scheme toggle, Radix restoring
+     focus to the menu trigger), and an unscoped reveal pins the band open and kills auto-hide
+     on the site's most common paths (browser-QA HIGH). Focus can never ENTER the hidden band
+     — it is unfocusable (above) — so holding is this rule's whole job. */
   :global(html[data-nav-hidden]) .header:has(:focus-visible) {
     translate: none;
+    visibility: visible;
   }
 
   @media (prefers-reduced-motion: reduce) {
