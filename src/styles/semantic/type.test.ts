@@ -153,6 +153,36 @@ describe("the kicker role — the superhead above a page's h1", () => {
   });
 });
 
+// QA (font-palette): the slice binds the three chrome/readout roles to the new `--font-ui`
+// voice (Instrument Sans). `--font-ui` is NOT one of the entry-themeable leaves (EntryScope
+// rebinds only --font-heading/--font-body/--font-mono), so these roles keep the site UI face
+// even inside a themed entry — the mono demotion means an entry's authored mono face NO LONGER
+// reaches its meta line. Pin the whole group so a drift back to --font-mono (the pre-slice
+// binding) or --font-heading (label's pre-slice binding) trips a test, not just a silent revert.
+describe("the UI-voice roles bind to --font-ui, never the mono or an editorial face", () => {
+  it.each(["meta", "label", "kicker"] as const)(
+    "--type-%s-family is var(--font-ui)",
+    (role) => {
+      expect(SHEET_DECLS[`--type-${role}-family`]).toBe("var(--font-ui)");
+    },
+  );
+
+  it("no editorial or mono role accidentally reads --font-ui", () => {
+    for (const role of [
+      "display",
+      "title",
+      "heading",
+      "subheading",
+      "lede",
+      "body",
+      "caption",
+      "quote",
+    ] as const) {
+      expect(SHEET_DECLS[`--type-${role}-family`]).not.toBe("var(--font-ui)");
+    }
+  });
+});
+
 describe("the Tailwind-named --text-* size scale is gone", () => {
   it.each(["sm", "base", "lg", "xl", "2xl", "3xl", "4xl", "5xl"])(
     "--text-%s is no longer declared",

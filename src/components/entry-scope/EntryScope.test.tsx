@@ -258,6 +258,44 @@ describe("EntryScope (three-face font slot)", () => {
     expect(wrapper).toHaveClass(FONT_FACES.inter.variable);
   });
 
+  // QA (font-palette): the slice re-keys `--font-ui` (Instrument Sans) as a FOURTH voice that
+  // nav/meta/label/kicker read (semantic/type.css: --type-{meta,label,kicker}-family = --font-ui,
+  // NavLinks --nav-link-family = --font-ui). An entry can author only heading/body/mono, so
+  // `--font-ui` is deliberately NOT in FACE_BINDINGS — a themed entry's chrome/readout voice stays
+  // the site UI face, never the entry's authored faces. Pin it: even a seed that fills all three
+  // themeable roles must leave `--font-ui` untouched. (This is why the ColorEngine specimen's
+  // `variant="meta"` line — "…mono — three roles" — renders in Instrument Sans, not the entry's
+  // authored mono face; the specimen's copy/comments at src/entries/color-engine/ColorEngine.tsx
+  // still claim "meta reads --font-mono", which this contract shows is false.)
+  it("never rebinds --font-ui — the chrome/readout voice is not entry-themeable", () => {
+    render(
+      <EntryScope
+        seed={{
+          slug: "all-three",
+          headingFont: "space-grotesk",
+          bodyFont: "newsreader",
+          monoFont: "jetbrains-mono",
+        }}
+      >
+        <p>fully themed</p>
+      </EntryScope>,
+    );
+    const wrapper = screen
+      .getByText("fully themed")
+      .closest("[data-entry]") as HTMLElement;
+    // All three themeable leaves ARE stamped…
+    expectFaceStamped(wrapper, "heading", "space-grotesk");
+    expectFaceStamped(wrapper, "body", "newsreader");
+    expectFaceStamped(wrapper, "mono", "jetbrains-mono");
+    // …but --font-ui is never emitted, so the meta/label/kicker roles inherit the :root UI face.
+    expect(propOf(wrapper, "--font-ui")).toBe("");
+    // Nor does any authored fontKey slip a `--font-ui` override in through another path.
+    const uiProps = Array.from(wrapper.style).filter(
+      (property) => property === "--font-ui",
+    );
+    expect(uiProps).toEqual([]);
+  });
+
   it("collapses an ARRAY seed to the fallback scope (arrays pass the typeof-object guard)", () => {
     expect(() =>
       render(

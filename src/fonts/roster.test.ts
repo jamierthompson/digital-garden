@@ -150,4 +150,27 @@ describe("roster.ts loader declarations (source-pinned)", () => {
       expect(body).toMatch(/display:\s*"swap"/);
     },
   );
+
+  // QA (font-palette): Newsreader now carries the WHOLE editorial voice — heading AND body — and
+  // the home hero's emphasis + every display-grade heading lean on the SAME face. Two loader
+  // axes make that legitimate rather than synthesized, and next/font only ships a variant it was
+  // asked to load, so both are load-bearing and neither is covered anywhere else:
+  //   • `style: [..., "italic"]` — the hero `<em>` (`src/app/page.tsx`) and the entry italic are
+  //     Newsreader's TRUE italic; drop it and next/font ships upright-only and the browser
+  //     synthesizes an oblique slant (the exact thing commit 0978e1f/4578edc claim is avoided).
+  //   • `axes: ["opsz"]` — the display/text optical grades (`--type-display-*` vs `--type-body-*`
+  //     in semantic/type.css) rely on the opsz axis tracking rendered size; without it every size
+  //     renders the one default optical master.
+  // The loader is mocked in this suite (next/font isn't transformed under Vitest), so these are
+  // only assertable at the source — same posture as the preload/display pins above.
+  it("Newsreader loads the true italic and the full optical-size axis (hero em + display grade)", () => {
+    const newsreader = faceEntries.find((entry) => entry.key === "newsreader")!;
+    const body = loaderBodies.get(newsreader.binding)!;
+    expect(body, "Newsreader must request its true italic").toMatch(
+      /style:\s*\[[^\]]*"italic"[^\]]*\]/,
+    );
+    expect(body, "Newsreader must request the opsz axis").toMatch(
+      /axes:\s*\[[^\]]*"opsz"[^\]]*\]/,
+    );
+  });
 });
