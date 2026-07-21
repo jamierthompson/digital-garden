@@ -929,10 +929,13 @@ Mapped onto the layers:
   the slot scope, re-substituting against the slot's leaves — and `reset.css`'s `h1–h6` rule carries
   `--font-heading`. There is **no** `[data-entry]` body baseline rule: every slot descendant is a
   primitive that self-sets `font-family` from a bundle, so plain non-primitive slot text inherits the
-  site body face. Mono likewise has no reset rule — a slot's mono face reaches text only through
-  surfaces that read `var(--font-mono)` (code and engine readouts; mono is code semantics, not
-  a chrome voice). The meta / kicker / label roles read the UI voice (`--font-ui`), which an
-  entry theme does not re-bind.
+  site body face. Mono likewise has no reset rule — a slot's mono face reaches text through the
+  slot's own meta / kicker role bindings and through surfaces that read `var(--font-mono)`
+  (code and engine readouts). The meta / kicker / label families are bound **per palette**: at
+  the site scope they read the UI voice (`--font-ui` — a binding an entry never authors);
+  inside `[data-entry]` they re-bind to the entry's three-face palette (label → heading,
+  meta / kicker → mono), so an authored `monoFont` reaches the slot's meta line exactly as an
+  authored `headingFont` reaches its headings.
 
 Practical notes:
 

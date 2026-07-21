@@ -52,19 +52,19 @@
     /* Provisional hand value — the type engine will compute measure per role from its metrics. */
     --type-body-measure: 65ch;
 
-    --type-label-family: var(--font-ui);
+    /* The label / meta / kicker FAMILY bindings live in the per-scope rules below — the one
+       place the site palette and an entry's palette deliberately diverge. Every other facet
+       of those roles is scope-invariant and stays here. */
     --type-label-size: var(--type-size-2);
     --type-label-weight: var(--font-weight-semibold);
     --type-label-tracking: var(--tracking-wider);
     --type-label-leading: var(--leading-none);
 
-    --type-meta-family: var(--font-ui);
     --type-meta-size: var(--type-size-2);
     --type-meta-weight: var(--font-weight-normal);
     --type-meta-tracking: var(--tracking-wider);
     --type-meta-leading: var(--leading-normal);
 
-    --type-kicker-family: var(--font-ui);
     --type-kicker-size: var(--type-size-2);
     --type-kicker-weight: var(--font-weight-normal);
     --type-kicker-tracking: var(--tracking-wider);
@@ -81,5 +81,26 @@
     --type-quote-weight: 450;
     --type-quote-tracking: var(--tracking-normal);
     --type-quote-leading: var(--leading-snug);
+  }
+
+  /*
+   * The two type palettes are SEPARATE systems, bound per scope. At the site scope the
+   * label / meta / kicker roles speak the site's UI voice (`--font-ui` — a binding an entry
+   * never authors). Inside an entry slot the ENTRY's three-face palette rules: the same roles
+   * re-bind to the slot's own leaves (label → heading, meta / kicker → mono), so an authored
+   * `theme.monoFont` reaches the slot's meta line exactly as its `headingFont` reaches its
+   * headings. Same zero-specificity slot selector as the shared rule above; source order
+   * gives the slot binding the win inside `[data-entry]`.
+   */
+  :root {
+    --type-label-family: var(--font-ui);
+    --type-meta-family: var(--font-ui);
+    --type-kicker-family: var(--font-ui);
+  }
+
+  :where([data-entry]) {
+    --type-label-family: var(--font-heading);
+    --type-meta-family: var(--font-mono);
+    --type-kicker-family: var(--font-mono);
   }
 }

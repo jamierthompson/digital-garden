@@ -41,6 +41,25 @@ const SHEET_DECLS = {
   ...parseDeclarations(read("src/styles/foundation/typography.css")),
   ...parseDeclarations(read("src/styles/semantic/type.css")),
 };
+
+/** Declarations of every rule whose normalized selector equals `selector` exactly. */
+function scopeDeclarations(selector: string): Record<string, string> {
+  const sheet = read("src/styles/semantic/type.css").replace(
+    /\/\*[\s\S]*?\*\//g,
+    "",
+  );
+  const decls: Record<string, string> = {};
+  for (const rule of sheet.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (rule[1].trim().replace(/\s+/g, "") !== selector) continue;
+    for (const m of rule[2].matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi)) {
+      decls[m[1]] = normalize(m[2]);
+    }
+  }
+  return decls;
+}
+
+const SITE_SCOPE = scopeDeclarations(":root");
+const SLOT_SCOPE = scopeDeclarations(":where([data-entry])");
 const ENGINE_DECLS = Object.fromEntries(
   typeScaleToDeclarations(buildTypeScale()).map(([prop, value]) => [
     prop,
@@ -95,15 +114,30 @@ describe("the role bundles are declared at BOTH scopes (:root + the entry slot)"
     expect(members).toContain(":where([data-entry])");
   });
 
-  it("every --type-* bundle lives in that ONE rule (no second, :root-only block)", () => {
+  it("--type-* tokens live in exactly the shared bundle + the two per-scope family rules", () => {
+    // The shared dual-scope rule owns every scope-invariant facet; the ONLY tokens allowed
+    // outside it are the UI-voice FAMILY bindings, declared once per palette (`:root` = the
+    // site's, `:where([data-entry])` = the entry's). Any other stray block is the :root-only
+    // stranding this suite exists to prevent.
     const sheet = read("src/styles/semantic/type.css").replace(
       /\/\*[\s\S]*?\*\//g,
       "",
     );
-    const blocksWithTypeTokens = [
-      ...sheet.matchAll(/[^{}]+\{[^{}]*--type-[a-z]/g),
+    const selectors = [...sheet.matchAll(/([^{}]+)\{[^{}]*--type-[a-z]/g)].map(
+      (m) => m[1].trim().replace(/\s+/g, ""),
+    );
+    expect(selectors.sort()).toEqual(
+      [":root,:where([data-entry])", ":root", ":where([data-entry])"].sort(),
+    );
+    // The per-scope rules carry ONLY the three UI-voice family bindings — nothing else may
+    // quietly migrate out of the shared bundle.
+    const uiVoiceFamilies = [
+      "--type-label-family",
+      "--type-meta-family",
+      "--type-kicker-family",
     ];
-    expect(blocksWithTypeTokens).toHaveLength(1);
+    expect(Object.keys(SITE_SCOPE).sort()).toEqual(uiVoiceFamilies.sort());
+    expect(Object.keys(SLOT_SCOPE).sort()).toEqual(uiVoiceFamilies.sort());
   });
 });
 
@@ -143,7 +177,6 @@ describe("semantic role layer binds to the ramp", () => {
 // approved design, pinned here so a retune is a deliberate edit rather than drift.
 describe("the kicker role — the superhead above a page's h1", () => {
   it.each([
-    ["family", "var(--font-ui)"],
     ["size", "var(--type-size-2)"],
     ["weight", "var(--font-weight-normal)"],
     ["tracking", "var(--tracking-wider)"],
@@ -151,23 +184,46 @@ describe("the kicker role — the superhead above a page's h1", () => {
   ])("--type-kicker-%s is %s", (facet, value) => {
     expect(SHEET_DECLS[`--type-kicker-${facet}`]).toBe(value);
   });
+
+  it("--type-kicker-family is per-palette: the UI voice on the site, the mono leaf in a slot", () => {
+    expect(SITE_SCOPE["--type-kicker-family"]).toBe("var(--font-ui)");
+    expect(SLOT_SCOPE["--type-kicker-family"]).toBe("var(--font-mono)");
+  });
 });
 
-// QA (font-palette): the slice binds the three chrome/readout roles to the new `--font-ui`
-// voice (Instrument Sans). `--font-ui` is NOT one of the entry-themeable leaves (EntryScope
-// rebinds only --font-heading/--font-body/--font-mono), so these roles keep the site UI face
-// even inside a themed entry — the mono demotion means an entry's authored mono face NO LONGER
-// reaches its meta line. Pin the whole group so a drift back to --font-mono (the pre-slice
-// binding) or --font-heading (label's pre-slice binding) trips a test, not just a silent revert.
-describe("the UI-voice roles bind to --font-ui, never the mono or an editorial face", () => {
+// The site's type palette and an entry's type palette are SEPARATE SYSTEMS (owner ruling
+// 2026-07-20). At the site scope the label/meta/kicker roles speak the UI voice (`--font-ui`,
+// Instrument Sans — a binding an entry never authors). Inside `[data-entry]` those SAME roles
+// re-bind to the entry's own three-face palette (label → heading, meta/kicker → mono), so an
+// authored `theme.monoFont` reaches the slot's meta line exactly as before the palette re-key.
+// Pin both palettes so a drift in either direction — the slot losing its palette to the site's
+// UI voice, or the site voice leaking entry-themeable bindings — trips a test.
+describe("two type palettes: the UI voice at the site scope, the entry palette in the slot", () => {
   it.each(["meta", "label", "kicker"] as const)(
-    "--type-%s-family is var(--font-ui)",
+    "site scope: --type-%s-family is var(--font-ui)",
     (role) => {
-      expect(SHEET_DECLS[`--type-${role}-family`]).toBe("var(--font-ui)");
+      expect(SITE_SCOPE[`--type-${role}-family`]).toBe("var(--font-ui)");
     },
   );
 
-  it("no editorial or mono role accidentally reads --font-ui", () => {
+  it.each([
+    ["label", "var(--font-heading)"],
+    ["meta", "var(--font-mono)"],
+    ["kicker", "var(--font-mono)"],
+  ] as const)(
+    "slot scope: --type-%s-family re-binds to the entry palette (%s)",
+    (role, leaf) => {
+      expect(SLOT_SCOPE[`--type-${role}-family`]).toBe(leaf);
+    },
+  );
+
+  it("the slot never reads --font-ui — the UI voice is the site's, not entry-themeable", () => {
+    for (const value of Object.values(SLOT_SCOPE)) {
+      expect(value).not.toContain("--font-ui");
+    }
+  });
+
+  it("no editorial role reads --font-ui in any scope", () => {
     for (const role of [
       "display",
       "title",
