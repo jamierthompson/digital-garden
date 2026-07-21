@@ -14,7 +14,6 @@ import postcss from "postcss";
 
 import { readModuleCss, ruleDeclarations } from "../../../tests/cssModule";
 
-import styles from "./MobileNav.module.css";
 import MobileNav from "./MobileNav";
 import SiteNav from "./SiteNav";
 
