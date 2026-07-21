@@ -205,3 +205,71 @@ describe("EntryMeta — adversarial QA (#329)", () => {
     ).toBeInTheDocument();
   });
 });
+
+// QA (font-palette, commit 572a48d): capitalization moved from `text-transform: capitalize`
+// (CSS) INTO CONTENT — the human-language facts are capitalized at render by a `capitalize()`
+// helper so selection/copy/AT read what the eye reads. The owner explicitly called out the
+// regression the old CSS caused: it blindly rewrote the seed DATA LITERAL to "Oklch(…)". These
+// pin the new contract's edges.
+describe("EntryMeta — capitalize-in-content (owner ruling: display case = copy case)", () => {
+  it("leaves the seed a VERBATIM data literal — never 'Oklch(…)' (the regression the ruling fixed)", () => {
+    // The seed begins with a lowercase letter `capitalize()` WOULD uppercase; it must be exempt.
+    render(<EntryMeta seed="oklch(0.66 0.2 350)" />);
+    const seed = screen.getByText("oklch(0.66 0.2 350)");
+    expect(seed.textContent).toBe("oklch(0.66 0.2 350)");
+    // And it is a real content string (copyable / in the accessible name), not a CSS illusion.
+    expect(screen.queryByText("Oklch(0.66 0.2 350)")).toBeNull();
+  });
+
+  it("capitalizes kind/stage/links/iterated IN the DOM text (copyable), carrying no text-transform", () => {
+    const { container } = render(
+      <EntryMeta
+        kind="demo"
+        stage="shipped"
+        iterated="2026-07-16"
+        linkCount={7}
+      />,
+    );
+    // The capital is in the actual text node — selection & AT get "Demo", not "demo".
+    expect(screen.getByText("Demo").textContent).toBe("Demo");
+    expect(screen.getByText("Shipped").textContent).toBe("Shipped");
+    expect(screen.getByText("Iterated July 16, 2026")).toBeInTheDocument();
+    expect(screen.getByText("7 Linked").textContent).toBe("7 Linked");
+    // No module rule re-introduced the transform (would double-case / desync copy from display).
+    expect(container.querySelector("p")?.className).not.toMatch(/uppercase/);
+  });
+
+  it("is idempotent — an already-capitalized authored fact is not double-processed", () => {
+    render(<EntryMeta kind="Demo" stage="Shipped" />);
+    expect(screen.getByText("Demo")).toBeInTheDocument();
+    expect(screen.getByText("Shipped")).toBeInTheDocument();
+  });
+
+  it("capitalizes a non-ASCII first letter without corruption (ñ → Ñ)", () => {
+    render(<EntryMeta kind="ñoño" />);
+    expect(screen.getByText("Ñoño").textContent).toBe("Ñoño");
+  });
+
+  it("never corrupts an astral (surrogate-pair) first character — halves stay paired", () => {
+    // `charAt(0)` splits a surrogate pair; a naive helper could re-emit a lone surrogate.
+    // U+1D400 (𝐀) has no uppercase, so the fact must survive byte-for-byte, not mojibake.
+    render(<EntryMeta kind="𝐀lpha" />);
+    expect(screen.getByText("𝐀lpha").textContent).toBe("𝐀lpha");
+  });
+
+  it("sentence-cases a multi-word fact — first letter only, not per-word title case", () => {
+    // Behavior pin, not an endorsement: the helper capitalizes the leading letter only, so a
+    // multi-word kind renders "Case study" (the old CSS `capitalize` would have title-cased it
+    // to "Case Study"). If the owner wants per-word case, this is the test to change.
+    render(<EntryMeta kind="case study" stage="in review" />);
+    expect(screen.getByText("Case study")).toBeInTheDocument();
+    expect(screen.getByText("In review")).toBeInTheDocument();
+    expect(screen.queryByText("Case Study")).toBeNull();
+  });
+
+  it("does not crash on a single-character fact (charAt(0) === whole string)", () => {
+    render(<EntryMeta kind="x" stage="y" />);
+    expect(screen.getByText("X")).toBeInTheDocument();
+    expect(screen.getByText("Y")).toBeInTheDocument();
+  });
+});
