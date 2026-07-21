@@ -9,10 +9,12 @@
   }
 
   /* Home heading — the garden's invitation headline. The `display` role bundle owns the type
-     (via the Heading primitive) and the ambient ink applies; only the line treatment lives here:
-     balance the headline across its lines rather than leaving a stray short last line — the
-     hero spans the full content frame, so this settles to a tidy two lines. */
+     (via the Heading primitive) and the ambient ink applies; the landing statement alone runs
+     the scale's top size — the display role's own size stays the quieter size-8 for every
+     other display moment. */
   .title {
+    --type-display-size: var(--type-size-9);
+
     text-wrap: balance;
   }
 

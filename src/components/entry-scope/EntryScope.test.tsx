@@ -258,6 +258,41 @@ describe("EntryScope (three-face font slot)", () => {
     expect(wrapper).toHaveClass(FONT_FACES.inter.variable);
   });
 
+  // `--font-ui` (Instrument Sans) is the SITE's UI voice — a binding an entry never authors.
+  // An entry themes its slot through exactly three leaves (heading/body/mono); inside the slot
+  // the label/meta/kicker roles re-bind to THAT palette via semantic/type.css's slot-scope
+  // rule, not by touching `--font-ui`. Pin the boundary: even a seed that fills all three
+  // themeable roles must leave `--font-ui` untouched — the two palettes stay separate systems.
+  it("never rebinds --font-ui — the site's UI voice is not an entry-themeable leaf", () => {
+    render(
+      <EntryScope
+        seed={{
+          slug: "all-three",
+          headingFont: "space-grotesk",
+          bodyFont: "newsreader",
+          monoFont: "jetbrains-mono",
+        }}
+      >
+        <p>fully themed</p>
+      </EntryScope>,
+    );
+    const wrapper = screen
+      .getByText("fully themed")
+      .closest("[data-entry]") as HTMLElement;
+    // All three themeable leaves ARE stamped…
+    expectFaceStamped(wrapper, "heading", "space-grotesk");
+    expectFaceStamped(wrapper, "body", "newsreader");
+    expectFaceStamped(wrapper, "mono", "jetbrains-mono");
+    // …but --font-ui is never emitted; inside the slot the meta/label/kicker roles reach the
+    // entry palette through the slot-scope re-bind in semantic/type.css instead.
+    expect(propOf(wrapper, "--font-ui")).toBe("");
+    // Nor does any authored fontKey slip a `--font-ui` override in through another path.
+    const uiProps = Array.from(wrapper.style).filter(
+      (property) => property === "--font-ui",
+    );
+    expect(uiProps).toEqual([]);
+  });
+
   it("collapses an ARRAY seed to the fallback scope (arrays pass the typeof-object guard)", () => {
     expect(() =>
       render(

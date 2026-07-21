@@ -104,9 +104,9 @@
 
   /* Queried on the band, not the viewport: the question is whether the ROW has room, which a
      viewport width doesn't answer and which drifts as soon as the lane's max width changes or a
-     destination is added. The threshold is the row's own arithmetic —
-     mark 40 + gap 24 + links 312 + gap 24 + toggle 24 = 424px — so re-derive it if the parts
-     change. */
+     destination is added. The threshold is the row's own arithmetic, measured AT the switch
+     point (the links' size is fluid) — mark 40 + gap 24 + links 322 + gap 24 + toggle 24 =
+     434px — so re-derive it if the parts change. (#354 tracks removing the literal.) */
   .inlineNav {
     display: none;
   }

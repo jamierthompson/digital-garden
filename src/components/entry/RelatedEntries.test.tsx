@@ -243,13 +243,13 @@ describe("RelatedEntries", () => {
         ]}
       />,
     );
-    expect(screen.getByText("note")).toBeInTheDocument();
-    expect(screen.getByText("essay")).toBeInTheDocument();
+    expect(screen.getByText("Note")).toBeInTheDocument();
+    expect(screen.getByText("Essay")).toBeInTheDocument();
     // The kind is a meta label next to the link, not part of the link text itself.
     expect(screen.getByRole("link", { name: "On gardens" }).textContent).toBe(
       "On gardens",
     );
-    expect(screen.getByText("note").closest("p")).toHaveAttribute(
+    expect(screen.getByText("Note").closest("p")).toHaveAttribute(
       "data-variant",
       "meta",
     );

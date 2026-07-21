@@ -140,16 +140,26 @@ describe("layout.tsx shell font mounts (#38 preload trim)", () => {
     expect(htmlClassName).toContain("geistMono.variable");
   });
 
-  it("mounts the three journal editorial faces (body, display, mono)", () => {
-    // Source Serif 4 → `--font-body` (body); a shell-only loader like Geist Mono.
-    expect(source).toMatch(/import\s*\{[^}]*\bSource_Serif_4\b[^}]*\}/);
-    expect(source).toMatch(/Source_Serif_4\(/);
-    expect(htmlClassName).toContain("sourceSerif.variable");
-    // Space Grotesk → `--font-heading` is reused from the per-entry roster (not a duplicate
-    // loader), so it mounts via FONT_FACES; Geist Mono → `--font-mono` is the shell-only mono
-    // loader mounted above.
-    expect(htmlClassName).toContain('FONT_FACES["space-grotesk"].variable');
+  it("mounts the three shell voices (editorial, UI, mono)", () => {
+    // Newsreader → `--font-heading` AND `--font-body` (the one editorial family) is reused
+    // from the per-entry roster (not a duplicate loader), so it mounts via FONT_FACES.
+    expect(htmlClassName).toContain('FONT_FACES["newsreader"].variable');
+    // Instrument Sans → `--font-ui` (the chrome/readout voice); a shell-only loader like
+    // Geist Mono.
+    expect(source).toMatch(/import\s*\{[^}]*\bInstrument_Sans\b[^}]*\}/);
+    expect(source).toMatch(/Instrument_Sans\(/);
+    expect(htmlClassName).toContain("instrumentSans.variable");
+    // Geist Mono → `--font-mono` is the shell-only mono loader mounted above.
     expect(htmlClassName).toContain("geistMono.variable");
+  });
+
+  it("mounts no roster face the shell doesn't read (entries mount their own)", () => {
+    // `EntryScope` mounts a themed entry's roster `.variable`s on its own `[data-entry]`
+    // wrapper — the shell mounts ONLY the faces its semantic tokens read. A stray roster
+    // mount here ships a face on every route for no consumer.
+    expect(htmlClassName).not.toContain('FONT_FACES["space-grotesk"]');
+    expect(htmlClassName).not.toContain('FONT_FACES["inter"]');
+    expect(htmlClassName).not.toContain('FONT_FACES["fraunces"]');
   });
 
   it("fully removes JetBrains Mono — no roster mount on <html>", () => {
@@ -162,15 +172,14 @@ describe("layout.tsx shell font mounts (#38 preload trim)", () => {
     expect(htmlClassName).not.toContain("jetbrains");
   });
 
-  it("keeps Source Serif 4 preloadless (matches the shell's no-static-preload posture)", () => {
-    const serifCall =
-      source.match(/Source_Serif_4\(\{([\s\S]*?)\}\)/)?.[1] ?? "";
+  it("keeps Instrument Sans preloadless (matches the shell's no-static-preload posture)", () => {
+    const uiCall = source.match(/Instrument_Sans\(\{([\s\S]*?)\}\)/)?.[1] ?? "";
     expect(
-      serifCall,
-      "expected a Source_Serif_4({...}) options object",
+      uiCall,
+      "expected an Instrument_Sans({...}) options object",
     ).not.toBe("");
-    expect(serifCall).toMatch(/preload:\s*false/);
-    expect(serifCall).not.toMatch(/preload:\s*true/);
+    expect(uiCall).toMatch(/preload:\s*false/);
+    expect(uiCall).not.toMatch(/preload:\s*true/);
   });
 
   it("keeps Geist Mono preloadless (below the fold; preload wastes the LCP path)", () => {

@@ -10,8 +10,6 @@ import {
   harmonyTierToCss,
   harmonyTierToTailwindTheme,
   harmonyTierToDesignTokens,
-  tokenSetToTailwindTheme,
-  tokenSetToDesignTokens,
 } from "./export";
 import { tokenSetToDeclarations, rampSetToDeclarations } from "./css";
 import { formatOklch, parseColor } from "./convert";

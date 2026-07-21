@@ -14,7 +14,6 @@ import postcss from "postcss";
 
 import { readModuleCss, ruleDeclarations } from "../../../tests/cssModule";
 
-import styles from "./MobileNav.module.css";
 import MobileNav from "./MobileNav";
 import SiteNav from "./SiteNav";
 
@@ -87,7 +86,7 @@ describe("MobileNav", () => {
     // it. Without the onNavigate wiring the panel would still be covering the page the user
     // just navigated to — invisible in a route-less unit test, hence this pin.
     const panel = openPanel();
-    fireEvent.click(within(panel).getByRole("link", { name: "about" }));
+    fireEvent.click(within(panel).getByRole("link", { name: "About" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -423,7 +422,7 @@ describe("MobileNav — duplicate chrome while the panel is open (claim: outside
     render(<SiteNav />);
     const panel = openPanelHere();
     const current = within(panel).getByRole("link", { current: "page" });
-    expect(current).toHaveTextContent("about");
+    expect(current).toHaveTextContent("About");
   });
 });
 
@@ -447,7 +446,7 @@ describe("MobileNav — every activation path out of the panel", () => {
     // the current page's nav vanishes even though no navigation happened in it.
     render(<MobileNav />);
     const panel = openPanelHere();
-    fireEvent.click(within(panel).getByRole("link", { name: "index" }), {
+    fireEvent.click(within(panel).getByRole("link", { name: "Index" }), {
       metaKey: true,
     });
     expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -456,7 +455,7 @@ describe("MobileNav — every activation path out of the panel", () => {
   it("closes on keyboard activation of a destination (Enter dispatches a click)", () => {
     render(<MobileNav />);
     const panel = openPanelHere();
-    const link = within(panel).getByRole("link", { name: "now" });
+    const link = within(panel).getByRole("link", { name: "Now" });
     link.focus();
     // jsdom does not synthesize click from Enter on anchors; dispatch the click the browser
     // would, from the keyboard-focused element.

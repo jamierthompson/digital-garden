@@ -41,7 +41,7 @@
     text-decoration: none;
   }
 
-  /* The shared `EntryMeta` mono readout, pinned to the card floor. */
+  /* The shared `EntryMeta` meta readout, pinned to the card floor. */
   .meta {
     margin-top: auto;
   }

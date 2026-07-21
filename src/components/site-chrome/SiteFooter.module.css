@@ -23,7 +23,7 @@
   }
 
   .link {
-    /* ≥24px hit area (WCAG 2.2 SC 2.5.8 Target Size) — the bare mono link ran ~19px tall.
+    /* ≥24px hit area (WCAG 2.2 SC 2.5.8 Target Size) — the bare text link ran ~19px tall.
        inline-flex + min-block-size floors the interactive box at the control size and centers the
        label, growing the target without changing the type size. Ink + hover are `ui/TextLink`'s
        (variant="muted"); this rule owns only the standalone control's tap-target layout. */

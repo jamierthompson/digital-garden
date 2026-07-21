@@ -216,9 +216,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
       <article className={styles.article}>
         <Stack asChild gap={space(3)}>
           <header className={styles.header}>
-            <Heading level={1} color="accent-text">
-              {entry.title ?? "Untitled entry"}
-            </Heading>
+            <Heading level={1}>{entry.title ?? "Untitled entry"}</Heading>
             {entry.summary ? (
               <Text
                 variant="lede"

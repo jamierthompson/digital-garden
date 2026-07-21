@@ -23,7 +23,7 @@ import "../styles/semantic/color.css";
 
 // Binding imports (no CSS side-effect that moves the Turbopack stylesheet anchor pinned above),
 // so they sit safely after the global sheets.
-import { Geist_Mono, Source_Serif_4 } from "next/font/google";
+import { Geist_Mono, Instrument_Sans } from "next/font/google";
 
 import NavVisibility from "@/components/site-chrome/NavVisibility";
 import ScrollActivity from "@/components/site-chrome/ScrollActivity";
@@ -37,21 +37,20 @@ import { sanityFetch } from "@/sanity/lib/sanityFetch";
 import SanityLiveMount from "@/sanity/SanityLiveMount";
 import VisualEditingControls from "@/sanity/VisualEditingControls";
 
-// The shell's own body face. Source Serif 4 is the GLOBAL EDITORIAL body font — the semantic
-// `--font-body` default (semantic/typography.css) maps to `var(--font-source-serif-4)`, so mounting its
-// `.variable` on <html> brings that variable into scope for all chrome. Its size-adjusted
-// fallback keeps CLS at zero. A themed slot overrides `--font-body` with its own roster face.
-// The shell's display face (Space Grotesk → `--font-heading`, the wordmark + nav) is ALSO
-// in the per-entry roster, so the shell reuses that roster `.variable` (mounted below) rather
-// than declaring a duplicate loader; the mono face (Geist Mono → `--font-mono`) is shell-only,
-// loaded here directly.
+// The shell's editorial voice is Newsreader — `--font-heading` AND `--font-body`, one family
+// separated by optical grade rather than by face (semantic/typography.css maps both) — and
+// Newsreader is ALSO a roster face, so the shell reuses that roster `.variable` (mounted
+// below) rather than declaring a duplicate loader. Instrument Sans is the UI voice
+// (`--font-ui`: nav, meta, labels — the chrome's grounding sans), shell-only, loaded here.
+// Mono carries code semantics only.
 //
-// `preload: false` matches the existing shell posture (accessibility-and-performance.md): the
-// preload policy preloads only above-the-fold faces via a manual `<link>`, since `next/font`
-// can't statically target a runtime-selected face — so no loader here flips preload on. (#38.)
-const sourceSerif = Source_Serif_4({
-  variable: "--font-source-serif-4",
+// `preload: false` matches the shell posture (accessibility-and-performance.md): the preload
+// policy preloads only above-the-fold faces via a manual `<link>`, since `next/font` can't
+// statically target a runtime-selected face — so no loader here flips preload on. (#38.)
+const instrumentSans = Instrument_Sans({
+  variable: "--font-instrument-sans",
   subsets: ["latin"],
+  display: "swap",
   preload: false,
 });
 
@@ -105,7 +104,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistMono.variable} ${sourceSerif.variable} ${FONT_FACES["space-grotesk"].variable}`}
+      className={`${geistMono.variable} ${FONT_FACES["newsreader"].variable} ${instrumentSans.variable}`}
     >
       <body>
         {/* Flash-free scheme: apply the persisted light/dark override before first paint.

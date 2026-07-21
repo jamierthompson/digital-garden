@@ -14,7 +14,6 @@
   }
 
   .sectionHeading {
-    text-transform: uppercase;
     padding-bottom: var(--space-caption);
     border-bottom: var(--border-width) solid var(--border);
   }

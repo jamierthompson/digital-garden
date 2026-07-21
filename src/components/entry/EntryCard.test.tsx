@@ -72,7 +72,7 @@ describe("EntryCard", () => {
     expect(container.querySelectorAll("p")).toHaveLength(1); // the meta readout only
   });
 
-  it("renders the full mono meta readout: kind · stage · iterated · linked", () => {
+  it("renders the full meta readout: kind · stage · iterated · linked", () => {
     renderCard(
       entry({
         kind: "demo",
@@ -81,17 +81,17 @@ describe("EntryCard", () => {
         linkCount: 2,
       }),
     );
-    expect(screen.getByText("demo")).toBeInTheDocument();
-    expect(screen.getByText("shipped")).toBeInTheDocument();
-    const time = screen.getByText("iterated July 16, 2026");
+    expect(screen.getByText("Demo")).toBeInTheDocument();
+    expect(screen.getByText("Shipped")).toBeInTheDocument();
+    const time = screen.getByText("Iterated July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
-    expect(screen.getByText("2 linked")).toBeInTheDocument();
+    expect(screen.getByText("2 Linked")).toBeInTheDocument();
   });
 
   it("shows only what it has when part of the meta is missing", () => {
     renderCard(entry({ kind: null, stage: "sketch" }));
-    expect(screen.getByText("sketch")).toBeInTheDocument();
+    expect(screen.getByText("Sketch")).toBeInTheDocument();
   });
 
   it("omits the meta row entirely when no fact is present", () => {
@@ -200,14 +200,14 @@ describe("EntryCard — meta boundaries", () => {
   it("omits the backlink hint for zero, negative and non-integer link counts", () => {
     for (const linkCount of [0, -3, 1.5, Number.NaN]) {
       const { unmount } = renderCard(entry({ linkCount }));
-      expect(screen.queryByText(/linked$/)).toBeNull();
+      expect(screen.queryByText(/linked$/i)).toBeNull();
       unmount();
     }
   });
 
   it("renders the hint for a positive count", () => {
     renderCard(entry({ linkCount: 2 }));
-    expect(screen.getByText("2 linked")).toBeInTheDocument();
+    expect(screen.getByText("2 Linked")).toBeInTheDocument();
   });
 });
 

@@ -4,8 +4,8 @@ A personal portfolio and digital garden — a place to grow notes, ideas, and wo
 over time. Every page is themed from an authored seed — its own, or the site
 default: a perceptual OKLCH
 engine derives the page's palette from the resolved seed color and paints the whole
-page, chrome included, while the editorial type — Space Grotesk headings,
-Source Serif 4 body, Geist Mono — stays constant from page to page. An entry's
+page, chrome included, while the editorial type — Newsreader headings and body,
+Instrument Sans chrome, Geist Mono code — stays constant from page to page. An entry's
 theme fonts theme only its own bounded interactive slot. Content and theme
 seeds live in Sanity; the site renders on Next.js.
 
