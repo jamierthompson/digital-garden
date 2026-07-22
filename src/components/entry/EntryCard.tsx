@@ -14,9 +14,9 @@ export interface EntryCardEntry {
   slug: string | null;
   summary: string | null;
   kind: string | null;
-  stage: "prototype" | "shipped" | "sketch" | null;
-  /** The authored last-iterated date (ISO `YYYY-MM-DD`), for the meta readout. */
-  iterated: string | null;
+  stage: "budding" | "evergreen" | "seedling" | null;
+  /** The authored last-tended date (ISO `YYYY-MM-DD`), for the meta readout. */
+  tended: string | null;
   /** Backlink hint — rendered only when positive. */
   linkCount: number | null;
 }
@@ -50,7 +50,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
       <EntryMeta
         kind={entry.kind}
         stage={entry.stage}
-        iterated={entry.iterated}
+        tended={entry.tended}
         linkCount={entry.linkCount}
         color="muted-foreground"
         className={styles.meta}

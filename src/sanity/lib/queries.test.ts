@@ -24,9 +24,9 @@ describe("ENTRY_FEED_QUERY", () => {
     expect(ENTRY_FEED_QUERY).not.toContain('kind == "demo"');
   });
 
-  it("orders newest first by the authored iterated date, falling back to _createdAt", () => {
+  it("orders newest first by the authored tended date, falling back to _createdAt", () => {
     expect(ENTRY_FEED_QUERY).toContain(
-      "order(coalesce(iterated, _createdAt) desc)",
+      "order(coalesce(tended, _createdAt) desc)",
     );
   });
 
@@ -37,7 +37,7 @@ describe("ENTRY_FEED_QUERY", () => {
     expect(ENTRY_FEED_QUERY).toContain('"slug": slug.current');
     // The item's <pubDate> source: the same ordering expression, so pubDate agrees with feed order.
     expect(ENTRY_FEED_QUERY).toContain(
-      '"published": coalesce(iterated, _createdAt)',
+      '"published": coalesce(tended, _createdAt)',
     );
   });
 
@@ -74,7 +74,7 @@ describe("ENTRY_FEED_QUERY", () => {
  * QA (#249): the string assertions above can't prove the projection is CLOSED — a field
  * appended to the query would still pass every `.toContain`. Execute the real query with
  * groq-js and assert the rescope semantics: every kind (now included) syndicates, slugless
- * docs are filtered, ordering is iterated-first, and each row carries EXACTLY the four
+ * docs are filtered, ordering is tended-first, and each row carries EXACTLY the four
  * item fields — the executable over-fetch guard.
  */
 describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
@@ -87,7 +87,7 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
       title: "Old demo",
       slug: { current: "old-demo" },
       summary: "Demos still syndicate.",
-      stage: "shipped",
+      stage: "evergreen",
       featuredRank: 1,
       theme: { color: "#4f46e5", bodyFont: "inter" },
       body: [{ _type: "block", children: [] }],
@@ -103,12 +103,12 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
     },
     {
       _type: "entry",
-      _id: "iterated-note",
+      _id: "tended-note",
       _createdAt: "2026-01-15T00:00:00Z",
-      iterated: "2026-03-01",
+      tended: "2026-03-01",
       kind: "note",
-      title: "Iterated note",
-      slug: { current: "iterated-note" },
+      title: "Tended note",
+      slug: { current: "tended-note" },
       summary: null,
     },
     {
@@ -131,17 +131,17 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
   it("returns every published kind — now included — and drops the slugless doc", async () => {
     const rows = await runFeed();
     expect(rows.map((r) => r._id)).toEqual(
-      expect.arrayContaining(["old-demo", "fresh-now", "iterated-note"]),
+      expect.arrayContaining(["old-demo", "fresh-now", "tended-note"]),
     );
     expect(rows).toHaveLength(3);
   });
 
-  it("orders newest-first by iterated, falling back to _createdAt", async () => {
+  it("orders newest-first by tended, falling back to _createdAt", async () => {
     const rows = await runFeed();
-    // iterated-note's authored 2026-03-01 outranks fresh-now's created 2026-02-01,
+    // tended-note's authored 2026-03-01 outranks fresh-now's created 2026-02-01,
     // which outranks old-demo's created 2026-01-01.
     expect(rows.map((r) => r._id)).toEqual([
-      "iterated-note",
+      "tended-note",
       "fresh-now",
       "old-demo",
     ]);
@@ -162,13 +162,13 @@ describe("ENTRY_FEED_QUERY — executed GROQ semantics (QA #249)", () => {
     expect(rows.find((r) => r._id === "fresh-now")?.slug).toBe("a-now-update");
   });
 
-  it("sources `published` from the authored `iterated`, falling back to `_createdAt`", async () => {
+  it("sources `published` from the authored `tended`, falling back to `_createdAt`", async () => {
     const rows = await runFeed();
-    // iterated-note has an authored `iterated`, so `published` is that date, not its `_createdAt`.
-    expect(rows.find((r) => r._id === "iterated-note")?.published).toBe(
+    // tended-note has an authored `tended`, so `published` is that date, not its `_createdAt`.
+    expect(rows.find((r) => r._id === "tended-note")?.published).toBe(
       "2026-03-01",
     );
-    // fresh-now has no `iterated`, so `published` falls back to `_createdAt`.
+    // fresh-now has no `tended`, so `published` falls back to `_createdAt`.
     expect(rows.find((r) => r._id === "fresh-now")?.published).toBe(
       "2026-02-01T00:00:00Z",
     );
@@ -470,7 +470,7 @@ describe("ENTRY_DETAIL_QUERY theme projection — executed GROQ semantics (#226 
       _type: "entry",
       _id: "e-under-test",
       kind: "demo",
-      stage: "shipped",
+      stage: "evergreen",
       title: "Under test",
       slug: { current: "under-test" },
       ...(theme ? { theme } : {}),
@@ -592,7 +592,7 @@ describe("INDEX_QUERY — the kinds the Index lists (#314)", () => {
       kind: "note",
       title: "A note",
       slug: { current: "a-note" },
-      stage: "sketch",
+      stage: "seedling",
     },
     {
       _type: "entry",
@@ -601,7 +601,7 @@ describe("INDEX_QUERY — the kinds the Index lists (#314)", () => {
       kind: "essay",
       title: "An essay",
       slug: { current: "an-essay" },
-      stage: "shipped",
+      stage: "evergreen",
     },
     {
       _type: "entry",
@@ -610,7 +610,7 @@ describe("INDEX_QUERY — the kinds the Index lists (#314)", () => {
       kind: "demo",
       title: "A demo",
       slug: { current: "a-demo" },
-      stage: "prototype",
+      stage: "budding",
     },
     {
       _type: "entry",
@@ -686,13 +686,13 @@ describe("INDEX_QUERY — filter and linkCount edges (#314 QA)", () => {
     expect(rows[0].kind).toBeNull();
   });
 
-  it("orders freshest first WITHIN a kind — authored `iterated` beats `_createdAt`", async () => {
+  it("orders freshest first WITHIN a kind — authored `tended` beats `_createdAt`", async () => {
     const rows = await run([
       {
         _type: "entry",
-        _id: "older-but-iterated",
+        _id: "older-but-tended",
         _createdAt: "2026-01-01T00:00:00Z",
-        iterated: "2026-06-01",
+        tended: "2026-06-01",
         kind: "essay",
         slug: { current: "a" },
       },
@@ -705,18 +705,18 @@ describe("INDEX_QUERY — filter and linkCount edges (#314 QA)", () => {
       },
     ]);
     expect(rows.map((r) => r._id)).toEqual([
-      "older-but-iterated",
+      "older-but-tended",
       "newer-created",
     ]);
   });
 
-  it("projects the authored `iterated` for the row's meta readout — null when unauthored (#329)", async () => {
+  it("projects the authored `tended` for the row's meta readout — null when unauthored (#329)", async () => {
     const rows = await run([
       {
         _type: "entry",
         _id: "dated",
         _createdAt: "2026-01-01T00:00:00Z",
-        iterated: "2026-06-01",
+        tended: "2026-06-01",
         kind: "note",
         slug: { current: "dated" },
       },
@@ -728,8 +728,8 @@ describe("INDEX_QUERY — filter and linkCount edges (#314 QA)", () => {
         slug: { current: "undated" },
       },
     ]);
-    expect(rows.find((r) => r._id === "dated")?.iterated).toBe("2026-06-01");
-    expect(rows.find((r) => r._id === "undated")?.iterated).toBeNull();
+    expect(rows.find((r) => r._id === "dated")?.tended).toBe("2026-06-01");
+    expect(rows.find((r) => r._id === "undated")?.tended).toBeNull();
   });
 
   it("counts a backlink FROM a now entry — `now` is excluded from the rows, not from the graph", async () => {
@@ -974,11 +974,11 @@ describe("NOW_QUERY — the /now stream lists only now-updates (#314 QA)", () =>
   const NOW_DATASET = [
     {
       _type: "entry",
-      _id: "older-now-iterated",
+      _id: "older-now-tended",
       _createdAt: "2026-01-01T00:00:00Z",
-      iterated: "2026-06-01",
+      tended: "2026-06-01",
       kind: "now",
-      title: "Older but iterated",
+      title: "Older but tended",
       slug: { current: "n1" },
     },
     {
@@ -1003,7 +1003,7 @@ describe("NOW_QUERY — the /now stream lists only now-updates (#314 QA)", () =>
       kind: "note",
       title: "A note",
       slug: { current: "a-note" },
-      stage: "sketch",
+      stage: "seedling",
     },
     {
       _type: "entry",
@@ -1022,13 +1022,13 @@ describe("NOW_QUERY — the /now stream lists only now-updates (#314 QA)", () =>
     const rows = await runNow();
     expect(rows.map((r) => r._id).sort()).toEqual([
       "newer-now",
-      "older-now-iterated",
+      "older-now-tended",
     ]);
   });
 
-  it("streams newest first by authored `iterated`, falling back to `_createdAt`", async () => {
+  it("streams newest first by authored `tended`, falling back to `_createdAt`", async () => {
     const rows = await runNow();
-    expect(rows.map((r) => r._id)).toEqual(["older-now-iterated", "newer-now"]);
+    expect(rows.map((r) => r._id)).toEqual(["older-now-tended", "newer-now"]);
   });
 });
 
@@ -1175,10 +1175,10 @@ describe("NOW_QUERY linkCount — distinct neighbors, never null-poisoned (#321)
     ).get();
     expect(Object.keys(rows[0]).sort()).toEqual([
       "_id",
-      "iterated",
       "linkCount",
       "slug",
       "summary",
+      "tended",
       "title",
     ]);
   });
@@ -1368,7 +1368,7 @@ describe("FEATURED_QUERY — no per-entry theme seed (one seed paints a page)", 
 
 /**
  * #329: the featured card renders the full shared meta readout, so FEATURED_QUERY now projects
- * the card's facts — `iterated` and the same hardened distinct-neighbor `linkCount` the Index
+ * the card's facts — `tended` and the same hardened distinct-neighbor `linkCount` the Index
  * and /now rows carry. Executed, because the linkCount cases rest on GROQ null/traversal rules.
  */
 describe("FEATURED_QUERY — card meta facts (#329)", () => {
@@ -1396,13 +1396,13 @@ describe("FEATURED_QUERY — card meta facts (#329)", () => {
     return (await evaluate(parse(FEATURED_QUERY), { dataset })).get();
   }
 
-  it("projects the authored `iterated` — null when unauthored", async () => {
+  it("projects the authored `tended` — null when unauthored", async () => {
     const rows = await runFeatured([
-      doc("dated", { featuredRank: 1, iterated: "2026-06-01" }),
+      doc("dated", { featuredRank: 1, tended: "2026-06-01" }),
       doc("undated", { featuredRank: 2 }),
     ]);
-    expect(rows.find((r) => r._id === "dated")?.iterated).toBe("2026-06-01");
-    expect(rows.find((r) => r._id === "undated")?.iterated).toBeNull();
+    expect(rows.find((r) => r._id === "dated")?.tended).toBe("2026-06-01");
+    expect(rows.find((r) => r._id === "undated")?.tended).toBeNull();
   });
 
   it("counts distinct neighbors on the card — an ABSENT `related` still counts a backlink, never null", async () => {

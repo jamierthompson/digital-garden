@@ -40,10 +40,13 @@ const KINDS = [
   {title: 'Now', value: 'now'},
 ] as const
 
+// The community's digital-garden growth stages (popularized by Maggie Appleton's garden and
+// used across the lineage). "Evergreen" means tended and mature — never "done"; the stage
+// describes the page's maturity, not the artifact's completion.
 const STAGES = [
-  {title: 'Sketch', value: 'sketch'},
-  {title: 'Prototype', value: 'prototype'},
-  {title: 'Shipped', value: 'shipped'},
+  {title: 'Seedling', value: 'seedling'},
+  {title: 'Budding', value: 'budding'},
+  {title: 'Evergreen', value: 'evergreen'},
 ] as const
 
 export const entry = defineType({
@@ -96,7 +99,7 @@ export const entry = defineType({
       name: 'stage',
       type: 'string',
       options: {list: [...STAGES], layout: 'radio'},
-      initialValue: 'sketch',
+      initialValue: 'seedling',
       hidden: ({document}) => document?.kind === 'now',
       validation: (rule) =>
         rule.custom((value, context) => {
@@ -105,8 +108,8 @@ export const entry = defineType({
         }),
     }),
     defineField({
-      name: 'iterated',
-      title: 'Last iterated',
+      name: 'tended',
+      title: 'Last tended',
       type: 'date',
     }),
     defineField({

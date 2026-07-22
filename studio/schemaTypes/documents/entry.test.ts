@@ -203,7 +203,7 @@ describe('entry schema — the theme object (#249)', () => {
  * FLOOR on a font face or `componentKey` via `rule.required()` (or re-attached the deleted
  * `requiredForNonSketchProject` as `.custom()` — that one the sibling catches, this one also
  * catches). These fields being TRULY optional — zero validation of ANY kind — is the whole #226
- * contract (a face absent inherits the site palette) and the #250 fix (a non-sketch demo
+ * contract (a face absent inherits the site palette) and the #250 fix (a non-seedling demo
  * publishes with no `componentKey`). `calledRules` records BOTH `required` and `custom`, so an
  * empty result is the tightest proof the field imposes no floor at all.
  */
@@ -221,9 +221,9 @@ describe('entry schema — the three faces + componentKey are truly unvalidated 
     },
   )
 
-  it('componentKey invokes NEITHER required nor custom — a non-sketch demo publishes without it (#250 fix)', () => {
+  it('componentKey invokes NEITHER required nor custom — a non-seedling demo publishes without it (#250 fix)', () => {
     // The deleted `requiredForNonSketchProject` used to force `componentKey` on a demo past
-    // sketch; its live symptom was a prose-only shipped demo that could not publish. With the
+    // the first stage; its live symptom was a prose-only evergreen demo that could not publish. With the
     // floor gone, `componentKey` must carry no validation at all — mount-on-presence only.
     expect(calledRules(field('componentKey'))).toEqual([])
   })
@@ -266,6 +266,59 @@ describe('entry schema — kind list + initialValue move together (#312 rename)'
     expect(summary, 'expected a summary field').toBeDefined()
     expect(summary?.type).toBe('text')
     expect(fields.map((f) => f.name)).not.toContain('blurb')
+  })
+})
+
+/**
+ * QA (stage-vocabulary rename): the stage values renamed `sketch`/`prototype`/`shipped` →
+ * `seedling`/`budding`/`evergreen` and `iterated` → `tended`. Same bug class as the #312 kind
+ * rename above: a partial rename (an `initialValue` orphaned from its option list) would
+ * initialize every new entry to an ILLEGAL stage the radio input cannot display — and the
+ * stage/tended contract (hidden + exempt for a `now`, required for every other kind; tended a
+ * plain optional date) had no pin at all before this rename.
+ */
+describe('entry schema — stage list + initialValue move together (stage-vocabulary rename)', () => {
+  const stage = field('stage') as KindField | undefined
+  const values = stage?.options?.list?.map((o) => o.value)
+
+  it('offers exactly seedling / budding / evergreen — the retired sketch/prototype/shipped values are gone', () => {
+    expect(values).toEqual(['seedling', 'budding', 'evergreen'])
+  })
+
+  it('initialValue is `seedling` AND a member of the declared option list — never an orphaned value', () => {
+    expect(stage?.initialValue).toBe('seedling')
+    expect(values).toContain(stage?.initialValue)
+  })
+
+  it('hides stage for a `now` update, and only for `now`', () => {
+    expect(stage?.hidden?.({document: {kind: 'now'}})).toBe(true)
+    expect(stage?.hidden?.({document: {kind: 'demo'}})).toBe(false)
+    expect(stage?.hidden?.({document: {}})).toBe(false)
+  })
+
+  it('requires a stage for every kind EXCEPT `now` — the rename kept the kind-gated floor', () => {
+    const validate = customValidator(field('stage'))
+    expect(validate, 'expected the kind-gated custom rule').toBeDefined()
+    for (const kind of ['note', 'essay', 'demo']) {
+      expect(validate?.(undefined, {document: {kind}}), `${kind} without a stage`).not.toBe(true)
+      expect(validate?.('seedling', {document: {kind}}), `${kind} with a stage`).toBe(true)
+    }
+    expect(validate?.(undefined, {document: {kind: 'now'}}), 'now without a stage').toBe(true)
+  })
+
+  it('still requires a stage when the kind itself is absent (API-path import without kind)', () => {
+    const validate = customValidator(field('stage'))
+    expect(validate?.(undefined, {document: {}})).not.toBe(true)
+    expect(validate?.(undefined, {})).not.toBe(true)
+  })
+
+  it('renamed the date field to `tended` titled "Last tended" — a plain optional date, no floor', () => {
+    const tended = field('tended') as (FieldDef & {title?: string}) | undefined
+    expect(tended, 'expected a tended field').toBeDefined()
+    expect(tended?.type).toBe('date')
+    expect(tended?.title).toBe('Last tended')
+    expect(calledRules(tended)).toEqual([])
+    expect(fields.map((f) => f.name)).not.toContain('iterated')
   })
 })
 

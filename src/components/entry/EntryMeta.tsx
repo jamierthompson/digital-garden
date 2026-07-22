@@ -7,8 +7,8 @@ import styles from "./EntryMeta.module.css";
 interface EntryMetaProps {
   readonly kind?: string | null;
   readonly stage?: string | null;
-  /** The authored last-iterated date (ISO `YYYY-MM-DD`) — rendered as a `<time>` stamp. */
-  readonly iterated?: string | null;
+  /** The authored last-tended date (ISO `YYYY-MM-DD`) — rendered as a `<time>` stamp. */
+  readonly tended?: string | null;
   /** The resolved OKLCH seed readout — the value the surface is actually painted with. */
   readonly seed?: string | null;
   /** Backlink hint — rendered only when positive. */
@@ -20,7 +20,7 @@ interface EntryMetaProps {
 
 /**
  * The meta readout every entry surface shares — the ONE way an entry's meta facts
- * render: `kind · stage · iterated <date> · <seed> · N linked`, in that fixed order, each
+ * render: `kind · stage · tended <date> · <seed> · N related`, in that fixed order, each
  * fact only when present (a malformed date is dropped, a non-positive link count is
  * silence, an empty string is absence). Renders nothing at all when no fact survives.
  * Plain meta text by design — no badge/pill treatment. The `·` separators are generated in
@@ -49,7 +49,7 @@ function capitalize(value: string): string {
 export default function EntryMeta({
   kind,
   stage,
-  iterated,
+  tended,
   seed,
   linkCount,
   color,
@@ -57,29 +57,29 @@ export default function EntryMeta({
 }: EntryMetaProps): React.ReactElement | null {
   const kindText = asText(kind);
   const stageText = asText(stage);
-  const iteratedIso = asText(iterated);
-  const iteratedLabel = formatDate(iteratedIso);
+  const tendedIso = asText(tended);
+  const tendedLabel = formatDate(tendedIso);
   const seedText = asText(seed);
   const facts: { key: string; node: React.ReactNode }[] = [];
   if (kindText)
     facts.push({ key: "kind", node: <span>{capitalize(kindText)}</span> });
   if (stageText)
     facts.push({ key: "stage", node: <span>{capitalize(stageText)}</span> });
-  if (iteratedIso && iteratedLabel) {
+  if (tendedIso && tendedLabel) {
     facts.push({
-      key: "iterated",
-      node: <time dateTime={iteratedIso}>Iterated {iteratedLabel}</time>,
+      key: "tended",
+      node: <time dateTime={tendedIso}>Last tended {tendedLabel}</time>,
     });
   }
   if (seedText) facts.push({ key: "seed", node: <span>{seedText}</span> });
   // Integer-gated, not just positive: GROQ's count() only emits integers, so a fractional
-  // or non-finite value is drifted data — silence, never "2.5 linked".
+  // or non-finite value is drifted data — silence, never "2.5 Related".
   if (
     typeof linkCount === "number" &&
     Number.isInteger(linkCount) &&
     linkCount > 0
   ) {
-    facts.push({ key: "links", node: <span>{linkCount} Linked</span> });
+    facts.push({ key: "links", node: <span>{linkCount} Related</span> });
   }
 
   if (facts.length === 0) return null;

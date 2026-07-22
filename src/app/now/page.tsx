@@ -65,7 +65,7 @@ export default async function NowPage() {
                     title={update.title ?? "Untitled update"}
                     slug={update.slug}
                     summary={update.summary}
-                    iterated={update.iterated}
+                    tended={update.tended}
                     linkCount={update.linkCount}
                   />
                 ))}

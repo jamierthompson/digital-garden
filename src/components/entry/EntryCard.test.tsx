@@ -20,8 +20,8 @@ function entry(over: Partial<EntryCardEntry> = {}): EntryCardEntry {
     slug: "a-card",
     summary: "A short summary.",
     kind: "demo",
-    stage: "prototype",
-    iterated: null,
+    stage: "budding",
+    tended: null,
     linkCount: null,
     ...over,
   };
@@ -72,26 +72,26 @@ describe("EntryCard", () => {
     expect(container.querySelectorAll("p")).toHaveLength(1); // the meta readout only
   });
 
-  it("renders the full meta readout: kind · stage · iterated · linked", () => {
+  it("renders the full meta readout: kind · stage · tended · related", () => {
     renderCard(
       entry({
         kind: "demo",
-        stage: "shipped",
-        iterated: "2026-07-16",
+        stage: "evergreen",
+        tended: "2026-07-16",
         linkCount: 2,
       }),
     );
     expect(screen.getByText("Demo")).toBeInTheDocument();
-    expect(screen.getByText("Shipped")).toBeInTheDocument();
-    const time = screen.getByText("Iterated July 16, 2026");
+    expect(screen.getByText("Evergreen")).toBeInTheDocument();
+    const time = screen.getByText("Last tended July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
-    expect(screen.getByText("2 Linked")).toBeInTheDocument();
+    expect(screen.getByText("2 Related")).toBeInTheDocument();
   });
 
   it("shows only what it has when part of the meta is missing", () => {
-    renderCard(entry({ kind: null, stage: "sketch" }));
-    expect(screen.getByText("Sketch")).toBeInTheDocument();
+    renderCard(entry({ kind: null, stage: "seedling" }));
+    expect(screen.getByText("Seedling")).toBeInTheDocument();
   });
 
   it("omits the meta row entirely when no fact is present", () => {
@@ -146,7 +146,7 @@ describe("EntryCard — the query is the card's real input", () => {
       "slug",
       "kind",
       "stage",
-      "iterated",
+      "tended",
       "summary",
       "linkCount",
     ]) {
@@ -200,14 +200,16 @@ describe("EntryCard — meta boundaries", () => {
   it("omits the backlink hint for zero, negative and non-integer link counts", () => {
     for (const linkCount of [0, -3, 1.5, Number.NaN]) {
       const { unmount } = renderCard(entry({ linkCount }));
-      expect(screen.queryByText(/linked$/i)).toBeNull();
+      // Both vocabularies: the hint now reads "N Related" — /linked$/i alone went vacuous
+      // at the label rename, so a rendered "0 Related" would have slipped past it.
+      expect(screen.queryByText(/(linked|related)$/i)).toBeNull();
       unmount();
     }
   });
 
   it("renders the hint for a positive count", () => {
     renderCard(entry({ linkCount: 2 }));
-    expect(screen.getByText("2 Linked")).toBeInTheDocument();
+    expect(screen.getByText("2 Related")).toBeInTheDocument();
   });
 });
 

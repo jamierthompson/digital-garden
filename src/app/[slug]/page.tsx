@@ -37,7 +37,7 @@ import styles from "./page.module.css";
 //   • DEMO (`kind === "demo"` with a resolved module): the sidebar + canvas app layout
 //     (`DemoLayout`), edge-to-edge in the grid's `full` lane. Hybrid sidebar: the page renders
 //     the entry's info; the module contributes its `Sidebar` controls and owns the `Canvas`.
-//     A demo has no prose article — its summary is the prose. A sketch demo (no componentKey)
+//     A demo has no prose article — its summary is the prose. A seedling demo (no componentKey)
 //     falls back to the editorial template, prose-only.
 //
 // CAPABILITY-gated within each template:
@@ -111,7 +111,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
 
   // Module gate — capability, not kind. A DECLARED `componentKey` must resolve for ANY kind:
   // a renamed/deleted module (drift) → `notFound()`, never a crash. NO `componentKey` →
-  // `resolution` is null → prose-only, not a 404 (a sketch demo keeps its key null until it
+  // `resolution` is null → prose-only, not a 404 (a seedling demo keeps its key null until it
   // ships; a note/essay simply never has one). The resolver is never consulted without a key.
   const resolution = entry.componentKey
     ? resolveComponentKey(entry.componentKey)
@@ -136,7 +136,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
   // `undefined` (never `""`): the keystone omits them so they inherit `:root`. The scope's
   // COLOR always comes from the page's `<html>` theme (inherited); this seed carries fonts only.
   // The header's backlink hint — counted from the SAME arrays `RelatedEntries` renders
-  // (one shared dedupe), so "N linked" and the Related list below agree by construction.
+  // (one shared dedupe), so "N Related" and the Related list below agree by construction.
   const linkCount = distinctNeighbors(
     entry._id,
     entry.related,
@@ -173,7 +173,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
             summary={entry.summary}
             kind={entry.kind}
             stage={entry.stage}
-            iterated={entry.iterated}
+            tended={entry.tended}
             seed={entry.themeSeed}
             linkCount={linkCount}
             controls={Sidebar ? <Sidebar slug={slug} /> : null}
@@ -209,7 +209,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
     );
   }
 
-  // ── EDITORIAL template: the prose reading column (note · essay · now — and a sketch demo
+  // ── EDITORIAL template: the prose reading column (note · essay · now — and a seedling demo
   //    or unknown kind, which degrade here prose-only). ──
   const article = (
     <ContentGrid asChild>
@@ -229,7 +229,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
             <EntryMeta
               kind={entry.kind}
               stage={entry.stage}
-              iterated={entry.iterated}
+              tended={entry.tended}
               seed={entry.themeSeed}
               linkCount={linkCount}
               color="muted-foreground"

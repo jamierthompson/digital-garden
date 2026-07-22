@@ -8,14 +8,14 @@ import EntryMeta from "./EntryMeta";
 
 const fullProps = {
   kind: "demo",
-  stage: "prototype",
-  iterated: "2026-07-16",
+  stage: "budding",
+  tended: "2026-07-16",
   seed: "oklch(0.66 0.2 350)",
   linkCount: 3,
 };
 
 describe("EntryMeta", () => {
-  it("renders every fact in the fixed order: kind · stage · iterated · seed · linked", () => {
+  it("renders every fact in the fixed order: kind · stage · tended · seed · related", () => {
     const { container } = render(<EntryMeta {...fullProps} />);
     // Facts are the spans inside the track wrapper (p > track > fact).
     const facts = Array.from(container.querySelectorAll("p > span > span")).map(
@@ -23,10 +23,10 @@ describe("EntryMeta", () => {
     );
     expect(facts).toEqual([
       "Demo",
-      "Prototype",
-      "Iterated July 16, 2026",
+      "Budding",
+      "Last tended July 16, 2026",
       "oklch(0.66 0.2 350)",
-      "3 Linked",
+      "3 Related",
     ]);
   });
 
@@ -38,9 +38,9 @@ describe("EntryMeta", () => {
     expect(container.querySelectorAll("[aria-hidden]")).toHaveLength(0);
   });
 
-  it("stamps the iterated fact as a real <time> carrying the machine value", () => {
-    render(<EntryMeta iterated="2026-07-16" />);
-    const time = screen.getByText("Iterated July 16, 2026");
+  it("stamps the tended fact as a real <time> carrying the machine value", () => {
+    render(<EntryMeta tended="2026-07-16" />);
+    const time = screen.getByText("Last tended July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
   });
@@ -59,15 +59,13 @@ describe("EntryMeta", () => {
 
   it("treats empty strings as absent — never an empty fact or a stray dot", () => {
     const { container } = render(
-      <EntryMeta kind="" stage="" iterated="" seed="" />,
+      <EntryMeta kind="" stage="" tended="" seed="" />,
     );
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("drops a malformed iterated date rather than rendering garbage", () => {
-    const { container } = render(
-      <EntryMeta kind="note" iterated="not-a-date" />,
-    );
+  it("drops a malformed tended date rather than rendering garbage", () => {
+    const { container } = render(<EntryMeta kind="note" tended="not-a-date" />);
     expect(container.textContent).toBe("Note");
     expect(container.querySelector("time")).toBeNull();
   });
@@ -80,12 +78,15 @@ describe("EntryMeta", () => {
         <EntryMeta kind="note" linkCount={-2} />
       </>,
     );
+    // Guard the CURRENT label ("N Related") — the old /linked/i pattern went vacuous when
+    // the label renamed, so a rendered "0 Related" would have slipped past it.
+    expect(container.textContent).not.toMatch(/related/i);
     expect(container.textContent).not.toMatch(/linked/i);
   });
 
   it("renders a lone fact with no separators", () => {
-    const { container } = render(<EntryMeta stage="shipped" />);
-    expect(container.textContent).toBe("Shipped");
+    const { container } = render(<EntryMeta stage="evergreen" />);
+    expect(container.textContent).toBe("Evergreen");
   });
 
   it("passes the ink role through to the type primitive; omitting it inherits the ambient ink", () => {
@@ -150,11 +151,11 @@ describe("EntryMeta — adversarial QA (#329)", () => {
     // A whitespace-only fact would still mint a `.fact` wrapper, and the CSS-generated dot
     // on an invisible fact renders as a stray "·" — so the pin is on the fact COUNT.
     const { container } = render(
-      <EntryMeta kind="   " stage="shipped" seed={"\t"} />,
+      <EntryMeta kind="   " stage="evergreen" seed={"\t"} />,
     );
     const facts = container.querySelectorAll("p > span > span");
     expect(facts).toHaveLength(1);
-    expect(facts[0].textContent).toBe("Shipped");
+    expect(facts[0].textContent).toBe("Evergreen");
   });
 
   it("renders nothing (and never throws) when every fact is whitespace-only", () => {
@@ -166,7 +167,7 @@ describe("EntryMeta — adversarial QA (#329)", () => {
     const hostile = {
       kind: 42 as unknown as string,
       stage: { evil: true } as unknown as string,
-      iterated: ["2026-07-16"] as unknown as string,
+      tended: ["2026-07-16"] as unknown as string,
       seed: false as unknown as string,
       linkCount: { valueOf: () => 3 } as unknown as number,
     };
@@ -181,17 +182,15 @@ describe("EntryMeta — adversarial QA (#329)", () => {
     expect(container.textContent).toBe("Note");
   });
 
-  it("drops a calendar-impossible iterated date (round-trip guard) rather than rolling it over", () => {
-    const { container } = render(
-      <EntryMeta kind="note" iterated="2026-02-30" />,
-    );
+  it("drops a calendar-impossible tended date (round-trip guard) rather than rolling it over", () => {
+    const { container } = render(<EntryMeta kind="note" tended="2026-02-30" />);
     expect(container.textContent).toBe("Note");
     expect(container.querySelector("time")).toBeNull();
   });
 
-  it("drops a datetime-shaped iterated value (the contract is a date-only ISO string)", () => {
+  it("drops a datetime-shaped tended value (the contract is a date-only ISO string)", () => {
     const { container } = render(
-      <EntryMeta kind="note" iterated="2026-07-16T12:00:00Z" />,
+      <EntryMeta kind="note" tended="2026-07-16T12:00:00Z" />,
     );
     expect(container.textContent).toBe("Note");
     expect(container.querySelector("time")).toBeNull();
@@ -221,28 +220,28 @@ describe("EntryMeta — capitalize-in-content (owner ruling: display case = copy
     expect(screen.queryByText("Oklch(0.66 0.2 350)")).toBeNull();
   });
 
-  it("capitalizes kind/stage/links/iterated IN the DOM text (copyable), carrying no text-transform", () => {
+  it("capitalizes kind/stage/links/tended IN the DOM text (copyable), carrying no text-transform", () => {
     const { container } = render(
       <EntryMeta
         kind="demo"
-        stage="shipped"
-        iterated="2026-07-16"
+        stage="evergreen"
+        tended="2026-07-16"
         linkCount={7}
       />,
     );
     // The capital is in the actual text node — selection & AT get "Demo", not "demo".
     expect(screen.getByText("Demo").textContent).toBe("Demo");
-    expect(screen.getByText("Shipped").textContent).toBe("Shipped");
-    expect(screen.getByText("Iterated July 16, 2026")).toBeInTheDocument();
-    expect(screen.getByText("7 Linked").textContent).toBe("7 Linked");
+    expect(screen.getByText("Evergreen").textContent).toBe("Evergreen");
+    expect(screen.getByText("Last tended July 16, 2026")).toBeInTheDocument();
+    expect(screen.getByText("7 Related").textContent).toBe("7 Related");
     // No module rule re-introduced the transform (would double-case / desync copy from display).
     expect(container.querySelector("p")?.className).not.toMatch(/uppercase/);
   });
 
   it("is idempotent — an already-capitalized authored fact is not double-processed", () => {
-    render(<EntryMeta kind="Demo" stage="Shipped" />);
+    render(<EntryMeta kind="Demo" stage="Evergreen" />);
     expect(screen.getByText("Demo")).toBeInTheDocument();
-    expect(screen.getByText("Shipped")).toBeInTheDocument();
+    expect(screen.getByText("Evergreen")).toBeInTheDocument();
   });
 
   it("capitalizes a non-ASCII first letter without corruption (ñ → Ñ)", () => {
@@ -271,5 +270,42 @@ describe("EntryMeta — capitalize-in-content (owner ruling: display case = copy
     render(<EntryMeta kind="x" stage="y" />);
     expect(screen.getByText("X")).toBeInTheDocument();
     expect(screen.getByText("Y")).toBeInTheDocument();
+  });
+});
+
+// QA (stage-vocabulary rename): the garden stages renamed sketch/prototype/shipped →
+// seedling/budding/evergreen and the meta labels changed. These pin the renderer's contract
+// at the rename's edges — the drift shape a pre-rename document produces, and the new labels.
+describe("EntryMeta — stage-vocabulary rename (QA)", () => {
+  it.each(["seedling", "budding", "evergreen"])(
+    "renders the garden stage '%s' capitalized in content",
+    (stage) => {
+      render(<EntryMeta stage={stage} />);
+      const label = stage.charAt(0).toUpperCase() + stage.slice(1);
+      expect(screen.getByText(label).textContent).toBe(label);
+    },
+  );
+
+  it("renders a PRE-RENAME stage value from an unmigrated document as-is — never a throw, never silence", () => {
+    // The runtime contract is wider than the schema's union: a doc authored under the old
+    // vocabulary (or written raw via the API) can still arrive with stage "sketch". The
+    // never-throws posture keeps it visible verbatim rather than crashing or hiding the fact.
+    render(<EntryMeta kind="demo" stage="sketch" />);
+    expect(screen.getByText("Sketch")).toBeInTheDocument();
+  });
+
+  it("keeps the 'Last tended' label INSIDE the <time>, with the machine datetime staying the bare ISO date", () => {
+    // The label moved from "Tended <date>" to "Last tended <date>"; the label is part of the
+    // time element's content (one accessible phrase), while `datetime` must stay the ISO
+    // value untouched by the label change.
+    const { container } = render(<EntryMeta tended="2026-02-28" />);
+    const time = container.querySelector("time");
+    expect(time?.textContent).toBe("Last tended February 28, 2026");
+    expect(time).toHaveAttribute("datetime", "2026-02-28");
+  });
+
+  it("never renders '0 Related' — the zero-count silence holds under the NEW label", () => {
+    const { container } = render(<EntryMeta kind="note" linkCount={0} />);
+    expect(container.textContent).toBe("Note");
   });
 });

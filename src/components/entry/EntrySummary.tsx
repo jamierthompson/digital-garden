@@ -16,8 +16,8 @@ interface EntrySummaryProps {
   readonly slug?: string | null;
   readonly summary?: string | null;
   readonly stage?: string | null;
-  /** The authored last-iterated date (ISO `YYYY-MM-DD`), for the meta readout. */
-  readonly iterated?: string | null;
+  /** The authored last-tended date (ISO `YYYY-MM-DD`), for the meta readout. */
+  readonly tended?: string | null;
   /** Backlink hint — rendered only when positive. */
   readonly linkCount?: number | null;
 }
@@ -25,7 +25,7 @@ interface EntrySummaryProps {
 /**
  * One entry in an editorial list — a `<li>` for the summary streams (the Index's sections,
  * the `/now` stream): linked title, summary, and the shared `EntryMeta` readout
- * (`stage · iterated · N linked`), each rendered only when its field is present. Editorial
+ * (`stage · tended · N related`), each rendered only when its field is present. Editorial
  * ink only (the themed card treatment is `EntryCard`'s); composed from the primitives, so
  * the structure is fixed here and a design pass is token/value tweaks.
  */
@@ -34,7 +34,7 @@ export default function EntrySummary({
   slug,
   summary,
   stage,
-  iterated,
+  tended,
   linkCount,
 }: EntrySummaryProps): React.ReactElement {
   return (
@@ -56,7 +56,7 @@ export default function EntrySummary({
         ) : null}
         <EntryMeta
           stage={stage}
-          iterated={iterated}
+          tended={tended}
           linkCount={linkCount}
           color="muted-foreground"
         />

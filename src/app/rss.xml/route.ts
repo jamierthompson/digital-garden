@@ -40,7 +40,7 @@ async function getFeedEntries() {
  * RSS 2.0 dates are RFC-822 (the RFC-1123 four-digit-year form readers expect); `toUTCString()`
  * emits exactly that. Returns `null` for a null or syntactically unparseable value so such an item
  * omits `<pubDate>` rather than emitting a bare or `"Invalid Date"` element. (`published` is
- * `coalesce(iterated, _createdAt)`, so in practice it is always a valid `_createdAt`; the guard just
+ * `coalesce(tended, _createdAt)`, so in practice it is always a valid `_createdAt`; the guard just
  * covers the nullable type and a malformed string. It does NOT catch a calendar-overflow date like
  * `2026-02-31` — the ECMAScript grammar rolls that to a real day — but the Studio date picker cannot
  * author one, so guarding it would be dead machinery.)

@@ -10,8 +10,8 @@ const baseProps = {
   title: "OKLCH Engine",
   summary: "Feed the engine a seed.",
   kind: "demo",
-  stage: "prototype",
-  iterated: "2026-07-16",
+  stage: "budding",
+  tended: "2026-07-16",
   seed: "oklch(0.66 0.2 350)",
   linkCount: 2,
 };
@@ -24,14 +24,14 @@ describe("DemoLayout", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Feed the engine a seed.")).toBeInTheDocument();
     expect(screen.getByText("Demo")).toBeInTheDocument();
-    expect(screen.getByText("Prototype")).toBeInTheDocument();
+    expect(screen.getByText("Budding")).toBeInTheDocument();
     expect(screen.getByText("oklch(0.66 0.2 350)")).toBeInTheDocument();
-    expect(screen.getByText("2 Linked")).toBeInTheDocument();
+    expect(screen.getByText("2 Related")).toBeInTheDocument();
   });
 
-  it("stamps the iterated fact as a real <time> with the machine value", () => {
+  it("stamps the tended fact as a real <time> with the machine value", () => {
     render(<DemoLayout {...baseProps}>canvas</DemoLayout>);
-    const time = screen.getByText("Iterated July 16, 2026");
+    const time = screen.getByText("Last tended July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
   });
@@ -61,7 +61,7 @@ describe("DemoLayout", () => {
       screen.getByRole("heading", { level: 1, name: "Bare" }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/·/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/iterated/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/tended/)).not.toBeInTheDocument();
   });
 });
 

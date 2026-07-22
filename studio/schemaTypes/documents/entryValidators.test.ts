@@ -30,7 +30,7 @@ describe('forbiddenForNow — a now entry cannot set its own color (#173)', () =
     // The old `requiredForThemedKind` floor is retired: an entry that authors no color wears
     // the site default theme (`siteSettings.theme`), so absence is a valid authored state.
     for (const kind of ['note', 'essay', 'demo']) {
-      expect(forbiddenForNow(undefined, ctx({kind, stage: 'sketch'}))).toBe(true)
+      expect(forbiddenForNow(undefined, ctx({kind, stage: 'seedling'}))).toBe(true)
       expect(forbiddenForNow(null, ctx({kind}))).toBe(true)
     }
   })

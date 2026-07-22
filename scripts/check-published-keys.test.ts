@@ -130,11 +130,11 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
   });
 
   it("does NOT flag an empty componentKeys array — componentKey is optional everywhere (#226)", () => {
-    // #226 deleted the `requiredForNonSketchProject` validator, so a prose-only shipped project
+    // #226 deleted the `requiredForNonSketchProject` validator, so a prose-only evergreen entry
     // publishing zero componentKeys is legitimate content — componentKey now carries no schema
     // anchor (like the three faces), so an empty componentKeys array must NOT read as a broken
     // query. Regression guard for the componentKey-canary removal: the old canary false-red'd
-    // exactly this dataset (a non-sketch project with zero resolved componentKeys).
+    // exactly this dataset (a non-seedling entry with zero resolved componentKeys).
     expect(findBrokenQuerySignals({ ...CLEAN, componentKeys: [] })).toEqual([]);
   });
 
@@ -153,7 +153,7 @@ describe("findBrokenQuerySignals — the vacuous-green safeguard", () => {
   });
 
   it("does NOT flag slotKey as broken when the dataset legitimately has no slots", () => {
-    // No slot blocks is a valid content state (an all-notes or all-sketch garden) — the
+    // No slot blocks is a valid content state (an all-notes or all-seedling garden) — the
     // structural count being zero must not read as breakage.
     expect(
       findBrokenQuerySignals({
@@ -212,10 +212,10 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
       body: PROSE,
     },
     {
-      _id: "project-shipped",
+      _id: "essay-evergreen",
       _type: "entry",
-      kind: "project",
-      stage: "shipped",
+      kind: "essay",
+      stage: "evergreen",
       componentKey: "color-engine",
       theme: {
         color: "#123456",
@@ -225,10 +225,10 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
       body: [...PROSE, { _type: "slot", slotKey: "color-engine-seed" }],
     },
     {
-      _id: "project-sketch",
+      _id: "essay-seedling",
       _type: "entry",
-      kind: "project",
-      stage: "sketch",
+      kind: "essay",
+      stage: "seedling",
       theme: { color: "#123456" },
       body: PROSE,
     },
@@ -236,7 +236,7 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
       _id: "demo-no-body",
       _type: "entry",
       kind: "demo",
-      stage: "prototype",
+      stage: "budding",
       componentKey: "color-engine",
       theme: { color: "#123456" },
     },

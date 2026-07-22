@@ -84,9 +84,9 @@ export function findUnresolvedKeys(publishedKeys, knownKeys) {
  * zero resolved slotKeys means the slotKey path broke.
  *
  * `fontKey` and `componentKey` carry NO such anchor: every `theme` face AND `componentKey` are
- * OPTIONAL for every kind (#226 deleted `componentKey`'s required-past-sketch validator, joining
- * the three faces), so an empty array for either is a legitimate state — a prose-only shipped
- * project publishes zero componentKeys, an entry that sets no face publishes zero fontKeys — not
+ * OPTIONAL for every kind (#226 deleted `componentKey`'s required-past-seedling validator, joining
+ * the three faces), so an empty array for either is a legitimate state — a prose-only evergreen
+ * entry publishes zero componentKeys, an entry that sets no face publishes zero fontKeys — not
  * necessarily a broken query. Their query shapes are pinned by this script's unit test instead.
  *
  * The check is gated on `slotBlockCount > 0`, so a genuinely empty dataset — or a garden

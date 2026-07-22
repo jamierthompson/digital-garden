@@ -35,10 +35,10 @@ export type FontKey = (typeof FONT_KEYS)[number];
  * a matching loader entry (compile error if missing).
  *
  * `componentKey` is capability-gated, not kind-gated: any kind — `now` included — can declare
- * one. An entry with no `componentKey` renders prose-only (a sketch demo carrying a
+ * one. An entry with no `componentKey` renders prose-only (a seedling demo carrying a
  * `theme.color` but no key yet, or an unkeyed note/essay); an entry that declares its key
  * here has the resolver map it to a literal dynamic import. `componentKey` is OPTIONAL for
- * every kind, mounting purely on presence (#226 removed the required-past-sketch
+ * every kind, mounting purely on presence (#226 removed the required-past-seedling
  * validator); a declared key that fails to resolve is a `notFound()` for any kind. The first
  * real module is the Color Engine (#70).
  */

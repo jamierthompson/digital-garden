@@ -29,16 +29,16 @@ describe("EntrySummary", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("renders the iterated date inside the meta readout as a <time> with the machine value", () => {
-    renderInList(<EntrySummary title="Update" iterated="2026-07-01" />);
-    const time = screen.getByText("Iterated July 1, 2026");
+  it("renders the tended date inside the meta readout as a <time> with the machine value", () => {
+    renderInList(<EntrySummary title="Update" tended="2026-07-01" />);
+    const time = screen.getByText("Last tended July 1, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-01");
   });
 
   it("renders the stage as plain meta text — no badge treatment, no data-stage hook", () => {
-    renderInList(<EntrySummary title="Entry" stage="prototype" />);
-    const stage = screen.getByText("Prototype");
+    renderInList(<EntrySummary title="Entry" stage="budding" />);
+    const stage = screen.getByText("Budding");
     expect(stage).not.toHaveAttribute("data-stage");
     expect(stage.closest("p")).toHaveAttribute("data-variant", "meta");
   });
@@ -48,7 +48,7 @@ describe("EntrySummary", () => {
       <EntrySummary title="Entry" summary="A short summary." linkCount={3} />,
     );
     expect(screen.getByText("A short summary.")).toBeInTheDocument();
-    expect(screen.getByText("3 Linked")).toBeInTheDocument();
+    expect(screen.getByText("3 Related")).toBeInTheDocument();
   });
 
   it("renders none of the optional pieces when their fields are absent or empty", () => {
@@ -58,14 +58,15 @@ describe("EntrySummary", () => {
         slug={null}
         summary={null}
         stage={null}
-        iterated={null}
+        tended={null}
         linkCount={0}
       />,
     );
     const item = screen.getByRole("listitem");
-    // Just the heading — no time, no stage, no summary, no "0 linked".
+    // Just the heading — no time, no stage, no summary, no "0 Related". (The hint label
+    // renamed linked → Related; guard both so the assertion never goes vacuous again.)
     expect(item.querySelector("time")).toBeNull();
-    expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/(linked|related)/i)).not.toBeInTheDocument();
     expect(item.textContent).toBe("Bare");
   });
 
@@ -76,7 +77,7 @@ describe("EntrySummary", () => {
         <EntrySummary title="Nullish" linkCount={null} />
       </ul>,
     );
-    expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/(linked|related)/i)).not.toBeInTheDocument();
   });
 
   it("renders plain text for an empty-string slug — no dead link to '/'", () => {
@@ -98,8 +99,8 @@ describe("EntrySummary", () => {
       <EntrySummary
         title="Ordered"
         summary="The summary."
-        stage="shipped"
-        iterated="2026-07-01"
+        stage="evergreen"
+        tended="2026-07-01"
         linkCount={2}
       />,
     );

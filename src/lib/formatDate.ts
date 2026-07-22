@@ -1,5 +1,5 @@
 /**
- * Format an authored `iterated` date (an ISO `YYYY-MM-DD` from Sanity's `date` field) into a
+ * Format an authored `tended` date (an ISO `YYYY-MM-DD` from Sanity's `date` field) into a
  * readable stamp. Pinned to UTC so the server-rendered string is stable regardless of the
  * deploy region's timezone.
  */
