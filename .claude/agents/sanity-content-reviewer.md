@@ -1,6 +1,6 @@
 ---
 name: sanity-content-reviewer
-description: Reviews Sanity schema, stega, TypeGen, and content-model work — the single `entry` type with a `kind` discriminator (note · essay · demo · now), `stage`/`iterated`, and Day-1 backlinks, stega excluded on the whole `theme` object by ancestor, the single `defineLive` read path, and regenerated-and-committed `sanity.types.ts`. Use proactively after editing anything under `studio/`, GROQ queries, `keys.ts`, or content-fetching code.
+description: Reviews Sanity schema, stega, TypeGen, and content-model work — the single `entry` type with a `kind` discriminator (note · essay · demo · now), `stage`/`tended`, and Day-1 backlinks, stega excluded on the whole `theme` object by ancestor, the single `defineLive` read path, and regenerated-and-committed `sanity.types.ts`. Use proactively after editing anything under `studio/`, GROQ queries, `keys.ts`, or content-fetching code.
 tools: Read, Grep, Glob
 ---
 
@@ -27,11 +27,14 @@ for schema and GROQ specifics.
    Flag: a second top-level document type added speculatively; a note/essay/demo/now split into
    separate document types; or a collapse to one type without a `kind` discriminator.
 
-2. **`stage` + `iterated`.** An `entry` carries a **`stage`** (sketch → prototype → shipped — stable
-   stored values, labels re-wordable; not applicable to a `now` update). **`iterated`** is an _authored_
-   "last worked on" date, distinct from Sanity's automatic `_updatedAt`. Flag `stage` modeled as
-   free-text/boolean, stored values that would break existing content if re-labeled, or `iterated`
-   conflated with `_updatedAt`.
+2. **`stage` + `tended`.** An `entry` carries a **`stage`** — the digital-garden growth stages
+   seedling → budding → evergreen; not applicable to a `now` update. "Evergreen" means tended and
+   mature, never "done": it describes the maturity of the _page_, not the completion of the artifact
+   it documents. The stored values are not frozen, but renaming one is a **schema change + a content
+   migration for every live document + a committed `sanity.types.ts`** — never a label-only edit.
+   **`tended`** ("Last tended") is an _authored_ date, distinct from Sanity's automatic `_updatedAt`.
+   Flag `stage` modeled as free-text/boolean, a stored-value rename shipped without the matching
+   content migration and TypeGen commit, or `tended` conflated with `_updatedAt`.
 
 3. **Day-1 backlinks via real references.** An `entry` carries a `related` **self-referencing** array
    (`entry` → `entry`); incoming backlinks resolve via GROQ `references()` (the edge is authored once and
@@ -40,7 +43,7 @@ for schema and GROQ specifics.
    default `siteSettings.theme`, the ONE required seed on the site); the three
    font faces (`theme.headingFont` / `bodyFont` / `monoFont`) **and** `componentKey` are likewise
    **unconditionally optional**, theming/mounting purely on **presence** for every kind but `now`
-   (#226 deleted the `requiredForNonSketchProject` validator — a prose-only shipped demo is valid —
+   (#226 deleted the `requiredForNonSketchProject` validator — a prose-only evergreen demo is valid —
    and #253 deleted `requiredForThemedKind`).
    A `now` carries no theme of its own (it inherits the `/now` page seed). Flag a backlink stored as a
    string/slug, a one-directional link that can't resolve the incoming side, the site default
