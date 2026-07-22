@@ -27,7 +27,7 @@ interface IndexRow {
   slug: string | null;
   kind: string | null;
   stage: string | null;
-  iterated: string | null;
+  tended: string | null;
   summary: string | null;
   linkCount: number;
 }
@@ -39,8 +39,8 @@ function row(over: Partial<IndexRow> & { _id: string }): IndexRow {
     // Default to an INDEXED kind (essay) — a row whose kind matches no section renders
     // nothing, a misleading default for the generic-behaviour tests.
     kind: "essay",
-    stage: "sketch",
-    iterated: null,
+    stage: "seedling",
+    tended: null,
     summary: null,
     linkCount: 0,
     ...over,
@@ -153,9 +153,9 @@ describe("IndexPage (/browse) — the folded Index", () => {
       row({
         _id: "a",
         kind: "demo",
-        title: "Shipped thing",
+        title: "Evergreen thing",
         slug: "a",
-        stage: "shipped",
+        stage: "evergreen",
       }),
       row({
         _id: "b",
@@ -166,9 +166,9 @@ describe("IndexPage (/browse) — the folded Index", () => {
       }),
     ]);
     render(await IndexPage());
-    expect(screen.getByText("Shipped")).toBeInTheDocument();
+    expect(screen.getByText("Evergreen")).toBeInTheDocument();
     // The stageless row shows no badge text at all — not an empty or default one.
-    expect(screen.queryByText("Sketch")).toBeNull();
+    expect(screen.queryByText("Seedling")).toBeNull();
   });
 
   it("shows the backlink hint only when linkCount > 0", async () => {
@@ -194,22 +194,22 @@ describe("IndexPage (/browse) — the folded Index", () => {
     expect(screen.queryByText(/0 linked/i)).toBeNull();
   });
 
-  it("stamps a dated row's iterated fact as a <time> in the meta readout — and omits it when unauthored (#329 QA)", async () => {
+  it("stamps a dated row's tended fact as a <time> in the meta readout — and omits it when unauthored (#329 QA)", async () => {
     fetchMock.mockResolvedValueOnce([
       row({
         _id: "a",
         kind: "note",
         title: "Dated",
         slug: "a",
-        iterated: "2026-06-01",
+        tended: "2026-06-01",
       }),
       row({ _id: "b", kind: "note", title: "Undated", slug: "b" }),
     ]);
     render(await IndexPage());
-    const time = screen.getByText("Iterated June 1, 2026");
+    const time = screen.getByText("Tended June 1, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-06-01");
-    expect(screen.getAllByText(/Iterated/)).toHaveLength(1);
+    expect(screen.getAllByText(/Tended/)).toHaveLength(1);
   });
 
   it("gives every group section an accessible name wired to its heading id", async () => {

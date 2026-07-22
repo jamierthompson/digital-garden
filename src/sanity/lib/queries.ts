@@ -4,20 +4,20 @@ import { defineQuery } from "next-sanity";
  * Entry feed query (RSS) — every published entry, any `kind`.
  *
  * The digital garden syndicates everything published — notes, essays, demos, AND `now`
- * updates — newest first by the authored `iterated` date (falling back to `_createdAt`). Pulls
+ * updates — newest first by the authored `tended` date (falling back to `_createdAt`). Pulls
  * only what an `<item>` renders — `summary` plus id / title / slug for the link, and `published`
- * (the same `coalesce(iterated, _createdAt)` the ordering uses, so each item's `<pubDate>` agrees
+ * (the same `coalesce(tended, _createdAt)` the ordering uses, so each item's `<pubDate>` agrees
  * with feed order) — and deliberately NOT the `body`, keeping the read small. Its only reader is
  * `rss.xml/route.ts`. The over-fetch guard is asserted in queries.test.ts. Typed by Sanity TypeGen
  * as `ENTRY_FEED_QUERYResult`. `defineQuery` must wrap the literal — no runtime interpolation.
  */
 export const ENTRY_FEED_QUERY = defineQuery(`
-  *[_type == "entry" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {
+  *[_type == "entry" && defined(slug.current)] | order(coalesce(tended, _createdAt) desc) {
     _id,
     title,
     "slug": slug.current,
     summary,
-    "published": coalesce(iterated, _createdAt)
+    "published": coalesce(tended, _createdAt)
   }
 `);
 
@@ -38,7 +38,7 @@ export const ENTRY_SLUGS_QUERY = defineQuery(`
  * The full entry document for one slug — UNLIKE the index query, it DOES pull the `body`
  * (the detail route renders it through the Portable Text serializer) plus the entry's `theme`
  * object (`color`, `colorDark`, `headingFont`, `bodyFont`, `monoFont`) and the top-level `componentKey` that drive
- * `EntryScope` and module resolution, the facets (`kind`, `stage`, `iterated`, `featuredRank`), and the
+ * `EntryScope` and module resolution, the facets (`kind`, `stage`, `tended`, `featuredRank`), and the
  * surrounding `title` / `summary`. Backlinks resolve both directions: `related[]->`
  * is the outgoing edge; `backlinks` is the INCOMING edge (every entry that references this
  * one) via GROQ `references()`, so an edge authored once shows on both ends. `[0]` collapses
@@ -82,7 +82,7 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
     "slug": slug.current,
     kind,
     stage,
-    iterated,
+    tended,
     featuredRank,
     summary,
     theme { color, colorDark, headingFont, bodyFont, monoFont },
@@ -114,11 +114,11 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
  * drifted data (a kind authored before its code ships), which is a different job.
  *
  * Pulls every other published entry with the facets the Index reads — `kind` (the group
- * headings), the row's meta readout (`stage` + `iterated`), and a `linkCount` (distinct
+ * headings), the row's meta readout (`stage` + `tended`), and a `linkCount` (distinct
  * neighbors across outgoing `related` and incoming `references()`, the backlink hint) — plus
  * `title` / `slug` / `summary` for the row. Deliberately NOT the `body` or the `theme` object:
  * the Index wears the global editorial look (no per-row theme), so it needs neither the rich
- * text nor the entry's theme. Ordered by `kind`, then freshest first (`iterated`, falling back
+ * text nor the entry's theme. Ordered by `kind`, then freshest first (`tended`, falling back
  * to `_createdAt`). Typed as `INDEX_QUERYResult`.
  *
  * `linkCount` counts DISTINCT neighbors, never a sum of the two directions: they overlap (an
@@ -131,13 +131,13 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
  * silently loses its hint.
  */
 export const INDEX_QUERY = defineQuery(`
-  *[_type == "entry" && defined(slug.current) && kind != "now"] | order(kind asc, coalesce(iterated, _createdAt) desc) {
+  *[_type == "entry" && defined(slug.current) && kind != "now"] | order(kind asc, coalesce(tended, _createdAt) desc) {
     _id,
     title,
     "slug": slug.current,
     kind,
     stage,
-    iterated,
+    tended,
     summary,
     "linkCount": count(array::unique(
       coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id
@@ -150,7 +150,7 @@ export const INDEX_QUERY = defineQuery(`
  *
  * The hurried evaluator's reading path: the curated subset an editor promoted (`featuredRank`
  * is set), ordered by rank (lower = earlier). Pulls the card fields — `summary` and the mono
- * readout's facts (`kind` / `stage` / `iterated` / `linkCount`). Deliberately NOT the `body`,
+ * readout's facts (`kind` / `stage` / `tended` / `linkCount`). Deliberately NOT the `body`,
  * and NOT a per-entry theme seed — one seed paints a page, so the cards read the homepage's
  * own theme from the ambient semantic tokens — keeping the front-door payload small for LCP.
  * Typed as `FEATURED_QUERYResult`.
@@ -171,7 +171,7 @@ export const FEATURED_QUERY = defineQuery(`
     "slug": slug.current,
     kind,
     stage,
-    iterated,
+    tended,
     summary,
     "linkCount": count(array::unique(
       coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id
@@ -183,8 +183,8 @@ export const FEATURED_QUERY = defineQuery(`
  * Now query (`/now`) — the dated "now" stream (`kind == "now"`).
  *
  * A reverse-chronological stream of `now` updates (à la nownownow.com), newest first by the
- * authored `iterated` date (falling back to `_createdAt`). Pulls `title` / `slug` / `summary`
- * for the stream entry, `iterated` for the date stamp, and `linkCount` (the backlink hint) —
+ * authored `tended` date (falling back to `_createdAt`). Pulls `title` / `slug` / `summary`
+ * for the stream entry, `tended` for the date stamp, and `linkCount` (the backlink hint) —
  * NOT the `body` (each update links to its own flat `/[slug]` for the full text). `/now` is
  * the only surface that lists these: `INDEX_QUERY` filters `now` out. Typed as
  * `NOW_QUERYResult`.
@@ -199,11 +199,11 @@ export const FEATURED_QUERY = defineQuery(`
  * silently loses its hint.
  */
 export const NOW_QUERY = defineQuery(`
-  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(iterated, _createdAt) desc) {
+  *[_type == "entry" && kind == "now" && defined(slug.current)] | order(coalesce(tended, _createdAt) desc) {
     _id,
     title,
     "slug": slug.current,
-    iterated,
+    tended,
     summary,
     "linkCount": count(array::unique(
       coalesce(related[]->_id, []) + *[_type == "entry" && references(^._id)]._id

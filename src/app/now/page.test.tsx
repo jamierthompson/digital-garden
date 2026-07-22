@@ -11,14 +11,14 @@ const { NOW_FIXTURE, fetchMock } = vi.hoisted(() => ({
       _id: "1",
       title: "Flattening the routes",
       slug: "now-jul-2026",
-      iterated: "2026-07-01",
+      tended: "2026-07-01",
       summary: "IA rework.",
     },
     {
       _id: "2",
       title: "Proving the engine",
       slug: "now-jun-2026",
-      iterated: "2026-06-15",
+      tended: "2026-06-15",
       summary: "Seeding themes.",
     },
   ],
@@ -57,7 +57,7 @@ function row(over: Partial<NowRow> & { _id: string }): NowRow {
   return {
     title: "An update",
     slug: "an-update",
-    iterated: "2026-07-01",
+    tended: "2026-07-01",
     summary: null,
     linkCount: 0,
     ...over,
@@ -81,8 +81,8 @@ describe("Now page (Sanity-driven stream)", () => {
 
   it("stamps each update with its formatted UTC date", async () => {
     render(await NowPage());
-    expect(screen.getByText("Iterated July 1, 2026")).toBeInTheDocument();
-    expect(screen.getByText("Iterated June 15, 2026")).toBeInTheDocument();
+    expect(screen.getByText("Tended July 1, 2026")).toBeInTheDocument();
+    expect(screen.getByText("Tended June 15, 2026")).toBeInTheDocument();
   });
 
   it("keeps the nownownow.com footnote link", async () => {
@@ -119,11 +119,11 @@ describe("NowPage — edges & boundaries", () => {
     );
   });
 
-  it("omits the <time> stamp when iterated is null (a now-update without a date)", async () => {
-    // `iterated` is an optional Sanity `date` — a now-update may have none. No date → no
+  it("omits the <time> stamp when tended is null (a now-update without a date)", async () => {
+    // `tended` is an optional Sanity `date` — a now-update may have none. No date → no
     // <time>, but the update still renders and links.
     fetchMock.mockResolvedValueOnce([
-      row({ _id: "a", title: "Dateless", slug: "dateless", iterated: null }),
+      row({ _id: "a", title: "Dateless", slug: "dateless", tended: null }),
     ]);
     const { container } = render(await NowPage());
     expect(container.querySelector("time")).toBeNull();
@@ -158,12 +158,12 @@ describe("NowPage — edges & boundaries", () => {
         _id: "a",
         title: "Jan first",
         slug: "jan-1",
-        iterated: "2026-01-01",
+        tended: "2026-01-01",
       }),
     ]);
     render(await NowPage());
     // Formatted from `${iso}T00:00:00Z` with timeZone: "UTC" — Jan 1, not Dec 31.
-    const time = screen.getByText("Iterated January 1, 2026");
+    const time = screen.getByText("Tended January 1, 2026");
     expect(time.tagName.toLowerCase()).toBe("time");
     expect(time).toHaveAttribute("datetime", "2026-01-01");
   });
@@ -221,7 +221,7 @@ describe("NowPage — the linkCount hint reaches the row (#321 QA)", () => {
         _id: "a",
         title: "Stale",
         slug: "stale",
-        iterated: "2026-07-01",
+        tended: "2026-07-01",
         summary: null,
       },
     ]);

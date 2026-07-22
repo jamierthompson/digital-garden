@@ -77,7 +77,7 @@ Two homes:
   `src/entries/<slug>/`; shared parts live in plain shared modules.
 - **Sanity** — content & theme seeds: one `entry` document type covering every content kind — a
   `kind` discriminator (note · essay · demo · now), a Portable Text body (rich text with inline slots),
-  a `stage` (sketch → prototype → shipped), an authored `iterated` date, self-referencing `related`
+  a `stage` (seedling → budding → evergreen), an authored `tended` date, self-referencing `related`
   backlinks, an optional `featuredRank`, the per-entry `theme` object (`color` / `colorDark` /
   `headingFont` / `bodyFont` / `monoFont`), and the top-level `componentKey` — all reference-by-key seeds.
 
@@ -764,9 +764,9 @@ An entry renders as a single `/[slug]` page on one of **two templates, branched 
 - **Demo** (`kind === "demo"` with a resolved module): a two-region app layout (`DemoLayout`,
   `src/components/entry/`) — **sidebar + canvas**, edge-to-edge in the content grid's `full`
   lane, no prose article (the summary is the demo's prose). **Hybrid sidebar:** the page renders
-  the entry's info (title, summary, and the shared `EntryMeta` readout: kind · stage · iterated ·
+  the entry's info (title, summary, and the shared `EntryMeta` readout: kind · stage · tended ·
   seed · link count) — DRY across demos —
-  and the module contributes its controls below. A sketch demo (no `componentKey`) falls back to
+  and the module contributes its controls below. A seedling demo (no `componentKey`) falls back to
   the editorial template, prose-only.
 
 The registry entry (the `EntryModule` contract, `src/entries/types.ts`) exports up to three
@@ -816,7 +816,7 @@ showcases the shared engine's output rather than holding the engine (see the OKL
 ### The CMS ↔ code registry
 
 ```
-Sanity entry doc { kind, componentKey: "<slug>", theme { color, colorDark, headingFont, bodyFont, monoFont }, body, stage, iterated, related, featuredRank }
+Sanity entry doc { kind, componentKey: "<slug>", theme { color, colorDark, headingFont, bodyFont, monoFont }, body, stage, tended, related, featuredRank }
         │
         ▼
 src/lib/resolvers/components.ts   componentKey "<slug>" → lazy import of the entry module
@@ -969,7 +969,7 @@ Practical notes:
   `[data-entry]` scope (and mounts its
   `slot`s in their own scoped containers, exactly as a demo's slots do); a present
   `componentKey` resolves and mounts the coded module — a declared key that fails to resolve is a
-  `notFound()` for any kind, and no key at all renders prose-only (a sketch demo renders
+  `notFound()` for any kind, and no key at all renders prose-only (a seedling demo renders
   prose-only, never a 404). **A module mount always implies a scope seed** — the route builds the
   `ScopeSeed` whenever an entry _mounts a module_ (any kind) or a _non-`now`_ entry _themes_
   (`(!now && theme.color) || a resolvable componentKey`), always **keyed on the entry's own
@@ -985,7 +985,7 @@ Practical notes:
   `theme.color` is **optional for every kind** (#253) — an entry that authors none wears the
   authored site default (`siteSettings.theme`), so each page still derives its theme from an
   authored seed. `componentKey` is likewise **optional and mounts on presence for every kind**
-  (a `demo` past the sketch stage is no longer forced to name a module — a prose-only demo is
+  (a `demo` past the seedling stage is no longer forced to name a module — a prose-only demo is
   valid — and a `note`/`essay`/`now` that sets a `componentKey` mounts it), and the three `theme`
   face keys are optional and theme on presence for every kind but `now`. A `now`
   update can hold slots and modules like any editorial entry, but it **never wears its own
@@ -994,9 +994,9 @@ Practical notes:
   **inherits the `/now` page seed** instead — the single `/now` seed themes the `/now` index and every
   `now` entry alike. `stage` does not
   apply to a `now`. A second document type is deferred until a kind genuinely proves divergent fields.
-- **`stage` is maturity; `iterated` is freshness.** **`stage`** (sketch → prototype → shipped —
+- **`stage` is maturity; `tended` is freshness.** **`stage`** (seedling → budding → evergreen —
   stable stored values, labels re-wordable in the UI) is the honesty badge on every entry, independent
-  of scope (`kind`) and of curation (`featuredRank`). **`iterated`** is an _authored_ "last worked on"
+  of scope (`kind`) and of curation (`featuredRank`). **`tended`** is an _authored_ "last worked on"
   date — not Sanity's automatic `_updatedAt` — an intentional signal that the portfolio is living and
   tended.
 - **The body is rich content (portable text), not plain text.** One shared palette serves every
@@ -1058,7 +1058,7 @@ Practical notes:
   into two registered keys. Litmus: _editor writes/curates it → typed block; developer decides it →
   registry; neither → it's not an input._
 - **The card queries refuse to over-fetch.** The featured-home query pulls the card fields —
-  `title`/`slug`/`summary` and the meta facts (`kind`/`stage`/`iterated`/`linkCount`) — but
+  `title`/`slug`/`summary` and the meta facts (`kind`/`stage`/`tended`/`linkCount`) — but
   **not** the body and **no per-entry theme seed** (one seed paints a page; the cards read the
   homepage's own theme), keeping the front-door payload small for CWV.
 - **`EntryScope` is the font-slot keystone.** One server component takes a scope's `slug` + up to
@@ -1090,7 +1090,7 @@ Practical notes:
 - **Two reading paths over one content graph.** The **featured home** (`/`) is a curated front door —
   the entries with a `featuredRank`, of _any_ `kind`, ordered by rank — for a hurried evaluator. The
   **Index** (at `/browse`) is the browsable list of the notes, essays, and demos — grouped
-  into labelled `kind` sections, each row carrying its meta readout (stage · iterated · backlink
+  into labelled `kind` sections, each row carrying its meta readout (stage · tended · backlink
   hint), for the
   wanderer. Dated `now` updates are the one kind it omits: they have their own reverse-chronological
   surface at `/now`. The Index has no facets today — filtering it is [#88](https://github.com/jamierthompson/digital-garden/issues/88). The portfolio is a _view_ of the graph (a saved

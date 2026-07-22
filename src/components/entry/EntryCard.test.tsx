@@ -20,8 +20,8 @@ function entry(over: Partial<EntryCardEntry> = {}): EntryCardEntry {
     slug: "a-card",
     summary: "A short summary.",
     kind: "demo",
-    stage: "prototype",
-    iterated: null,
+    stage: "budding",
+    tended: null,
     linkCount: null,
     ...over,
   };
@@ -72,26 +72,26 @@ describe("EntryCard", () => {
     expect(container.querySelectorAll("p")).toHaveLength(1); // the meta readout only
   });
 
-  it("renders the full meta readout: kind · stage · iterated · linked", () => {
+  it("renders the full meta readout: kind · stage · tended · linked", () => {
     renderCard(
       entry({
         kind: "demo",
-        stage: "shipped",
-        iterated: "2026-07-16",
+        stage: "evergreen",
+        tended: "2026-07-16",
         linkCount: 2,
       }),
     );
     expect(screen.getByText("Demo")).toBeInTheDocument();
-    expect(screen.getByText("Shipped")).toBeInTheDocument();
-    const time = screen.getByText("Iterated July 16, 2026");
+    expect(screen.getByText("Evergreen")).toBeInTheDocument();
+    const time = screen.getByText("Tended July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
     expect(screen.getByText("2 Linked")).toBeInTheDocument();
   });
 
   it("shows only what it has when part of the meta is missing", () => {
-    renderCard(entry({ kind: null, stage: "sketch" }));
-    expect(screen.getByText("Sketch")).toBeInTheDocument();
+    renderCard(entry({ kind: null, stage: "seedling" }));
+    expect(screen.getByText("Seedling")).toBeInTheDocument();
   });
 
   it("omits the meta row entirely when no fact is present", () => {
@@ -146,7 +146,7 @@ describe("EntryCard — the query is the card's real input", () => {
       "slug",
       "kind",
       "stage",
-      "iterated",
+      "tended",
       "summary",
       "linkCount",
     ]) {

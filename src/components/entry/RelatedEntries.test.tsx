@@ -116,7 +116,7 @@ describe("RelatedEntries", () => {
 
   it("keeps the outgoing `related` edge when the same _id appears in both arms (related wins, stable order)", () => {
     // The two arms dereference the same doc, so a real divergence is unlikely — but the
-    // de-dupe MUST be deterministic: `related` is iterated first, so its copy wins and it
+    // de-dupe MUST be deterministic: `related` is tended first, so its copy wins and it
     // keeps its position ahead of the backlink-only entries.
     render(
       <RelatedEntries

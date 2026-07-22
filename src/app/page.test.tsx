@@ -12,7 +12,7 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
       title: "Color Engine",
       slug: "color-engine",
       kind: "demo",
-      stage: "sketch",
+      stage: "seedling",
       summary: "A seed in, a solved palette out.",
     },
     {
@@ -20,7 +20,7 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
       title: "Feature Lens",
       slug: "feature-lens",
       kind: "demo",
-      stage: "sketch",
+      stage: "seedling",
       summary: "Looking inside a model.",
     },
   ],
@@ -64,7 +64,7 @@ function row(over: Partial<FeaturedRow> & { _id: string }): FeaturedRow {
     title: "A card",
     slug: "a-card",
     kind: "demo",
-    stage: "prototype",
+    stage: "budding",
     summary: null,
     ...over,
   };

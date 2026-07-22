@@ -169,7 +169,7 @@ function entry(over: EntryOverrides = {}): Record<string, unknown> {
     slug: "an-entry",
     kind: "note",
     stage: null,
-    iterated: null,
+    tended: null,
     summary: "A summary.",
     theme: {
       color: null,
@@ -401,8 +401,8 @@ describe("EntryPage — the demo template (sidebar + canvas)", () => {
       kind: "demo",
       componentKey: "color-engine",
       slug: "color-engine",
-      stage: "prototype",
-      iterated: "2026-07-16",
+      stage: "budding",
+      tended: "2026-07-16",
       themeSeed: "oklch(0.7 0.15 70)",
       related: [
         { _id: "r1", title: "A related note", slug: "related", kind: "note" },
@@ -423,8 +423,8 @@ describe("EntryPage — the demo template (sidebar + canvas)", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("A summary.")).toBeInTheDocument();
     expect(screen.getByText("Demo")).toBeInTheDocument();
-    expect(screen.getByText("Prototype")).toBeInTheDocument();
-    expect(screen.getByText(/Iterated July 16, 2026/)).toBeInTheDocument();
+    expect(screen.getByText("Budding")).toBeInTheDocument();
+    expect(screen.getByText(/Tended July 16, 2026/)).toBeInTheDocument();
     expect(screen.getByText("oklch(0.7 0.15 70)")).toBeInTheDocument();
     // The module's two surfaces, both slug-keyed.
     expect(screen.getByTestId("sidebar-controls")).toHaveAttribute(
@@ -480,9 +480,9 @@ describe("EntryPage — the demo template (sidebar + canvas)", () => {
     );
   });
 
-  it("renders a demo with NO componentKey on the editorial template, prose-only (a sketch, no module yet)", async () => {
+  it("renders a demo with NO componentKey on the editorial template, prose-only (a seedling, no module yet)", async () => {
     fetchMock.mockResolvedValueOnce(
-      demoEntry({ componentKey: null, summary: "A sketch summary." }),
+      demoEntry({ componentKey: null, summary: "A seedling summary." }),
     );
     const { container } = render(
       await EntryPage({ params: params("color-engine") }),
@@ -490,7 +490,7 @@ describe("EntryPage — the demo template (sidebar + canvas)", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("A sketch summary.")).toBeInTheDocument();
+    expect(screen.getByText("A seedling summary.")).toBeInTheDocument();
     expect(screen.queryByTestId("canvas")).not.toBeInTheDocument();
     expect(container.querySelector("article")).not.toBeNull();
     expect(resolveComponentKeyMock).not.toHaveBeenCalled();
@@ -678,12 +678,12 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
     ...over,
   });
 
-  it("renders the FULL readout in the editorial header: kind · stage · iterated · seed · N linked", async () => {
+  it("renders the FULL readout in the editorial header: kind · stage · tended · seed · N linked", async () => {
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "essay",
-        stage: "shipped",
-        iterated: "2026-07-01",
+        stage: "evergreen",
+        tended: "2026-07-01",
         themeSeed: "oklch(0.66 0.2 350)",
         related: [neighbor("a")],
         backlinks: [neighbor("b")],
@@ -694,10 +694,10 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
     );
     const header = container.querySelector("header");
     expect(header?.textContent).toContain("Essay");
-    expect(header?.textContent).toContain("Shipped");
+    expect(header?.textContent).toContain("Evergreen");
     expect(header?.textContent).toContain("oklch(0.66 0.2 350)");
     expect(header?.textContent).toContain("2 Linked");
-    const time = screen.getByText("Iterated July 1, 2026");
+    const time = screen.getByText("Tended July 1, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-01");
   });
@@ -728,7 +728,7 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "note",
-        stage: "sketch",
+        stage: "seedling",
         related: [neighbor("e1"), null],
         backlinks: null,
       }),
@@ -746,7 +746,7 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
       entry({
         kind: "demo",
         componentKey: "color-engine",
-        stage: "prototype",
+        stage: "budding",
         related: [neighbor("a")],
         backlinks: [neighbor("a"), neighbor("b"), neighbor("c")],
       }),
@@ -760,7 +760,7 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
       entry({
         kind: null,
         stage: null,
-        iterated: null,
+        tended: null,
         themeSeed: null,
         related: null,
         backlinks: null,
@@ -783,20 +783,20 @@ describe("EntryPage — demo template edges (QA)", () => {
       kind: "demo",
       componentKey: "color-engine",
       slug: "color-engine",
-      stage: "prototype",
+      stage: "budding",
       themeSeed: "oklch(0.7 0.15 70)",
       ...over,
     });
 
-  it("drops the iterated stamp (no <time>, no crash) when the authored date is malformed", async () => {
+  it("drops the tended stamp (no <time>, no crash) when the authored date is malformed", async () => {
     resolveComponentKeyMock.mockReturnValue(foundCanvas());
-    fetchMock.mockResolvedValueOnce(demoEntry({ iterated: "2026-99-99" }));
+    fetchMock.mockResolvedValueOnce(demoEntry({ tended: "2026-99-99" }));
     const { container } = render(
       await EntryPage({ params: params("color-engine") }),
     );
     expect(screen.getByTestId("canvas")).toBeInTheDocument();
     expect(container.querySelector("time")).toBeNull();
-    expect(screen.queryByText(/iterated/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/tended/)).not.toBeInTheDocument();
   });
 
   it("falls back to 'Untitled entry' for a demo whose title drifted to null", async () => {

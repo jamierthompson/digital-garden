@@ -14,8 +14,8 @@ interface DemoLayoutProps {
   readonly summary?: string | null;
   readonly kind?: string | null;
   readonly stage?: string | null;
-  /** The authored last-iterated date (ISO `YYYY-MM-DD`), for the meta readout. */
-  readonly iterated?: string | null;
+  /** The authored last-tended date (ISO `YYYY-MM-DD`), for the meta readout. */
+  readonly tended?: string | null;
   /** The resolved OKLCH seed readout (the same fact the featured cards print). */
   readonly seed?: string | null;
   /** Backlink hint — rendered only when positive. */
@@ -39,7 +39,7 @@ export default function DemoLayout({
   summary,
   kind,
   stage,
-  iterated,
+  tended,
   seed,
   linkCount,
   controls,
@@ -59,7 +59,7 @@ export default function DemoLayout({
             <EntryMeta
               kind={kind}
               stage={stage}
-              iterated={iterated}
+              tended={tended}
               seed={seed}
               linkCount={linkCount}
               color="muted-foreground"

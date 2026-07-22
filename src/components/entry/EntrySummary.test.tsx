@@ -29,16 +29,16 @@ describe("EntrySummary", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("renders the iterated date inside the meta readout as a <time> with the machine value", () => {
-    renderInList(<EntrySummary title="Update" iterated="2026-07-01" />);
-    const time = screen.getByText("Iterated July 1, 2026");
+  it("renders the tended date inside the meta readout as a <time> with the machine value", () => {
+    renderInList(<EntrySummary title="Update" tended="2026-07-01" />);
+    const time = screen.getByText("Tended July 1, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-01");
   });
 
   it("renders the stage as plain meta text — no badge treatment, no data-stage hook", () => {
-    renderInList(<EntrySummary title="Entry" stage="prototype" />);
-    const stage = screen.getByText("Prototype");
+    renderInList(<EntrySummary title="Entry" stage="budding" />);
+    const stage = screen.getByText("Budding");
     expect(stage).not.toHaveAttribute("data-stage");
     expect(stage.closest("p")).toHaveAttribute("data-variant", "meta");
   });
@@ -58,7 +58,7 @@ describe("EntrySummary", () => {
         slug={null}
         summary={null}
         stage={null}
-        iterated={null}
+        tended={null}
         linkCount={0}
       />,
     );
@@ -98,8 +98,8 @@ describe("EntrySummary", () => {
       <EntrySummary
         title="Ordered"
         summary="The summary."
-        stage="shipped"
-        iterated="2026-07-01"
+        stage="evergreen"
+        tended="2026-07-01"
         linkCount={2}
       />,
     );
