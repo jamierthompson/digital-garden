@@ -20,7 +20,7 @@ interface EntryMetaProps {
 
 /**
  * The meta readout every entry surface shares — the ONE way an entry's meta facts
- * render: `kind · stage · tended <date> · <seed> · N linked`, in that fixed order, each
+ * render: `kind · stage · tended <date> · <seed> · N related`, in that fixed order, each
  * fact only when present (a malformed date is dropped, a non-positive link count is
  * silence, an empty string is absence). Renders nothing at all when no fact survives.
  * Plain meta text by design — no badge/pill treatment. The `·` separators are generated in
@@ -73,7 +73,7 @@ export default function EntryMeta({
   }
   if (seedText) facts.push({ key: "seed", node: <span>{seedText}</span> });
   // Integer-gated, not just positive: GROQ's count() only emits integers, so a fractional
-  // or non-finite value is drifted data — silence, never "2.5 linked".
+  // or non-finite value is drifted data — silence, never "2.5 Related".
   if (
     typeof linkCount === "number" &&
     Number.isInteger(linkCount) &&

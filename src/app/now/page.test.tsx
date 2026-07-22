@@ -204,7 +204,7 @@ describe("NowPage — the linkCount hint reaches the row (#321 QA)", () => {
     expect(screen.getByText("1 Related")).toBeInTheDocument();
   });
 
-  it("shows NO hint for an unlinked update — zero renders nothing, never '0 linked'", async () => {
+  it("shows NO hint for an unlinked update — zero renders nothing, never '0 Related'", async () => {
     fetchMock.mockResolvedValueOnce([
       row({ _id: "a", title: "Lonely", slug: "lonely", linkCount: 0 }),
     ]);

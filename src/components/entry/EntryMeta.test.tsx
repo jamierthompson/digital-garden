@@ -15,7 +15,7 @@ const fullProps = {
 };
 
 describe("EntryMeta", () => {
-  it("renders every fact in the fixed order: kind · stage · tended · seed · linked", () => {
+  it("renders every fact in the fixed order: kind · stage · tended · seed · related", () => {
     const { container } = render(<EntryMeta {...fullProps} />);
     // Facts are the spans inside the track wrapper (p > track > fact).
     const facts = Array.from(container.querySelectorAll("p > span > span")).map(

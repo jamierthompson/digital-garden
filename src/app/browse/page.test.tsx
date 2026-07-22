@@ -190,7 +190,7 @@ describe("IndexPage (/browse) — the folded Index", () => {
     ]);
     render(await IndexPage());
     expect(screen.getByText(/3 related/i)).toBeInTheDocument();
-    // Zero links → no "0 linked" noise.
+    // Zero links → no "0 Related" noise.
     expect(screen.queryByText(/0 related/i)).toBeNull();
   });
 

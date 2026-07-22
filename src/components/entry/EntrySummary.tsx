@@ -25,7 +25,7 @@ interface EntrySummaryProps {
 /**
  * One entry in an editorial list — a `<li>` for the summary streams (the Index's sections,
  * the `/now` stream): linked title, summary, and the shared `EntryMeta` readout
- * (`stage · tended · N linked`), each rendered only when its field is present. Editorial
+ * (`stage · tended · N related`), each rendered only when its field is present. Editorial
  * ink only (the themed card treatment is `EntryCard`'s); composed from the primitives, so
  * the structure is fixed here and a design pass is token/value tweaks.
  */

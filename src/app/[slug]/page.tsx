@@ -136,7 +136,7 @@ export default async function EntryPage({ params }: EntryPageProps) {
   // `undefined` (never `""`): the keystone omits them so they inherit `:root`. The scope's
   // COLOR always comes from the page's `<html>` theme (inherited); this seed carries fonts only.
   // The header's backlink hint — counted from the SAME arrays `RelatedEntries` renders
-  // (one shared dedupe), so "N linked" and the Related list below agree by construction.
+  // (one shared dedupe), so "N Related" and the Related list below agree by construction.
   const linkCount = distinctNeighbors(
     entry._id,
     entry.related,

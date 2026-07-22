@@ -7,7 +7,7 @@ export interface NeighborDoc {
  * incoming `backlinks`, with the graph's ragged shapes washed out: a dangling reference
  * (dereferenced to `null`), a self-reference, and a both-directions duplicate each collapse
  * away. The ONE place this dedupe lives: `RelatedEntries` renders the result and the detail
- * header counts it, so the "N linked" hint and the Related list agree by construction.
+ * header counts it, so the "N Related" hint and the Related list agree by construction.
  */
 export function distinctNeighbors<T extends NeighborDoc>(
   currentId: string,

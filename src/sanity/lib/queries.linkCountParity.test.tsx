@@ -55,7 +55,7 @@ async function renderedRelatedCount(
 
 /**
  * QA (#318, cross-layer oracle): the Index's `linkCount` PROMISES the entry page's Related
- * list — "N linked" must equal the number of entries the reader finds after clicking
+ * list — "N Related" must equal the number of entries the reader finds after clicking
  * through. The suites in queries.test.ts pin each layer alone; this one executes BOTH real
  * queries against the SAME dataset and renders the real `RelatedEntries` with the detail
  * result, so any drift between the GROQ union (`array::unique` + `defined` + self filter)
@@ -137,7 +137,7 @@ describe("INDEX_QUERY linkCount ↔ RelatedEntries parity (#318 QA)", () => {
 });
 
 /**
- * #329 extends the same promise to the featured card: its "N linked" readout must equal the
+ * #329 extends the same promise to the featured card: its "N Related" readout must equal the
  * Related list on the entry's own detail page. Same oracle shape — both real queries executed
  * against ONE dataset, the real `RelatedEntries` rendered with the detail result.
  */
@@ -229,7 +229,7 @@ describe("FEATURED_QUERY linkCount ↔ RelatedEntries parity (#329)", () => {
 });
 
 /**
- * #321 extends the same promise to `/now`: a now row's "N linked" hint must equal the
+ * #321 extends the same promise to `/now`: a now row's "N Related" hint must equal the
  * Related list on the now-update's own detail page. Same oracle shape — both real queries
  * executed against ONE dataset, the real `RelatedEntries` rendered with the detail result —
  * so the two copies of the distinct-neighbor expression can't drift apart from the

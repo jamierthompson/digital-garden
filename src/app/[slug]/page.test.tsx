@@ -678,7 +678,7 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
     ...over,
   });
 
-  it("renders the FULL readout in the editorial header: kind · stage · tended · seed · N linked", async () => {
+  it("renders the FULL readout in the editorial header: kind · stage · tended · seed · N related", async () => {
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "essay",
