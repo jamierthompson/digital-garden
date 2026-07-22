@@ -63,9 +63,10 @@ describe("EntrySummary", () => {
       />,
     );
     const item = screen.getByRole("listitem");
-    // Just the heading — no time, no stage, no summary, no "0 linked".
+    // Just the heading — no time, no stage, no summary, no "0 Related". (The hint label
+    // renamed linked → Related; guard both so the assertion never goes vacuous again.)
     expect(item.querySelector("time")).toBeNull();
-    expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/(linked|related)/i)).not.toBeInTheDocument();
     expect(item.textContent).toBe("Bare");
   });
 
@@ -76,7 +77,7 @@ describe("EntrySummary", () => {
         <EntrySummary title="Nullish" linkCount={null} />
       </ul>,
     );
-    expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/(linked|related)/i)).not.toBeInTheDocument();
   });
 
   it("renders plain text for an empty-string slug — no dead link to '/'", () => {

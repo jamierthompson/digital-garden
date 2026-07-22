@@ -78,6 +78,9 @@ describe("EntryMeta", () => {
         <EntryMeta kind="note" linkCount={-2} />
       </>,
     );
+    // Guard the CURRENT label ("N Related") — the old /linked/i pattern went vacuous when
+    // the label renamed, so a rendered "0 Related" would have slipped past it.
+    expect(container.textContent).not.toMatch(/related/i);
     expect(container.textContent).not.toMatch(/linked/i);
   });
 
@@ -267,5 +270,42 @@ describe("EntryMeta — capitalize-in-content (owner ruling: display case = copy
     render(<EntryMeta kind="x" stage="y" />);
     expect(screen.getByText("X")).toBeInTheDocument();
     expect(screen.getByText("Y")).toBeInTheDocument();
+  });
+});
+
+// QA (stage-vocabulary rename): the garden stages renamed sketch/prototype/shipped →
+// seedling/budding/evergreen and the meta labels changed. These pin the renderer's contract
+// at the rename's edges — the drift shape a pre-rename document produces, and the new labels.
+describe("EntryMeta — stage-vocabulary rename (QA)", () => {
+  it.each(["seedling", "budding", "evergreen"])(
+    "renders the garden stage '%s' capitalized in content",
+    (stage) => {
+      render(<EntryMeta stage={stage} />);
+      const label = stage.charAt(0).toUpperCase() + stage.slice(1);
+      expect(screen.getByText(label).textContent).toBe(label);
+    },
+  );
+
+  it("renders a PRE-RENAME stage value from an unmigrated document as-is — never a throw, never silence", () => {
+    // The runtime contract is wider than the schema's union: a doc authored under the old
+    // vocabulary (or written raw via the API) can still arrive with stage "sketch". The
+    // never-throws posture keeps it visible verbatim rather than crashing or hiding the fact.
+    render(<EntryMeta kind="demo" stage="sketch" />);
+    expect(screen.getByText("Sketch")).toBeInTheDocument();
+  });
+
+  it("keeps the 'Last tended' label INSIDE the <time>, with the machine datetime staying the bare ISO date", () => {
+    // The label moved from "Tended <date>" to "Last tended <date>"; the label is part of the
+    // time element's content (one accessible phrase), while `datetime` must stay the ISO
+    // value untouched by the label change.
+    const { container } = render(<EntryMeta tended="2026-02-28" />);
+    const time = container.querySelector("time");
+    expect(time?.textContent).toBe("Last tended February 28, 2026");
+    expect(time).toHaveAttribute("datetime", "2026-02-28");
+  });
+
+  it("never renders '0 Related' — the zero-count silence holds under the NEW label", () => {
+    const { container } = render(<EntryMeta kind="note" linkCount={0} />);
+    expect(container.textContent).toBe("Note");
   });
 });

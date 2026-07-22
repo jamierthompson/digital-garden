@@ -210,7 +210,9 @@ describe("NowPage — the linkCount hint reaches the row (#321 QA)", () => {
     ]);
     render(await NowPage());
     expect(screen.getByRole("link", { name: /lonely/i })).toBeInTheDocument();
-    expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
+    // Both vocabularies: the hint now reads "N Related" — /linked/ alone went vacuous at
+    // the label rename, so a rendered "0 Related" would have slipped past it.
+    expect(screen.queryByText(/(linked|related)/i)).not.toBeInTheDocument();
   });
 
   it("survives a stale result shape with no linkCount at all — no hint, no crash", async () => {
@@ -227,7 +229,7 @@ describe("NowPage — the linkCount hint reaches the row (#321 QA)", () => {
     ]);
     render(await NowPage());
     expect(screen.getByRole("link", { name: /stale/i })).toBeInTheDocument();
-    expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/(linked|related)/i)).not.toBeInTheDocument();
   });
 });
 

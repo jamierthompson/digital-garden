@@ -200,7 +200,9 @@ describe("EntryCard — meta boundaries", () => {
   it("omits the backlink hint for zero, negative and non-integer link counts", () => {
     for (const linkCount of [0, -3, 1.5, Number.NaN]) {
       const { unmount } = renderCard(entry({ linkCount }));
-      expect(screen.queryByText(/linked$/i)).toBeNull();
+      // Both vocabularies: the hint now reads "N Related" — /linked$/i alone went vacuous
+      // at the label rename, so a rendered "0 Related" would have slipped past it.
+      expect(screen.queryByText(/(linked|related)$/i)).toBeNull();
       unmount();
     }
   });

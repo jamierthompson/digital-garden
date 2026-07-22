@@ -734,7 +734,9 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
       }),
     );
     render(await EntryPage({ params: params("an-entry") }));
-    expect(screen.queryByText(/linked/)).not.toBeInTheDocument();
+    // The hint reads "N Related" now — match the digit-bearing hint in either vocabulary
+    // (a bare /related/i would collide with the "Related" heading this test also rules out).
+    expect(screen.queryByText(/\d+ (linked|related)/i)).not.toBeInTheDocument();
     expect(
       screen.queryByRole("heading", { name: /related/i }),
     ).not.toBeInTheDocument();
@@ -772,6 +774,34 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
     const header = container.querySelector("article header");
     expect(header?.textContent).not.toContain("·");
     expect(header?.querySelector('[data-variant="meta"]')).toBeNull();
+  });
+});
+
+// QA (stage-vocabulary rename): a document authored under the PRE-RENAME schema can still
+// arrive through the live query path (a raw API write, a stale CDN payload, a missed
+// migration). Its shape today: `stage` holds an old value the union no longer names, and its
+// date lives in the dead `iterated` field — so the projected `tended` is null. The route's
+// never-throws posture must hold end to end.
+describe("EntryPage — a pre-rename document arriving live (stage-vocabulary QA)", () => {
+  it("renders an unmigrated doc (stage 'sketch', tended null, stray iterated) without throwing", async () => {
+    fetchMock.mockResolvedValueOnce(
+      entry({
+        kind: "note",
+        stage: "sketch",
+        tended: null,
+        iterated: "2026-01-05", // the dead field — nothing may read it
+        ...withBody,
+      }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("an-entry") }),
+    );
+    // The old stage stays visible verbatim (never-throws, never-hides) …
+    expect(screen.getByText("Sketch")).toBeInTheDocument();
+    // … and the dead `iterated` date must NOT leak into a <time> stamp: the tended fact is
+    // simply absent.
+    expect(container.querySelector("time")).toBeNull();
+    expect(screen.queryByText(/tended/i)).not.toBeInTheDocument();
   });
 });
 
