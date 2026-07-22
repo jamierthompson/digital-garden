@@ -68,7 +68,7 @@ export default function EntryMeta({
   if (tendedIso && tendedLabel) {
     facts.push({
       key: "tended",
-      node: <time dateTime={tendedIso}>Tended {tendedLabel}</time>,
+      node: <time dateTime={tendedIso}>Last tended {tendedLabel}</time>,
     });
   }
   if (seedText) facts.push({ key: "seed", node: <span>{seedText}</span> });
@@ -79,7 +79,7 @@ export default function EntryMeta({
     Number.isInteger(linkCount) &&
     linkCount > 0
   ) {
-    facts.push({ key: "links", node: <span>{linkCount} Linked</span> });
+    facts.push({ key: "links", node: <span>{linkCount} Related</span> });
   }
 
   if (facts.length === 0) return null;

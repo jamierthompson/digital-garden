@@ -24,9 +24,9 @@ describe("EntryMeta", () => {
     expect(facts).toEqual([
       "Demo",
       "Budding",
-      "Tended July 16, 2026",
+      "Last tended July 16, 2026",
       "oklch(0.66 0.2 350)",
-      "3 Linked",
+      "3 Related",
     ]);
   });
 
@@ -40,7 +40,7 @@ describe("EntryMeta", () => {
 
   it("stamps the tended fact as a real <time> carrying the machine value", () => {
     render(<EntryMeta tended="2026-07-16" />);
-    const time = screen.getByText("Tended July 16, 2026");
+    const time = screen.getByText("Last tended July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
   });
@@ -229,8 +229,8 @@ describe("EntryMeta — capitalize-in-content (owner ruling: display case = copy
     // The capital is in the actual text node — selection & AT get "Demo", not "demo".
     expect(screen.getByText("Demo").textContent).toBe("Demo");
     expect(screen.getByText("Evergreen").textContent).toBe("Evergreen");
-    expect(screen.getByText("Tended July 16, 2026")).toBeInTheDocument();
-    expect(screen.getByText("7 Linked").textContent).toBe("7 Linked");
+    expect(screen.getByText("Last tended July 16, 2026")).toBeInTheDocument();
+    expect(screen.getByText("7 Related").textContent).toBe("7 Related");
     // No module rule re-introduced the transform (would double-case / desync copy from display).
     expect(container.querySelector("p")?.className).not.toMatch(/uppercase/);
   });

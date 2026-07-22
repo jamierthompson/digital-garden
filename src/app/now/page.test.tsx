@@ -81,8 +81,8 @@ describe("Now page (Sanity-driven stream)", () => {
 
   it("stamps each update with its formatted UTC date", async () => {
     render(await NowPage());
-    expect(screen.getByText("Tended July 1, 2026")).toBeInTheDocument();
-    expect(screen.getByText("Tended June 15, 2026")).toBeInTheDocument();
+    expect(screen.getByText("Last tended July 1, 2026")).toBeInTheDocument();
+    expect(screen.getByText("Last tended June 15, 2026")).toBeInTheDocument();
   });
 
   it("keeps the nownownow.com footnote link", async () => {
@@ -163,7 +163,7 @@ describe("NowPage — edges & boundaries", () => {
     ]);
     render(await NowPage());
     // Formatted from `${iso}T00:00:00Z` with timeZone: "UTC" — Jan 1, not Dec 31.
-    const time = screen.getByText("Tended January 1, 2026");
+    const time = screen.getByText("Last tended January 1, 2026");
     expect(time.tagName.toLowerCase()).toBe("time");
     expect(time).toHaveAttribute("datetime", "2026-01-01");
   });
@@ -190,7 +190,7 @@ describe("NowPage — the linkCount hint reaches the row (#321 QA)", () => {
       row({ _id: "a", title: "Linked update", slug: "linked", linkCount: 3 }),
     ]);
     render(await NowPage());
-    expect(screen.getByText("3 Linked")).toBeInTheDocument();
+    expect(screen.getByText("3 Related")).toBeInTheDocument();
   });
 
   it("threads each row's OWN count — the hint is per-update, not shared", async () => {
@@ -200,8 +200,8 @@ describe("NowPage — the linkCount hint reaches the row (#321 QA)", () => {
       row({ _id: "b", title: "One", slug: "one", linkCount: 1 }),
     ]);
     render(await NowPage());
-    expect(screen.getByText("3 Linked")).toBeInTheDocument();
-    expect(screen.getByText("1 Linked")).toBeInTheDocument();
+    expect(screen.getByText("3 Related")).toBeInTheDocument();
+    expect(screen.getByText("1 Related")).toBeInTheDocument();
   });
 
   it("shows NO hint for an unlinked update — zero renders nothing, never '0 linked'", async () => {

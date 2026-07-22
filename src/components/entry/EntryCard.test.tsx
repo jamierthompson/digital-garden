@@ -83,10 +83,10 @@ describe("EntryCard", () => {
     );
     expect(screen.getByText("Demo")).toBeInTheDocument();
     expect(screen.getByText("Evergreen")).toBeInTheDocument();
-    const time = screen.getByText("Tended July 16, 2026");
+    const time = screen.getByText("Last tended July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
-    expect(screen.getByText("2 Linked")).toBeInTheDocument();
+    expect(screen.getByText("2 Related")).toBeInTheDocument();
   });
 
   it("shows only what it has when part of the meta is missing", () => {
@@ -207,7 +207,7 @@ describe("EntryCard — meta boundaries", () => {
 
   it("renders the hint for a positive count", () => {
     renderCard(entry({ linkCount: 2 }));
-    expect(screen.getByText("2 Linked")).toBeInTheDocument();
+    expect(screen.getByText("2 Related")).toBeInTheDocument();
   });
 });
 

@@ -31,7 +31,7 @@ describe("EntrySummary", () => {
 
   it("renders the tended date inside the meta readout as a <time> with the machine value", () => {
     renderInList(<EntrySummary title="Update" tended="2026-07-01" />);
-    const time = screen.getByText("Tended July 1, 2026");
+    const time = screen.getByText("Last tended July 1, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-01");
   });
@@ -48,7 +48,7 @@ describe("EntrySummary", () => {
       <EntrySummary title="Entry" summary="A short summary." linkCount={3} />,
     );
     expect(screen.getByText("A short summary.")).toBeInTheDocument();
-    expect(screen.getByText("3 Linked")).toBeInTheDocument();
+    expect(screen.getByText("3 Related")).toBeInTheDocument();
   });
 
   it("renders none of the optional pieces when their fields are absent or empty", () => {

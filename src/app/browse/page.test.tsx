@@ -189,9 +189,9 @@ describe("IndexPage (/browse) — the folded Index", () => {
       }),
     ]);
     render(await IndexPage());
-    expect(screen.getByText(/3 linked/i)).toBeInTheDocument();
+    expect(screen.getByText(/3 related/i)).toBeInTheDocument();
     // Zero links → no "0 linked" noise.
-    expect(screen.queryByText(/0 linked/i)).toBeNull();
+    expect(screen.queryByText(/0 related/i)).toBeNull();
   });
 
   it("stamps a dated row's tended fact as a <time> in the meta readout — and omits it when unauthored (#329 QA)", async () => {
@@ -206,10 +206,10 @@ describe("IndexPage (/browse) — the folded Index", () => {
       row({ _id: "b", kind: "note", title: "Undated", slug: "b" }),
     ]);
     render(await IndexPage());
-    const time = screen.getByText("Tended June 1, 2026");
+    const time = screen.getByText("Last tended June 1, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-06-01");
-    expect(screen.getAllByText(/Tended/)).toHaveLength(1);
+    expect(screen.getAllByText(/Last tended/)).toHaveLength(1);
   });
 
   it("gives every group section an accessible name wired to its heading id", async () => {

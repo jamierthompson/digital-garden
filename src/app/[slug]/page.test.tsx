@@ -424,7 +424,7 @@ describe("EntryPage — the demo template (sidebar + canvas)", () => {
     expect(screen.getByText("A summary.")).toBeInTheDocument();
     expect(screen.getByText("Demo")).toBeInTheDocument();
     expect(screen.getByText("Budding")).toBeInTheDocument();
-    expect(screen.getByText(/Tended July 16, 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/Last tended July 16, 2026/)).toBeInTheDocument();
     expect(screen.getByText("oklch(0.7 0.15 70)")).toBeInTheDocument();
     // The module's two surfaces, both slug-keyed.
     expect(screen.getByTestId("sidebar-controls")).toHaveAttribute(
@@ -696,8 +696,8 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
     expect(header?.textContent).toContain("Essay");
     expect(header?.textContent).toContain("Evergreen");
     expect(header?.textContent).toContain("oklch(0.66 0.2 350)");
-    expect(header?.textContent).toContain("2 Linked");
-    const time = screen.getByText("Tended July 1, 2026");
+    expect(header?.textContent).toContain("2 Related");
+    const time = screen.getByText("Last tended July 1, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-01");
   });
@@ -716,7 +716,7 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
       }),
     );
     render(await EntryPage({ params: params("an-entry") }));
-    expect(screen.getByText("2 Linked")).toBeInTheDocument();
+    expect(screen.getByText("2 Related")).toBeInTheDocument();
     const relatedList = screen
       .getByRole("heading", { name: /related/i })
       .closest("aside, section, nav, div")
@@ -752,7 +752,7 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
       }),
     );
     render(await EntryPage({ params: params("an-entry") }));
-    expect(screen.getByText("3 Linked")).toBeInTheDocument();
+    expect(screen.getByText("3 Related")).toBeInTheDocument();
   });
 
   it("the editorial header omits absent facts without stray separators (kindless drifted doc, no meta at all)", async () => {

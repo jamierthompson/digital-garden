@@ -26,12 +26,12 @@ describe("DemoLayout", () => {
     expect(screen.getByText("Demo")).toBeInTheDocument();
     expect(screen.getByText("Budding")).toBeInTheDocument();
     expect(screen.getByText("oklch(0.66 0.2 350)")).toBeInTheDocument();
-    expect(screen.getByText("2 Linked")).toBeInTheDocument();
+    expect(screen.getByText("2 Related")).toBeInTheDocument();
   });
 
   it("stamps the tended fact as a real <time> with the machine value", () => {
     render(<DemoLayout {...baseProps}>canvas</DemoLayout>);
-    const time = screen.getByText("Tended July 16, 2026");
+    const time = screen.getByText("Last tended July 16, 2026");
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", "2026-07-16");
   });
