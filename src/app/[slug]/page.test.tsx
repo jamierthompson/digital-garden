@@ -199,7 +199,7 @@ beforeEach(() => {
 });
 
 describe("EntryPage — the editorial template (note · essay · now)", () => {
-  it("renders a bare note prose-only: title + summary, NO scope threaded", async () => {
+  it("renders a bare note prose-only: title + body, summary NOT rendered, NO scope threaded", async () => {
     fetchMock.mockResolvedValueOnce(
       entry({ kind: "note", componentKey: null, ...withBody }),
     );
@@ -209,7 +209,10 @@ describe("EntryPage — the editorial template (note · essay · now)", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("A summary.")).toBeInTheDocument();
+    // The summary is teaser + meta-description copy only — it is NOT rendered on the editorial
+    // page (the lede is the body's own first paragraph, styled by EntryBody).
+    expect(screen.queryByText("A summary.")).not.toBeInTheDocument();
+    expect(screen.getByTestId("essay-body")).toBeInTheDocument();
     expect(container.querySelector("[data-entry]")).toBeNull();
     expect(screen.getByTestId("essay-body")).toHaveAttribute(
       "data-has-scope",
@@ -490,7 +493,8 @@ describe("EntryPage — the demo template (sidebar + canvas)", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("A seedling summary.")).toBeInTheDocument();
+    // Editorial template → the summary is not rendered (teaser/meta-description copy only).
+    expect(screen.queryByText("A seedling summary.")).not.toBeInTheDocument();
     expect(screen.queryByTestId("canvas")).not.toBeInTheDocument();
     expect(container.querySelector("article")).not.toBeNull();
     expect(resolveComponentKeyMock).not.toHaveBeenCalled();

@@ -13,7 +13,6 @@ import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 import RelatedEntries from "@/components/entry/RelatedEntries";
 import Heading from "@/components/typography/Heading";
-import Text from "@/components/typography/Text";
 import { resolveComponentKey } from "@/lib/resolvers/components";
 import { distinctNeighbors } from "@/lib/distinctNeighbors";
 import { space } from "@/lib/tokens";
@@ -216,16 +215,11 @@ export default async function EntryPage({ params }: EntryPageProps) {
       <article className={styles.article}>
         <Stack asChild gap={space(3)}>
           <header className={styles.header}>
+            {/* h1 → meta → body. The summary is NOT rendered here: on an editorial entry it is
+                teaser + meta-description copy only, and the lede is the body's own first
+                paragraph (styled by EntryBody), so rendering the summary too would restate the
+                opening. */}
             <Heading level={1}>{entry.title ?? "Untitled entry"}</Heading>
-            {entry.summary ? (
-              <Text
-                variant="lede"
-                color="muted-foreground"
-                className={styles.summary}
-              >
-                {entry.summary}
-              </Text>
-            ) : null}
             <EntryMeta
               kind={entry.kind}
               stage={entry.stage}
