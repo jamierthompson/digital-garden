@@ -21,10 +21,10 @@ export type EntryLoader = () => Promise<unknown>;
 // the shared→entry ban still holds everywhere else — no per-line disable needed.
 //
 // Each entry is a LITERAL `import()` per key (never templated) so the bundler can
-// code-split each entry module onto its own chunk.
-const ENTRY_LOADERS = {
-  "color-engine": () => import("@/entries/color-engine"),
-} satisfies Record<ComponentKey, EntryLoader>;
+// code-split each entry module onto its own chunk. Empty until a real module registers its
+// key in `COMPONENT_KEYS` — `ComponentKey` is `never`, so the `satisfies` is vacuously met and
+// stays as the drift guard for when the first module lands.
+const ENTRY_LOADERS = {} satisfies Record<ComponentKey, EntryLoader>;
 
 // Two variables, two jobs. `ENTRY_LOADERS` keeps its literal type so `satisfies`
 // enforces completeness against `ComponentKey`; `loaders` is the widened,

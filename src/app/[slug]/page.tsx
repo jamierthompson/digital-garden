@@ -110,8 +110,9 @@ export default async function EntryPage({ params }: EntryPageProps) {
 
   // Module gate — capability, not kind. A DECLARED `componentKey` must resolve for ANY kind:
   // a renamed/deleted module (drift) → `notFound()`, never a crash. NO `componentKey` →
-  // `resolution` is null → prose-only, not a 404 (a seedling demo keeps its key null until it
-  // ships; a note/essay simply never has one). The resolver is never consulted without a key.
+  // `resolution` is null → the entry renders without a module: an editorial kind is prose-only,
+  // and a demo renders its shell with an empty canvas (a coming-soon demo keeps its key null
+  // until a module ships). The resolver is never consulted without a key.
   const resolution = entry.componentKey
     ? resolveComponentKey(entry.componentKey)
     : null;
@@ -153,13 +154,10 @@ export default async function EntryPage({ params }: EntryPageProps) {
         }
       : undefined;
 
-  // ── DEMO template: sidebar + canvas, edge-to-edge, no prose article. ──
-  if (entry.kind === "demo" && entryModule) {
-    // A demo module without a Canvas has nothing to show — the same content→code drift as an
-    // unresolvable componentKey, contained the same way.
-    if (!Canvas) {
-      notFound();
-    }
+  // ── DEMO template: sidebar + canvas, edge-to-edge, no prose article. Rendered for EVERY demo,
+  //    with or without a module: a demo with no module (a coming-soon stub) shows its shell — the
+  //    header info + an empty canvas. It never falls back to the prose article. ──
+  if (entry.kind === "demo") {
     const demoSurface = (
       // Same last-resort containment as the editorial slots: a scope throw degrades to the
       // unthemed notice instead of blanking the route through its error boundary.
@@ -177,7 +175,8 @@ export default async function EntryPage({ params }: EntryPageProps) {
             linkCount={linkCount}
             controls={Sidebar ? <Sidebar slug={slug} /> : null}
           >
-            <Canvas slug={slug} />
+            {/* No module (or a module without a Canvas) → show nothing in the canvas. */}
+            {Canvas ? <Canvas slug={slug} /> : null}
           </DemoLayout>
         </EntryScope>
       </EntryScopeBoundary>

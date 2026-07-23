@@ -42,4 +42,15 @@
     padding: var(--space-inset);
     background: var(--background);
   }
+
+  /* Componentless-demo placeholder — centered in the canvas region (which stretches to the
+     row height via the container's `align-items: stretch`). A generic empty state, pending
+     the empty-state design pass. */
+  .empty {
+    display: flex;
+    block-size: 100%;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
 }

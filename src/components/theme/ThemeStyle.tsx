@@ -18,8 +18,8 @@ import type { ThemeDeclaration } from "@/lib/theme";
  *
  * `href` + `precedence` are the props that opt a `<style>` into React's `<head>` hoisting and
  * de-duplication. The value is a baked engine literal (`light-dark(oklch(…))`, no `<`/`>`), but
- * `</style>` breakout is refused defensively at this boundary — the `/color-engine` play path
- * feeds the same primitive, so a hostile seed must never be able to close the element.
+ * `</style>` breakout is refused defensively at this boundary — a future live "play" path would
+ * feed the same primitive, so a hostile seed must never be able to close the element.
  */
 export default function ThemeStyle({
   declarations,
@@ -41,8 +41,8 @@ export default function ThemeStyle({
 /**
  * A CSS declaration can't legitimately contain `<`/`>` (engine output is `light-dark(oklch(…))`),
  * so escape them as CSS code points — behavior-preserving on real values, but no seed can forge
- * `</style>` and close the element (the injection boundary for the `/color-engine` play path,
- * which feeds this same primitive live-recomputed declarations).
+ * `</style>` and close the element (the injection boundary for a future live "play" path that
+ * would feed this same primitive live-recomputed declarations).
  */
 function cssSafe(text: string): string {
   return text.replace(

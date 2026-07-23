@@ -4,7 +4,7 @@
  * The sibling axis to `scheme.ts` (the binary light ⇄ dark choice). Where a scheme is a
  * client-known preference (read from `localStorage`, so it MUST be an inline script that reads
  * storage), a page's theme seed is **author-set and server-known** — every visitor sees the
- * authored intent, there is no play override outside `/color-engine`, and theming carries no
+ * authored intent, there is no client-side play override today, and theming carries no
  * `localStorage`. So the server BAKES the resolved values into CSS; first paint is the easy case:
  *
  *   • Hard load / refresh — the page renders the declarations as a `:root { … }` `<style>`
@@ -59,9 +59,9 @@ export function resolveThemeDeclarations(
 /**
  * Parse an already-built `TokenSet` into the imperative `<html>` declarations — the tail of the
  * same pipeline `resolveThemeDeclarations` runs, split out so a caller that already holds a
- * derived token set stamps the SAME declarations the authored path bakes. `/color-engine`'s
- * ephemeral play path holds a live, rules-/gamut-treated palette (`derivePalette(...).tokenSet`)
- * and drives this directly, so its client re-stamp and the server's baked theme can never drift.
+ * derived token set stamps the SAME declarations the authored path bakes. A future ephemeral
+ * play path could hold a live, rules-/gamut-treated palette (`derivePalette(...).tokenSet`) and
+ * drive this directly, so its client re-stamp and the server's baked theme can never drift.
  */
 export function tokenSetToThemeDeclarations(
   tokenSet: TokenSet,

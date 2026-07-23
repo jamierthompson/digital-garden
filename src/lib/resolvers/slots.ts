@@ -16,16 +16,9 @@ export type SlotLoader = () => Promise<unknown>;
 // `satisfies Record<SlotKey, SlotLoader>` makes a missing loader a compile
 // error the moment a key is added to `SLOT_KEYS`. Each value is a LITERAL
 // lazy import per key — never templated (a templated import defeats bundler static analysis).
-const SLOT_LOADERS = {
-  "color-engine-seed": () => import("@/entries/color-engine/slots/SeedSlot"),
-  "color-engine-rules": () => import("@/entries/color-engine/slots/RulesSlot"),
-  "color-engine-tokens": () =>
-    import("@/entries/color-engine/slots/TokensSlot"),
-  "color-engine-preview": () =>
-    import("@/entries/color-engine/slots/PreviewSlot"),
-  "color-engine-export": () =>
-    import("@/entries/color-engine/slots/ExportSlot"),
-} satisfies Record<SlotKey, SlotLoader>;
+// Empty until a slot registers its key in `SLOT_KEYS` — `SlotKey` is `never`, so the
+// `satisfies` is vacuously met and stays as the drift guard.
+const SLOT_LOADERS = {} satisfies Record<SlotKey, SlotLoader>;
 
 // Two variables, two jobs. `SLOT_LOADERS` keeps its literal type so `satisfies`
 // enforces completeness against `SlotKey`; `loaders` is the widened, string-keyed

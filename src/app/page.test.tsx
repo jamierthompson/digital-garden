@@ -9,8 +9,8 @@ const { FEATURED_FIXTURE, fetchMock } = vi.hoisted(() => ({
   FEATURED_FIXTURE: [
     {
       _id: "1",
-      title: "Color Engine",
-      slug: "color-engine",
+      title: "Demo Sample",
+      slug: "demo-sample",
       kind: "demo",
       stage: "seedling",
       summary: "A seed in, a solved palette out.",
@@ -130,9 +130,9 @@ describe("Home (featured front door)", () => {
     expect(
       screen.getByRole("heading", { name: /featured/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /color engine/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /demo sample/i })).toHaveAttribute(
       "href",
-      "/color-engine",
+      "/demo-sample",
     );
     expect(screen.getByRole("link", { name: /feature lens/i })).toHaveAttribute(
       "href",

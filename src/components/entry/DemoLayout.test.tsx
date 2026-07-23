@@ -51,6 +51,26 @@ describe("DemoLayout", () => {
     expect(screen.getByTestId("the-canvas")).toBeInTheDocument();
   });
 
+  it("shows a generic placeholder in the canvas when there are no children (componentless demo)", () => {
+    render(<DemoLayout title="Coming soon" />);
+    expect(
+      screen.getByRole("heading", { level: 1, name: /coming soon/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/this demo is being built/i)).toBeInTheDocument();
+  });
+
+  it("renders the module's canvas children instead of the placeholder when present", () => {
+    render(
+      <DemoLayout title="Live demo">
+        <div data-testid="the-canvas">canvas</div>
+      </DemoLayout>,
+    );
+    expect(screen.getByTestId("the-canvas")).toBeInTheDocument();
+    expect(
+      screen.queryByText(/this demo is being built/i),
+    ).not.toBeInTheDocument();
+  });
+
   it("omits every absent fact without leaving empty rows", () => {
     render(
       <DemoLayout title="Bare">

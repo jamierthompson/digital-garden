@@ -40,18 +40,18 @@ const BODY = [
   {
     _type: "slot",
     _key: "e1",
-    slotKey: "color-engine-seed",
+    slotKey: "demo-sample-seed",
     caption: "seed caption",
   },
   {
     _type: "slot",
     _key: "e2",
-    slotKey: "color-engine-tokens",
+    slotKey: "demo-sample-tokens",
   },
 ] as unknown as Body;
 
 const SCOPE: ScopeSeed = {
-  slug: "color-engine",
+  slug: "demo-sample",
   bodyFont: "space-grotesk",
 };
 
@@ -61,8 +61,8 @@ describe("EntryBody", () => {
     render(<EntryBody value={BODY} scope={SCOPE} />);
     expect(screen.getAllByTestId("slot")).toHaveLength(2);
     expect(captured.map((p) => p.slotKey)).toEqual([
-      "color-engine-seed",
-      "color-engine-tokens",
+      "demo-sample-seed",
+      "demo-sample-tokens",
     ]);
     for (const props of captured) {
       expect(props.scope).toEqual(SCOPE);
@@ -114,7 +114,7 @@ describe("EntryBody", () => {
 
     it("promotes the first PARAGRAPH even when a non-paragraph block precedes it", () => {
       const withLeadingSlot = [
-        { _type: "slot", _key: "e0", slotKey: "color-engine-seed" },
+        { _type: "slot", _key: "e0", slotKey: "demo-sample-seed" },
         ...PROSE,
       ] as unknown as Body;
       render(<EntryBody value={withLeadingSlot} />);
@@ -129,8 +129,8 @@ describe("EntryBody", () => {
 
     it("promotes no lede when the body has no paragraph at all (only slots)", () => {
       const noProse = [
-        { _type: "slot", _key: "e1", slotKey: "color-engine-seed" },
-        { _type: "slot", _key: "e2", slotKey: "color-engine-tokens" },
+        { _type: "slot", _key: "e1", slotKey: "demo-sample-seed" },
+        { _type: "slot", _key: "e2", slotKey: "demo-sample-tokens" },
       ] as unknown as Body;
       const { container } = render(<EntryBody value={noProse} />);
       expect(container.querySelector('[data-variant="lede"]')).toBeNull();
@@ -313,7 +313,7 @@ describe("EntryBody", () => {
           url: "https://cdn.sanity.io/files/p/d/reel.mp4",
           caption: "Clip",
         },
-        { _type: "slot", _key: "e1", slotKey: "color-engine-seed" },
+        { _type: "slot", _key: "e1", slotKey: "demo-sample-seed" },
         { _type: "quote", _key: "q1", text: "Quoted.", attribution: "Author" },
         { _type: "unknownBlock", _key: "u1" },
       ] as unknown as Body;
@@ -331,7 +331,7 @@ describe("EntryBody", () => {
       expect(screen.getByText("Quoted.").closest("blockquote")).not.toBeNull();
       expect(screen.getByTestId("slot")).toHaveAttribute(
         "data-slot-key",
-        "color-engine-seed",
+        "demo-sample-seed",
       );
       expect(captured[0]?.scope).toEqual(SCOPE);
     });

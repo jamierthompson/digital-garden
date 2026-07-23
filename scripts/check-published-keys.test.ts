@@ -216,13 +216,13 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
       _type: "entry",
       kind: "essay",
       stage: "evergreen",
-      componentKey: "color-engine",
+      componentKey: "demo-sample",
       theme: {
         color: "#123456",
         bodyFont: "newsreader",
         monoFont: "jetbrains-mono",
       },
-      body: [...PROSE, { _type: "slot", slotKey: "color-engine-seed" }],
+      body: [...PROSE, { _type: "slot", slotKey: "demo-sample-seed" }],
     },
     {
       _id: "essay-seedling",
@@ -237,7 +237,7 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
       _type: "entry",
       kind: "demo",
       stage: "budding",
-      componentKey: "color-engine",
+      componentKey: "demo-sample",
       theme: { color: "#123456" },
     },
     { _id: "settings", _type: "siteSettings" },
@@ -268,8 +268,8 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
 
   it("keeps componentKeys / slotKeys and the telemetry + slotKey-canary counts intact", async () => {
     const result = await runQuery(DATASET);
-    expect(result.componentKeys).toEqual(["color-engine"]);
-    expect(result.slotKeys).toEqual(["color-engine-seed"]);
+    expect(result.componentKeys).toEqual(["demo-sample"]);
+    expect(result.slotKeys).toEqual(["demo-sample-seed"]);
     expect(result.entryCount).toBe(4);
     expect(result.siteSettingsCount).toBe(1);
     expect(result.slotBlockCount).toBe(1);

@@ -42,7 +42,7 @@ describe("POST /api/revalidate", () => {
   it("revalidates `sanity:<_type>` + the `sanity` catch-all on a valid signature", async () => {
     parseBodySpy.mockResolvedValue({
       isValidSignature: true,
-      body: { _type: "entry", _id: "e1", slug: "color-engine" },
+      body: { _type: "entry", _id: "e1", slug: "demo-sample" },
     });
 
     const res = await POST(fakeReq);
@@ -152,7 +152,7 @@ describe("POST /api/revalidate", () => {
     // misconfigured projection would send.
     parseBodySpy.mockResolvedValue({
       isValidSignature: true,
-      body: { _id: "p1", slug: "color-engine" },
+      body: { _id: "p1", slug: "demo-sample" },
     });
 
     const res = await POST(fakeReq);

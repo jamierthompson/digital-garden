@@ -18,10 +18,29 @@ vi.mock("next/font/google", () => ({
   JetBrains_Mono: () => ({ variable: "mock-jetbrains-mono" }),
 }));
 
+// No slots are registered in the app today, so the resolved-slot path is exercised through a
+// mocked resolver: "test-slot" resolves to a marker component, everything else is NotFound (the
+// real resolution helpers, so `isNotFound` in SlotBlock still narrows correctly).
+vi.mock("@/lib/resolvers/slots", async () => {
+  const { found, notFound } = await vi.importActual<
+    typeof import("@/lib/resolvers/resolution")
+  >("@/lib/resolvers/resolution");
+  return {
+    resolveSlotKey: (key: string) =>
+      key === "test-slot"
+        ? found(() =>
+            Promise.resolve({
+              default: () => <div>resolved slot content</div>,
+            }),
+          )
+        : notFound("slot", key),
+  };
+});
+
 import SlotBlock from "./SlotBlock";
 
 const SCOPE = {
-  slug: "color-engine",
+  slug: "demo-x",
   bodyFont: "space-grotesk",
 };
 
@@ -59,13 +78,13 @@ describe("SlotBlock", () => {
 
   it("mounts a resolved slot inside its OWN [data-entry] scope when given one", async () => {
     const { container } = render(
-      await SlotBlock({ slotKey: "color-engine-seed", scope: SCOPE }),
+      await SlotBlock({ slotKey: "test-slot", scope: SCOPE }),
     );
-    const scoped = container.querySelector('[data-entry="color-engine"]');
+    const scoped = container.querySelector('[data-entry="demo-x"]');
     expect(scoped).not.toBeNull();
-    // The slot (the registered Color Engine surface, now the rebuild-placeholder type specimen)
-    // renders inside the scope — proving the per-slot scoping through the real resolver pipeline.
-    expect(scoped?.textContent).toMatch(/being rebuilt/i);
+    // The resolved slot renders inside the scope — proving the per-slot scoping through the
+    // resolver → await → mount pipeline.
+    expect(scoped?.textContent).toMatch(/resolved slot content/i);
   });
 
   it("stamps the wide lane by default and honors an authored full/prose lane", async () => {
@@ -76,7 +95,7 @@ describe("SlotBlock", () => {
       ["sidebar;}hostile", "wide"],
     ] as const) {
       const { container, unmount } = render(
-        await SlotBlock({ slotKey: "color-engine-seed", lane: authored }),
+        await SlotBlock({ slotKey: "test-slot", lane: authored }),
       );
       expect(
         container.querySelector("figure"),
@@ -87,18 +106,16 @@ describe("SlotBlock", () => {
   });
 
   it("mounts a resolved slot bare (no scope container) when no scope is given", async () => {
-    const { container } = render(
-      await SlotBlock({ slotKey: "color-engine-seed" }),
-    );
+    const { container } = render(await SlotBlock({ slotKey: "test-slot" }));
     expect(container.querySelector("[data-entry]")).toBeNull();
-    // Still renders the resolved slot (the rebuild-placeholder type specimen).
-    expect(screen.getByText(/being rebuilt/i)).toBeInTheDocument();
+    // Still renders the resolved slot.
+    expect(screen.getByText(/resolved slot content/i)).toBeInTheDocument();
   });
 
   it("renders the caption OUTSIDE the theme scope, in the editorial figure", async () => {
     const { container } = render(
       await SlotBlock({
-        slotKey: "color-engine-seed",
+        slotKey: "test-slot",
         caption: "A caption in the essay voice",
         scope: SCOPE,
       }),
@@ -113,7 +130,7 @@ describe("SlotBlock", () => {
 
   it("renders no figcaption at all when the caption is absent", async () => {
     const { container } = render(
-      await SlotBlock({ slotKey: "color-engine-seed", scope: SCOPE }),
+      await SlotBlock({ slotKey: "test-slot", scope: SCOPE }),
     );
     expect(container.querySelector("figcaption")).toBeNull();
   });
@@ -122,7 +139,7 @@ describe("SlotBlock", () => {
   it("renders no figcaption for an empty-string caption", async () => {
     const { container } = render(
       await SlotBlock({
-        slotKey: "color-engine-seed",
+        slotKey: "test-slot",
         caption: "",
         scope: SCOPE,
       }),
@@ -133,7 +150,7 @@ describe("SlotBlock", () => {
   it("wears the caption role on the figcaption itself (asChild Slot merge intact)", async () => {
     render(
       await SlotBlock({
-        slotKey: "color-engine-seed",
+        slotKey: "test-slot",
         caption: "A caption in the essay voice",
         scope: SCOPE,
       }),

@@ -29,37 +29,19 @@ describe("key contracts", () => {
     ]);
   });
 
-  it("COMPONENT_KEYS is a unique set holding the landed entry modules", () => {
-    // The first real coded module is the Color Engine (#70); its key is registered here
-    // and mapped to a literal dynamic import in the components resolver.
+  it("COMPONENT_KEYS is empty — no entry modules are registered yet", () => {
+    // No coded module has landed. The registry stays (with its `satisfies` guard) so the first
+    // real module just adds its key here.
+    expect(COMPONENT_KEYS).toEqual([]);
     expect(new Set(COMPONENT_KEYS).size).toBe(COMPONENT_KEYS.length);
-    expect(COMPONENT_KEYS).toContain("color-engine");
-    for (const key of COMPONENT_KEYS) expect(typeof key).toBe("string");
   });
 
-  it("SLOT_KEYS holds exactly the published slot-key values (#250 rename)", () => {
-    // These VALUES are stored data: published `slot` blocks carry them as free-text
-    // `slotKey` strings, so the vocabulary rename must never touch them. Dropping or
-    // renaming one silently degrades a published essay to the MissingSlot placeholder —
-    // a deliberate content migration, not a refactor. This pin makes it show up in review.
-    expect([...SLOT_KEYS].sort()).toEqual([
-      "color-engine-export",
-      "color-engine-preview",
-      "color-engine-rules",
-      "color-engine-seed",
-      "color-engine-tokens",
-    ]);
-  });
-
-  it("SLOT_KEYS is a unique set holding the Color Engine's slots (#131)", () => {
-    // The first real slots: the Color Engine's slots, interleaved through its entry's
-    // prose. Every key is mapped to a literal dynamic import in the slots resolver.
+  it("SLOT_KEYS is empty — no in-essay slots are registered yet", () => {
+    // No slots are registered. Registering one means adding its key here; a `slotKey` on a
+    // published block that matches nothing renders the serializer's missing-slot placeholder
+    // rather than crashing.
+    expect(SLOT_KEYS).toEqual([]);
     expect(new Set(SLOT_KEYS).size).toBe(SLOT_KEYS.length);
-    expect(SLOT_KEYS.length).toBeGreaterThan(0);
-    for (const key of SLOT_KEYS) {
-      expect(typeof key).toBe("string");
-      expect(key).toMatch(/^color-engine-/);
-    }
   });
 
   it("isFontKey narrows known keys and rejects unknown ones", () => {
@@ -68,12 +50,12 @@ describe("key contracts", () => {
     expect(isFontKey("")).toBe(false);
   });
 
-  it("isComponentKey narrows the registered key and rejects unknown ones", () => {
-    expect(isComponentKey("color-engine")).toBe(true);
-    expect(isComponentKey("first-light")).toBe(false);
-    expect(isComponentKey("log-explorer")).toBe(false);
-    // Unknown slot keys miss.
-    expect(isSlotKey("sunrise-meter")).toBe(false);
-    expect(isSlotKey("hue-slider")).toBe(false);
+  it("isComponentKey and isSlotKey reject every key while the registries are empty", () => {
+    for (const key of ["first-light", "log-explorer", "any-module", ""]) {
+      expect(isComponentKey(key)).toBe(false);
+    }
+    for (const key of ["sunrise-meter", "hue-slider", "any-slot", ""]) {
+      expect(isSlotKey(key)).toBe(false);
+    }
   });
 });

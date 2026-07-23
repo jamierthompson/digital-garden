@@ -35,34 +35,29 @@ export type FontKey = (typeof FONT_KEYS)[number];
  * a matching loader entry (compile error if missing).
  *
  * `componentKey` is capability-gated, not kind-gated: any kind — `now` included — can declare
- * one. An entry with no `componentKey` renders prose-only (a seedling demo carrying a
- * `theme.color` but no key yet, or an unkeyed note/essay); an entry that declares its key
- * here has the resolver map it to a literal dynamic import. `componentKey` is OPTIONAL for
- * every kind, mounting purely on presence (#226 removed the required-past-seedling
- * validator); a declared key that fails to resolve is a `notFound()` for any kind. The first
- * real module is the Color Engine (#70).
+ * one. An entry with no `componentKey` renders prose-only for an editorial kind, or the demo
+ * shell with an empty canvas for a demo; an entry that declares its key here has the resolver
+ * map it to a literal dynamic import. `componentKey` is OPTIONAL for every kind, mounting purely
+ * on presence (#226 removed the required-past-seedling validator); a declared key that fails to
+ * resolve is a `notFound()` for any kind.
+ *
+ * No modules are registered yet — the array is empty, so `ComponentKey` is `never` and every
+ * `componentKey` resolves to `NotFound`. Register a real module by adding its key here; the
+ * `satisfies Record<ComponentKey, …>` on `ENTRY_LOADERS` then forces a matching loader.
  */
-export const COMPONENT_KEYS = [
-  "color-engine",
-] as const satisfies readonly string[];
+export const COMPONENT_KEYS = [] as const satisfies readonly string[];
 export type ComponentKey = (typeof COMPONENT_KEYS)[number];
 
 /**
  * Slot keys — in-essay live components / widgets, resolved in
- * `src/lib/resolvers/slots.ts`. The registry starts single-tier; a
+ * `src/lib/resolvers/slots.ts`. The registry starts single-tier; an
  * entry-local tier is added only on a genuine second use.
  *
- * The `color-engine-*` keys are the Color Engine's slots (#131): the Color Engine composes
- * as an editorial page whose prose interleaves these slots, each in its own theme-scoped
- * container, sharing state through the module's `Provider`.
+ * No slots are registered yet — the array is empty, so `SlotKey` is `never` and every `slotKey`
+ * resolves to `NotFound` (the serializer renders its missing-slot placeholder). Register a slot
+ * by adding its key here; the `satisfies Record<SlotKey, …>` on `SLOT_LOADERS` forces a loader.
  */
-export const SLOT_KEYS = [
-  "color-engine-seed",
-  "color-engine-rules",
-  "color-engine-tokens",
-  "color-engine-preview",
-  "color-engine-export",
-] as const satisfies readonly string[];
+export const SLOT_KEYS = [] as const satisfies readonly string[];
 export type SlotKey = (typeof SLOT_KEYS)[number];
 
 const FONT_KEY_SET: ReadonlySet<string> = new Set(FONT_KEYS);
