@@ -1,0 +1,22 @@
+/* Entry teaser — the fused title + summary paragraph. @layer components — declares its layer (an
+   unlayered module outranks every layered rule). Layout + decoration only: the type and ink come
+   from the composed Heading/Text role primitives, never re-authored here. */
+@layer components {
+  .teaser {
+    /* One editorial paragraph — balance the rag across the title run-in and the summary. */
+    text-wrap: pretty;
+  }
+
+  /* The title is a real heading (kept in the outline) rendered as an inline run-in, so the summary
+     continues it as one paragraph. The primitives set no display/margin, so this wins over the UA
+     block defaults with no specificity fight. */
+  .title {
+    display: inline;
+    margin: 0;
+  }
+
+  /* The inline run-in emphasis. */
+  .emphasis {
+    font-style: italic;
+  }
+}
