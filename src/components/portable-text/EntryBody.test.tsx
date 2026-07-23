@@ -157,6 +157,79 @@ describe("EntryBody", () => {
         "lede",
       );
     });
+
+    // QA — list-nesting regression. `EntryBody` derives `firstProseIndex` from the RAW `value`
+    // array (`value.findIndex`), but `@portabletext/react` (v6) passes each block serializer an
+    // `index` into the `nestLists(blocks)` array, where consecutive list items collapse into one
+    // synthetic list node. Two consequences:
+    //   1. A list item is itself a `_type: "block"` with `style: "normal"`, so `findIndex` can
+    //      MATCH a list item — pinning `firstProseIndex` on something that never routes through
+    //      the `block.normal` serializer.
+    //   2. Even when it lands on a real paragraph, any list before that paragraph shifts the
+    //      serializer's `index` below the raw index, so the equality check misses.
+    // Net: a body whose first paragraph is preceded by a list silently loses its lede.
+    const LIST_ITEM = (key: string, text: string) => ({
+      _type: "block",
+      _key: key,
+      style: "normal",
+      listItem: "bullet",
+      level: 1,
+      markDefs: [],
+      children: [{ _type: "span", _key: `${key}s`, text, marks: [] }],
+    });
+
+    it("promotes the first paragraph even when a bulleted list precedes it", () => {
+      const listFirst = [
+        LIST_ITEM("l1", "bullet one"),
+        LIST_ITEM("l2", "bullet two"),
+        ...PROSE,
+      ] as unknown as Body;
+      render(<EntryBody value={listFirst} />);
+      expect(screen.getByText("The lede.").closest("p")).toHaveAttribute(
+        "data-variant",
+        "lede",
+      );
+      expect(screen.getByText("The rest.").closest("p")).not.toHaveAttribute(
+        "data-variant",
+      );
+    });
+
+    it("promotes the first paragraph after a heading + list preamble", () => {
+      const preamble = [
+        {
+          _type: "block",
+          _key: "h1",
+          style: "h2",
+          markDefs: [],
+          children: [
+            { _type: "span", _key: "hs", text: "A heading.", marks: [] },
+          ],
+        },
+        LIST_ITEM("l1", "bullet one"),
+        ...PROSE,
+      ] as unknown as Body;
+      render(<EntryBody value={preamble} />);
+      expect(screen.getByText("The lede.").closest("p")).toHaveAttribute(
+        "data-variant",
+        "lede",
+      );
+    });
+
+    it("still promotes a leading paragraph that is followed by a list (control — passes today)", () => {
+      const paraThenList = [
+        PROSE[0],
+        LIST_ITEM("l1", "bullet one"),
+        PROSE[1],
+      ] as unknown as Body;
+      render(<EntryBody value={paraThenList} />);
+      expect(screen.getByText("The lede.").closest("p")).toHaveAttribute(
+        "data-variant",
+        "lede",
+      );
+      expect(screen.getByText("The rest.").closest("p")).not.toHaveAttribute(
+        "data-variant",
+      );
+    });
   });
 
   // A body prose block can carry the default Sanity `link` annotation. The serializer routes it

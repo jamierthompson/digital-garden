@@ -47,22 +47,29 @@ interface EntryBodyProps {
  * here, not in the route.
  */
 export default function EntryBody({ value, scope }: EntryBodyProps) {
-  // The lede is the body's OWN first paragraph — the first `normal`-style text block — rendered a
-  // step up in size (the `lede` role) from the surrounding prose, same editorial ink. It is not
-  // the `summary` (teaser + meta-description copy, no longer rendered on the page) and not a schema
-  // field; it's derived here so an editor never maintains a parallel intro. Editorial-only by
-  // construction: a demo has no body, so this serializer never runs for one. A body with no
-  // paragraph at all (only figures/quotes/slots) promotes nothing — `index` stays -1, matching no
-  // block.
-  const firstProseIndex = value.findIndex(
+  // The lede is the body's OWN first paragraph — the first `normal`-style block that is NOT a list
+  // item — rendered a step up in size (the `lede` role) from the surrounding prose, same editorial
+  // ink. It is not the `summary` (teaser + meta-description copy, no longer rendered on the page)
+  // and not a schema field; it's derived here so an editor never maintains a parallel intro.
+  // Editorial-only by construction: a demo has no body, so this serializer never runs for one.
+  //
+  // Matched by stable `_key`, NOT array index: @portabletext/react collapses consecutive list
+  // items into one synthetic list node (`nestLists`) before rendering, so the `index` its block
+  // serializer receives diverges from this raw array whenever the body holds a list — a list ahead
+  // of the first paragraph would drop the lede. `listItem` blocks are skipped too: they carry
+  // `style: "normal"` but render through the list serializer, never `block.normal`. A body with no
+  // paragraph at all leaves `firstProseKey` undefined, so the guard never fires (nothing promoted).
+  const firstProseKey = value.find(
     (block) =>
-      block._type === "block" && (block.style ?? "normal") === "normal",
-  );
+      block._type === "block" &&
+      !block.listItem &&
+      (block.style ?? "normal") === "normal",
+  )?._key;
 
   const components: PortableTextComponents = {
     block: {
-      normal: ({ children, index }) =>
-        index === firstProseIndex ? (
+      normal: ({ children, value: block }) =>
+        firstProseKey !== undefined && block._key === firstProseKey ? (
           <Text variant="lede" asChild>
             <p>{children}</p>
           </Text>
