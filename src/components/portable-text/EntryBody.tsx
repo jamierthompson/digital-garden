@@ -1,6 +1,7 @@
 import { PortableText, type PortableTextComponents } from "next-sanity";
 
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
+import Text from "@/components/typography/Text";
 import TextLink from "@/components/ui/TextLink";
 
 // TypeGen output lives at the repo root (the `@/*` alias maps to `src/`, so it can't cover
@@ -46,7 +47,29 @@ interface EntryBodyProps {
  * here, not in the route.
  */
 export default function EntryBody({ value, scope }: EntryBodyProps) {
+  // The lede is the body's OWN first paragraph — the first `normal`-style text block — rendered a
+  // step up in size (the `lede` role) from the surrounding prose, same editorial ink. It is not
+  // the `summary` (teaser + meta-description copy, no longer rendered on the page) and not a schema
+  // field; it's derived here so an editor never maintains a parallel intro. Editorial-only by
+  // construction: a demo has no body, so this serializer never runs for one. A body with no
+  // paragraph at all (only figures/quotes/slots) promotes nothing — `index` stays -1, matching no
+  // block.
+  const firstProseIndex = value.findIndex(
+    (block) =>
+      block._type === "block" && (block.style ?? "normal") === "normal",
+  );
+
   const components: PortableTextComponents = {
+    block: {
+      normal: ({ children, index }) =>
+        index === firstProseIndex ? (
+          <Text variant="lede" asChild>
+            <p>{children}</p>
+          </Text>
+        ) : (
+          <p>{children}</p>
+        ),
+    },
     marks: {
       // The default link annotation renders through the shared inline-link primitive so body
       // links wear the editorial accent treatment, not the UA default ink. Deliberately

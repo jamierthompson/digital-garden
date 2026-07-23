@@ -80,10 +80,83 @@ describe("EntryBody", () => {
     }
   });
 
-  it("renders the prose blocks as plain paragraphs alongside the slots", () => {
+  it("renders the prose blocks as paragraphs alongside the slots", () => {
     render(<EntryBody value={BODY} scope={SCOPE} />);
     const p = screen.getByText("Editorial prose.");
     expect(p.closest("p")).not.toBeNull();
+  });
+
+  describe("the lede — the body's first paragraph", () => {
+    const PROSE = [
+      {
+        _type: "block",
+        _key: "b1",
+        style: "normal",
+        markDefs: [],
+        children: [{ _type: "span", _key: "s1", text: "The lede.", marks: [] }],
+      },
+      {
+        _type: "block",
+        _key: "b2",
+        style: "normal",
+        markDefs: [],
+        children: [{ _type: "span", _key: "s2", text: "The rest.", marks: [] }],
+      },
+    ] as unknown as Body;
+
+    it("styles the first paragraph as the lede (variant=lede), the rest as plain prose", () => {
+      render(<EntryBody value={PROSE} />);
+      const lede = screen.getByText("The lede.").closest("p");
+      const rest = screen.getByText("The rest.").closest("p");
+      expect(lede).toHaveAttribute("data-variant", "lede");
+      expect(rest).not.toHaveAttribute("data-variant");
+    });
+
+    it("promotes the first PARAGRAPH even when a non-paragraph block precedes it", () => {
+      const withLeadingSlot = [
+        { _type: "slot", _key: "e0", slotKey: "color-engine-seed" },
+        ...PROSE,
+      ] as unknown as Body;
+      render(<EntryBody value={withLeadingSlot} />);
+      expect(screen.getByText("The lede.").closest("p")).toHaveAttribute(
+        "data-variant",
+        "lede",
+      );
+      expect(screen.getByText("The rest.").closest("p")).not.toHaveAttribute(
+        "data-variant",
+      );
+    });
+
+    it("promotes no lede when the body has no paragraph at all (only slots)", () => {
+      const noProse = [
+        { _type: "slot", _key: "e1", slotKey: "color-engine-seed" },
+        { _type: "slot", _key: "e2", slotKey: "color-engine-tokens" },
+      ] as unknown as Body;
+      const { container } = render(<EntryBody value={noProse} />);
+      expect(container.querySelector('[data-variant="lede"]')).toBeNull();
+    });
+
+    it("does not treat a heading as the lede — only a normal paragraph", () => {
+      const headingFirst = [
+        {
+          _type: "block",
+          _key: "h1",
+          style: "h2",
+          markDefs: [],
+          children: [
+            { _type: "span", _key: "hs", text: "A heading.", marks: [] },
+          ],
+        },
+        ...PROSE,
+      ] as unknown as Body;
+      render(<EntryBody value={headingFirst} />);
+      // The h2 is not promoted; the first normal paragraph still is.
+      expect(screen.getByText("A heading.").closest("p")).toBeNull();
+      expect(screen.getByText("The lede.").closest("p")).toHaveAttribute(
+        "data-variant",
+        "lede",
+      );
+    });
   });
 
   // A body prose block can carry the default Sanity `link` annotation. The serializer routes it
