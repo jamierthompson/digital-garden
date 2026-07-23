@@ -98,8 +98,8 @@ export const ENTRY_DETAIL_QUERY = defineQuery(`
         asset->{ _id, metadata { lqip, dimensions } }
       }
     },
-    related[]->{ _id, title, "slug": slug.current, kind },
-    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind }
+    related[]->{ _id, title, "slug": slug.current, kind, summary },
+    "backlinks": *[_type == "entry" && references(^._id)]{ _id, title, "slug": slug.current, kind, summary }
   }
 `);
 

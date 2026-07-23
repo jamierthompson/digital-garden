@@ -20,12 +20,25 @@
     color: var(--foreground);
   }
 
+  /* Each item stacks the teaser paragraph over its meta readout. The wrapper (not the `li`)
+     flexes, so the list marker survives. */
   .row {
-    /* Component token — the gap between the title and its kind label. */
-    --related-kind-gap: var(--space-2);
+    /* Component token — the gap between the teaser and its kind readout. */
+    --related-row-gap: var(--space-1);
     display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    column-gap: var(--related-kind-gap);
+    flex-direction: column;
+    row-gap: var(--related-row-gap);
+    align-items: start;
+  }
+
+  /* The RelatedEntries-only summary trim — this is the one surface that clamps; everywhere else
+     the full summary shows. It clamps the whole fused paragraph, so the (short, first) title
+     always shows and the summary fills the remaining lines. */
+  .teaserClamp {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
   }
 }
