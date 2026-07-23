@@ -1,6 +1,5 @@
-import Link from "next/link";
-
 import EntryMeta from "@/components/entry/EntryMeta";
+import EntryTeaser from "@/components/entry/EntryTeaser";
 import Heading from "@/components/typography/Heading";
 import { distinctNeighbors } from "@/lib/distinctNeighbors";
 
@@ -11,6 +10,7 @@ interface RelatedEntry {
   title: string | null;
   slug: string | null;
   kind: string | null;
+  summary: string | null;
 }
 
 interface RelatedEntriesProps {
@@ -31,9 +31,11 @@ interface RelatedEntriesProps {
  * a both-directions duplicate — wash out in `distinctNeighbors`, the same dedupe the detail
  * header's link count reads, so the two surfaces agree by construction.
  *
- * Titles link to the entry's flat detail route (`/<slug>`), each with its `kind` beside it
- * (the shared `EntryMeta` readout). An entry with no resolvable slug renders as plain text,
- * never a dead link.
+ * Each row is the shared `EntryTeaser` — the entry's title fused with its summary as one
+ * paragraph, linking to the flat detail route (`/<slug>`) — over its `kind` (the shared
+ * `EntryMeta` readout). This is the ONE surface that trims the summary (a line-clamp on the
+ * teaser); everywhere else the full summary shows. An entry with no resolvable slug renders as
+ * plain text, never a dead link.
  */
 export default function RelatedEntries({
   currentId,
@@ -72,13 +74,13 @@ export default function RelatedEntries({
             {/* The row is an inner wrapper so the `li` keeps its list marker (flex on the
                 `li` itself would drop it). */}
             <div className={styles.row}>
-              {entry.slug ? (
-                <Link href={`/${entry.slug}`}>
-                  {entry.title ?? "Untitled entry"}
-                </Link>
-              ) : (
-                (entry.title ?? "Untitled entry")
-              )}
+              <EntryTeaser
+                title={entry.title}
+                summary={entry.summary}
+                slug={entry.slug}
+                level={3}
+                className={styles.teaserClamp}
+              />
               <EntryMeta kind={entry.kind} color="muted-foreground" />
             </div>
           </li>

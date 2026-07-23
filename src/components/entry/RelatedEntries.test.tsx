@@ -14,6 +14,7 @@ const entry = (over: Record<string, unknown> = {}) => ({
   title: "Title",
   slug: "some-slug",
   kind: "note",
+  summary: null,
   ...over,
 });
 
@@ -255,6 +256,104 @@ describe("RelatedEntries", () => {
     );
   });
 
+  it("renders each entry's summary continuing its title, with the link naming only the title", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[
+          entry({
+            _id: "a",
+            title: "One seed color in.",
+            slug: "oklch",
+            summary: "The engine solves the whole ramp.",
+          }),
+        ]}
+        backlinks={null}
+      />,
+    );
+    // The whole row reads as one paragraph — title (run-in), then the summary continuing it.
+    expect(
+      screen.getByText("The engine solves the whole ramp."),
+    ).toBeInTheDocument();
+    // …but the link's accessible name is the title alone, not the summary.
+    expect(
+      screen.getByRole("link", { name: "One seed color in." }),
+    ).toHaveAttribute("href", "/oklch");
+  });
+
+  it("renders each row title as a level-3 heading under the level-2 'Related' heading", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[
+          entry({ _id: "a", title: "Row one", slug: "r1" }),
+          entry({ _id: "b", title: "Row two", slug: "r2" }),
+        ]}
+        backlinks={null}
+      />,
+    );
+    // The outline holds end-to-end: one h2 section heading, one h3 per row.
+    expect(
+      screen.getByRole("heading", { level: 2, name: /related/i }),
+    ).toBeInTheDocument();
+    const rowHeadings = screen.getAllByRole("heading", { level: 3 });
+    expect(rowHeadings.map((h) => h.textContent)).toEqual([
+      "Row one",
+      "Row two",
+    ]);
+  });
+
+  it("names the link with the neutral fallback for an untitled entry — no nameless link", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[
+          entry({ _id: "a", title: null, slug: "untitled" }),
+          entry({ _id: "b", title: "   ", slug: "blank" }),
+        ]}
+        backlinks={null}
+      />,
+    );
+    // null AND whitespace-only titles both resolve to the fallback as the ACCESSIBLE name.
+    const links = screen.getAllByRole("link", { name: "Untitled entry" });
+    expect(links.map((l) => l.getAttribute("href"))).toEqual([
+      "/untitled",
+      "/blank",
+    ]);
+  });
+
+  it("renders an empty-string slug as plain text end-to-end — no dead link to '/'", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[entry({ _id: "a", title: "No route", slug: "" })]}
+        backlinks={null}
+      />,
+    );
+    expect(screen.getByText("No route")).toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("keeps the link name unambiguous when an entry's summary repeats its title", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[
+          entry({
+            _id: "a",
+            title: "Echo.",
+            slug: "echo",
+            summary: "Echo.",
+          }),
+        ]}
+        backlinks={null}
+      />,
+    );
+    const link = screen.getByRole("link", { name: "Echo." });
+    expect(link.textContent).toBe("Echo.");
+    expect(link).toHaveAttribute("href", "/echo");
+  });
+
   it("renders no kind label for a kindless (drifted) entry — title only, no stray meta row", () => {
     render(
       <RelatedEntries
@@ -290,5 +389,16 @@ describe("the label's ink travels via the color prop, not CSS", () => {
     expect(ruleDeclarations(RELATED_CSS, ".item").get("color")).toBe(
       "var(--foreground)",
     );
+  });
+
+  it("owns the summary trim here — the one surface that clamps (the atom itself is trim-agnostic)", () => {
+    // The clamp is passed to EntryTeaser as a className, so the atom stays trim-free and every
+    // other teaser surface shows the full summary. Guard that the clamp lives in THIS module —
+    // value-agnostic, because the line count is a live-tuned knob.
+    const clamp = ruleDeclarations(RELATED_CSS, ".teaserClamp");
+    expect(clamp.has("line-clamp") || clamp.has("-webkit-line-clamp")).toBe(
+      true,
+    );
+    expect(clamp.get("overflow")).toBe("hidden");
   });
 });
