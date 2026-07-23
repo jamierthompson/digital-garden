@@ -43,12 +43,12 @@ for schema and GROQ specifics.
    default `siteSettings.theme`, the ONE required seed on the site); the three
    font faces (`theme.headingFont` / `bodyFont` / `monoFont`) **and** `componentKey` are likewise
    **unconditionally optional**, theming/mounting purely on **presence** for every kind but `now`
-   (#226 deleted the `requiredForNonSketchProject` validator — a prose-only evergreen demo is valid —
-   and #253 deleted `requiredForThemedKind`).
+   (#226 deleted the `requiredForNonSketchProject` validator — a moduleless evergreen demo is valid,
+   rendering the demo shell — and #253 deleted `requiredForThemedKind`).
    A `now` carries no theme of its own (it inherits the `/now` page seed). Flag a backlink stored as a
    string/slug, a one-directional link that can't resolve the incoming side, the site default
    `siteSettings.theme.color` made optional, a per-entry `theme.color` required floor re-added, or a
-   face / `componentKey` made required for any kind (breaks prose-only
+   face / `componentKey` made required for any kind (breaks moduleless-demo
    and note/essay/now authoring).
 
 4. **Stega off the whole `theme` object.** `theme` (`color` / `colorDark` + the three font faces) feeds

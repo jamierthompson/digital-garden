@@ -52,9 +52,8 @@ export default function DemoLayout({
       <div className={styles.sidebar}>
         <Stack asChild gap={space(4)}>
           <header>
-            {/* A demo has no body, so its summary IS its prose — the fused teaser is the header.
-                The summary is teaser body text, NOT a lede: the atom renders it as `body`, never
-                the `lede` role. No slug: this IS the demo's page, so the title is plain text. */}
+            {/* A demo has no body, so its summary IS its prose — rendered as `body` by the atom,
+                never a `lede`. No slug: this is the demo's own page, so the title is plain text. */}
             <EntryTeaser title={title} summary={summary} level={1} />
             <EntryMeta
               kind={kind}
@@ -70,8 +69,7 @@ export default function DemoLayout({
       </div>
       <div className={styles.canvas}>
         {children ?? (
-          // Componentless demo (a coming-soon stub): the canvas shows a generic placeholder
-          // rather than nothing. The empty-state design pass will refine this later.
+          // Componentless demo (a coming-soon stub): a generic placeholder, not a blank canvas.
           <div className={styles.empty}>
             <Text color="muted-foreground">This demo is being built.</Text>
           </div>

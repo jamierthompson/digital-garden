@@ -756,13 +756,13 @@ An entry renders as a single `/[slug]` page on one of **two templates, branched 
   `slots/*`), each in its own theme scope. `now` is editorial with one exception: it never wears
   its own `theme` — it keeps the shared `/now` seed (colors AND type), so its slots mount
   slug-keyed with the Now theme's faces.
-- **Demo** (`kind === "demo"` with a resolved module): a two-region app layout (`DemoLayout`,
+- **Demo** (`kind === "demo"`, always): a two-region app layout (`DemoLayout`,
   `src/components/entry/`) — **sidebar + canvas**, edge-to-edge in the content grid's `full`
   lane, no prose article (the summary is the demo's prose). **Hybrid sidebar:** the page renders
   the entry's info (title, summary, and the shared `EntryMeta` readout: kind · stage · tended ·
   seed · link count) — DRY across demos —
-  and the module contributes its controls below. A seedling demo (no `componentKey`) falls back to
-  the editorial template, prose-only.
+  and the module contributes its controls below. A demo with no module (or one lacking a `Canvas`)
+  shows the shell with an empty-canvas coming-soon placeholder, never the editorial prose column.
 
 The registry entry (the `EntryModule` contract, `src/entries/types.ts`) exports up to three
 members — a compile error enforces a mountable one (`Provider` and/or `Canvas`):
@@ -964,8 +964,8 @@ Practical notes:
   `[data-entry]` scope (and mounts its
   `slot`s in their own scoped containers, exactly as a demo's slots do); a present
   `componentKey` resolves and mounts the coded module — a declared key that fails to resolve is a
-  `notFound()` for any kind, and no key at all renders prose-only (a seedling demo renders
-  prose-only, never a 404). **A module mount always implies a scope seed** — the route builds the
+  `notFound()` for any kind, and no key at all renders prose-only for an editorial kind (a
+  componentless demo renders its empty-canvas shell, never a 404). **A module mount always implies a scope seed** — the route builds the
   `ScopeSeed` whenever an entry _mounts a module_ (any kind) or a _non-`now`_ entry _themes_
   (`(!now && theme.color) || a resolvable componentKey`), always **keyed on the entry's own
   slug**, with each absent `theme.headingFont` / `bodyFont` / `monoFont` passed as `undefined`
@@ -980,8 +980,8 @@ Practical notes:
   `theme.color` is **optional for every kind** (#253) — an entry that authors none wears the
   authored site default (`siteSettings.theme`), so each page still derives its theme from an
   authored seed. `componentKey` is likewise **optional and mounts on presence for every kind**
-  (a `demo` past the seedling stage is no longer forced to name a module — a prose-only demo is
-  valid — and a `note`/`essay`/`now` that sets a `componentKey` mounts it), and the three `theme`
+  (a `demo` past the seedling stage is no longer forced to name a module — a moduleless demo is
+  valid, rendering the shell — and a `note`/`essay`/`now` that sets a `componentKey` mounts it), and the three `theme`
   face keys are optional and theme on presence for every kind but `now`. A `now`
   update can hold slots and modules like any editorial entry, but it **never wears its own
   theme**: it **cannot set its own `theme.color`** (the whole `theme` object

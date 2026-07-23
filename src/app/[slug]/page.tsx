@@ -33,16 +33,16 @@ import styles from "./page.module.css";
 //     column — chrome + the entry's article, with interactive `slot` blocks interleaved through
 //     the prose (`SlotBlock`), each in its own theme scope, sharing state through the module's
 //     `Provider` frame.
-//   • DEMO (`kind === "demo"` with a resolved module): the sidebar + canvas app layout
-//     (`DemoLayout`), edge-to-edge in the grid's `full` lane. Hybrid sidebar: the page renders
-//     the entry's info; the module contributes its `Sidebar` controls and owns the `Canvas`.
-//     A demo has no prose article — its summary is the prose. A seedling demo (no componentKey)
-//     falls back to the editorial template, prose-only.
+//   • DEMO (`kind === "demo"`, always): the sidebar + canvas app layout (`DemoLayout`),
+//     edge-to-edge in the grid's `full` lane. Hybrid sidebar: the page renders the entry's info;
+//     the module contributes its `Sidebar` controls and owns the `Canvas`. A demo has no prose
+//     article — its summary is the prose. A demo with no module (or one lacking a `Canvas`) shows
+//     the shell with an empty canvas (a coming-soon stub), never the editorial prose column.
 //
 // CAPABILITY-gated within each template:
 //   • Module — a `componentKey` DECLARES a coded module: present → resolve it for ANY kind; a
-//     renamed/deleted module (drift) → `notFound()`. NO `componentKey` → prose-only, never a
-//     404. A demo whose resolved module lacks `Canvas` is the same drift.
+//     renamed/deleted module (drift) → `notFound()`. NO `componentKey` → an editorial kind is
+//     prose-only and a demo is its empty-canvas shell, never a 404.
 //   • Theming — a `theme.color`: present → build the scope seed so each slot (or the demo
 //     surface) mounts in its own scoped container. `now` is the ONE theming exception: it wears
 //     the shared `/now` seed (the query's kind-gated rung) and its slots keep the Now theme's
@@ -154,9 +154,9 @@ export default async function EntryPage({ params }: EntryPageProps) {
         }
       : undefined;
 
-  // ── DEMO template: sidebar + canvas, edge-to-edge, no prose article. Rendered for EVERY demo,
-  //    with or without a module: a demo with no module (a coming-soon stub) shows its shell — the
-  //    header info + an empty canvas. It never falls back to the prose article. ──
+  // ── DEMO template: sidebar + canvas, edge-to-edge, no prose article. EVERY demo renders it — a
+  //    componentless demo (a coming-soon stub) shows the shell (header + empty canvas), never a
+  //    prose fallback. ──
   if (entry.kind === "demo") {
     const demoSurface = (
       // Same last-resort containment as the editorial slots: a scope throw degrades to the
@@ -207,8 +207,8 @@ export default async function EntryPage({ params }: EntryPageProps) {
     );
   }
 
-  // ── EDITORIAL template: the prose reading column (note · essay · now — and a seedling demo
-  //    or unknown kind, which degrade here prose-only). ──
+  // ── EDITORIAL template: the prose reading column (note · essay · now — and any kind the code
+  //    doesn't know, which degrades here prose-only; a demo is handled by the branch above). ──
   const article = (
     <ContentGrid asChild>
       <article className={styles.article}>

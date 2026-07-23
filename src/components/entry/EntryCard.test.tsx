@@ -299,12 +299,13 @@ const SCHEMES = ["light", "dark"] as const;
 
 /**
  * The card's measured relationships, as `[label, ink token, background token, floor]`.
- * Each names a real declaration in `EntryCard.module.css` / `EntryCard.tsx`.
+ * Each names a real declaration in `EntryCard.module.css` or the ink the composed
+ * `EntryTeaser` / `EntryMeta` primitives wear on the card.
  */
 const PAIRS = [
-  // `.card { background: var(--surface) }` + `<Heading level={3}>` inheriting `--foreground`.
+  // `.card { background: var(--surface) }` + the teaser title wearing `--foreground`.
   ["card title ink on the plate", "foreground", "surface", TEXT_FLOOR],
-  // `<Text color="muted-foreground">` summary and the `EntryMeta` readout, on the same plate.
+  // The teaser summary and the `EntryMeta` readout wearing `--muted-foreground`, on the same plate.
   [
     "card summary/meta ink on the plate",
     "muted-foreground",

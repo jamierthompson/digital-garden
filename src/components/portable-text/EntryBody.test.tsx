@@ -158,16 +158,10 @@ describe("EntryBody", () => {
       );
     });
 
-    // QA — list-nesting regression. `EntryBody` derives `firstProseIndex` from the RAW `value`
-    // array (`value.findIndex`), but `@portabletext/react` (v6) passes each block serializer an
-    // `index` into the `nestLists(blocks)` array, where consecutive list items collapse into one
-    // synthetic list node. Two consequences:
-    //   1. A list item is itself a `_type: "block"` with `style: "normal"`, so `findIndex` can
-    //      MATCH a list item — pinning `firstProseIndex` on something that never routes through
-    //      the `block.normal` serializer.
-    //   2. Even when it lands on a real paragraph, any list before that paragraph shifts the
-    //      serializer's `index` below the raw index, so the equality check misses.
-    // Net: a body whose first paragraph is preceded by a list silently loses its lede.
+    // A list before the first paragraph must not lose the lede. `@portabletext/react` renders
+    // through `nestLists()`, so a block serializer's index diverges from the raw array once a list
+    // appears — hence the lede is matched by `_key`, and list items (also `style: "normal"`) are
+    // skipped. These pin that.
     const LIST_ITEM = (key: string, text: string) => ({
       _type: "block",
       _key: key,
@@ -215,7 +209,7 @@ describe("EntryBody", () => {
       );
     });
 
-    it("still promotes a leading paragraph that is followed by a list (control — passes today)", () => {
+    it("still promotes a leading paragraph that is followed by a list (control)", () => {
       const paraThenList = [
         PROSE[0],
         LIST_ITEM("l1", "bullet one"),

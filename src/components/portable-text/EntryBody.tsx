@@ -54,11 +54,10 @@ export default function EntryBody({ value, scope }: EntryBodyProps) {
   // Editorial-only by construction: a demo has no body, so this serializer never runs for one.
   //
   // Matched by stable `_key`, NOT array index: @portabletext/react collapses consecutive list
-  // items into one synthetic list node (`nestLists`) before rendering, so the `index` its block
-  // serializer receives diverges from this raw array whenever the body holds a list — a list ahead
-  // of the first paragraph would drop the lede. `listItem` blocks are skipped too: they carry
-  // `style: "normal"` but render through the list serializer, never `block.normal`. A body with no
-  // paragraph at all leaves `firstProseKey` undefined, so the guard never fires (nothing promoted).
+  // items into one synthetic node (`nestLists`) before rendering, so a block serializer's `index`
+  // diverges from this raw array once the body holds a list — which would drop the lede. List-item
+  // blocks are skipped: they carry `style: "normal"` but render through the list serializer, not
+  // `block.normal`.
   const firstProseKey = value.find(
     (block) =>
       block._type === "block" &&
