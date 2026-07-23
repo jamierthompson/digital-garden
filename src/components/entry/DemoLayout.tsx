@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
 
 import EntryMeta from "@/components/entry/EntryMeta";
+import EntryTeaser from "@/components/entry/EntryTeaser";
 import Stack from "@/components/layout/Stack";
-import Heading from "@/components/typography/Heading";
-import Text from "@/components/typography/Text";
 import { space } from "@/lib/tokens";
 
 import styles from "./DemoLayout.module.css";
@@ -50,12 +49,10 @@ export default function DemoLayout({
       <div className={styles.sidebar}>
         <Stack asChild gap={space(4)}>
           <header>
-            <Heading level={1}>{title}</Heading>
-            {summary ? (
-              <Text variant="lede" color="muted-foreground">
-                {summary}
-              </Text>
-            ) : null}
+            {/* A demo has no body, so its summary IS its prose — the fused teaser is the header.
+                The summary is teaser body text, NOT a lede: the atom renders it as `body`, never
+                the `lede` role. No slug: this IS the demo's page, so the title is plain text. */}
+            <EntryTeaser title={title} summary={summary} level={1} />
             <EntryMeta
               kind={kind}
               stage={stage}

@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 
 import EntryMeta from "@/components/entry/EntryMeta";
-import Heading from "@/components/typography/Heading";
-import Text from "@/components/typography/Text";
+import EntryTeaser from "@/components/entry/EntryTeaser";
 import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
 
 import styles from "./EntryCard.module.css";
@@ -31,22 +30,16 @@ interface EntryCardProps {
  * summary/meta) — one seed paints a page, so a grid of cards shares the page theme's palette
  * and stays legible by construction.
  *
- * Three type registers, journal-style: display title, serif summary, and the shared
- * `EntryMeta` meta readout. Defensive: a slugless entry degrades to a non-link card (never a
+ * The shared `EntryTeaser` fuses the title and summary into one paragraph; the shared `EntryMeta`
+ * reads out the facts below it. Defensive: a slugless entry degrades to a non-link card (never a
  * dead link); a missing title falls back to a neutral label; missing meta simply omits the row.
+ * The whole card is the link (`HoverPrefetchLink`), so the teaser renders its title as plain text
+ * with NO slug of its own — a per-title link here would nest an `<a>` inside the card's `<a>`.
  */
 export default function EntryCard({ entry }: EntryCardProps) {
-  // Nullish-coalescing isn't enough: a blank Studio field serialises to "" (a valid string),
-  // which would render an empty <h3> — a nameless heading in the outline and a link whose
-  // accessible name silently degrades to the summary. Treat blank/whitespace-only as missing.
-  const title = entry.title?.trim() ? entry.title : "Untitled entry";
-
   const body: ReactNode = (
     <>
-      <Heading level={3}>{title}</Heading>
-      {entry.summary ? (
-        <Text color="muted-foreground">{entry.summary}</Text>
-      ) : null}
+      <EntryTeaser title={entry.title} summary={entry.summary} level={3} />
       <EntryMeta
         kind={entry.kind}
         stage={entry.stage}

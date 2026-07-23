@@ -972,21 +972,40 @@ describe("the entry page's heading ink rule (CSS source)", () => {
     expect([...vars].filter((v) => v.includes("accent"))).toEqual([]);
   });
 
-  it("spends no color on the entry h1 — neutral ink, no color prop", () => {
-    // The former accent-text display exception is revoked; a re-added color prop on either
-    // entry h1 mount has to change this test, not just a line.
-    for (const file of [
-      "src/app/[slug]/page.tsx",
-      "src/components/entry/DemoLayout.tsx",
-    ]) {
-      const source = readFileSync(resolve(process.cwd(), file), "utf8");
-      const h1Mounts = source.match(/<Heading level=\{1\}[^>]*/g) ?? [];
-      expect(h1Mounts.length, `${file} mounts an h1`).toBeGreaterThan(0);
-      for (const mount of h1Mounts) {
-        expect(mount, `${file} h1 must carry no color prop`).not.toContain(
-          "color=",
-        );
-      }
+  it("spends no accent ink on the editorial detail h1 — neutral ink, no color prop", () => {
+    // The former accent-text display exception is revoked; a re-added color prop on the
+    // editorial entry h1 has to change this test, not just a line. (The demo detail h1 flows
+    // through EntryTeaser — covered separately below.)
+    const source = readFileSync(
+      resolve(process.cwd(), "src/app/[slug]/page.tsx"),
+      "utf8",
+    );
+    const h1Mounts = source.match(/<Heading level=\{1\}[^>]*/g) ?? [];
+    expect(h1Mounts.length, "page.tsx mounts an h1").toBeGreaterThan(0);
+    for (const mount of h1Mounts) {
+      expect(mount, "page.tsx h1 must carry no color prop").not.toContain(
+        "color=",
+      );
     }
+  });
+
+  it("routes the demo detail h1 through EntryTeaser — its summary is body text, never a lede", () => {
+    // The demo header's title is the fused EntryTeaser (title + summary as one paragraph), not
+    // a bare display <Heading> with the summary dressed as a lede. The atom renders the summary
+    // as `body`, so summary ≠ lede is honoured here, and the revoked accent-display exception
+    // can't creep back either. Pinned at the mount.
+    const source = readFileSync(
+      resolve(process.cwd(), "src/components/entry/DemoLayout.tsx"),
+      "utf8",
+    );
+    expect(source).not.toMatch(/<Heading level=\{1\}/);
+    expect(source).toMatch(/<EntryTeaser[^>]*level=\{1\}/);
+    expect(
+      source,
+      "demo header must not style the summary as a lede",
+    ).not.toMatch(/variant="lede"/);
+    expect(source, "demo header must spend no accent ink").not.toContain(
+      "accent",
+    );
   });
 });

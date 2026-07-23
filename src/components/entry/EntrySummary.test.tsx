@@ -94,7 +94,7 @@ describe("EntrySummary", () => {
     expect(item.textContent).toBe("Empty");
   });
 
-  it("orders the row title → summary → meta readout", () => {
+  it("orders the row fused teaser → meta readout", () => {
     renderInList(
       <EntrySummary
         title="Ordered"
@@ -106,9 +106,11 @@ describe("EntrySummary", () => {
     );
     const item = screen.getByRole("listitem");
     const children = Array.from(item.children);
-    expect(children[0].tagName).toBe("H3");
-    expect(children[1].textContent).toBe("The summary.");
-    expect(children[2]).toHaveAttribute("data-variant", "meta");
+    // The fused teaser paragraph is first — the h3 title run-in and its summary as one run of
+    // text — then the meta readout.
+    expect(children[0].querySelector("h3")).not.toBeNull();
+    expect(children[0].textContent).toBe("Ordered The summary.");
+    expect(children[1]).toHaveAttribute("data-variant", "meta");
   });
 
   describe("adversarial QA", () => {
