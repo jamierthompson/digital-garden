@@ -1,10 +1,10 @@
 /* EntrySummary — one entry in an editorial list. @layer components — declares its layer (an
    unlayered module outranks every layered rule); var-consuming only (global editorial semantic
-   tokens, no per-entry theme). Layout comes from the primitives and static ink from their
-   `color` prop — these rules own only the measure cap (the linked title's ink is
-   `ui/TextLink`'s, the meta line is `EntryMeta`'s). */
+   tokens, no per-entry theme). Layout and ink come from the composed `EntryTeaser` / `EntryMeta`
+   primitives — these rules own only the measure cap that keeps the fused teaser paragraph a
+   readable line length. */
 @layer components {
-  .summary {
+  .teaser {
     max-width: var(--type-body-measure);
   }
 }

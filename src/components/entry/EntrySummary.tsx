@@ -1,10 +1,6 @@
-import Link from "next/link";
-
 import EntryMeta from "@/components/entry/EntryMeta";
+import EntryTeaser from "@/components/entry/EntryTeaser";
 import Stack from "@/components/layout/Stack";
-import Heading from "@/components/typography/Heading";
-import Text from "@/components/typography/Text";
-import TextLink from "@/components/ui/TextLink";
 import { space } from "@/lib/tokens";
 
 import styles from "./EntrySummary.module.css";
@@ -24,10 +20,10 @@ interface EntrySummaryProps {
 
 /**
  * One entry in an editorial list — a `<li>` for the summary streams (the Index's sections,
- * the `/now` stream): linked title, summary, and the shared `EntryMeta` readout
- * (`stage · tended · N related`), each rendered only when its field is present. Editorial
- * ink only (the themed card treatment is `EntryCard`'s); composed from the primitives, so
- * the structure is fixed here and a design pass is token/value tweaks.
+ * the `/now` stream): the shared `EntryTeaser` (title fused with its summary, linking to the
+ * flat `/[slug]`) over the shared `EntryMeta` readout (`stage · tended · N related`), each
+ * rendered only when its field is present. Editorial ink only (the themed card treatment is
+ * `EntryCard`'s); the teaser's measure is capped here so the paragraph stays a readable line.
  */
 export default function EntrySummary({
   title,
@@ -40,20 +36,13 @@ export default function EntrySummary({
   return (
     <Stack asChild gap={space(2)}>
       <li>
-        <Heading level={3}>
-          {slug ? (
-            <TextLink variant="quiet" asChild>
-              <Link href={`/${slug}`}>{title}</Link>
-            </TextLink>
-          ) : (
-            title
-          )}
-        </Heading>
-        {summary ? (
-          <Text color="muted-foreground" className={styles.summary}>
-            {summary}
-          </Text>
-        ) : null}
+        <EntryTeaser
+          title={title}
+          summary={summary}
+          slug={slug}
+          level={3}
+          className={styles.teaser}
+        />
         <EntryMeta
           stage={stage}
           tended={tended}

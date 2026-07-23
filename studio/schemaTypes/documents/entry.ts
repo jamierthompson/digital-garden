@@ -194,7 +194,7 @@ export const entry = defineType({
       title: 'Component key',
       type: 'string',
       description:
-        'Optional. Name of the coded component this entry mounts — ask a developer for the valid keys. Setting it mounts that component (a demo’s sidebar controls + canvas, or an editorial entry’s slots); leave empty for a prose-only entry.',
+        'Optional. Name of the coded component this entry mounts — ask a developer for the valid keys. Setting it mounts that component (a demo’s sidebar controls + canvas, or an editorial entry’s slots). Leave empty for a prose entry, or for a coming-soon demo (it shows the demo layout with an empty canvas).',
     }),
 
     defineField({

@@ -13,7 +13,6 @@ import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 import RelatedEntries from "@/components/entry/RelatedEntries";
 import Heading from "@/components/typography/Heading";
-import Text from "@/components/typography/Text";
 import { resolveComponentKey } from "@/lib/resolvers/components";
 import { distinctNeighbors } from "@/lib/distinctNeighbors";
 import { space } from "@/lib/tokens";
@@ -34,16 +33,16 @@ import styles from "./page.module.css";
 //     column — chrome + the entry's article, with interactive `slot` blocks interleaved through
 //     the prose (`SlotBlock`), each in its own theme scope, sharing state through the module's
 //     `Provider` frame.
-//   • DEMO (`kind === "demo"` with a resolved module): the sidebar + canvas app layout
-//     (`DemoLayout`), edge-to-edge in the grid's `full` lane. Hybrid sidebar: the page renders
-//     the entry's info; the module contributes its `Sidebar` controls and owns the `Canvas`.
-//     A demo has no prose article — its summary is the prose. A seedling demo (no componentKey)
-//     falls back to the editorial template, prose-only.
+//   • DEMO (`kind === "demo"`, always): the sidebar + canvas app layout (`DemoLayout`),
+//     edge-to-edge in the grid's `full` lane. Hybrid sidebar: the page renders the entry's info;
+//     the module contributes its `Sidebar` controls and owns the `Canvas`. A demo has no prose
+//     article — its summary is the prose. A demo with no module (or one lacking a `Canvas`) shows
+//     the shell with an empty canvas (a coming-soon stub), never the editorial prose column.
 //
 // CAPABILITY-gated within each template:
 //   • Module — a `componentKey` DECLARES a coded module: present → resolve it for ANY kind; a
-//     renamed/deleted module (drift) → `notFound()`. NO `componentKey` → prose-only, never a
-//     404. A demo whose resolved module lacks `Canvas` is the same drift.
+//     renamed/deleted module (drift) → `notFound()`. NO `componentKey` → an editorial kind is
+//     prose-only and a demo is its empty-canvas shell, never a 404.
 //   • Theming — a `theme.color`: present → build the scope seed so each slot (or the demo
 //     surface) mounts in its own scoped container. `now` is the ONE theming exception: it wears
 //     the shared `/now` seed (the query's kind-gated rung) and its slots keep the Now theme's
@@ -111,8 +110,9 @@ export default async function EntryPage({ params }: EntryPageProps) {
 
   // Module gate — capability, not kind. A DECLARED `componentKey` must resolve for ANY kind:
   // a renamed/deleted module (drift) → `notFound()`, never a crash. NO `componentKey` →
-  // `resolution` is null → prose-only, not a 404 (a seedling demo keeps its key null until it
-  // ships; a note/essay simply never has one). The resolver is never consulted without a key.
+  // `resolution` is null → the entry renders without a module: an editorial kind is prose-only,
+  // and a demo renders its shell with an empty canvas (a coming-soon demo keeps its key null
+  // until a module ships). The resolver is never consulted without a key.
   const resolution = entry.componentKey
     ? resolveComponentKey(entry.componentKey)
     : null;
@@ -154,13 +154,10 @@ export default async function EntryPage({ params }: EntryPageProps) {
         }
       : undefined;
 
-  // ── DEMO template: sidebar + canvas, edge-to-edge, no prose article. ──
-  if (entry.kind === "demo" && entryModule) {
-    // A demo module without a Canvas has nothing to show — the same content→code drift as an
-    // unresolvable componentKey, contained the same way.
-    if (!Canvas) {
-      notFound();
-    }
+  // ── DEMO template: sidebar + canvas, edge-to-edge, no prose article. EVERY demo renders it — a
+  //    componentless demo (a coming-soon stub) shows the shell (header + empty canvas), never a
+  //    prose fallback. ──
+  if (entry.kind === "demo") {
     const demoSurface = (
       // Same last-resort containment as the editorial slots: a scope throw degrades to the
       // unthemed notice instead of blanking the route through its error boundary.
@@ -178,7 +175,8 @@ export default async function EntryPage({ params }: EntryPageProps) {
             linkCount={linkCount}
             controls={Sidebar ? <Sidebar slug={slug} /> : null}
           >
-            <Canvas slug={slug} />
+            {/* No module (or a module without a Canvas) → show nothing in the canvas. */}
+            {Canvas ? <Canvas slug={slug} /> : null}
           </DemoLayout>
         </EntryScope>
       </EntryScopeBoundary>
@@ -209,23 +207,18 @@ export default async function EntryPage({ params }: EntryPageProps) {
     );
   }
 
-  // ── EDITORIAL template: the prose reading column (note · essay · now — and a seedling demo
-  //    or unknown kind, which degrade here prose-only). ──
+  // ── EDITORIAL template: the prose reading column (note · essay · now — and any kind the code
+  //    doesn't know, which degrades here prose-only; a demo is handled by the branch above). ──
   const article = (
     <ContentGrid asChild>
       <article className={styles.article}>
         <Stack asChild gap={space(3)}>
           <header className={styles.header}>
+            {/* h1 → meta → body. The summary is NOT rendered here: on an editorial entry it is
+                teaser + meta-description copy only, and the lede is the body's own first
+                paragraph (styled by EntryBody), so rendering the summary too would restate the
+                opening. */}
             <Heading level={1}>{entry.title ?? "Untitled entry"}</Heading>
-            {entry.summary ? (
-              <Text
-                variant="lede"
-                color="muted-foreground"
-                className={styles.summary}
-              >
-                {entry.summary}
-              </Text>
-            ) : null}
             <EntryMeta
               kind={entry.kind}
               stage={entry.stage}

@@ -59,9 +59,9 @@ describe("resolveThemeDeclarations", () => {
 
 describe("tokenSetToThemeDeclarations", () => {
   it("produces the SAME declarations as resolveThemeDeclarations for a seed's default token set", () => {
-    // The client play path holds a live token set and stamps it directly; the server bakes from
-    // the raw seed. Both must land byte-identical declarations, or the ephemeral `/color-engine`
-    // re-stamp would drift from the authored theme it replaces.
+    // A client "play" path would hold a live token set and stamp it directly; the server bakes
+    // from the raw seed. Both must land byte-identical declarations, or the ephemeral re-stamp
+    // would drift from the authored theme it replaces.
     expect(tokenSetToThemeDeclarations(buildTokenSet(ORANGE))).toEqual(
       resolveThemeDeclarations(ORANGE),
     );

@@ -65,11 +65,13 @@ describe("EntryCard", () => {
     expect(screen.queryByText("A short summary.")).toBeNull();
   });
 
-  it("omits the summary paragraph for an empty string, not just null — no empty <p> in the card", () => {
-    // A blank Studio field serialises to "" (a valid string); the truthiness guard must
-    // treat it as missing rather than render an empty paragraph between title and meta.
+  it("omits the summary for an empty string, not just null — no stray empty node in the card", () => {
+    // A blank Studio field serialises to "" (a valid string); the teaser's guard must treat it
+    // as missing rather than render an empty summary node continuing the title run-in.
     const { container } = renderCard(entry({ summary: "" }));
-    expect(container.querySelectorAll("p")).toHaveLength(1); // the meta readout only
+    expect(screen.queryByText("A short summary.")).toBeNull();
+    // The meta readout is the card's only <p>; the fused teaser adds none.
+    expect(container.querySelectorAll("p")).toHaveLength(1);
   });
 
   it("renders the full meta readout: kind · stage · tended · related", () => {
@@ -113,10 +115,13 @@ describe("EntryCard", () => {
     expect(styled.map((el) => el.outerHTML)).toEqual([]);
   });
 
-  it("declares no ink of its own on the title — it inherits --foreground", () => {
+  it("wears the foreground ink role on the title via the teaser", () => {
+    // The card declares no ink of its own in CSS (pinned below); the title's --foreground role
+    // now comes from the composed EntryTeaser, which sets it explicitly on the heading.
     renderCard(entry());
-    expect(screen.getByRole("heading", { level: 3 })).not.toHaveAttribute(
+    expect(screen.getByRole("heading", { level: 3 })).toHaveAttribute(
       "data-color",
+      "foreground",
     );
   });
 
@@ -294,12 +299,13 @@ const SCHEMES = ["light", "dark"] as const;
 
 /**
  * The card's measured relationships, as `[label, ink token, background token, floor]`.
- * Each names a real declaration in `EntryCard.module.css` / `EntryCard.tsx`.
+ * Each names a real declaration in `EntryCard.module.css` or the ink the composed
+ * `EntryTeaser` / `EntryMeta` primitives wear on the card.
  */
 const PAIRS = [
-  // `.card { background: var(--surface) }` + `<Heading level={3}>` inheriting `--foreground`.
+  // `.card { background: var(--surface) }` + the teaser title wearing `--foreground`.
   ["card title ink on the plate", "foreground", "surface", TEXT_FLOOR],
-  // `<Text color="muted-foreground">` summary and the `EntryMeta` readout, on the same plate.
+  // The teaser summary and the `EntryMeta` readout wearing `--muted-foreground`, on the same plate.
   [
     "card summary/meta ink on the plate",
     "muted-foreground",

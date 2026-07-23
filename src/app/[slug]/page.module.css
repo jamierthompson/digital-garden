@@ -33,10 +33,6 @@
     margin-bottom: var(--space-section);
   }
 
-  .summary {
-    max-width: var(--type-lede-measure);
-  }
-
   /* The lanes come from `ContentGrid` (merged onto the <article> via asChild). The article
      spans the page grid's `full` lane, so its own identical tracks align 1:1 with the page's.
      This adds only the article's editorial concerns. */

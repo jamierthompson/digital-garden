@@ -18,8 +18,7 @@
  * Deliberately framework-agnostic and isomorphic (no `use client`, no top-level browser
  * access — every DOM read/write sits inside a function body): the root layout, a Server
  * Component, imports only the `SCHEME_INIT_SCRIPT` string, while the client switch island
- * (and the Color Engine's `ColorEngineProvider`, which re-binds its displayed scheme to this
- * setting) import the functions.
+ * imports the functions.
  */
 
 export type Scheme = "light" | "dark";
@@ -71,8 +70,8 @@ export function setScheme(scheme: Scheme): void {
  * Subscribe to scheme changes; returns an unsubscribe fn. Fires on a same-tab `setScheme`, on
  * a cross-tab `storage` change (re-applying the new value in this tab), and — so
  * `getResolvedScheme()` stays fresh while no override is set — on an OS `prefers-color-scheme`
- * flip. This is the single signal the Color Engine's `ColorEngineProvider` swaps its `matchMedia`
- * read for.
+ * flip. A client component that mirrors the resolved scheme can swap its `matchMedia` read for
+ * this single signal.
  */
 export function subscribe(onChange: () => void): () => void {
   const media = window.matchMedia(DARK_QUERY);

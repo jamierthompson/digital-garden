@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
 import EntryMeta from "@/components/entry/EntryMeta";
+import EntryTeaser from "@/components/entry/EntryTeaser";
 import Stack from "@/components/layout/Stack";
-import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import { space } from "@/lib/tokens";
 
@@ -22,8 +22,9 @@ interface DemoLayoutProps {
   readonly linkCount?: number | null;
   /** The module's sidebar controls, already rendered — mounted below the entry info. */
   readonly controls?: ReactNode;
-  /** The module-owned canvas surface. */
-  readonly children: ReactNode;
+  /** The module-owned canvas surface. Absent for a componentless demo (a coming-soon stub) —
+   *  the canvas then shows a generic placeholder. */
+  readonly children?: ReactNode;
 }
 
 /**
@@ -32,7 +33,8 @@ interface DemoLayoutProps {
  * lane. The regions are an intrinsic sidebar pattern (flex + wrap, no `@media`): the canvas
  * takes all spare width and the pair stacks on its own when the viewport is tight. Hybrid
  * ownership: the PAGE renders the entry info here (DRY across demos); the MODULE contributes
- * `controls` and the canvas `children`.
+ * `controls` and the canvas `children`. A demo with no module renders the sidebar over a
+ * placeholder canvas — the shell of a coming-soon stub, never a fallback to the prose article.
  */
 export default function DemoLayout({
   title,
@@ -50,12 +52,9 @@ export default function DemoLayout({
       <div className={styles.sidebar}>
         <Stack asChild gap={space(4)}>
           <header>
-            <Heading level={1}>{title}</Heading>
-            {summary ? (
-              <Text variant="lede" color="muted-foreground">
-                {summary}
-              </Text>
-            ) : null}
+            {/* A demo has no body, so its summary IS its prose — rendered as `body` by the atom,
+                never a `lede`. No slug: this is the demo's own page, so the title is plain text. */}
+            <EntryTeaser title={title} summary={summary} level={1} />
             <EntryMeta
               kind={kind}
               stage={stage}
@@ -68,7 +67,14 @@ export default function DemoLayout({
         </Stack>
         {controls ? <div className={styles.controls}>{controls}</div> : null}
       </div>
-      <div className={styles.canvas}>{children}</div>
+      <div className={styles.canvas}>
+        {children ?? (
+          // Componentless demo (a coming-soon stub): a generic placeholder, not a blank canvas.
+          <div className={styles.empty}>
+            <Text color="muted-foreground">This demo is being built.</Text>
+          </div>
+        )}
+      </div>
     </section>
   );
 }

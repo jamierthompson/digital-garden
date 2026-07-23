@@ -40,18 +40,18 @@ const BODY = [
   {
     _type: "slot",
     _key: "e1",
-    slotKey: "color-engine-seed",
+    slotKey: "demo-sample-seed",
     caption: "seed caption",
   },
   {
     _type: "slot",
     _key: "e2",
-    slotKey: "color-engine-tokens",
+    slotKey: "demo-sample-tokens",
   },
 ] as unknown as Body;
 
 const SCOPE: ScopeSeed = {
-  slug: "color-engine",
+  slug: "demo-sample",
   bodyFont: "space-grotesk",
 };
 
@@ -61,8 +61,8 @@ describe("EntryBody", () => {
     render(<EntryBody value={BODY} scope={SCOPE} />);
     expect(screen.getAllByTestId("slot")).toHaveLength(2);
     expect(captured.map((p) => p.slotKey)).toEqual([
-      "color-engine-seed",
-      "color-engine-tokens",
+      "demo-sample-seed",
+      "demo-sample-tokens",
     ]);
     for (const props of captured) {
       expect(props.scope).toEqual(SCOPE);
@@ -80,10 +80,150 @@ describe("EntryBody", () => {
     }
   });
 
-  it("renders the prose blocks as plain paragraphs alongside the slots", () => {
+  it("renders the prose blocks as paragraphs alongside the slots", () => {
     render(<EntryBody value={BODY} scope={SCOPE} />);
     const p = screen.getByText("Editorial prose.");
     expect(p.closest("p")).not.toBeNull();
+  });
+
+  describe("the lede — the body's first paragraph", () => {
+    const PROSE = [
+      {
+        _type: "block",
+        _key: "b1",
+        style: "normal",
+        markDefs: [],
+        children: [{ _type: "span", _key: "s1", text: "The lede.", marks: [] }],
+      },
+      {
+        _type: "block",
+        _key: "b2",
+        style: "normal",
+        markDefs: [],
+        children: [{ _type: "span", _key: "s2", text: "The rest.", marks: [] }],
+      },
+    ] as unknown as Body;
+
+    it("styles the first paragraph as the lede (variant=lede), the rest as plain prose", () => {
+      render(<EntryBody value={PROSE} />);
+      const lede = screen.getByText("The lede.").closest("p");
+      const rest = screen.getByText("The rest.").closest("p");
+      expect(lede).toHaveAttribute("data-variant", "lede");
+      expect(rest).not.toHaveAttribute("data-variant");
+    });
+
+    it("promotes the first PARAGRAPH even when a non-paragraph block precedes it", () => {
+      const withLeadingSlot = [
+        { _type: "slot", _key: "e0", slotKey: "demo-sample-seed" },
+        ...PROSE,
+      ] as unknown as Body;
+      render(<EntryBody value={withLeadingSlot} />);
+      expect(screen.getByText("The lede.").closest("p")).toHaveAttribute(
+        "data-variant",
+        "lede",
+      );
+      expect(screen.getByText("The rest.").closest("p")).not.toHaveAttribute(
+        "data-variant",
+      );
+    });
+
+    it("promotes no lede when the body has no paragraph at all (only slots)", () => {
+      const noProse = [
+        { _type: "slot", _key: "e1", slotKey: "demo-sample-seed" },
+        { _type: "slot", _key: "e2", slotKey: "demo-sample-tokens" },
+      ] as unknown as Body;
+      const { container } = render(<EntryBody value={noProse} />);
+      expect(container.querySelector('[data-variant="lede"]')).toBeNull();
+    });
+
+    it("does not treat a heading as the lede — only a normal paragraph", () => {
+      const headingFirst = [
+        {
+          _type: "block",
+          _key: "h1",
+          style: "h2",
+          markDefs: [],
+          children: [
+            { _type: "span", _key: "hs", text: "A heading.", marks: [] },
+          ],
+        },
+        ...PROSE,
+      ] as unknown as Body;
+      render(<EntryBody value={headingFirst} />);
+      // The h2 is not promoted; the first normal paragraph still is.
+      expect(screen.getByText("A heading.").closest("p")).toBeNull();
+      expect(screen.getByText("The lede.").closest("p")).toHaveAttribute(
+        "data-variant",
+        "lede",
+      );
+    });
+
+    // A list before the first paragraph must not lose the lede. `@portabletext/react` renders
+    // through `nestLists()`, so a block serializer's index diverges from the raw array once a list
+    // appears — hence the lede is matched by `_key`, and list items (also `style: "normal"`) are
+    // skipped. These pin that.
+    const LIST_ITEM = (key: string, text: string) => ({
+      _type: "block",
+      _key: key,
+      style: "normal",
+      listItem: "bullet",
+      level: 1,
+      markDefs: [],
+      children: [{ _type: "span", _key: `${key}s`, text, marks: [] }],
+    });
+
+    it("promotes the first paragraph even when a bulleted list precedes it", () => {
+      const listFirst = [
+        LIST_ITEM("l1", "bullet one"),
+        LIST_ITEM("l2", "bullet two"),
+        ...PROSE,
+      ] as unknown as Body;
+      render(<EntryBody value={listFirst} />);
+      expect(screen.getByText("The lede.").closest("p")).toHaveAttribute(
+        "data-variant",
+        "lede",
+      );
+      expect(screen.getByText("The rest.").closest("p")).not.toHaveAttribute(
+        "data-variant",
+      );
+    });
+
+    it("promotes the first paragraph after a heading + list preamble", () => {
+      const preamble = [
+        {
+          _type: "block",
+          _key: "h1",
+          style: "h2",
+          markDefs: [],
+          children: [
+            { _type: "span", _key: "hs", text: "A heading.", marks: [] },
+          ],
+        },
+        LIST_ITEM("l1", "bullet one"),
+        ...PROSE,
+      ] as unknown as Body;
+      render(<EntryBody value={preamble} />);
+      expect(screen.getByText("The lede.").closest("p")).toHaveAttribute(
+        "data-variant",
+        "lede",
+      );
+    });
+
+    it("still promotes a leading paragraph that is followed by a list (control)", () => {
+      const paraThenList = [
+        PROSE[0],
+        LIST_ITEM("l1", "bullet one"),
+        PROSE[1],
+      ] as unknown as Body;
+      render(<EntryBody value={paraThenList} />);
+      expect(screen.getByText("The lede.").closest("p")).toHaveAttribute(
+        "data-variant",
+        "lede",
+      );
+      expect(screen.getByText("The rest.").closest("p")).not.toHaveAttribute(
+        "data-variant",
+      );
+    });
   });
 
   // A body prose block can carry the default Sanity `link` annotation. The serializer routes it
@@ -240,7 +380,7 @@ describe("EntryBody", () => {
           url: "https://cdn.sanity.io/files/p/d/reel.mp4",
           caption: "Clip",
         },
-        { _type: "slot", _key: "e1", slotKey: "color-engine-seed" },
+        { _type: "slot", _key: "e1", slotKey: "demo-sample-seed" },
         { _type: "quote", _key: "q1", text: "Quoted.", attribution: "Author" },
         { _type: "unknownBlock", _key: "u1" },
       ] as unknown as Body;
@@ -258,7 +398,7 @@ describe("EntryBody", () => {
       expect(screen.getByText("Quoted.").closest("blockquote")).not.toBeNull();
       expect(screen.getByTestId("slot")).toHaveAttribute(
         "data-slot-key",
-        "color-engine-seed",
+        "demo-sample-seed",
       );
       expect(captured[0]?.scope).toEqual(SCOPE);
     });

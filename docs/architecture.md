@@ -329,8 +329,8 @@ small color _system_. It is **both a feature and a demo — same logic, two-plus
 
 - **Bakes literal `oklch()` values server-side.** The engine emits resolved, gamut-mapped,
   contrast-solved literals — not relative-color CSS. Live per-token CSS override is explicitly
-  **not** a goal: no consumer needs the cascade to re-derive a mid-chain token (the interactive
-  Color Engine, the `color-engine` module, re-runs the pure function in JS). Relative-color (`oklch(from …)`) is permitted only
+  **not** a goal: no consumer needs the cascade to re-derive a mid-chain token (a planned
+  interactive engine-showcase module would re-run the pure function in JS). Relative-color (`oklch(from …)`) is permitted only
   for decorative, non-contrast deltas. This is also what makes server-side validation possible.
 
 - **Focus-ring _color_ is an engine token**; only its geometry is part of the global foundation. The
@@ -387,7 +387,7 @@ small color _system_. It is **both a feature and a demo — same logic, two-plus
   parameterize how the ramp tier is shaped — lightness distribution, chroma policy, hue policy,
   tinted neutrals — with every default reproducing the un-ruled output; distributions reshape only
   the interior steps (`300…700`) while the surface-bearing shoulders stay pinned, so the engine's
-  contrast guarantees hold under every policy. The Color Engine (#73) surfaces them ("Rules · set once").
+  contrast guarantees hold under every policy. A planned engine-showcase demo (#73) will surface them ("Rules · set once").
   The **harmony tier** binds seven derived hues into the semantic surface (`harmony-analogous-a/-b`,
   `harmony-complementary`, `harmony-triadic-a/-b`, `harmony-split-complementary-a/-b` — the
   relationships' offsets from the seed hue, deduped into stable keys): each gets the accent
@@ -414,7 +414,7 @@ small color _system_. It is **both a feature and a demo — same logic, two-plus
   the engine and its consumers — never to forbid change: a deliberate change updates the guard in
   the same PR. Additions extend the guard in the same commit; renames/removals migrate every
   consumer in the same PR (no deprecation window inside a monorepo). Alongside the in-repo CSS serialization, the engine exports **portable formats**
-  for the Color Engine export UI (#107): a Tailwind v4 `@theme` block (`--color-*` namespace, ramps 1:1
+  for a planned engine export UI (#107): a Tailwind v4 `@theme` block (`--color-*` namespace, ramps 1:1
   to the Tailwind numeric scale) and W3C-DTCG design-tokens JSON (per-scheme groups), each
   serializable as `oklch` (native), `hex`, or `rgb`.
 
@@ -427,21 +427,16 @@ small color _system_. It is **both a feature and a demo — same logic, two-plus
   (`buildTokenSet` + `tokenSetToDeclarations`) to stamp a page's authored theme on `<html>` (see the
   site-wide delivery section).
 
-The **Color Engine** — an entry module whose interactive slot re-runs the pure engine in JS
-on each control change (type a seed, watch the palette regenerate) — ships as the
-`color-engine` module (`src/entries/color-engine/`), the component registry's first real
-key. A showcase module renders its slot's baked tokens by consuming the scope's CSS variables;
-it need not call the engine at runtime (the Color Engine is the exception — it re-runs the pure
-function in JS live, and reports the engine's own receipts: per-token binding provenance,
-measured contrast, the anchor readout).
+The flagship demo is a planned **engine-showcase module** — an entry module whose interactive
+canvas re-runs the pure engine in JS on each control change (type a seed, watch the palette
+regenerate). No such module is registered yet: the component registry is empty (see the CMS ↔
+code registry section), so demo entries render as coming-soon stubs — the **demo template**
+(sidebar + canvas) with an empty canvas — until one ships. A showcase module renders its baked
+tokens by consuming the scope's CSS variables; it need not call the engine at runtime (the
+engine-showcase is the exception — it re-runs the pure function in JS live, and reports the
+engine's own receipts: per-token binding provenance, measured contrast, the anchor readout).
 
-Its interactive demo has been **removed pending a rebuild** on the deliberate design-system
-foundation (the old surfaces carried pre-foundation type literals). The `color-engine` key stays
-registered to a placeholder `Canvas` so the published entry still resolves on the **demo
-template** (sidebar + canvas); the tool is rebuilt later, and may eventually grow into a
-**multi-page demo** (#149).
-
-When rebuilt, it is meant to be the **one place a visitor plays with a seed** — the provider holding
+When built, it is meant to be the **one place a visitor plays with a seed** — the provider holding
 the live seed/rules in React state and driving the page's `<html>` theme off the generated palette
 (`ThemeReapplier`, the imperative re-applier that also lands the authored theme), so moving a
 control repaints the **whole** page — chrome included — in the palette it generates. That play is
@@ -451,9 +446,9 @@ reveal).
 
 Two deliberate consequences:
 
-- **It themes itself, on purpose.** The Color Engine's slot (`color-engine`) is themed like any
-  other, so its own theme tokens are generated by the engine it showcases. No circular dependency
-  in code (the demo depends on the engine; the engine depends on nothing).
+- **It themes itself, on purpose.** The showcase module's canvas is themed like any other entry
+  surface, so its own theme tokens are generated by the engine it showcases. No circular
+  dependency in code (the demo depends on the engine; the engine depends on nothing).
 - **Keep it isomorphic** (enforced — see above).
 
 The anti-pattern to avoid: putting the engine _inside_ an entry module and having the theming
@@ -761,13 +756,13 @@ An entry renders as a single `/[slug]` page on one of **two templates, branched 
   `slots/*`), each in its own theme scope. `now` is editorial with one exception: it never wears
   its own `theme` — it keeps the shared `/now` seed (colors AND type), so its slots mount
   slug-keyed with the Now theme's faces.
-- **Demo** (`kind === "demo"` with a resolved module): a two-region app layout (`DemoLayout`,
+- **Demo** (`kind === "demo"`, always): a two-region app layout (`DemoLayout`,
   `src/components/entry/`) — **sidebar + canvas**, edge-to-edge in the content grid's `full`
   lane, no prose article (the summary is the demo's prose). **Hybrid sidebar:** the page renders
   the entry's info (title, summary, and the shared `EntryMeta` readout: kind · stage · tended ·
   seed · link count) — DRY across demos —
-  and the module contributes its controls below. A seedling demo (no `componentKey`) falls back to
-  the editorial template, prose-only.
+  and the module contributes its controls below. A demo with no module (or one lacking a `Canvas`)
+  shows the shell with an empty-canvas coming-soon placeholder, never the editorial prose column.
 
 The registry entry (the `EntryModule` contract, `src/entries/types.ts`) exports up to three
 members — a compile error enforces a mountable one (`Provider` and/or `Canvas`):
@@ -810,8 +805,8 @@ proactively into `src/components/ui/`, even while single-use**. A primitive (an 
 control, a panel frame, a meta label) is a design-system unit by nature: it reads the generic
 semantic tokens, ships its own defaults, and works composed into any entry or none, so it goes
 to `ui/` the moment it's recognized as a primitive, not on its second consumer. An entry may
-also _consume_ shared logic without owning it — an engine-showcase module (the Color Engine)
-showcases the shared engine's output rather than holding the engine (see the OKLCH engine).
+also _consume_ shared logic without owning it — an engine-showcase module showcases the shared
+engine's output rather than holding the engine (see the OKLCH engine).
 
 ### The CMS ↔ code registry
 
@@ -969,8 +964,8 @@ Practical notes:
   `[data-entry]` scope (and mounts its
   `slot`s in their own scoped containers, exactly as a demo's slots do); a present
   `componentKey` resolves and mounts the coded module — a declared key that fails to resolve is a
-  `notFound()` for any kind, and no key at all renders prose-only (a seedling demo renders
-  prose-only, never a 404). **A module mount always implies a scope seed** — the route builds the
+  `notFound()` for any kind, and no key at all renders prose-only for an editorial kind (a
+  componentless demo renders its empty-canvas shell, never a 404). **A module mount always implies a scope seed** — the route builds the
   `ScopeSeed` whenever an entry _mounts a module_ (any kind) or a _non-`now`_ entry _themes_
   (`(!now && theme.color) || a resolvable componentKey`), always **keyed on the entry's own
   slug**, with each absent `theme.headingFont` / `bodyFont` / `monoFont` passed as `undefined`
@@ -985,8 +980,8 @@ Practical notes:
   `theme.color` is **optional for every kind** (#253) — an entry that authors none wears the
   authored site default (`siteSettings.theme`), so each page still derives its theme from an
   authored seed. `componentKey` is likewise **optional and mounts on presence for every kind**
-  (a `demo` past the seedling stage is no longer forced to name a module — a prose-only demo is
-  valid — and a `note`/`essay`/`now` that sets a `componentKey` mounts it), and the three `theme`
+  (a `demo` past the seedling stage is no longer forced to name a module — a moduleless demo is
+  valid, rendering the shell — and a `note`/`essay`/`now` that sets a `componentKey` mounts it), and the three `theme`
   face keys are optional and theme on presence for every kind but `now`. A `now`
   update can hold slots and modules like any editorial entry, but it **never wears its own
   theme**: it **cannot set its own `theme.color`** (the whole `theme` object

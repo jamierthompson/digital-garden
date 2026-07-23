@@ -12,10 +12,11 @@ seeds live in Sanity; the site renders on Next.js.
 > **Status:** the shared foundation — the OKLCH theming engine (`@garden/oklch`) and the
 > `@garden/type` type-scale engine — plus the Sanity content model and the real garden entries
 > are **live on Vercel**, with the editorial garden shell, an RSS feed, and Sanity draft mode +
-> live preview wired to publish→production revalidation. The interactive **Color Engine** demo
-> (`src/entries/color-engine/`) is a registered stub pending a rebuild on the new foundation as a
-> multi-page demo (#149); the `@garden/oklch` engine it showcases is untouched. Remaining
-> work is tracked in [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
+> live preview wired to publish→production revalidation. Demo entries currently render as
+> coming-soon stubs — the demo shell (title, summary, meta) over an empty canvas — until their
+> interactive modules are built; the `@garden/oklch` and `@garden/type` engines they will
+> showcase are live. Remaining work is tracked in
+> [GitHub issues](https://github.com/jamierthompson/digital-garden/issues).
 
 The engineering docs live in [`docs/`](./docs/) (start at
 [`orientation.md`](./docs/orientation.md)); the system model is

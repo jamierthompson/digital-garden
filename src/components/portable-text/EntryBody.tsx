@@ -1,6 +1,7 @@
 import { PortableText, type PortableTextComponents } from "next-sanity";
 
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
+import Text from "@/components/typography/Text";
 import TextLink from "@/components/ui/TextLink";
 
 // TypeGen output lives at the repo root (the `@/*` alias maps to `src/`, so it can't cover
@@ -46,7 +47,35 @@ interface EntryBodyProps {
  * here, not in the route.
  */
 export default function EntryBody({ value, scope }: EntryBodyProps) {
+  // The lede is the body's OWN first paragraph — the first `normal`-style block that is NOT a list
+  // item — rendered a step up in size (the `lede` role) from the surrounding prose, same editorial
+  // ink. It is not the `summary` (teaser + meta-description copy, no longer rendered on the page)
+  // and not a schema field; it's derived here so an editor never maintains a parallel intro.
+  // Editorial-only by construction: a demo has no body, so this serializer never runs for one.
+  //
+  // Matched by stable `_key`, NOT array index: @portabletext/react collapses consecutive list
+  // items into one synthetic node (`nestLists`) before rendering, so a block serializer's `index`
+  // diverges from this raw array once the body holds a list — which would drop the lede. List-item
+  // blocks are skipped: they carry `style: "normal"` but render through the list serializer, not
+  // `block.normal`.
+  const firstProseKey = value.find(
+    (block) =>
+      block._type === "block" &&
+      !block.listItem &&
+      (block.style ?? "normal") === "normal",
+  )?._key;
+
   const components: PortableTextComponents = {
+    block: {
+      normal: ({ children, value: block }) =>
+        firstProseKey !== undefined && block._key === firstProseKey ? (
+          <Text variant="lede" asChild>
+            <p>{children}</p>
+          </Text>
+        ) : (
+          <p>{children}</p>
+        ),
+    },
     marks: {
       // The default link annotation renders through the shared inline-link primitive so body
       // links wear the editorial accent treatment, not the UA default ink. Deliberately

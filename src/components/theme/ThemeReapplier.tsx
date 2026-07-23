@@ -37,9 +37,9 @@ interface ThemeReapplierProps {
  * (flash-free), AND — unlike `useInsertionEffect`, which the slice-1 spike proved is NOT part of
  * Activity's hide/show effect cycle and so leaves a revealed route wearing the previous route's
  * theme — a layout effect participates in that cycle. The `declarations` array is a fresh
- * identity each server render, so the effect also re-fires whenever the seed changes (the
- * ephemeral `/color-engine` play path, #178, feeds this same component live-recomputed
- * declarations). Renders no DOM.
+ * identity each server render, so the effect also re-fires whenever the seed changes (a future
+ * ephemeral "play" path, #178, would feed this same component live-recomputed declarations).
+ * Renders no DOM.
  */
 export default function ThemeReapplier({ declarations }: ThemeReapplierProps) {
   useIsomorphicLayoutEffect(() => {
