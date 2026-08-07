@@ -4,9 +4,10 @@
  *
  * Two obligations proven here:
  *   1. DETERMINISTIC SNAPSHOT. The full `buildTokenSet` output (every token, ramp, and the
- *      `meta.bindings` receipt) is bit-for-bit stable — pinned against a committed golden
- *      snapshot (`__fixtures__/tokenset-golden.json`, regenerated wholesale with the 38-token
- *      contract). Any accidental value drift in a future change fails here.
+ *      `meta.bindings` receipt) is stable — pinned against a committed golden snapshot
+ *      (`__fixtures__/tokenset-golden.json`, regenerated wholesale with the 38-token
+ *      contract), floats within a significant-digit tolerance that absorbs cross-runtime
+ *      drift (see `floatTolerant`). Any real value change in a future edit fails here.
  *   2. TRUTHFUL. The report names the binding SCHEMA's role — not whatever a value-scan
  *      across the ramps would find. In the reachable states where the accent and neutral
  *      ramps CONVERGE (an achromatic seed with `tintedNeutrals: false` collapses both to the
@@ -53,6 +54,41 @@ const CASES: Array<{
 
 const golden = goldenFixture as Record<string, unknown>;
 
+/**
+ * Golden values compare with a float tolerance of 12 SIGNIFICANT digits instead of
+ * exact equality: the engine is deterministic on a given runtime, but a solved
+ * channel's last ulps drift across Node versions, and the fixture pins the solve,
+ * not the runtime. The tolerance must scale with magnitude — hue ≈ 300 drifts by
+ * ~2e-12 (a few ulps) while chroma ≈ 0.08 drifts by ~1e-17 — so a fixed decimal
+ * window is wrong for one or the other. Non-numbers still compare exactly, and
+ * structure stays strict — a missing or extra key fails as before.
+ */
+const SIG_DIGITS = 12;
+// Achromatic seeds are the special case: hue is ill-conditioned at chroma ≈ 0
+// (atan2 over near-zero components), and every downstream channel — the +30°
+// hue offsets, the gamut-mapped chromas — is a function of that hue, so the
+// whole case inherits ~1e-9-relative runtime drift instead of last-ulp noise.
+// Those cases compare at 8 significant digits (still far below anything
+// perceptible); chromatic cases hold the full 12.
+const ACHROMATIC_SIG_DIGITS = 8;
+const ACHROMATIC_CASES = new Set(["achromatic", "achromatic-p3"]);
+const digitsFor = (v: number, sig: number): number =>
+  v === 0
+    ? sig
+    : Math.max(0, Math.min(15, Math.floor(sig - Math.log10(Math.abs(v)))));
+function floatTolerant(value: unknown, sig: number): unknown {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return expect.closeTo(value, digitsFor(value, sig));
+  }
+  if (Array.isArray(value)) return value.map((v) => floatTolerant(v, sig));
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, floatTolerant(v, sig)]),
+    );
+  }
+  return value;
+}
+
 const SCHEMES: Scheme[] = ["light", "dark"];
 const sameColor = (a: OkLCH, b: OkLCH): boolean =>
   a.L === b.L && a.C === b.C && a.H === b.H;
@@ -95,19 +131,25 @@ const EXPECTED_ROLE: Partial<Record<ThemeTokenName, RampRole>> = {
 
 const CONTINUOUS: ThemeTokenName[] = ["accent", "accent-foreground"];
 
-describe("deterministic snapshot (#70/#160): the full token set is bit-for-bit stable", () => {
+describe("deterministic snapshot (#70/#160): the full token set is stable", () => {
   it.each(CASES)(
     "$key — every token, ramp, and the meta.bindings receipt match the committed golden",
     ({ key, seed, opts }) => {
       // The engine is a pure, deterministic function of its inputs — the FULL output (values +
       // the reported provenance) is pinned to the committed golden (regenerated wholesale for
-      // the 38-token contract). A future change that accidentally perturbs any baked value or
-      // any receipt fails here. Round-tripped through JSON so the compare matches the fixture's
-      // shape exactly (no `undefined` / prototype differences).
+      // the 38-token contract), floats within SIG_DIGITS (see floatTolerant above). A change
+      // that perturbs any baked value or any receipt beyond runtime float drift fails here.
+      // Round-tripped through JSON so the compare matches the fixture's shape exactly (no
+      // `undefined` / prototype differences).
       // NOTE: regenerating this fixture must be a pure ADDITION when a role is added — a
       // deletion in the diff means an existing solve moved, which is never the intent.
       const set = JSON.parse(JSON.stringify(buildTokenSet(seed, opts)));
-      expect(set).toEqual(golden[key]);
+      expect(set).toEqual(
+        floatTolerant(
+          golden[key],
+          ACHROMATIC_CASES.has(key) ? ACHROMATIC_SIG_DIGITS : SIG_DIGITS,
+        ),
+      );
     },
   );
 
