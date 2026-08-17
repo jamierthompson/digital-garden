@@ -256,7 +256,7 @@ describe("RelatedEntries", () => {
     );
   });
 
-  it("renders each entry's summary continuing its title, with the link naming only the title", () => {
+  it("renders each entry's summary beneath its title, with the link naming only the title", () => {
     render(
       <RelatedEntries
         currentId="self"
@@ -271,7 +271,7 @@ describe("RelatedEntries", () => {
         backlinks={null}
       />,
     );
-    // The whole row reads as one paragraph — title (run-in), then the summary continuing it.
+    // The row shows both facts — the title heading and, below it, the summary.
     expect(
       screen.getByText("The engine solves the whole ramp."),
     ).toBeInTheDocument();
@@ -334,6 +334,55 @@ describe("RelatedEntries", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
+  // `slug.current` is hand-editable in the Studio, so whitespace is a real shape — and it is
+  // truthy, so only a trim guard catches it. Without one the row shipped <a href="/   ">.
+  it("renders a whitespace-only slug as plain text — never a dead link", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[entry({ _id: "a", title: "Padded", slug: "   " })]}
+        backlinks={null}
+      />,
+    );
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("routes a padded slug to the clean path", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[entry({ _id: "a", title: "Padded", slug: "  padded  " })]}
+        backlinks={null}
+      />,
+    );
+    expect(screen.getByRole("link", { name: "Padded" })).toHaveAttribute(
+      "href",
+      "/padded",
+    );
+  });
+
+  it("renders the row's summary as its own paragraph, not run into the title", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[
+          entry({
+            _id: "a",
+            title: "One seed color in.",
+            slug: "oklch",
+            summary: "The engine solves the whole ramp.",
+          }),
+        ]}
+        backlinks={null}
+      />,
+    );
+    const heading = screen.getByRole("heading", { level: 3 });
+    const summary = screen.getByText("The engine solves the whole ramp.");
+    expect(summary.tagName).toBe("P");
+    expect(heading).not.toContainElement(summary);
+    expect(heading.textContent).toBe("One seed color in.");
+  });
+
   it("keeps the link name unambiguous when an entry's summary repeats its title", () => {
     render(
       <RelatedEntries
@@ -391,14 +440,25 @@ describe("the label's ink travels via the color prop, not CSS", () => {
     );
   });
 
-  it("owns the summary trim here — the one surface that clamps (the atom itself is trim-agnostic)", () => {
-    // The clamp is passed to EntryTeaser as a className, so the atom stays trim-free and every
-    // other teaser surface shows the full summary. Guard that the clamp lives in THIS module —
-    // value-agnostic, because the line count is a live-tuned knob.
-    const clamp = ruleDeclarations(RELATED_CSS, ".teaserClamp");
+  it("owns the summary trim here — the one surface that clamps", () => {
+    // This is the ONLY entry surface that trims; the home cards and the Index rows show the full
+    // summary. Each surface owns its own title/summary markup, so the guard is simply that the
+    // clamp lives in THIS module — value-agnostic, because the line count is a live-tuned knob.
+    const clamp = ruleDeclarations(RELATED_CSS, ".summary");
     expect(clamp.has("line-clamp") || clamp.has("-webkit-line-clamp")).toBe(
       true,
     );
     expect(clamp.get("overflow")).toBe("hidden");
+  });
+
+  it("clamps the SUMMARY only — the row's title heading is never trimmed", () => {
+    // The clamp used to sit on the fused title+summary paragraph, where a long summary could eat
+    // into the title's lines. Pinned at the source: no rule in this module may clamp the row
+    // wrapper or the whole item.
+    for (const selector of [".row", ".item"]) {
+      const rule = ruleDeclarations(RELATED_CSS, selector);
+      expect(rule.has("line-clamp")).toBe(false);
+      expect(rule.has("-webkit-line-clamp")).toBe(false);
+    }
   });
 });

@@ -20,8 +20,8 @@
     color: var(--foreground);
   }
 
-  /* Each item stacks the teaser paragraph over its meta readout. The wrapper (not the `li`)
-     flexes, so the list marker survives. */
+  /* Each item stacks the title over its summary over its meta readout. The wrapper (not the
+     `li`) flexes, so the list marker survives. */
   .row {
     /* Component token — the gap between the teaser and its kind readout. */
     --related-row-gap: var(--space-1);
@@ -32,9 +32,9 @@
   }
 
   /* The RelatedEntries-only summary trim — this is the one surface that clamps; everywhere else
-     the full summary shows. It clamps the whole fused paragraph, so the (short, first) title
-     always shows and the summary fills the remaining lines. */
-  .teaserClamp {
+     the full summary shows. It clamps the SUMMARY alone, so the row's title heading always shows
+     in full however long the summary runs. */
+  .summary {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;

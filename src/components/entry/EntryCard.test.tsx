@@ -66,12 +66,29 @@ describe("EntryCard", () => {
   });
 
   it("omits the summary for an empty string, not just null — no stray empty node in the card", () => {
-    // A blank Studio field serialises to "" (a valid string); the teaser's guard must treat it
-    // as missing rather than render an empty summary node continuing the title run-in.
+    // A blank Studio field serialises to "" (a valid string); the card's guard must treat it as
+    // missing rather than render an empty paragraph that still takes the card's stack gap.
     const { container } = renderCard(entry({ summary: "" }));
     expect(screen.queryByText("A short summary.")).toBeNull();
-    // The meta readout is the card's only <p>; the fused teaser adds none.
+    // With no summary the meta readout is the card's only <p>.
     expect(container.querySelectorAll("p")).toHaveLength(1);
+  });
+
+  it("omits the summary for a whitespace-only string — no empty node", () => {
+    // Same shape as the empty-string case: truthy, so only a `.trim()` guard catches it.
+    const { container } = renderCard(entry({ summary: "   " }));
+    expect(container.querySelectorAll("p")).toHaveLength(1);
+  });
+
+  it("renders the summary as its own paragraph, not run into the title", () => {
+    // The card's title and summary are separate blocks — the title is NOT an inline run-in the
+    // summary continues. Pinned so the fused shape cannot return by accident.
+    renderCard(entry());
+    const heading = screen.getByRole("heading", { level: 3 });
+    const summary = screen.getByText("A short summary.");
+    expect(summary.tagName).toBe("P");
+    expect(heading).not.toContainElement(summary);
+    expect(heading.textContent).toBe("A card");
   });
 
   it("renders the full meta readout: kind · stage · tended · related", () => {
@@ -115,9 +132,9 @@ describe("EntryCard", () => {
     expect(styled.map((el) => el.outerHTML)).toEqual([]);
   });
 
-  it("wears the foreground ink role on the title via the teaser", () => {
+  it("wears the foreground ink role on the title", () => {
     // The card declares no ink of its own in CSS (pinned below); the title's --foreground role
-    // now comes from the composed EntryTeaser, which sets it explicitly on the heading.
+    // is set explicitly on the composed Heading primitive.
     renderCard(entry());
     expect(screen.getByRole("heading", { level: 3 })).toHaveAttribute(
       "data-color",
@@ -300,12 +317,12 @@ const SCHEMES = ["light", "dark"] as const;
 /**
  * The card's measured relationships, as `[label, ink token, background token, floor]`.
  * Each names a real declaration in `EntryCard.module.css` or the ink the composed
- * `EntryTeaser` / `EntryMeta` primitives wear on the card.
+ * `Heading` / `Text` / `EntryMeta` primitives wear on the card.
  */
 const PAIRS = [
-  // `.card { background: var(--surface) }` + the teaser title wearing `--foreground`.
+  // `.card { background: var(--surface) }` + the card title wearing `--foreground`.
   ["card title ink on the plate", "foreground", "surface", TEXT_FLOOR],
-  // The teaser summary and the `EntryMeta` readout wearing `--muted-foreground`, on the same plate.
+  // The summary and the `EntryMeta` readout wearing `--muted-foreground`, on the same plate.
   [
     "card summary/meta ink on the plate",
     "muted-foreground",

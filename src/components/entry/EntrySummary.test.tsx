@@ -94,7 +94,7 @@ describe("EntrySummary", () => {
     expect(item.textContent).toBe("Empty");
   });
 
-  it("orders the row fused teaser → meta readout", () => {
+  it("orders the row title → summary → meta readout, each its own block", () => {
     renderInList(
       <EntrySummary
         title="Ordered"
@@ -106,11 +106,28 @@ describe("EntrySummary", () => {
     );
     const item = screen.getByRole("listitem");
     const children = Array.from(item.children);
-    // The fused teaser paragraph is first — the h3 title run-in and its summary as one run of
-    // text — then the meta readout.
-    expect(children[0].querySelector("h3")).not.toBeNull();
-    expect(children[0].textContent).toBe("Ordered The summary.");
-    expect(children[1]).toHaveAttribute("data-variant", "meta");
+    // Three siblings, not a fused paragraph: the h3 title, its own summary paragraph, then the
+    // meta readout. The title is NOT run into the summary — pinned so the run-in cannot return
+    // by accident.
+    expect(children).toHaveLength(3);
+    expect(children[0].tagName).toBe("H3");
+    expect(children[0].textContent).toBe("Ordered");
+    expect(children[1].tagName).toBe("P");
+    expect(children[1].textContent).toBe("The summary.");
+    expect(children[1]).toHaveAttribute("data-variant", "body");
+    expect(children[2]).toHaveAttribute("data-variant", "meta");
+  });
+
+  it("wears the editorial ink roles — foreground title, muted summary", () => {
+    renderInList(<EntrySummary title="Inked" summary="The summary." />);
+    expect(screen.getByRole("heading", { level: 3 })).toHaveAttribute(
+      "data-color",
+      "foreground",
+    );
+    expect(screen.getByText("The summary.")).toHaveAttribute(
+      "data-color",
+      "muted-foreground",
+    );
   });
 
   describe("adversarial QA", () => {
@@ -129,6 +146,51 @@ describe("EntrySummary", () => {
       const heading = screen.getByRole("heading", { level: 3 });
       const link = screen.getByRole("link", { name: "Nested" });
       expect(heading).toContainElement(link);
+    });
+
+    // The blank-field guards below used to live in the shared teaser atom; the atom is gone and
+    // each entry surface now owns its own title/summary markup, so each surface has to carry
+    // them itself. These pin them HERE — the callers resolve a NULLISH title (`?? "Untitled …"`)
+    // but a cleared Studio field serialises to "" and slips straight past that.
+    it("falls back to a neutral label for a blank title — never a nameless heading", () => {
+      renderInList(<EntrySummary title="" slug="x" />);
+      expect(screen.getByRole("heading", { level: 3 })).toHaveAccessibleName(
+        "Untitled entry",
+      );
+      // The fallback is the link's accessible name too, never an empty string.
+      expect(
+        screen.getByRole("link", { name: "Untitled entry" }),
+      ).toBeInTheDocument();
+    });
+
+    it("falls back to a neutral label for a whitespace-only title", () => {
+      renderInList(<EntrySummary title="   " slug="x" />);
+      expect(screen.getByRole("heading", { level: 3 })).toHaveAccessibleName(
+        "Untitled entry",
+      );
+    });
+
+    it("renders plain text for a whitespace-only slug — never a dead link", () => {
+      // `slug.current` is hand-editable in the Studio; without the trim guard this shipped
+      // <a href="/   ">.
+      renderInList(<EntrySummary title="Padded" slug="   " />);
+      expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    });
+
+    it("routes a padded slug to the clean path", () => {
+      renderInList(<EntrySummary title="Padded" slug="  padded  " />);
+      expect(screen.getByRole("link", { name: "Padded" })).toHaveAttribute(
+        "href",
+        "/padded",
+      );
+    });
+
+    it("renders no summary paragraph for a whitespace-only summary — no empty node", () => {
+      // Without the `.trim()` guard this rendered an empty <p> that still took the stack's gap.
+      renderInList(<EntrySummary title="Alone" summary="   " />);
+      const item = screen.getByRole("listitem");
+      expect(item.querySelector("p[data-variant='body']")).toBeNull();
+      expect(item.textContent).toBe("Alone");
     });
   });
 });
