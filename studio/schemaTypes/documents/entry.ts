@@ -194,24 +194,22 @@ export const entry = defineType({
       title: 'Component key',
       type: 'string',
       description:
-        'Optional. Name of the coded component this entry mounts — ask a developer for the valid keys. Setting it mounts that component (a demo’s sidebar controls + canvas, or an editorial entry’s slots). Leave empty for a prose entry, or for a coming-soon demo (it shows the demo layout with an empty canvas).',
+        'Optional. Name of the coded component this entry mounts — ask a developer for the valid keys. Setting it mounts that component, which gives the entry’s slots their shared state. Leave empty for a prose entry, or for a coming-soon one (its slots then show a placeholder).',
     }),
 
     defineField({
       name: 'body',
       title: 'Body',
       type: 'portableText',
-      // A demo has no prose article (its template is sidebar + canvas; the summary is its
-      // prose) — the field hides for demos and `required` binds only to editorial kinds.
-      hidden: ({document}) => document?.kind === 'demo',
+      // EVERY kind renders the same prose article, so every kind needs a body — a demo
+      // included: it is an entry that leans on its slots, not a separate template.
       validation: (rule) =>
-        rule.custom((value, context) => {
-          if (context.document?.kind === 'demo') return true
+        rule.custom((value) => {
           // Match `rule.required()`'s array semantics: an EMPTY Portable Text array is
           // a missing body, not a present one — `Boolean([])` is true and would let a blank
-          // editorial article publish.
+          // article publish.
           const present = Array.isArray(value) ? value.length > 0 : Boolean(value)
-          return present ? true : 'Required for editorial entries (note · essay · now)'
+          return present ? true : 'Required — every entry renders its prose article'
         }),
     }),
     defineField({

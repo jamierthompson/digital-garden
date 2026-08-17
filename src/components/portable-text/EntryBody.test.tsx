@@ -546,5 +546,47 @@ describe("EntryBody", () => {
         "prose",
       );
     });
+
+    // QA (adversarial review) — the SILENT dependency the whole lane contract rests on.
+    // `ContentGrid` places lanes with `:where(.grid) > :where([data-lane="…"])` and the
+    // article's own `grid-column: full`: both match DIRECT CHILDREN ONLY. The route mounts
+    // this serializer straight inside the <article> grid, so every block it emits MUST be an
+    // unwrapped direct child. If the Portable Text renderer (or a future serializer tweak)
+    // ever introduced a wrapper element, every authored lane — `full` most of all — would go
+    // inert with no test failing and no visual error, just prose-width blocks. Since deleting
+    // the demo template, `lane: "full"` IS the documented way to get an edge-to-edge
+    // interactive surface, so this link is load-bearing.
+    it("emits every block as a DIRECT child — no wrapper element between the grid and the lane stamps", () => {
+      const body = [
+        {
+          _type: "block",
+          _key: "b1",
+          style: "normal",
+          markDefs: [],
+          children: [{ _type: "span", _key: "s1", text: "Prose.", marks: [] }],
+        },
+        { _type: "slot", _key: "e1", slotKey: "a", lane: "full" },
+        { _type: "figure", _key: "f1", asset: null, lane: "full" },
+      ] as unknown as Body;
+      // Stand in for the real <article className={grid}> the route renders this into.
+      const { container } = render(
+        <article data-testid="grid">
+          <EntryBody value={body} scope={SCOPE} />
+        </article>,
+      );
+      const article = screen.getByTestId("grid");
+      for (const selector of [
+        "p",
+        '[data-testid="slot"]',
+        'figure[data-lane="full"]',
+      ]) {
+        const el = container.querySelector(selector);
+        expect(el, `${selector} rendered`).not.toBeNull();
+        expect(
+          el?.parentElement,
+          `${selector} must be a direct child of the grid, not wrapped`,
+        ).toBe(article);
+      }
+    });
   });
 });

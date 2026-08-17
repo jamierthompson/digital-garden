@@ -6,10 +6,7 @@ import ContentGrid from "@/components/layout/ContentGrid";
 import Page from "@/components/layout/Page";
 import Stack from "@/components/layout/Stack";
 import PageTheme from "@/components/theme/PageTheme";
-import DemoLayout from "@/components/entry/DemoLayout";
 import EntryMeta from "@/components/entry/EntryMeta";
-import EntryScope from "@/components/entry-scope/EntryScope";
-import EntryScopeBoundary from "@/components/entry-scope/EntryScopeBoundary";
 import type { ScopeSeed } from "@/components/entry-scope/scopeSeed";
 import RelatedEntries from "@/components/entry/RelatedEntries";
 import Heading from "@/components/typography/Heading";
@@ -28,26 +25,21 @@ import styles from "./page.module.css";
 // dynamic segment cedes precedence to the static routes `/browse`, `/now`, `/about`, `/system`). Thin
 // route (`app/` is routing only — it mounts components from `src/`).
 //
-// TWO templates, branched by `kind`:
-//   • EDITORIAL (note · essay · now — and any kind the code doesn't know): the prose reading
-//     column — chrome + the entry's article, with interactive `slot` blocks interleaved through
-//     the prose (`SlotBlock`), each in its own theme scope, sharing state through the module's
-//     `Provider` frame.
-//   • DEMO (`kind === "demo"`, always): the sidebar + canvas app layout (`DemoLayout`),
-//     edge-to-edge in the grid's `full` lane. Hybrid sidebar: the page renders the entry's info;
-//     the module contributes its `Sidebar` controls and owns the `Canvas`. A demo has no prose
-//     article — its summary is the prose. A demo with no module (or one lacking a `Canvas`) shows
-//     the shell with an empty canvas (a coming-soon stub), never the editorial prose column.
+// ONE template for every `kind` (note · essay · demo · now — and any kind the code doesn't
+// know): the prose reading column — chrome + the entry's article, with interactive `slot` blocks
+// interleaved through the prose (`SlotBlock`), each in its own theme scope, sharing state through
+// the module's `Provider` frame. A demo is not a layout of its own — it is an entry that leans on
+// its slots, and a slot reaches edge-to-edge through its own `full` lane (`src/lib/lanes.ts`).
 //
-// CAPABILITY-gated within each template:
+// CAPABILITY-gated, never kind-gated:
 //   • Module — a `componentKey` DECLARES a coded module: present → resolve it for ANY kind; a
-//     renamed/deleted module (drift) → `notFound()`. NO `componentKey` → an editorial kind is
-//     prose-only and a demo is its empty-canvas shell, never a 404.
-//   • Theming — a `theme.color`: present → build the scope seed so each slot (or the demo
-//     surface) mounts in its own scoped container. `now` is the ONE theming exception: it wears
-//     the shared `/now` seed (the query's kind-gated rung) and its slots keep the Now theme's
-//     type — the doc's own `theme` never applies, even if authored. The keystone stays
-//     defensive: the scope never throws on a bad theme color/font.
+//     renamed/deleted module (drift) → `notFound()`. NO `componentKey` → the entry is prose-only,
+//     never a 404.
+//   • Theming — a `theme.color`: present → build the scope seed so each slot mounts in its own
+//     scoped container. `now` is the ONE theming exception: it wears the shared `/now` seed (the
+//     query's kind-gated rung) and its slots keep the Now theme's type — the doc's own `theme`
+//     never applies, even if authored. The keystone stays defensive: the scope never throws on a
+//     bad theme color/font.
 
 interface EntryPageProps {
   params: Promise<{ slug: string }>;
@@ -110,9 +102,8 @@ export default async function EntryPage({ params }: EntryPageProps) {
 
   // Module gate — capability, not kind. A DECLARED `componentKey` must resolve for ANY kind:
   // a renamed/deleted module (drift) → `notFound()`, never a crash. NO `componentKey` →
-  // `resolution` is null → the entry renders without a module: an editorial kind is prose-only,
-  // and a demo renders its shell with an empty canvas (a coming-soon demo keeps its key null
-  // until a module ships). The resolver is never consulted without a key.
+  // `resolution` is null → the entry renders without a module, prose-only (a coming-soon entry
+  // keeps its key null until a module ships). The resolver is never consulted without a key.
   const resolution = entry.componentKey
     ? resolveComponentKey(entry.componentKey)
     : null;
@@ -125,8 +116,6 @@ export default async function EntryPage({ params }: EntryPageProps) {
       ? ((await resolution.value()) as { default: EntryModule }).default
       : null;
   const Provider = entryModule?.Provider ?? null;
-  const Sidebar = entryModule?.Sidebar ?? null;
-  const Canvas = entryModule?.Canvas ?? null;
 
   // `now` never carries its OWN theme — it wears the shared `/now` seed, and its slots keep the
   // Now theme's type, so the scope seed omits the doc's font fields for a `now` even when they
@@ -154,69 +143,16 @@ export default async function EntryPage({ params }: EntryPageProps) {
         }
       : undefined;
 
-  // ── DEMO template: sidebar + canvas, edge-to-edge, no prose article. EVERY demo renders it — a
-  //    componentless demo (a coming-soon stub) shows the shell (header + empty canvas), never a
-  //    prose fallback. ──
-  if (entry.kind === "demo") {
-    const demoSurface = (
-      // Same last-resort containment as the editorial slots: a scope throw degrades to the
-      // unthemed notice instead of blanking the route through its error boundary.
-      <EntryScopeBoundary>
-        {/* ONE theme-font scope around the whole demo surface — sidebar controls and canvas
-            wear the entry's faces together. */}
-        <EntryScope seed={scope}>
-          <DemoLayout
-            title={entry.title ?? "Untitled entry"}
-            summary={entry.summary}
-            kind={entry.kind}
-            stage={entry.stage}
-            tended={entry.tended}
-            seed={entry.themeSeed}
-            linkCount={linkCount}
-            controls={Sidebar ? <Sidebar slug={slug} /> : null}
-          >
-            {/* No module (or a module without a Canvas) → show nothing in the canvas. */}
-            {Canvas ? <Canvas slug={slug} /> : null}
-          </DemoLayout>
-        </EntryScope>
-      </EntryScopeBoundary>
-    );
-    return (
-      <>
-        {pageTheme}
-        <Page className={styles.demoPage}>
-          {/* The bleed wrapper is the page grid's DIRECT child — it owns the `full` lane
-              (an intermediate wrapper like the scope's [data-entry] div would make a lane
-              declaration deeper down inert) and stretches the scope + demo to the row's
-              height. The provider is a state frame around the whole surface — sidebar
-              controls and canvas share it. */}
-          <div className={styles.demoBleed}>
-            {Provider ? (
-              <Provider slug={slug}>{demoSurface}</Provider>
-            ) : (
-              demoSurface
-            )}
-          </div>
-          <RelatedEntries
-            currentId={entry._id}
-            related={entry.related}
-            backlinks={entry.backlinks}
-          />
-        </Page>
-      </>
-    );
-  }
-
-  // ── EDITORIAL template: the prose reading column (note · essay · now — and any kind the code
-  //    doesn't know, which degrades here prose-only; a demo is handled by the branch above). ──
+  // ── The article: the prose reading column every kind renders (note · essay · demo · now — and
+  //    any kind the code doesn't know, which degrades here prose-only). ──
   const article = (
     <ContentGrid asChild>
       <article className={styles.article}>
         <Stack asChild gap={space(3)}>
           <header className={styles.header}>
-            {/* h1 → meta → body. The summary is NOT rendered here: on an editorial entry it is
-                teaser + meta-description copy only, and the lede is the body's own first
-                paragraph (styled by EntryBody), so rendering the summary too would restate the
+            {/* h1 → meta → body. The summary is NOT rendered here: on any entry it is teaser +
+                meta-description copy only, and the lede is the body's own first paragraph
+                (styled by EntryBody), so rendering the summary too would restate the
                 opening. */}
             <Heading level={1}>{entry.title ?? "Untitled entry"}</Heading>
             <EntryMeta

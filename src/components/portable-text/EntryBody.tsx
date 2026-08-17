@@ -51,7 +51,8 @@ export default function EntryBody({ value, scope }: EntryBodyProps) {
   // item — rendered a step up in size (the `lede` role) from the surrounding prose, same editorial
   // ink. It is not the `summary` (teaser + meta-description copy, no longer rendered on the page)
   // and not a schema field; it's derived here so an editor never maintains a parallel intro.
-  // Editorial-only by construction: a demo has no body, so this serializer never runs for one.
+  // Runs for EVERY kind — a demo renders the same prose article as an essay, so its body flows
+  // through this serializer too.
   //
   // Matched by stable `_key`, NOT array index: @portabletext/react collapses consecutive list
   // items into one synthetic node (`nestLists`) before rendering, so a block serializer's `index`

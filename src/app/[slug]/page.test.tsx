@@ -95,19 +95,8 @@ const clientFetchMock = vi.mocked(client.fetch);
 const accentOf = (seed: unknown): string =>
   Object.fromEntries(resolveThemeDeclarations(seed))["--accent"];
 
-// Fake resolvable modules whose members mark themselves, so a mounted surface is
-// unambiguously detectable in the rendered tree.
-const foundCanvas = () =>
-  found(async () => ({
-    default: {
-      Canvas: ({ slug }: { slug: string }) => (
-        <div data-testid="canvas" data-slug={slug}>
-          canvas content
-        </div>
-      ),
-    },
-  }));
-
+// A fake resolvable module whose frame marks itself, so a mounted Provider is unambiguously
+// detectable in the rendered tree.
 const foundProvider = () =>
   found(async () => ({
     default: {
@@ -125,37 +114,9 @@ const foundProvider = () =>
     },
   }));
 
-// A full demo module — Provider frame + Sidebar controls + Canvas surface.
-const foundFullDemo = () =>
-  found(async () => ({
-    default: {
-      Provider: ({
-        slug,
-        children,
-      }: {
-        slug: string;
-        children: React.ReactNode;
-      }) => (
-        <div data-testid="provider" data-slug={slug}>
-          {children}
-        </div>
-      ),
-      Sidebar: ({ slug }: { slug: string }) => (
-        <div data-testid="sidebar-controls" data-slug={slug}>
-          controls
-        </div>
-      ),
-      Canvas: ({ slug }: { slug: string }) => (
-        <div data-testid="canvas" data-slug={slug}>
-          canvas content
-        </div>
-      ),
-    },
-  }));
-
-// A module that RESOLVES (`found`) but whose default export is malformed — no mountable
-// member. The compile-time union forbids this, but drift/bad data can produce it at runtime;
-// the editorial page must degrade to prose-only, never crash, never 404.
+// A module that RESOLVES (`found`) but whose default export is malformed — no `Provider`.
+// The compile-time contract forbids this, but drift/bad data can produce it at runtime;
+// the page must degrade to prose-only, never crash, never 404.
 const foundEmptyModule = () => found(async () => ({ default: {} }));
 
 interface EntryOverrides {
@@ -198,7 +159,7 @@ beforeEach(() => {
   resolveComponentKeyMock.mockReturnValue(notFoundResolution("component", "x"));
 });
 
-describe("EntryPage — the editorial template (note · essay · now)", () => {
+describe("EntryPage — the one template (note · essay · demo · now)", () => {
   it("renders a bare note prose-only: title + body, summary NOT rendered, NO scope threaded", async () => {
     fetchMock.mockResolvedValueOnce(
       entry({ kind: "note", componentKey: null, ...withBody }),
@@ -261,24 +222,6 @@ describe("EntryPage — the editorial template (note · essay · now)", () => {
     expect(frame).toHaveAttribute("data-slug", "an-essay");
     // The article (title within it) renders INSIDE the frame — children pass through.
     expect(frame.querySelector("h1")).not.toBeNull();
-  });
-
-  it("ignores a module's Canvas on an editorial kind — no canvas mounts, the article renders", async () => {
-    // A Canvas-only module resolved by a NOTE: the canvas is a demo surface, so the editorial
-    // template mounts nothing from it — the entry renders its prose, and the scope still
-    // threads (a module counts as the capability).
-    resolveComponentKeyMock.mockReturnValue(foundCanvas());
-    fetchMock.mockResolvedValueOnce(
-      entry({ kind: "note", componentKey: "demo-sample", ...withBody }),
-    );
-    render(await EntryPage({ params: params("an-entry") }));
-    expect(screen.queryByTestId("canvas")).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { level: 1, name: /an entry/i }),
-    ).toBeInTheDocument();
-    const body = screen.getByTestId("essay-body");
-    expect(body).toHaveAttribute("data-has-scope", "yes");
-    expect(body).toHaveAttribute("data-scope-slug", "an-entry");
   });
 
   it("degrades to prose-only (no crash, no 404) when a resolved module exports no member", async () => {
@@ -398,7 +341,10 @@ describe("EntryPage — `now` mounts modules but never its own theme (#328)", ()
   });
 });
 
-describe("EntryPage — the demo template (sidebar + canvas)", () => {
+// A demo has no template of its own: it renders the SAME prose article as an essay, and its
+// interactive surface is a `slot` block in that prose (edge-to-edge via the block's `full`
+// lane). These pin that the kind is inert at the layout seam.
+describe("EntryPage — a demo renders the same article as an essay", () => {
   const demoEntry = (over: EntryOverrides = {}) =>
     entry({
       kind: "demo",
@@ -414,134 +360,135 @@ describe("EntryPage — the demo template (sidebar + canvas)", () => {
       ...over,
     });
 
-  it("renders sidebar + canvas: entry info, module controls, canvas — and NO prose article", async () => {
-    resolveComponentKeyMock.mockReturnValue(foundFullDemo());
-    fetchMock.mockResolvedValueOnce(demoEntry());
+  it("renders the prose article — h1 · meta readout · body · related — with no shell of its own", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
+    fetchMock.mockResolvedValueOnce(demoEntry(withBody));
     const { container } = render(
       await EntryPage({ params: params("demo-sample") }),
     );
-    // The page-owned sidebar info: h1 title, summary, and the meta readout facts.
+    const article = container.querySelector("article");
+    expect(
+      article,
+      "a demo mounts the same <article> an essay does",
+    ).not.toBeNull();
     expect(
       screen.getByRole("heading", { level: 1, name: /an entry/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("A summary.")).toBeInTheDocument();
+    // The same header readout every kind gets.
     expect(screen.getByText("Demo")).toBeInTheDocument();
     expect(screen.getByText("Budding")).toBeInTheDocument();
     expect(screen.getByText(/Last tended July 16, 2026/)).toBeInTheDocument();
     expect(screen.getByText("oklch(0.7 0.15 70)")).toBeInTheDocument();
-    // The module's two surfaces, both slug-keyed.
-    expect(screen.getByTestId("sidebar-controls")).toHaveAttribute(
-      "data-slug",
-      "demo-sample",
-    );
-    expect(screen.getByTestId("canvas")).toHaveAttribute(
-      "data-slug",
-      "demo-sample",
-    );
-    // No prose article, no EntryBody — a demo has no body.
-    expect(container.querySelector("article")).toBeNull();
-    expect(screen.queryByTestId("essay-body")).not.toBeInTheDocument();
-    // Related still renders below the demo (shared across both templates).
+    // The body renders through the SAME serializer as an essay's.
+    expect(screen.getByTestId("essay-body")).toBeInTheDocument();
     expect(
       screen.getByRole("region", { name: /related/i }),
     ).toBeInTheDocument();
+    // The summary is teaser + meta-description copy on EVERY kind now — a demo no longer
+    // prints it as its prose.
+    expect(screen.queryByText("A summary.")).not.toBeInTheDocument();
   });
 
-  it("wraps the WHOLE demo surface — controls and canvas — in one slug-keyed theme scope, inside the Provider frame", async () => {
-    resolveComponentKeyMock.mockReturnValue(foundFullDemo());
-    fetchMock.mockResolvedValueOnce(demoEntry());
-    const { container } = render(
-      await EntryPage({ params: params("demo-sample") }),
+  it("threads the module scope to the body, so a demo's slots wear its theme fonts", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
+    fetchMock.mockResolvedValueOnce(
+      demoEntry({
+        theme: {
+          color: "oklch(0.7 0.15 70)",
+          headingFont: "fraunces",
+          bodyFont: "newsreader",
+          monoFont: "jetbrains-mono",
+        },
+        ...withBody,
+      }),
     );
-    const scope = container.querySelector("[data-entry]");
-    expect(scope).toHaveAttribute("data-entry", "demo-sample");
-    // Both module surfaces sit INSIDE the one scope.
-    expect(
-      scope?.querySelector('[data-testid="sidebar-controls"]'),
-    ).not.toBeNull();
-    expect(scope?.querySelector('[data-testid="canvas"]')).not.toBeNull();
-    // The Provider frame wraps the scoped surface (state around theme, never inside it).
+    render(await EntryPage({ params: params("demo-sample") }));
+    const body = screen.getByTestId("essay-body");
+    expect(body).toHaveAttribute("data-has-scope", "yes");
+    expect(body).toHaveAttribute("data-scope-slug", "demo-sample");
+    expect(body).toHaveAttribute("data-scope-heading", "fraunces");
+    expect(body).toHaveAttribute("data-scope-body", "newsreader");
+    expect(body).toHaveAttribute("data-scope-mono", "jetbrains-mono");
+  });
+
+  it("wraps the demo's article in the module's Provider frame, exactly as an essay's", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
+    fetchMock.mockResolvedValueOnce(demoEntry(withBody));
+    render(await EntryPage({ params: params("demo-sample") }));
     const frame = screen.getByTestId("provider");
     expect(frame).toHaveAttribute("data-slug", "demo-sample");
-    expect(frame.querySelector("[data-entry]")).not.toBeNull();
+    // The article passes THROUGH the frame — state around the prose, never markup inside it.
+    expect(frame.querySelector("article h1")).not.toBeNull();
   });
 
-  it("mounts a Canvas-only demo module without controls (no Sidebar, no Provider — still a demo)", async () => {
-    resolveComponentKeyMock.mockReturnValue(foundCanvas());
-    fetchMock.mockResolvedValueOnce(demoEntry());
-    render(await EntryPage({ params: params("demo-sample") }));
-    expect(screen.getByTestId("canvas")).toBeInTheDocument();
-    expect(screen.queryByTestId("sidebar-controls")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("provider")).not.toBeInTheDocument();
-  });
-
-  it("renders a demo whose module lacks a Canvas as the shell with an empty canvas (no 404)", async () => {
-    // A resolved module with a Provider but no Canvas has nothing to paint — the demo still
-    // renders its shell (header + empty canvas), never a 404 and never the prose article.
-    resolveComponentKeyMock.mockReturnValue(foundProvider());
-    fetchMock.mockResolvedValueOnce(demoEntry());
-    const { container } = render(
-      await EntryPage({ params: params("demo-sample") }),
-    );
-    expect(
-      screen.getByRole("heading", { level: 1, name: /an entry/i }),
-    ).toBeInTheDocument();
-    expect(screen.queryByTestId("canvas")).not.toBeInTheDocument();
-    expect(container.querySelector("article")).toBeNull();
-  });
-
-  it("renders a componentless demo as the demo shell (empty canvas), not the prose article", async () => {
-    // A coming-soon demo (no componentKey) keeps the demo template — header (title + summary +
-    // meta) over an empty canvas — instead of falling back to the editorial prose column.
+  it("renders a componentless demo prose-only — never a 404, resolver never consulted", async () => {
+    // A coming-soon demo (no componentKey) is just an entry whose slots haven't shipped.
     fetchMock.mockResolvedValueOnce(
-      demoEntry({ componentKey: null, summary: "A seedling summary." }),
+      demoEntry({ componentKey: null, ...withBody }),
     );
     const { container } = render(
       await EntryPage({ params: params("demo-sample") }),
     );
-    expect(
-      screen.getByRole("heading", { level: 1, name: /an entry/i }),
-    ).toBeInTheDocument();
-    // The demo shell shows its header summary (through EntryTeaser)…
-    expect(screen.getByText(/A seedling summary\./)).toBeInTheDocument();
-    // …with an empty canvas and NO prose article.
-    expect(screen.queryByTestId("canvas")).not.toBeInTheDocument();
-    expect(container.querySelector("article")).toBeNull();
+    expect(container.querySelector("article")).not.toBeNull();
+    expect(screen.getByTestId("essay-body")).toBeInTheDocument();
+    // No module → no scope to thread.
+    expect(screen.getByTestId("essay-body")).toHaveAttribute(
+      "data-has-scope",
+      "no",
+    );
     expect(resolveComponentKeyMock).not.toHaveBeenCalled();
   });
 
-  it("never renders a leftover body on the demo template (the summary is the demo's prose)", async () => {
-    // A demo doc that still carries a body (stale data) must not smuggle prose into the
-    // sidebar+canvas template.
-    resolveComponentKeyMock.mockReturnValue(foundCanvas());
-    fetchMock.mockResolvedValueOnce(demoEntry(withBody));
-    render(await EntryPage({ params: params("demo-sample") }));
-    expect(screen.queryByTestId("essay-body")).not.toBeInTheDocument();
-    expect(screen.getByTestId("canvas")).toBeInTheDocument();
-  });
-
-  it("never throws on a hostile theme.color through the REAL EntryScope, and keys the scope on the real slug", async () => {
-    // The keystone contract at the PAGE seam: a garbage `theme.color` reaching the real
-    // `EntryScope` → `resolveScope` → OKLCH engine must degrade to the fallback palette, never
-    // throw. The demo template is where the page itself mounts the real scope.
-    resolveComponentKeyMock.mockReturnValue(foundCanvas());
+  it("renders a body-less demo cleanly — header only, no EntryBody, no crash", async () => {
+    // The state every seedling demo is in before its prose is written.
     fetchMock.mockResolvedValueOnce(
-      demoEntry({
-        theme: { color: 'javascript:alert(1)"]{}body{display:none}' },
-      }),
+      demoEntry({ componentKey: null, body: null }),
     );
     const { container } = render(
       await EntryPage({ params: params("demo-sample") }),
     );
-    expect(screen.getByTestId("canvas")).toBeInTheDocument();
-    expect(container.querySelector("[data-entry]")).toHaveAttribute(
-      "data-entry",
-      "demo-sample",
+    const article = container.querySelector("article");
+    expect(article?.querySelector("h1")).not.toBeNull();
+    expect(screen.queryByTestId("essay-body")).not.toBeInTheDocument();
+  });
+
+  it("keys the threaded scope on the real slug even for a hostile theme.color (never throws)", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
+    fetchMock.mockResolvedValueOnce(
+      demoEntry({
+        theme: { color: 'javascript:alert(1)"]{}body{display:none}' },
+        ...withBody,
+      }),
     );
+    render(await EntryPage({ params: params("demo-sample") }));
+    const body = screen.getByTestId("essay-body");
+    expect(body).toHaveAttribute("data-has-scope", "yes");
+    expect(body).toHaveAttribute("data-scope-slug", "demo-sample");
+  });
+
+  it("drops the tended stamp (no <time>, no crash) when the authored date is malformed", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
+    fetchMock.mockResolvedValueOnce(
+      demoEntry({ tended: "2026-99-99", ...withBody }),
+    );
+    const { container } = render(
+      await EntryPage({ params: params("demo-sample") }),
+    );
+    expect(container.querySelector("time")).toBeNull();
+    expect(screen.queryByText(/tended/)).not.toBeInTheDocument();
+  });
+
+  it("falls back to 'Untitled entry' for a demo whose title drifted to null", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
+    fetchMock.mockResolvedValueOnce(demoEntry({ title: null, ...withBody }));
+    render(await EntryPage({ params: params("demo-sample") }));
+    expect(
+      screen.getByRole("heading", { level: 1, name: /untitled entry/i }),
+    ).toBeInTheDocument();
   });
 });
 
-describe("EntryPage — shared gates (both templates)", () => {
+describe("EntryPage — shared gates (every kind)", () => {
   it.each(["demo", "note", "essay", "now"])(
     "notFound()s a %s whose declared componentKey does not resolve (drift, for EVERY kind)",
     async (kind) => {
@@ -580,13 +527,14 @@ describe("EntryPage — shared gates (both templates)", () => {
 
   it("mounts PageTheme carrying the entry's themeSeed (demo)", async () => {
     const SEED = "oklch(0.62 0.2 265)";
-    resolveComponentKeyMock.mockReturnValue(foundCanvas());
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "demo",
         componentKey: "demo-sample",
         slug: "demo-sample",
         themeSeed: SEED,
+        ...withBody,
       }),
     );
     const html = renderToStaticMarkup(
@@ -756,8 +704,8 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
     ).not.toBeInTheDocument();
   });
 
-  it("threads the page-computed linkCount into the DEMO sidebar readout too", async () => {
-    resolveComponentKeyMock.mockReturnValue(foundCanvas());
+  it("threads the page-computed linkCount into a DEMO's header readout too", async () => {
+    resolveComponentKeyMock.mockReturnValue(foundProvider());
     fetchMock.mockResolvedValueOnce(
       entry({
         kind: "demo",
@@ -765,6 +713,7 @@ describe("EntryPage — the meta readout on the detail surfaces (#329 QA)", () =
         stage: "budding",
         related: [neighbor("a")],
         backlinks: [neighbor("a"), neighbor("b"), neighbor("c")],
+        ...withBody,
       }),
     );
     render(await EntryPage({ params: params("an-entry") }));
@@ -819,67 +768,58 @@ describe("EntryPage — a pre-rename document arriving live (stage-vocabulary QA
   });
 });
 
-// QA — the demo template's remaining data edges, and the structural chain the demo CSS
-// depends on (`.demoBleed > [data-entry]` is a DIRECT-child selector).
-describe("EntryPage — demo template edges (QA)", () => {
-  const demoEntry = (over: EntryOverrides = {}) =>
-    entry({
-      kind: "demo",
-      componentKey: "demo-sample",
-      slug: "demo-sample",
-      stage: "budding",
-      themeSeed: "oklch(0.7 0.15 70)",
-      ...over,
-    });
+// QA — the structural chain the page CSS depends on. `.article { grid-column: full }` only
+// places a DIRECT child of the page grid: if anything ever wraps the <article>, its `full`
+// lane declaration goes inert and the article silently falls into the prose lane, taking every
+// `full`-lane slot block down with it.
+describe("EntryPage — the article's grid placement (QA)", () => {
+  it.each(["note", "essay", "demo", "now"])(
+    "mounts a %s's <article> as a DIRECT child of the page grid",
+    async (kind) => {
+      fetchMock.mockResolvedValueOnce(
+        entry({ kind, componentKey: null, ...withBody }),
+      );
+      const { container } = render(
+        await EntryPage({ params: params("an-entry") }),
+      );
+      expect(
+        container.querySelector(`main > .${pageStyles.article}`),
+      ).not.toBeNull();
+    },
+  );
 
-  it("drops the tended stamp (no <time>, no crash) when the authored date is malformed", async () => {
-    resolveComponentKeyMock.mockReturnValue(foundCanvas());
-    fetchMock.mockResolvedValueOnce(demoEntry({ tended: "2026-99-99" }));
-    const { container } = render(
-      await EntryPage({ params: params("demo-sample") }),
-    );
-    expect(screen.getByTestId("canvas")).toBeInTheDocument();
-    expect(container.querySelector("time")).toBeNull();
-    expect(screen.queryByText(/tended/)).not.toBeInTheDocument();
-  });
-
-  it("falls back to 'Untitled entry' for a demo whose title drifted to null", async () => {
-    resolveComponentKeyMock.mockReturnValue(foundCanvas());
-    fetchMock.mockResolvedValueOnce(demoEntry({ title: null }));
-    render(await EntryPage({ params: params("demo-sample") }));
-    expect(
-      screen.getByRole("heading", { level: 1, name: /untitled entry/i }),
-    ).toBeInTheDocument();
-  });
-
-  it("keeps [data-entry] a DIRECT child of the bleed wrapper when the module has no Provider", async () => {
-    // The stretch chain in page.module.css is `.demoBleed > [data-entry]` — a direct-child
-    // selector. With no Provider (a Canvas-only module shape) the scope container must sit
-    // immediately under the bleed wrapper, or the demo surface silently loses its full-height
-    // stretch. NOTE: a module whose Provider renders a real DOM element would break this chain
-    // — nothing enforces that a Provider is markup-free (see QA report).
-    resolveComponentKeyMock.mockReturnValue(foundCanvas());
-    fetchMock.mockResolvedValueOnce(demoEntry());
-    const { container } = render(
-      await EntryPage({ params: params("demo-sample") }),
-    );
-    expect(
-      container.querySelector(`.${pageStyles.demoBleed} > [data-entry]`),
-    ).not.toBeNull();
-  });
-
-  it("mounts the demo surface inside the bleed wrapper which is a DIRECT child of the page grid", async () => {
-    // grid-column only places DIRECT children — if anything wraps .demoBleed, its `full` lane
-    // declaration goes inert and the demo quietly falls into the prose lane.
-    resolveComponentKeyMock.mockReturnValue(foundCanvas());
-    fetchMock.mockResolvedValueOnce(demoEntry());
-    const { container } = render(
-      await EntryPage({ params: params("demo-sample") }),
-    );
-    expect(
-      container.querySelector(`main > .${pageStyles.demoBleed}`),
-    ).not.toBeNull();
-  });
+  // QA (adversarial review): the case above pins only `componentKey: null`. The configuration
+  // the one-template design actually depends on is a DEMO that leans on its module — and there
+  // the route wraps the article in the module's `Provider`. `EntryModule.Provider` is
+  // DOCUMENTED (src/entries/types.ts) as rendering no DOM element of its own precisely because
+  // "the editorial grid assumes children pass through unwrapped", but NOTHING enforces that —
+  // no type, no lint, no test. Measured in Chrome against the built app: interposing one
+  // wrapper element between <main> and <article> collapses the article from the full document
+  // width (1429px at a 1440px viewport) to the prose measure (672px), taking every
+  // `full`-lane slot block down with it. This pins the route's half of the contract.
+  it.each(["note", "essay", "demo", "now"])(
+    "keeps a %s's <article> a DIRECT child of the page grid when a contract-compliant Provider is mounted",
+    async (kind) => {
+      resolveComponentKeyMock.mockReturnValue(
+        found(async () => ({
+          // Context frame only — children pass through unwrapped, per the contract.
+          default: {
+            Provider: ({ children }: { children: React.ReactNode }) => children,
+          },
+        })),
+      );
+      fetchMock.mockResolvedValueOnce(
+        entry({ kind, componentKey: "a-module", ...withBody }),
+      );
+      const { container } = render(
+        await EntryPage({ params: params("an-entry") }),
+      );
+      expect(
+        container.querySelector(`main > .${pageStyles.article}`),
+        "the Provider must not interpose an element between <main> and <article>",
+      ).not.toBeNull();
+    },
+  );
 });
 
 describe("generateMetadata (QA)", () => {
@@ -986,10 +926,9 @@ describe("the entry page's heading ink rule (CSS source)", () => {
     expect([...vars].filter((v) => v.includes("accent"))).toEqual([]);
   });
 
-  it("spends no accent ink on the editorial detail h1 — neutral ink, no color prop", () => {
-    // The former accent-text display exception is revoked; a re-added color prop on the
-    // editorial entry h1 has to change this test, not just a line. (The demo detail h1 flows
-    // through EntryTeaser — covered separately below.)
+  it("spends no accent ink on the detail h1 — neutral ink, no color prop", () => {
+    // The former accent-text display exception is revoked; a re-added color prop on the entry
+    // h1 has to change this test, not just a line. One h1 mount now serves every kind.
     const source = readFileSync(
       resolve(process.cwd(), "src/app/[slug]/page.tsx"),
       "utf8",
@@ -1001,25 +940,5 @@ describe("the entry page's heading ink rule (CSS source)", () => {
         "color=",
       );
     }
-  });
-
-  it("routes the demo detail h1 through EntryTeaser — its summary is body text, never a lede", () => {
-    // The demo header's title is the fused EntryTeaser (title + summary as one paragraph), not
-    // a bare display <Heading> with the summary dressed as a lede. The atom renders the summary
-    // as `body`, so summary ≠ lede is honoured here, and the revoked accent-display exception
-    // can't creep back either. Pinned at the mount.
-    const source = readFileSync(
-      resolve(process.cwd(), "src/components/entry/DemoLayout.tsx"),
-      "utf8",
-    );
-    expect(source).not.toMatch(/<Heading level=\{1\}/);
-    expect(source).toMatch(/<EntryTeaser[^>]*level=\{1\}/);
-    expect(
-      source,
-      "demo header must not style the summary as a lede",
-    ).not.toMatch(/variant="lede"/);
-    expect(source, "demo header must spend no accent ink").not.toContain(
-      "accent",
-    );
   });
 });
