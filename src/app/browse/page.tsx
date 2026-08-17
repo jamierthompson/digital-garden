@@ -98,7 +98,7 @@ export default async function IndexPage() {
                         {inKind.map((entry) => (
                           <EntrySummary
                             key={entry._id}
-                            title={entry.title ?? "Untitled entry"}
+                            title={entry.title || "Untitled entry"}
                             slug={entry.slug}
                             summary={entry.summary}
                             stage={entry.stage}

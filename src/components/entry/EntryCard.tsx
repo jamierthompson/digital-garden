@@ -36,25 +36,22 @@ interface EntryCardProps {
  * pairing itself rather than sharing one atom, so the card can be restyled without moving the
  * Index rows or the Related list with it.
  *
- * Defensive: a slugless entry degrades to a non-link card (never a dead link); a blank title
- * falls back to a neutral label (never a nameless node in the outline, whose accessible name
- * would silently degrade to the summary); missing meta simply omits the row. The whole card is
- * the link (`HoverPrefetchLink`), so the title is plain text with no link of its own — a
- * per-title link here would nest an `<a>` inside the card's `<a>`.
+ * A slugless entry degrades to a non-link card, an absent title to a neutral label, and missing
+ * meta simply omits the row — the shapes a draft actually has. The whole card is the link
+ * (`HoverPrefetchLink`), so the title is plain text with no link of its own — a per-title link
+ * here would nest an `<a>` inside the card's `<a>`.
  */
 export default function EntryCard({ entry }: EntryCardProps) {
-  // Nullish-coalescing isn't enough: a blank Studio field serialises to "" (a valid string),
-  // which would render an empty heading. Treat blank/whitespace-only as missing.
-  const displayTitle = entry.title?.trim() ? entry.title : "Untitled entry";
+  // `||`, not `??`: `title` is required in the Studio, but a draft (which Visual Editing
+  // renders) can carry no title at all, and a cleared field serialises to "" rather than null.
+  const displayTitle = entry.title || "Untitled entry";
 
   const body: ReactNode = (
     <>
       <Heading level={3} color="foreground">
         {displayTitle}
       </Heading>
-      {/* Guarded on `.trim()` (not bare truthiness) so a whitespace-only field renders no
-          paragraph at all rather than an empty node taking the card's stack gap. */}
-      {entry.summary?.trim() ? (
+      {entry.summary ? (
         <Text variant="body" color="muted-foreground">
           {entry.summary}
         </Text>

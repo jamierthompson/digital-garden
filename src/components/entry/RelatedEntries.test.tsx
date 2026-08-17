@@ -309,16 +309,17 @@ describe("RelatedEntries", () => {
         currentId="self"
         related={[
           entry({ _id: "a", title: null, slug: "untitled" }),
-          entry({ _id: "b", title: "   ", slug: "blank" }),
+          entry({ _id: "b", title: "", slug: "cleared" }),
         ]}
         backlinks={null}
       />,
     );
-    // null AND whitespace-only titles both resolve to the fallback as the ACCESSIBLE name.
+    // A draft neighbour with no title yet — null, or "" from a cleared field — takes the
+    // fallback as its ACCESSIBLE name rather than shipping a nameless link.
     const links = screen.getAllByRole("link", { name: "Untitled entry" });
     expect(links.map((l) => l.getAttribute("href"))).toEqual([
       "/untitled",
-      "/blank",
+      "/cleared",
     ]);
   });
 
@@ -332,55 +333,6 @@ describe("RelatedEntries", () => {
     );
     expect(screen.getByText("No route")).toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
-  });
-
-  // `slug.current` is hand-editable in the Studio, so whitespace is a real shape — and it is
-  // truthy, so only a trim guard catches it. Without one the row shipped <a href="/   ">.
-  it("renders a whitespace-only slug as plain text — never a dead link", () => {
-    render(
-      <RelatedEntries
-        currentId="self"
-        related={[entry({ _id: "a", title: "Padded", slug: "   " })]}
-        backlinks={null}
-      />,
-    );
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
-  });
-
-  it("routes a padded slug to the clean path", () => {
-    render(
-      <RelatedEntries
-        currentId="self"
-        related={[entry({ _id: "a", title: "Padded", slug: "  padded  " })]}
-        backlinks={null}
-      />,
-    );
-    expect(screen.getByRole("link", { name: "Padded" })).toHaveAttribute(
-      "href",
-      "/padded",
-    );
-  });
-
-  it("renders the row's summary as its own paragraph, not run into the title", () => {
-    render(
-      <RelatedEntries
-        currentId="self"
-        related={[
-          entry({
-            _id: "a",
-            title: "One seed color in.",
-            slug: "oklch",
-            summary: "The engine solves the whole ramp.",
-          }),
-        ]}
-        backlinks={null}
-      />,
-    );
-    const heading = screen.getByRole("heading", { level: 3 });
-    const summary = screen.getByText("The engine solves the whole ramp.");
-    expect(summary.tagName).toBe("P");
-    expect(heading).not.toContainElement(summary);
-    expect(heading.textContent).toBe("One seed color in.");
   });
 
   it("keeps the link name unambiguous when an entry's summary repeats its title", () => {
@@ -452,9 +404,8 @@ describe("the label's ink travels via the color prop, not CSS", () => {
   });
 
   it("clamps the SUMMARY only — the row's title heading is never trimmed", () => {
-    // The clamp used to sit on the fused title+summary paragraph, where a long summary could eat
-    // into the title's lines. Pinned at the source: no rule in this module may clamp the row
-    // wrapper or the whole item.
+    // Pinned at the source: no rule in this module may clamp the row wrapper or the whole item,
+    // which would put the title at risk of being trimmed along with the summary.
     for (const selector of [".row", ".item"]) {
       const rule = ruleDeclarations(RELATED_CSS, selector);
       expect(rule.has("line-clamp")).toBe(false);

@@ -74,13 +74,9 @@ export default function RelatedEntries({
       </Heading>
       <ul className={styles.list}>
         {entries.map((entry) => {
-          // A blank Studio field serialises to "" (a valid string), which would render a
-          // nameless heading and a link with no accessible name; a whitespace-only
-          // `slug.current` would render a dead `href="/   "`. Treat both as missing.
-          const displayTitle = entry.title?.trim()
-            ? entry.title
-            : "Untitled entry";
-          const linkSlug = entry.slug?.trim();
+          // `||`, not `??`: a dangling/draft neighbour can arrive with no title, and a cleared
+          // field serialises to "" rather than null.
+          const displayTitle = entry.title || "Untitled entry";
 
           return (
             <li key={entry._id} className={styles.item}>
@@ -88,15 +84,15 @@ export default function RelatedEntries({
                   `li` itself would drop it). */}
               <div className={styles.row}>
                 <Heading level={3} color="foreground">
-                  {linkSlug ? (
+                  {entry.slug ? (
                     <TextLink variant="quiet" asChild>
-                      <Link href={`/${linkSlug}`}>{displayTitle}</Link>
+                      <Link href={`/${entry.slug}`}>{displayTitle}</Link>
                     </TextLink>
                   ) : (
                     displayTitle
                   )}
                 </Heading>
-                {entry.summary?.trim() ? (
+                {entry.summary ? (
                   <Text
                     variant="body"
                     color="muted-foreground"

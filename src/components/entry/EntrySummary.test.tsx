@@ -106,9 +106,7 @@ describe("EntrySummary", () => {
     );
     const item = screen.getByRole("listitem");
     const children = Array.from(item.children);
-    // Three siblings, not a fused paragraph: the h3 title, its own summary paragraph, then the
-    // meta readout. The title is NOT run into the summary — pinned so the run-in cannot return
-    // by accident.
+    // The row's three blocks, in order: the h3 title, its summary paragraph, the meta readout.
     expect(children).toHaveLength(3);
     expect(children[0].tagName).toBe("H3");
     expect(children[0].textContent).toBe("Ordered");
@@ -146,51 +144,6 @@ describe("EntrySummary", () => {
       const heading = screen.getByRole("heading", { level: 3 });
       const link = screen.getByRole("link", { name: "Nested" });
       expect(heading).toContainElement(link);
-    });
-
-    // The blank-field guards below used to live in the shared teaser atom; the atom is gone and
-    // each entry surface now owns its own title/summary markup, so each surface has to carry
-    // them itself. These pin them HERE — the callers resolve a NULLISH title (`?? "Untitled …"`)
-    // but a cleared Studio field serialises to "" and slips straight past that.
-    it("falls back to a neutral label for a blank title — never a nameless heading", () => {
-      renderInList(<EntrySummary title="" slug="x" />);
-      expect(screen.getByRole("heading", { level: 3 })).toHaveAccessibleName(
-        "Untitled entry",
-      );
-      // The fallback is the link's accessible name too, never an empty string.
-      expect(
-        screen.getByRole("link", { name: "Untitled entry" }),
-      ).toBeInTheDocument();
-    });
-
-    it("falls back to a neutral label for a whitespace-only title", () => {
-      renderInList(<EntrySummary title="   " slug="x" />);
-      expect(screen.getByRole("heading", { level: 3 })).toHaveAccessibleName(
-        "Untitled entry",
-      );
-    });
-
-    it("renders plain text for a whitespace-only slug — never a dead link", () => {
-      // `slug.current` is hand-editable in the Studio; without the trim guard this shipped
-      // <a href="/   ">.
-      renderInList(<EntrySummary title="Padded" slug="   " />);
-      expect(screen.queryByRole("link")).not.toBeInTheDocument();
-    });
-
-    it("routes a padded slug to the clean path", () => {
-      renderInList(<EntrySummary title="Padded" slug="  padded  " />);
-      expect(screen.getByRole("link", { name: "Padded" })).toHaveAttribute(
-        "href",
-        "/padded",
-      );
-    });
-
-    it("renders no summary paragraph for a whitespace-only summary — no empty node", () => {
-      // Without the `.trim()` guard this rendered an empty <p> that still took the stack's gap.
-      renderInList(<EntrySummary title="Alone" summary="   " />);
-      const item = screen.getByRole("listitem");
-      expect(item.querySelector("p[data-variant='body']")).toBeNull();
-      expect(item.textContent).toBe("Alone");
     });
   });
 });

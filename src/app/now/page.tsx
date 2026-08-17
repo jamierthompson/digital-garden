@@ -62,12 +62,9 @@ export default async function NowPage() {
                 {updates.map((update) => (
                   <EntrySummary
                     key={update._id}
-                    // Trim-aware, not just nullish: a blank/whitespace title would otherwise
-                    // slip past `??` and hit the atom's generic "Untitled entry" fallback,
-                    // losing this surface's "update" wording.
-                    title={
-                      update.title?.trim() ? update.title : "Untitled update"
-                    }
+                    // `||`, not `??`: a cleared title serialises to "" and would otherwise
+                    // reach an empty heading instead of this surface's "update" wording.
+                    title={update.title || "Untitled update"}
                     slug={update.slug}
                     summary={update.summary}
                     tended={update.tended}

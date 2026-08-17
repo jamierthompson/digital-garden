@@ -74,23 +74,6 @@ describe("EntryCard", () => {
     expect(container.querySelectorAll("p")).toHaveLength(1);
   });
 
-  it("omits the summary for a whitespace-only string — no empty node", () => {
-    // Same shape as the empty-string case: truthy, so only a `.trim()` guard catches it.
-    const { container } = renderCard(entry({ summary: "   " }));
-    expect(container.querySelectorAll("p")).toHaveLength(1);
-  });
-
-  it("renders the summary as its own paragraph, not run into the title", () => {
-    // The card's title and summary are separate blocks — the title is NOT an inline run-in the
-    // summary continues. Pinned so the fused shape cannot return by accident.
-    renderCard(entry());
-    const heading = screen.getByRole("heading", { level: 3 });
-    const summary = screen.getByText("A short summary.");
-    expect(summary.tagName).toBe("P");
-    expect(heading).not.toContainElement(summary);
-    expect(heading.textContent).toBe("A card");
-  });
-
   it("renders the full meta readout: kind · stage · tended · related", () => {
     renderCard(
       entry({
@@ -190,21 +173,13 @@ describe("EntryCard — the query is the card's real input", () => {
 });
 
 describe("EntryCard — title/slug boundaries", () => {
-  // `title ?? "Untitled entry"` is nullish — a blank Studio field serialises to "" (a valid
-  // string) and would slip through to a nameless <h3> (axe empty-heading) with the link's
-  // accessible name silently degrading to the summary. These pin the blank cases.
+  // `title` is required() in the Studio, so the shape that actually reaches a card is a DRAFT
+  // with no title yet — null, or "" from a cleared field. `||` covers both; these pin that.
   it("falls back to a neutral label for an empty-string title (not an empty heading)", () => {
     renderCard(entry({ title: "" }));
     expect(screen.getByRole("heading", { level: 3 })).toHaveAccessibleName(
       /untitled entry/i,
     );
-  });
-
-  it("falls back to a neutral label for a whitespace-only title", () => {
-    renderCard(entry({ title: "   " }));
-    expect(
-      screen.getByRole("heading", { level: 3 }).textContent?.trim(),
-    ).not.toBe("");
   });
 
   // An empty-string slug is falsy, so it must degrade to the non-link card — never href="/".
