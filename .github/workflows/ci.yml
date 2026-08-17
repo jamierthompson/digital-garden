@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     # Sanity project ID and dataset are public (shipped to the browser), not secrets.
     env:
-      NEXT_PUBLIC_SANITY_PROJECT_ID: 7id6sf36
+      NEXT_PUBLIC_SANITY_PROJECT_ID: va1axyj4
       NEXT_PUBLIC_SANITY_DATASET: production
     steps:
       - uses: actions/checkout@v5
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     # Sanity project ID and dataset are public (shipped to the browser), not secrets.
     env:
-      NEXT_PUBLIC_SANITY_PROJECT_ID: 7id6sf36
+      NEXT_PUBLIC_SANITY_PROJECT_ID: va1axyj4
       NEXT_PUBLIC_SANITY_DATASET: production
     steps:
       - uses: actions/checkout@v5
