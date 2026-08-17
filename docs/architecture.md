@@ -121,7 +121,7 @@ the slot scope so a theme can re-bind them), and the per-role measure caps
 component-specific value is bound as a **component token** — the third tier under the semantic
 roles, and the one sanctioned place a module reads the raw scale (`pnpm lint:dimension`). The
 convention: a component token is declared in a **labeled block on the component's root rule**,
-**named for the design job it does** (`--quote-indent`, `--demo-sidebar-basis`,
+**named for the design job it does** (`--quote-indent`, `--card-min-basis`,
 `--scrollbar-thumb`) — a single consumer is fine (Material's `md.comp.*` tier is mostly
 single-consumer; the name is the point). It is **never minted in a route module** (a route element
 needing its own designed geometry is a component asking to be extracted), never as a same-line
@@ -199,8 +199,8 @@ global :root  (foundation primitives + the semantic ENGINE FALLBACK)
    │        --type-<role>-family bundles the type primitives read are declared ONCE in
    │        semantic/type.css under `:root, :where([data-entry])`, so they re-substitute against
    │        these leaves inside the slot. An unset face stamps nothing and inherits :root. A page
-   │        mounts one (the demo template's sidebar + canvas surface)
-   │        or MANY (slots interleaved through the prose); each is per-element, so distinct slots never
+   │        mounts one per slot — none, one, or MANY, interleaved through the prose; each is
+   │        per-element, so distinct slots never
    │        collide. Color is inherited from <html>; only the resolved font roles are overridden here.
           │ themes downward, within the slot ↓
    the interactive slot + interleaved slots   read the SAME generic semantic tokens (--surface, --accent, --font-body, …)
@@ -428,10 +428,11 @@ small color _system_. It is **both a feature and a demo — same logic, two-plus
   site-wide delivery section).
 
 The flagship demo is a planned **engine-showcase module** — an entry module whose interactive
-canvas re-runs the pure engine in JS on each control change (type a seed, watch the palette
-regenerate). No such module is registered yet: the component registry is empty (see the CMS ↔
-code registry section), so demo entries render as coming-soon stubs — the **demo template**
-(sidebar + canvas) with an empty canvas — until one ships. A showcase module renders its baked
+slot re-runs the pure engine in JS on each control change (type a seed, watch the palette
+regenerate), taken edge-to-edge by the block's `full` lane. No such module is registered yet: the
+component registry is empty (see the CMS ↔ code registry section), so a demo entry is prose until
+one ships, and any `slot` block it already carries renders the missing-slot placeholder. A
+showcase module renders its baked
 tokens by consuming the scope's CSS variables; it need not call the engine at runtime (the
 engine-showcase is the exception — it re-runs the pure function in JS live, and reports the
 engine's own receipts: per-token binding provenance, measured contrast, the anchor readout).
@@ -749,35 +750,27 @@ src/lib/resolvers/components.ts  componentKey → () => import("@/entries/<slug>
 src/*/keys.ts              string-constant key contracts (Studio imports these; resolvers don't)
 ```
 
-An entry renders as a single `/[slug]` page on one of **two templates, branched by `kind`**:
+An entry renders as a single `/[slug]` page on **one template, the same for every `kind`**
+(`note` · `essay` · `demo` · `now` — and any kind the code doesn't recognize): the prose reading
+column — the header (title + the shared `EntryMeta` readout: kind · stage · tended · seed · link
+count) over the entry's `<article>`, with interactive `slot` blocks interleaved through the prose
+(`SlotBlock` → `slots/*`), each in its own theme scope.
 
-- **Editorial** (`note` · `essay` · `now` — and any kind the code doesn't recognize): the prose
-  reading column, with interactive `slot` blocks interleaved through the prose (`SlotBlock` →
-  `slots/*`), each in its own theme scope. `now` is editorial with one exception: it never wears
-  its own `theme` — it keeps the shared `/now` seed (colors AND type), so its slots mount
-  slug-keyed with the Now theme's faces.
-- **Demo** (`kind === "demo"`, always): a two-region app layout (`DemoLayout`,
-  `src/components/entry/`) — **sidebar + canvas**, edge-to-edge in the content grid's `full`
-  lane, no prose article (the summary is the demo's prose). **Hybrid sidebar:** the page renders
-  the entry's info (title, summary, and the shared `EntryMeta` readout: kind · stage · tended ·
-  seed · link count) — DRY across demos —
-  and the module contributes its controls below. A demo with no module (or one lacking a `Canvas`)
-  shows the shell with an empty-canvas coming-soon placeholder, never the editorial prose column.
+**`kind` is inert at the layout seam.** A demo is not a second template — it is an entry that
+leans on its slots, and a slot reaches edge-to-edge through the content grid's `full` lane
+(`lane` on the block, `src/lib/lanes.ts`), the same opt-in any essay's slot has. The one
+kind-shaped exception is theming, not layout: `now` never wears its own `theme` — it keeps the
+shared `/now` seed (colors AND type), so its slots mount slug-keyed with the Now theme's faces.
 
-The registry entry (the `EntryModule` contract, `src/entries/types.ts`) exports up to three
-members — a compile error enforces a mountable one (`Provider` and/or `Canvas`):
+The registry entry (the `EntryModule` contract, `src/entries/types.ts`) exports exactly one
+member, required:
 
-- **`Provider`** — a client frame the page wraps the entry's surface in (the editorial
-  `<article>`, or the demo's sidebar + canvas), so the module's pieces share state via context.
-  The surface stays server-rendered (children pass-through); the provider adds state, never
-  markup that re-themes the editorial register. On the editorial template the page threads the
-  font seed to the serializer, and each slot mounts in its own `EntryScope` container (per-role
-  face overrides per island; color inherited from the page's `<html>` theme).
-- **`Canvas`** — the module-owned main surface of a demo. A demo whose resolved module lacks
-  `Canvas` is content→code drift and 404s, same as an unresolvable `componentKey`.
-- **`Sidebar`** — the module's controls, mounted inside the page-owned sidebar shell below the
-  entry info. Meaningless without `Canvas`. On the demo template ONE `EntryScope` wraps sidebar
-  controls and canvas together.
+- **`Provider`** — a client frame the page wraps the entry's `<article>` in, so the module's
+  slots share state via context. The article stays server-rendered (children pass-through); the
+  provider adds state, never markup that re-themes the editorial register — and never a DOM
+  element of its own, which the grid's direct-child lane placement depends on. The page threads
+  the font seed to the serializer, and each slot mounts in its own `EntryScope` container
+  (per-role face overrides per island; color inherited from the page's `<html>` theme).
 
 Nothing more is templated: the page is the template plus the module's composition. A headless `core/` is **not** templated into every module — let it
 emerge only when a slot's logic warrants extraction (same deferral discipline as the
@@ -962,10 +955,9 @@ Practical notes:
   additionally carries a required _floor_ for note/essay/demo — see below — but the mount/scope
   logic keys on presence, not kind.) A present `theme.color` gives the entry its own brand
   `[data-entry]` scope (and mounts its
-  `slot`s in their own scoped containers, exactly as a demo's slots do); a present
+  `slot`s in their own scoped containers); a present
   `componentKey` resolves and mounts the coded module — a declared key that fails to resolve is a
-  `notFound()` for any kind, and no key at all renders prose-only for an editorial kind (a
-  componentless demo renders its empty-canvas shell, never a 404). **A module mount always implies a scope seed** — the route builds the
+  `notFound()` for any kind, and no key at all renders the entry prose-only, never a 404. **A module mount always implies a scope seed** — the route builds the
   `ScopeSeed` whenever an entry _mounts a module_ (any kind) or a _non-`now`_ entry _themes_
   (`(!now && theme.color) || a resolvable componentKey`), always **keyed on the entry's own
   slug**, with each absent `theme.headingFont` / `bodyFont` / `monoFont` passed as `undefined`
@@ -981,9 +973,9 @@ Practical notes:
   authored site default (`siteSettings.theme`), so each page still derives its theme from an
   authored seed. `componentKey` is likewise **optional and mounts on presence for every kind**
   (a `demo` past the seedling stage is no longer forced to name a module — a moduleless demo is
-  valid, rendering the shell — and a `note`/`essay`/`now` that sets a `componentKey` mounts it), and the three `theme`
+  valid, rendering its prose — and a `note`/`essay`/`now` that sets a `componentKey` mounts it), and the three `theme`
   face keys are optional and theme on presence for every kind but `now`. A `now`
-  update can hold slots and modules like any editorial entry, but it **never wears its own
+  update can hold slots and modules like any other entry, but it **never wears its own
   theme**: it **cannot set its own `theme.color`** (the whole `theme` object
   is hidden for a `now` in the Studio and a color is rejected on write by `forbiddenForNow`) and
   **inherits the `/now` page seed** instead — the single `/now` seed themes the `/now` index and every
@@ -996,7 +988,9 @@ Practical notes:
   tended.
 - **The body is rich content (portable text), not plain text.** One shared palette serves every
   kind — `kind` places an entry, it does not restrict the palette (single author, maximum authoring
-  flexibility). Prose (`block`) offers Normal, H2, and H3 styles plus bullet/number lists (no body
+  flexibility) — and a body is **required on every kind**, `demo` included: every entry renders the
+  same prose article, so an entry without one has nothing to render. (Studio validation runs in the
+  Studio, not on the write path, so the route still degrades cleanly on a body-less doc.) Prose (`block`) offers Normal, H2, and H3 styles plus bullet/number lists (no body
   H1 — the body sits under the page's `<h1>` entry title, so a body H1 would break the heading
   outline, WCAG 1.3.1). Alongside prose the palette carries four typed blocks: **`figure`** (an
   editor-picked image asset with required alt + optional caption, rendered responsively off the

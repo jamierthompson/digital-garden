@@ -35,8 +35,8 @@ export type FontKey = (typeof FONT_KEYS)[number];
  * a matching loader entry (compile error if missing).
  *
  * `componentKey` is capability-gated, not kind-gated: any kind — `now` included — can declare
- * one. An entry with no `componentKey` renders prose-only for an editorial kind, or the demo
- * shell with an empty canvas for a demo; an entry that declares its key here has the resolver
+ * one. An entry with no `componentKey` renders prose-only (its `slot` blocks, if any, show the
+ * missing-slot placeholder); an entry that declares its key here has the resolver
  * map it to a literal dynamic import. `componentKey` is OPTIONAL for every kind, mounting purely
  * on presence (#226 removed the required-past-seedling validator); a declared key that fails to
  * resolve is a `notFound()` for any kind.

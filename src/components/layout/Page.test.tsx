@@ -95,8 +95,8 @@ describe("Page.module.css — the frame's block padding", () => {
   });
 
   it("expresses the padding as the shorthand, never a start-only longhand", () => {
-    // Route modules that own their own frame (`[slug]`'s demo template, the state screens)
-    // override with the `padding-block` shorthand. Splitting this into a `padding-block-start`
+    // Route modules that own their own frame (the state screens) override with the
+    // `padding-block` shorthand. Splitting this into a `padding-block-start`
     // longhand would leave those overrides half-applied — the lead-in would survive on a
     // full-bleed page that deliberately zeroes its padding.
     const properties = declaredProperties(css);

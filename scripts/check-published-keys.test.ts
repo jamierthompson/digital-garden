@@ -193,11 +193,11 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
     /const PUBLISHED_KEYS_QUERY = `([\s\S]*?)`;/,
   )?.[1];
 
-  // `body` is required only for EDITORIAL kinds — a demo carries none (its template is
-  // sidebar + canvas), so the dataset legitimately contains body-less entries. Traversing an
-  // absent `body` evaluates to null in GROQ, so the slotKeys rung filters to
-  // `defined(body)` docs first; the body-less demo below pins that no spurious null
-  // reaches the key list.
+  // `body` is required for every kind in the Studio, but schema validation runs in the Studio,
+  // not on the write path — a raw API write or a legacy doc can still land body-less in the
+  // dataset. Traversing an absent `body` evaluates to null in GROQ, so the slotKeys rung
+  // filters to `defined(body)` docs first; the body-less entry below pins that no spurious
+  // null reaches the key list.
   const PROSE = [{ _type: "block", children: [] }];
   const DATASET = [
     {
