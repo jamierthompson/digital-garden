@@ -787,6 +787,39 @@ describe("EntryPage — the article's grid placement (QA)", () => {
       ).not.toBeNull();
     },
   );
+
+  // QA (adversarial review): the case above pins only `componentKey: null`. The configuration
+  // the one-template design actually depends on is a DEMO that leans on its module — and there
+  // the route wraps the article in the module's `Provider`. `EntryModule.Provider` is
+  // DOCUMENTED (src/entries/types.ts) as rendering no DOM element of its own precisely because
+  // "the editorial grid assumes children pass through unwrapped", but NOTHING enforces that —
+  // no type, no lint, no test. Measured in Chrome against the built app: interposing one
+  // wrapper element between <main> and <article> collapses the article from the full document
+  // width (1429px at a 1440px viewport) to the prose measure (672px), taking every
+  // `full`-lane slot block down with it. This pins the route's half of the contract.
+  it.each(["note", "essay", "demo", "now"])(
+    "keeps a %s's <article> a DIRECT child of the page grid when a contract-compliant Provider is mounted",
+    async (kind) => {
+      resolveComponentKeyMock.mockReturnValue(
+        found(async () => ({
+          // Context frame only — children pass through unwrapped, per the contract.
+          default: {
+            Provider: ({ children }: { children: React.ReactNode }) => children,
+          },
+        })),
+      );
+      fetchMock.mockResolvedValueOnce(
+        entry({ kind, componentKey: "a-module", ...withBody }),
+      );
+      const { container } = render(
+        await EntryPage({ params: params("an-entry") }),
+      );
+      expect(
+        container.querySelector(`main > .${pageStyles.article}`),
+        "the Provider must not interpose an element between <main> and <article>",
+      ).not.toBeNull();
+    },
+  );
 });
 
 describe("generateMetadata (QA)", () => {

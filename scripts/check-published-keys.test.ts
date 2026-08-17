@@ -233,7 +233,7 @@ describe("PUBLISHED_KEYS_QUERY — executed GROQ semantics (QA #226 rework)", ()
       body: PROSE,
     },
     {
-      _id: "demo-no-body",
+      _id: "entry-no-body-raw-write",
       _type: "entry",
       kind: "demo",
       stage: "budding",

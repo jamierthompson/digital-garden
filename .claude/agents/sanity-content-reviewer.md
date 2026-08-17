@@ -44,12 +44,13 @@ for schema and GROQ specifics.
    font faces (`theme.headingFont` / `bodyFont` / `monoFont`) **and** `componentKey` are likewise
    **unconditionally optional**, theming/mounting purely on **presence** for every kind but `now`
    (#226 deleted the `requiredForNonSketchProject` validator — a moduleless evergreen demo is valid,
-   rendering the demo shell — and #253 deleted `requiredForThemedKind`).
+   rendering its prose — and #253 deleted `requiredForThemedKind`). `body`, by contrast, is
+   **required for every kind, `demo` included**: every entry renders the same prose article.
    A `now` carries no theme of its own (it inherits the `/now` page seed). Flag a backlink stored as a
    string/slug, a one-directional link that can't resolve the incoming side, the site default
    `siteSettings.theme.color` made optional, a per-entry `theme.color` required floor re-added, or a
    face / `componentKey` made required for any kind (breaks moduleless-demo
-   and note/essay/now authoring).
+   and note/essay/now authoring), or a `body` exemption re-introduced for a kind.
 
 4. **Stega off the whole `theme` object.** `theme` (`color` / `colorDark` + the three font faces) feeds
    the OKLCH engine and font roster and is used as **keys**, not display copy — an invisible-character

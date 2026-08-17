@@ -121,7 +121,7 @@ the slot scope so a theme can re-bind them), and the per-role measure caps
 component-specific value is bound as a **component token** — the third tier under the semantic
 roles, and the one sanctioned place a module reads the raw scale (`pnpm lint:dimension`). The
 convention: a component token is declared in a **labeled block on the component's root rule**,
-**named for the design job it does** (`--quote-indent`, `--card-min-basis`,
+**named for the design job it does** (`--quote-indent`, `--card-mark-size`,
 `--scrollbar-thumb`) — a single consumer is fine (Material's `md.comp.*` tier is mostly
 single-consumer; the name is the point). It is **never minted in a route module** (a route element
 needing its own designed geometry is a component asking to be extracted), never as a same-line
