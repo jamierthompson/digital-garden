@@ -63,7 +63,7 @@ export default defineConfig({
   name: 'default',
   title: 'digital-garden',
 
-  projectId: '7id6sf36',
+  projectId: 'va1axyj4',
   dataset: 'production',
 
   plugins: [

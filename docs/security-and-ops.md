@@ -35,11 +35,34 @@ When you add a new env var, add it to [`../.env.example`](../.env.example) in th
 
 The env readers in [`../src/sanity/lib/env.ts`](../src/sanity/lib/env.ts) `throw` on a missing required var via `assertValue` — a missing var fails loudly at boot, not silently at runtime. Mirror that pattern for any new required var.
 
+### Local secrets live in the macOS Keychain, not `.env.local`
+
+`.env.local` holds **only** `NEXT_PUBLIC_*` values. The three secrets live in the login Keychain under the service `digital-garden`, one item per variable name.
+
+The reason is the threat model that actually applies to this repo: it is operated by coding agents. A plaintext token in `.env.local` is one careless `cat`, `grep -r`, or over-broad file read away from being copied into a model context or a transcript you cannot recall it from — and that is a rotation event, not an "oops." `.gitignore` protects against committing a secret; it does nothing about reading one. The Keychain adds the missing property: every read is an explicit, auditable `security` call rather than an ambient side effect of opening a file.
+
+```bash
+# Store or rotate one secret
+security add-generic-password -s "digital-garden" -a "SANITY_API_READ_TOKEN" -w "<value>" -U
+
+# Run anything with all three loaded
+./scripts/with-secrets.sh pnpm dev
+```
+
+[`../scripts/with-secrets.sh`](../scripts/with-secrets.sh) exports the three secrets and `exec`s the command, failing loudly and naming the missing keys if any item is absent — a half-configured run would otherwise surface as the much more confusing "drafts don't preview."
+
+This is local-developer ergonomics only. It changes nothing about production: Vercel remains the source of truth for deployed environments, and CI reads GitHub Secrets. When setting a Vercel value, pipe it from the Keychain rather than pasting it into a terminal, so it never enters shell history:
+
+```bash
+security find-generic-password -s "digital-garden" -a "SANITY_API_READ_TOKEN" -w \
+  | tr -d '\n' | vercel env add SANITY_API_READ_TOKEN production
+```
+
 ### Agent checklist
 
 - [ ] New secret? It is **not** `NEXT_PUBLIC_*` and is read only in server code.
 - [ ] New var of any kind? It's in `.env.example` with a comment, in the same commit.
-- [ ] Set the real value in Vercel (per-environment) and your local `.env.local`.
+- [ ] Set the real value in Vercel (per-environment). Locally: a **public** var goes in `.env.local`; a **secret** goes in the macOS Keychain (service `digital-garden`) and gets added to the `SECRETS` list in [`../scripts/with-secrets.sh`](../scripts/with-secrets.sh) — never in `.env.local`.
 - [ ] `grep -rn "NEXT_PUBLIC" src/` shows only genuinely-public values.
 
 ---

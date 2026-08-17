@@ -2,7 +2,7 @@ import {defineCliConfig} from 'sanity/cli'
 
 export default defineCliConfig({
   api: {
-    projectId: '7id6sf36',
+    projectId: 'va1axyj4',
     dataset: 'production'
   },
   // Pin the hosted Studio hostname so `sanity deploy` is non-interactive and
@@ -13,7 +13,9 @@ export default defineCliConfig({
     autoUpdates: true,
     // Pins this deployment to its Sanity application, so future `sanity deploy`
     // runs don't re-prompt for the app id and version selection is fine-grained.
-    appId: 'nzwhhl4z1w9uli39dnvrkz9b',
+    // Re-minted 2026-08-17 when the project was rebuilt; the previous id
+    // (nzwhhl4z1w9uli39dnvrkz9b) died with the old account.
+    appId: 'j6wmacskbgbcsflqpb2777cv',
   },
   // Generate types for the frontend (repo root) from this Studio's schema.
   typegen: {
