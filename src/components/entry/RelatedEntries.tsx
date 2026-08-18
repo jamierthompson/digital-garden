@@ -1,7 +1,11 @@
+import Link from "next/link";
+
 import EntryMeta from "@/components/entry/EntryMeta";
-import EntryTeaser from "@/components/entry/EntryTeaser";
 import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
+import TextLink from "@/components/ui/TextLink";
 import { distinctNeighbors } from "@/lib/distinctNeighbors";
+import { linkableSlug, visibleText } from "@/lib/visibleText";
 
 import styles from "./RelatedEntries.module.css";
 
@@ -31,11 +35,12 @@ interface RelatedEntriesProps {
  * a both-directions duplicate — wash out in `distinctNeighbors`, the same dedupe the detail
  * header's link count reads, so the two surfaces agree by construction.
  *
- * Each row is the shared `EntryTeaser` — the entry's title fused with its summary as one
- * paragraph, linking to the flat detail route (`/<slug>`) — over its `kind` (the shared
- * `EntryMeta` readout). This is the ONE surface that trims the summary (a line-clamp on the
- * teaser); everywhere else the full summary shows. An entry with no resolvable slug renders as
- * plain text, never a dead link.
+ * Each row renders its own title + summary markup — the entry's title as a real `<h3>` linking to
+ * the flat detail route (`/<slug>`), over its summary paragraph, over its `kind` (the shared
+ * `EntryMeta` readout). The markup is this component's rather than a shared atom's, so the
+ * Related list can be restyled without moving the home cards or the Index rows with it. This is
+ * the ONE surface that trims the summary (a line-clamp in this module); everywhere else the full
+ * summary shows. An entry with no resolvable slug renders as plain text, never a dead link.
  */
 export default function RelatedEntries({
   currentId,
@@ -69,22 +74,43 @@ export default function RelatedEntries({
         Related
       </Heading>
       <ul className={styles.list}>
-        {entries.map((entry) => (
-          <li key={entry._id} className={styles.item}>
-            {/* The row is an inner wrapper so the `li` keeps its list marker (flex on the
-                `li` itself would drop it). */}
-            <div className={styles.row}>
-              <EntryTeaser
-                title={entry.title}
-                summary={entry.summary}
-                slug={entry.slug}
-                level={3}
-                className={styles.teaserClamp}
-              />
-              <EntryMeta kind={entry.kind} color="muted-foreground" />
-            </div>
-          </li>
-        ))}
+        {entries.map((entry) => {
+          // A dangling/draft neighbour can arrive blank in shapes a falsy check misses: a
+          // whitespace-only title publishes clean (`required()` does not trim), and a draft read
+          // through Draft Mode arrives stega-encoded, where a cleared field is truthy invisible
+          // characters. Either would otherwise ship a link with no accessible name.
+          const displayTitle = visibleText(entry.title) ?? "Untitled entry";
+          const summary = visibleText(entry.summary);
+          const href = linkableSlug(entry.slug);
+
+          return (
+            <li key={entry._id} className={styles.item}>
+              {/* The row is an inner wrapper so the `li` keeps its list marker (flex on the
+                  `li` itself would drop it). */}
+              <div className={styles.row}>
+                <Heading level={3} color="foreground">
+                  {href ? (
+                    <TextLink variant="quiet" asChild>
+                      <Link href={`/${href}`}>{displayTitle}</Link>
+                    </TextLink>
+                  ) : (
+                    displayTitle
+                  )}
+                </Heading>
+                {summary ? (
+                  <Text
+                    variant="body"
+                    color="muted-foreground"
+                    className={styles.summary}
+                  >
+                    {summary}
+                  </Text>
+                ) : null}
+                <EntryMeta kind={entry.kind} color="muted-foreground" />
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import EntrySummary from "./EntrySummary";
+import styles from "./EntrySummary.module.css";
 
 // Always rendered inside the consumer's <ul>; mirror that so the <li> is valid and the
 // listitem role is queryable.
@@ -94,7 +95,7 @@ describe("EntrySummary", () => {
     expect(item.textContent).toBe("Empty");
   });
 
-  it("orders the row fused teaser → meta readout", () => {
+  it("orders the row title → summary → meta readout, each its own block", () => {
     renderInList(
       <EntrySummary
         title="Ordered"
@@ -106,11 +107,26 @@ describe("EntrySummary", () => {
     );
     const item = screen.getByRole("listitem");
     const children = Array.from(item.children);
-    // The fused teaser paragraph is first — the h3 title run-in and its summary as one run of
-    // text — then the meta readout.
-    expect(children[0].querySelector("h3")).not.toBeNull();
-    expect(children[0].textContent).toBe("Ordered The summary.");
-    expect(children[1]).toHaveAttribute("data-variant", "meta");
+    // The row's three blocks, in order: the h3 title, its summary paragraph, the meta readout.
+    expect(children).toHaveLength(3);
+    expect(children[0].tagName).toBe("H3");
+    expect(children[0].textContent).toBe("Ordered");
+    expect(children[1].tagName).toBe("P");
+    expect(children[1].textContent).toBe("The summary.");
+    expect(children[1]).toHaveAttribute("data-variant", "body");
+    expect(children[2]).toHaveAttribute("data-variant", "meta");
+  });
+
+  it("wears the editorial ink roles — foreground title, muted summary", () => {
+    renderInList(<EntrySummary title="Inked" summary="The summary." />);
+    expect(screen.getByRole("heading", { level: 3 })).toHaveAttribute(
+      "data-color",
+      "foreground",
+    );
+    expect(screen.getByText("The summary.")).toHaveAttribute(
+      "data-color",
+      "muted-foreground",
+    );
   });
 
   describe("adversarial QA", () => {
@@ -129,6 +145,62 @@ describe("EntrySummary", () => {
       const heading = screen.getByRole("heading", { level: 3 });
       const link = screen.getByRole("link", { name: "Nested" });
       expect(heading).toContainElement(link);
+    });
+  });
+
+  describe("adversarial QA — the shapes a draft actually delivers", () => {
+    // This component lost its own title fallback in favour of "the caller already resolved it".
+    // Both callers resolve with `||`, which catches null and "" — but NOT the shapes below.
+    // Sanity's string presence validator is a bare falsy check with no trim
+    // (`flag === "required" && !value`, sanity 6.4.0), so a whitespace-only title publishes
+    // clean; `summary` has no `required()` at all; and validation never gates DRAFTS, which
+    // this app renders whenever Draft Mode is on (`sanityFetch` -> `perspective: "drafts"`).
+    it("never renders a nameless heading for a whitespace-only title", () => {
+      renderInList(<EntrySummary title="   " slug="ghost" />);
+      expect(
+        screen.getByRole("heading", { level: 3 }).textContent?.trim(),
+      ).not.toBe("");
+    });
+
+    it("never ships a nameless link for a whitespace-only title", () => {
+      renderInList(<EntrySummary title="   " slug="ghost" />);
+      // A link whose accessible name is empty fails WCAG 2.4.4 / 4.1.2 and axe's link-name.
+      expect(screen.getByRole("link").textContent?.trim()).not.toBe("");
+    });
+
+    it("falls back to a neutral label for an empty-string title — the prop type permits one", () => {
+      // `title: string` type-checks against "", so the component itself is the last line of
+      // defence and it no longer has one. Pinned so the contract is a decision, not an accident.
+      renderInList(<EntrySummary title="" slug="cleared" />);
+      expect(screen.getByRole("heading", { level: 3 })).toHaveAccessibleName(
+        /untitled/i,
+      );
+    });
+
+    it("omits the summary for a whitespace-only summary — no empty paragraph in the row", () => {
+      renderInList(<EntrySummary title="Spaced" summary="   " />);
+      const item = screen.getByRole("listitem");
+      // The meta readout is absent here, so a visible-text-free row must hold no <p> at all.
+      expect(item.querySelectorAll("p")).toHaveLength(0);
+    });
+
+    it("renders plain text for a whitespace-only slug — never href='/   '", () => {
+      // `slug.current` is hand-editable and its CSS-safety regex only runs at publish
+      // validation, never on a draft.
+      renderInList(<EntrySummary title="Padded" slug="   " />);
+      expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("adversarial QA — the row's own measure cap", () => {
+    it("keeps the measure cap on the <li> after Stack's Slot merge", () => {
+      // The cap moved from the deleted teaser's wrapper onto the `li`, which is also Stack's
+      // `asChild` slot target — so it now depends on Radix Slot MERGING the two classNames
+      // rather than replacing one. A silent overwrite would drop the readable measure.
+      renderInList(<EntrySummary title="Capped" summary="The summary." />);
+      const item = screen.getByRole("listitem");
+      expect(item).toHaveClass(styles.entry);
+      expect(item.classList.length).toBe(2);
     });
   });
 });

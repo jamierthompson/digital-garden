@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 
 import EntryMeta from "@/components/entry/EntryMeta";
-import EntryTeaser from "@/components/entry/EntryTeaser";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
 import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
+import { linkableSlug, visibleText } from "@/lib/visibleText";
 
 import styles from "./EntryCard.module.css";
 
@@ -30,16 +32,41 @@ interface EntryCardProps {
  * summary/meta) — one seed paints a page, so a grid of cards shares the page theme's palette
  * and stays legible by construction.
  *
- * The shared `EntryTeaser` fuses the title and summary into one paragraph; the shared `EntryMeta`
- * reads out the facts below it. Defensive: a slugless entry degrades to a non-link card (never a
- * dead link); a missing title falls back to a neutral label; missing meta simply omits the row.
- * The whole card is the link (`HoverPrefetchLink`), so the teaser renders its title as plain text
- * with NO slug of its own — a per-title link here would nest an `<a>` inside the card's `<a>`.
+ * The card owns its own title + summary markup: the title as a real `<h3>` over the summary as
+ * its own body paragraph, then the shared `EntryMeta` readout. Each entry surface renders that
+ * pairing itself rather than sharing one atom, so the card can be restyled without moving the
+ * Index rows or the Related list with it.
+ *
+ * A slugless entry degrades to a non-link card, a blank title to a neutral label, and missing
+ * meta simply omits the row — the shapes a draft actually has. "Blank" is decided by
+ * `visibleText`, not by truthiness: whitespace-only publishes clean and a stega-encoded cleared
+ * field is truthy, so neither may name a card. The whole card is the link
+ * (`HoverPrefetchLink`), so the title is plain text with no link of its own — a per-title link
+ * here would nest an `<a>` inside the card's `<a>`.
  */
 export default function EntryCard({ entry }: EntryCardProps) {
+  // `visibleText`, not a bare `||`: `required()` in the Studio is a falsy check with no trim, so
+  // a whitespace-only title publishes clean; `summary` has no presence rule at all; and drafts
+  // (which Visual Editing renders) are never validated and arrive stega-encoded, where a cleared
+  // field is truthy invisible characters. Blank in any of those shapes must not name this card.
+  const displayTitle = visibleText(entry.title) ?? "Untitled entry";
+  const summary = visibleText(entry.summary);
+  const slug = linkableSlug(entry.slug);
+
   const body: ReactNode = (
     <>
-      <EntryTeaser title={entry.title} summary={entry.summary} level={3} />
+      <Heading level={3} color="foreground">
+        {displayTitle}
+      </Heading>
+      {summary ? (
+        <Text
+          variant="body"
+          color="muted-foreground"
+          className={styles.summary}
+        >
+          {summary}
+        </Text>
+      ) : null}
       <EntryMeta
         kind={entry.kind}
         stage={entry.stage}
@@ -53,8 +80,8 @@ export default function EntryCard({ entry }: EntryCardProps) {
 
   return (
     <li className={styles.card}>
-      {entry.slug ? (
-        <HoverPrefetchLink href={`/${entry.slug}`} className={styles.link}>
+      {slug ? (
+        <HoverPrefetchLink href={`/${slug}`} className={styles.link}>
           {body}
         </HoverPrefetchLink>
       ) : (

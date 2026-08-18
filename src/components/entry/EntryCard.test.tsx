@@ -66,11 +66,11 @@ describe("EntryCard", () => {
   });
 
   it("omits the summary for an empty string, not just null — no stray empty node in the card", () => {
-    // A blank Studio field serialises to "" (a valid string); the teaser's guard must treat it
-    // as missing rather than render an empty summary node continuing the title run-in.
+    // A blank Studio field serialises to "" (a valid string); the card's guard must treat it as
+    // missing rather than render an empty paragraph that still takes the card's stack gap.
     const { container } = renderCard(entry({ summary: "" }));
     expect(screen.queryByText("A short summary.")).toBeNull();
-    // The meta readout is the card's only <p>; the fused teaser adds none.
+    // With no summary the meta readout is the card's only <p>.
     expect(container.querySelectorAll("p")).toHaveLength(1);
   });
 
@@ -115,9 +115,9 @@ describe("EntryCard", () => {
     expect(styled.map((el) => el.outerHTML)).toEqual([]);
   });
 
-  it("wears the foreground ink role on the title via the teaser", () => {
+  it("wears the foreground ink role on the title", () => {
     // The card declares no ink of its own in CSS (pinned below); the title's --foreground role
-    // now comes from the composed EntryTeaser, which sets it explicitly on the heading.
+    // is set explicitly on the composed Heading primitive.
     renderCard(entry());
     expect(screen.getByRole("heading", { level: 3 })).toHaveAttribute(
       "data-color",
@@ -173,21 +173,13 @@ describe("EntryCard — the query is the card's real input", () => {
 });
 
 describe("EntryCard — title/slug boundaries", () => {
-  // `title ?? "Untitled entry"` is nullish — a blank Studio field serialises to "" (a valid
-  // string) and would slip through to a nameless <h3> (axe empty-heading) with the link's
-  // accessible name silently degrading to the summary. These pin the blank cases.
+  // `title` is required() in the Studio, so the shape that actually reaches a card is a DRAFT
+  // with no title yet — null, or "" from a cleared field. `||` covers both; these pin that.
   it("falls back to a neutral label for an empty-string title (not an empty heading)", () => {
     renderCard(entry({ title: "" }));
     expect(screen.getByRole("heading", { level: 3 })).toHaveAccessibleName(
       /untitled entry/i,
     );
-  });
-
-  it("falls back to a neutral label for a whitespace-only title", () => {
-    renderCard(entry({ title: "   " }));
-    expect(
-      screen.getByRole("heading", { level: 3 }).textContent?.trim(),
-    ).not.toBe("");
   });
 
   // An empty-string slug is falsy, so it must degrade to the non-link card — never href="/".
@@ -198,6 +190,84 @@ describe("EntryCard — title/slug boundaries", () => {
     expect(
       screen.getByRole("heading", { level: 3, name: /a card/i }),
     ).toBeInTheDocument();
+  });
+});
+
+/**
+ * The invisible-character shape Draft Mode actually delivers. `@sanity/client`'s stega encoder
+ * appends a payload built from U+200B / U+200C / U+200D / U+FEFF to every prose string it maps
+ * (`stegaEncodeSourceMap.js` → `vercelStegaCombine`), and it applies NO minimum-length guard:
+ * `""` comes back as a string of invisible characters, i.e. truthy. `title`/`summary` are not on
+ * the repo's stega denylist (`src/sanity/lib/stega.ts`), so this is the shape a cleared field has
+ * in Presentation / Visual Editing — the exact environment the fallback comments cite.
+ */
+const STEGA_ENCODED_EMPTY =
+  "\u200B\u200B\u200B\u200B" + "\u200C\u200D\uFEFF\u200B";
+
+/** Text a screen reader would actually announce — zero-width stega characters removed. */
+function announced(value: string | null | undefined): string {
+  return (value ?? "").replace(/[\u200B\u200C\u200D\uFEFF]/gu, "").trim();
+}
+
+describe("EntryCard — adversarial QA: the draft shapes the schema does NOT forbid", () => {
+  // The guards were dropped on the argument that `title` is `required()` in the Studio. That
+  // claim does not hold for the shapes below: Sanity's string presence validator is a bare
+  // falsy check with no trim (`flag === "required" && !value`, sanity 6.4.0), so a
+  // whitespace-only title PUBLISHES clean; `summary` carries no `required()` at all (just a
+  // 300-char cap); and validation never gates DRAFTS, which this app renders whenever Draft
+  // Mode is on (`sanityFetch` → `perspective: "drafts"`).
+  it("falls back to a neutral label for a whitespace-only title — never a nameless h3", () => {
+    renderCard(entry({ title: "   " }));
+    expect(screen.getByRole("heading", { level: 3 })).toHaveAccessibleName(
+      /untitled entry/i,
+    );
+  });
+
+  it("omits the summary for a whitespace-only summary — no empty paragraph in the stack", () => {
+    // A blank-but-spaced Studio field is indistinguishable from an absent one to a reader, but
+    // it still renders a node that takes the card's gap. With no visible summary the meta
+    // readout must remain the card's only <p>.
+    const { container } = renderCard(entry({ summary: "   " }));
+    expect(container.querySelectorAll("p")).toHaveLength(1);
+  });
+
+  it("renders a whitespace-only slug as a non-link card — never href='/   '", () => {
+    // `slug.current` is hand-editable, and the CSS-safety regex only runs at publish validation,
+    // never on a draft. A padded slug must degrade like an absent one, not ship a dead link.
+    renderCard(entry({ slug: "   " }));
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
+  it("names the card when a cleared title arrives stega-encoded from Draft Mode", () => {
+    renderCard(entry({ title: STEGA_ENCODED_EMPTY }));
+    expect(
+      announced(screen.getByRole("heading", { level: 3 }).textContent),
+    ).not.toBe("");
+  });
+});
+
+describe("EntryCard — adversarial QA: the markup each surface now owns itself", () => {
+  // Coverage the deleted `EntryTeaser` suite used to carry for every surface at once. Now that
+  // each surface renders the pairing itself, each surface needs its own pin.
+  it("stacks the title over its summary as two separate blocks, in that order", () => {
+    renderCard(entry());
+    const link = screen.getByRole("link", { name: /a card/i });
+    const blocks = [...link.children];
+    expect(blocks[0].tagName).toBe("H3");
+    expect(blocks[0].textContent).toBe("A card");
+    expect(blocks[1].tagName).toBe("P");
+    expect(blocks[1].textContent).toBe("A short summary.");
+    expect(blocks[1]).toHaveAttribute("data-variant", "body");
+  });
+
+  it("keeps the title out of the summary's paragraph — no run-in fusion left behind", () => {
+    renderCard(entry());
+    expect(screen.getByText("A short summary.").textContent).toBe(
+      "A short summary.",
+    );
+    expect(screen.getByRole("heading", { level: 3 }).textContent).toBe(
+      "A card",
+    );
   });
 });
 
@@ -300,12 +370,12 @@ const SCHEMES = ["light", "dark"] as const;
 /**
  * The card's measured relationships, as `[label, ink token, background token, floor]`.
  * Each names a real declaration in `EntryCard.module.css` or the ink the composed
- * `EntryTeaser` / `EntryMeta` primitives wear on the card.
+ * `Heading` / `Text` / `EntryMeta` primitives wear on the card.
  */
 const PAIRS = [
-  // `.card { background: var(--surface) }` + the teaser title wearing `--foreground`.
+  // `.card { background: var(--surface) }` + the card title wearing `--foreground`.
   ["card title ink on the plate", "foreground", "surface", TEXT_FLOOR],
-  // The teaser summary and the `EntryMeta` readout wearing `--muted-foreground`, on the same plate.
+  // The summary and the `EntryMeta` readout wearing `--muted-foreground`, on the same plate.
   [
     "card summary/meta ink on the plate",
     "muted-foreground",

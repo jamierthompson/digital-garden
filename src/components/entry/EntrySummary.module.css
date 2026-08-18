@@ -1,10 +1,19 @@
 /* EntrySummary — one entry in an editorial list. @layer components — declares its layer (an
    unlayered module outranks every layered rule); var-consuming only (global editorial semantic
-   tokens, no per-entry theme). Layout and ink come from the composed `EntryTeaser` / `EntryMeta`
-   primitives — these rules own only the measure cap that keeps the fused teaser paragraph a
-   readable line length. */
+   tokens, no per-entry theme). Layout comes from the composed `Stack`, and type and ink from the
+   composed Heading/Text/`EntryMeta` primitives — these rules own only the row's measure cap and
+   the summary's rag balancing.
+
+   The cap sits on the `li` (Stack's `asChild` slot target, whose classNames Radix MERGES), so it
+   bounds the whole row — title, summary and meta readout alike — rather than the summary alone.
+   That is the intent: one editorial column, capped once. */
 @layer components {
-  .teaser {
+  .entry {
     max-width: var(--type-body-measure);
+  }
+
+  /* Balance the rag, as the retired teaser paragraph did. */
+  .summary {
+    text-wrap: pretty;
   }
 }

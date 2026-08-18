@@ -8,6 +8,7 @@ import {
 } from "../../../tests/cssModule";
 
 import RelatedEntries from "./RelatedEntries";
+import styles from "./RelatedEntries.module.css";
 
 const entry = (over: Record<string, unknown> = {}) => ({
   _id: "x",
@@ -256,7 +257,7 @@ describe("RelatedEntries", () => {
     );
   });
 
-  it("renders each entry's summary continuing its title, with the link naming only the title", () => {
+  it("renders each entry's summary beneath its title, with the link naming only the title", () => {
     render(
       <RelatedEntries
         currentId="self"
@@ -271,7 +272,7 @@ describe("RelatedEntries", () => {
         backlinks={null}
       />,
     );
-    // The whole row reads as one paragraph — title (run-in), then the summary continuing it.
+    // The row shows both facts — the title heading and, below it, the summary.
     expect(
       screen.getByText("The engine solves the whole ramp."),
     ).toBeInTheDocument();
@@ -309,16 +310,17 @@ describe("RelatedEntries", () => {
         currentId="self"
         related={[
           entry({ _id: "a", title: null, slug: "untitled" }),
-          entry({ _id: "b", title: "   ", slug: "blank" }),
+          entry({ _id: "b", title: "", slug: "cleared" }),
         ]}
         backlinks={null}
       />,
     );
-    // null AND whitespace-only titles both resolve to the fallback as the ACCESSIBLE name.
+    // A draft neighbour with no title yet — null, or "" from a cleared field — takes the
+    // fallback as its ACCESSIBLE name rather than shipping a nameless link.
     const links = screen.getAllByRole("link", { name: "Untitled entry" });
     expect(links.map((l) => l.getAttribute("href"))).toEqual([
       "/untitled",
-      "/blank",
+      "/cleared",
     ]);
   });
 
@@ -391,14 +393,118 @@ describe("the label's ink travels via the color prop, not CSS", () => {
     );
   });
 
-  it("owns the summary trim here — the one surface that clamps (the atom itself is trim-agnostic)", () => {
-    // The clamp is passed to EntryTeaser as a className, so the atom stays trim-free and every
-    // other teaser surface shows the full summary. Guard that the clamp lives in THIS module —
-    // value-agnostic, because the line count is a live-tuned knob.
-    const clamp = ruleDeclarations(RELATED_CSS, ".teaserClamp");
+  it("owns the summary trim here — the one surface that clamps", () => {
+    // This is the ONLY entry surface that trims; the home cards and the Index rows show the full
+    // summary. Each surface owns its own title/summary markup, so the guard is simply that the
+    // clamp lives in THIS module — value-agnostic, because the line count is a live-tuned knob.
+    const clamp = ruleDeclarations(RELATED_CSS, ".summary");
     expect(clamp.has("line-clamp") || clamp.has("-webkit-line-clamp")).toBe(
       true,
     );
     expect(clamp.get("overflow")).toBe("hidden");
+  });
+
+  it("clamps the SUMMARY only — the row's title heading is never trimmed", () => {
+    // Pinned at the source: no rule in this module may clamp the row wrapper or the whole item,
+    // which would put the title at risk of being trimmed along with the summary.
+    for (const selector of [".row", ".item"]) {
+      const rule = ruleDeclarations(RELATED_CSS, selector);
+      expect(rule.has("line-clamp")).toBe(false);
+      expect(rule.has("-webkit-line-clamp")).toBe(false);
+    }
+  });
+});
+
+describe("RelatedEntries — adversarial QA: the draft shapes the schema does NOT forbid", () => {
+  // The fallback comment justifies `||` with "a cleared field serialises to ''". Three shapes
+  // slip past that: a whitespace-only title (Sanity's string presence validator is a bare falsy
+  // check with no trim — `flag === "required" && !value`, sanity 6.4.0 — so it PUBLISHES clean),
+  // a whitespace-only summary (`summary` has no `required()` at all), and a whitespace-only
+  // `slug.current` (its CSS-safety regex is publish validation only, never applied to a draft).
+  // Draft Mode renders drafts unvalidated (`sanityFetch` -> `perspective: "drafts"`).
+  it("names the link with the neutral fallback for a whitespace-only title", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[entry({ _id: "a", title: "   ", slug: "spaced" })]}
+        backlinks={null}
+      />,
+    );
+    expect(screen.getByRole("link").textContent?.trim()).not.toBe("");
+  });
+
+  it("omits the summary paragraph for a whitespace-only summary", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[
+          entry({ _id: "a", title: "Spaced", slug: "s", summary: "   " }),
+        ]}
+        backlinks={null}
+      />,
+    );
+    // The kind readout is the row's only <p> when no summary is visible; a blank-but-spaced
+    // field must not add a second, clamped, empty one.
+    expect(screen.getByRole("listitem").querySelectorAll("p")).toHaveLength(1);
+  });
+
+  it("renders a whitespace-only slug as plain text — never href='/   '", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[entry({ _id: "a", title: "Padded", slug: "   " })]}
+        backlinks={null}
+      />,
+    );
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("names the link when a cleared title arrives stega-encoded from Draft Mode", () => {
+    // `@sanity/client`'s stega encoder appends a payload of U+200B / U+200C / U+200D / U+FEFF
+    // to every prose string it maps and applies NO minimum-length guard, so a cleared "" comes
+    // back truthy — invisible characters only. `title` is not on the repo's stega denylist
+    // (`src/sanity/lib/stega.ts`), so this is the real Presentation / Visual Editing shape.
+    const stegaEncodedEmpty =
+      "\u200B\u200B\u200B\u200B" + "\u200C\u200D\uFEFF\u200B";
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[entry({ _id: "a", title: stegaEncodedEmpty, slug: "s" })]}
+        backlinks={null}
+      />,
+    );
+    const announced = (screen.getByRole("link").textContent ?? "")
+      .replace(/[\u200B\u200C\u200D\uFEFF]/gu, "")
+      .trim();
+    expect(announced).not.toBe("");
+  });
+});
+
+describe("RelatedEntries — adversarial QA: the clamp reaches the summary, not the title", () => {
+  it("puts the clamp class on the summary paragraph and nowhere else in the row", () => {
+    // The CSS-source pins below prove the RULE exists; nothing pinned that the component still
+    // APPLIES it after the class was renamed `.teaserClamp` -> `.summary` and moved from the
+    // deleted teaser's wrapper onto the Text primitive. A stale reference is `undefined` in the
+    // className join and silently ships an unclamped row.
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[
+          entry({
+            _id: "a",
+            title: "Clamped",
+            slug: "c",
+            summary: "A summary long enough to want trimming.",
+          }),
+        ]}
+        backlinks={null}
+      />,
+    );
+    const summary = screen.getByText("A summary long enough to want trimming.");
+    expect(styles.summary).toBeTruthy();
+    expect(summary).toHaveClass(styles.summary);
+    expect(screen.getByRole("heading", { level: 3 })).not.toHaveClass(
+      styles.summary,
+    );
   });
 });

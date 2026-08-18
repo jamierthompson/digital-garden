@@ -41,6 +41,11 @@
     text-decoration: none;
   }
 
+  /* Balance the rag, as the retired teaser paragraph did. */
+  .summary {
+    text-wrap: pretty;
+  }
+
   /* The shared `EntryMeta` meta readout, pinned to the card floor. */
   .meta {
     margin-top: auto;
