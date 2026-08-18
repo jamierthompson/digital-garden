@@ -9,6 +9,7 @@ import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import TextLink from "@/components/ui/TextLink";
 import { space } from "@/lib/tokens";
+import { visibleText } from "@/lib/visibleText";
 import { NOW_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
 
@@ -62,9 +63,10 @@ export default async function NowPage() {
                 {updates.map((update) => (
                   <EntrySummary
                     key={update._id}
-                    // `||`, not `??`: a cleared title serialises to "" and would otherwise
-                    // reach an empty heading instead of this surface's "update" wording.
-                    title={update.title || "Untitled update"}
+                    // Guarded, not just nullish-checked: a blank, whitespace-only, or
+                    // stega-encoded-empty title must land on THIS surface's "update" wording
+                    // rather than slipping through to a nameless heading.
+                    title={visibleText(update.title) ?? "Untitled update"}
                     slug={update.slug}
                     summary={update.summary}
                     tended={update.tended}

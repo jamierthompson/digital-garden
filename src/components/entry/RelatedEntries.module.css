@@ -23,7 +23,7 @@
   /* Each item stacks the title over its summary over its meta readout. The wrapper (not the
      `li`) flexes, so the list marker survives. */
   .row {
-    /* Component token — the gap between the teaser and its kind readout. */
+    /* Component token — the gap between the row's stacked blocks (title, summary, kind). */
     --related-row-gap: var(--space-1);
     display: flex;
     flex-direction: column;
@@ -35,6 +35,8 @@
      the full summary shows. It clamps the SUMMARY alone, so the row's title heading always shows
      in full however long the summary runs. */
   .summary {
+    /* Balance the rag of the trimmed summary, as the retired teaser paragraph did. */
+    text-wrap: pretty;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;

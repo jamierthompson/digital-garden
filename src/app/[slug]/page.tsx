@@ -14,6 +14,7 @@ import { resolveComponentKey } from "@/lib/resolvers/components";
 import { distinctNeighbors } from "@/lib/distinctNeighbors";
 import { space } from "@/lib/tokens";
 import { isNotFound } from "@/lib/resolvers/resolution";
+import { visibleText } from "@/lib/visibleText";
 import type { EntryModule } from "@/entries/types";
 import { client } from "@/sanity/lib/client";
 import { ENTRY_SLUGS_QUERY, ENTRY_DETAIL_QUERY } from "@/sanity/lib/queries";
@@ -73,8 +74,8 @@ export async function generateMetadata({
   if (!entry) {
     return { title: "Not found" };
   }
-  const title = entry.title ?? "Untitled entry";
-  const description = entry.summary ?? undefined;
+  const title = visibleText(entry.title) ?? "Untitled entry";
+  const description = visibleText(entry.summary) ?? undefined;
   return {
     title,
     description,
@@ -154,7 +155,9 @@ export default async function EntryPage({ params }: EntryPageProps) {
                 meta-description copy only, and the lede is the body's own first paragraph
                 (styled by EntryBody), so rendering the summary too would restate the
                 opening. */}
-            <Heading level={1}>{entry.title ?? "Untitled entry"}</Heading>
+            <Heading level={1}>
+              {visibleText(entry.title) ?? "Untitled entry"}
+            </Heading>
             <EntryMeta
               kind={entry.kind}
               stage={entry.stage}

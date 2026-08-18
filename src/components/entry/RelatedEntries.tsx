@@ -5,6 +5,7 @@ import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import TextLink from "@/components/ui/TextLink";
 import { distinctNeighbors } from "@/lib/distinctNeighbors";
+import { linkableSlug, visibleText } from "@/lib/visibleText";
 
 import styles from "./RelatedEntries.module.css";
 
@@ -74,9 +75,13 @@ export default function RelatedEntries({
       </Heading>
       <ul className={styles.list}>
         {entries.map((entry) => {
-          // `||`, not `??`: a dangling/draft neighbour can arrive with no title, and a cleared
-          // field serialises to "" rather than null.
-          const displayTitle = entry.title || "Untitled entry";
+          // A dangling/draft neighbour can arrive blank in shapes a falsy check misses: a
+          // whitespace-only title publishes clean (`required()` does not trim), and a draft read
+          // through Draft Mode arrives stega-encoded, where a cleared field is truthy invisible
+          // characters. Either would otherwise ship a link with no accessible name.
+          const displayTitle = visibleText(entry.title) ?? "Untitled entry";
+          const summary = visibleText(entry.summary);
+          const href = linkableSlug(entry.slug);
 
           return (
             <li key={entry._id} className={styles.item}>
@@ -84,21 +89,21 @@ export default function RelatedEntries({
                   `li` itself would drop it). */}
               <div className={styles.row}>
                 <Heading level={3} color="foreground">
-                  {entry.slug ? (
+                  {href ? (
                     <TextLink variant="quiet" asChild>
-                      <Link href={`/${entry.slug}`}>{displayTitle}</Link>
+                      <Link href={`/${href}`}>{displayTitle}</Link>
                     </TextLink>
                   ) : (
                     displayTitle
                   )}
                 </Heading>
-                {entry.summary ? (
+                {summary ? (
                   <Text
                     variant="body"
                     color="muted-foreground"
                     className={styles.summary}
                   >
-                    {entry.summary}
+                    {summary}
                   </Text>
                 ) : null}
                 <EntryMeta kind={entry.kind} color="muted-foreground" />

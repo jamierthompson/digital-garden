@@ -3,6 +3,8 @@ import { cacheLife } from "next/cache";
 import { client } from "@/sanity/lib/client";
 import { ENTRY_FEED_QUERY } from "@/sanity/lib/queries";
 
+import { visibleText } from "@/lib/visibleText";
+
 import { escapeXml } from "./escapeXml";
 
 /**
@@ -61,8 +63,9 @@ export async function GET() {
     .filter((entry) => entry.slug)
     .map((entry) => {
       const url = `${SITE_URL}/${entry.slug}`;
-      const title = escapeXml(entry.title ?? "Untitled");
-      const description = entry.summary ? escapeXml(entry.summary) : "";
+      const title = escapeXml(visibleText(entry.title) ?? "Untitled");
+      const summary = visibleText(entry.summary);
+      const description = summary ? escapeXml(summary) : "";
       // `toRfc822` output is a fixed-format ASCII date (no XML metacharacters), so it needs no
       // escaping; a dateless item drops the element entirely rather than emitting an empty one.
       const pubDate = toRfc822(entry.published);

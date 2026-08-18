@@ -4,6 +4,7 @@ import EntryMeta from "@/components/entry/EntryMeta";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import HoverPrefetchLink from "@/components/ui/HoverPrefetchLink";
+import { linkableSlug, visibleText } from "@/lib/visibleText";
 
 import styles from "./EntryCard.module.css";
 
@@ -36,24 +37,34 @@ interface EntryCardProps {
  * pairing itself rather than sharing one atom, so the card can be restyled without moving the
  * Index rows or the Related list with it.
  *
- * A slugless entry degrades to a non-link card, an absent title to a neutral label, and missing
- * meta simply omits the row — the shapes a draft actually has. The whole card is the link
+ * A slugless entry degrades to a non-link card, a blank title to a neutral label, and missing
+ * meta simply omits the row — the shapes a draft actually has. "Blank" is decided by
+ * `visibleText`, not by truthiness: whitespace-only publishes clean and a stega-encoded cleared
+ * field is truthy, so neither may name a card. The whole card is the link
  * (`HoverPrefetchLink`), so the title is plain text with no link of its own — a per-title link
  * here would nest an `<a>` inside the card's `<a>`.
  */
 export default function EntryCard({ entry }: EntryCardProps) {
-  // `||`, not `??`: `title` is required in the Studio, but a draft (which Visual Editing
-  // renders) can carry no title at all, and a cleared field serialises to "" rather than null.
-  const displayTitle = entry.title || "Untitled entry";
+  // `visibleText`, not a bare `||`: `required()` in the Studio is a falsy check with no trim, so
+  // a whitespace-only title publishes clean; `summary` has no presence rule at all; and drafts
+  // (which Visual Editing renders) are never validated and arrive stega-encoded, where a cleared
+  // field is truthy invisible characters. Blank in any of those shapes must not name this card.
+  const displayTitle = visibleText(entry.title) ?? "Untitled entry";
+  const summary = visibleText(entry.summary);
+  const slug = linkableSlug(entry.slug);
 
   const body: ReactNode = (
     <>
       <Heading level={3} color="foreground">
         {displayTitle}
       </Heading>
-      {entry.summary ? (
-        <Text variant="body" color="muted-foreground">
-          {entry.summary}
+      {summary ? (
+        <Text
+          variant="body"
+          color="muted-foreground"
+          className={styles.summary}
+        >
+          {summary}
         </Text>
       ) : null}
       <EntryMeta
@@ -69,8 +80,8 @@ export default function EntryCard({ entry }: EntryCardProps) {
 
   return (
     <li className={styles.card}>
-      {entry.slug ? (
-        <HoverPrefetchLink href={`/${entry.slug}`} className={styles.link}>
+      {slug ? (
+        <HoverPrefetchLink href={`/${slug}`} className={styles.link}>
           {body}
         </HoverPrefetchLink>
       ) : (

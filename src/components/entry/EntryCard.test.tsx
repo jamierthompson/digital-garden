@@ -193,6 +193,84 @@ describe("EntryCard — title/slug boundaries", () => {
   });
 });
 
+/**
+ * The invisible-character shape Draft Mode actually delivers. `@sanity/client`'s stega encoder
+ * appends a payload built from U+200B / U+200C / U+200D / U+FEFF to every prose string it maps
+ * (`stegaEncodeSourceMap.js` → `vercelStegaCombine`), and it applies NO minimum-length guard:
+ * `""` comes back as a string of invisible characters, i.e. truthy. `title`/`summary` are not on
+ * the repo's stega denylist (`src/sanity/lib/stega.ts`), so this is the shape a cleared field has
+ * in Presentation / Visual Editing — the exact environment the fallback comments cite.
+ */
+const STEGA_ENCODED_EMPTY =
+  "\u200B\u200B\u200B\u200B" + "\u200C\u200D\uFEFF\u200B";
+
+/** Text a screen reader would actually announce — zero-width stega characters removed. */
+function announced(value: string | null | undefined): string {
+  return (value ?? "").replace(/[\u200B\u200C\u200D\uFEFF]/gu, "").trim();
+}
+
+describe("EntryCard — adversarial QA: the draft shapes the schema does NOT forbid", () => {
+  // The guards were dropped on the argument that `title` is `required()` in the Studio. That
+  // claim does not hold for the shapes below: Sanity's string presence validator is a bare
+  // falsy check with no trim (`flag === "required" && !value`, sanity 6.4.0), so a
+  // whitespace-only title PUBLISHES clean; `summary` carries no `required()` at all (just a
+  // 300-char cap); and validation never gates DRAFTS, which this app renders whenever Draft
+  // Mode is on (`sanityFetch` → `perspective: "drafts"`).
+  it("falls back to a neutral label for a whitespace-only title — never a nameless h3", () => {
+    renderCard(entry({ title: "   " }));
+    expect(screen.getByRole("heading", { level: 3 })).toHaveAccessibleName(
+      /untitled entry/i,
+    );
+  });
+
+  it("omits the summary for a whitespace-only summary — no empty paragraph in the stack", () => {
+    // A blank-but-spaced Studio field is indistinguishable from an absent one to a reader, but
+    // it still renders a node that takes the card's gap. With no visible summary the meta
+    // readout must remain the card's only <p>.
+    const { container } = renderCard(entry({ summary: "   " }));
+    expect(container.querySelectorAll("p")).toHaveLength(1);
+  });
+
+  it("renders a whitespace-only slug as a non-link card — never href='/   '", () => {
+    // `slug.current` is hand-editable, and the CSS-safety regex only runs at publish validation,
+    // never on a draft. A padded slug must degrade like an absent one, not ship a dead link.
+    renderCard(entry({ slug: "   " }));
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
+  it("names the card when a cleared title arrives stega-encoded from Draft Mode", () => {
+    renderCard(entry({ title: STEGA_ENCODED_EMPTY }));
+    expect(
+      announced(screen.getByRole("heading", { level: 3 }).textContent),
+    ).not.toBe("");
+  });
+});
+
+describe("EntryCard — adversarial QA: the markup each surface now owns itself", () => {
+  // Coverage the deleted `EntryTeaser` suite used to carry for every surface at once. Now that
+  // each surface renders the pairing itself, each surface needs its own pin.
+  it("stacks the title over its summary as two separate blocks, in that order", () => {
+    renderCard(entry());
+    const link = screen.getByRole("link", { name: /a card/i });
+    const blocks = [...link.children];
+    expect(blocks[0].tagName).toBe("H3");
+    expect(blocks[0].textContent).toBe("A card");
+    expect(blocks[1].tagName).toBe("P");
+    expect(blocks[1].textContent).toBe("A short summary.");
+    expect(blocks[1]).toHaveAttribute("data-variant", "body");
+  });
+
+  it("keeps the title out of the summary's paragraph — no run-in fusion left behind", () => {
+    renderCard(entry());
+    expect(screen.getByText("A short summary.").textContent).toBe(
+      "A short summary.",
+    );
+    expect(screen.getByRole("heading", { level: 3 }).textContent).toBe(
+      "A card",
+    );
+  });
+});
+
 describe("EntryCard — meta boundaries", () => {
   it("omits the backlink hint for zero, negative and non-integer link counts", () => {
     for (const linkCount of [0, -3, 1.5, Number.NaN]) {

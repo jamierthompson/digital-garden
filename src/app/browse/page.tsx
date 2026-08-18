@@ -8,6 +8,7 @@ import { sitePageThemeSeed } from "@/components/theme/sitePageSeed";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import { space } from "@/lib/tokens";
+import { visibleText } from "@/lib/visibleText";
 import { INDEX_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch } from "@/sanity/lib/sanityFetch";
 
@@ -98,7 +99,7 @@ export default async function IndexPage() {
                         {inKind.map((entry) => (
                           <EntrySummary
                             key={entry._id}
-                            title={entry.title || "Untitled entry"}
+                            title={visibleText(entry.title) ?? "Untitled entry"}
                             slug={entry.slug}
                             summary={entry.summary}
                             stage={entry.stage}

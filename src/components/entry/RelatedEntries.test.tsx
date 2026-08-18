@@ -8,6 +8,7 @@ import {
 } from "../../../tests/cssModule";
 
 import RelatedEntries from "./RelatedEntries";
+import styles from "./RelatedEntries.module.css";
 
 const entry = (over: Record<string, unknown> = {}) => ({
   _id: "x",
@@ -411,5 +412,99 @@ describe("the label's ink travels via the color prop, not CSS", () => {
       expect(rule.has("line-clamp")).toBe(false);
       expect(rule.has("-webkit-line-clamp")).toBe(false);
     }
+  });
+});
+
+describe("RelatedEntries — adversarial QA: the draft shapes the schema does NOT forbid", () => {
+  // The fallback comment justifies `||` with "a cleared field serialises to ''". Three shapes
+  // slip past that: a whitespace-only title (Sanity's string presence validator is a bare falsy
+  // check with no trim — `flag === "required" && !value`, sanity 6.4.0 — so it PUBLISHES clean),
+  // a whitespace-only summary (`summary` has no `required()` at all), and a whitespace-only
+  // `slug.current` (its CSS-safety regex is publish validation only, never applied to a draft).
+  // Draft Mode renders drafts unvalidated (`sanityFetch` -> `perspective: "drafts"`).
+  it("names the link with the neutral fallback for a whitespace-only title", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[entry({ _id: "a", title: "   ", slug: "spaced" })]}
+        backlinks={null}
+      />,
+    );
+    expect(screen.getByRole("link").textContent?.trim()).not.toBe("");
+  });
+
+  it("omits the summary paragraph for a whitespace-only summary", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[
+          entry({ _id: "a", title: "Spaced", slug: "s", summary: "   " }),
+        ]}
+        backlinks={null}
+      />,
+    );
+    // The kind readout is the row's only <p> when no summary is visible; a blank-but-spaced
+    // field must not add a second, clamped, empty one.
+    expect(screen.getByRole("listitem").querySelectorAll("p")).toHaveLength(1);
+  });
+
+  it("renders a whitespace-only slug as plain text — never href='/   '", () => {
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[entry({ _id: "a", title: "Padded", slug: "   " })]}
+        backlinks={null}
+      />,
+    );
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("names the link when a cleared title arrives stega-encoded from Draft Mode", () => {
+    // `@sanity/client`'s stega encoder appends a payload of U+200B / U+200C / U+200D / U+FEFF
+    // to every prose string it maps and applies NO minimum-length guard, so a cleared "" comes
+    // back truthy — invisible characters only. `title` is not on the repo's stega denylist
+    // (`src/sanity/lib/stega.ts`), so this is the real Presentation / Visual Editing shape.
+    const stegaEncodedEmpty =
+      "\u200B\u200B\u200B\u200B" + "\u200C\u200D\uFEFF\u200B";
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[entry({ _id: "a", title: stegaEncodedEmpty, slug: "s" })]}
+        backlinks={null}
+      />,
+    );
+    const announced = (screen.getByRole("link").textContent ?? "")
+      .replace(/[\u200B\u200C\u200D\uFEFF]/gu, "")
+      .trim();
+    expect(announced).not.toBe("");
+  });
+});
+
+describe("RelatedEntries — adversarial QA: the clamp reaches the summary, not the title", () => {
+  it("puts the clamp class on the summary paragraph and nowhere else in the row", () => {
+    // The CSS-source pins below prove the RULE exists; nothing pinned that the component still
+    // APPLIES it after the class was renamed `.teaserClamp` -> `.summary` and moved from the
+    // deleted teaser's wrapper onto the Text primitive. A stale reference is `undefined` in the
+    // className join and silently ships an unclamped row.
+    render(
+      <RelatedEntries
+        currentId="self"
+        related={[
+          entry({
+            _id: "a",
+            title: "Clamped",
+            slug: "c",
+            summary: "A summary long enough to want trimming.",
+          }),
+        ]}
+        backlinks={null}
+      />,
+    );
+    const summary = screen.getByText("A summary long enough to want trimming.");
+    expect(styles.summary).toBeTruthy();
+    expect(summary).toHaveClass(styles.summary);
+    expect(screen.getByRole("heading", { level: 3 })).not.toHaveClass(
+      styles.summary,
+    );
   });
 });
